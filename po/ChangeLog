@@ -1,0 +1,14 @@
+2007-08-07  Darren Kenny  <darren.kenny@sun.com>
+
+	* Makefile.in.in:
+
+2007-07-02  Darren Kenny  <darren.kenny@sun.com>
+
+	* POTFILES.in:
+	  Add yet more files that have localizations in them.
+
+2007-05-28  Darren Kenny  <darren.kenny@sun.com>
+
+	* POTFILES.in:
+	  Add more files to the list for localization.
+

@@ -1,0 +1,22 @@
+# List of source files containing translatable strings.
+
+capplet/callbacks.c
+capplet/main.c
+capplet/nwam-manager-properties.glade
+capplet/nwam_conn_conf_ip_panel.c
+capplet/nwam_conn_stat_panel.c
+capplet/nwam_glade.c
+capplet/nwam_pref_dialog.c
+capplet/nwam_wireless_dialog.c
+common/libnwamui.c
+common/nwamui_ncp.c
+common/nwamui_ncu.c
+common/nwamui_daemon.c
+common/nwamui_wifi_net.c
+daemon/main.c
+daemon/notify.c
+daemon/nwam-manager-daemon.glade
+daemon/nwam-manager.schemas.in
+daemon/nwam-menu.c
+daemon/nwam-menuitem.c
+daemon/status_icon.c

@@ -1,0 +1,127 @@
+AC_PREREQ(2.54)
+AC_INIT([nwam-manager], [0.1], [null])
+
+AC_CONFIG_SRCDIR([daemon])
+
+AM_INIT_AUTOMAKE
+AM_CONFIG_HEADER(config.h)
+AM_MAINTAINER_MODE
+
+dnl make sure we keep ACLOCAL_FLAGS around for maintainer builds to work
+AC_SUBST(ACLOCAL_AMFLAGS, "\${ACLOCAL_FLAGS}")
+
+dnl
+dnl Check for C Compiler
+dnl
+AC_PROG_CC
+AC_PROG_CPP
+AC_LANG_C
+
+AC_ISC_POSIX
+AC_HEADER_STDC
+AM_DISABLE_STATIC
+AM_PROG_LIBTOOL
+
+AC_TYPE_SIGNAL
+
+dnl
+dnl Warning flags
+dnl
+CFLAGS_WARNINGS="-Wall -Wmissing-prototypes -Wmissing-declarations -Wparentheses -Wpointer-arith"
+CXXFLAGS_WARNINGS="-Wall -Wparentheses -Wpointer-arith"
+
+if test "x$GCC" = x; then
+    CFLAGS_WARNINGS=""
+    CXXFLAGS_WARNINGS=""
+fi
+
+AM_CFLAGS="$AM_CFLAGS $CFLAGS_WARNINGS"
+AM_CXXFLAGS="$AM_CXXFLAGS $CXXFLAGS_WARNINGS"
+
+dnl
+dnl Enable debugging mode
+dnl
+AC_ARG_ENABLE(debug,
+  [  --enable-debug           Enable debug messages],
+  AM_CFLAGS="$AM_CFLAGS -DDEBUG"
+  AM_CXXFLAGS="$AM_CXXFLAGS -DDEBUG")
+AC_SUBST(AM_CFLAGS)
+AC_SUBST(AM_CXXFLAGS)
+
+dnl
+dnl Check for pkgconfig
+dnl
+AC_PATH_PROG(PKG_CONFIG, pkg-config,no)
+if test x$PKG_CONFIG = xno; then
+  AC_MSG_ERROR(Please install the pkg-config package from http://www.freedesktop.org/software/pkgconfig/)
+fi
+
+dnl
+dnl Internatinalization
+dnl
+dnl Set ALL_LINGUAS when a translation is added
+ALL_LINGUAS=""
+GETTEXT_PACKAGE=nwam-manager
+AC_SUBST(GETTEXT_PACKAGE)
+AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
+AM_GLIB_GNU_GETTEXT
+IT_PROG_INTLTOOL([0.35.0])
+
+PKG_CHECK_MODULES(NWAM_MANAGER, libgnomeui-2.0 >= 2.1.5 glib-2.0 gconf-2.0 libglade-2.0 gtk+-2.0 >= 2.6.0)
+AC_SUBST(NWAM_MANAGER_CFLAGS)
+AC_SUBST(NWAM_MANAGER_LIBS)
+
+dnl
+dnl Check for libnotify support
+dnl
+AC_MSG_CHECKING([checking for libnotify support])
+PKG_CHECK_MODULES(LIBNOTIFY, libnotify >= 0.3.0,
+                  HAVE_LIBNOTIFY="yes", HAVE_LIBNOTIFY="no")
+
+if test "x$HAVE_LIBNOTIFY" = "xyes"; then
+        AC_DEFINE(HAVE_LIBNOTIFY, 1, [libnotify available])
+	AC_SUBST(LIBNOTIFY_CFLAGS)
+	AC_SUBST(LIBNOTIFY_LIBS)
+        AC_MSG_RESULT(available)
+else
+        AC_MSG_RESULT(no)
+fi
+
+
+dnl
+dnl gconf checks
+dnl
+AC_PATH_PROG(GCONFTOOL, gconftool-2, no)
+
+if test x"$GCONFTOOL" = xno; then
+  AC_MSG_ERROR([gconftool-2 executable not found in your path - should be installed with GConf])
+fi
+
+AM_GCONF_SOURCE_2
+
+dnl
+dnl NWAM checks 
+dnl TODO - Enable this when libnwam is available
+dnl
+dnl AC_CHECK_LIB(nwam, XXXxxx,
+dnl              [NWAM_LIBS=-lnwam
+dnl              AC_DEFINE(HAVE_NWAM,1,[Define to 1 if the libnwam library is present.])],
+dnl              [AC_MSG_ERROR([[
+dnl ***
+dnl *** libnwam was not found. 
+dnl ***
+dnl ]])])
+dnl AC_SUBST(NWAM_LIBS)
+
+
+AC_CONFIG_FILES([
+Makefile
+common/Makefile
+daemon/Makefile
+capplet/Makefile
+pixmaps/Makefile
+po/Makefile.in
+])
+
+AC_OUTPUT([
+])

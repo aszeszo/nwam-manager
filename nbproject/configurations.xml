@@ -1,0 +1,510 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configurationDescriptor version="35">
+  <logicalFolder name="root" displayName="root" projectFiles="true">
+    <logicalFolder name="nwam-manager"
+                   displayName="nwam-manager"
+                   projectFiles="true">
+      <logicalFolder name="daemon" displayName="daemon" projectFiles="true">
+        <itemPath>daemon/main.c</itemPath>
+        <itemPath>daemon/notify.h</itemPath>
+        <itemPath>daemon/notify.c</itemPath>
+        <itemPath>daemon/nwam-action.c</itemPath>
+        <itemPath>daemon/nwam-action.h</itemPath>
+        <itemPath>daemon/nwam-menu.c</itemPath>
+        <itemPath>daemon/nwam-menu.h</itemPath>
+        <itemPath>daemon/nwam-menuitem.c</itemPath>
+        <itemPath>daemon/nwam-menuitem.h</itemPath>
+        <itemPath>daemon/status_icon.c</itemPath>
+        <itemPath>daemon/status_icon.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="capplet" displayName="capplet" projectFiles="true">
+        <itemPath>capplet/main.c</itemPath>
+        <itemPath>capplet/nwam_conn_conf_ip_panel.h</itemPath>
+        <itemPath>capplet/nwam_conn_conf_ip_panel.c</itemPath>
+        <itemPath>capplet/nwam_conn_stat_panel.h</itemPath>
+        <itemPath>capplet/nwam_conn_stat_panel.c</itemPath>
+        <itemPath>capplet/nwam_env_pref_dialog.h</itemPath>
+        <itemPath>capplet/nwam_env_pref_dialog.c</itemPath>
+        <itemPath>capplet/nwam_env_svc.h</itemPath>
+        <itemPath>capplet/nwam_env_svc.c</itemPath>
+        <itemPath>capplet/nwam_net_conf_panel.h</itemPath>
+        <itemPath>capplet/nwam_net_conf_panel.c</itemPath>
+        <itemPath>capplet/nwam_pref_dialog.h</itemPath>
+        <itemPath>capplet/nwam_pref_dialog.c</itemPath>
+        <itemPath>capplet/nwam_pref_iface.h</itemPath>
+        <itemPath>capplet/nwam_pref_iface.c</itemPath>
+        <itemPath>capplet/nwam_vpn_pref_dialog.h</itemPath>
+        <itemPath>capplet/nwam_vpn_pref_dialog.c</itemPath>
+        <itemPath>capplet/nwam_wireless_dialog.c</itemPath>
+        <itemPath>capplet/nwam_wireless_dialog.h</itemPath>
+      </logicalFolder>
+      <logicalFolder name="New Folder 1" displayName="common" projectFiles="true">
+        <itemPath>common/libnwamui.c</itemPath>
+        <itemPath>common/libnwamui.h</itemPath>
+        <itemPath>common/nwam_ui_icons.c</itemPath>
+        <itemPath>common/nwam_ui_icons.h</itemPath>
+        <itemPath>common/nwamui_daemon.c</itemPath>
+        <itemPath>common/nwamui_daemon.h</itemPath>
+        <itemPath>common/nwamui_enm.c</itemPath>
+        <itemPath>common/nwamui_enm.h</itemPath>
+        <itemPath>common/nwamui_env.c</itemPath>
+        <itemPath>common/nwamui_env.h</itemPath>
+        <itemPath>common/nwamui_ncp.c</itemPath>
+        <itemPath>common/nwamui_ncp.h</itemPath>
+        <itemPath>common/nwamui_ncu.c</itemPath>
+        <itemPath>common/nwamui_ncu.h</itemPath>
+        <itemPath>common/nwamui_wifi_net.c</itemPath>
+        <itemPath>common/nwamui_wifi_net.h</itemPath>
+      </logicalFolder>
+      <itemPath>config.h</itemPath>
+    </logicalFolder>
+    <logicalFolder name="ExternalFiles"
+                   displayName="Important Files"
+                   projectFiles="false">
+      <itemPath>Makefile</itemPath>
+      <itemPath>nwam-manager-Makefile.mk</itemPath>
+    </logicalFolder>
+  </logicalFolder>
+  <projectmakefile>nwam-manager-Makefile.mk</projectmakefile>
+  <defaultConf>0</defaultConf>
+  <confs>
+    <conf name="capplet" type="0">
+      <toolsSet>
+        <compilerSet>Sun11</compilerSet>
+        <cRequired>true</cRequired>
+        <cppRequired>true</cppRequired>
+        <fortranRequired>false</fortranRequired>
+        <platform>1</platform>
+      </toolsSet>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>.</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath>capplet/nwam-manager-properties</executablePath>
+          <cCompilerTool>
+            <includeDirectories>
+              <directoryPath>/usr/include</directoryPath>
+              <directoryPath>/usr/include/atk-1.0</directoryPath>
+              <directoryPath>/usr/include/bonobo-activation-2.0</directoryPath>
+              <directoryPath>/usr/include/cairo</directoryPath>
+              <directoryPath>/usr/include/glib-2.0</directoryPath>
+              <directoryPath>/usr/include/gnome-keyring-1</directoryPath>
+              <directoryPath>/usr/include/gnome-vfs-2.0</directoryPath>
+              <directoryPath>/usr/include/gtk-2.0</directoryPath>
+              <directoryPath>/usr/include/libart-2.0</directoryPath>
+              <directoryPath>/usr/include/libbonobo-2.0</directoryPath>
+              <directoryPath>/usr/include/libbonoboui-2.0</directoryPath>
+              <directoryPath>/usr/include/libgksu1.2</directoryPath>
+              <directoryPath>/usr/include/libgksuui1.0</directoryPath>
+              <directoryPath>/usr/include/libglade-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnome-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnomecanvas-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnomeui-2.0</directoryPath>
+              <directoryPath>/usr/include/libpng12</directoryPath>
+              <directoryPath>/usr/include/libxml2</directoryPath>
+              <directoryPath>/usr/include/nautilus</directoryPath>
+              <directoryPath>/usr/include/orbit-2.0</directoryPath>
+              <directoryPath>/usr/include/pango-1.0</directoryPath>
+              <directoryPath>/usr/include/libnotify</directoryPath>
+              <directoryPath>/usr/lib/glib-2.0/include</directoryPath>
+              <directoryPath>/usr/lib/gtk-2.0/include</directoryPath>
+              <directoryPath>/usr/sfw/include</directoryPath>
+              <directoryPath>common</directoryPath>
+            </includeDirectories>
+            <preprocessor>ORBIT2=1 _PTHREADS _REENTRANT</preprocessor>
+          </cCompilerTool>
+          <ccCompilerTool>
+            <includeDirectories>
+              <directoryPath>/usr/include</directoryPath>
+              <directoryPath>/usr/include/atk-1.0</directoryPath>
+              <directoryPath>/usr/include/bonobo-activation-2.0</directoryPath>
+              <directoryPath>/usr/include/cairo</directoryPath>
+              <directoryPath>/usr/include/glib-2.0</directoryPath>
+              <directoryPath>/usr/include/gnome-keyring-1</directoryPath>
+              <directoryPath>/usr/include/gnome-vfs-2.0</directoryPath>
+              <directoryPath>/usr/include/gtk-2.0</directoryPath>
+              <directoryPath>/usr/include/libart-2.0</directoryPath>
+              <directoryPath>/usr/include/libbonobo-2.0</directoryPath>
+              <directoryPath>/usr/include/libbonoboui-2.0</directoryPath>
+              <directoryPath>/usr/include/libgksu1.2</directoryPath>
+              <directoryPath>/usr/include/libgksuui1.0</directoryPath>
+              <directoryPath>/usr/include/libglade-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnome-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnomecanvas-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnomeui-2.0</directoryPath>
+              <directoryPath>/usr/include/libpng12</directoryPath>
+              <directoryPath>/usr/include/libxml2</directoryPath>
+              <directoryPath>/usr/include/nautilus</directoryPath>
+              <directoryPath>/usr/include/orbit-2.0</directoryPath>
+              <directoryPath>/usr/include/pango-1.0</directoryPath>
+              <directoryPath>/usr/include/libnotify</directoryPath>
+              <directoryPath>/usr/sfw/include</directoryPath>
+            </includeDirectories>
+            <preprocessor>ORBIT2=1 _PTHREADS _REENTRANT</preprocessor>
+          </ccCompilerTool>
+        </makeTool>
+      </makefileType>
+      <item path="capplet/main.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_conn_conf_ip_panel.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_conn_conf_ip_panel.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_conn_stat_panel.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_conn_stat_panel.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_env_pref_dialog.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_env_pref_dialog.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_env_svc.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_env_svc.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_net_conf_panel.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_net_conf_panel.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_pref_dialog.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_pref_dialog.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_pref_iface.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_pref_iface.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_vpn_pref_dialog.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_vpn_pref_dialog.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_wireless_dialog.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_wireless_dialog.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/libnwamui.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/libnwamui.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwam_ui_icons.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwam_ui_icons.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_daemon.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_daemon.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_enm.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_enm.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_env.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_env.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_ncp.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_ncp.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_ncu.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_ncu.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_wifi_net.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_wifi_net.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="config.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="daemon/main.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/notify.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/notify.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="daemon/nwam-action.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/nwam-action.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="daemon/nwam-menu.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/nwam-menu.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="daemon/nwam-menuitem.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/nwam-menuitem.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="daemon/status_icon.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/status_icon.h">
+        <itemTool>3</itemTool>
+      </item>
+    </conf>
+    <conf name="daemon" type="0">
+      <toolsSet>
+        <compilerSet>Sun11</compilerSet>
+        <cRequired>true</cRequired>
+        <cppRequired>true</cppRequired>
+        <fortranRequired>false</fortranRequired>
+        <platform>1</platform>
+      </toolsSet>
+      <makefileType>
+        <makeTool>
+          <buildCommandWorkingDir>.</buildCommandWorkingDir>
+          <buildCommand>${MAKE} -f Makefile</buildCommand>
+          <cleanCommand>${MAKE} -f Makefile clean</cleanCommand>
+          <executablePath>daemon/nwam-manager-daemon</executablePath>
+          <cCompilerTool>
+            <includeDirectories>
+              <directoryPath>/usr/include</directoryPath>
+              <directoryPath>/usr/include/atk-1.0</directoryPath>
+              <directoryPath>/usr/include/bonobo-activation-2.0</directoryPath>
+              <directoryPath>/usr/include/cairo</directoryPath>
+              <directoryPath>/usr/include/glib-2.0</directoryPath>
+              <directoryPath>/usr/include/gnome-keyring-1</directoryPath>
+              <directoryPath>/usr/include/gnome-vfs-2.0</directoryPath>
+              <directoryPath>/usr/include/gtk-2.0</directoryPath>
+              <directoryPath>/usr/include/libart-2.0</directoryPath>
+              <directoryPath>/usr/include/libbonobo-2.0</directoryPath>
+              <directoryPath>/usr/include/libbonoboui-2.0</directoryPath>
+              <directoryPath>/usr/include/libgksu1.2</directoryPath>
+              <directoryPath>/usr/include/libgksuui1.0</directoryPath>
+              <directoryPath>/usr/include/libglade-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnome-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnomecanvas-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnomeui-2.0</directoryPath>
+              <directoryPath>/usr/include/libpng12</directoryPath>
+              <directoryPath>/usr/include/libxml2</directoryPath>
+              <directoryPath>/usr/include/nautilus</directoryPath>
+              <directoryPath>/usr/include/orbit-2.0</directoryPath>
+              <directoryPath>/usr/include/pango-1.0</directoryPath>
+              <directoryPath>/usr/include/libnotify</directoryPath>
+              <directoryPath>/usr/lib/glib-2.0/include</directoryPath>
+              <directoryPath>/usr/lib/gtk-2.0/include</directoryPath>
+              <directoryPath>/usr/sfw/include</directoryPath>
+              <directoryPath>common</directoryPath>
+            </includeDirectories>
+            <preprocessor>ORBIT2=1 _PTHREADS _REENTRANT</preprocessor>
+          </cCompilerTool>
+          <ccCompilerTool>
+            <includeDirectories>
+              <directoryPath>/usr/include</directoryPath>
+              <directoryPath>/usr/include/atk-1.0</directoryPath>
+              <directoryPath>/usr/include/bonobo-activation-2.0</directoryPath>
+              <directoryPath>/usr/include/cairo</directoryPath>
+              <directoryPath>/usr/include/glib-2.0</directoryPath>
+              <directoryPath>/usr/include/gnome-keyring-1</directoryPath>
+              <directoryPath>/usr/include/gnome-vfs-2.0</directoryPath>
+              <directoryPath>/usr/include/gtk-2.0</directoryPath>
+              <directoryPath>/usr/include/libart-2.0</directoryPath>
+              <directoryPath>/usr/include/libbonobo-2.0</directoryPath>
+              <directoryPath>/usr/include/libbonoboui-2.0</directoryPath>
+              <directoryPath>/usr/include/libgksu1.2</directoryPath>
+              <directoryPath>/usr/include/libgksuui1.0</directoryPath>
+              <directoryPath>/usr/include/libglade-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnome-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnomecanvas-2.0</directoryPath>
+              <directoryPath>/usr/include/libgnomeui-2.0</directoryPath>
+              <directoryPath>/usr/include/libpng12</directoryPath>
+              <directoryPath>/usr/include/libxml2</directoryPath>
+              <directoryPath>/usr/include/nautilus</directoryPath>
+              <directoryPath>/usr/include/orbit-2.0</directoryPath>
+              <directoryPath>/usr/include/pango-1.0</directoryPath>
+              <directoryPath>/usr/include/libnotify</directoryPath>
+              <directoryPath>/usr/sfw/include</directoryPath>
+            </includeDirectories>
+            <preprocessor>ORBIT2=1 _PTHREADS _REENTRANT</preprocessor>
+          </ccCompilerTool>
+        </makeTool>
+      </makefileType>
+      <item path="capplet/main.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_conn_conf_ip_panel.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_conn_conf_ip_panel.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_conn_stat_panel.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_conn_stat_panel.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_env_pref_dialog.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_env_pref_dialog.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_env_svc.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_env_svc.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_net_conf_panel.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_net_conf_panel.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_pref_dialog.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_pref_dialog.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_pref_iface.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_pref_iface.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_vpn_pref_dialog.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_vpn_pref_dialog.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="capplet/nwam_wireless_dialog.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="capplet/nwam_wireless_dialog.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/libnwamui.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/libnwamui.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwam_ui_icons.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwam_ui_icons.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_daemon.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_daemon.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_enm.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_enm.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_env.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_env.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_ncp.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_ncp.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_ncu.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_ncu.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="common/nwamui_wifi_net.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="common/nwamui_wifi_net.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="config.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="daemon/main.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/notify.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/notify.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="daemon/nwam-action.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/nwam-action.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="daemon/nwam-menu.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/nwam-menu.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="daemon/nwam-menuitem.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/nwam-menuitem.h">
+        <itemTool>3</itemTool>
+      </item>
+      <item path="daemon/status_icon.c">
+        <itemTool>0</itemTool>
+      </item>
+      <item path="daemon/status_icon.h">
+        <itemTool>3</itemTool>
+      </item>
+    </conf>
+  </confs>
+</configurationDescriptor>

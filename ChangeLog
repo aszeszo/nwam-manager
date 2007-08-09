@@ -1,0 +1,1015 @@
+2007-08-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/main.c: (get_state), (on_trigger_network_changed), (main):
+	Added a callback for signal "active_env_changed" of nwam daemon to
+	recontruct tooltip. Need further work.
+	* daemon/notify.c: (nwam_notification_show_message): No change.
+	* daemon/nwam-menu.c: (on_activate_env),
+	(nwam_menu_menuitem_postfix), (nwam_menu_create_env_menuitems):
+	* nbproject/configurations.xml: Support switch env on menu.
+
+2007-08-08  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/nwam-menu.c: (nwam_menu_menuitem_postfix):
+	* pixmaps/Makefile.am:
+	* pixmaps/wireless-fragile.png:
+	Add a transparent icon to fix menuitem alignment problem.
+
+2007-08-07  Darren Kenny  <darren.kenny@sun.com>
+
+	* Makefile.am, capplet/Makefile.am,
+	 capplet/nwam-manager-properties.glade,
+	 common/Makefile.am, daemon/Makefile.am,
+	 daemon/nwam-manager-daemon.glade, pixmaps/Makefile.am:
+	 Add CDDL Header
+
+2007-08-07  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/main.c, capplet/nwam_conn_conf_ip_panel.c,
+	 capplet/nwam_conn_conf_ip_panel.h, capplet/nwam_conn_stat_panel.c,
+	 capplet/nwam_conn_stat_panel.h, capplet/nwam_env_pref_dialog.c,
+	 capplet/nwam_env_pref_dialog.h, capplet/nwam_env_svc.c,
+	 capplet/nwam_env_svc.h, capplet/nwam_net_conf_panel.c,
+	 capplet/nwam_net_conf_panel.h, capplet/nwam_pref_dialog.c,
+	 capplet/nwam_pref_dialog.h, capplet/nwam_pref_iface.c,
+	 capplet/nwam_pref_iface.h, capplet/nwam_vpn_pref_dialog.c,
+	 capplet/nwam_vpn_pref_dialog.h, capplet/nwam_wireless_dialog.c,
+	 capplet/nwam_wireless_dialog.h, common/libnwamui.c,
+	 common/libnwamui.h, common/nwam_ui_icons.c,
+	 common/nwam_ui_icons.h, common/nwamui_daemon.c,
+	 common/nwamui_daemon.h, common/nwamui_enm.c,
+	 common/nwamui_enm.h, common/nwamui_env.c,
+	 common/nwamui_env.h, common/nwamui_ncp.c,
+	 common/nwamui_ncp.h, common/nwamui_ncu.c,
+	 common/nwamui_ncu.h, common/nwamui_wifi_net.c,
+	 common/nwamui_wifi_net.h, daemon/main.c,
+	 daemon/notify.c, daemon/notify.h,
+	 daemon/nwam-action.c, daemon/nwam-action.h,
+	 daemon/nwam-menu.c, daemon/nwam-menu.h,
+	 daemon/nwam-menuitem.c, daemon/nwam-menuitem.h,
+	 daemon/status_icon.c, daemon/status_icon.h:
+	 Fix the CDDL to match that of ON.
+
+2007-08-07  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/Makefile.am, capplet/callbacks.c, capplet/callbacks.h:
+	  Remove unneeded file callbacks.c
+	* capplet/main.c, capplet/nwam_conn_conf_ip_panel.c,
+	  capplet/nwam_conn_conf_ip_panel.h, capplet/nwam_conn_stat_panel.c,
+	  capplet/nwam_conn_stat_panel.h, capplet/nwam_env_pref_dialog.c,
+	  capplet/nwam_env_pref_dialog.h, capplet/nwam_env_svc.c,
+	  capplet/nwam_env_svc.h, capplet/nwam_net_conf_panel.c,
+	  capplet/nwam_net_conf_panel.h, capplet/nwam_pref_dialog.c,
+	  capplet/nwam_pref_dialog.h, capplet/nwam_pref_iface.c,
+	  capplet/nwam_pref_iface.h, capplet/nwam_vpn_pref_dialog.c,
+	  capplet/nwam_vpn_pref_dialog.h, capplet/nwam_wireless_dialog.c,
+	  capplet/nwam_wireless_dialog.h, common/libnwamui.c,
+	  common/libnwamui.h, common/nwam_ui_icons.c,
+	  common/nwam_ui_icons.h, common/nwamui_daemon.c,
+	  common/nwamui_daemon.h, common/nwamui_enm.c,
+	  common/nwamui_enm.h, common/nwamui_env.c,
+	  common/nwamui_env.h, common/nwamui_ncp.c,
+	  common/nwamui_ncp.h, common/nwamui_ncu.c,
+	  common/nwamui_ncu.h, common/nwamui_wifi_net.c,
+	  common/nwamui_wifi_net.h, daemon/main.c,
+	  daemon/notify.c, daemon/notify.h,
+	  daemon/nwam-action.c, daemon/nwam-action.h,
+	  daemon/nwam-menu.c, daemon/nwam-menu.h,
+	  daemon/nwam-menuitem.c, daemon/nwam-menuitem.h,
+	  daemon/status_icon.c, daemon/status_icon.h:
+	  Add CDDL Headers and change emacs modeline to expand tabs and use 4 as
+	  the spacing. Also added vim modelne too do the same.
+
+2007-08-06  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c: (main): Add argument '-n' for VPN preference dialog.
+	* capplet/nwam_conn_conf_ip_panel.c: (multi_line_add_cb): autoselect
+	the new added item of tree.
+	* common/nwamui_daemon.c: (nwamui_daemon_enm_append),
+	(nwamui_daemon_enm_remove):
+	* common/nwamui_daemon.h:
+	Added append/remove for ENM.
+	* daemon/nwam-menu.c: (nwam_menu_init), (nwam_menu_upper_part),
+	(nwam_exec), (on_activate_pref), (nwam_menu_menuitem_postfix),
+	(nwam_menu_create_wifi_menuitems),
+	(nwam_menu_create_env_menuitems), (nwam_menu_create_vpn_menuitems):
+	Code for add VPN menuitems.
+	* nbproject/Makefile-capplet.mk:
+	* nbproject/Makefile-daemon.mk:
+
+2007-08-03  Darren Kenny  <darren.kenny@sun.com>
+
+	* INSTALL:
+	  Updated because of automake.
+	* SUNWnwam-manager.spec:
+	  Update spec file due to movement of file locations to 
+	  single root %{datadir}/nwam-manager
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Add some functionality to the wireless favourites buttons, and add
+	  drag 'n drop support to list.
+	* capplet/nwam_wireless_dialog.h, capplet/nwam_wireless_dialog.c:
+	  Add ability to get/set a NwamuiWifiNet object for the dialog to use as a
+	  source of it's data. Should be NULL unless you're editing, before
+	  calling the _run function.
+	  Update the validation slightly.
+	  Also allow for NULL pointers for text values (use empty string to set
+	  entries).
+	  Fix a bug w.r.t. the "show password" toggle, to show WPA Password too.
+	* common/nwam_ui_icons.h, common/nwam_ui_icons.c,
+	  common/libnwamui.h, common/libnwamui.c: 
+	  New utiliy function to show message dialog - nwamui_util_show_message.
+	  Update the icons functions to use the nwam_ui_icons functionality.
+	  Fix search paths to glade and icons to use XDG_DATA_DIRS functionality
+	  - this also helps for distributing as a relocatable tarball...
+	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
+	  Add ability to update the wifi_fav list.
+	* daemon/status_icon.c: 
+	  Fix reference to icon factory, since it's now a singleton.
+	* pixmaps/Makefile.am, pixmaps/network-idle.png,
+	  pixmaps/network-offline.png, pixmaps/network-wireless.png,
+	  pixmaps/wireless-strength-0-24.png, pixmaps/wireless-strength-25-49.png,
+	  pixmaps/wireless-strength-50-74.png, pixmaps/wireless-strength-75-100.png:
+	  Create private copy of pixmaps.
+	* nbproject/configurations.xml:
+	  Misc file updates.
+
+2007-08-03  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+	add meaningful names of some labels.
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_vpn_pref_dialog_init),
+	(nwam_vpn_pref_dialog_finalize), (nwam_compose_vpn_apps_view),
+	(nwam_vpn_add), (nwam_vpn_clear), (populate_panel),
+	(vpn_pref_clicked_cb), (nwam_vpn_cell_cb),
+	(nwam_vpn_cell_edited_cb), (nwam_vpn_selection_changed):
+	support all the buttons, but didn't finish commit a change of a VPN.
+
+2007-08-01  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/libnwamui.c, common/libnwamui.h:
+	  Move the glade functionality in to libnwamui.c since it was needed there
+	  to be able to add some dialog functionality.
+	  Provide two utility functions for dialogs: Ask Yes/No question and
+	  Rename Env Dialog (also re-used for New Env).
+	* capplet/nwam_glade.c, capplet/nwam_glade.h, capplet/Makefile.am:
+	  Remove the old glade functionality.
+	* common/Makefile.am:
+	  Add definition for gladedir to allow above to run correctly.
+	* capplet/nwam-manager-properties.glade:
+	  Change the rename_environment_dialog to be a toplevel dialog not a
+	  popup so that it got window decorations.
+	* capplet/nwam_conn_stat_panel.c:
+	  Update the environment button callback to accept the parent of the
+	  dialog as a parameter to the dialog and define modality.
+	* capplet/main.c, capplet/nwam_env_svc.c, capplet/nwam_net_conf_panel.c,
+	  capplet/nwam_pref_dialog.c, capplet/nwam_vpn_pref_dialog.c,
+	  capplet/nwam_wireless_dialog.c, capplet/nwam_conn_conf_ip_panel.c:
+	  Updates to use new glade function rather than old one.
+	* capplet/nwam_env_pref_dialog.c, capplet/nwam_env_pref_dialog.h:
+	  Updates to use new glade function rather than old one.
+	  Add parent param to the _run function. 
+	  Add some callbacks for proxy panel and env add/rename/dup/delete.
+	* common/nwamui_daemon.c, common/nwamui_daemon.h:
+	  Add support for ability to add/remove environments.
+	* common/nwamui_env.c: 
+	  Just adding a TODO comment.
+
+2007-08-01  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* SUNWnwam-manager.spec:
+	* nwam-manager.spec:
+	Spec files for nwam-manager.
+
+2007-08-01  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am:
+	* capplet/nwam_env_svc.c: (env_add_clicked_cb),
+	(env_rem_clicked_cb):
+	* common/Makefile.am:
+	* common/nwam_ui_icons.c: (nwam_ui_icons_init):
+	* daemon/Makefile.am:
+	* daemon/nwam-menu.c: (nwam_exec):
+	Basically fix some package bugs for adding SPEC files.
+
+2007-07-31  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_env.h, common/nwamui_env.c: 
+	  Add the ability to Set values, make an object unmodifiable. Daemon is
+	  only thing that knowns which env is active, so removed active prop from
+	  env.
+	* capplet/main.c:
+	  Update for removal of active property from env.
+	* capplet/nwam-manager-properties.glade:
+	  Provide some real names for some more widgets.
+	* capplet/nwam_env_pref_dialog.c: 
+	  Add some real functionality to the environment dialog.
+	* capplet/nwam_net_conf_panel.c: 
+	  Add some more functionality to the net conf panel, such as DnD for the
+	  ordering (not complete yet, but works visually), renaming of the NCU,
+	  etc.
+	* common/libnwamui.h, common/libnwamui.c: (nwamui_util_show_help):
+	  Provide a new utility function to show help - not used anywhere yet
+	  though...
+	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
+	  Add proper handling for the active environment, also provided a signal
+	  to reflect a change.
+	* common/nwamui_ncu.c: 
+	  Enable the renaming of the NCU.
+	* daemon/nwam-menu.c:
+	  Remove hard-coded path.
+	* nbproject/Makefile-capplet.mk, nbproject/Makefile-daemon.mk,
+	  nbproject/configurations.xml, nbproject/private/configurations.xml:
+	  Misc updates.
+
+2007-07-31  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am: added new files nwam_vpn_pref_dialog.c
+	* capplet/nwam_conn_conf_ip_panel.c:
+	(nwam_compose_multi_ip_tree_view): removed some useless code.
+	* capplet/nwam_conn_stat_panel.c: (vpn_clicked_cb):
+	* capplet/nwam_vpn_pref_dialog.c:
+	(nwam_vpn_pref_dialog_class_init), (nwam_vpn_pref_dialog_init),
+	(nwam_vpn_pref_dialog_finalize), (set_property), (get_property),
+	(nwam_compose_vpn_apps_view), (nwam_vpn_pref_dialog_new),
+	(nwam_vpn_pref_dialog_run), (object_notify_cb), (response_cb),
+	(vpn_pref_clicked_cb), (nwam_vpn_cell_cb),
+	(nwam_vpn_cell_edited_cb), (nwam_vpn_cell_comp_cb):
+	* capplet/nwam_vpn_pref_dialog.h: initial work for VPN panel
+	* daemon/Makefile.am: fix make dist error.
+	* nbproject/configurations.xml:
+
+2007-07-25  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c: (main): --add-wireless-dialog now accepts arg.
+	* capplet/nwam_conn_conf_ip_panel.c: (nwam_conf_ip_panel_init),
+	(nwam_multi_ip_clear), (renew_cb), (multi_line_add_cb),
+	(multi_line_del_cb):
+	Add some code for those callbacks.
+	* daemon/nwam-menu.c: (nwam_menu_init), (nwam_menu_lower_part),
+	(nwam_exec), (on_activate_addwireless), (on_activate_pref),
+	(nwam_menu_create_favorwifi_menuitems),
+	(nwam_menu_create_wifi_menuitems):
+	Add callback for add no-favourate wireless.
+	* daemon/status_icon.c: (animation_panel_icon_timeout),
+	(trigger_animation_panel_icon), (animation_panel_icon_init),
+	(status_icon_activate_cb), (get_status_icon):
+	Some code for gconf notification and animation.
+	* nbproject/Makefile-capplet.mk:
+	* nbproject/Makefile-daemon.mk:
+	* nbproject/Makefile-impl.mk:
+	* nbproject/configurations.xml:
+	* nbproject/private/configurations.xml:
+
+2007-07-25  Darren Kenny  <darren.kenny@sun.com>
+	* capplet/nwam-manager-properties.glade:
+	  Update the glade file with some proper names for the environment
+	  entries. Also set Socks default to 1080 rather than 80.
+
+2007-07-24  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c:
+	* daemon/nwam-menu.c: (nwam_menu_upper_part),
+	(nwam_menu_lower_part), (nwam_exec), (on_activate_pref),
+	(nwam_menu_add_nwammenuitem),
+	(nwam_menu_create_favorwifi_menuitems),
+	(nwam_menu_create_wifi_menuitems):
+	add no-fav wifi to two places.
+	Note that the path of nwam-manager-properties is hard coding in the
+	beginning of nwam-menu.c
+
+2007-07-23  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/main.c: (activate_cb):
+	added callback to left-click the status icon.
+	* daemon/nwam-menu.c: (nwam_menu_init), (nwam_menu_finalize),
+	(nwam_menu_recreate_menuitems), (nwam_menu_upper_part),
+	(nwam_exec), (on_activate_envpref), (on_activate_netpref),
+	(nwam_menu_add_nwammenuitem), (nwam_menu_add_menuitem),
+	(nwam_menu_add_radiomenuitem),
+	(nwam_menu_create_favorwifi_menuitems),
+	(nwam_menu_create_wifi_menuitems),
+	(nwam_menu_create_env_menuitems), (nwam_menu_get_statusicon_menu):
+	* daemon/nwam-menu.h:
+	add signal callback for scan-wifi.
+
+2007-07-23  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_pref_dialog.c: (show_changed_cb):
+	Merged, removed code for the seperator of show_combo.
+
+2007-07-23  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/Makefile.am:
+	  Add new source files for conf_panel.
+	* capplet/nwam_net_conf_panel.h, capplet/nwam_net_conf_panel.c: 
+	  Implement support for the network configuration panel.
+	* capplet/nwam-manager-properties.glade:
+	  Give some useful names to the buttons on the wireless tab.
+	* capplet/nwam_conn_conf_ip_panel.h, capplet/nwam_conn_conf_ip_panel.c: 
+	  Populate the wireless favourites and add some handlers for the pressing
+	  of the wireless buttons.
+	* capplet/nwam_conn_stat_panel.h, capplet/nwam_conn_stat_panel.c: 
+	  Update the connection status table, and also add status information to
+	  for the env and vpn. Add launcher for the environment dialog.
+	* capplet/nwam_env_pref_dialog.h, capplet/nwam_env_pref_dialog.c: 
+	  Start to populate the env_pref dialog, still needs more work.
+	  Add the ability to make it modal, and also fix some issues in the
+	  _run function.
+	* capplet/nwam_pref_dialog.c, capplet/nwam_pref_dialog.h:
+	  Merge changes made by Lin and myself to make this functional.
+	* capplet/nwam_pref_iface.h, capplet/nwam_pref_iface.c:
+	  Fix a minor issue in the refresh function.
+	* capplet/nwam_wireless_dialog.c:
+	  Fix an issue in the _run function.
+	* common/libnwamui.h, common/libnwamui.c: 
+	  Provide functions to get Signal Strength Icon and Status Icon and the
+	  "short" string description of an APs encryption.
+	* common/nwamui_daemon.c: 
+	  Fix an unnecessary unref that was causing a crash.
+	* common/nwamui_env.c: 
+	  Add an assertion in the env_finalise, since it really should not be
+	  reached (at least not for now, may need to change later).
+	* common/nwamui_ncp.c: 
+	  Add speed and mode information to wifi networks.
+	* common/nwamui_ncu.c, common/nwamui_ncu.h:
+	  Fix the name (ncp should be ncu!) on some functions. Also ass shortcut
+	  function to get signal strength info from wireless network.
+	* common/nwamui_wifi_net.c, common/nwamui_wifi_net.h:
+	  Add speed and mode information to the wifi networks.
+
+2007-07-11  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c: (nwam_pref_init),
+	(nwam_conf_ip_panel_init), (refresh):
+	A little to refresh the panel according to passed NCU.
+	* capplet/nwam_conn_stat_panel.c: (conn_view_row_activated_cb):
+	* capplet/nwam_pref_dialog.c: (nwam_capplet_dialog_init),
+	(nwam_capplet_dialog_new), (nwam_capplet_dialog_finalize),
+	(show_changed_cb), (show_combo_cell_cb), (show_combo_separator_cb),
+	(show_comob_add), (change_show_comob_model),
+	(update_show_combo_from_ncp),
+	(nwam_capplet_dialog_select_connection):
+	* capplet/nwam_pref_dialog.h:
+	Change the combo box of pref dialog to be a custom combo, record the
+	object of NCUs rather than the display name. So when user double click
+	the tree view of conn_stat_panel, we can pass the same object to pref
+	dialog to choose it.
+
+2007-07-10  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c:
+	(nwam_conf_ip_panel_class_init), (nwam_conf_ip_panel_finalize):
+	* capplet/nwam_conn_stat_panel.c:
+	(nwam_connstatus_panel_class_init),
+	(nwam_connstatus_panel_finalize):
+	* capplet/nwam_env_pref_dialog.c:
+	(nwam_env_pref_dialog_class_init), (nwam_env_pref_dialog_finalize):
+	* capplet/nwam_env_svc.c: (nwam_env_svc_class_init),
+	(nwam_env_svc_finalize):
+	* capplet/nwam_pref_dialog.c: (nwam_capplet_dialog_class_init),
+	(nwam_capplet_dialog_finalize):
+	* common/nwam_ui_icons.c: (nwam_ui_icons_finalize):
+	Remove all duplicate parent_class from above panel objects.
+
+2007-07-10  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwam_ui_icons.c: (nwam_ui_icons_load): Fix mem corruption.
+	* common/nwamui_daemon.c: (nwamui_daemon_init),
+	(nwamui_daemon_get_active_env_name),
+	(nwamui_daemon_get_active_env): return value should do type cast on the
+	data of the list stucture.
+	* daemon/Makefile.am: Add new files.
+	* daemon/main.c: (main): Add code for statusicon menu.
+	* daemon/nwam-action.c: (nwam_action_class_init),
+	(nwam_action_init), (nwam_action_new), (create_menu_item),
+	(connect_proxy), (disconnect_proxy):
+	* daemon/nwam-action.h: New gtkobject for gtk ui manager usage.
+	* daemon/nwam-menu.c: (nwam_menu_class_init), (nwam_menu_init),
+	(nwam_menu_finalize), (nwam_menu_upper_part),
+	(nwam_menu_lower_part), (on_activate_addwireless),
+	(on_activate_createwireless), (on_activate_editenv),
+	(on_activate_pref), (nwam_menu_add_nwammenuitem),
+	(nwam_menu_add_menuitem), (nwam_menu_add_radiomenuitem),
+	(nwam_menu_remove_merge_id), (nwam_menu_menuitem_postfix),
+	(nwam_menu_create_favorwifi_menuitems),
+	(nwam_menu_create_wifi_menuitems),
+	(nwam_menu_create_env_menuitems), (get_nwam_menu_instance),
+	(nwam_menu_get_statusicon_menu), (get_status_icon_menu):
+	Changes for creating the popup menu of the statusicon.
+	* daemon/nwam-menu.h:
+	* daemon/nwam-menuitem.c: (nwam_menu_item_class_init),
+	(nwam_menu_item_init), (nwam_menu_item_set_property),
+	(nwam_menu_item_get_property), (nwam_menu_item_forall),
+	(nwam_menu_item_set_widget), (nwam_menu_item_get_widget),
+	(nwam_menu_item_finalize), (nwam_menu_item_draw_indicator):
+	* daemon/nwam-menuitem.h:
+	Updated due to nwam-action and GUI v1.4 changes.
+	* daemon/status_icon.c: (status_icon_show_menu):
+	Updated according to the new code.
+
+2007-07-09  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/libnwamui.h, common/libnwamui.c: 
+	  (nwamui_util_free_obj_list):
+	  Add new function to simplify freeing of a GList of GObjects.
+	* common/nwamui_ncp.h, common/nwamui_ncp.c: 
+	  (nwamui_ncp_foreach_ncu):
+	  Add a new function to "walk" each ncu in the NCP and do something with
+	  it.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  (nwamui_ncu_get_display_name):
+	  Function to generate a display name in the format "vanity (dev)"
+	* capplet/main.c: (main):
+	  Change the startup order of things. To see "All Widgets" in the glade
+	  file, you need to use the "-a" option now.
+	  Now this will automatically run the NWAM Preferences Dialog by default.
+	* capplet/nwam_conn_conf_ip_panel.h, capplet/nwam_conn_conf_ip_panel.c: 
+	  (nwam_conf_ip_panel_init):
+	  Update init function to look at current widget set.
+	* capplet/nwam_conn_stat_panel.h, capplet/nwam_conn_stat_panel.c: 
+	  (nwam_compose_tree_view), (nwam_connstatus_panel_init),
+	  (add_ncu_element), (nwam_connstatus_panel_new), (nwam_conn_add),
+	  (nwam_conn_update_status_cell_cb):
+	  Start to link this panel object with the NCP/NCU.
+	* capplet/nwam_glade.c: (nwam_glade_get_widget):
+	  Have the function report any widgets it fails to get, not just assert.
+	* capplet/nwam_pref_dialog.c: 
+	  (nwam_capplet_dialog_init), (nwam_capplet_dialog_finalize),
+	  (refresh_clicked_cb), (change_show_comob_model),
+	  (update_show_combo_from_ncp):
+	  Start link the connection menu to the NCP/NCU.
+	* capplet/nwam_wireless_dialog.h, capplet/nwam_wireless_dialog.c: 
+	  (nwam_wireless_dialog_show), (nwam_wireless_dialog_hide):
+	  New functions to simply show/hide the dialog.
+
+2007-07-06  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/Makefile.am:
+	  Add new nwamui_enm.c file to sources.
+	* common/nwamui_enm.c, common/nwamui_enm.h:
+	  Added a new GObject for ENMs.
+	* common/libnwamui.h:
+	  Added ENM header to common include file.
+	* common/nwamui_daemon.c: (nwamui_daemon_init),
+	(nwamui_daemon_get_active_env_name),
+	(nwamui_daemon_get_active_env), (nwamui_daemon_get_env_list),
+	(nwamui_daemon_get_enm_list):
+	* common/nwamui_env.c: (nwamui_env_new):
+	  Fix a bug where the env_new call was always returning an empty object.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  (nwamui_ncu_class_init), (nwamui_ncu_init),
+	  (nwamui_ncu_set_property), (nwamui_ncu_get_property),
+	  (nwamui_ncu_new), (nwamui_ncu_set_ncu_type),
+	  (nwamui_ncu_get_ncu_type):
+	  Correct the prefix for some functions from nwamu_ to nwamui_.
+	  Add missing function nwamui_ncu_get_ncu_type (had to put 2nd _ncu_ in
+	  there to avoid conflict with GObject type function).
+	* capplet/main.c: 
+	  (main), (process_ncu), (process_env),
+	  (test_env_gobject), (process_enm), (test_enm_gobject):
+	  Fill-out the tests for NCU, Env and ENM. 
+	  Tests are only run now if the DO_TESTS environment variable is set.
+
+2007-07-05  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c: (nwamui_daemon_init),
+	(nwamui_daemon_finalize), (nwamui_daemon_get_active_env_name),
+	(nwamui_daemon_get_active_env), (nwamui_daemon_get_env_list):
+	Update to be able to get the name of the active environment, a pointer to
+	the active environment, and a list of the active environments.
+	* common/nwamui_env.c: (nwamui_env_class_init), (nwamui_env_init),
+	(nwamui_env_set_property), (nwamui_env_get_property),
+	(nwamui_env_new), (nwamui_env_set_name), (nwamui_env_get_name),
+	(nwamui_env_set_active), (nwamui_env_get_active),
+	(nwamui_env_set_proxy_type), (nwamui_env_get_proxy_type),
+	(nwamui_env_set_proxy_pac_file), (nwamui_env_get_proxy_pac_file),
+	(nwamui_env_set_proxy_http_server),
+	(nwamui_env_get_proxy_http_server),
+	(nwamui_env_set_proxy_https_server),
+	(nwamui_env_get_proxy_https_server),
+	(nwamui_env_set_proxy_ftp_server),
+	(nwamui_env_get_proxy_ftp_server), (nwamui_env_set_proxy_gopher),
+	(nwamui_env_get_proxy_gopher), (nwamui_env_set_proxy_socks),
+	(nwamui_env_get_proxy_socks), (nwamui_env_set_proxy_bypass_list),
+	(nwamui_env_get_proxy_bypass_list), (nwamui_env_finalize):
+	* common/nwamui_env.h:
+	Fill out some possible properties of the environments and provide accessor
+	functions.
+	* common/nwamui_ncu.c: (nwamui_ncu_class_init), (nwamui_ncu_init),
+	(nwamui_ncu_set_property), (nwamui_ncu_get_property),
+	(nwamui_ncu_new), (nwamui_ncu_set_vanity_name),
+	(nwamui_ncu_set_device_name), (nwamui_ncu_get_active),
+	(nwamui_ncu_set_active), (nwamui_ncu_set_ipv4_auto_conf),
+	(nwamui_ncu_get_ipv4_auto_conf), (nwamui_ncu_set_ipv4_address),
+	(nwamui_ncu_get_ipv4_address), (nwamui_ncu_set_ipv4_subnet),
+	(nwamui_ncu_get_ipv4_subnet), (nwamui_ncu_set_ipv4_gateway),
+	(nwamui_ncu_get_ipv4_gateway), (nwamui_ncu_set_ipv6_active),
+	(nwamui_ncu_get_ipv6_active), (nwamui_ncu_set_ipv6_auto_conf),
+	(nwamui_ncu_get_ipv6_auto_conf), (nwamui_ncu_set_ipv6_address),
+	(nwamui_ncu_get_ipv6_address), (nwamui_ncu_set_ipv6_prefix),
+	(nwamui_ncu_get_ipv6_prefix):
+	* common/nwamui_ncu.h:
+	Fill out some possible properties of the NCU and provide accessor
+	functions.
+
+2007-07-04  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* Makefile.am: Add directory "pixmaps".
+	* capplet/nwam_conn_conf_ip_panel.c: (nwam_pref_init):
+	* capplet/nwam_conn_stat_panel.c: (nwam_pref_init):
+	* capplet/nwam_env_svc.c: (nwam_pref_init),
+	(nwam_compose_tree_view), (svc_toggle_cb):
+	* capplet/nwam_pref_dialog.c: (nwam_pref_init),
+	(nwam_capplet_dialog_finalize), (refresh), (apply), (response_cb),
+	(refresh_clicked_cb): All implement interface nwam_pref_iface.
+	* common/nwam_ui_icons.c: (nwam_ui_icons_load_filename),
+	(nwam_ui_icons_load), (nwam_ui_icons_init):
+	* common/nwam_ui_icons.h: Icon factory for nwam stock-ids. Need more
+	work because the icon factory seems need iterate each default icon dir
+	in /usr/share/icons and search each nwam icons.
+	* configure.in: Add pixmaps/Makefile
+	* daemon/Makefile.am: Fix a TAB nit.
+	* daemon/main.c: (main): Fix according to nwam_ui_icons.
+	* daemon/notify.c: (get_notification): Fix according to nwam_ui_icons.
+	* daemon/status_icon.c: (nwam_status_icon_get_widget),
+	(nwam_status_icon_set_tooltip), (status_icon_activate_cb),
+	(get_status_icon): Fix according to nwam_ui_icons. Add some sample
+	code. So we can implement what P2/3 define in NWAM gui v1.4. Still need
+	more work, and change to Gobject seems to make sense.
+	* daemon/status_icon.h: Add new function for showing a tooltip.
+	* pixmaps/Makefile.am:
+	* pixmaps/earth-info.png:
+	* pixmaps/earth-normal.png:
+
+2007-07-03  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_ncp.c, common/nwamui_ncu.c, common/nwamui_ncu.h:
+	  Added wireless information to the NCU.
+
+2007-07-02  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/Makefile.am:
+	  Add more source files
+	* capplet/main.c: 
+	  Add an additional flag for the enironment dialog. Also added some extra
+	  tests for new objects, and updated some code to newer API.
+	* capplet/nwam_env_pref_dialog.c, capplet/nwam_env_pref_dialog.h:
+	  Rough implementation of this dialog, needs more work.
+	* capplet/nwam_wireless_dialog.c:
+	  Updates to use new GObjects.
+	* common/Makefile.am:
+	  Added more source files.
+	* common/libnwamui.c: 
+	  Some refactoring, renaming to use nwamui_util prefix, and also removing
+	  some API that's been replaced in the GObjects.
+	* common/libnwamui.h:
+	  Changed this to be a "single source" header file for all of the code in
+	  the common directoy, mainly to avoid looping inclusions, etc, so other
+	  headerfiles in the common dir will report an error if included on their
+	  own.
+	* common/nwamui_daemon.c, common/nwamui_daemon.h:
+	  Create a GObject representaion for the NWAM Daemon - this is a
+	  singleton, and is the "root" of the API. Provides access to the active
+	  elements of the Daemon (e.g. active NCP). It also is the place to
+	  register for daemon events - currently the only event in there is a wifi
+	  scan result - but ther will be more. You can also initiate a scan for
+	  wifi networks from here, and the result will be via signals.
+	* common/nwamui_env.c, common/nwamui_env.h:
+	  Skeleton of the GObject for the Environment, needs to still be fleshed
+	  out.
+	* common/nwamui_ncp.c, common/nwamui_ncp.h:
+	  GObject implementation of the NCP. It's quite basic, and is currently a
+	  singleton for Phase 1. At the moment an NCP hasn't much of a role until
+	  Phase 2 other than to provide a list of NCUs in NWAM.
+	* common/nwamui_ncu.c, common/nwamui_ncu.h:
+	  GObject implementation of the NCU. At the moment, while it can be
+	  created with several properties, only the vanity name and device name
+	  have getter functions, no setters yet. 
+	* common/nwamui_wifi_net.c, common/nwamui_wifi_net.h:
+	  GObject representation of a Wireless Network. It's got multiple uses, in
+	  holding the information for the faviourites list, as well as being the
+	  information wrapper for the results of a scan.
+	* configure.in:
+	  Add "ALL_LINGUAS" variable, which should be used when l10n starts.
+	* daemon/nwam-menu.c: 
+	  Fix compilation error (a char was being passed instead of a string).
+	  Also corrected the call to gtk_action_remove_action to use the action
+	  rather than the name. 
+	* daemon/status_icon.c: 
+	  Put in some needed casts for check menu items.
+
+2007-06-15   Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Minor wording fixes re Mike's comments.
+	Remove hostname/domain/router controls re Kacheong's comments,
+	until we've figured out interaction with Duckwater
+	naming services project.
+
+2007-06-13   Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Rework IPv6 section per Michael's comments.
+
+2007-06-11  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am: Add new files.
+	* capplet/nwam_env_svc.c: (nwam_env_svc_class_init),
+	(nwam_compose_tree_view), (nwam_env_svc_init), (nwam_env_svc_new),
+	(nwam_env_svc_finalize), (nwam_env_svc_comp_cb),
+	(nwam_env_svc_view_cb), (env_add_clicked_cb), (env_rem_clicked_cb),
+	(object_notify_cb):
+	* capplet/nwam_env_svc.h: Basic code for "Network Services" panel.
+
+2007-06-08   Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Remove Renew Lease button from IPv6 DHCP section.
+
+2007-06-08   Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Add proxies tab and Apply button to environment dialog.
+	Layout and label tweaks in Connection Status view.
+	Label tweaks in Network Config view.
+	TCP/IP -> IP Address on tab label.
+	Insert Add button on multiple IPV4 and IPV6 address panes.
+	Add Rename Environment dialog.
+	Update security types/fields in wireless dialog re Quaker's mail.
+	s/SSID/ESSID in wireless dialog.
+
+2007-06-07  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am: Added nwam_conn_conf_ip_panel.[hc],
+	nwam_pref_iface.[hc]
+	* capplet/nwam_conn_conf_ip_panel.c:
+	(nwam_conf_ip_panel_class_init), (nwam_compose_tree_model),
+	(nwam_compose_tree_view), (nwam_conf_ip_panel_init),
+	(nwam_connstatus_elements_init), (nwam_conf_ip_panel_new),
+	(nwam_conf_ip_panel_refresh), (nwam_multi_ip_add),
+	(nwam_multi_ip_clear), (nwam_conf_ip_panel_finalize),
+	(nwam_conn_multi_ip_comp_cb), (renew_cb), (multi_line_del_cb),
+	(object_notify_cb), (show_changed_cb), (ok_clicked_cb),
+	(nwam_conn_multi_ip_cell_cb), (nwam_conn_multi_ip_cell_edited_cb):
+	* capplet/nwam_conn_conf_ip_panel.h:
+	Used for TCP/IP panel
+	* capplet/nwam_conn_stat_panel.c: Fixed some nits.
+	* capplet/nwam_pref_dialog.c: (nwam_capplet_dialog_new),
+	(show_changed_cb):
+	* capplet/nwam_pref_dialog.h:
+	Preferences dialog should be a singleton.
+	* capplet/nwam_pref_iface.c: (nwam_pref_iface_base_init),
+	(nwam_pref_iface_class_init), (nwam_pref_iface_get_type),
+	(nwam_pref_refresh), (nwam_pref_apply):
+	* capplet/nwam_pref_iface.h:
+	Added preference interface for all the panel instances for refreshing
+	and applying.
+	* common/nwamui_ncp.h:
+	* common/nwamui_ncu.c: (nwamui_ncu_class_init),
+	(nwamui_ncu_set_property), (nwamui_ncu_get_property):
+	* common/nwamui_ncu.h:
+	* missing: Auto-gen, removed.
+	* mkinstalldirs: Auto-gen, removed.
+
+2007-06-06  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c: (main): Add new argument for "Network Preferences"
+	cappplet dialog.
+	* capplet/nwam_conn_stat_panel.c: (nwam_connstatus_panel_init):
+	* capplet/nwam_pref_dialog.c: (nwam_capplet_dialog_class_init),
+	(nwam_capplet_dialog_init), (nwam_capplet_dialog_new),
+	(nwam_capplet_dialog_run), (nwam_capplet_dialog_refresh),
+	(nwam_capplet_dialog_finalize), (response_cb), (show_changed_cb),
+	(object_notify_cb), (refresh_clicked_cb):
+	Move the callback of refresh_button from nwam_conn_stat_panel.c to
+	nwam_pref_dialog.c
+
+2007-06-01  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/Makefile.am, common/nwamui_env.c, common/nwamui_env.h,
+	  common/nwamui_ncp.c, common/nwamui_ncp.h, common/nwamui_ncu.c, 
+	  common/nwamui_ncu.h:
+	  Add basic GObject files for NCU, NCP and ENV wrapping, not usable
+	  currently, since there is not even the basic stubbing done.
+	  Will need to move to using these instead of the pointer already in
+	  libnwamui.c, when stubbing is done.
+
+2007-05-29  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am: Added capplet/nwam_conn_stat_panel.c
+	* capplet/nwam_conn_stat_panel.c:
+	(nwam_connstatus_panel_class_init), (nwam_compose_tree_view),
+	(nwam_connstatus_panel_init), (nwam_connstatus_panel_new),
+	(nwam_connstatus_panel_refresh), (nwam_conn_add),
+	(nwam_conn_clear), (nwam_connstatus_panel_finalize),
+	(nwam_connection_comp_cb), (nwam_conn_update_status_cell_cb),
+	(conn_view_row_activated_cb), (env_clicked_cb), (vpn_clicked_cb),
+	(refresh_clicked_cb), (object_notify_cb):
+	* capplet/nwam_conn_stat_panel.h:
+	Added connection status panel.
+	* common/libnwamui.c: (nwamui_wifi_signal_strength):
+	* common/libnwamui.h:
+	New function for get strength for a wireless connection.
+	* common/nwam_ui_icons.c: (nwam_ui_icons_load_filename):
+	Use glib function to get icon filename, but maybe need extra fix to
+	remove the file ext name before using it.
+
+2007-05-28  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/Makefile.am, daemon/Makefile.am:
+	  Add common/libnwamui.la to link line.
+	* capplet/nwam_wireless_dialog.h:
+	* common/libnwamui.h, common/libnwamui.c: 
+	  (nwamui_wifi_essid_new), (nwamui_wifi_essid_free), (nwamui_wifi_scan),
+	  (nwamui_wifi_sec_to_string), (nwamui_wifi_wpa_config_to_string):
+	  Move some  functions from nwam_wireless_dialog.c. Also then added a
+	  function to performa a wifi scan for a given ncu. Currently this is
+	  only a stub.
+	* capplet/nwam_wireless_dialog.c:
+	  (nwam_wireless_dialog_class_init), (nwam_wireless_dialog_init),
+	  (change_essid_cbentry_model),
+	  (add_essid_list_item_to_essid_liststore), (populate_essid_combo),
+	  (nwam_wireless_dialog_set_property),
+	  (nwam_wireless_dialog_set_security),
+	  (nwam_wireless_dialog_get_security),
+	  (nwam_wireless_dialog_set_wpa_config_type),
+	  (nwam_wireless_dialog_get_wpa_config_type),
+	  (security_selection_cb), (essid_changed_cb), (object_notify_cb):
+	  Refactor some code given changes made, and some renaming of macros to
+	  use NWAMUI_ prefix. Also handle the case where the selection of an entry
+	  from the ESSID combobox would result in changing the encryption combobox
+	  to match the selected ESSID.
+	* capplet/main.c: (test_nwam_wireless_dialog):
+	  Update tests to reflect changes made in API.
+	* nbproject/configurations.xml:
+	  Add common dir to project, and remove nonexistant entries for
+	  nwam_capplet.[ch].
+
+2007-05-28  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_pref_dialog.c: Removed useless lines.
+	* common/Makefile.am:
+	* common/nwam_ui_icons.c: (nwam_ui_icons_class_init),
+	(nwam_ui_icons_load_filename), (nwam_ui_icons_load),
+	(nwam_ui_icons_init), (nwam_ui_icons_new),
+	(nwam_ui_icons_finalize):
+	* common/nwam_ui_icons.h:
+	Added sources to load icon files and convert to gtk stocks.
+
+2007-05-23  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	  Remove Translatable for ssid_combo_entry to stop glade creating a string
+	  model for it - want to override the model in code to allow for an icon
+	  to be included on it.
+	* capplet/nwam_wireless_dialog.c: 
+	  Add the ability to scan for a wireless network, and populate the
+	  drop-down list if ESSIDs with an icon to show whether it's open or
+	  encrypted. (Doesn't really scan yet though).
+	* common/libnwamui.h: Empty header file, placeholder.
+	* nbproject/configurations.xml:
+	  Add common dir files to project.
+
+2007-05-23  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/main.c: 
+	  Add tests for new properties.
+	* capplet/nwam_wireless_dialog.h, capplet/nwam_wireless_dialog.c:
+	  Add updates to support new dialog fields and pages as added by Calum
+	  in glade file.
+	* configure.in, common/Makefile.am, common/libnwamui.c, Makefile.am:
+	  New common directory, intended to provide staticly linked methods that
+	  will wrap the libnwam calls - initially will be stubbed, but will
+	  eventually link with libnwam. Currently the .c file is empty.
+	* nbproject/Makefile-Default.mk, nbproject/Makefile-impl.mk,
+	   nbproject/Makefile-capplet.mk, nbproject/Makefile-daemon.mk,
+	  nbproject/configurations.xml, nbproject/private/configurations.xml:
+	  Add new files to project. Also created "configurations" to allow for the
+	  running/debugging of the capplet or daemon depending on the
+	  configuration we're working on.
+
+2007-05-21  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am: Added capplet/nwam_pref_dialog.[hc]
+	* capplet/nwam_pref_dialog.c: (nwam_capplet_dialog_class_init),
+	(nwam_capplet_dialog_init), (nwam_capplet_dialog_new),
+	(nwam_capplet_dialog_run), (nwam_capplet_dialog_refresh),
+	(nwam_capplet_dialog_finalize), (response_cb), (show_changed_cb),
+	(object_notify_cb): Initiale code for NWAM Preferences Dialog.
+	* capplet/nwam_pref_dialog.h: Initiale code for NWAM Preferences
+	Dialog.
+	* nbproject/configurations.xml: Added files.
+
+2007-05-18  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Add different security types to Add Wireless Network dialog
+	Make SSID entry field an editable combo instead
+
+2007-05-18  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+	Add Refresh button to capplet
+	Add Environments button to Connection Status tab
+	Add Up/Down/Rename buttons to Network Config tab
+	Change title of Environment Dialog
+	Add 'None' option to IPv4 and IPv6 combos
+	Add Router field to IPv6 section
+	Add "Show Password" checkbox to Add Network dialog
+
+        Add VPN bits.
+2007-05-18  Darren Kenny <darren.kenny@sun.com>
+	* capplet/main.c, capplet/nwam-manager-properties.glade:
+	Change Glade file to not always show dialogs, instead do this using code
+	in main.c - any new dialogs should be added to the list here if you want
+	to be able to see them.
+
+2007-05-18  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am: Fixed the error 'cant find 
+	nwam-manager-properties.glade file'.
+	* capplet/nwam_glade.c: ditto.
+
+2007-05-16  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	  Add VPN bits.
+
+2007-05-16  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Rejig wireless tab layout-- combo box now has different options.
+
+2007-05-16  Darren Kenny <darren.kenny@sun.com>
+
+	* capplet/Makefile.am:
+	Add new files to Makefile
+	* capplet/nwam_glade.c, capplet/nwam_glade.h:
+	Move handling of glade file to a single location, to avoid multiple
+	loading of the XML file.
+	* capplet/callbacks.c, capplet/callbacks.h:
+	Rename the nwam_properties_init_callbacks() function to
+	nwam_init_callbacks().
+	* capplet/nwam_wireless_dialog.c, capplet/nwam_wireless_dialog.h:
+	Wrap the "add_wireless_network" dialog in a GObject.
+	* capplet/main.c:
+	Modified to use new nwam_glade functions, and also handle some
+	command-line params to either show only the add_wireless_dialog or to
+	simply show all dialogs (the default so Calum can see them easily).
+	* nbproject/configurations.xml:
+	Add some more files to the nbproject.
+	* po/.cvsignore:
+	Ignore some more generated files.
+
+2007-05-11  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Layout tweaks and fix some resize behaviour.
+
+2007-05-11  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Label tweaks, and add column headers to wireless
+	network selection dialog.
+	
+2007-05-10  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Add "select a wireless network" dialog.
+
+2007-05-08  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Re-jig the environment dialog again with a more
+	compact design.
+
+2007-05-04  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Name controls sensibly this time.
+
+2007-05-04  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Add the Environment dialog.
+
+2007-05-04  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Add Connection Status and Network Config panes.
+
+2007-05-04  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Relocate hostname/domain fields on TCP/IP tab; didn't
+	make sense where they were.
+
+2007-05-04  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Simplify options on wireless tab, makes it a bit
+	more compact.
+
+2007-05-04  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Fill out TCP/IP tab.
+
+2007-05-04  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	First pass at Add Wireless Network dialog; might need
+	a little more work to support multiple security types.
+
+2007-05-03  Calum Benson <Calum.Benson@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade:
+
+	First putback; mostly just the Wireless tab so far :/
+	
+2007-04-26  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/Makefile.am: removed header files
+	* daemon/nwam-menuitem.c: (nwam_menu_item_init),
+	(nwam_menu_item_set_property), (nwam_menu_item_get_property),
+	(nwam_menu_item_finalize): fixed warnings.
+	* daemon/nwam-menuitem.h:
+	* daemon/status_icon.c: included nwam-menuitem.h
+
+2007-04-19  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/nwam-manager.schemas.in: Merged, few template code.
+
+2007-04-19  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/Makefile.am: Added nwam-menuitem.[hc]
+	* daemon/nwam-menuitem.c: (nwam_menu_item_class_init),
+	(nwam_menu_item_init), (nwam_menu_item_set_property),
+	(nwam_menu_item_get_property), (nwam_menu_item_forall),
+	(nwam_menu_item_new), (nwam_menu_item_new_with_label),
+	(nwam_menu_item_set_image), (nwam_menu_item_get_image),
+	(nwam_menu_item_finalize):
+	* daemon/nwam-menuitem.h: For wireless menu item.
+	* daemon/status_icon.c: (status_icon_show_menu): Added testing code.
+
+2007-04-13  Darren Kenny  <darren.kenny@sun.com>
+
+	* Makefile.am:  put back capplet
+	* daemon/.cvsignore, capplet/.cvsignore:   
+	  Ignore some generated files
+	* capplet/Makefile.am:  add c files and remove schemas
+	* capplet/callbacks.h, capplet/callbacks.c: 
+	  (nwam_properties_init_callbacks), (do_exit):
+	  Add some basic functions
+	* capplet/main.c: (main):
+	  Load glade file and show dialog (although it's 
+	  only a close button now).
+	* capplet/nwam-manager-properties.glade:
+	  Skeleton glade file
+	* daemon/nwam-manager.schemas.in:
+	  Skeleton schemas file (no schemas right now).
+	* nbproject/configurations.xml:
+	  Updated project file, to reflect new files.
+
+2007-04-13  Darren Kenny <darren.kenny@sun.com>
+
+	* daemon/Makefile.am: change ref to ospm to nwam-manager
+
+2007-04-13  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* Makefile.am: top makefile, temporarily disable building capplet.
+	* daemon/Makefile.am: fixed a nit.
+	* daemon/nwam-menu.c: (on_activate_addwireless),
+	(on_activate_createwireless), (on_activate_editenv),
+	(on_activate_pref), (get_status_icon_menu),
+	(add_netent_tmenuitem_ontop), (del_netent_tmenuitem): create a basic
+	regular pop up menu for nwam status icon.
+	* daemon/nwam-menu.h:
+	* daemon/nwam-ui.xml: pop up menu ui file.
+	* daemon/status_icon.c:
+	* nbproject/configurations.xml:
+
+2007-04-11  Darren Kenny <darren.kenny@sun.com>
+
+	* Initial checkin.
+	
+
+vim: noexpandtab :

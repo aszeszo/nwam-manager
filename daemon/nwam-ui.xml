@@ -1,0 +1,15 @@
+<ui>
+	<popup name="StatusIconMenu">
+		<separator/>
+		<menuitem action="addwireless"/>
+		<menuitem action="createwireless"/>
+		<separator/>
+		<menu action="env">
+			<menuitem action="automatic"/>
+			<separator/>
+			<menuitem action="editenv"/>
+		</menu>
+		<separator/>
+		<menuitem action="pref"/>
+	</popup>
+</ui>

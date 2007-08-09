@@ -1,0 +1,26 @@
+<gconfschemafile>
+  <schemalist>
+
+    <!-- There's a few other preferences that are saved and loaded,
+         but they're never changed by the gui, so to list them here
+         would be confusing to the user. -->
+    
+    <!-- General preferences -->
+
+    <schema>
+      <key>/schemas/apps/nwam/todo</key>
+      <applyto>/apps/nwam/todo</applyto>
+      <owner>nwam</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>todo</short>
+         <long>
+		todo
+         </long>
+      </locale>
+    </schema>
+
+
+  </schemalist>  
+</gconfschemafile>
