@@ -15,7 +15,7 @@ RANLIB=ranlib
 CC=cc
 CCC=CC
 CXX=CC
-FC=f95
+FC=f77
 
 # Include project Makefile
 include nwam-manager-Makefile.mk

@@ -1,3 +1,11 @@
+2007-08-10  Darren Kenny  <darren.kenny@sun.com>
+
+	* TODO.txt:
+	  - A list of things that still need to be done.
+	* nbproject/Makefile-capplet.mk, nbproject/Makefile-daemon.mk, 
+	  nbproject/configurations.xml:
+	  Remove generated file config.h from project files.
+
 2007-08-09  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/main.c: (get_state), (on_trigger_network_changed), (main):

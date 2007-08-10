@@ -6,57 +6,56 @@
                    projectFiles="true">
       <logicalFolder name="daemon" displayName="daemon" projectFiles="true">
         <itemPath>daemon/main.c</itemPath>
-        <itemPath>daemon/notify.h</itemPath>
         <itemPath>daemon/notify.c</itemPath>
-        <itemPath>daemon/nwam-action.c</itemPath>
+        <itemPath>daemon/notify.h</itemPath>
         <itemPath>daemon/nwam-action.h</itemPath>
-        <itemPath>daemon/nwam-menu.c</itemPath>
+        <itemPath>daemon/nwam-action.c</itemPath>
         <itemPath>daemon/nwam-menu.h</itemPath>
-        <itemPath>daemon/nwam-menuitem.c</itemPath>
+        <itemPath>daemon/nwam-menu.c</itemPath>
         <itemPath>daemon/nwam-menuitem.h</itemPath>
-        <itemPath>daemon/status_icon.c</itemPath>
+        <itemPath>daemon/nwam-menuitem.c</itemPath>
         <itemPath>daemon/status_icon.h</itemPath>
+        <itemPath>daemon/status_icon.c</itemPath>
       </logicalFolder>
       <logicalFolder name="capplet" displayName="capplet" projectFiles="true">
         <itemPath>capplet/main.c</itemPath>
-        <itemPath>capplet/nwam_conn_conf_ip_panel.h</itemPath>
         <itemPath>capplet/nwam_conn_conf_ip_panel.c</itemPath>
-        <itemPath>capplet/nwam_conn_stat_panel.h</itemPath>
+        <itemPath>capplet/nwam_conn_conf_ip_panel.h</itemPath>
         <itemPath>capplet/nwam_conn_stat_panel.c</itemPath>
-        <itemPath>capplet/nwam_env_pref_dialog.h</itemPath>
+        <itemPath>capplet/nwam_conn_stat_panel.h</itemPath>
         <itemPath>capplet/nwam_env_pref_dialog.c</itemPath>
-        <itemPath>capplet/nwam_env_svc.h</itemPath>
+        <itemPath>capplet/nwam_env_pref_dialog.h</itemPath>
         <itemPath>capplet/nwam_env_svc.c</itemPath>
-        <itemPath>capplet/nwam_net_conf_panel.h</itemPath>
+        <itemPath>capplet/nwam_env_svc.h</itemPath>
         <itemPath>capplet/nwam_net_conf_panel.c</itemPath>
-        <itemPath>capplet/nwam_pref_dialog.h</itemPath>
+        <itemPath>capplet/nwam_net_conf_panel.h</itemPath>
         <itemPath>capplet/nwam_pref_dialog.c</itemPath>
-        <itemPath>capplet/nwam_pref_iface.h</itemPath>
+        <itemPath>capplet/nwam_pref_dialog.h</itemPath>
         <itemPath>capplet/nwam_pref_iface.c</itemPath>
-        <itemPath>capplet/nwam_vpn_pref_dialog.h</itemPath>
+        <itemPath>capplet/nwam_pref_iface.h</itemPath>
         <itemPath>capplet/nwam_vpn_pref_dialog.c</itemPath>
-        <itemPath>capplet/nwam_wireless_dialog.c</itemPath>
+        <itemPath>capplet/nwam_vpn_pref_dialog.h</itemPath>
         <itemPath>capplet/nwam_wireless_dialog.h</itemPath>
+        <itemPath>capplet/nwam_wireless_dialog.c</itemPath>
       </logicalFolder>
       <logicalFolder name="New Folder 1" displayName="common" projectFiles="true">
-        <itemPath>common/libnwamui.c</itemPath>
         <itemPath>common/libnwamui.h</itemPath>
-        <itemPath>common/nwam_ui_icons.c</itemPath>
+        <itemPath>common/libnwamui.c</itemPath>
         <itemPath>common/nwam_ui_icons.h</itemPath>
-        <itemPath>common/nwamui_daemon.c</itemPath>
+        <itemPath>common/nwam_ui_icons.c</itemPath>
         <itemPath>common/nwamui_daemon.h</itemPath>
-        <itemPath>common/nwamui_enm.c</itemPath>
+        <itemPath>common/nwamui_daemon.c</itemPath>
         <itemPath>common/nwamui_enm.h</itemPath>
-        <itemPath>common/nwamui_env.c</itemPath>
+        <itemPath>common/nwamui_enm.c</itemPath>
         <itemPath>common/nwamui_env.h</itemPath>
-        <itemPath>common/nwamui_ncp.c</itemPath>
+        <itemPath>common/nwamui_env.c</itemPath>
         <itemPath>common/nwamui_ncp.h</itemPath>
-        <itemPath>common/nwamui_ncu.c</itemPath>
+        <itemPath>common/nwamui_ncp.c</itemPath>
         <itemPath>common/nwamui_ncu.h</itemPath>
-        <itemPath>common/nwamui_wifi_net.c</itemPath>
+        <itemPath>common/nwamui_ncu.c</itemPath>
         <itemPath>common/nwamui_wifi_net.h</itemPath>
+        <itemPath>common/nwamui_wifi_net.c</itemPath>
       </logicalFolder>
-      <itemPath>config.h</itemPath>
     </logicalFolder>
     <logicalFolder name="ExternalFiles"
                    displayName="Important Files"
@@ -248,9 +247,6 @@
         <itemTool>0</itemTool>
       </item>
       <item path="common/nwamui_wifi_net.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="config.h">
         <itemTool>3</itemTool>
       </item>
       <item path="daemon/main.c">
@@ -467,9 +463,6 @@
         <itemTool>0</itemTool>
       </item>
       <item path="common/nwamui_wifi_net.h">
-        <itemTool>3</itemTool>
-      </item>
-      <item path="config.h">
         <itemTool>3</itemTool>
       </item>
       <item path="daemon/main.c">

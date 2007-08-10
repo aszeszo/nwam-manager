@@ -1,0 +1,215 @@
+List of things that still need to be done.
+==========================================
+
+General Tasks
+-------------
+
+  Security
+
+    - Determine required privileges to be functional
+      - Will need to wait until using NWAM APIs.
+
+
+  Look & Feel
+
+    - Icons need to be designed.
+      - Lead time?
+      - Easy to slot in?
+
+
+  Documentation
+
+    - Determine "Help" link points
+    - Tool-tips, as appropriate.
+
+Panel Icon
+----------
+
+  Events
+
+    - Notifications
+      - Code using Signals in the Daemon
+      - Have nwam-manager listen for these signals
+      - Consider Simulation Mechanism for Events (Temporary API)
+        - Menu Selection of Network/Env could tell daemon to emit signal
+        - Async events could be done using a timer or pipe?
+
+
+  Tool-tip in Notification Area
+
+    - Should reflect status information
+      - Do we need to cache data?
+   
+
+  Encryption Icon
+
+    - Consider something more meaningful like a key?
+
+
+  Globe Icon
+
+    - Is this the right symbol? Maybe is too confusing? Doesn't really suggest
+      that it's any way related to the network.
+
+
+  Menu Items
+
+    - Add About Entry
+    - Add Help Entry
+
+
+  Session
+
+    - Auto restart on crash?
+    - Save itself in the session.
+    - Should be in default session.
+
+Network Preferences
+-------------------
+
+  Network Environment Preferences Dialog
+
+    - Rules Tab
+      - Condition Combo 
+        - <None> should deactivate other entries
+        - All others should activate them
+        - May need to repopulate the "is/isn't/etc" to suit condition.
+      - +/- buttons
+      - Add API to Env to support add/delete and creation of rules.
+
+    - Network Services Tab
+      - Default Network Services        
+        - Add API to Env to get state of Default services
+        - May also need to add this to the Daemon for Env to get default set,
+          if not configured in Env.
+      - Additional Network Services     
+        - Need a utility function to get list of known SMF services from the
+          OS.
+      - Add Button                      
+        - Dialog to present list of FRMI (and description?).
+        = Env API to add a new service.
+      - Remove Button                   
+        = Env API to delete a service.
+
+    - Proxy Tab
+      - Add Password Dialog
+
+    - Help Button needs to be connected.
+
+
+  VPN Dialog
+
+    - Start/Stop buttons should toggle sensitivity depending on the currently
+      selected ENM's state.
+    - Help Button needs to be connected.
+
+
+  Connection Status Panel
+
+    - If an ENM is activated, the connection status need to be refreshed
+      - It may be worth linking to the objects "notify" signal for each
+        element in a view?
+  
+
+  Network Configuration Panel
+
+    - Sorting/Re-ordering of NCUs should be reflected in the NCP.
+      - Will require NCP's API to be updated.
+
+    - Conditions
+      - Update the Condition Label to contain the NCU name.
+      - Handle the Toggle Button
+      - Handle the Connected/Disconnected Combo
+      - Implement NCU Conditions TreeView
+      - Handle the Enable/Disabled Combo
+
+
+  IP Sub Panel
+
+    - General
+      - Validation on values, should be deferred to the NCU object.
+
+    - DHCP
+      - Handle Renew Lease button
+  
+    - Multiple IP Address Tables - IPv4
+      - IPv6 Toggle Buttons
+      - Add/Remove Buttons
+      - Handle in place edits for cells
+
+    - Multiple IP Address Tables - IPv6
+      - Handle Enabled/Disabled Combo
+        - Should reflect state in the NCU
+      - IPv6 Toggle Buttons
+        - Should reflect state in the NCU
+      - Add/Remove Buttons
+      - Handle in place edits for cells
+
+
+  Wireless Sub Panel
+
+    - Handle Combo for "If no favourite..."
+      - Is this a Daemon level preference rather than an NCU specific one?
+
+    - Ask Before... 
+      - Open/Close is leaving a gap - probably needs a fix in the glade file.
+      - Handle Toggle buttons here 
+        - should most likely be set in the Daemon since really they are not
+          specific to the NCU. 
+        - Maybe consider moving them?
+
+Common API
+----------
+
+  General Tasks
+
+    - Need to consider adding a "modified" / "dirty" flag and a "commit"
+      function to each object to allow us to handle the "OK" button case and
+      know that we will need to commit changes.
+
+
+  Daemon 
+
+    - Needs to be modified to emit signals for all the possible events that
+      can be sent from the real daemon.
+
+
+  Condition(s)
+
+    - Create a conditions GObject for the NCU and Env conditions.
+      - Might need to sub-class if there are differences...
+   
+
+  Env
+
+    - Will need API for Conditions
+
+
+  NCU
+
+    - Will need API for Conditions
+
+
+GNOME Netstatus Applet
+----------------------
+
+  Port Wireless support on Solaris.
+
+    - Determine required priv to gather Wifi Info.
+      - Right now, it's not even possible to open() the network device as
+        non-root.
+    - Implement the Solaris wifi gathering functions.
+
+
+General Optional Areas of Rework
+--------------------------------
+
+  API
+
+    - Instead of using GList from the common GObjects, consider using a
+      GtkListStore - especially for things like IP addresses, Wifi Favourites,
+      etc.
+
+--
+vim: ts=2 shiftwidth=2 tw=78
+-*- Mode: C; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*-
