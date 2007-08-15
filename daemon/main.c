@@ -26,6 +26,7 @@
  */
 #include <gtk/gtk.h>
 #include <glib/gi18n.h>
+#include <libgnomeui/libgnomeui.h>
 
 #include "status_icon.h"
 #include "notify.h"
@@ -101,10 +102,27 @@ activate_cb ()
 int main( int argc, 
       char* argv[] )
 {
+    GnomeProgram *program;
+    GnomeClient *client;
     gint    status_icon_index = 0;
     NwamMenu *menu;
     NwamuiDaemon* daemon;
     
+#ifdef ENABLE_NLS
+        bindtextdomain (GETTEXT_PACKAGE, NWAM_MANAGER_LOCALEDIR);
+        bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+        textdomain (GETTEXT_PACKAGE);
+#endif
+
+        program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,
+                                      argc, argv,
+                                      GNOME_PARAM_APP_DATADIR, NWAM_MANAGER_DATADIR,
+                                      NULL);
+
+    client = gnome_master_client ();
+    gnome_client_set_restart_command (client, argc, argv);
+    gnome_client_set_restart_style (client, GNOME_RESTART_IMMEDIATELY);
+
     gtk_init( &argc, &argv );
 
     daemon = nwamui_daemon_get_instance ();
@@ -127,6 +145,7 @@ int main( int argc,
     nwam_notification_cleanup();
     g_object_unref (daemon);
     g_object_unref (G_OBJECT (menu));
+    g_object_unref (G_OBJECT (program));
     
     return 0;
 }

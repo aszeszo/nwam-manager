@@ -74,12 +74,16 @@
 #define     ADD_NETSERVICE_BTN             "add_netservice_btn"
 #define     DELETE_NETSERVICE_BTN          "delete_netservice_btn"
 #define     ONLY_ALLOW_LABEL                "only_allow_lbl"
+#define     RULES_CONDITION_VBOX	"conditions_vbox"
 
 enum {
     PROXY_MANUAL_PAGE = 0, 
     PROXY_PAC_PAGE 
 };
 
+#define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
+	NWAM_TYPE_ENV_PREF_DIALOG, NwamEnvPrefDialogPrivate)) 
+	
 struct _NwamEnvPrefDialogPrivate {
 
     /* Widget Pointers */
@@ -121,6 +125,10 @@ struct _NwamEnvPrefDialogPrivate {
     GtkTreeView*            additional_netservices_list;
     GtkButton*              add_netservice_btn;
     GtkButton*              delete_netservice_btn;
+    GtkBox*                 conditions_vbox;
+    GtkTreeModel*           table_model_subject;
+    GtkTreeModel*           table_model_predicate;
+    GList*                  table_box_cache;
 
     /* Other Data */
     NwamuiDaemon*           daemon;
@@ -137,6 +145,11 @@ static void         change_env_combo_model(NwamEnvPrefDialog *self);
 static void         populate_dialog( NwamEnvPrefDialog* self );
 
 static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_proxy_type_t proxy_type );
+
+#define TABLE_ROW_ID "condition_vbox_row_id"
+static void table_model_init (NwamEnvPrefDialog *self);
+static void table_lines_init (NwamEnvPrefDialog *self);
+static GtkWidget *table_line_new (NwamEnvPrefDialog *self, gpointer data);
 
 /* Callbacks */
 static void         env_selection_changed_cb( GtkWidget* widget, gpointer data );
@@ -157,6 +170,10 @@ static void         env_duplicate_button_clicked_cb(GtkButton *button, gpointer 
 
 static void         env_delete_button_clicked_cb(GtkButton *button, gpointer  user_data);
 
+static void table_add_condition_cb(GtkButton *button, gpointer  data);
+static void table_delete_condition_cb(GtkButton *button, gpointer  data);
+static void table_initialize_line_cb (GtkWidget *widget, gpointer data);
+
 static void
 nwam_env_pref_dialog_class_init (NwamEnvPrefDialogClass *klass)
 {
@@ -166,6 +183,7 @@ nwam_env_pref_dialog_class_init (NwamEnvPrefDialogClass *klass)
     /* Override Some Function Pointers */
     gobject_class->finalize = (void (*)(GObject*)) nwam_env_pref_dialog_finalize;
 
+    g_type_class_add_private (klass, sizeof (NwamEnvPrefDialogPrivate));
 }
 
         
@@ -174,81 +192,84 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 {
     GtkTreeModel    *model = NULL;
     
-    self->prv = g_new0 (NwamEnvPrefDialogPrivate, 1);
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+	self->prv = prv;
     
     /* Iniialise pointers to important widgets */
-    self->prv->env_pref_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(ENV_PREF_DIALOG_NAME));
-    self->prv->environment_name_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget( ENVIRONMENT_NAME_COMBO ));
-    self->prv->add_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_ENVIRONMENT_BTN ));
-    self->prv->edit_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( EDIT_ENVIRONMENT_BTN ));
-    self->prv->dup_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DUP_ENVIRONMENT_BTN ));
-    self->prv->delete_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_ENVIRONMENT_BTN ));
-    self->prv->environment_notebook = GTK_NOTEBOOK(nwamui_util_glade_get_widget( ENVIRONMENT_NOTEBOOK ));
-    self->prv->proxy_config_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget( PROXY_CONFIG_COMBO ));
-    self->prv->proxy_notebook = GTK_NOTEBOOK(nwamui_util_glade_get_widget( PROXY_NOTEBOOK ));
-    self->prv->http_name = GTK_ENTRY(nwamui_util_glade_get_widget( HTTP_NAME ));
-    self->prv->http_port_sbox = GTK_SPIN_BUTTON(nwamui_util_glade_get_widget( HTTP_PORT_SBOX ));
-    self->prv->http_password_btn = GTK_BUTTON(nwamui_util_glade_get_widget( HTTP_PASSWORD_BTN ));
-    self->prv->use_for_all_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( USE_FOR_ALL_CB ));
-    self->prv->https_name = GTK_ENTRY(nwamui_util_glade_get_widget( HTTPS_NAME ));
-    self->prv->https_port_sbox = GTK_SPIN_BUTTON(nwamui_util_glade_get_widget( HTTPS_PORT_SBOX ));
-    self->prv->ftp_name = GTK_ENTRY(nwamui_util_glade_get_widget( FTP_NAME ));
-    self->prv->ftp_port_sbox = GTK_SPIN_BUTTON(nwamui_util_glade_get_widget( FTP_PORT_SBOX ));
-    self->prv->gopher_name = GTK_ENTRY(nwamui_util_glade_get_widget( GOPHER_NAME ));
-    self->prv->gopher_port_sbox = GTK_SPIN_BUTTON(nwamui_util_glade_get_widget( GOPHER_PORT_SBOX ));
-    self->prv->socks_name = GTK_ENTRY(nwamui_util_glade_get_widget( SOCKS_NAME ));
-    self->prv->socks_port_sbox = GTK_SPIN_BUTTON(nwamui_util_glade_get_widget( SOCKS_PORT_SBOX ));
-    self->prv->no_proxy_entry = GTK_ENTRY(nwamui_util_glade_get_widget( NO_PROXY_ENTRY ));
-    self->prv->http_proxy_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTP_PROXY_LABEL ));            
-    self->prv->https_proxy_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTPS_PROXY_LABEL ));           
-    self->prv->ftp_proxy_label = GTK_LABEL(nwamui_util_glade_get_widget( FTP_PROXY_LABEL ));         
-    self->prv->gopher_proxy_label = GTK_LABEL(nwamui_util_glade_get_widget( GOPHER_PROXY_LABEL ));          
-    self->prv->socks_proxy_label = GTK_LABEL(nwamui_util_glade_get_widget( SOCKS_PROXY_LABEL ));           
-    self->prv->gopher_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( GOPHER_PROXY_PORT_LABEL ));         
-    self->prv->socks_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( SOCKS_PROXY_PORT_LABEL ));          
-    self->prv->https_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTPS_PROXY_PORT_LABEL ));          
-    self->prv->http_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTP_PROXY_PORT_LABEL ));           
-    self->prv->ftp_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( FTP_PROXY_PORT_LABEL ));            
-    self->prv->default_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( DEFAULT_NETSERVICES_LIST ));
-    self->prv->additional_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( ADDITIONAL_NETSERVICES_LIST ));
-    self->prv->add_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_NETSERVICE_BTN ));
-    self->prv->delete_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_NETSERVICE_BTN ));
-    self->prv->only_allow_label = GTK_LABEL(nwamui_util_glade_get_widget( ONLY_ALLOW_LABEL ));     
+    prv->env_pref_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(ENV_PREF_DIALOG_NAME));
+    prv->environment_name_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget( ENVIRONMENT_NAME_COMBO ));
+    prv->add_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_ENVIRONMENT_BTN ));
+    prv->edit_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( EDIT_ENVIRONMENT_BTN ));
+    prv->dup_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DUP_ENVIRONMENT_BTN ));
+    prv->delete_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_ENVIRONMENT_BTN ));
+    prv->environment_notebook = GTK_NOTEBOOK(nwamui_util_glade_get_widget( ENVIRONMENT_NOTEBOOK ));
+    prv->proxy_config_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget( PROXY_CONFIG_COMBO ));
+    prv->proxy_notebook = GTK_NOTEBOOK(nwamui_util_glade_get_widget( PROXY_NOTEBOOK ));
+    prv->http_name = GTK_ENTRY(nwamui_util_glade_get_widget( HTTP_NAME ));
+    prv->http_port_sbox = GTK_SPIN_BUTTON(nwamui_util_glade_get_widget( HTTP_PORT_SBOX ));
+    prv->http_password_btn = GTK_BUTTON(nwamui_util_glade_get_widget( HTTP_PASSWORD_BTN ));
+    prv->use_for_all_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( USE_FOR_ALL_CB ));
+    prv->https_name = GTK_ENTRY(nwamui_util_glade_get_widget( HTTPS_NAME ));
+    prv->https_port_sbox = GTK_SPIN_BUTTON(nwamui_util_glade_get_widget( HTTPS_PORT_SBOX ));
+    prv->ftp_name = GTK_ENTRY(nwamui_util_glade_get_widget( FTP_NAME ));
+    prv->ftp_port_sbox = GTK_SPIN_BUTTON(nwamui_util_glade_get_widget( FTP_PORT_SBOX ));
+    prv->gopher_name = GTK_ENTRY(nwamui_util_glade_get_widget( GOPHER_NAME ));
+    prv->gopher_port_sbox = GTK_SPIN_BUTTON(nwamui_util_glade_get_widget( GOPHER_PORT_SBOX ));
+    prv->socks_name = GTK_ENTRY(nwamui_util_glade_get_widget( SOCKS_NAME ));
+    prv->socks_port_sbox = GTK_SPIN_BUTTON(nwamui_util_glade_get_widget( SOCKS_PORT_SBOX ));
+    prv->no_proxy_entry = GTK_ENTRY(nwamui_util_glade_get_widget( NO_PROXY_ENTRY ));
+    prv->http_proxy_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTP_PROXY_LABEL ));            
+    prv->https_proxy_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTPS_PROXY_LABEL ));           
+    prv->ftp_proxy_label = GTK_LABEL(nwamui_util_glade_get_widget( FTP_PROXY_LABEL ));         
+    prv->gopher_proxy_label = GTK_LABEL(nwamui_util_glade_get_widget( GOPHER_PROXY_LABEL ));          
+    prv->socks_proxy_label = GTK_LABEL(nwamui_util_glade_get_widget( SOCKS_PROXY_LABEL ));           
+    prv->gopher_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( GOPHER_PROXY_PORT_LABEL ));         
+    prv->socks_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( SOCKS_PROXY_PORT_LABEL ));          
+    prv->https_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTPS_PROXY_PORT_LABEL ));          
+    prv->http_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTP_PROXY_PORT_LABEL ));           
+    prv->ftp_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( FTP_PROXY_PORT_LABEL ));            
+    prv->default_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( DEFAULT_NETSERVICES_LIST ));
+    prv->additional_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( ADDITIONAL_NETSERVICES_LIST ));
+    prv->add_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_NETSERVICE_BTN ));
+    prv->delete_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_NETSERVICE_BTN ));
+    prv->only_allow_label = GTK_LABEL(nwamui_util_glade_get_widget( ONLY_ALLOW_LABEL ));     
+    prv->conditions_vbox = GTK_BOX(nwamui_util_glade_get_widget( RULES_CONDITION_VBOX ));
     
     /* Other useful pointer */
-    self->prv->selected_env = NULL;
-    self->prv->daemon = NWAMUI_DAEMON(nwamui_daemon_get_instance());
+    prv->selected_env = NULL;
+    prv->daemon = NWAMUI_DAEMON(nwamui_daemon_get_instance());
     
     change_env_combo_model(self);
     
     /* Add Signal Handlers */
-    g_signal_connect(GTK_COMBO_BOX(self->prv->environment_name_combo), "changed", (GCallback)env_selection_changed_cb, (gpointer)self);
+    g_signal_connect(GTK_COMBO_BOX(prv->environment_name_combo), "changed", (GCallback)env_selection_changed_cb, (gpointer)self);
     
-    g_signal_connect(GTK_BUTTON(self->prv->add_environment_btn), "clicked", G_CALLBACK(env_add_button_clicked_cb), (gpointer)self);
-    g_signal_connect(GTK_BUTTON(self->prv->edit_environment_btn), "clicked", G_CALLBACK(env_rename_button_clicked_cb), (gpointer)self);
-    g_signal_connect(GTK_BUTTON(self->prv->dup_environment_btn), "clicked", G_CALLBACK(env_duplicate_button_clicked_cb), (gpointer)self);
-    g_signal_connect(GTK_BUTTON(self->prv->delete_environment_btn), "clicked", G_CALLBACK(env_delete_button_clicked_cb), (gpointer)self);
+    g_signal_connect(GTK_BUTTON(prv->add_environment_btn), "clicked", G_CALLBACK(env_add_button_clicked_cb), (gpointer)self);
+    g_signal_connect(GTK_BUTTON(prv->edit_environment_btn), "clicked", G_CALLBACK(env_rename_button_clicked_cb), (gpointer)self);
+    g_signal_connect(GTK_BUTTON(prv->dup_environment_btn), "clicked", G_CALLBACK(env_duplicate_button_clicked_cb), (gpointer)self);
+    g_signal_connect(GTK_BUTTON(prv->delete_environment_btn), "clicked", G_CALLBACK(env_delete_button_clicked_cb), (gpointer)self);
     
-    g_signal_connect(GTK_COMBO_BOX(self->prv->proxy_config_combo), "changed", (GCallback)proxy_config_changed_cb, (gpointer)self);
-    g_signal_connect(GTK_CHECK_BUTTON(self->prv->use_for_all_cb), "toggled", (GCallback)use_for_all_toggled, (gpointer)self);
+    g_signal_connect(GTK_COMBO_BOX(prv->proxy_config_combo), "changed", (GCallback)proxy_config_changed_cb, (gpointer)self);
+    g_signal_connect(GTK_CHECK_BUTTON(prv->use_for_all_cb), "toggled", (GCallback)use_for_all_toggled, (gpointer)self);
     
-    g_signal_connect( self->prv->http_name, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
-    g_signal_connect( self->prv->http_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
+    g_signal_connect( prv->http_name, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
+    g_signal_connect( prv->http_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
 
-    g_signal_connect( self->prv->https_name, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
-    g_signal_connect( self->prv->https_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
+    g_signal_connect( prv->https_name, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
+    g_signal_connect( prv->https_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
 
-    g_signal_connect( self->prv->ftp_name, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
-    g_signal_connect( self->prv->ftp_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
+    g_signal_connect( prv->ftp_name, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
+    g_signal_connect( prv->ftp_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
 
-    g_signal_connect( self->prv->gopher_name, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
-    g_signal_connect( self->prv->gopher_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
+    g_signal_connect( prv->gopher_name, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
+    g_signal_connect( prv->gopher_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
 
-    g_signal_connect( self->prv->socks_name, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
-    g_signal_connect( self->prv->socks_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
+    g_signal_connect( prv->socks_name, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
+    g_signal_connect( prv->socks_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
 
-    g_signal_connect( self->prv->no_proxy_entry, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
+    g_signal_connect( prv->no_proxy_entry, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
 
+    table_model_init (self);
 }
 
 static void
@@ -293,9 +314,6 @@ nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
     g_object_unref(G_OBJECT(self->prv->only_allow_label));
     g_object_unref(G_OBJECT(self->prv->daemon));
     
-    g_free (self->prv); 
-    self->prv = NULL;
-
     (*G_OBJECT_CLASS(nwam_env_pref_dialog_parent_class)->finalize) (G_OBJECT(self));
 }
 
@@ -491,7 +509,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     gtk_label_set_text(prv->only_allow_label, new_rules_label);
     g_free(env_name);
     g_free(new_rules_label);
-    
+    table_lines_init (self);
 }
 
 static void
@@ -889,4 +907,139 @@ env_delete_button_clicked_cb(GtkButton *button, gpointer  user_data)
         g_object_unref( G_OBJECT(current_env) );
     }
         
+}
+
+static void
+table_model_init (NwamEnvPrefDialog *self)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+	GtkTreeIter iter;
+	
+	prv->table_model_subject = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
+	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
+	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("<No conditions>"), -1);
+	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
+	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("IP address"), -1);
+	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
+	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("Domain name"), -1);
+	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
+	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("Wireless name (SSID)"), -1);
+	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
+	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("Wireless BSSID"), -1);
+
+	prv->table_model_predicate = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
+	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_predicate), &iter);
+	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_predicate), &iter, 0, _("is"), -1);
+	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_predicate), &iter);
+	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_predicate), &iter, 0, _("is not"), -1);
+	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_predicate), &iter);
+	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_predicate), &iter, 0, _("in range"), -1);
+}
+
+static void
+table_lines_init (NwamEnvPrefDialog *self)
+{
+    NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+    GtkBox *box;
+    g_assert (prv->selected_env);
+    
+    /* cache all */
+//    gtk_container_foreach (GTK_CONTAINER(prv->conditions_vbox),
+//                           (GtkCallback)table_initialize_line_cb,
+//                           data);
+    if (0) {
+    } else {
+        box = GTK_BOX(table_line_new (self, NULL));
+        gtk_box_pack_start (prv->conditions_vbox, GTK_WIDGET(box), TRUE, TRUE, 0);
+        g_object_set_data (G_OBJECT(box), TABLE_ROW_ID, GUINT_TO_POINTER(0));
+    }
+    gtk_widget_show_all (GTK_WIDGET(prv->conditions_vbox));
+}
+
+static GtkWidget *
+table_line_new (NwamEnvPrefDialog *self, gpointer data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+	GtkBox *box;
+	GtkComboBox *combo1, *combo2;
+	GtkEntry *entry;
+	GtkButton *add, *del;
+	
+	if (prv->table_box_cache) {
+		box = GTK_BOX(prv->table_box_cache->data);
+        g_object_unref(G_OBJECT(box));
+		prv->table_box_cache = g_list_delete_link(prv->table_box_cache, prv->table_box_cache);
+	} else {
+		box = GTK_BOX(gtk_hbox_new (FALSE, 6));
+		combo1 = gtk_combo_box_new ();
+		combo2 = gtk_combo_box_new ();
+		gtk_combo_box_set_model (combo1, prv->table_model_subject);
+		gtk_combo_box_set_model (combo2, prv->table_model_predicate);
+		entry = gtk_entry_new ();
+		add = gtk_button_new_from_stock (GTK_STOCK_ADD);
+		del = gtk_button_new_from_stock (GTK_STOCK_REMOVE);
+		g_signal_connect(add, "clicked", G_CALLBACK(table_add_condition_cb), (gpointer)self);
+		g_signal_connect(del, "clicked", G_CALLBACK(table_delete_condition_cb), (gpointer)self);
+		gtk_box_pack_start (box, GTK_WIDGET(combo1), FALSE, FALSE, 1);
+		gtk_box_pack_start (box, GTK_WIDGET(combo2), FALSE, FALSE, 1);
+		gtk_box_pack_start (box, GTK_WIDGET(entry), TRUE, TRUE, 1);
+		gtk_box_pack_start (box, GTK_WIDGET(add), FALSE, FALSE, 1);
+		gtk_box_pack_start (box, GTK_WIDGET(del), FALSE, FALSE, 1);
+/*		g_object_unref (G_OBJECT(combo1));
+		g_object_unref (G_OBJECT(combo2));
+		g_object_unref (G_OBJECT(entry));
+		g_object_unref (G_OBJECT(add));
+		g_object_unref (G_OBJECT(del));
+*/
+		prv->table_box_cache = g_list_prepend (prv->table_box_cache,
+                                               g_object_ref (G_OBJECT(box)));
+	}
+    gtk_container_foreach (GTK_CONTAINER(box),
+                           (GtkCallback)table_initialize_line_cb,
+                           data);
+	return GTK_WIDGET(box);
+}
+
+static void
+table_initialize_line_cb (GtkWidget *widget, gpointer data)
+{
+    if (GTK_IS_COMBO_BOX (widget)) {
+        if (data) {
+            // initialize box according to data
+        } else {
+            // default initialize box
+            gtk_combo_box_set_active (GTK_COMBO_BOX(widget), 0);
+        }
+    } else if (GTK_IS_ENTRY (widget)) {
+        if (data) {
+            // initialize box according to data
+        } else {
+            gtk_entry_set_text (GTK_ENTRY(widget), "");
+        }
+	}
+}
+
+static void
+table_add_condition_cb(GtkButton *button, gpointer  data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+	GtkBox *parent_box = GTK_BOX(gtk_widget_get_parent (GTK_WIDGET(button)));
+	GtkBox *box;
+	guint row;
+	
+	row = GPOINTER_TO_UINT(g_object_get_data (G_OBJECT(parent_box), TABLE_ROW_ID));
+	box = table_line_new (NWAM_ENV_PREF_DIALOG(data), NULL);
+    gtk_box_pack_start (prv->conditions_vbox, GTK_WIDGET(box), TRUE, TRUE, 0);
+    gtk_box_reorder_child (prv->conditions_vbox, GTK_WIDGET(box), row + 1);
+	g_object_set_data (G_OBJECT(box), TABLE_ROW_ID, GUINT_TO_POINTER(row + 1));
+}
+
+static void
+table_delete_condition_cb(GtkButton *button, gpointer  data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+    GtkBox *parent_box = GTK_BOX(gtk_widget_get_parent (GTK_WIDGET(button)));
+    prv->table_box_cache = g_list_prepend (prv->table_box_cache,
+                                           g_object_ref (G_OBJECT(parent_box)));
+    gtk_container_remove (prv->conditions_vbox, parent_box);
 }

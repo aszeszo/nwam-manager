@@ -69,7 +69,6 @@ gladedir   = $(datadir)/nwam-manager
 glade_DATA = nwam-manager-properties.glade
 
 EXTRA_DIST = 		\
-	callbacks.h		\
 	nwam_pref_iface.h	\
 	nwam_wireless_dialog.h	\
 	nwam_pref_dialog.h	\

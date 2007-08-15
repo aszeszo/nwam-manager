@@ -112,7 +112,7 @@ nwam_capplet_dialog_class_init(NwamCappletDialogClass *klass)
 {
 	/* Pointer to GObject Part of Class */
 	GObjectClass *gobject_class = (GObjectClass*) klass;
-		
+	
 	/* Override Some Function Pointers */
 	gobject_class->finalize = (void (*)(GObject*)) nwam_capplet_dialog_finalize;
 }

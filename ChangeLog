@@ -1,3 +1,35 @@
+2007-08-15  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* TODO.txt: Updated
+	* capplet/Makefile.am: Fixed make dist
+	* capplet/nwam-manager-properties.glade: change to vbox from table in
+	Rule tab page.
+	* capplet/nwam_env_pref_dialog.c:
+	(nwam_env_pref_dialog_class_init), (nwam_env_pref_dialog_init),
+	(nwam_env_pref_dialog_finalize), (populate_panels_from_env),
+	(table_model_init), (table_lines_init), (table_line_new),
+	(table_initialize_line_cb), (table_add_condition_cb),
+	(table_delete_condition_cb): some code for +/-
+	* capplet/nwam_vpn_pref_dialog.c:
+	(nwam_vpn_pref_dialog_class_init), (nwam_vpn_pref_dialog_init),
+	(nwam_vpn_pref_dialog_finalize), (nwam_update_obj),
+	(nwam_vpn_clear), (response_cb), (vpn_pref_clicked_cb),
+	(nwam_vpn_cell_edited_cb), (nwam_vpn_selection_changed): Updated for
+	add/remove ENM.
+	* common/nwamui_daemon.c: (nwamui_daemon_class_init),
+	(default_ncu_create_signal_handler),
+	(default_ncu_destroy_signal_handler),
+	(default_ncu_up_signal_handler), (default_ncu_down_signal_handler):
+	Add more signals for daemon.
+	* common/nwamui_daemon.h:
+	* common/nwamui_env.h:
+	* daemon/Makefile.am:
+	* daemon/main.c: (main): code for gnome-session
+	* daemon/nwam-manager.desktop.in: add default session for nwam-manager
+	* daemon/nwam-menu.c: (nwam_menu_lower_part), (on_activate_about),
+	(on_activate_help):
+	added new menuitems for about/help.
+
 2007-08-10  Darren Kenny  <darren.kenny@sun.com>
 
 	* TODO.txt:

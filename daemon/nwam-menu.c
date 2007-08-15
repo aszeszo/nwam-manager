@@ -88,6 +88,8 @@ static void nwam_menu_create_vpn_menuitems (NwamMenu *self);
 static void nwam_menu_recreate_menuitems (NwamMenu *self);
 
 /* call back */
+static void on_activate_about (GtkAction *action, gpointer data);
+static void on_activate_help (GtkAction *action, gpointer udata);
 static void on_activate_pref (GtkAction *action, gpointer udata);
 static void on_activate_addwireless (GtkAction *action, gpointer udata);
 static void on_activate_env (GtkAction *action, gpointer data);
@@ -321,6 +323,40 @@ nwam_menu_lower_part (NwamMenu *self, guint merge_id)
 		"joinwireless", /* action */
 		GTK_UI_MANAGER_MENUITEM,
 		FALSE);
+
+	/* separator */
+	gtk_ui_manager_add_ui(self->prv->ui_manager, merge_id,
+		NWAMUI_PROOT,
+		NULL, /* name */
+		NULL, /* action */
+		GTK_UI_MANAGER_SEPARATOR,
+		FALSE);
+	
+	/* /StatusIconMenu/about */
+	action = gtk_action_new("about", _("About"), NULL, GTK_STOCK_ABOUT);
+	g_signal_connect((gpointer)action, "activate",
+		G_CALLBACK(on_activate_about), NULL);
+	gtk_action_group_add_action_with_accel(self->prv->action_group, action, NULL);
+	g_object_unref(action);
+	gtk_ui_manager_add_ui(self->prv->ui_manager, merge_id,
+		NWAMUI_PROOT,
+		"about", /* name */
+		"about", /* action */
+		GTK_UI_MANAGER_MENUITEM,
+		FALSE);
+
+	/* /StatusIconMenu/help */
+	action = gtk_action_new("help", _("Help"), NULL, GTK_STOCK_HELP);
+	g_signal_connect((gpointer)action, "activate",
+		G_CALLBACK(on_activate_help), NULL);
+	gtk_action_group_add_action_with_accel(self->prv->action_group, action, NULL);
+	g_object_unref(action);
+	gtk_ui_manager_add_ui(self->prv->ui_manager, merge_id,
+		NWAMUI_PROOT,
+		"help", /* name */
+		"help", /* action */
+		GTK_UI_MANAGER_MENUITEM,
+		FALSE);
 }
 
 void
@@ -352,6 +388,18 @@ nwam_exec (const gchar *nwam_arg)
 		g_error_free(error);
 	}
 	g_free (argv[0]);
+}
+
+static void
+on_activate_about (GtkAction *action, gpointer data)
+{
+	
+}
+
+static void
+on_activate_help (GtkAction *action, gpointer udata)
+{
+	
 }
 
 static void

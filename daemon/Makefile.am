@@ -65,6 +65,14 @@ nwam_manager_LDADD =				\
 schemasdir       = $(GCONF_SCHEMA_FILE_DIR)
 schemas_in_files = nwam-manager.schemas.in
 schemas_DATA     = $(schemas_in_files:.schemas.in=.schemas)
+	
+SUFFIXES = .desktop.in .desktop
+.desktop.in.desktop:
+	LC_ALL=C sed -e "s|\@BINDIR\@|$(bindir)|" $< > $@
+
+autosessiondir      = $(datadir)/gnome/autostart
+autosession_in_files = nwam-manager.desktop.in
+autosession_DATA    = $(autosession_in_files:.desktop.in=.desktop)
 
 if GCONF_SCHEMAS_INSTALL
 install-data-local:
@@ -92,9 +100,11 @@ EXTRA_DIST = 		\
 	$(ui_DATA)	\
 	$(glade_DATA)	\
 	$(schemas_in_files)	\
+	$(autosession_in_files)	\
 	$(NULL)
 
 DISTCLEANFILES =	\
+	$(autosession_DATA)	\
         $(schemas_DATA) \
         $(NULL)
 

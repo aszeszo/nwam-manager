@@ -62,6 +62,10 @@ struct _NwamuiDaemonClass
         
         void (*wifi_scan_result)    (NwamuiDaemon *self, GObject *data, gpointer user_data);
         void (*active_env_changed)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
+	void (*ncu_create)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
+	void (*ncu_destroy)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
+	void (*ncu_up)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
+	void (*ncu_down)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
 };
 
 extern  GType                       nwamui_daemon_get_type (void) G_GNUC_CONST;

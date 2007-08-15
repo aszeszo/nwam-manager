@@ -129,6 +129,8 @@ extern gint                 nwamui_env_get_proxy_gopher_port ( NwamuiEnv *self )
 extern void                 nwamui_env_set_proxy_socks_port ( NwamuiEnv *self, gint proxy_socks_port );
 extern gint                 nwamui_env_get_proxy_socks_port ( NwamuiEnv *self );
 
+typedef nwam_cond;
+
 G_END_DECLS
 
 #endif	/* _NWAMUI_ENV_H */

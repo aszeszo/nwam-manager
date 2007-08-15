@@ -1,21 +1,18 @@
-# CDDL HEADER START
-# 
-# The contents of this file are subject to the terms of the
-# Common Development and Distribution License (the "License").
-# You may not use this file except in compliance with the License.
-# 
-# You can obtain a copy of the license at usr/src/OPENSOLARIS.LICENSE
-# or http://www.opensolaris.org/os/licensing.
-# See the License for the specific language governing permissions
-# and limitations under the License.
-# 
-# When distributing Covered Code, include this CDDL HEADER in each
-# file and include the License file at usr/src/OPENSOLARIS.LICENSE.
-# If applicable, add the following below this CDDL HEADER, with the
-# fields enclosed by brackets "[]" replaced with your own identifying
-# information: Portions Copyright [yyyy] [name of copyright owner]
-# 
-# CDDL HEADER END
+# Makefile for program source directory in GNU NLS utilities package.
+# Copyright (C) 1995, 1996, 1997 by Ulrich Drepper <drepper@gnu.ai.mit.edu>
+#
+# This file file be copied and used freely without restrictions.  It can
+# be used in projects which are not available under the GNU Public License
+# but which still want to provide support for the GNU gettext functionality.
+# Please note that the actual code is *not* freely available.
+#
+# - Modified by Owen Taylor <otaylor@redhat.com> to use GETTEXT_PACKAGE
+#   instead of PACKAGE and to look for po2tbl in ./ not in intl/
+#
+# - Modified by jacob berkman <jacob@ximian.com> to install
+#   Makefile.in.in and po2tbl.sed.in for use with glib-gettextize
+#
+# - Modified by Rodney Dawes <dobey@novell.com> for use with intltool
 #
 # We have the following line for use by intltoolize:
 # INTLTOOL_MAKEFILE

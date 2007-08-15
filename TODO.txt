@@ -52,13 +52,13 @@ Panel Icon
       that it's any way related to the network.
 
 
-  Menu Items
+  Menu Items (Done by Lin, no callbacks)
 
-    - Add About Entry
-    - Add Help Entry
+    - Add About Entry	(on_active_about)
+    - Add Help Entry	(on_active_help)
 
 
-  Session
+  Session (Done by Lin, review?)
 
     - Auto restart on crash?
     - Save itself in the session.
