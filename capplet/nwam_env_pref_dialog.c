@@ -73,8 +73,8 @@
 #define     ADDITIONAL_NETSERVICES_LIST    "additional_netservices_list"
 #define     ADD_NETSERVICE_BTN             "add_netservice_btn"
 #define     DELETE_NETSERVICE_BTN          "delete_netservice_btn"
-#define     ONLY_ALLOW_LABEL                "only_allow_lbl"
-#define     RULES_CONDITION_VBOX	"conditions_vbox"
+#define     ONLY_ALLOW_LABEL               "only_allow_lbl"
+#define     CONDITIONS_SCROLLWIN           "conditions_scrolledwindow"
 
 enum {
     PROXY_MANUAL_PAGE = 0, 
@@ -129,6 +129,7 @@ struct _NwamEnvPrefDialogPrivate {
     GtkTreeModel*           table_model_subject;
     GtkTreeModel*           table_model_predicate;
     GList*                  table_box_cache;
+    guint                   table_line_num;
 
     /* Other Data */
     NwamuiDaemon*           daemon;
@@ -146,9 +147,14 @@ static void         populate_dialog( NwamEnvPrefDialog* self );
 
 static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_proxy_type_t proxy_type );
 
-#define TABLE_ROW_ID "condition_vbox_row_id"
-static void table_model_init (NwamEnvPrefDialog *self);
+#define TABLE_ROW_COMBO1 "condition_vbox_row_combo1"
+#define TABLE_ROW_COMBO2 "condition_vbox_row_combo2"
+#define TABLE_ROW_ENTRY "condition_vbox_row_entry"
+#define TABLE_ROW_ADD "condition_vbox_row_add"
+#define TABLE_ROW_REMOVE "condition_vbox_row_remove"
+static void table_lines_new (NwamEnvPrefDialog *self);
 static void table_lines_init (NwamEnvPrefDialog *self);
+static void table_lines_free (NwamEnvPrefDialog *self);
 static GtkWidget *table_line_new (NwamEnvPrefDialog *self, gpointer data);
 
 /* Callbacks */
@@ -172,7 +178,7 @@ static void         env_delete_button_clicked_cb(GtkButton *button, gpointer  us
 
 static void table_add_condition_cb(GtkButton *button, gpointer  data);
 static void table_delete_condition_cb(GtkButton *button, gpointer  data);
-static void table_initialize_line_cb (GtkWidget *widget, gpointer data);
+static void table_line_cache_all_cb (GtkWidget *widget, gpointer data);
 
 static void
 nwam_env_pref_dialog_class_init (NwamEnvPrefDialogClass *klass)
@@ -193,6 +199,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     GtkTreeModel    *model = NULL;
     
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+    GtkWidget *conditions_scrollwin;
 	self->prv = prv;
     
     /* Iniialise pointers to important widgets */
@@ -233,7 +240,10 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     prv->add_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_NETSERVICE_BTN ));
     prv->delete_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_NETSERVICE_BTN ));
     prv->only_allow_label = GTK_LABEL(nwamui_util_glade_get_widget( ONLY_ALLOW_LABEL ));     
-    prv->conditions_vbox = GTK_BOX(nwamui_util_glade_get_widget( RULES_CONDITION_VBOX ));
+    conditions_scrollwin = nwamui_util_glade_get_widget(CONDITIONS_SCROLLWIN);
+    prv->conditions_vbox = GTK_VBOX(gtk_vbox_new(FALSE, 2));
+    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW(conditions_scrollwin),
+                                           GTK_WIDGET(prv->conditions_vbox));
     
     /* Other useful pointer */
     prv->selected_env = NULL;
@@ -269,7 +279,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 
     g_signal_connect( prv->no_proxy_entry, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
 
-    table_model_init (self);
+    table_lines_new (self);
 }
 
 static void
@@ -313,6 +323,7 @@ nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
     g_object_unref(G_OBJECT(self->prv->delete_netservice_btn));
     g_object_unref(G_OBJECT(self->prv->only_allow_label));
     g_object_unref(G_OBJECT(self->prv->daemon));
+    table_lines_free (self);
     
     (*G_OBJECT_CLASS(nwam_env_pref_dialog_parent_class)->finalize) (G_OBJECT(self));
 }
@@ -909,12 +920,19 @@ env_delete_button_clicked_cb(GtkButton *button, gpointer  user_data)
         
 }
 
+/*
+ * Only need once, then the first condition
+ * will never be deleted.
+ */
 static void
-table_model_init (NwamEnvPrefDialog *self)
+table_lines_new (NwamEnvPrefDialog *self)
 {
-	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+    NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
 	GtkTreeIter iter;
-	
+    GtkBox *box;
+    GtkButton *remove;
+
+	/* init tree model first, since combo will use them */
 	prv->table_model_subject = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
 	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
 	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("<No conditions>"), -1);
@@ -926,6 +944,7 @@ table_model_init (NwamEnvPrefDialog *self)
 	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("Wireless name (SSID)"), -1);
 	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
 	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("Wireless BSSID"), -1);
+    g_object_ref (G_OBJECT(prv->table_model_subject));
 
 	prv->table_model_predicate = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
 	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_predicate), &iter);
@@ -934,89 +953,101 @@ table_model_init (NwamEnvPrefDialog *self)
 	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_predicate), &iter, 0, _("is not"), -1);
 	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_predicate), &iter);
 	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_predicate), &iter, 0, _("in range"), -1);
+    g_object_ref (G_OBJECT(prv->table_model_predicate));
+
+    /* first condition box */
+    box = GTK_BOX(table_line_new (self, NULL));
+    gtk_box_pack_start (prv->conditions_vbox, GTK_WIDGET(box), FALSE, FALSE, 0);
+    remove = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_REMOVE));
+    gtk_widget_set_sensitive (GTK_WIDGET(remove), FALSE);
+    gtk_widget_show_all (GTK_WIDGET(prv->conditions_vbox));
+    prv->table_line_num = 1;
 }
 
 static void
 table_lines_init (NwamEnvPrefDialog *self)
 {
     NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
-    GtkBox *box;
-    g_assert (prv->selected_env);
     
-    /* cache all */
-//    gtk_container_foreach (GTK_CONTAINER(prv->conditions_vbox),
-//                           (GtkCallback)table_initialize_line_cb,
-//                           data);
-    if (0) {
-    } else {
-        box = GTK_BOX(table_line_new (self, NULL));
-        gtk_box_pack_start (prv->conditions_vbox, GTK_WIDGET(box), TRUE, TRUE, 0);
-        g_object_set_data (G_OBJECT(box), TABLE_ROW_ID, GUINT_TO_POINTER(0));
-    }
+    /* cache all, then remove all */
+    gtk_container_foreach (GTK_CONTAINER(prv->conditions_vbox),
+                           (GtkCallback)table_line_cache_all_cb,
+                           (gpointer)self);
     gtk_widget_show_all (GTK_WIDGET(prv->conditions_vbox));
+}
+
+static void
+table_lines_free (NwamEnvPrefDialog *self)
+{
+    NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+    g_list_foreach (prv->table_box_cache, (GFunc)g_object_unref, NULL);
+    g_list_free(prv->table_box_cache);
 }
 
 static GtkWidget *
 table_line_new (NwamEnvPrefDialog *self, gpointer data)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
-	GtkBox *box;
+	GtkBox *box = NULL;
 	GtkComboBox *combo1, *combo2;
 	GtkEntry *entry;
-	GtkButton *add, *del;
+	GtkButton *add, *remove;
 	
 	if (prv->table_box_cache) {
 		box = GTK_BOX(prv->table_box_cache->data);
-        g_object_unref(G_OBJECT(box));
 		prv->table_box_cache = g_list_delete_link(prv->table_box_cache, prv->table_box_cache);
+        combo1 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO1));
+        combo2 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO2));
+        entry = GTK_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENTRY));
+        add = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_ADD));
+        remove = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_REMOVE));
 	} else {
-		box = GTK_BOX(gtk_hbox_new (FALSE, 6));
-		combo1 = gtk_combo_box_new ();
-		combo2 = gtk_combo_box_new ();
+		box = GTK_BOX(gtk_hbox_new (FALSE, 2));
+		combo1 = GTK_COMBO_BOX(gtk_combo_box_new_text ());
+		combo2 = GTK_COMBO_BOX(gtk_combo_box_new_text ());
 		gtk_combo_box_set_model (combo1, prv->table_model_subject);
 		gtk_combo_box_set_model (combo2, prv->table_model_predicate);
-		entry = gtk_entry_new ();
-		add = gtk_button_new_from_stock (GTK_STOCK_ADD);
-		del = gtk_button_new_from_stock (GTK_STOCK_REMOVE);
-		g_signal_connect(add, "clicked", G_CALLBACK(table_add_condition_cb), (gpointer)self);
-		g_signal_connect(del, "clicked", G_CALLBACK(table_delete_condition_cb), (gpointer)self);
-		gtk_box_pack_start (box, GTK_WIDGET(combo1), FALSE, FALSE, 1);
-		gtk_box_pack_start (box, GTK_WIDGET(combo2), FALSE, FALSE, 1);
-		gtk_box_pack_start (box, GTK_WIDGET(entry), TRUE, TRUE, 1);
-		gtk_box_pack_start (box, GTK_WIDGET(add), FALSE, FALSE, 1);
-		gtk_box_pack_start (box, GTK_WIDGET(del), FALSE, FALSE, 1);
-/*		g_object_unref (G_OBJECT(combo1));
-		g_object_unref (G_OBJECT(combo2));
-		g_object_unref (G_OBJECT(entry));
-		g_object_unref (G_OBJECT(add));
-		g_object_unref (G_OBJECT(del));
-*/
-		prv->table_box_cache = g_list_prepend (prv->table_box_cache,
-                                               g_object_ref (G_OBJECT(box)));
+		entry = GTK_ENTRY(gtk_entry_new ());
+		add = gtk_button_new();
+		remove = gtk_button_new ();
+        gtk_button_set_image (add, gtk_image_new_from_stock(GTK_STOCK_ADD, GTK_ICON_SIZE_BUTTON));
+        gtk_button_set_image (remove, gtk_image_new_from_stock(GTK_STOCK_REMOVE, GTK_ICON_SIZE_BUTTON));
+		g_signal_connect(add, "clicked",
+                         G_CALLBACK(table_add_condition_cb),
+                         (gpointer)self);
+		g_signal_connect(remove, "clicked",
+                         G_CALLBACK(table_delete_condition_cb),
+                         (gpointer)self);
+		gtk_box_pack_start (box, GTK_WIDGET(combo1), TRUE, TRUE, 0);
+		gtk_box_pack_start (box, GTK_WIDGET(combo2), TRUE, TRUE, 0);
+		gtk_box_pack_start (box, GTK_WIDGET(entry), TRUE, TRUE, 0);
+		gtk_box_pack_start (box, GTK_WIDGET(add), FALSE, FALSE, 0);
+		gtk_box_pack_start (box, GTK_WIDGET(remove), FALSE, FALSE, 0);
+        g_object_set_data (G_OBJECT(box), TABLE_ROW_COMBO1, (gpointer)combo1);
+        g_object_set_data (G_OBJECT(box), TABLE_ROW_COMBO2, (gpointer)combo2);
+        g_object_set_data (G_OBJECT(box), TABLE_ROW_ENTRY, (gpointer)entry);
+        g_object_set_data (G_OBJECT(box), TABLE_ROW_ADD, (gpointer)add);
+        g_object_set_data (G_OBJECT(box), TABLE_ROW_REMOVE, (gpointer)remove);
 	}
-    gtk_container_foreach (GTK_CONTAINER(box),
-                           (GtkCallback)table_initialize_line_cb,
-                           data);
+    gtk_widget_set_sensitive (GTK_WIDGET(remove), TRUE);
+    if (data) {
+        // initialize box according to data
+    } else {
+        // default initialize box
+        gtk_combo_box_set_active (GTK_COMBO_BOX(combo1), 0);
+        gtk_combo_box_set_active (GTK_COMBO_BOX(combo2), 0);
+        gtk_entry_set_text (GTK_ENTRY(entry), "");
+    }
 	return GTK_WIDGET(box);
 }
 
 static void
-table_initialize_line_cb (GtkWidget *widget, gpointer data)
+table_line_cache_all_cb (GtkWidget *widget, gpointer data)
 {
-    if (GTK_IS_COMBO_BOX (widget)) {
-        if (data) {
-            // initialize box according to data
-        } else {
-            // default initialize box
-            gtk_combo_box_set_active (GTK_COMBO_BOX(widget), 0);
-        }
-    } else if (GTK_IS_ENTRY (widget)) {
-        if (data) {
-            // initialize box according to data
-        } else {
-            gtk_entry_set_text (GTK_ENTRY(widget), "");
-        }
-	}
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+    GtkButton *remove;
+    remove = GTK_BUTTON(g_object_get_data(G_OBJECT(widget), TABLE_ROW_REMOVE));
+    g_signal_emit_by_name ((gpointer)remove, "clicked", data);
 }
 
 static void
@@ -1027,11 +1058,21 @@ table_add_condition_cb(GtkButton *button, gpointer  data)
 	GtkBox *box;
 	guint row;
 	
-	row = GPOINTER_TO_UINT(g_object_get_data (G_OBJECT(parent_box), TABLE_ROW_ID));
+    gtk_container_child_get (GTK_CONTAINER(prv->conditions_vbox),
+                             GTK_WIDGET(parent_box),
+                             "position", &row,
+                             NULL);
+    if (prv->table_line_num == 1 && row == 0) {
+        /* I'm the last one, enable remove button */
+        GtkButton *remove;
+        remove = GTK_BUTTON(g_object_get_data(G_OBJECT(parent_box), TABLE_ROW_REMOVE));
+        gtk_widget_set_sensitive (GTK_WIDGET(remove), TRUE);
+    }
 	box = table_line_new (NWAM_ENV_PREF_DIALOG(data), NULL);
-    gtk_box_pack_start (prv->conditions_vbox, GTK_WIDGET(box), TRUE, TRUE, 0);
+    gtk_box_pack_start (prv->conditions_vbox, GTK_WIDGET(box), FALSE, FALSE, 0);
+    prv->table_line_num++;
     gtk_box_reorder_child (prv->conditions_vbox, GTK_WIDGET(box), row + 1);
-	g_object_set_data (G_OBJECT(box), TABLE_ROW_ID, GUINT_TO_POINTER(row + 1));
+    gtk_widget_show_all (prv->conditions_vbox);
 }
 
 static void
@@ -1039,7 +1080,24 @@ table_delete_condition_cb(GtkButton *button, gpointer  data)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
     GtkBox *parent_box = GTK_BOX(gtk_widget_get_parent (GTK_WIDGET(button)));
+	guint row;
+
+    gtk_container_child_get (GTK_CONTAINER(prv->conditions_vbox),
+                             GTK_WIDGET(parent_box),
+                             "position", &row,
+                             NULL);
     prv->table_box_cache = g_list_prepend (prv->table_box_cache,
                                            g_object_ref (G_OBJECT(parent_box)));
     gtk_container_remove (prv->conditions_vbox, parent_box);
+    prv->table_line_num--;
+    if (prv->table_line_num == 0) {
+        /* I'm the last one, clean all data */
+        GtkButton *remove;
+        parent_box = GTK_BOX(table_line_new (NWAM_ENV_PREF_DIALOG(data), NULL));
+        gtk_box_pack_start (prv->conditions_vbox, GTK_WIDGET(parent_box), FALSE, FALSE, 0);
+        remove = GTK_BUTTON(g_object_get_data(G_OBJECT(parent_box), TABLE_ROW_REMOVE));
+        gtk_widget_set_sensitive (GTK_WIDGET(remove), FALSE);
+        prv->table_line_num = 1;
+    }
+    gtk_widget_show_all (prv->conditions_vbox);
 }

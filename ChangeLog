@@ -1,3 +1,16 @@
+2007-08-16  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade: Change properties of scrollwin
+	which contains conditions_vbox. conditions_vbox is removed, will be
+	added at runtime.
+	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_init),
+	(nwam_env_pref_dialog_finalize), (table_lines_new),
+	(table_lines_init), (table_lines_free), (table_line_new),
+	(table_line_cache_all_cb), (table_add_condition_cb),
+	(table_delete_condition_cb): Add a cache for condition hbox.
+	finished the +/- functions.
+	* common/libnwamui.c: (get_glade_xml): fix double free glade file name.
+
 2007-08-15  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* TODO.txt: Updated

@@ -71,7 +71,6 @@ get_glade_xml( void ) {
             g_debug("Attempting to load : %s", glade_file);
             if ( (glade_xml_tree = glade_xml_new(glade_file, NULL, NULL)) != NULL ) {
                 g_debug("Found glade file at : %s", glade_file );
-                g_free (glade_file);
             }
             g_free (glade_file);
             if ( glade_xml_tree == NULL ) {
@@ -92,7 +91,6 @@ get_glade_xml( void ) {
                 g_debug("Attempting to load : %s", glade_file);
                 if ( (glade_xml_tree = glade_xml_new(glade_file, NULL, NULL)) != NULL ) {
                     g_debug("Found glade file at : %s", glade_file );
-                    g_free (glade_file);
                     break;
                 }
                 g_free (glade_file);
