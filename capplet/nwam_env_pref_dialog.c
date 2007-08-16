@@ -147,6 +147,7 @@ static void         populate_dialog( NwamEnvPrefDialog* self );
 
 static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_proxy_type_t proxy_type );
 
+#define TABLE_PREF_PARENT "table_pref_parent"
 #define TABLE_ROW_COMBO1 "condition_vbox_row_combo1"
 #define TABLE_ROW_COMBO2 "condition_vbox_row_combo2"
 #define TABLE_ROW_ENTRY "condition_vbox_row_entry"
@@ -155,7 +156,9 @@ static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_prox
 static void table_lines_new (NwamEnvPrefDialog *self);
 static void table_lines_init (NwamEnvPrefDialog *self);
 static void table_lines_free (NwamEnvPrefDialog *self);
-static GtkWidget *table_line_new (NwamEnvPrefDialog *self, gpointer data);
+static GtkWidget *table_conditon_new (NwamEnvPrefDialog *self, gpointer data);
+static GtkWidget* table_condition_insert (GtkWidget *clist, guint row, gpointer cond);
+static void table_condition_delete(GtkWidget *clist, GtkWidget *crow);
 
 /* Callbacks */
 static void         env_selection_changed_cb( GtkWidget* widget, gpointer data );
@@ -932,6 +935,11 @@ table_lines_new (NwamEnvPrefDialog *self)
     GtkBox *box;
     GtkButton *remove;
 
+    /* preserve NwamEnvPrefDialog pointer */
+    g_object_set_data (G_OBJECT(prv->conditions_vbox),
+                       TABLE_PREF_PARENT,
+                       (gpointer)self);
+
 	/* init tree model first, since combo will use them */
 	prv->table_model_subject = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
 	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
@@ -954,25 +962,26 @@ table_lines_new (NwamEnvPrefDialog *self)
 	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_predicate), &iter);
 	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_predicate), &iter, 0, _("in range"), -1);
     g_object_ref (G_OBJECT(prv->table_model_predicate));
-
-    /* first condition box */
-    box = GTK_BOX(table_line_new (self, NULL));
-    gtk_box_pack_start (prv->conditions_vbox, GTK_WIDGET(box), FALSE, FALSE, 0);
-    remove = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_REMOVE));
-    gtk_widget_set_sensitive (GTK_WIDGET(remove), FALSE);
-    gtk_widget_show_all (GTK_WIDGET(prv->conditions_vbox));
-    prv->table_line_num = 1;
 }
 
 static void
 table_lines_init (NwamEnvPrefDialog *self)
 {
     NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+    GtkWidget *crow;
     
     /* cache all, then remove all */
     gtk_container_foreach (GTK_CONTAINER(prv->conditions_vbox),
                            (GtkCallback)table_line_cache_all_cb,
-                           (gpointer)self);
+                           (gpointer)prv->conditions_vbox);
+    /* for each condition of NwamuiEnv; do */
+    crow = table_condition_insert (GTK_WIDGET(prv->conditions_vbox), 0, NULL);
+    if (prv->table_line_num == 1) {
+        GtkWidget *remove;
+        remove = GTK_WIDGET(g_object_get_data(G_OBJECT(crow),
+                                              TABLE_ROW_REMOVE));
+        gtk_widget_set_sensitive (remove, FALSE);
+    }
     gtk_widget_show_all (GTK_WIDGET(prv->conditions_vbox));
 }
 
@@ -985,7 +994,7 @@ table_lines_free (NwamEnvPrefDialog *self)
 }
 
 static GtkWidget *
-table_line_new (NwamEnvPrefDialog *self, gpointer data)
+table_conditon_new (NwamEnvPrefDialog *self, gpointer data)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
 	GtkBox *box = NULL;
@@ -1029,7 +1038,6 @@ table_line_new (NwamEnvPrefDialog *self, gpointer data)
         g_object_set_data (G_OBJECT(box), TABLE_ROW_ADD, (gpointer)add);
         g_object_set_data (G_OBJECT(box), TABLE_ROW_REMOVE, (gpointer)remove);
 	}
-    gtk_widget_set_sensitive (GTK_WIDGET(remove), TRUE);
     if (data) {
         // initialize box according to data
     } else {
@@ -1044,60 +1052,97 @@ table_line_new (NwamEnvPrefDialog *self, gpointer data)
 static void
 table_line_cache_all_cb (GtkWidget *widget, gpointer data)
 {
-	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
-    GtkButton *remove;
-    remove = GTK_BUTTON(g_object_get_data(G_OBJECT(widget), TABLE_ROW_REMOVE));
-    g_signal_emit_by_name ((gpointer)remove, "clicked", data);
+    GtkWidget *clist = GTK_WIDGET (data);
+    /* cache the remove one */
+    table_condition_delete(clist, widget);
+}
+
+static GtkWidget*
+table_condition_insert (GtkWidget *clist, guint row, gpointer cond)
+{
+    gpointer self = g_object_get_data(G_OBJECT(clist), TABLE_PREF_PARENT);
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+	GtkWidget *crow_new;
+
+	crow_new = table_conditon_new (NWAM_ENV_PREF_DIALOG(self), cond);
+    gtk_box_pack_start (GTK_BOX(clist), crow_new, FALSE, FALSE, 0);
+    prv->table_line_num++;
+    gtk_box_reorder_child (GTK_BOX(clist), crow_new, row);
+    gtk_widget_show_all (clist);
+    g_debug ("num %d",     prv->table_line_num);
+    return crow_new;
 }
 
 static void
-table_add_condition_cb(GtkButton *button, gpointer  data)
+table_condition_delete(GtkWidget *clist, GtkWidget *crow)
 {
+    gpointer self = g_object_get_data(G_OBJECT(clist), TABLE_PREF_PARENT);
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+
+    /* cache the remove one */
+    prv->table_box_cache = g_list_prepend (prv->table_box_cache,
+                                           g_object_ref (G_OBJECT(crow)));
+    gtk_container_remove (GTK_CONTAINER(clist), crow);
+    prv->table_line_num--;
+    gtk_widget_show_all (clist);
+    g_debug ("num %d",     prv->table_line_num);
+}
+
+static void
+table_add_condition_cb (GtkButton *button, gpointer data)
+{
+    /* a crow is condition row, a clist is an set of crows */
+    GtkWidget *crow = GTK_WIDGET(gtk_widget_get_parent (GTK_WIDGET(button)));
+    GtkWidget *clist = gtk_widget_get_parent (crow);
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
-	GtkBox *parent_box = GTK_BOX(gtk_widget_get_parent (GTK_WIDGET(button)));
-	GtkBox *box;
 	guint row;
-	
-    gtk_container_child_get (GTK_CONTAINER(prv->conditions_vbox),
-                             GTK_WIDGET(parent_box),
+
+    gtk_container_child_get (GTK_CONTAINER(clist),
+                             crow,
                              "position", &row,
                              NULL);
     if (prv->table_line_num == 1 && row == 0) {
-        /* I'm the last one, enable remove button */
-        GtkButton *remove;
-        remove = GTK_BUTTON(g_object_get_data(G_OBJECT(parent_box), TABLE_ROW_REMOVE));
-        gtk_widget_set_sensitive (GTK_WIDGET(remove), TRUE);
+        /*
+         * FIXME should emit add signal to
+         * add the condition from NwamuiEnv
+         */
+        /* I'm not single now, enable remove button */
+        GtkWidget *remove;
+        remove = GTK_WIDGET(g_object_get_data(G_OBJECT(crow),
+                                              TABLE_ROW_REMOVE));
+        gtk_widget_set_sensitive (remove, TRUE);
     }
-	box = table_line_new (NWAM_ENV_PREF_DIALOG(data), NULL);
-    gtk_box_pack_start (prv->conditions_vbox, GTK_WIDGET(box), FALSE, FALSE, 0);
-    prv->table_line_num++;
-    gtk_box_reorder_child (prv->conditions_vbox, GTK_WIDGET(box), row + 1);
-    gtk_widget_show_all (prv->conditions_vbox);
+    /*
+     * FIXME should emit add signal to
+     * add the condition from NwamuiEnv
+     */
+    table_condition_insert (clist, row + 1, NULL);
 }
 
 static void
-table_delete_condition_cb(GtkButton *button, gpointer  data)
+table_delete_condition_cb(GtkButton *button, gpointer data)
 {
+    /* a crow is condition row, a clist is an set of crows */
+    GtkWidget *crow = GTK_WIDGET(gtk_widget_get_parent (GTK_WIDGET(button)));
+    GtkWidget *clist = gtk_widget_get_parent (crow);
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
-    GtkBox *parent_box = GTK_BOX(gtk_widget_get_parent (GTK_WIDGET(button)));
 	guint row;
 
-    gtk_container_child_get (GTK_CONTAINER(prv->conditions_vbox),
-                             GTK_WIDGET(parent_box),
+    gtk_container_child_get (GTK_CONTAINER(clist),
+                             crow,
                              "position", &row,
                              NULL);
-    prv->table_box_cache = g_list_prepend (prv->table_box_cache,
-                                           g_object_ref (G_OBJECT(parent_box)));
-    gtk_container_remove (prv->conditions_vbox, parent_box);
-    prv->table_line_num--;
+    /*
+     * FIXME should emit delete a signal to
+     * remove the condition from NwamuiEnv
+     */
+    table_condition_delete(clist, crow);
     if (prv->table_line_num == 0) {
-        /* I'm the last one, clean all data */
-        GtkButton *remove;
-        parent_box = GTK_BOX(table_line_new (NWAM_ENV_PREF_DIALOG(data), NULL));
-        gtk_box_pack_start (prv->conditions_vbox, GTK_WIDGET(parent_box), FALSE, FALSE, 0);
-        remove = GTK_BUTTON(g_object_get_data(G_OBJECT(parent_box), TABLE_ROW_REMOVE));
-        gtk_widget_set_sensitive (GTK_WIDGET(remove), FALSE);
-        prv->table_line_num = 1;
+        GtkWidget *remove;
+        crow = table_condition_insert (clist, 0, NULL);
+        /* I'm the last one, disable remove button */
+        remove = GTK_WIDGET(g_object_get_data(G_OBJECT(crow),
+                                              TABLE_ROW_REMOVE));
+        gtk_widget_set_sensitive (remove, FALSE);
     }
-    gtk_widget_show_all (prv->conditions_vbox);
 }

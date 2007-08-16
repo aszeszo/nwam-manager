@@ -129,7 +129,10 @@ extern gint                 nwamui_env_get_proxy_gopher_port ( NwamuiEnv *self )
 extern void                 nwamui_env_set_proxy_socks_port ( NwamuiEnv *self, gint proxy_socks_port );
 extern gint                 nwamui_env_get_proxy_socks_port ( NwamuiEnv *self );
 
-typedef nwam_cond;
+typedef void* NwamuiCond;
+extern void                 nwamui_env_condition_add (NwamuiEnv *self, NwamuiCond cond);
+extern void                 nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond cond);
+extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GCallback *, gpointer data);
 
 G_END_DECLS
 

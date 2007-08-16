@@ -1,5 +1,16 @@
 2007-08-16  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_env_pref_dialog.c: (table_lines_new),
+	(table_lines_init), (table_conditon_new),
+	(table_line_cache_all_cb), (table_condition_insert),
+	(table_condition_delete), (table_add_condition_cb),
+	(table_delete_condition_cb):
+	Re-work, make func like tree model func.
+	* common/nwamui_env.h:
+	Add condition related APIs.
+
+2007-08-16  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam-manager-properties.glade: Change properties of scrollwin
 	which contains conditions_vbox. conditions_vbox is removed, will be
 	added at runtime.
