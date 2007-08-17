@@ -1,3 +1,20 @@
+2007-08-17  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* TODO.txt: Updated.
+	* capplet/nwam_env_pref_dialog.c:
+	(nwam_env_pref_dialog_class_init), (table_lines_new),
+	(table_conditon_new), (table_add_condition_cb),
+	(table_delete_condition_cb),
+	(default_condition_add_signal_handler),
+	(default_condition_remove_signal_handler): Add signals. Move condition
+	subject and predicate to comman lib.
+	* capplet/nwam_env_pref_dialog.h:
+	* common/nwamui_daemon.c: No change.
+	* common/nwamui_daemon.h: Define api default svc.
+	* common/nwamui_env.c: (nwamui_env_get_condition_subject),
+	(nwamui_env_get_condition_predicate):
+	* common/nwamui_env.h: Define apis for condition and svc.
+
 2007-08-16  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_env_pref_dialog.c: (table_lines_new),

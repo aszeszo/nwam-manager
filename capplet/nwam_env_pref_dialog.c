@@ -81,6 +81,14 @@ enum {
     PROXY_PAC_PAGE 
 };
 
+enum {
+    S_CONDITION_ADD,
+    S_CONDITION_REMOVE,
+    LAST_SIGNAL
+};
+
+static guint env_signals[LAST_SIGNAL] = {0};
+
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAM_TYPE_ENV_PREF_DIALOG, NwamEnvPrefDialogPrivate)) 
 	
@@ -126,8 +134,6 @@ struct _NwamEnvPrefDialogPrivate {
     GtkButton*              add_netservice_btn;
     GtkButton*              delete_netservice_btn;
     GtkBox*                 conditions_vbox;
-    GtkTreeModel*           table_model_subject;
-    GtkTreeModel*           table_model_predicate;
     GList*                  table_box_cache;
     guint                   table_line_num;
 
@@ -153,12 +159,15 @@ static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_prox
 #define TABLE_ROW_ENTRY "condition_vbox_row_entry"
 #define TABLE_ROW_ADD "condition_vbox_row_add"
 #define TABLE_ROW_REMOVE "condition_vbox_row_remove"
+#define TABLE_ROW_CDATA "condition_vbox_row_cdata"
 static void table_lines_new (NwamEnvPrefDialog *self);
 static void table_lines_init (NwamEnvPrefDialog *self);
 static void table_lines_free (NwamEnvPrefDialog *self);
 static GtkWidget *table_conditon_new (NwamEnvPrefDialog *self, gpointer data);
 static GtkWidget* table_condition_insert (GtkWidget *clist, guint row, gpointer cond);
 static void table_condition_delete(GtkWidget *clist, GtkWidget *crow);
+static void default_condition_add_signal_handler (NwamEnvPrefDialog *self, gpointer data, gpointer user_data);
+static void default_condition_remove_signal_handler (NwamEnvPrefDialog *self, gpointer data, gpointer user_data);
 
 /* Callbacks */
 static void         env_selection_changed_cb( GtkWidget* widget, gpointer data );
@@ -193,6 +202,32 @@ nwam_env_pref_dialog_class_init (NwamEnvPrefDialogClass *klass)
     gobject_class->finalize = (void (*)(GObject*)) nwam_env_pref_dialog_finalize;
 
     g_type_class_add_private (klass, sizeof (NwamEnvPrefDialogPrivate));
+
+    /* Create some signals */
+    env_signals[S_CONDITION_ADD] =   
+            g_signal_new ("condition_add",
+                  G_TYPE_FROM_CLASS (klass),
+                  G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+                  G_STRUCT_OFFSET (NwamEnvPrefDialogClass, condition_add),
+                  NULL, NULL,
+                  g_cclosure_marshal_VOID__POINTER, 
+                  G_TYPE_NONE,                  /* Return Type */
+                  1,                            /* Number of Args */
+                  G_TYPE_POINTER);               /* Types of Args */
+    
+    env_signals[S_CONDITION_REMOVE] =   
+            g_signal_new ("active_env_changed",
+                  G_TYPE_FROM_CLASS (klass),
+                  G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+                  G_STRUCT_OFFSET (NwamEnvPrefDialogClass, condition_remove),
+                  NULL, NULL,
+                  g_cclosure_marshal_VOID__POINTER, 
+                  G_TYPE_NONE,                  /* Return Type */
+                  1,                            /* Number of Args */
+                  G_TYPE_POINTER);               /* Types of Args */
+
+    klass->condition_add = default_condition_add_signal_handler;
+    klass->condition_remove = default_condition_remove_signal_handler;
 }
 
         
@@ -931,37 +966,11 @@ static void
 table_lines_new (NwamEnvPrefDialog *self)
 {
     NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
-	GtkTreeIter iter;
-    GtkBox *box;
-    GtkButton *remove;
 
     /* preserve NwamEnvPrefDialog pointer */
     g_object_set_data (G_OBJECT(prv->conditions_vbox),
                        TABLE_PREF_PARENT,
                        (gpointer)self);
-
-	/* init tree model first, since combo will use them */
-	prv->table_model_subject = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
-	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("<No conditions>"), -1);
-	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("IP address"), -1);
-	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("Domain name"), -1);
-	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("Wireless name (SSID)"), -1);
-	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_subject), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_subject), &iter, 0, _("Wireless BSSID"), -1);
-    g_object_ref (G_OBJECT(prv->table_model_subject));
-
-	prv->table_model_predicate = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
-	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_predicate), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_predicate), &iter, 0, _("is"), -1);
-	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_predicate), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_predicate), &iter, 0, _("is not"), -1);
-	gtk_list_store_append (GTK_LIST_STORE(prv->table_model_predicate), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(prv->table_model_predicate), &iter, 0, _("in range"), -1);
-    g_object_ref (G_OBJECT(prv->table_model_predicate));
 }
 
 static void
@@ -1014,8 +1023,8 @@ table_conditon_new (NwamEnvPrefDialog *self, gpointer data)
 		box = GTK_BOX(gtk_hbox_new (FALSE, 2));
 		combo1 = GTK_COMBO_BOX(gtk_combo_box_new_text ());
 		combo2 = GTK_COMBO_BOX(gtk_combo_box_new_text ());
-		gtk_combo_box_set_model (combo1, prv->table_model_subject);
-		gtk_combo_box_set_model (combo2, prv->table_model_predicate);
+		gtk_combo_box_set_model (combo1, nwamui_env_get_condition_subject());
+		gtk_combo_box_set_model (combo2, nwamui_env_get_condition_predicate());
 		entry = GTK_ENTRY(gtk_entry_new ());
 		add = gtk_button_new();
 		remove = gtk_button_new ();
@@ -1046,6 +1055,7 @@ table_conditon_new (NwamEnvPrefDialog *self, gpointer data)
         gtk_combo_box_set_active (GTK_COMBO_BOX(combo2), 0);
         gtk_entry_set_text (GTK_ENTRY(entry), "");
     }
+    g_object_set_data (G_OBJECT(box), TABLE_ROW_CDATA, data);
 	return GTK_WIDGET(box);
 }
 
@@ -1096,27 +1106,32 @@ table_add_condition_cb (GtkButton *button, gpointer data)
     GtkWidget *clist = gtk_widget_get_parent (crow);
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
 	guint row;
+    gpointer cond;
 
     gtk_container_child_get (GTK_CONTAINER(clist),
                              crow,
                              "position", &row,
                              NULL);
     if (prv->table_line_num == 1 && row == 0) {
-        /*
-         * FIXME should emit add signal to
-         * add the condition from NwamuiEnv
-         */
+        /* emit add signal to add the condition from NwamuiEnv */
+        cond = g_object_get_data (G_OBJECT(crow), TABLE_ROW_CDATA);
+        g_signal_emit (data,
+                       env_signals[S_CONDITION_ADD],
+                       0, /* details */
+                       cond);
         /* I'm not single now, enable remove button */
         GtkWidget *remove;
         remove = GTK_WIDGET(g_object_get_data(G_OBJECT(crow),
                                               TABLE_ROW_REMOVE));
         gtk_widget_set_sensitive (remove, TRUE);
     }
-    /*
-     * FIXME should emit add signal to
-     * add the condition from NwamuiEnv
-     */
-    table_condition_insert (clist, row + 1, NULL);
+    crow = table_condition_insert (clist, row + 1, NULL);
+    /* emit add signal to add the condition from NwamuiEnv */
+    cond = g_object_get_data (G_OBJECT(crow), TABLE_ROW_CDATA);
+    g_signal_emit (data,
+                   env_signals[S_CONDITION_ADD],
+                   0, /* details */
+                   cond);
 }
 
 static void
@@ -1127,15 +1142,19 @@ table_delete_condition_cb(GtkButton *button, gpointer data)
     GtkWidget *clist = gtk_widget_get_parent (crow);
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
 	guint row;
+    gpointer cond;
 
     gtk_container_child_get (GTK_CONTAINER(clist),
                              crow,
                              "position", &row,
                              NULL);
-    /*
-     * FIXME should emit delete a signal to
-     * remove the condition from NwamuiEnv
-     */
+    /* emit add signal to remove the condition from NwamuiEnv */
+    cond = g_object_get_data (G_OBJECT(crow), TABLE_ROW_CDATA);
+    g_signal_emit (data,
+         env_signals[S_CONDITION_REMOVE],
+         0, /* details */
+         cond);
+
     table_condition_delete(clist, crow);
     if (prv->table_line_num == 0) {
         GtkWidget *remove;
@@ -1145,4 +1164,16 @@ table_delete_condition_cb(GtkButton *button, gpointer data)
                                               TABLE_ROW_REMOVE));
         gtk_widget_set_sensitive (remove, FALSE);
     }
+}
+
+static void
+default_condition_add_signal_handler (NwamEnvPrefDialog *self, gpointer data, gpointer user_data)
+{
+    g_debug("Condition Add : 0x%p", data);
+}
+
+static void
+default_condition_remove_signal_handler (NwamEnvPrefDialog *self, gpointer data, gpointer user_data)
+{
+    g_debug("Condition Remove : 0x%p", data);
 }

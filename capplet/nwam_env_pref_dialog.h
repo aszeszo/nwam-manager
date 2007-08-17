@@ -57,6 +57,8 @@ struct _NwamEnvPrefDialog
 struct _NwamEnvPrefDialogClass
 {
 	GObjectClass                parent_class;
+    void (*condition_add)    (NwamEnvPrefDialog *self, GObject *data, gpointer user_data);
+    void (*condition_remove)  (NwamEnvPrefDialog *self, GObject *data, gpointer user_data);
 };
 
 

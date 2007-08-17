@@ -129,10 +129,21 @@ extern gint                 nwamui_env_get_proxy_gopher_port ( NwamuiEnv *self )
 extern void                 nwamui_env_set_proxy_socks_port ( NwamuiEnv *self, gint proxy_socks_port );
 extern gint                 nwamui_env_get_proxy_socks_port ( NwamuiEnv *self );
 
-typedef void* NwamuiCond;
+extern GtkTreeModel *       nwamui_env_get_condition_predicate ();
+extern GtkTreeModel *       nwamui_env_get_condition_subject ();
+
+typedef gpointer NwamuiCond;
 extern void                 nwamui_env_condition_add (NwamuiEnv *self, NwamuiCond cond);
 extern void                 nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond cond);
 extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GCallback *, gpointer data);
+
+typedef gpointer NwamuiSvc;
+extern NwamuiSvc            nwamui_env_svc_new ();
+extern void                 nwamui_env_svc_free (NwamuiSvc svc);
+extern GtkTreeModel *       nwamui_env_svcs_get (NwamuiEnv *self);
+extern void                 nwamui_env_svc_add (NwamuiEnv *self, NwamuiSvc svc);
+extern void                 nwamui_env_svc_remove (NwamuiEnv *self, NwamuiSvc svc);
+extern gboolean             nwamui_env_has_svc (NwamuiEnv *self, NwamuiSvc svc);
 
 G_END_DECLS
 

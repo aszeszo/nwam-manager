@@ -1182,6 +1182,58 @@ nwamui_env_get_proxy_socks_port (NwamuiEnv *self)
     return( proxy_socks_port );
 }
 
+extern GtkTreeModel *
+nwamui_env_get_condition_subject ()
+{
+    static GtkTreeModel*    condition_subject = NULL;
+	GtkTreeIter iter;
+    GtkBox *box;
+
+    if (condition_subject == NULL) {
+        condition_subject = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
+        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, _("<No conditions>"), -1);
+        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, _("IP address"), -1);
+        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, _("Domain name"), -1);
+        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, _("Wireless name (ESSID)"), -1);
+        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, _("Wireless BSSID"), -1);
+        // g_object_ref (G_OBJECT(condition_subject));
+    }
+    return condition_subject;
+}
+
+extern GtkTreeModel *
+nwamui_env_get_condition_predicate ()
+{
+    static GtkTreeModel*    condition_predicate = NULL;
+	GtkTreeIter iter;
+    GtkBox *box;
+
+    if (condition_predicate == NULL) {
+        condition_predicate = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
+        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("equal"), -1);
+        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("not equal"), -1);
+        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("in range"), -1);
+        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("begins"), -1);
+        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("ends"), -1);
+        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("contains"), -1);
+        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("does'nt contain"), -1);
+        // g_object_ref (G_OBJECT(condition_predicate));
+    }
+    return condition_predicate;
+}
+
 static void
 nwamui_env_finalize (NwamuiEnv *self)
 {

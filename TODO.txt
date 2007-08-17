@@ -73,15 +73,21 @@ Network Preferences
       - Condition Combo 
         - <None> should deactivate other entries
         - All others should activate them
-        - May need to repopulate the "is/isn't/etc" to suit condition.
       - +/- buttons
       - Add API to Env to support add/delete and creation of rules.
+	- currently add two signals (add/remove), so we can connect them
+	  using common env_condition add/remove functions to do automatically
+	- may add more signals such like modify a condition.
+	- need more for initialize a env_condition.
 
     - Network Services Tab
       - Default Network Services        
         - Add API to Env to get state of Default services
         - May also need to add this to the Daemon for Env to get default set,
           if not configured in Env.
+	  [lin] Daemon owns the default set, Env provide the locate function.
+	  For each default set call locate in Env set, if there marks yes on
+	  the tree view.
       - Additional Network Services     
         - Need a utility function to get list of known SMF services from the
           OS.

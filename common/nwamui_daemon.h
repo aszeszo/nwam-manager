@@ -90,6 +90,7 @@ extern void                         nwamui_daemon_env_append(NwamuiDaemon *self,
 
 extern gboolean                     nwamui_daemon_env_remove(NwamuiDaemon *self, NwamuiEnv* env );
 
+extern GtkTreeModel *               nwamui_get_default_svcs (NwamuiDaemon *self);
 
 extern GList*                       nwamui_daemon_get_enm_list(NwamuiDaemon *self);
 

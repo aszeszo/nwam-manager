@@ -36,7 +36,6 @@
 static GObjectClass    *parent_class    = NULL;
 static NwamuiDaemon*    instance        = NULL;
 
-
 enum {
     WIFI_SCAN_RESULT,
     ACTIVE_ENV_CHANGED,
