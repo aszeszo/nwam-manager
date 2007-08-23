@@ -52,6 +52,7 @@ struct _NwamuiEnvPrivate {
     gint                        proxy_ftp_port;
     gint                        proxy_gopher_port;
     gint                        proxy_socks_port;
+    GtkTreeModel *svcs_model;
 };
 
 enum {
@@ -71,7 +72,7 @@ enum {
     PROP_PROXY_FTP_PORT,
     PROP_PROXY_GOPHER_PORT,
     PROP_PROXY_SOCKS_PORT,
-
+    PROP_SVCS,
 };
 
 static void nwamui_env_set_property ( GObject         *object,
@@ -247,6 +248,14 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                        1080,
                                                        G_PARAM_READWRITE));
 
+    g_object_class_install_property (gobject_class,
+                                     PROP_SVCS,
+                                     g_param_spec_object ("svcs",
+                                                          _("smf services"),
+                                                          _("smf services"),
+                                                          GTK_TYPE_TREE_MODEL,
+                                                          G_PARAM_WRITABLE));
+
 }
 
 
@@ -271,6 +280,7 @@ nwamui_env_init (NwamuiEnv *self)
     self->prv->proxy_ftp_port = 80;
     self->prv->proxy_gopher_port = 80;
     self->prv->proxy_socks_port = 1080;
+    self->prv->svcs_model = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_POINTER));
 
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
@@ -489,6 +499,11 @@ nwamui_env_get_property (GObject         *object,
 
         case PROP_PROXY_SOCKS_PORT: {
                 g_value_set_int( value, self->prv->proxy_socks_port );
+            }
+            break;
+
+        case PROP_SVCS: {
+                g_value_take_object (value, self->prv->svcs_model);
             }
             break;
 
@@ -1162,6 +1177,74 @@ nwamui_env_set_proxy_socks_port (   NwamuiEnv *self,
                   NULL);
 }
 
+extern NwamuiSvc
+nwamui_env_svc_new ()
+{
+    /* FIXME */
+    return g_new0 (NwamuiSvc, 1);
+}
+
+extern void
+nwamui_env_svc_free (NwamuiSvc svc)
+{
+    g_free (svc);
+}
+
+extern gboolean
+nwamui_env_has_svc (NwamuiEnv *self, NwamuiSvc svc)
+{
+    GtkTreeIter iter;
+    NwamuiSvc tsvc;
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), FALSE);
+    g_assert (svc);
+
+    if (gtk_tree_model_get_iter_first (self->prv->svcs_model, &iter)) {
+        do {
+            gtk_tree_model_get (self->prv->svcs_model, &iter, &tsvc, -1);
+            if (tsvc == svc) {
+                return TRUE;
+            }
+        } while (gtk_tree_model_iter_next(self->prv->svcs_model, &iter));
+    }
+    return FALSE;
+}
+
+extern void
+nwamui_env_svc_add (NwamuiEnv *self, NwamuiSvc svc)
+{
+	GtkTreeIter iter;
+
+    g_assert (svc);
+
+    if (nwamui_env_has_svc (self, svc)) {
+        return;
+    }
+
+	gtk_list_store_prepend(GTK_LIST_STORE(self->prv->svcs_model), &iter );
+	gtk_list_store_set(GTK_LIST_STORE(self->prv->svcs_model), &iter,
+                       0, svc, -1);
+}
+
+extern void
+nwamui_env_svc_remove (NwamuiEnv *self, NwamuiSvc svc)
+{
+	GtkTreeIter iter;
+    NwamuiSvc tsvc;
+
+    g_assert (svc);
+
+    if (gtk_tree_model_get_iter_first (self->prv->svcs_model, &iter)) {
+        do {
+            gtk_tree_model_get (self->prv->svcs_model, &iter, &tsvc, -1);
+            if (tsvc == svc) {
+                gtk_list_store_remove (self->prv->svcs_model, &iter);
+                break;
+            }
+        } while (gtk_tree_model_iter_next(self->prv->svcs_model, &iter));
+    }
+}
+
 /**
  * nwamui_env_get_proxy_socks_port:
  * @nwamui_env: a #NwamuiEnv.
@@ -1269,6 +1352,10 @@ nwamui_env_finalize (NwamuiEnv *self)
 
     if (self->prv->proxy_bypass_list != NULL ) {
         g_free( self->prv->proxy_bypass_list );
+    }
+
+    if (self->prv->svcs_model != NULL ) {
+        g_object_unref( self->prv->svcs_model );
     }
 
     g_free (self->prv); 

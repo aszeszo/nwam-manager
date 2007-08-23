@@ -27,6 +27,9 @@
 #include <gtk/gtk.h>
 #include <glib/gi18n.h>
 #include <libgnomeui/libgnomeui.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 #include "status_icon.h"
 #include "notify.h"
@@ -107,6 +110,8 @@ int main( int argc,
     gint    status_icon_index = 0;
     NwamMenu *menu;
     NwamuiDaemon* daemon;
+    gchar *pidfile;
+    int pidfd;
     
 #ifdef ENABLE_NLS
         bindtextdomain (GETTEXT_PACKAGE, NWAM_MANAGER_LOCALEDIR);
@@ -119,9 +124,34 @@ int main( int argc,
                                       GNOME_PARAM_APP_DATADIR, NWAM_MANAGER_DATADIR,
                                       NULL);
 
+        pidfile = g_build_filename (g_get_user_cache_dir(), "nwam-manager.lock", NULL);
+        pidfd = open (pidfile, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
+        if (pidfd == -1) {
+            g_debug ("open lock file %s error", pidfile);
+            return 1;
+        } else {
+            struct flock pidlock;
+            pidlock.l_type = F_WRLCK;
+            pidlock.l_whence = SEEK_SET;
+            pidlock.l_start = 0;
+            pidlock.l_len = 0;
+            if (fcntl (pidfd, F_SETLK, &pidlock) == -1) {
+                if (errno == EAGAIN || errno == EACCES) {
+                    g_debug ("%s is already running", argv[0]);
+                    return 0;
+                } else {
+                    g_debug ("obtain lock file %s error", pidfile);
+                    return 1;
+                }
+            }
+        }
+        g_free (pidfile);
+        
+#ifndef DEBUG
     client = gnome_master_client ();
     gnome_client_set_restart_command (client, argc, argv);
     gnome_client_set_restart_style (client, GNOME_RESTART_IMMEDIATELY);
+#endif
 
     gtk_init( &argc, &argv );
 
@@ -145,6 +175,7 @@ int main( int argc,
     nwam_notification_cleanup();
     g_object_unref (daemon);
     g_object_unref (G_OBJECT (menu));
+exit_session:
     g_object_unref (G_OBJECT (program));
     
     return 0;

@@ -93,6 +93,10 @@ static void on_activate_help (GtkAction *action, gpointer udata);
 static void on_activate_pref (GtkAction *action, gpointer udata);
 static void on_activate_addwireless (GtkAction *action, gpointer udata);
 static void on_activate_env (GtkAction *action, gpointer data);
+static void on_activate_enm (GtkAction *action, gpointer data);
+static void on_nwam_wifi_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+static void on_nwam_env_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+static void on_nwam_enm_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE (NwamMenu, nwam_menu, G_TYPE_OBJECT)
 
@@ -391,6 +395,19 @@ nwam_exec (const gchar *nwam_arg)
 }
 
 static void
+on_activate_pref (GtkAction *action, gpointer udata)
+{
+	gchar *argv = NULL;
+	switch (GPOINTER_TO_INT(udata)) {
+		case MI_PREF_ENV: argv = "-e"; break;
+		case MI_PREF_NET: argv = "-p"; break;
+		case MI_PREF_VPN: argv = "-n"; break;
+		default: g_assert_not_reached ();
+	}
+	nwam_exec(argv);
+}
+
+static void
 on_activate_about (GtkAction *action, gpointer data)
 {
 	
@@ -433,16 +450,71 @@ on_activate_env (GtkAction *action, gpointer data)
 }
 
 static void
-on_activate_pref (GtkAction *action, gpointer udata)
+on_activate_enm (GtkAction *action, gpointer data)
 {
-	gchar *argv = NULL;
-	switch (GPOINTER_TO_INT(udata)) {
-		case MI_PREF_ENV: argv = "-e"; break;
-		case MI_PREF_NET: argv = "-p"; break;
-		case MI_PREF_VPN: argv = "-n"; break;
-		default: g_assert_not_reached ();
-	}
-	nwam_exec(argv);
+	NwamMenu *self = NWAM_MENU (data);
+	NwamuiEnm *nwamobj = NULL;
+	nwamobj = NWAMUI_ENM(g_object_get_data(G_OBJECT(action), NWAMUI_MENUITEM_DATA));
+	if (nwamui_enm_get_active(nwamobj)) {
+		nwamui_enm_set_active (nwamobj, FALSE);
+	} else {
+		nwamui_enm_set_active (nwamobj, TRUE);
+    }
+}
+
+static void
+on_nwam_wifi_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamMenu *self = NWAM_MENU (data);
+    NwamuiNcu *nwamobj;
+
+    nwamobj = NWAMUI_NCU(g_object_get_data(G_OBJECT(gobject), NWAMUI_MENUITEM_DATA));
+    g_debug("menuitem get ncu notify %s changed\n", arg1->name);
+
+    if ( g_ascii_strcasecmp(arg1->name, "ncu") == 0 ) {
+    }
+}
+
+static void
+on_nwam_env_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamMenu *self = NWAM_MENU (data);
+    NwamuiEnv *nwamobj;
+
+    nwamobj = NWAMUI_ENV(g_object_get_data(G_OBJECT(gobject), NWAMUI_MENUITEM_DATA));
+    g_debug("menuitem get env notify %s changed\n", arg1->name);
+
+    if ( g_ascii_strcasecmp(arg1->name, "ncu") == 0 ) {
+    }
+}
+
+static void
+on_nwam_enm_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamMenu *self = NWAM_MENU (data);
+    NwamuiEnm *nwamobj;
+    gchar *path, *m_name;
+    GtkWidget *label, *menuitem;
+    gchar *new_text;
+
+    nwamobj = NWAMUI_ENM(gobject);
+
+    m_name = nwamui_enm_get_name (nwamobj);
+    path = g_build_path ("/", dynamic_part_menu_path[ID_VPN], m_name, NULL);
+    menuitem = gtk_ui_manager_get_widget (self->prv->ui_manager, path);
+    g_assert (menuitem);
+    g_free (path);
+
+    label = gtk_bin_get_child (GTK_BIN(menuitem));
+    if (nwamui_enm_get_active (nwamobj)) {
+        new_text = g_strconcat (_("Stop "), m_name, NULL);
+        gtk_label_set_text (GTK_LABEL (label), new_text);
+    } else {
+        new_text = g_strconcat (_("Start "), m_name, NULL);
+        gtk_label_set_text (GTK_LABEL (label), new_text);
+    }
+    g_free (new_text);
+    g_free (m_name);
 }
 
 /*
@@ -462,7 +534,6 @@ nwam_menu_menuitem_postfix (NwamMenu *self, GObject *obj)
 	gchar *path = NULL;
 
 	if (NWAMUI_IS_WIFI_NET (obj)) {
-		gchar *path = NULL;
 		gdouble strength;
 		NwamuiWifiNet *wifi = NWAMUI_WIFI_NET (obj);
 		GtkWidget* pbar = NULL;
@@ -500,6 +571,7 @@ nwam_menu_menuitem_postfix (NwamMenu *self, GObject *obj)
 	} else if (NWAMUI_IS_NCU (obj)) {
 	} else if (NWAMUI_IS_ENV (obj)) {
 	} else if (NWAMUI_IS_ENM (obj)) {
+        on_nwam_enm_notify_cb(obj, NULL, (gpointer)self);
 	} else {
 		g_assert_not_reached ();
 	}
@@ -523,7 +595,10 @@ nwam_menu_create_favorwifi_menuitems (NwamMenu *self)
 			gchar *name = NULL;
 			name = nwamui_wifi_net_get_essid(NWAMUI_WIFI_NET(idx->data));
 			action = GTK_ACTION(nwam_action_new (name, name, NULL, NULL));
+            g_object_set_data(G_OBJECT(action), NWAMUI_MENUITEM_DATA, idx->data);
 			//g_signal_connect (G_OBJECT (action), "activate", cb, udata);
+            g_signal_connect (idx->data, "notify",
+                              G_CALLBACK(on_nwam_wifi_notify_cb), (gpointer)self);
 			gtk_action_group_add_action_with_accel (self->prv->group[ID_FAV_WIFI], action, NULL);
 			g_object_unref (action);
 
@@ -569,7 +644,10 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
 		alt_name = g_strconcat (name, "_0", NULL);
 
 		action = GTK_ACTION(nwam_action_new (name, name, NULL, NULL));
+		g_object_set_data(G_OBJECT(action), NWAMUI_MENUITEM_DATA, wifi);
 		//g_signal_connect (G_OBJECT (action), "activate", on_activate_addwireless, wifi);
+		g_signal_connect (wifi, "notify",
+                          G_CALLBACK(on_nwam_wifi_notify_cb), (gpointer)self);
 		gtk_action_group_add_action_with_accel (self->prv->group[ID_WIFI], action, NULL);
 		g_object_unref (action);
 
@@ -638,7 +716,9 @@ nwam_menu_create_env_menuitems (NwamMenu *self)
 			FALSE));
 		g_object_set_data(G_OBJECT(action), NWAMUI_MENUITEM_DATA, idx->data);
 		g_signal_connect (G_OBJECT (action), "activate",
-			G_CALLBACK(on_activate_env), (gpointer)self);
+                          G_CALLBACK(on_activate_env), (gpointer)self);
+		g_signal_connect (idx->data, "notify",
+                          G_CALLBACK(on_nwam_env_notify_cb), (gpointer)self);
 		gtk_action_group_add_action_with_accel(self->prv->group[ID_ENV], action, NULL);
 		gtk_radio_action_set_group(GTK_RADIO_ACTION(action), group);
 		group = gtk_radio_action_get_group(GTK_RADIO_ACTION(action));
@@ -674,7 +754,11 @@ nwam_menu_create_vpn_menuitems(NwamMenu *self)
 			name,
 			NULL,
 			NULL));
-		//g_signal_connect (G_OBJECT (action), "activate", cb, udata);
+		g_object_set_data(G_OBJECT(action), NWAMUI_MENUITEM_DATA, idx->data);
+		g_signal_connect (G_OBJECT (action), "activate",
+                          G_CALLBACK(on_activate_enm), (gpointer)self);
+		g_signal_connect (idx->data, "notify::active",
+                          G_CALLBACK(on_nwam_enm_notify_cb), (gpointer)self);
 		gtk_action_group_add_action_with_accel(self->prv->group[ID_VPN], action, NULL);
 		g_object_unref(action);
 		

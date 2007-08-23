@@ -1,3 +1,19 @@
+2007-08-23  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_env.c: (nwamui_env_class_init), (nwamui_env_init),
+	(nwamui_env_get_property), (nwamui_env_svc_new),
+	(nwamui_env_svc_free), (nwamui_env_has_svc), (nwamui_env_svc_add),
+	(nwamui_env_svc_remove), (nwamui_env_finalize):
+	Add some api
+	* daemon/main.c: (main): Make daemon singleton
+	* daemon/nwam-menu.c: (on_activate_pref), (on_activate_enm),
+	(on_nwam_wifi_notify_cb), (on_nwam_env_notify_cb),
+	(on_nwam_enm_notify_cb), (nwam_menu_menuitem_postfix),
+	(nwam_menu_create_favorwifi_menuitems),
+	(nwam_menu_create_wifi_menuitems),
+	(nwam_menu_create_env_menuitems), (nwam_menu_create_vpn_menuitems):
+	Connect Nwam object notify signal.
+
 2007-08-17  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* TODO.txt: Updated.
