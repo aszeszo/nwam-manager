@@ -116,6 +116,7 @@ static gint nwam_vpn_cell_comp_cb(GtkTreeModel *model,
 	gpointer user_data);
 static void nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	gpointer          data);
+static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE(NwamVPNPrefDialog, nwam_vpn_pref_dialog, G_TYPE_OBJECT)
 
@@ -350,8 +351,7 @@ nwam_vpn_add (NwamVPNPrefDialog *self, NwamuiEnm* obj)
 	model = gtk_tree_view_get_model (self->prv->view);
 	gtk_list_store_append (GTK_LIST_STORE(model), &iter);
 	gtk_list_store_set (GTK_LIST_STORE(model), &iter,
-			    0, obj,
-			    -1);
+			    0, obj, -1);
 }
 
 static void
@@ -371,6 +371,8 @@ populate_panel( NwamVPNPrefDialog* self)
 	
 	for (idx = enm_list; idx; idx = g_list_next (idx)) {
 		nwam_vpn_add (self, NWAMUI_ENM (idx->data));
+		g_signal_connect (idx->data, "notify::active",
+                          G_CALLBACK(on_nwam_enm_notify_cb), (gpointer)self);
 	}
 }
 
@@ -467,7 +469,9 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 			if (gtk_tree_model_get_iter(model, &iter, (GtkTreePath *)idx->data)) {
 				gtk_tree_model_get (model, &iter, 0, &obj, -1);
 				gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
-				nwamui_daemon_enm_remove (self->prv->daemon, obj);
+				if (obj) {
+                    nwamui_daemon_enm_remove (self->prv->daemon, obj);
+                }
 			} else {
 				g_assert_not_reached ();
 			}
@@ -517,7 +521,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 		return;
 	}
 
-	/* FIXME, we should not set sensitive of start/stop buttons after
+	/* We should not set sensitive of start/stop buttons after
 	 * trigger it, we should wait the sigal if there has.
 	 */
 	if (button == self->prv->start_btn) {
@@ -639,7 +643,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 		gchar *txt = NULL;
 
 		gtk_tree_model_get (model, &iter, 0, &obj, -1);
-		g_debug ("cur_obj = 0x%p\tobj = 0x%p", prv->cur_obj, obj);
+
 		/* FIXME handle the old selection first, should assert the currect data */
 		if (prv->cur_obj && prv->cur_obj != obj) {
 			nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), prv->cur_obj);
@@ -648,8 +652,6 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->add_btn), TRUE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), TRUE);
-		gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
-		gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), TRUE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), TRUE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), TRUE);
@@ -670,15 +672,13 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 			txt = nwamui_enm_get_smf_frmi (obj);
 			gtk_entry_set_text (prv->process_entry, txt?txt:"");
 			g_free (txt);
-			if (nwamui_enm_get_active (obj)) {
-				gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), TRUE);
-			} else {
-				gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), TRUE);
-			}
+            on_nwam_enm_notify_cb(obj, NULL, data);
 		} else {
 			gtk_entry_set_text (prv->start_cmd_entry, "");
 			gtk_entry_set_text (prv->stop_cmd_entry, "");			
 			gtk_entry_set_text (prv->process_entry, "");
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
 		}
 		return;
 	}
@@ -695,4 +695,40 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_lbl), FALSE);
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->process_lbl), FALSE);
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->desc_lbl), FALSE);
+}
+
+static void
+on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
+    NwamuiEnm *nwamobj;
+	GtkTreeIter iter;
+    GtkTreeSelection *selection;
+    GtkTreeModel *model;
+	
+
+    nwamobj = NWAMUI_ENM(gobject);
+    if (prv->cur_obj != nwamobj) {
+        return;
+    }
+
+    if (nwamui_enm_get_active (nwamobj)) {
+        gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
+        gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), TRUE);
+    } else {
+        gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), TRUE);
+        gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
+    }
+
+    selection = gtk_tree_view_get_selection (prv->view);
+    model = gtk_tree_view_get_model (prv->view);
+	if (gtk_tree_selection_get_selected(selection,
+                                        NULL, &iter)) {
+        GtkTreePath* path;
+        path = gtk_tree_model_get_path (model, &iter);
+        gtk_tree_model_row_changed (model, path, &iter);
+        gtk_tree_path_free (path);
+    } else {
+        g_assert_not_reached();
+    }
 }

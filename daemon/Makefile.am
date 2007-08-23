@@ -65,10 +65,10 @@ nwam_manager_LDADD =				\
 schemasdir       = $(GCONF_SCHEMA_FILE_DIR)
 schemas_in_files = nwam-manager.schemas.in
 schemas_DATA     = $(schemas_in_files:.schemas.in=.schemas)
-	
 SUFFIXES = .desktop.in .desktop
+
 .desktop.in.desktop:
-	LC_ALL=C sed -e "s|\@BINDIR\@|$(bindir)|" $< > $@
+	LC_ALL=C sed -e "s|\@BINDIR\@|$(bindir)|;s|\@PROGRAM\@|nwam-manager|" $< > $@
 
 autosessiondir      = $(datadir)/gnome/autostart
 autosession_in_files = nwam-manager.desktop.in

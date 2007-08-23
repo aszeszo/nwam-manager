@@ -106,15 +106,16 @@ Network Preferences
   VPN Dialog
 
     - Start/Stop buttons should toggle sensitivity depending on the currently
-      selected ENM's state.
+      selected ENM's state. [done, lin]
     - Help Button needs to be connected.
 
 
   Connection Status Panel
 
-    - If an ENM is activated, the connection status need to be refreshed
+    - If an ENM is activated, the connection status need to be refreshed [done, lin]
       - It may be worth linking to the objects "notify" signal for each
         element in a view?
+      - VPN label list [done, lin]
   
 
   Network Configuration Panel

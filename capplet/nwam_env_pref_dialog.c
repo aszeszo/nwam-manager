@@ -687,10 +687,6 @@ env_selection_changed_cb( GtkWidget* widget, gpointer data )
 
         g_object_unref( G_OBJECT(current_env) );
     }
-    else {
-        g_debug("Couldn't get currently selected Env!");
-        g_assert_not_reached();
-    }
 }
 
 static void

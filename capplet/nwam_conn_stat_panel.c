@@ -73,6 +73,9 @@ enum {
         CONNVIEW_STATUS
 };
 
+#define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
+	NWAM_TYPE_CONN_STATUS_PANEL, NwamConnStatusPanelPrivate)) 
+
 static void nwam_conn_status_panel_finalize(NwamConnStatusPanel *self);
 static void nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 					     GtkCellRenderer   *renderer,
@@ -96,6 +99,8 @@ static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
 static gboolean refresh (NwamPrefIFace *self, gpointer data);
 static gboolean apply (NwamPrefIFace *self, gpointer data);
+static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnStatusPanel,
                         nwam_conn_status_panel,
@@ -119,6 +124,7 @@ nwam_conn_status_panel_class_init(NwamConnStatusPanelClass *klass)
 	
 	/* Override Some Function Pointers */
 	gobject_class->finalize = (void (*)(GObject*)) nwam_conn_status_panel_finalize;
+	g_type_class_add_private (klass, sizeof (NwamConnStatusPanelPrivate));
 }
 
 static GtkTreeModel*
@@ -244,29 +250,40 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 static void
 nwam_conn_status_panel_init(NwamConnStatusPanel *self)
 {
-	self->prv = g_new0(NwamConnStatusPanelPrivate, 1);
-	/* Iniialise pointers to important widgets */
-	self->prv->conn_status_treeview = GTK_TREE_VIEW(nwamui_util_glade_get_widget(CONN_STATUS_TREEVIEW));
-	self->prv->env_name_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_ENV_NAME_LABEL));
-	self->prv->env_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_ENV_BUTTON));
-	self->prv->vpn_name_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_VPN_NAME_LABEL));
-	self->prv->vpn_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_VPN_BUTTON));
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(self);
+	self->prv = prv;
+    GList*                  enm_elem;
+    NwamuiEnm*              enm;
 
-        self->prv->model = nwam_compose_tree_view (self);
-        
-        self->prv->daemon = nwamui_daemon_get_instance();
-        self->prv->pref_dialog = NULL;
-        self->prv->ncp = NULL;
-        self->prv->env_dialog = NULL;
+	/* Iniialise pointers to important widgets */
+	prv->conn_status_treeview = GTK_TREE_VIEW(nwamui_util_glade_get_widget(CONN_STATUS_TREEVIEW));
+	prv->env_name_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_ENV_NAME_LABEL));
+	prv->env_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_ENV_BUTTON));
+	prv->vpn_name_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_VPN_NAME_LABEL));
+	prv->vpn_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_VPN_BUTTON));
+
+    prv->model = nwam_compose_tree_view (self);
+    prv->daemon = nwamui_daemon_get_instance();
+    prv->pref_dialog = NULL;
+    prv->ncp = NULL;
+    prv->env_dialog = NULL;
         
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
-	g_signal_connect(GTK_BUTTON(self->prv->env_btn), "clicked", (GCallback)env_clicked_cb, (gpointer)self);
-	g_signal_connect(GTK_BUTTON(self->prv->vpn_btn), "clicked", (GCallback)vpn_clicked_cb, (gpointer)self);
+	g_signal_connect(GTK_BUTTON(prv->env_btn), "clicked", (GCallback)env_clicked_cb, (gpointer)self);
+	g_signal_connect(GTK_BUTTON(prv->vpn_btn), "clicked", (GCallback)vpn_clicked_cb, (gpointer)self);
+    g_signal_connect (prv->daemon, "notify::active_env", G_CALLBACK(on_nwam_env_notify_cb), (gpointer)self);
 
-	g_signal_connect(GTK_TREE_VIEW(self->prv->conn_status_treeview),
-			 "row-activated",
-			 (GCallback)nwam_conn_status_conn_view_row_activated_cb,
-			 (gpointer)self);
+	g_signal_connect(GTK_TREE_VIEW(prv->conn_status_treeview),
+                     "row-activated",
+                     (GCallback)nwam_conn_status_conn_view_row_activated_cb,
+                     (gpointer)self);
+
+    for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(self->prv->daemon)));
+          enm_elem != NULL;
+          enm_elem = g_list_next( enm_elem ) ) {
+        enm = NWAMUI_ENM(enm_elem->data);
+		g_signal_connect (enm_elem->data, "notify::active", G_CALLBACK(on_nwam_enm_notify_cb), (gpointer)self);
+    }
 }
 
 /**
@@ -380,9 +397,6 @@ nwam_conn_status_clear (NwamConnStatusPanel *self)
 static void
 nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
 {
-	g_free(self->prv);
-	self->prv = NULL;
-	
 	(*G_OBJECT_CLASS(nwam_conn_status_panel_parent_class)->finalize) (G_OBJECT(self));
 }
 
@@ -578,3 +592,57 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 	g_debug("NwamConnStatusPanel: notify %s changed\n", arg1->name);
 }
 
+static void
+on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
+    gchar *text;
+
+    if ( g_ascii_strcasecmp(arg1->name, "active_env") == 0 ) {
+        text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(prv->daemon));
+        gtk_label_set_text(prv->env_name_lbl, text);
+        g_free (text);
+    }
+}
+
+static void
+on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
+    GList*                  enm_elem;
+    NwamuiEnm*              enm;
+    int                     enm_active_count = 0;
+    gchar* enm_str = NULL;
+
+    if ( g_ascii_strcasecmp(arg1->name, "active") != 0 ) {
+        return;
+    }
+
+    for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(prv->daemon)));
+          enm_elem != NULL;
+          enm_elem = g_list_next( enm_elem ) ) {
+            
+        enm = NWAMUI_ENM(enm_elem->data);
+            
+        if  ( nwamui_enm_get_active(enm) ) {
+            if ( enm_str == NULL ) {
+                enm_str = g_strdup_printf("%s Active", nwamui_enm_get_name(enm));
+            }
+            enm_active_count++;
+        }
+    }
+        
+    if ( enm_active_count == 0 ) {
+        enm_str = g_strdup(_("None Active"));
+    }
+    else if (enm_active_count > 1 ) {
+        if ( enm_str != NULL )
+            g_free( enm_str );  
+            
+        enm_str = g_strdup_printf("%s Active", enm_active_count);
+    }
+        
+    gtk_label_set_text(prv->vpn_name_lbl, enm_str );
+        
+    g_free( enm_str );
+}

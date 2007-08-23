@@ -24,6 +24,7 @@ BuildRoot:               %{_tmppath}/%{name}-%{version}-build
 BuildRequires: SUNWgnome-libs-devel
 Requires: SUNWgnome-libs
 Requires: SUNWgnome-base-libs
+Requires: SUNWgnome-session
 
 %package root
 Summary:                 %{summary} - / filesystem
@@ -82,6 +83,17 @@ rm -f $RPM_BUILD_ROOT%{_datadir}/omf/*/*-??_??.omf
 %clean
 rm -rf $RPM_BUILD_ROOT
 
+%post
+( echo 'test -x /usr/bin/update-desktop-database || exit 0';
+  echo '/usr/bin/update-desktop-database'
+) | $BASEDIR/lib/postrun -b -u -c JDS_wait
+
+%postun
+test -x $BASEDIR/lib/postrun || exit 0
+( echo 'test -x /usr/bin/update-desktop-database || exit 0';
+  echo '/usr/bin/update-desktop-database'
+) | $BASEDIR/lib/postrun -b -u -c JDS
+
 %post root
 ( echo 'test -x /usr/bin/gconftool-2 || {';
   echo '  echo "ERROR: gconftool-2 not found"';
@@ -105,7 +117,7 @@ test -x $BASEDIR/var/lib/postrun/postrun || exit 0
   echo 'LD_LIBRARY_PATH=$PKG_INSTALL_ROOT/usr/lib';
   echo 'export GCONF_CONFIG_SOURCE GCONF_BACKEND_DIR LD_LIBRARY_PATH';
   echo 'SDIR=$BASEDIR%{_sysconfdir}/gconf/schemas';
-  echo 'schemas="$SDIR/gstreamer-%{gst_minmaj}.schemas"';
+  echo 'schemas="$SDIR/nwam-manager.schemas"';
   echo '$PKG_INSTALL_ROOT/usr/bin/gconftool-2 --makefile-uninstall-rule $schemas'
 ) | $BASEDIR/var/lib/postrun/postrun -i -c JDS -a
 
@@ -116,10 +128,13 @@ test -x $BASEDIR/var/lib/postrun/postrun || exit 0
 %dir %attr (0755, root, sys) %{_datadir}
 %dir %attr (0755, root, bin) %{_datadir}/nwam-manager
 %dir %attr (0755, root, bin) %{_datadir}/nwam-manager/icons
-#%dir %attr (0755, root, other) %{_datadir}/applications
-#%{_datadir}/applications/*
 %attr (-, root, other) %{_datadir}/nwam-manager/*.*
 %attr (-, root, other) %{_datadir}/nwam-manager/icons/*
+%dir %attr (-, root, other) %{_datadir}/gnome
+%dir %attr (-, root, bin) %{_datadir}/gnome/autostart
+%attr (-, root, bin) %{_datadir}/gnome/autostart/*
+#%dir %attr (0755, root, other) %{_datadir}/applications
+#%{_datadir}/applications/*
 #%attr (-, root, other) %{_datadir}/locale
 #%dir %attr(0755, root, bin) %{_mandir}
 #%dir %attr(0755, root, bin) %{_mandir}/*

@@ -23,7 +23,9 @@ SUBDIRS = common daemon capplet po pixmaps
 EXTRA_DIST =			\
         intltool-extract.in	\
         intltool-merge.in	\
-        intltool-update.in
+        intltool-update.in	\
+	SUNWnwam-manager.spec	\
+	nwam-manager.spec
 
 DISTCLEANFILES =		\
         intltool-extract	\

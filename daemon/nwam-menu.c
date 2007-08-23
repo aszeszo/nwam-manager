@@ -466,13 +466,41 @@ static void
 on_nwam_wifi_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamMenu *self = NWAM_MENU (data);
-    NwamuiNcu *nwamobj;
+    NwamuiWifiNet *nwamobj;
+    GtkWidget *menuitem;
+    gchar *path, *m_name;
+    GtkWidget* pbar = NULL;
+    GtkWidget* img = NULL;
+    gdouble strength;
 
-    nwamobj = NWAMUI_NCU(g_object_get_data(G_OBJECT(gobject), NWAMUI_MENUITEM_DATA));
-    g_debug("menuitem get ncu notify %s changed\n", arg1->name);
+    nwamobj = NWAMUI_WIFI_NET(gobject);
+    m_name = nwamui_wifi_net_get_essid (nwamobj);
+    path = g_build_path ("/", dynamic_part_menu_path[ID_WIFI], m_name, NULL);
+    menuitem = gtk_ui_manager_get_widget (self->prv->ui_manager, path);
+    g_assert (menuitem);
+    g_free (path);
 
-    if ( g_ascii_strcasecmp(arg1->name, "ncu") == 0 ) {
+    pbar = GTK_PROGRESS_BAR (nwam_menu_item_get_widget (NWAM_MENU_ITEM(menuitem), 1));
+    g_assert (pbar);
+    strength = (gdouble) nwamui_wifi_net_get_signal_strength (nwamobj);
+    strength /= (gdouble) (NWAMUI_WIFI_STRENGTH_LAST - NWAMUI_WIFI_STRENGTH_NONE);
+    gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR(pbar), strength);
+
+    switch (nwamui_wifi_net_get_security (nwamobj)) {
+    case NWAMUI_WIFI_SEC_NONE:
+        img = gtk_image_new_from_stock (NWAMUI_WIFI_SEC_NONE_STOCKID, GTK_ICON_SIZE_MENU);
+        break;
+    default:
+        img = gtk_image_new_from_stock (GTK_STOCK_YES, GTK_ICON_SIZE_MENU);
+        break;
     }
+    nwam_menu_item_set_widget (NWAM_MENU_ITEM(menuitem), img, 2);
+
+    /* if wifi is active */
+    if (FALSE)
+        gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM(menuitem), TRUE);
+    else
+        gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM(menuitem), FALSE);
 }
 
 static void
@@ -483,9 +511,6 @@ on_nwam_env_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     nwamobj = NWAMUI_ENV(g_object_get_data(G_OBJECT(gobject), NWAMUI_MENUITEM_DATA));
     g_debug("menuitem get env notify %s changed\n", arg1->name);
-
-    if ( g_ascii_strcasecmp(arg1->name, "ncu") == 0 ) {
-    }
 }
 
 static void
@@ -534,12 +559,10 @@ nwam_menu_menuitem_postfix (NwamMenu *self, GObject *obj)
 	gchar *path = NULL;
 
 	if (NWAMUI_IS_WIFI_NET (obj)) {
-		gdouble strength;
-		NwamuiWifiNet *wifi = NWAMUI_WIFI_NET (obj);
+		NwamuiWifiNet *nwamobj = NWAMUI_WIFI_NET (obj);
 		GtkWidget* pbar = NULL;
-		GtkWidget* img = NULL;
 		
-		m_name = nwamui_wifi_net_get_essid (wifi);
+		m_name = nwamui_wifi_net_get_essid (nwamobj);
 		path = g_build_path ("/", NWAMUI_PROOT, m_name, NULL);
 		menuitem = gtk_ui_manager_get_widget (self->prv->ui_manager, path);
 		g_free (m_name);
@@ -548,26 +571,14 @@ nwam_menu_menuitem_postfix (NwamMenu *self, GObject *obj)
 		if (!NWAM_IS_MENU_ITEM(menuitem))
 			return;
 		
-		strength = (gdouble) nwamui_wifi_net_get_signal_strength (wifi);
-		strength /= (gdouble) (NWAMUI_WIFI_STRENGTH_LAST - NWAMUI_WIFI_STRENGTH_NONE);
 		pbar = gtk_progress_bar_new ();
-		gtk_progress_bar_set_fraction (GTK_PROGRESS_BAR(pbar), strength);
 		nwam_menu_item_set_widget (NWAM_MENU_ITEM(menuitem), pbar, 1);
 		/* FIXME progress bar shouldn't handle any events */
 		//gtk_widget_set_state (pbar, GTK_STATE_INSENSITIVE);
 		//gtk_widget_set_sensitive (pbar, FALSE);
-		g_object_set (G_OBJECT (pbar), "can-focus", FALSE, NULL);
+		//g_object_set (G_OBJECT (pbar), "can-focus", FALSE, NULL);
 
-		switch (nwamui_wifi_net_get_security (wifi)) {
-			case NWAMUI_WIFI_SEC_NONE:
-				img = gtk_image_new_from_stock (NWAMUI_WIFI_SEC_NONE_STOCKID, GTK_ICON_SIZE_MENU);
-				break;
-			default:
-				img = gtk_image_new_from_stock (GTK_STOCK_YES, GTK_ICON_SIZE_MENU);
-				break;
-		}
-		nwam_menu_item_set_widget (NWAM_MENU_ITEM(menuitem), img, 2);
-		
+        on_nwam_wifi_notify_cb(nwamobj, NULL, (gpointer)self);
 	} else if (NWAMUI_IS_NCU (obj)) {
 	} else if (NWAMUI_IS_ENV (obj)) {
 	} else if (NWAMUI_IS_ENM (obj)) {

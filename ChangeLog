@@ -1,5 +1,28 @@
 2007-08-23  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* Makefile.am: add *.spec to extra_dist
+	* SUNWnwam-manager.spec: add session start file
+	* TODO.txt: updated
+	* capplet/nwam_conn_stat_panel.c:
+	(nwam_conn_status_panel_class_init), (nwam_conn_status_panel_init),
+	(nwam_conn_status_panel_finalize), (on_nwam_env_notify_cb),
+	(on_nwam_enm_notify_cb): code for update env/vpn labels
+	* capplet/nwam_env_pref_dialog.c: (env_selection_changed_cb):
+	remove g_assert, because each time run nwam_env_pref_dialog, 
+	combobox will be refilled, so gtk_combo_box_get_active_iter will
+	return FALSE when all entries are removed.
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_vpn_add), (populate_panel),
+	(vpn_pref_clicked_cb), (nwam_vpn_selection_changed),
+	(on_nwam_enm_notify_cb): code for update start/stop button and enm
+	status on the tree view.
+	* daemon/Makefile.am: fixed nwam-manager.desktop issue.
+	* daemon/nwam-manager.desktop.in: fixed application name.
+	* daemon/nwam-menu.c: (on_nwam_wifi_notify_cb),
+	(on_nwam_env_notify_cb), (nwam_menu_menuitem_postfix):
+	code for refresh wifi menu items when the wifi changes.
+
+2007-08-23  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_env.c: (nwamui_env_class_init), (nwamui_env_init),
 	(nwamui_env_get_property), (nwamui_env_svc_new),
 	(nwamui_env_svc_free), (nwamui_env_has_svc), (nwamui_env_svc_add),
