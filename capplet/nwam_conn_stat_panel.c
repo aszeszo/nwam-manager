@@ -101,6 +101,7 @@ static gboolean refresh (NwamPrefIFace *self, gpointer data);
 static gboolean apply (NwamPrefIFace *self, gpointer data);
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void on_nwam_ncu_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnStatusPanel,
                         nwam_conn_status_panel,
@@ -252,8 +253,6 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
 {
 	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(self);
 	self->prv = prv;
-    GList*                  enm_elem;
-    NwamuiEnm*              enm;
 
 	/* Iniialise pointers to important widgets */
 	prv->conn_status_treeview = GTK_TREE_VIEW(nwamui_util_glade_get_widget(CONN_STATUS_TREEVIEW));
@@ -278,6 +277,9 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
                      (GCallback)nwam_conn_status_conn_view_row_activated_cb,
                      (gpointer)self);
 
+    /* FIXME should connect daemon update enm list signal to get the latest enm list */
+    GList*                  enm_elem;
+    NwamuiEnm*              enm;
     for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(self->prv->daemon)));
           enm_elem != NULL;
           enm_elem = g_list_next( enm_elem ) ) {
@@ -306,7 +308,6 @@ nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog, NwamuiNcp* ncp)
         return( self );
 }
 
-
 static void
 add_ncu_element( gpointer data, gpointer user_data )
 {
@@ -325,9 +326,7 @@ static gboolean
 nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpointer data)
 {
         GList*                  enm_elem;
-        NwamuiEnm*              enm;
-        gchar*                  enm_str = NULL;
-        int                     enm_active_count = 0;
+        gchar*                  text = NULL;
         NwamConnStatusPanel*    self = NWAM_CONN_STATUS_PANEL( pref_iface );
 
         g_assert(NWAM_IS_CONN_STATUS_PANEL(self));
@@ -338,36 +337,11 @@ nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpointer data)
             nwamui_ncp_foreach_ncu( self->prv->ncp, add_ncu_element, (gpointer)self );
         }
         
-        gtk_label_set_text(self->prv->env_name_lbl, nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(self->prv->daemon)));
-        
-        for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(self->prv->daemon)));
-              enm_elem != NULL;
-              enm_elem = g_list_next( enm_elem ) ) {
-            
-            enm = NWAMUI_ENM(enm_elem->data);
-            
-            if  ( nwamui_enm_get_active(enm) ) {
-                if ( enm_str == NULL ) {
-                    enm_str = g_strdup_printf("%s Active", nwamui_enm_get_name(enm));
-                }
-                enm_active_count++;
-            }
-        }
-        
-        if ( enm_active_count == 0 ) {
-            enm_str = g_strdup(_("None Active"));
-        }
-        else if (enm_active_count > 1 ) {
-            if ( enm_str != NULL )
-                g_free( enm_str );  
-            
-            enm_str = g_strdup_printf("%s Active", enm_active_count);
-        }
-        
-        gtk_label_set_text(self->prv->vpn_name_lbl, enm_str );
-        
-        g_free( enm_str );
-        
+        text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(self->prv->daemon));
+        gtk_label_set_text(self->prv->env_name_lbl, text);
+        g_free (text);
+        on_nwam_enm_notify_cb(nwamui_daemon_get_enm_list(self->prv->daemon)->data,
+                              NULL, (gpointer)self);
         return(TRUE);
 }
 
@@ -386,6 +360,7 @@ nwam_conn_status_add (NwamConnStatusPanel *self, NwamuiNcu* connection)
 	gtk_tree_store_set (GTK_TREE_STORE(self->prv->model), &iter,
 			    0, connection,
 			    -1);
+    g_signal_connect (connection, "notify", G_CALLBACK(on_nwam_ncu_notify_cb), (gpointer)self);
 }
 
 void
@@ -425,16 +400,15 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
         gint                    cell_num = (gint)data;  /* Number of cell in column */
 	gpointer                connection = NULL;
 	gchar                  *stockid = NULL;
-	GString                *infobuf;
         NwamuiNcu*              ncu = NULL;
         nwamui_ncu_type_t       ncu_type;
-        gchar*                  ncu_text;
-        gchar*                  ncu_markup;
+        gchar*                  ncu_text = NULL;
+        gchar*                  ncu_markup = NULL;
         gboolean                ncu_status;
         gboolean                ncu_is_dhcp;
-        gchar*                  ncu_ipv4_addr;
+        gchar*                  ncu_ipv4_addr = NULL;
         GdkPixbuf              *status_icon;
-        gchar*                  info_string;
+        gchar*                  info_string = NULL;
         
 	gtk_tree_model_get(model, iter, 0, &connection, -1);
 
@@ -489,6 +463,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
                 }
 
                 ncu_markup= g_strdup_printf(_("<b>%s</b>\n<small>%s</small>"), ncu_text, info_string );
+                g_free (info_string);
         
 		g_object_set (G_OBJECT(renderer),
 			"markup", ncu_markup,
@@ -614,10 +589,6 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
     int                     enm_active_count = 0;
     gchar* enm_str = NULL;
 
-    if ( g_ascii_strcasecmp(arg1->name, "active") != 0 ) {
-        return;
-    }
-
     for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(prv->daemon)));
           enm_elem != NULL;
           enm_elem = g_list_next( enm_elem ) ) {
@@ -626,7 +597,10 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
             
         if  ( nwamui_enm_get_active(enm) ) {
             if ( enm_str == NULL ) {
-                enm_str = g_strdup_printf("%s Active", nwamui_enm_get_name(enm));
+                gchar *name;
+                name = nwamui_enm_get_name(enm);
+                enm_str = g_strdup_printf("%s Active", name);
+                g_free (name);
             }
             enm_active_count++;
         }
@@ -645,4 +619,24 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
     gtk_label_set_text(prv->vpn_name_lbl, enm_str );
         
     g_free( enm_str );
+}
+
+static void
+on_nwam_ncu_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
+	GtkTreeIter iter;
+    GtkTreeSelection *selection;
+
+    /* FIXME, should filter some notify::signals out */
+    selection = gtk_tree_view_get_selection (prv->conn_status_treeview);
+	if (gtk_tree_selection_get_selected(selection,
+                                        NULL, &iter)) {
+        GtkTreePath* path;
+        path = gtk_tree_model_get_path (prv->model, &iter);
+        gtk_tree_model_row_changed (prv->model, path, &iter);
+        gtk_tree_path_free (path);
+    } else {
+        g_assert_not_reached();
+    }
 }

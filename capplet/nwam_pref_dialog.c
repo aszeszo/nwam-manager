@@ -129,10 +129,6 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
 	self->prv->capplet_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(CAPPLET_DIALOG_NAME));
 	self->prv->show_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CAPPLET_DIALOG_SHOW_COMBO));
 	self->prv->main_nb = GTK_NOTEBOOK(nwamui_util_glade_get_widget(CAPPLET_DIALOG_MAIN_NOTEBOOK));
-	gtk_combo_box_set_row_separator_func (self->prv->show_combo,
-					show_combo_separator_cb,
-					NULL,
-					NULL);
         
         /* Get Current NCP */
         daemon = nwamui_daemon_get_instance();
@@ -416,11 +412,17 @@ change_show_combo_model(NwamCappletDialog *self)
 	GtkTreeModel      *model;
 	GtkCellRenderer   *pix_renderer;
         
-        g_assert(NWAM_IS_CAPPLET_DIALOG(self));
-        
-	model = GTK_TREE_MODEL(gtk_tree_store_new(1, G_TYPE_OBJECT));    /* Object Pointer */
+    g_assert(NWAM_IS_CAPPLET_DIALOG(self));
+    
+    /* Object pointer. Use G_TYPE_POINTER here
+     * because model_get will increase the ref count will cause mem leak
+     * if there is no unref
+     */
+	model = GTK_TREE_MODEL(gtk_tree_store_new(1, G_TYPE_POINTER));
 	
 	gtk_combo_box_set_model(GTK_COMBO_BOX(self->prv->show_combo), model);
+	g_object_unref(model);
+
 	gtk_cell_layout_clear(GTK_CELL_LAYOUT(self->prv->show_combo));
 	renderer = gtk_cell_renderer_text_new();
 	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(self->prv->show_combo), renderer, TRUE);
@@ -429,7 +431,10 @@ change_show_combo_model(NwamCappletDialog *self)
 					show_combo_cell_cb,
 					NULL,
 					NULL);
-	g_object_unref(model);
+	gtk_combo_box_set_row_separator_func (self->prv->show_combo,
+					show_combo_separator_cb,
+					NULL,
+					NULL);
 	
 	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_CONN_STATUS]));
 	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_NET_PREF])); 
@@ -495,7 +500,5 @@ nwam_capplet_dialog_select_ncu(NwamCappletDialog  *self, NwamuiNcu*  ncu )
             g_object_unref( current_ncu );
             break;
         }
-        if ( current_ncu != NULL )
-            g_object_unref( current_ncu );
     }
 }

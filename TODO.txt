@@ -69,7 +69,7 @@ Network Preferences
 
   Network Environment Preferences Dialog
 
-    - Rules Tab
+    - Rules Tab [partly done, need glue work]
       - Condition Combo 
         - <None> should deactivate other entries
         - All others should activate them
@@ -114,7 +114,7 @@ Network Preferences
 
     - If an ENM is activated, the connection status need to be refreshed [done, lin]
       - It may be worth linking to the objects "notify" signal for each
-        element in a view?
+        element in a view? [partly done, need filter signals. lin]
       - VPN label list [done, lin]
   
 

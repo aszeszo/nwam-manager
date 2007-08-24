@@ -1,3 +1,20 @@
+2007-08-24  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* TODO.txt: updated
+	* capplet/nwam_conn_stat_panel.c: (nwam_conn_status_panel_init),
+	(nwam_conn_status_panel_refresh), (nwam_conn_status_add),
+	(nwam_conn_status_update_status_cell_cb), (on_nwam_enm_notify_cb),
+	(on_nwam_ncu_notify_cb): connect ncu notify signal to update
+	tree view. fixed some memory leaks.
+	* capplet/nwam_pref_dialog.c: (nwam_capplet_dialog_init),
+	(change_show_combo_model), (nwam_capplet_dialog_select_ncu):
+	the model of show_combo is updated to contain G_TYPE_POINTER,
+	because the content comes from daemon. maybe later fix will make
+	daemon returns a tree list model which is more reasonable. make
+	sure ref/unref is correctly handled which doesn't do right now,
+	but the more correctly ref/unref should be handled in
+	nwam_conn_status_panel rather than here.
+
 2007-08-23  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* Makefile.am: add *.spec to extra_dist
