@@ -410,7 +410,12 @@ on_activate_pref (GtkAction *action, gpointer udata)
 static void
 on_activate_about (GtkAction *action, gpointer data)
 {
-	
+    gtk_show_about_dialog (NULL, 
+                       "name", _("NWAM Manager"),
+                       "title", _("About NWAM Manager"),
+                       "copyright", _("2007 Sun Microsystems, Inc  All rights reserved\nUse is subject to license terms."),
+                       "website", _("http://www.sun.com/"),
+                       NULL);
 }
 
 static void

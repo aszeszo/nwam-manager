@@ -1,5 +1,10 @@
 2007-08-31  Darren Kenny  <darren.kenny@sun.com>
 
+	* daemon/nwam-menu.c: (on_activate_about):
+	  Show the about dialog.
+
+2007-08-31  Darren Kenny  <darren.kenny@sun.com>
+
 	* pixmaps/earth-info.png, pixmaps/earth-normal.png:
 	  Upated icons to version based off the Nimbus theme.
 
