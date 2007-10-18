@@ -241,6 +241,24 @@ nwamui_util_free_obj_list( GList*   obj_list )
     g_list_free( obj_list );
 }
 
+/**
+ * nwamui_util_copy_obj_list
+ *
+ * Utility function, given a GList of objects, will duplicate the list and then ref() each element.
+ *
+ **/
+extern GList*
+nwamui_util_copy_obj_list( GList*   obj_list )
+{
+    GList*  new_list = NULL;
+    
+    g_return_if_fail( obj_list != NULL );
+    
+    new_list = g_list_copy( obj_list );
+    
+    g_list_foreach(new_list, nwamui_util_obj_ref, NULL );    
+}
+
 /* 
  * Returns a GdkPixbuf that reflects the type of the network.
  */

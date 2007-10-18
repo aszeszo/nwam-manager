@@ -1,3 +1,17 @@
+2007-10-18  Darren Kenny  <darren.kenny@sun.com>
+
+	* TODO.txt:
+	  Some updates on things done.
+	* capplet/nwam_env_pref_dialog.c: 
+	  Add Conditions
+	* common/Makefile.am, common/libnwamui.c, common/libnwamui.h,
+	  common/nwamui_cond.c, common/nwamui_cond.h:
+	  Add New API for Conditions Objects
+	* common/nwamui_enm.c:
+	  Remove unneeded instance variable.
+	* common/nwamui_env.c, common/nwamui_env.h:
+	  Add Conditions support
+
 2007-08-31  Darren Kenny  <darren.kenny@sun.com>
 
 	* daemon/nwam-menu.c: (on_activate_about):

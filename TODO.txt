@@ -56,7 +56,6 @@ Panel Icon
 
   Menu Items (Done by Lin, no callbacks)
 
-    - Add About Entry	(on_active_about)
     - Add Help Entry	(on_active_help)
 
 
@@ -75,12 +74,8 @@ Network Preferences
       - Condition Combo 
         - <None> should deactivate other entries
         - All others should activate them
-      - +/- buttons
       - Add API to Env to support add/delete and creation of rules.
-	- currently add two signals (add/remove), so we can connect them
-	  using common env_condition add/remove functions to do automatically
-	- may add more signals such like modify a condition.
-	- need more for initialize a env_condition.
+        - Partially done, some testing still needed
 
     - Network Services Tab
       - Default Network Services        

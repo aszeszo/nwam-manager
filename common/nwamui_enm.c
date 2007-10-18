@@ -34,8 +34,6 @@
 #include "libnwamui.h"
 
 static GObjectClass    *parent_class    = NULL;
-static NwamuiEnm       *instance        = NULL;
-
 
 struct _NwamuiEnmPrivate {
     gchar*               name;

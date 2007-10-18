@@ -52,7 +52,9 @@ struct _NwamuiEnvPrivate {
     gint                        proxy_ftp_port;
     gint                        proxy_gopher_port;
     gint                        proxy_socks_port;
-    GtkTreeModel *svcs_model;
+    nwamui_cond_match_t         condition_match;
+    GList*                      conditions;
+    GtkTreeModel*               svcs_model;
 };
 
 enum {
@@ -73,6 +75,8 @@ enum {
     PROP_PROXY_GOPHER_PORT,
     PROP_PROXY_SOCKS_PORT,
     PROP_SVCS,
+    PROP_CONDITIONS,
+    PROP_CONDITION_MATCH
 };
 
 static void nwamui_env_set_property ( GObject         *object,
@@ -255,6 +259,23 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           _("smf services"),
                                                           GTK_TYPE_TREE_MODEL,
                                                           G_PARAM_WRITABLE));
+    
+    g_object_class_install_property (gobject_class,
+                                     PROP_CONDITION_MATCH,
+                                     g_param_spec_int ("condition_match",
+                                                       _("condition_match"),
+                                                       _("condition_match"),
+                                                       NWAMUI_COND_MATCH_ANY,
+                                                       NWAMUI_COND_MATCH_LAST-1,
+                                                       NWAMUI_COND_MATCH_ANY,
+                                                       G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_CONDITIONS,
+                                     g_param_spec_pointer ("conditions",
+                                                          _("conditions"),
+                                                          _("conditions"),
+                                                          G_PARAM_READWRITE));
 
 }
 
@@ -280,6 +301,8 @@ nwamui_env_init (NwamuiEnv *self)
     self->prv->proxy_ftp_port = 80;
     self->prv->proxy_gopher_port = 80;
     self->prv->proxy_socks_port = 1080;
+    self->prv->condition_match = NWAMUI_COND_MATCH_ANY;
+    self->prv->conditions = NULL;
     self->prv->svcs_model = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_POINTER));
 
 
@@ -407,6 +430,19 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
+        case PROP_CONDITION_MATCH: {
+                self->prv->condition_match = (nwamui_cond_match_t)g_value_get_int( value );
+            }
+            break;
+
+        case PROP_CONDITIONS: {
+                if ( self->prv->conditions != NULL ) {
+                        nwamui_util_free_obj_list( self->prv->conditions );
+                }
+                self->prv->conditions = nwamui_util_copy_obj_list((GList*)g_value_get_pointer( value ));
+            }
+            break;
+
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -504,6 +540,16 @@ nwamui_env_get_property (GObject         *object,
 
         case PROP_SVCS: {
                 g_value_take_object (value, self->prv->svcs_model);
+            }
+            break;
+            
+        case PROP_CONDITION_MATCH: {
+                g_value_set_int( value, (gint)self->prv->condition_match );
+            }
+            break;
+            
+        case PROP_CONDITIONS: {
+                g_value_set_pointer( value, self->prv->conditions );
             }
             break;
 
@@ -1265,6 +1311,110 @@ nwamui_env_get_proxy_socks_port (NwamuiEnv *self)
     return( proxy_socks_port );
 }
 
+/** 
+ * nwamui_env_set_condition_match:
+ * @nwamui_env: a #NwamuiEnv.
+ * @condition_match: Value to set condition_match to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_condition_match (   NwamuiEnv *self,
+                                  nwamui_cond_match_t        condition_match )
+{
+    g_return_if_fail (NWAMUI_IS_ENV(self));
+    g_assert (condition_match >= NWAMUI_COND_MATCH_ANY && condition_match <= NWAMUI_COND_MATCH_LAST );
+
+    g_object_set (G_OBJECT (self),
+                  "condition_match", (gint)condition_match,
+                  NULL);
+}
+
+/**
+ * nwamui_env_get_condition_match:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the condition_match.
+ *
+ **/
+extern nwamui_cond_match_t
+nwamui_env_get_condition_match (NwamuiEnv *self)
+{
+    gint  condition_match = NWAMUI_COND_MATCH_ANY; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), condition_match);
+
+    g_object_get (G_OBJECT (self),
+                  "condition_match", &condition_match,
+                  NULL);
+
+    return( (nwamui_cond_match_t)condition_match );
+}
+
+/** 
+ * nwamui_env_set_conditions:
+ * @nwamui_env: a #NwamuiEnv.
+ * @conditions: Value to set conditions to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_conditions (   NwamuiEnv *self,
+                             const GList* conditions )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (conditions != NULL );
+
+    if ( conditions != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "conditions", (gpointer)conditions,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_conditions:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the conditions.
+ *
+ **/
+extern GList*
+nwamui_env_get_conditions (NwamuiEnv *self)
+{
+    gpointer  conditions = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), conditions);
+
+    g_object_get (G_OBJECT (self),
+                  "conditions", &conditions,
+                  NULL);
+
+    return( (GList*)conditions );
+}
+
+
+extern void
+nwamui_env_condition_add (NwamuiEnv *self, NwamuiCond* cond)
+{
+    g_return_if_fail( NWAMUI_IS_ENV( self ) && NWAMUI_IS_COND(cond));
+    
+    self->prv->conditions = g_list_append( self->prv->conditions, NWAMUI_COND(g_object_ref(cond)) );
+    
+}
+
+extern void
+nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond* cond)
+{
+    g_return_if_fail( NWAMUI_IS_ENV( self ) && NWAMUI_IS_COND(cond));
+    
+    self->prv->conditions = g_list_remove( self->prv->conditions, cond );
+    g_object_unref(cond);
+}
+
+extern void
+nwamui_env_condition_foreach (NwamuiEnv *self, GCallback *func, gpointer data)
+{
+    g_list_foreach(self->prv->conditions, func, data );
+}
+
+
 extern GtkTreeModel *
 nwamui_env_get_condition_subject ()
 {
@@ -1274,17 +1424,14 @@ nwamui_env_get_condition_subject ()
 
     if (condition_subject == NULL) {
         condition_subject = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
-        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, _("<No conditions>"), -1);
-        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, _("IP address"), -1);
-        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, _("Domain name"), -1);
-        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, _("Wireless name (ESSID)"), -1);
-        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, _("Wireless BSSID"), -1);
-        // g_object_ref (G_OBJECT(condition_subject));
+        for (gint i = NWAMUI_COND_FIELD_IP_ADDRESS; i < NWAMUI_COND_FIELD_LAST; i++) {
+            gchar* str = nwamui_cond_field_to_str((nwamui_cond_op_t)i);
+            if ( str != NULL ) {
+                gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
+                gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, 
+                                    str, -1);
+            }
+        }
     }
     return condition_subject;
 }
@@ -1298,21 +1445,14 @@ nwamui_env_get_condition_predicate ()
 
     if (condition_predicate == NULL) {
         condition_predicate = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
-        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("equal"), -1);
-        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("not equal"), -1);
-        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("in range"), -1);
-        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("begins"), -1);
-        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("ends"), -1);
-        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("contains"), -1);
-        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, _("does'nt contain"), -1);
-        // g_object_ref (G_OBJECT(condition_predicate));
+        for (gint i = NWAMUI_COND_OP_EQUALS; i < NWAMUI_COND_OP_LAST; i++) {
+            gchar* str = nwamui_cond_op_to_str((nwamui_cond_field_t) i);
+            if (str != NULL ) {
+                gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
+                gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, 
+                                    str, -1);
+            }
+        }
     }
     return condition_predicate;
 }

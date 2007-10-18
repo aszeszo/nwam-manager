@@ -132,9 +132,14 @@ extern gint                 nwamui_env_get_proxy_socks_port ( NwamuiEnv *self );
 extern GtkTreeModel *       nwamui_env_get_condition_predicate ();
 extern GtkTreeModel *       nwamui_env_get_condition_subject ();
 
-typedef gpointer NwamuiCond;
-extern void                 nwamui_env_condition_add (NwamuiEnv *self, NwamuiCond cond);
-extern void                 nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond cond);
+extern void                 nwamui_env_set_condition_match ( NwamuiEnv *self, nwamui_cond_match_t condition_match );
+extern nwamui_cond_match_t  nwamui_env_get_condition_match ( NwamuiEnv *self );
+
+extern void                 nwamui_env_set_conditions ( NwamuiEnv *self, const GList* conditions );
+extern GList*               nwamui_env_get_conditions ( NwamuiEnv *self );
+
+extern void                 nwamui_env_condition_add (NwamuiEnv *self, NwamuiCond* cond);
+extern void                 nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond* cond);
 extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GCallback *, gpointer data);
 
 typedef gpointer NwamuiSvc;

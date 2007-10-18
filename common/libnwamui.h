@@ -44,6 +44,10 @@ G_BEGIN_DECLS
 #include <gdk/gdkpixbuf.h>
 #endif /* __GDK_PIXBUF_H__ */
         
+#ifndef _NWAMUI_COND_H
+#include "nwamui_cond.h"
+#endif /*_NWAMUI_COND_H */
+        
 #ifndef _NWAMUI_WIFI_NET_H
 #include "nwamui_wifi_net.h"
 #endif /* _NWAMUI_WIFI_NET_H */
@@ -86,6 +90,8 @@ extern void                     nwamui_util_obj_ref( gpointer obj, gpointer user
 extern void                     nwamui_util_obj_unref( gpointer obj, gpointer user_data );
 
 extern void                     nwamui_util_free_obj_list( GList* obj_list );
+
+extern GList*                   nwamui_util_copy_obj_list( GList* obj_list );
 
 extern GdkPixbuf*               nwamui_util_get_network_status_icon( NwamuiNcu* ncu  );
 

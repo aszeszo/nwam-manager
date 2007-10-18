@@ -47,6 +47,7 @@ libnwamui_la_SOURCES =		\
 	nwamui_ncp.c \
 	nwamui_ncu.c \
 	nwamui_env.c \
+	nwamui_cond.c \
 	$(NULL)
 
 libnwamui_la_CPPFLAGS = \
@@ -70,6 +71,6 @@ EXTRA_DIST = 		\
 	nwamui_enm.h \
 	nwamui_ncp.h \
 	nwamui_ncu.h \
-	nwamui_env.h \
+	nwamui_cond.h \
 	$(NULL)
 
