@@ -1,3 +1,9 @@
+2007-10-19  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_env_pref_dialog.c: 
+	  Fix a bug w.r.t. where the rules were being "unset" on an environment
+	  change.
+
 2007-10-18  Darren Kenny  <darren.kenny@sun.com>
 
 	* TODO.txt:

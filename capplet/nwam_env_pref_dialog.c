@@ -960,15 +960,15 @@ env_delete_button_clicked_cb(GtkButton *button, gpointer  user_data)
 
 static void condition_field_changed_cb( GtkWidget* widget, gpointer data )
 {
-    NwamuiCond* cond = NWAMUI_COND(data);
+    NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
     gint        index = gtk_combo_box_get_active(GTK_COMBO_BOX(widget));
-    
+
     nwamui_cond_set_field( cond, (nwamui_cond_field_t)index);
 }   
 
 static void condition_op_changed_cb( GtkWidget* widget, gpointer data )
 {
-    NwamuiCond* cond = NWAMUI_COND(data);
+    NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
     gint        index = gtk_combo_box_get_active(GTK_COMBO_BOX(widget));
 
     nwamui_cond_set_oper( cond, (nwamui_cond_field_t)index);
@@ -976,7 +976,7 @@ static void condition_op_changed_cb( GtkWidget* widget, gpointer data )
 
 static void condition_value_changed_cb( GtkWidget* widget, gpointer data )
 {
-    NwamuiCond* cond = NWAMUI_COND(data);
+    NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
     
     nwamui_cond_set_value(cond, gtk_entry_get_text(GTK_ENTRY(widget)));
 }
@@ -1083,15 +1083,15 @@ table_conditon_new (NwamEnvPrefDialog *self, NwamuiCond* cond )
 
         g_signal_connect(combo1, "changed",
                          G_CALLBACK(condition_field_changed_cb),
-                         (gpointer)cond);
+                         (gpointer)box);
 
         g_signal_connect(combo2, "changed",
                          G_CALLBACK(condition_op_changed_cb),
-                         (gpointer)cond);
+                         (gpointer)box);
 
         g_signal_connect(entry, "changed",
                          G_CALLBACK(condition_value_changed_cb),
-                         (gpointer)cond);
+                         (gpointer)box);
 
 		add = GTK_BUTTON(gtk_button_new());
 		remove = gtk_button_new ();
@@ -1114,6 +1114,8 @@ table_conditon_new (NwamEnvPrefDialog *self, NwamuiCond* cond )
         g_object_set_data (G_OBJECT(box), TABLE_ROW_ADD, (gpointer)add);
         g_object_set_data (G_OBJECT(box), TABLE_ROW_REMOVE, (gpointer)remove);
 	}
+    g_object_set_data (G_OBJECT(box), TABLE_ROW_CDATA, cond);
+
     if (NWAMUI_IS_COND( cond )) {
         // Initialize box according to data
         nwamui_cond_field_t field = nwamui_cond_get_field( cond );
@@ -1128,7 +1130,6 @@ table_conditon_new (NwamEnvPrefDialog *self, NwamuiCond* cond )
         gtk_combo_box_set_active (GTK_COMBO_BOX(combo2), 0);
         gtk_entry_set_text (GTK_ENTRY(entry), "");
     }
-    g_object_set_data (G_OBJECT(box), TABLE_ROW_CDATA, cond);
 	return GTK_WIDGET(box);
 }
 
