@@ -1,3 +1,11 @@
+2007-10-25  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/main.c, capplet/nwam_conn_stat_panel.c, 
+	  capplet/nwam_conn_stat_panel.h, capplet/nwam_net_conf_panel.c, 
+	  common/libnwamui.c, common/nwamui_env.c, common/nwamui_env.h,
+	  common/nwamui_ncp.c, common/nwamui_ncp.h, daemon/main.c: 
+	  Change the NCP list of NCUs from being a GList to being a GtkListStore.
+
 2007-10-19  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_env_pref_dialog.c: 

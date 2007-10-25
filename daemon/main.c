@@ -55,14 +55,21 @@ on_blink_change(GtkStatusIcon *widget,
     gtk_status_icon_set_blinking(GTK_STATUS_ICON(status_icon), blink);
 }
 
-void
-get_state (GObject *obj, gpointer data)
+static gboolean
+get_state(  GtkTreeModel *model,
+            GtkTreePath *path,
+            GtkTreeIter *iter,
+            gpointer data)
 {
 	GString *str = (GString *)data;
-	NwamuiNcu *ncu = NWAMUI_NCU (obj);
+	NwamuiNcu *ncu = NULL;
 	gchar *format = NULL;
 	gchar *name = NULL;
 	
+  	gtk_tree_model_get(model, iter, 0, &ncu, -1);
+
+    g_assert( NWAMUI_IS_NCU(ncu) );
+    
 	switch (nwamui_ncu_get_ncu_type (ncu)) {
 		case NWAMUI_NCU_TYPE_WIRED:
 			format = _("\nWired (%s): %s");
@@ -73,6 +80,10 @@ get_state (GObject *obj, gpointer data)
 	}
 	name = nwamui_ncu_get_device_name (ncu);
 	g_string_append_printf (str, format, name, "test again");
+    
+    g_object_unref( ncu );
+    
+    return( TRUE );
 }
 
 static void
@@ -88,7 +99,7 @@ on_trigger_network_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gint sicon_id)
 	g_free (env_name);
 	
 	ncp = nwamui_daemon_get_active_ncp (daemon);
-	nwamui_ncp_foreach_ncu (ncp, G_CALLBACK(get_state), (gpointer)str);
+	nwamui_ncp_foreach_ncu (ncp, get_state, (gpointer)str);
 	nwam_status_icon_set_tooltip (sicon_id, str->str);
 	g_string_free (str, TRUE);
 }
@@ -166,7 +177,7 @@ int main( int argc,
     nwam_status_icon_show( status_icon_index );
     g_signal_connect(daemon, "active_env_changed",
 	    G_CALLBACK(on_trigger_network_changed),
-	    status_icon_index);
+	    (gpointer)status_icon_index);
     
     /* first time app trigger tooltip */
     on_trigger_network_changed (daemon, nwamui_daemon_get_active_env (daemon), status_icon_index);

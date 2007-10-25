@@ -140,7 +140,7 @@ extern GList*               nwamui_env_get_conditions ( NwamuiEnv *self );
 
 extern void                 nwamui_env_condition_add (NwamuiEnv *self, NwamuiCond* cond);
 extern void                 nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond* cond);
-extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GCallback *, gpointer data);
+extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GFunc func, gpointer data);
 
 typedef gpointer NwamuiSvc;
 extern NwamuiSvc            nwamui_env_svc_new ();

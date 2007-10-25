@@ -30,6 +30,7 @@
 #include <glib-object.h>
 #include <glib/gi18n.h>
 #include <strings.h>
+#include <gtk/gtkliststore.h>
 
 #include "libnwamui.h"
 
@@ -39,12 +40,12 @@ static NwamuiNcp       *instance        = NULL;
 
 struct _NwamuiNcpPrivate {
         gchar*          ncp_name;
-        GList*          ncu_list;
+        GtkListStore*   ncu_list_store;
 };
 
 enum {
     PROP_NAME = 1,
-    PROP_NCU_LIST
+    PROP_ncu_list_store
 };
 
 
@@ -63,6 +64,9 @@ static void nwamui_ncp_finalize (     NwamuiNcp *self);
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+static void row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
+static void row_inserted_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data);
+static void rows_reordered_cb(GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer arg3, gpointer user_data);
 
 G_DEFINE_TYPE (NwamuiNcp, nwamui_ncp, G_TYPE_OBJECT)
 
@@ -90,10 +94,11 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
                                                           G_PARAM_READABLE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_NCU_LIST,
-                                     g_param_spec_pointer ("ncu_list",
+                                     PROP_ncu_list_store,
+                                     g_param_spec_object ("ncu_list_store",
                                                           _("List of NCUs in the NCP"),
                                                           _("List of NCUs in the NCP"),
+                                                          GTK_TYPE_LIST_STORE,
                                                           G_PARAM_READABLE));
 
     
@@ -132,12 +137,13 @@ nwamui_ncp_init ( NwamuiNcp *self)
     /* TODO - See if there's a better name for the NCP */
     self->prv->ncp_name = g_strdup("CurrentNCP");
     
-    self->prv->ncu_list = NULL;
+    self->prv->ncu_list_store = gtk_list_store_new ( 1, NWAMUI_TYPE_NCU);
     
     /* TODO - Generate proper list of NCUs */
     for( ncu_info_t *ptr = tmp_ncu_list; ptr != NULL && ptr->vanity_name != NULL; ptr++) {
         NwamuiNcu       *ncu;
         NwamuiWifiNet   *wifi_info = NULL;
+        GtkTreeIter      iter;
         
         if ( ptr->essid != NULL ) {
             wifi_info = nwamui_wifi_net_new( ptr->essid, NWAMUI_WIFI_SEC_NONE, "aa:bb:cc:dd:ee", "g", 54, NWAMUI_WIFI_STRENGTH_VERY_GOOD, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC);
@@ -160,10 +166,15 @@ nwamui_ncp_init ( NwamuiNcp *self)
             g_object_unref( G_OBJECT( wifi_info ) );
         }
         
-        self->prv->ncu_list = g_list_append( self->prv->ncu_list, ncu );
+        gtk_list_store_append( self->prv->ncu_list_store, &iter );
+        gtk_list_store_set(self->prv->ncu_list_store, &iter, 0, ncu, -1 );
     }
     
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
+    g_signal_connect(self->prv->ncu_list_store, "row_deleted", G_CALLBACK(row_deleted_cb), NULL );
+    g_signal_connect(self->prv->ncu_list_store, "row_inserted", G_CALLBACK(row_inserted_cb), NULL );
+    g_signal_connect(self->prv->ncu_list_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), NULL );
+
 }
 
 static void
@@ -183,20 +194,6 @@ nwamui_ncp_set_property (   GObject         *object,
     }
 }
 
-static GList*
-dup_ncu_list( GList* list )
-{
-    GList *new_list =  NULL;
-    
-    g_list_foreach(list, nwamui_util_obj_ref, NULL );
-    
-    new_list = g_list_copy(list);  /* Copy Pointers */
-
-    g_list_foreach(new_list, nwamui_util_obj_ref, NULL ); /* Increase ref for each object */
-    
-    return( new_list );
-}
-
 static void
 nwamui_ncp_get_property (   GObject         *object,
                             guint            prop_id,
@@ -210,10 +207,8 @@ nwamui_ncp_get_property (   GObject         *object,
                 g_value_set_string( value, self->prv->ncp_name );
             }
             break;
-        case PROP_NCU_LIST: {
-                GList *list = NULL;
-                list = dup_ncu_list( self->prv->ncu_list );
-                g_value_set_pointer( value, (gpointer)list );
+        case PROP_ncu_list_store: {
+                g_value_set_object( value, self->prv->ncu_list_store );
             }
             break;
         default:
@@ -265,22 +260,22 @@ nwamui_ncp_get_name ( NwamuiNcp *self )
 }
 
 /**
- * nwamui_ncp_get_ncu_list:
+ * nwamui_ncp_get_ncu_list_store_store:
  * @returns: GList containing NwamuiNcu elements
  *
  **/
-extern GList*
-nwamui_ncp_get_ncu_list( NwamuiNcp *self )
+extern GtkListStore*
+nwamui_ncp_get_ncu_list_store( NwamuiNcp *self )
 {
-    gpointer  ncu_list = NULL;
+    GtkListStore* ncu_list_store = NULL;
     
-    g_return_val_if_fail (NWAMUI_IS_NCP(self), (GList*)ncu_list); 
+    g_return_val_if_fail (NWAMUI_IS_NCP(self), ncu_list_store); 
     
     g_object_get (G_OBJECT (self),
-                  "ncu_list", &ncu_list,
+                  "ncu_list_store", &ncu_list_store,
                   NULL);
 
-    return( (GList*)ncu_list );
+    return( ncu_list_store );
 }
 
 
@@ -291,21 +286,11 @@ nwamui_ncp_get_ncu_list( NwamuiNcp *self )
  *
  **/
 extern void
-nwamui_ncp_foreach_ncu( NwamuiNcp *self, GFunc func, gpointer user_data )
+nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data )
 {
-    gpointer  ncu_list = NULL;
+    g_return_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_list_store != NULL); 
     
-    g_return_if_fail (NWAMUI_IS_NCP(self)); 
-    
-    g_object_get (G_OBJECT (self),
-                  "ncu_list", &ncu_list,
-                  NULL);
-
-    g_return_if_fail (ncu_list != NULL); 
-    
-    g_list_foreach( ncu_list, func, user_data );
-    
-    nwamui_util_free_obj_list( ncu_list );
+    gtk_tree_model_foreach( GTK_TREE_MODEL(self->prv->ncu_list_store), func, user_data );
 }
 
 static void
@@ -314,9 +299,9 @@ nwamui_ncp_finalize (NwamuiNcp *self)
 
     g_free( self->prv->ncp_name);
     
-    if ( self->prv->ncu_list != NULL ) {
-        g_list_foreach(self->prv->ncu_list, nwamui_util_obj_unref, NULL);
-        g_list_free(self->prv->ncu_list);
+    if ( self->prv->ncu_list_store != NULL ) {
+        gtk_list_store_clear(self->prv->ncu_list_store);
+        g_object_unref(self->prv->ncu_list_store);
     }
     
     g_free (self->prv); 
@@ -333,5 +318,24 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     NwamuiNcp* self = NWAMUI_NCP(data);
 
     g_debug("NwamuiNcp: notify %s changed\n", arg1->name);
+}
+
+static void
+row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data) 
+{
+    g_debug("NwamuiNcp: NCU List: Row Deleted: %s", gtk_tree_path_to_string(path));
+}
+
+static void
+row_inserted_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data)
+{
+    g_debug("NwamuiNcp: NCU List: Row Inserted: %s", gtk_tree_path_to_string(path));
+}
+
+static void
+rows_reordered_cb(GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer arg3, gpointer user_data)   
+{
+    gchar*  path_str = gtk_tree_path_to_string(path);
+    g_debug("NwamuiNcp: NCU List: Rows Reordered: %s", path_str?path_str:"NULL");
 }
 

@@ -75,9 +75,9 @@ extern  NwamuiNcp*              nwamui_ncp_get_instance (void);
 
 extern  gchar*                  nwamui_ncp_get_name ( NwamuiNcp *self );
 
-extern	GList*                  nwamui_ncp_get_ncu_list ( NwamuiNcp *self );
+extern	GtkListStore*           nwamui_ncp_get_ncu_list_store ( NwamuiNcp *self );
 
-extern  void                    nwamui_ncp_foreach_ncu( NwamuiNcp *self, GFunc func, gpointer user_data );
+extern  void                    nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data );
 G_END_DECLS
 
 #endif	/* _NWAMUI_NCP_H */

@@ -1284,7 +1284,7 @@ nwamui_env_svc_remove (NwamuiEnv *self, NwamuiSvc svc)
         do {
             gtk_tree_model_get (self->prv->svcs_model, &iter, &tsvc, -1);
             if (tsvc == svc) {
-                gtk_list_store_remove (self->prv->svcs_model, &iter);
+                gtk_list_store_remove (GTK_LIST_STORE(self->prv->svcs_model), &iter);
                 break;
             }
         } while (gtk_tree_model_iter_next(self->prv->svcs_model, &iter));
@@ -1409,7 +1409,7 @@ nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond* cond)
 }
 
 extern void
-nwamui_env_condition_foreach (NwamuiEnv *self, GCallback *func, gpointer data)
+nwamui_env_condition_foreach (NwamuiEnv *self, GFunc func, gpointer data)
 {
     g_list_foreach(self->prv->conditions, func, data );
 }
@@ -1425,7 +1425,7 @@ nwamui_env_get_condition_subject ()
     if (condition_subject == NULL) {
         condition_subject = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
         for (gint i = NWAMUI_COND_FIELD_IP_ADDRESS; i < NWAMUI_COND_FIELD_LAST; i++) {
-            gchar* str = nwamui_cond_field_to_str((nwamui_cond_op_t)i);
+            const gchar* str = nwamui_cond_field_to_str((nwamui_cond_field_t)i);
             if ( str != NULL ) {
                 gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
                 gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, 
@@ -1446,7 +1446,7 @@ nwamui_env_get_condition_predicate ()
     if (condition_predicate == NULL) {
         condition_predicate = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
         for (gint i = NWAMUI_COND_OP_EQUALS; i < NWAMUI_COND_OP_LAST; i++) {
-            gchar* str = nwamui_cond_op_to_str((nwamui_cond_field_t) i);
+            const gchar* str = nwamui_cond_op_to_str((nwamui_cond_op_t) i);
             if (str != NULL ) {
                 gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
                 gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, 

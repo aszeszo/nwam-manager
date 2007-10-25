@@ -130,19 +130,20 @@ nwam_net_conf_panel_class_init(NwamNetConfPanelClass *klass)
 static void
 row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data) 
 {
-    g_debug("Row Deleted");
+    g_debug("Row Deleted: %s", gtk_tree_path_to_string(path));
 }
 
 static void
 row_inserted_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data)
 {
-    g_debug("Row Inserted");
+    g_debug("Row Inserted: %s", gtk_tree_path_to_string(path));
 }
 
 static void
 rows_reordered_cb(GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer arg3, gpointer user_data)   
 {
-    g_debug("Rows Reordered");
+    gchar*  path_str = gtk_tree_path_to_string(path);
+    g_debug("Rows Reordered: %s", path_str?path_str:"NULL");
 }
 
 
@@ -154,10 +155,10 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
 	GtkTreeView *view = self->prv->net_conf_treeview;
 	GtkTreeModel *model = NULL;
 
-        model = GTK_TREE_MODEL(gtk_list_store_new ( 1, G_TYPE_OBJECT));
+    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(self->prv->ncp));
         
-        g_assert( GTK_IS_LIST_STORE( model ) );
-        gtk_tree_view_set_model(GTK_TREE_VIEW(view), model);
+    g_assert( GTK_IS_LIST_STORE( model ) );
+    gtk_tree_view_set_model(GTK_TREE_VIEW(view), model);
         
 	g_object_set (G_OBJECT(view),
 		      "headers-clickable", FALSE,
@@ -175,11 +176,11 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
 						 (gpointer) 0,
 						 NULL
 		);
-        g_object_set_data (G_OBJECT (cell), "column", GINT_TO_POINTER (CONNVIEW_CHECK_BOX));
+    g_object_set_data (G_OBJECT (cell), "column", GINT_TO_POINTER (CONNVIEW_CHECK_BOX));
 	g_object_set (cell,
                       "activatable", TRUE,
 		      NULL);
-        g_signal_connect(G_OBJECT(cell), "toggled", G_CALLBACK(nwam_net_pref_connection_enabled_toggled_cb), (gpointer)model);
+    g_signal_connect(G_OBJECT(cell), "toggled", G_CALLBACK(nwam_net_pref_connection_enabled_toggled_cb), (gpointer)model);
 	g_object_set (col,
 		      "resizable", TRUE,
 		      "clickable", FALSE,
@@ -199,12 +200,12 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
 						 (gpointer) 0,
 						 NULL
 		);
-        g_object_set_data (G_OBJECT (cell), "column", GINT_TO_POINTER (CONNVIEW_INFO));
+    g_object_set_data (G_OBJECT (cell), "column", GINT_TO_POINTER (CONNVIEW_INFO));
 	g_object_set (cell,
                       "editable", TRUE,
 		      NULL);
-        g_signal_connect (cell, "edited", G_CALLBACK(vanity_name_edited), model);
-        g_signal_connect (cell, "editing-started", G_CALLBACK (vanity_name_editing_started), (gpointer)model);
+    g_signal_connect (cell, "edited", G_CALLBACK(vanity_name_edited), model);
+    g_signal_connect (cell, "editing-started", G_CALLBACK (vanity_name_editing_started), (gpointer)model);
 	g_object_set (col,
 		      "expand", TRUE,
 		      "resizable", TRUE,
@@ -225,7 +226,7 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
 						 (gpointer) 0,
 						 NULL
 		);
-        g_object_set_data (G_OBJECT (cell), "column", GINT_TO_POINTER (CONNVIEW_STATUS));
+    g_object_set_data (G_OBJECT (cell), "column", GINT_TO_POINTER (CONNVIEW_STATUS));
 	g_object_set (cell,
 		      "weight", PANGO_WEIGHT_BOLD,
                       NULL );
@@ -237,11 +238,19 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
 		      NULL);
 	gtk_tree_view_append_column (view, col);
         
-        g_signal_connect(model, "row_deleted", G_CALLBACK(row_deleted_cb), NULL );
-        g_signal_connect(model, "row_inserted", G_CALLBACK(row_inserted_cb), NULL );
-        g_signal_connect(model, "rows_reordered", G_CALLBACK(rows_reordered_cb), NULL );
+    return( model );
+}
 
-        return( model );
+static void
+nnwam_net_conf_panel_set_ncp(NwamNetConfPanel *self, NwamuiNcp* ncp )
+{
+	NwamNetConfPanelPrivate *prv = self->prv;
+
+    prv->ncp = NWAMUI_NCP(g_object_ref(ncp));
+
+    prv->model = nwam_compose_tree_view (self);
+
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL);
 }
 
 static void
@@ -257,8 +266,7 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
         self->prv->connection_rename_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_RENAME_BTN));	
         g_signal_connect(self->prv->connection_rename_btn, "clicked", G_CALLBACK(connection_rename_btn_cb), (gpointer)self);	
 
-        self->prv->model = nwam_compose_tree_view (self);
-        
+        self->prv->model = NULL;
         self->prv->pref_dialog = NULL;
         self->prv->ncp = NULL;
         
@@ -283,21 +291,10 @@ nwam_net_conf_panel_new(NwamCappletDialog *pref_dialog, NwamuiNcp* ncp)
         
         /* FIXME - Use GOBJECT Properties */
         self->prv->pref_dialog = g_object_ref( G_OBJECT( pref_dialog ));
-        self->prv->ncp = g_object_ref( G_OBJECT( ncp ));
         
-        nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL);
+        nnwam_net_conf_panel_set_ncp(self, ncp);
         
         return( self );
-}
-
-
-static void
-add_ncu_element( gpointer data, gpointer user_data )
-{
-    NwamuiNcu*              ncu = NWAMUI_NCU( data );
-    NwamNetConfPanel*    self = NWAM_NET_CONF_PANEL( user_data);
-    
-    nwam_net_conf_add( self, ncu );
 }
 
 /**
@@ -313,9 +310,12 @@ nwam_net_conf_panel_refresh(NwamPrefIFace *pref_iface, gpointer data)
     g_assert(NWAM_IS_NET_CONF_PANEL(self));
     
     if ( self->prv->ncp != NULL ) {
+/*
         gtk_list_store_clear( GTK_LIST_STORE( self->prv->model ) );
 
         nwamui_ncp_foreach_ncu( self->prv->ncp, add_ncu_element, (gpointer)self );
+*/
+        g_debug("NwamNetConfPanel: Refresh");
     }
     
     return( TRUE );

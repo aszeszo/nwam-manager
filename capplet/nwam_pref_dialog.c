@@ -130,23 +130,23 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
 	self->prv->show_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CAPPLET_DIALOG_SHOW_COMBO));
 	self->prv->main_nb = GTK_NOTEBOOK(nwamui_util_glade_get_widget(CAPPLET_DIALOG_MAIN_NOTEBOOK));
         
-        /* Get Current NCP */
-        daemon = nwamui_daemon_get_instance();
-        self->prv->ncp = nwamui_daemon_get_active_ncp( daemon );
-        g_object_unref( daemon );
-        daemon = NULL;
-        
-        /* Construct the Notebook Panels Handling objects. */
-        self->prv->panel[PANEL_CONN_STATUS] = NWAM_PREF_IFACE(nwam_conn_status_panel_new( self, self->prv->ncp ));
-        self->prv->panel[PANEL_NET_PREF] = NWAM_PREF_IFACE(nwam_net_conf_panel_new( self, self->prv->ncp ));
-        self->prv->panel[PANEL_CONF_IP] = NWAM_PREF_IFACE(nwam_conf_ip_panel_new());
+    /* Get Current NCP */
+    daemon = nwamui_daemon_get_instance();
+    self->prv->ncp = nwamui_daemon_get_active_ncp( daemon );
+    g_object_unref( daemon );
+    daemon = NULL;
 
-        change_show_combo_model( self ); /* Change Model */
+    /* Construct the Notebook Panels Handling objects. */
+    self->prv->panel[PANEL_CONN_STATUS] = NWAM_PREF_IFACE(nwam_conn_status_panel_new( self, self->prv->ncp ));
+    self->prv->panel[PANEL_NET_PREF] = NWAM_PREF_IFACE(nwam_net_conf_panel_new( self, self->prv->ncp ));
+    self->prv->panel[PANEL_CONF_IP] = NWAM_PREF_IFACE(nwam_conf_ip_panel_new());
+
+    change_show_combo_model( self ); /* Change Model */
 	update_show_combo_from_ncp( self->prv->show_combo, self->prv->ncp );
                 
 	gtk_combo_box_set_active (GTK_COMBO_BOX(self->prv->show_combo), 0);
 
-        g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
+    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
 	g_signal_connect(GTK_DIALOG(self->prv->capplet_dialog), "response", (GCallback)response_cb, (gpointer)self);
 	g_signal_connect(GTK_COMBO_BOX(self->prv->show_combo), "changed", (GCallback)show_changed_cb, (gpointer)self);
 	
@@ -441,6 +441,29 @@ change_show_combo_model(NwamCappletDialog *self)
 	show_comob_add (self->prv->show_combo, NULL); /* Separator */
 }
 
+static gboolean
+add_ncu_element(    GtkTreeModel *model,
+                    GtkTreePath *path,
+                    GtkTreeIter *iter,
+                    gpointer user_data)
+{
+	NwamuiNcu*      ncu = NULL;
+	GtkTreeStore*   combo_model = GTK_TREE_STORE(user_data);
+    GtkTreeIter     new_iter;
+	
+  	gtk_tree_model_get(model, iter, 0, &ncu, -1);
+
+    g_assert( NWAMUI_IS_NCU(ncu) );
+    
+    g_debug("NwamPrefDialog: Adding NCU %s to drop-down list", nwamui_ncu_get_display_name(ncu));
+    
+    gtk_tree_store_append(GTK_TREE_STORE(combo_model), &new_iter, NULL);
+    gtk_tree_store_set(GTK_TREE_STORE(combo_model), &new_iter, 0, ncu, -1);
+    
+    g_object_unref( ncu );
+    
+    return( FALSE ); /* FALSE = Continue Processing */
+}
 
 static void     
 update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp )
@@ -448,7 +471,6 @@ update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp )
 	GtkTreeIter     iter;
 	GtkTreeModel   *model = NULL;
 	gboolean        has_next;
-	GList          *ncu_list;
 	
 	g_return_if_fail( combo != NULL && ncp != NULL );
 	
@@ -465,16 +487,9 @@ update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp )
 		} while (has_next);
 	}
 	/* Now Add Entries for NCP Enabled NCUs */
-	ncu_list = nwamui_ncp_get_ncu_list( NWAMUI_NCP(ncp) );
-	
-	for(GList* elem = g_list_first(ncu_list); elem != NULL; elem = g_list_next(elem)) {
-		g_assert(G_IS_OBJECT(elem->data));
-		gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
-		gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, elem->data, -1);
-	}
-	nwamui_util_free_obj_list( ncu_list );
-	
-	g_object_unref(model);
+    nwamui_ncp_foreach_ncu(ncp, add_ncu_element, (gpointer)model);
+            
+    g_object_unref(model);
 }
 
 /*

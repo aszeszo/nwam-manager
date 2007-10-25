@@ -87,10 +87,6 @@ static gboolean  nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpoin
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
-static gint nwam_conn_status_connection_compare_cb (GtkTreeModel *model,
-			      GtkTreeIter *a,
-			      GtkTreeIter *b,
-			      gpointer user_data);
 static void nwam_conn_status_conn_view_row_activated_cb (GtkTreeView *tree_view,
 					GtkTreePath *path,
 					GtkTreeViewColumn *column,
@@ -136,10 +132,10 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 	GtkTreeView *view = self->prv->conn_status_treeview;
 	GtkTreeModel *model = NULL;
 
-        model = GTK_TREE_MODEL(gtk_tree_store_new ( 1, G_TYPE_OBJECT));
-        
-        g_assert( GTK_IS_TREE_STORE( model ) );
-        gtk_tree_view_set_model(GTK_TREE_VIEW(view), model);
+    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(self->prv->ncp));
+
+    g_assert( GTK_IS_LIST_STORE( model ) );
+    gtk_tree_view_set_model(GTK_TREE_VIEW(view), model);
         
 	g_object_set (G_OBJECT(view),
 		      "headers-clickable", FALSE,
@@ -174,14 +170,6 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 		      "reorderable", TRUE,
 		      NULL);
 	gtk_tree_view_append_column (view, col);
-	gtk_tree_sortable_set_sort_func	(GTK_TREE_SORTABLE(model),
-					 CONNVIEW_ICON,
-					 (GtkTreeIterCompareFunc) nwam_conn_status_connection_compare_cb,
-					 GINT_TO_POINTER(CONNVIEW_ICON),
-					 NULL);
-	gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE(model),
-					      CONNVIEW_ICON,
-					      GTK_SORT_ASCENDING);
 
 	// column info
 	col = gtk_tree_view_column_new();
@@ -203,16 +191,8 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 		      "reorderable", TRUE,
 		      NULL);
 	gtk_tree_view_append_column (view, col);
-	gtk_tree_sortable_set_sort_func	(GTK_TREE_SORTABLE(model),
-					 CONNVIEW_INFO,
-					 (GtkTreeIterCompareFunc) nwam_conn_status_connection_compare_cb,
-					 GINT_TO_POINTER(CONNVIEW_INFO),
-					 NULL);
-	gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE(model),
-					      CONNVIEW_INFO,
-					      GTK_SORT_ASCENDING);
         
-        // column status
+    // column status
 	col = gtk_tree_view_column_new();
 	cell = gtk_cell_renderer_text_new();
 	gtk_tree_view_column_set_title(col, _("Connection Status"));
@@ -234,18 +214,22 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 		      "reorderable", TRUE,
 		      NULL);
 	gtk_tree_view_append_column (view, col);
-	gtk_tree_sortable_set_sort_func	(GTK_TREE_SORTABLE(model),
-					 CONNVIEW_STATUS,
-					 (GtkTreeIterCompareFunc) nwam_conn_status_connection_compare_cb,
-					 GINT_TO_POINTER(CONNVIEW_STATUS),
-					 NULL);
-	gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE(model),
-					      CONNVIEW_STATUS,
-					      GTK_SORT_ASCENDING);
         
-        g_object_unref(model); /* Unref here since combobox will have ref-ed it */
-        
-        return( model );
+    g_object_unref(model); /* Unref here since combobox will have ref-ed it */
+
+    return( model );
+}
+
+static void
+nwam_conn_status_panel_set_ncp(NwamConnStatusPanel *self, NwamuiNcp* ncp )
+{
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(self);
+
+    prv->ncp = NWAMUI_NCP(g_object_ref(ncp));
+
+    prv->model = nwam_compose_tree_view (self);
+
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL);
 }
 
 static void
@@ -261,11 +245,11 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
 	prv->vpn_name_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_VPN_NAME_LABEL));
 	prv->vpn_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_VPN_BUTTON));
 
-    prv->model = nwam_compose_tree_view (self);
     prv->daemon = nwamui_daemon_get_instance();
     prv->pref_dialog = NULL;
     prv->ncp = NULL;
     prv->env_dialog = NULL;
+    prv->model = NULL;
         
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
 	g_signal_connect(GTK_BUTTON(prv->env_btn), "clicked", (GCallback)env_clicked_cb, (gpointer)self);
@@ -299,22 +283,12 @@ nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog, NwamuiNcp* ncp)
 {
 	NwamConnStatusPanel *self =  NWAM_CONN_STATUS_PANEL(g_object_new(NWAM_TYPE_CONN_STATUS_PANEL, NULL));
         
-        /* FIXME - Use GOBJECT Properties */
-        self->prv->pref_dialog = g_object_ref( G_OBJECT( pref_dialog ));
-        self->prv->ncp = g_object_ref( G_OBJECT( ncp ));
-        
-        nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL);
-
-        return( self );
-}
-
-static void
-add_ncu_element( gpointer data, gpointer user_data )
-{
-    NwamuiNcu*              ncu = NWAMUI_NCU( data );
-    NwamConnStatusPanel*    self = NWAM_CONN_STATUS_PANEL( user_data);
+    /* FIXME - Use GOBJECT Properties */
+    self->prv->pref_dialog = g_object_ref( G_OBJECT( pref_dialog ));
     
-    nwam_conn_status_add( self, ncu );
+    nwam_conn_status_panel_set_ncp(self, ncp );
+
+    return( self );
 }
 
 /**
@@ -332,9 +306,7 @@ nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpointer data)
         g_assert(NWAM_IS_CONN_STATUS_PANEL(self));
         
         if ( self->prv->ncp != NULL ) {
-            gtk_tree_store_clear( GTK_TREE_STORE( self->prv->model ) );
-        
-            nwamui_ncp_foreach_ncu( self->prv->ncp, add_ncu_element, (gpointer)self );
+            g_debug("NwamConnStatusPanel: Refresh Called");
         }
         
         text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(self->prv->daemon));
@@ -363,12 +335,6 @@ nwam_conn_status_add (NwamConnStatusPanel *self, NwamuiNcu* connection)
     g_signal_connect (connection, "notify", G_CALLBACK(on_nwam_ncu_notify_cb), (gpointer)self);
 }
 
-void
-nwam_conn_status_clear (NwamConnStatusPanel *self)
-{
-	gtk_tree_store_clear (GTK_TREE_STORE(self->prv->model));
-}
-
 static void
 nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
 {
@@ -376,19 +342,6 @@ nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
 }
 
 /* Callbacks */
-
-/*
- * We don't need a comp here actually due to requirements
- */
-static gint
-nwam_conn_status_connection_compare_cb (GtkTreeModel *model,
-			 GtkTreeIter *a,
-			 GtkTreeIter *b,
-			 gpointer user_data)
-{
-	return 0;
-}
-
 
 static void
 nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
@@ -637,6 +590,9 @@ on_nwam_ncu_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
         gtk_tree_model_row_changed (prv->model, path, &iter);
         gtk_tree_path_free (path);
     } else {
+/*
         g_assert_not_reached();
+*/
+        g_debug("Unexpected notification received.");
     }
 }

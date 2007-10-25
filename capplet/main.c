@@ -341,7 +341,7 @@ test_ncu_gobject( void )
 {
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     NwamuiNcp       *ncp = nwamui_daemon_get_active_ncp(daemon);
-    GList           *ncu_list = nwamui_ncp_get_ncu_list(ncp);
+    GList           *ncu_list = nwamui_ncp_get_ncu_list_store(ncp);
     
     g_list_foreach(ncu_list, process_ncu, NULL );
     
