@@ -52,6 +52,8 @@ struct _NwamuiEnvPrivate {
     gint                        proxy_ftp_port;
     gint                        proxy_gopher_port;
     gint                        proxy_socks_port;
+    gchar*                      proxy_username;
+    gchar*                      proxy_password;
     nwamui_cond_match_t         condition_match;
     GList*                      conditions;
     GtkTreeModel*               svcs_model;
@@ -74,6 +76,8 @@ enum {
     PROP_PROXY_FTP_PORT,
     PROP_PROXY_GOPHER_PORT,
     PROP_PROXY_SOCKS_PORT,
+    PROP_PROXY_USERNAME,
+    PROP_PROXY_PASSWORD,
     PROP_SVCS,
     PROP_CONDITIONS,
     PROP_CONDITION_MATCH
@@ -253,6 +257,22 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                        G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
+                                     PROP_PROXY_USERNAME,
+                                     g_param_spec_string ("proxy_username",
+                                                          _("proxy_username"),
+                                                          _("proxy_username"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_PROXY_PASSWORD,
+                                     g_param_spec_string ("proxy_password",
+                                                          _("proxy_password"),
+                                                          _("proxy_password"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
                                      PROP_SVCS,
                                      g_param_spec_object ("svcs",
                                                           _("smf services"),
@@ -301,6 +321,8 @@ nwamui_env_init (NwamuiEnv *self)
     self->prv->proxy_ftp_port = 80;
     self->prv->proxy_gopher_port = 80;
     self->prv->proxy_socks_port = 1080;
+    self->prv->proxy_username = NULL;
+    self->prv->proxy_password = NULL;
     self->prv->condition_match = NWAMUI_COND_MATCH_ANY;
     self->prv->conditions = NULL;
     self->prv->svcs_model = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_POINTER));
@@ -430,6 +452,22 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
+        case PROP_PROXY_USERNAME: {
+                if ( self->prv->proxy_username != NULL ) {
+                        g_free( self->prv->proxy_username );
+                }
+                self->prv->proxy_username = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_PROXY_PASSWORD: {
+                if ( self->prv->proxy_password != NULL ) {
+                        g_free( self->prv->proxy_password );
+                }
+                self->prv->proxy_password = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
         case PROP_CONDITION_MATCH: {
                 self->prv->condition_match = (nwamui_cond_match_t)g_value_get_int( value );
             }
@@ -535,6 +573,16 @@ nwamui_env_get_property (GObject         *object,
 
         case PROP_PROXY_SOCKS_PORT: {
                 g_value_set_int( value, self->prv->proxy_socks_port );
+            }
+            break;
+
+        case PROP_PROXY_USERNAME: {
+                g_value_set_string( value, self->prv->proxy_username );
+            }
+            break;
+
+        case PROP_PROXY_PASSWORD: {
+                g_value_set_string( value, self->prv->proxy_password );
             }
             break;
 
@@ -1223,6 +1271,86 @@ nwamui_env_set_proxy_socks_port (   NwamuiEnv *self,
                   NULL);
 }
 
+/** 
+ * nwamui_env_set_proxy_username:
+ * @nwamui_env: a #NwamuiEnv.
+ * @proxy_username: Value to set proxy_username to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_proxy_username (   NwamuiEnv *self,
+                              const gchar*  proxy_username )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (proxy_username != NULL );
+
+    if ( proxy_username != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "proxy_username", proxy_username,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_proxy_username:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the proxy_username.
+ *
+ **/
+extern gchar*
+nwamui_env_get_proxy_username (NwamuiEnv *self)
+{
+    gchar*  proxy_username = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), proxy_username);
+
+    g_object_get (G_OBJECT (self),
+                  "proxy_username", &proxy_username,
+                  NULL);
+
+    return( proxy_username );
+}
+
+/** 
+ * nwamui_env_set_proxy_password:
+ * @nwamui_env: a #NwamuiEnv.
+ * @proxy_password: Value to set proxy_password to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_proxy_password (   NwamuiEnv *self,
+                              const gchar*  proxy_password )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (proxy_password != NULL );
+
+    if ( proxy_password != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "proxy_password", proxy_password,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_proxy_password:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the proxy_password.
+ *
+ **/
+extern gchar*
+nwamui_env_get_proxy_password (NwamuiEnv *self)
+{
+    gchar*  proxy_password = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), proxy_password);
+
+    g_object_get (G_OBJECT (self),
+                  "proxy_password", &proxy_password,
+                  NULL);
+
+    return( proxy_password );
+}
+
 extern NwamuiSvc
 nwamui_env_svc_new ()
 {
@@ -1496,6 +1624,14 @@ nwamui_env_finalize (NwamuiEnv *self)
 
     if (self->prv->svcs_model != NULL ) {
         g_object_unref( self->prv->svcs_model );
+    }
+
+    if (self->prv->proxy_username != NULL ) {
+        g_free( self->prv->proxy_username );
+    }
+
+    if (self->prv->proxy_password != NULL ) {
+        g_free( self->prv->proxy_password );
     }
 
     g_free (self->prv); 

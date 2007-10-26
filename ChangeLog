@@ -1,3 +1,18 @@
+2007-10-26  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	  Add dialog for Proxy Username/Password.
+	  NOTE: This glade file is using *glade-3* now.
+	* capplet/Makefile.am, capplet/nwam_proxy_password_dialog.h,
+	  capplet/nwam_proxy_password_dialog.c:
+	  Add new object for handling the proxy username/password
+	  dialog.
+	* common/nwamui_env.h, common/nwamui_env.c: 
+	  Add proxy username and password properties.
+	* capplet/nwam_env_pref_dialog.c: 
+	  Add code to use the new proxy password dialog, and link changes made
+	  there with the currently selected environment.
+
 2007-10-25  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/main.c, capplet/nwam_conn_stat_panel.c, 

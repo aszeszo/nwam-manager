@@ -35,6 +35,8 @@
 
 #include <libnwamui.h>
 #include "nwam_env_pref_dialog.h"
+#include "nwam_proxy_password_dialog.h"
+#include <strings.h>
 
 /* Names of Widgets in Glade file */
 #define     ENV_PREF_DIALOG_NAME           "nwam_environment"
@@ -95,51 +97,52 @@ static guint env_signals[LAST_SIGNAL] = {0};
 struct _NwamEnvPrefDialogPrivate {
 
     /* Widget Pointers */
-    GtkDialog*              env_pref_dialog;
-    GtkComboBox*            environment_name_combo;
-    GtkButton*              add_environment_btn;
-    GtkButton*              edit_environment_btn;
-    GtkButton*              dup_environment_btn;
-    GtkButton*              delete_environment_btn;
-    GtkNotebook*            environment_notebook;
-    GtkComboBox*            proxy_config_combo;
-    GtkNotebook*            proxy_notebook;
-    GtkEntry*               http_name;
-    GtkSpinButton*          http_port_sbox;
-    GtkButton*              http_password_btn;
-    GtkCheckButton*         use_for_all_cb;
-    GtkEntry*               https_name;
-    GtkSpinButton*          https_port_sbox;
-    GtkEntry*               ftp_name;
-    GtkSpinButton*          ftp_port_sbox;
-    GtkEntry*               gopher_name;
-    GtkSpinButton*          gopher_port_sbox;
-    GtkEntry*               socks_name;
-    GtkSpinButton*          socks_port_sbox;
-    GtkEntry*               no_proxy_entry;
-    GtkLabel*               http_proxy_label;
-    GtkLabel*               https_proxy_label;
-    GtkLabel*               ftp_proxy_label;
-    GtkLabel*               gopher_proxy_label;
-    GtkLabel*               socks_proxy_label;
-    GtkLabel*               gopher_proxy_port_label;
-    GtkLabel*               socks_proxy_port_label;
-    GtkLabel*               https_proxy_port_label;
-    GtkLabel*               http_proxy_port_label;
-    GtkLabel*               ftp_proxy_port_label;
-    GtkLabel*               only_allow_label;
+    GtkDialog*                  env_pref_dialog;
+    GtkComboBox*                environment_name_combo;
+    GtkButton*                  add_environment_btn;
+    GtkButton*                  edit_environment_btn;
+    GtkButton*                  dup_environment_btn;
+    GtkButton*                  delete_environment_btn;
+    GtkNotebook*                environment_notebook;
+    GtkComboBox*                proxy_config_combo;
+    GtkNotebook*                proxy_notebook;
+    GtkEntry*                   http_name;
+    GtkSpinButton*              http_port_sbox;
+    GtkButton*                  http_password_btn;
+    NwamProxyPasswordDialog*    proxy_password_dialog;
+    GtkCheckButton*             use_for_all_cb;
+    GtkEntry*                   https_name;
+    GtkSpinButton*              https_port_sbox;
+    GtkEntry*                   ftp_name;
+    GtkSpinButton*              ftp_port_sbox;
+    GtkEntry*                   gopher_name;
+    GtkSpinButton*              gopher_port_sbox;
+    GtkEntry*                   socks_name;
+    GtkSpinButton*              socks_port_sbox;
+    GtkEntry*                   no_proxy_entry;
+    GtkLabel*                   http_proxy_label;
+    GtkLabel*                   https_proxy_label;
+    GtkLabel*                   ftp_proxy_label;
+    GtkLabel*                   gopher_proxy_label;
+    GtkLabel*                   socks_proxy_label;
+    GtkLabel*                   gopher_proxy_port_label;
+    GtkLabel*                   socks_proxy_port_label;
+    GtkLabel*                   https_proxy_port_label;
+    GtkLabel*                   http_proxy_port_label;
+    GtkLabel*                   ftp_proxy_port_label;
+    GtkLabel*                   only_allow_label;
     
-    GtkTreeView*            default_netservices_list;
-    GtkTreeView*            additional_netservices_list;
-    GtkButton*              add_netservice_btn;
-    GtkButton*              delete_netservice_btn;
-    GtkBox*                 conditions_vbox;
-    GList*                  table_box_cache;
-    guint                   table_line_num;
+    GtkTreeView*                default_netservices_list;
+    GtkTreeView*                additional_netservices_list;
+    GtkButton*                  add_netservice_btn;
+    GtkButton*                  delete_netservice_btn;
+    GtkBox*                     conditions_vbox;
+    GList*                      table_box_cache;
+    guint                       table_line_num;
 
     /* Other Data */
-    NwamuiDaemon*           daemon;
-    NwamuiEnv*              selected_env;
+    NwamuiDaemon*               daemon;
+    NwamuiEnv*                  selected_env;
 };
 
 G_DEFINE_TYPE (NwamEnvPrefDialog, nwam_env_pref_dialog, G_TYPE_OBJECT)
@@ -166,8 +169,8 @@ static void table_lines_free (NwamEnvPrefDialog *self);
 static GtkWidget *table_conditon_new (NwamEnvPrefDialog *self, NwamuiCond* cond);
 static GtkWidget* table_condition_insert (GtkWidget *clist, guint row, NwamuiCond* cond);
 static void table_condition_delete(GtkWidget *clist, GtkWidget *crow);
-static void default_condition_add_signal_handler (NwamEnvPrefDialog *self, gpointer data, gpointer user_data);
-static void default_condition_remove_signal_handler (NwamEnvPrefDialog *self, gpointer data, gpointer user_data);
+static void default_condition_add_signal_handler (NwamEnvPrefDialog *self, GObject* data, gpointer user_data);
+static void default_condition_remove_signal_handler (NwamEnvPrefDialog *self, GObject* data, gpointer user_data);
 
 static void condition_field_changed_cb( GtkWidget* widget, gpointer data );
 static void condition_op_changed_cb( GtkWidget* widget, gpointer data );
@@ -191,6 +194,8 @@ static void         env_rename_button_clicked_cb(GtkButton *button, gpointer  us
 static void         env_duplicate_button_clicked_cb(GtkButton *button, gpointer  user_data);
 
 static void         env_delete_button_clicked_cb(GtkButton *button, gpointer  user_data);
+
+static void         http_password_button_clicked_cb(GtkButton *button, gpointer  user_data);
 
 static void table_add_condition_cb(GtkButton *button, gpointer  data);
 static void table_delete_condition_cb(GtkButton *button, gpointer  data);
@@ -283,13 +288,14 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     prv->delete_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_NETSERVICE_BTN ));
     prv->only_allow_label = GTK_LABEL(nwamui_util_glade_get_widget( ONLY_ALLOW_LABEL ));     
     conditions_scrollwin = nwamui_util_glade_get_widget(CONDITIONS_SCROLLWIN);
-    prv->conditions_vbox = GTK_VBOX(gtk_vbox_new(FALSE, 2));
+    prv->conditions_vbox = GTK_BOX(gtk_vbox_new(FALSE, 2));
     gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW(conditions_scrollwin),
                                            GTK_WIDGET(prv->conditions_vbox));
     
     /* Other useful pointer */
     prv->selected_env = NULL;
     prv->daemon = NWAMUI_DAEMON(nwamui_daemon_get_instance());
+    prv->proxy_password_dialog = NULL;
     
     change_env_combo_model(self);
     
@@ -300,6 +306,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     g_signal_connect(GTK_BUTTON(prv->edit_environment_btn), "clicked", G_CALLBACK(env_rename_button_clicked_cb), (gpointer)self);
     g_signal_connect(GTK_BUTTON(prv->dup_environment_btn), "clicked", G_CALLBACK(env_duplicate_button_clicked_cb), (gpointer)self);
     g_signal_connect(GTK_BUTTON(prv->delete_environment_btn), "clicked", G_CALLBACK(env_delete_button_clicked_cb), (gpointer)self);
+    g_signal_connect(GTK_BUTTON(prv->http_password_btn), "clicked", G_CALLBACK(http_password_button_clicked_cb), (gpointer)self);
     
     g_signal_connect(GTK_COMBO_BOX(prv->proxy_config_combo), "changed", (GCallback)proxy_config_changed_cb, (gpointer)self);
     g_signal_connect(GTK_CHECK_BUTTON(prv->use_for_all_cb), "toggled", (GCallback)use_for_all_toggled, (gpointer)self);
@@ -327,6 +334,10 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 static void
 nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
 {
+    if ( self->prv->proxy_password_dialog != NULL ) {
+        g_object_unref(G_OBJECT(self->prv->proxy_password_dialog));
+    }
+    
     g_object_unref(G_OBJECT(self->prv->env_pref_dialog ));
     g_object_unref(G_OBJECT(self->prv->environment_name_combo));
     g_object_unref(G_OBJECT(self->prv->add_environment_btn));
@@ -366,7 +377,6 @@ nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
     g_object_unref(G_OBJECT(self->prv->only_allow_label));
     g_object_unref(G_OBJECT(self->prv->daemon));
     table_lines_free (self);
-    
     (*G_OBJECT_CLASS(nwam_env_pref_dialog_parent_class)->finalize) (G_OBJECT(self));
 }
 
@@ -958,6 +968,41 @@ env_delete_button_clicked_cb(GtkButton *button, gpointer  user_data)
         
 }
 
+static void
+http_password_button_clicked_cb(GtkButton *button, gpointer  user_data)
+{
+    NwamEnvPrefDialog*  self = NWAM_ENV_PREF_DIALOG(user_data);
+    gint                response;
+    gchar*              username;
+    gchar*              password;
+    
+    if ( self->prv->proxy_password_dialog == NULL ) {
+        self->prv->proxy_password_dialog = nwam_proxy_password_dialog_new();
+    }
+    
+    username = nwamui_env_get_proxy_username(self->prv->selected_env);
+    nwam_proxy_password_dialog_set_username(self->prv->proxy_password_dialog, username );
+    password = nwamui_env_get_proxy_password(self->prv->selected_env);
+    nwam_proxy_password_dialog_set_password(self->prv->proxy_password_dialog, password );
+    g_free(username);
+    g_free(password);
+    
+    response = nwam_proxy_password_dialog_run(self->prv->proxy_password_dialog);
+    switch( response ) {
+        case GTK_RESPONSE_OK: {
+                gchar *new_username = nwam_proxy_password_dialog_get_username(self->prv->proxy_password_dialog);
+                gchar *new_password = nwam_proxy_password_dialog_get_password(self->prv->proxy_password_dialog);
+                nwamui_env_set_proxy_username(self->prv->selected_env, new_username);
+                nwamui_env_set_proxy_password(self->prv->selected_env, new_password);
+                g_free(new_username);
+                g_free(new_password);
+            }
+            break;
+        default:
+            break;
+    }
+}
+
 static void condition_field_changed_cb( GtkWidget* widget, gpointer data )
 {
     NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
@@ -971,7 +1016,7 @@ static void condition_op_changed_cb( GtkWidget* widget, gpointer data )
     NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
     gint        index = gtk_combo_box_get_active(GTK_COMBO_BOX(widget));
 
-    nwamui_cond_set_oper( cond, (nwamui_cond_field_t)index);
+    nwamui_cond_set_oper( cond, (nwamui_cond_op_t)index);
 }
 
 static void condition_value_changed_cb( GtkWidget* widget, gpointer data )
@@ -1094,7 +1139,7 @@ table_conditon_new (NwamEnvPrefDialog *self, NwamuiCond* cond )
                          (gpointer)box);
 
 		add = GTK_BUTTON(gtk_button_new());
-		remove = gtk_button_new ();
+		remove = GTK_BUTTON(gtk_button_new ());
         gtk_button_set_image (add, gtk_image_new_from_stock(GTK_STOCK_ADD, GTK_ICON_SIZE_BUTTON));
         gtk_button_set_image (remove, gtk_image_new_from_stock(GTK_STOCK_REMOVE, GTK_ICON_SIZE_BUTTON));
 		g_signal_connect(add, "clicked",
@@ -1246,7 +1291,7 @@ table_delete_condition_cb(GtkButton *button, gpointer data)
 }
 
 static void
-default_condition_add_signal_handler (NwamEnvPrefDialog *self, gpointer data, gpointer user_data)
+default_condition_add_signal_handler (NwamEnvPrefDialog *self, GObject* data, gpointer user_data)
 {
     g_debug("Condition Add : 0x%p", data);
     /* TODO - Move this from default sig handler to specific handler. */
@@ -1256,7 +1301,7 @@ default_condition_add_signal_handler (NwamEnvPrefDialog *self, gpointer data, gp
 }
 
 static void
-default_condition_remove_signal_handler (NwamEnvPrefDialog *self, gpointer data, gpointer user_data)
+default_condition_remove_signal_handler (NwamEnvPrefDialog *self, GObject* data, gpointer user_data)
 {
     g_debug("Condition Remove : 0x%p", data);
     /* TODO - Move this from default sig handler to specific handler. */

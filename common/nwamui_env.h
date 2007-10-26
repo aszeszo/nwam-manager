@@ -129,6 +129,12 @@ extern gint                 nwamui_env_get_proxy_gopher_port ( NwamuiEnv *self )
 extern void                 nwamui_env_set_proxy_socks_port ( NwamuiEnv *self, gint proxy_socks_port );
 extern gint                 nwamui_env_get_proxy_socks_port ( NwamuiEnv *self );
 
+extern void                 nwamui_env_set_proxy_username ( NwamuiEnv *self, const gchar* proxy_username );
+extern gchar*               nwamui_env_get_proxy_username ( NwamuiEnv *self );
+
+extern void                 nwamui_env_set_proxy_password ( NwamuiEnv *self, const gchar* proxy_password );
+extern gchar*               nwamui_env_get_proxy_password ( NwamuiEnv *self );
+
 extern GtkTreeModel *       nwamui_env_get_condition_predicate ();
 extern GtkTreeModel *       nwamui_env_get_condition_subject ();
 

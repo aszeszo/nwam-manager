@@ -50,6 +50,7 @@ nwam_manager_properties_SOURCES =		\
 	nwam_env_pref_dialog.c	\
 	nwam_vpn_pref_dialog.c	\
 	nwam_conn_conf_ip_panel.c	\
+	nwam_proxy_password_dialog.c	\
 	nwam_env_svc.c	\
 	$(NULL)
 
@@ -78,6 +79,7 @@ EXTRA_DIST = 		\
 	nwam_vpn_pref_dialog.h	\
 	nwam_conn_conf_ip_panel.h	\
 	nwam_env_svc.h	\
+	nwam_proxy_password_dialog.h	\
 	$(glade_DATA)	\
 	$(NULL)
 
