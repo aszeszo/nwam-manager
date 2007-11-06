@@ -172,7 +172,7 @@ static void conn_view_row_activated_cb (GtkTreeView *tree_view,
 static void multi_line_add_cb( GtkButton *button, gpointer data );
 static void multi_line_del_cb( GtkButton *button, gpointer data );
 static void show_changed_cb( GtkComboBox *combo, gpointer data );
-static void renew_cb( GtkButton *button, gpointer data );
+/* static void renew_cb( GtkButton *button, gpointer data ); */
 static void wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data );
 static void wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data );
 static void wireless_tab_edit_button_clicked_cb( GtkButton *button, gpointer data );
@@ -476,9 +476,9 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 	self->prv->ipv4_addr_lbl = GTK_LABEL(nwamui_util_glade_get_widget(IP_DHCP_PANEL_IPV4_ADDRESS_LBL));
 	self->prv->ipv4_subnet_lbl = GTK_LABEL(nwamui_util_glade_get_widget(IP_DHCP_PANEL_IPV4_SUBNET_LBL));
 
-	self->prv->ipv4_renew_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_DHCP_PANEL_IPV4_RENEW_BTN));
+/*	self->prv->ipv4_renew_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_DHCP_PANEL_IPV4_RENEW_BTN));
 	g_signal_connect(G_OBJECT(self->prv->ipv4_renew_btn), "clicked", (GCallback)renew_cb, (gpointer)self);
-	
+*/	
 	self->prv->ipv4_addr_entry = GTK_ENTRY(nwamui_util_glade_get_widget(IP_MANUAL_PANEL_IPV4_ADDRESS_ENTRY));
 	self->prv->ipv4_subnet_entry = GTK_ENTRY(nwamui_util_glade_get_widget(IP_MANUAL_PANEL_IPV4_SUBNET_ENTRY));
 
@@ -770,19 +770,19 @@ nwam_conn_wifi_fav_comp_cb (GtkTreeModel *model,
 	return 0;
 }
 
+/*
 static void
 renew_cb( GtkButton *button, gpointer data )
 {
 	NwamConnConfIPPanel* self = NWAM_CONN_CONF_IP_PANEL(data);
 	g_assert (self->prv->ncu);
 	if (button == self->prv->ipv4_renew_btn) {
-		/* renew ipv4 dhcp */
 		nwamui_ncu_set_ipv4_auto_conf (self->prv->ncu, TRUE);
 	} else {
-		/* renew ipv6 dhcp */
 		nwamui_ncu_set_ipv6_auto_conf (self->prv->ncu, TRUE);
 	}
 }
+*/
 
 static void
 multi_line_add_cb( GtkButton *button, gpointer data )
