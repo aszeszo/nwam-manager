@@ -126,7 +126,7 @@ nwam_status_icon_show( gint index )
 void
 nwam_status_icon_set_tooltip (gint index, const gchar *str)
 {
-	gchar *ttstr = str;
+	const gchar *ttstr = str;
 	GtkStatusIcon* s_icon = get_status_icon (index);
 	
 	if (str && strlen (str) == 0)

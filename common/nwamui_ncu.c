@@ -37,19 +37,23 @@
 static GObjectClass *parent_class = NULL;
 
 struct _NwamuiNcuPrivate {
-        gchar*              vanity_name;
-        gchar*              device_name;
-        nwamui_ncu_type_t   ncu_type;
-        gboolean            active;
-        gboolean            ipv4_auto_conf;
-        gchar*              ipv4_address;
-        gchar*              ipv4_subnet;
-        gchar*              ipv4_gateway;
-        gboolean            ipv6_active;
-        gboolean            ipv6_auto_conf;
-        gchar*              ipv6_address;
-        gchar*              ipv6_prefix;
-        NwamuiWifiNet*      wifi_info;
+        gchar*                      vanity_name;
+        gchar*                      device_name;
+        nwamui_ncu_type_t           ncu_type;
+        gboolean                    active;
+        gboolean                    ipv4_auto_conf;
+        gchar*                      ipv4_address;
+        gchar*                      ipv4_subnet;
+        gchar*                      ipv4_gateway;
+        gboolean                    ipv6_active;
+        gboolean                    ipv6_auto_conf;
+        gchar*                      ipv6_address;
+        gchar*                      ipv6_prefix;
+        NwamuiWifiNet*              wifi_info;
+        gboolean                    rules_enabled;
+        gpointer                    rules_ncus;
+        nwamui_ncu_rule_state_t     rules_ncu_state;
+        nwamui_ncu_rule_action_t    rules_action;
 };
 
 enum {
@@ -65,7 +69,11 @@ enum {
         PROP_IPV6_AUTO_CONF,
         PROP_IPV6_ADDRESS,
         PROP_IPV6_PREFIX,
-        PROP_WIFI_INFO
+        PROP_WIFI_INFO,
+        PROP_RULES_ENABLED,
+        PROP_RULES_NCUS,
+        PROP_RULES_NCU_STATE,
+        PROP_RULES_ACTION
 };
 
 static void nwamui_ncu_set_property ( GObject         *object,
@@ -209,6 +217,42 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           NWAMUI_TYPE_WIFI_NET,
                                                           G_PARAM_READWRITE));
     
+    g_object_class_install_property (gobject_class,
+                                     PROP_RULES_ENABLED,
+                                     g_param_spec_boolean ("rules_enabled",
+                                                          _("rules_enabled"),
+                                                          _("rules_enabled"),
+                                                          FALSE,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_RULES_NCUS,
+                                     g_param_spec_pointer ("rules_ncus",
+                                                          _("rules_ncus"),
+                                                          _("rules_ncus"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_RULES_NCU_STATE,
+                                     g_param_spec_int ("rules_ncu_state",
+                                                       _("rules_ncu_state"),
+                                                       _("rules_ncu_state"),
+                                                       NWAMUI_NCU_RULE_STATE_IS_CONNECTED,
+                                                       NWAMUI_NCU_RULE_STATE_LAST,
+                                                       NWAMUI_NCU_RULE_STATE_IS_CONNECTED,
+                                                       G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_RULES_ACTION,
+                                     g_param_spec_int ("rules_action",
+                                                       _("rules_action"),
+                                                       _("rules_action"),
+                                                       NWAMUI_NCU_RULE_ACTION_ENABLE,
+                                                       NWAMUI_NCU_RULE_ACTION_LAST,
+                                                       NWAMUI_NCU_RULE_ACTION_ENABLE,
+                                                       G_PARAM_READWRITE));
+
+
 }
 
 
@@ -230,6 +274,11 @@ nwamui_ncu_init (NwamuiNcu *self)
     self->prv->ipv6_address = NULL;
     self->prv->ipv6_prefix = NULL;    
     self->prv->wifi_info = NULL;
+    self->prv->rules_enabled = FALSE;
+    self->prv->rules_ncus = NULL;
+    self->prv->rules_ncu_state = NWAMUI_NCU_RULE_STATE_IS_CONNECTED;
+    self->prv->rules_action = NWAMUI_NCU_RULE_ACTION_ENABLE;
+
     
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
@@ -323,6 +372,28 @@ nwamui_ncu_set_property ( GObject         *object,
                 self->prv->wifi_info = NWAMUI_WIFI_NET( g_value_dup_object( value ) );
             }
             break;
+        case PROP_RULES_ENABLED: {
+                self->prv->rules_enabled = g_value_get_boolean( value );
+            }
+            break;
+
+        case PROP_RULES_NCUS: {
+                if ( self->prv->rules_ncus != NULL ) {
+                        g_free( self->prv->rules_ncus );
+                }
+                self->prv->rules_ncus = g_value_get_pointer( value );
+            }
+            break;
+
+        case PROP_RULES_NCU_STATE: {
+                self->prv->rules_ncu_state = (nwamui_ncu_rule_state_t)g_value_get_int( value );
+            }
+            break;
+
+        case PROP_RULES_ACTION: {
+                self->prv->rules_action = (nwamui_ncu_rule_action_t)g_value_get_int( value );
+            }
+            break;
         default: 
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -391,6 +462,25 @@ nwamui_ncu_get_property (GObject         *object,
                 g_assert( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS );
 
                 g_value_set_object( value, (gpointer)self->prv->wifi_info );
+            }
+            break;
+        case PROP_RULES_ENABLED: {
+                g_value_set_boolean( value, self->prv->rules_enabled );
+            }
+            break;
+
+        case PROP_RULES_NCUS: {
+                g_value_set_pointer( value, self->prv->rules_ncus );
+            }
+            break;
+
+        case PROP_RULES_NCU_STATE: {
+                g_value_set_int( value, (gint)self->prv->rules_ncu_state );
+            }
+            break;
+
+        case PROP_RULES_ACTION: {
+                g_value_set_int( value, (gint)self->prv->rules_action );
             }
             break;
         default:
@@ -1001,9 +1091,198 @@ nwamui_ncu_get_wifi_signal_strength ( NwamuiNcu *self )
     return( signal_strength );
 }
 
+/** 
+ * nwamui_ncu_set_rules_enabled:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @rules_enabled: Value to set rules_enabled to.
+ * 
+ **/ 
+extern void
+nwamui_ncu_set_selection_rules_enabled (  NwamuiNcu*    self,
+                                          gboolean      rules_enabled )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+
+    g_object_set (G_OBJECT (self),
+                  "rules_enabled", rules_enabled,
+                  NULL);
+}
+
+/**
+ * nwamui_ncu_get_rules_enabled:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @returns: the rules_enabled.
+ *
+ **/
+extern gboolean
+nwamui_ncu_get_selection_rules_enabled (NwamuiNcu *self)
+{
+    gboolean  rules_enabled = FALSE; 
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), rules_enabled);
+
+    g_object_get (G_OBJECT (self),
+                  "rules_enabled", &rules_enabled,
+                  NULL);
+
+    return( rules_enabled );
+}
+
+/** 
+ * nwamui_ncu_set_selection_rule_ncus:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @selected_ncus: A GList of NCUs that are to be checked.
+ * 
+ **/ 
+extern void
+nwamui_ncu_set_selection_rule_ncus( NwamuiNcu*                   self,
+                                    GList*                       selected_ncus )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+
+    g_object_set (G_OBJECT (self),
+              "rules_ncus", selected_ncus,
+              NULL);
+    
+}
+
+/** 
+ * nwamui_ncu_set_selection_rule_ncus:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @selected_ncus: A GList of NCUs that are to be checked.
+ * 
+ **/ 
+extern void
+nwamui_ncu_selection_rule_ncus_add( NwamuiNcu*  self,
+                                    NwamuiNcu*  ncu_to_add )
+{
+    GList*  selected_ncus;
+    
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+
+    g_object_get (G_OBJECT (self),
+              "rules_ncus", &selected_ncus,
+              NULL);
+    
+    if ( g_list_find( selected_ncus, (gpointer)ncu_to_add) == NULL ) {
+
+        selected_ncus = g_list_insert(selected_ncus, (gpointer)g_object_ref(ncu_to_add), 0 );
+
+        g_object_set (G_OBJECT (self),
+                  "rules_ncus", selected_ncus,
+                  NULL);
+    }
+}
+
+extern void
+nwamui_ncu_selection_rule_ncus_remove( NwamuiNcu*  self,
+                                       NwamuiNcu*  ncu_to_remove )
+{
+    GList*  selected_ncus = NULL;
+    GList*  node = NULL ;
+    
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+
+    g_object_get (G_OBJECT (self),
+              "rules_ncus", &selected_ncus,
+              NULL);
+
+    if ( (node = g_list_find( selected_ncus, (gpointer)ncu_to_remove)) != NULL ) {
+
+        selected_ncus = g_list_delete_link(selected_ncus, node );
+
+        g_object_unref( ncu_to_remove );
+
+        g_object_set (G_OBJECT (self),
+                  "rules_ncus", selected_ncus,
+                  NULL);
+    }
+    
+}
+
+extern gboolean
+nwamui_ncu_selection_rule_ncus_contains( NwamuiNcu*  self,
+                                         NwamuiNcu*  ncu_to_find )
+{
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), FALSE );
+
+    return( g_list_find( self->prv->rules_ncus, ncu_to_find) != NULL );
+}
+
+
+
+/** 
+ * nwamui_ncu_set_selection_rule_state:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @ncu_state: The state to check NCUs for.
+ * 
+ **/ 
+extern void
+nwamui_ncu_set_selection_rule_state(  NwamuiNcu*                   self,
+                                      nwamui_ncu_rule_state_t      ncu_state )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+
+    g_object_set (G_OBJECT (self),
+              "rules_ncu_state", ncu_state,
+              NULL);
+}
+
+/** 
+ * nwamui_ncu_set_selection_rule_action:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @action: The action to take if the selected_ncus are in given state.
+ * 
+ **/ 
+extern void
+nwamui_ncu_set_selection_rule_action(  NwamuiNcu*                   self,
+                                       nwamui_ncu_rule_action_t     action )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+
+    g_object_set (G_OBJECT (self),
+              "rules_action", action,
+              NULL);
+    
+}
+
+/** 
+ * nwamui_ncu_get_selection_rule:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @selected_ncus: A GList of NCUs that are to be checked.
+ * @ncu_state: The state to check NCUs for.
+ * @action: The action to take if the selected_ncus are in given state.
+ * 
+ * @returns: whether the selection rules are enabled or not.
+ **/ 
+extern gboolean
+nwamui_ncu_get_selection_rule(  NwamuiNcu*                   self,
+                                GList**                      selected_ncus,
+                                nwamui_ncu_rule_state_t*     ncu_state,    
+                                nwamui_ncu_rule_action_t*    action )
+{
+    gboolean  rules_enabled = FALSE; 
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), rules_enabled);
+
+    g_object_get (G_OBJECT (self),
+                  "rules_enabled", &rules_enabled,
+                  "rules_ncus", selected_ncus,
+                  "rules_ncu_state", ncu_state,
+                  "rules_action", action,
+                  NULL);
+
+    return( rules_enabled );
+}
+
+
 static void
 nwamui_ncu_finalize (NwamuiNcu *self)
 {
+    if (self->prv->rules_ncus != NULL ) {
+        nwamui_util_free_obj_list(self->prv->rules_ncus);
+    }
+
     g_free (self->prv); 
     self->prv = NULL;
 
@@ -1016,7 +1295,8 @@ static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiNcu* self = NWAMUI_NCU(data);
+    gchar*     name = self->prv->device_name;
 
-    g_debug("NwamuiNcu: notify %s changed\n", arg1->name);
+    g_debug("NwamuiNcu: %s: notify %s changed\n", name?name:"", arg1->name);
 }
 

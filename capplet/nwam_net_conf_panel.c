@@ -36,35 +36,57 @@
 #include "nwam_pref_iface.h"
 
 /* Names of Widgets in Glade file */
-#define NET_CONF_TREEVIEW             "network_profile_table"
-#define CONNECTION_MOVE_UP_BTN        "connection_move_up_btn"
-#define CONNECTION_MOVE_DOWN_BTN      "connection_move_down_btn"
-#define CONNECTION_RENAME_BTN         "connection_rename_btn"
+#define NET_CONF_TREEVIEW               "network_profile_table"
+#define CONNECTION_MOVE_UP_BTN          "connection_move_up_btn"
+#define CONNECTION_MOVE_DOWN_BTN        "connection_move_down_btn"
+#define CONNECTION_RENAME_BTN           "connection_rename_btn"
+#define CONDITIONS_CONNECTED_CBOX       "conditions_connected_cbox"
+#define CONDITIONS_CONNECTED_COMBO      "conditions_connected_combo"
+#define CONDITIONS_CONNECTED_TABLE      "conditions_connected_table"
+#define SET_STATUS_LBL                  "set_status_lbl"
+#define CONDITIONS_SET_STATUS_COMBO     "conditions_set_status_combo"
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 
 struct _NwamNetConfPanelPrivate {
 	/* Widget Pointers */
 	GtkTreeView*	net_conf_treeview;
-        GtkTreeModel*   model;
-        GtkButton*      connection_move_up_btn;	
-        GtkButton*      connection_move_down_btn;	
-        GtkButton*      connection_rename_btn;	
+    GtkTreeModel*   model;
+    GtkTreeModel*   rules_model;
+    GtkButton*      connection_move_up_btn;	
+    GtkButton*      connection_move_down_btn;	
+    GtkButton*      connection_rename_btn;	
+
+    GtkCheckButton*     conditions_connected_cbox;
+    GtkComboBox*        conditions_connected_combo;
+    GtkTreeView*        conditions_connected_table;
+    GtkLabel*           set_status_lbl;
+    GtkComboBox*        conditions_set_status_combo;
 
 
 	/* Other Data */
-        NwamCappletDialog*  pref_dialog;
-        NwamuiNcp*          ncp;
+    NwamCappletDialog*  pref_dialog;
+    NwamuiNcp*          ncp;
+    NwamuiNcu*          selected_ncu;
+    gboolean            update_inprogress;
+
 };
 
 enum {
 	CONNVIEW_CHECK_BOX=0,
 	CONNVIEW_INFO,
-        CONNVIEW_STATUS
+    CONNVIEW_STATUS
 };
 
 static void nwam_net_conf_panel_finalize(NwamNetConfPanel *self);
+
 static void nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
+					     GtkCellRenderer   *renderer,
+					     GtkTreeModel      *model,
+					     GtkTreeIter       *iter,
+					     gpointer           data);
+
+static void nwam_net_conf_rules_update_cell_cb (GtkTreeViewColumn *col,
 					     GtkCellRenderer   *renderer,
 					     GtkTreeModel      *model,
 					     GtkTreeIter       *iter,
@@ -84,6 +106,9 @@ static void nwam_net_pref_connection_view_row_activated_cb (GtkTreeView *tree_vi
 					GtkTreePath *path,
 					GtkTreeViewColumn *column,
 					gpointer data);
+static void nwam_net_pref_connection_view_row_selected_cb (GtkTreeView *tree_view,
+                                                           gpointer data);
+
 static void vanity_name_editing_started (GtkCellRenderer *cell,
                                          GtkCellEditable *editable,
                                          const gchar     *path,
@@ -95,6 +120,11 @@ static void vanity_name_edited ( GtkCellRendererText *cell,
 static void nwam_net_pref_connection_enabled_toggled_cb(    GtkCellRendererToggle *cell_renderer,
                                                             gchar                 *path,
                                                             gpointer               user_data);
+
+static void nwam_net_pref_rule_ncu_enabled_toggled_cb(      GtkCellRendererToggle *cell_renderer,
+                                                            gchar                 *path,
+                                                            gpointer               user_data);
+
 static void connection_move_up_btn_cb( GtkButton*, gpointer user_data );
 static void connection_move_down_btn_cb( GtkButton*, gpointer user_data );	
 static void connection_rename_btn_cb( GtkButton*, gpointer user_data );
@@ -102,6 +132,12 @@ static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
 static gboolean refresh (NwamPrefIFace *self, gpointer data);
 static gboolean apply (NwamPrefIFace *self, gpointer data);
+
+static void update_rules_from_ncu( NwamNetConfPanel* self, NwamuiNcu* ncu );
+static void conditions_connected_toggled_cb(GtkToggleButton *togglebutton, gpointer user_data);
+static void conditions_set_status_changed(GtkComboBox* combo, gpointer user_data );
+static void conditions_connected_changed(GtkComboBox* combo, gpointer user_data );
+
 
 G_DEFINE_TYPE_EXTENDED (NwamNetConfPanel,
                         nwam_net_conf_panel,
@@ -241,6 +277,103 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
     return( model );
 }
 
+/*
+ * Filter function to decide if a given row is visible or not
+ */
+gboolean            
+nwam_rules_tree_view_filter(GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
+{
+    NwamNetConfPanel*       self = NWAM_NET_CONF_PANEL(data);
+    gpointer                connection = NULL;
+    NwamuiNcu*              ncu = NULL;
+    gchar*                  ncu_text;
+    gboolean                show_row = TRUE;
+    
+    gtk_tree_model_get(model, iter, 0, &connection, -1);
+    
+    ncu  = NWAMUI_NCU( connection );
+    
+    if ( ncu != NULL && ncu == self->prv->selected_ncu ) {
+        show_row = FALSE;
+    }
+    
+    if ( ncu != NULL ) {
+        g_object_unref(ncu);
+    }
+    
+    return( show_row ); 
+}
+
+static void
+nwam_compose_rules_tree_view (NwamNetConfPanel *self, GtkTreeView* view )
+{
+	GtkTreeViewColumn *col;
+	GtkCellRenderer *cell;
+	GtkTreeModel *model = NULL;
+
+    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(self->prv->ncp));
+        
+    /* Create a filter model */
+    model = gtk_tree_model_filter_new(model, NULL ); 
+    gtk_tree_model_filter_set_visible_func(GTK_TREE_MODEL_FILTER(model), 
+                            nwam_rules_tree_view_filter, (gpointer)self, NULL );
+    
+    gtk_tree_view_set_model(GTK_TREE_VIEW(view), model);
+    
+    self->prv->rules_model = model;
+        
+	g_object_set (G_OBJECT(view),
+		      "headers-clickable", FALSE,
+		      "reorderable", FALSE,
+		      NULL);
+	
+	// column enabled
+	col = gtk_tree_view_column_new();
+	cell = gtk_cell_renderer_toggle_new();
+	gtk_tree_view_column_set_title(col, _("Select"));
+	gtk_tree_view_column_pack_start(col, cell, FALSE);
+	gtk_tree_view_column_set_cell_data_func (col,
+						 cell,
+						 nwam_net_conf_rules_update_cell_cb,
+						 (gpointer) self,
+						 NULL
+		);
+    g_object_set_data (G_OBJECT (cell), "column", GINT_TO_POINTER (CONNVIEW_CHECK_BOX));
+	g_object_set (cell,
+                      "activatable", TRUE,
+		      NULL);
+    g_signal_connect(G_OBJECT(cell), "toggled", G_CALLBACK(nwam_net_pref_rule_ncu_enabled_toggled_cb), (gpointer)self);
+	g_object_set (col,
+		      "resizable", TRUE,
+		      "clickable", FALSE,
+		      "sort-indicator", FALSE,
+		      "reorderable", FALSE,
+		      NULL);
+	gtk_tree_view_append_column (view, col);
+
+	// column info
+	col = gtk_tree_view_column_new();
+	cell = gtk_cell_renderer_text_new();
+	gtk_tree_view_column_set_title(col, _("Connection Information"));
+	gtk_tree_view_column_pack_start(col, cell, TRUE);
+	gtk_tree_view_column_set_cell_data_func (col,
+						 cell,
+						 nwam_net_conf_rules_update_cell_cb,
+						 (gpointer) self,
+						 NULL
+		);
+    g_object_set_data (G_OBJECT (cell), "column", GINT_TO_POINTER (CONNVIEW_INFO));
+	g_object_set (col,
+		      "expand", TRUE,
+		      "resizable", TRUE,
+		      "clickable", FALSE,
+		      "sort-indicator", FALSE,
+		      "reorderable", FALSE,
+		      NULL);
+	gtk_tree_view_append_column (view, col);
+        
+}
+
 static void
 nnwam_net_conf_panel_set_ncp(NwamNetConfPanel *self, NwamuiNcp* ncp )
 {
@@ -249,7 +382,9 @@ nnwam_net_conf_panel_set_ncp(NwamNetConfPanel *self, NwamuiNcp* ncp )
     prv->ncp = NWAMUI_NCP(g_object_ref(ncp));
 
     prv->model = nwam_compose_tree_view (self);
-
+    
+    nwam_compose_rules_tree_view(self, self->prv->conditions_connected_table);
+    
     nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL);
 }
 
@@ -259,22 +394,39 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
 	self->prv = g_new0(NwamNetConfPanelPrivate, 1);
 	/* Iniialise pointers to important widgets */
 	self->prv->net_conf_treeview = GTK_TREE_VIEW(nwamui_util_glade_get_widget(NET_CONF_TREEVIEW));
-        self->prv->connection_move_up_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_MOVE_UP_BTN));	
-        g_signal_connect(self->prv->connection_move_up_btn, "clicked", G_CALLBACK(connection_move_up_btn_cb), (gpointer)self);	
-        self->prv->connection_move_down_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_MOVE_DOWN_BTN));	
-        g_signal_connect(self->prv->connection_move_down_btn, "clicked", G_CALLBACK(connection_move_down_btn_cb), (gpointer)self);	
-        self->prv->connection_rename_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_RENAME_BTN));	
-        g_signal_connect(self->prv->connection_rename_btn, "clicked", G_CALLBACK(connection_rename_btn_cb), (gpointer)self);	
+    self->prv->connection_move_up_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_MOVE_UP_BTN));	
+    g_signal_connect(self->prv->connection_move_up_btn, "clicked", G_CALLBACK(connection_move_up_btn_cb), (gpointer)self);	
+    self->prv->connection_move_down_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_MOVE_DOWN_BTN));	
+    g_signal_connect(self->prv->connection_move_down_btn, "clicked", G_CALLBACK(connection_move_down_btn_cb), (gpointer)self);	
+    self->prv->connection_rename_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_RENAME_BTN));	
+    g_signal_connect(self->prv->connection_rename_btn, "clicked", G_CALLBACK(connection_rename_btn_cb), (gpointer)self);	
+    self->prv->conditions_connected_cbox = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(CONDITIONS_CONNECTED_CBOX));
+    g_signal_connect(self->prv->conditions_connected_cbox, "toggled", G_CALLBACK(conditions_connected_toggled_cb), (gpointer)self);
+    self->prv->conditions_connected_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CONDITIONS_CONNECTED_COMBO));
+    g_signal_connect(self->prv->conditions_connected_combo, "changed", G_CALLBACK(conditions_connected_changed),(gpointer)self);
+    self->prv->conditions_connected_table = GTK_TREE_VIEW(nwamui_util_glade_get_widget(CONDITIONS_CONNECTED_TABLE));
+    self->prv->set_status_lbl = GTK_LABEL(nwamui_util_glade_get_widget(SET_STATUS_LBL));
+    self->prv->conditions_set_status_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CONDITIONS_SET_STATUS_COMBO));
+    g_signal_connect(self->prv->conditions_set_status_combo, "changed", G_CALLBACK(conditions_set_status_changed),(gpointer)self);
 
-        self->prv->model = NULL;
-        self->prv->pref_dialog = NULL;
-        self->prv->ncp = NULL;
-        
+    self->prv->model = NULL;
+    self->prv->rules_model = NULL;
+    self->prv->pref_dialog = NULL;
+    self->prv->ncp = NULL;
+    self->prv->selected_ncu = NULL;
+    self->prv->update_inprogress = FALSE;
+    
+    update_rules_from_ncu( self, NULL );
+    
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
 
 	g_signal_connect(GTK_TREE_VIEW(self->prv->net_conf_treeview),
 			 "row-activated",
 			 (GCallback)nwam_net_pref_connection_view_row_activated_cb,
+			 (gpointer)self);
+	g_signal_connect(GTK_TREE_VIEW(self->prv->net_conf_treeview),
+			 "cursor-changed",
+			 (GCallback)nwam_net_pref_connection_view_row_selected_cb,
 			 (gpointer)self);
 }
 
@@ -289,12 +441,12 @@ nwam_net_conf_panel_new(NwamCappletDialog *pref_dialog, NwamuiNcp* ncp)
 {
 	NwamNetConfPanel *self =  NWAM_NET_CONF_PANEL(g_object_new(NWAM_TYPE_NET_CONF_PANEL, NULL));
         
-        /* FIXME - Use GOBJECT Properties */
-        self->prv->pref_dialog = g_object_ref( G_OBJECT( pref_dialog ));
-        
-        nnwam_net_conf_panel_set_ncp(self, ncp);
-        
-        return( self );
+    /* FIXME - Use GOBJECT Properties */
+    self->prv->pref_dialog = g_object_ref( G_OBJECT( pref_dialog ));
+
+    nnwam_net_conf_panel_set_ncp(self, ncp);
+
+    return( self );
 }
 
 /**
@@ -371,6 +523,54 @@ nwam_net_conf_connection_compare_cb (GtkTreeModel *model,
 	return 0;
 }
 
+static void nwam_net_conf_rules_update_cell_cb (GtkTreeViewColumn *col,
+					     GtkCellRenderer   *renderer,
+					     GtkTreeModel      *model,
+					     GtkTreeIter       *iter,
+					     gpointer           data)
+{
+  	NwamNetConfPanel*       self = NWAM_NET_CONF_PANEL(data);
+    gpointer                connection = NULL;
+    NwamuiNcu*              ncu = NULL;
+    gchar*                  ncu_text;
+    
+    gtk_tree_model_get(model, iter, 0, &connection, -1);
+    
+    ncu  = NWAMUI_NCU( connection );
+    
+    switch (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (renderer), "column"))) {
+        case CONNVIEW_CHECK_BOX: {
+                gboolean enabled = FALSE;
+                
+                if ( self->prv->selected_ncu != NULL ) {
+                    enabled = nwamui_ncu_selection_rule_ncus_contains( self->prv->selected_ncu, ncu );
+                }
+
+                g_object_set(G_OBJECT(renderer),
+                        "active", enabled,
+                        NULL); 
+            }
+            break;
+        
+        case CONNVIEW_INFO: {
+                ncu_text = nwamui_ncu_get_display_name(ncu);
+
+                g_object_set(G_OBJECT(renderer),
+                        "text", ncu_text,
+                        NULL);
+
+                g_free( ncu_text );
+            }
+            break;
+
+        default:
+            g_assert_not_reached();
+    }
+    
+    if ( ncu != NULL )
+        g_object_unref(G_OBJECT(ncu));
+
+}
 
 static void
 nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
@@ -379,7 +579,6 @@ nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
 				 GtkTreeIter       *iter,
 				 gpointer           data)
 {
-    gint                    cell_num = (gint)data;  /* Number of cell in column */
     gpointer                connection = NULL;
     gchar                  *stockid = NULL;
     GString                *infobuf;
@@ -546,21 +745,168 @@ nwam_net_pref_connection_view_row_activated_cb (GtkTreeView *tree_view,
 			    gpointer data)
 {
 	NwamNetConfPanel* self = NWAM_NET_CONF_PANEL(data);
-        GtkTreeIter iter;
-        GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
+    GtkTreeIter iter;
+    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
 
-        if (gtk_tree_model_get_iter (model, &iter, path))
-        {
-            gpointer    connection;
-            NwamuiNcu*  ncu;
-            
-            gtk_tree_model_get(model, &iter, 0, &connection, -1);
+    if (gtk_tree_model_get_iter (model, &iter, path))
+    {
+        gpointer    connection;
+        NwamuiNcu*  ncu;
 
-            ncu  = NWAMUI_NCU( connection );
-            
-            nwam_capplet_dialog_select_ncu(self->prv->pref_dialog, ncu );
+        gtk_tree_model_get(model, &iter, 0, &connection, -1);
 
+        ncu  = NWAMUI_NCU( connection );
+
+        nwam_capplet_dialog_select_ncu(self->prv->pref_dialog, ncu );
+
+    }
+}
+
+static void
+update_rules_from_ncu( NwamNetConfPanel* self, NwamuiNcu* ncu )
+{
+    NwamNetConfPanelPrivate*    prv = self->prv;
+    GList*                      ncu_list = NULL;
+    nwamui_ncu_rule_action_t    action;
+    nwamui_ncu_rule_state_t     ncu_state;
+    GtkTreeModel*               model = NULL;
+    gchar*                      display_name = "";
+    gchar*                      status_string = NULL;
+    
+    
+    if ( prv->update_inprogress ) {
+        /* Already in an update, prevent recursion */
+        return;
+    }
+    
+    prv->update_inprogress = TRUE;
+
+    if (ncu != NULL ) {
+        display_name = nwamui_ncu_get_display_name(NWAMUI_NCU(ncu));
+    }
+
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->conditions_connected_cbox), ncu != NULL );
+
+    status_string = g_strdup_printf(_("Then set status of '%s' to: "), display_name);
+
+    gtk_label_set_text(GTK_LABEL(prv->set_status_lbl), status_string );
+
+    if ( ncu != NULL && 
+         nwamui_ncu_get_selection_rule(ncu, &ncu_list, &ncu_state, &action) ) {
+        /* Rules are Enabled */
+        gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(prv->conditions_connected_cbox), TRUE);
+
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->conditions_connected_combo), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->conditions_connected_table), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->conditions_set_status_combo), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->set_status_lbl), TRUE);
+        
+        gtk_combo_box_set_active(GTK_COMBO_BOX(prv->conditions_set_status_combo), 
+                                 action == NWAMUI_NCU_RULE_ACTION_DISABLE?1:0 );
+
+        gtk_combo_box_set_active(GTK_COMBO_BOX(prv->conditions_connected_combo), 
+                                 ncu_state == NWAMUI_NCU_RULE_STATE_IS_NOT_CONNECTED?1:0 );
+
+    }
+    else {
+        gtk_toggle_button_set_state(GTK_TOGGLE_BUTTON(prv->conditions_connected_cbox), FALSE);
+        
+        model = gtk_tree_view_get_model(prv->conditions_connected_table);
+        
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->conditions_connected_combo), FALSE);;
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->conditions_connected_table), FALSE);;
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->conditions_set_status_combo), FALSE);;
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->set_status_lbl), FALSE);;
+    }
+
+    if ( display_name != NULL ) {
+        g_free(display_name);
+    }
+    if ( status_string != NULL ) {
+        g_free(status_string);
+    }
+    
+    if ( prv->rules_model != NULL ) {
+        gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(prv->rules_model));
+    }
+
+    prv->update_inprogress = FALSE;
+
+}
+
+/*
+ * Selecting (using keys or mouse) a connection needs to have the conditions
+ * updated.
+ */
+static void
+nwam_net_pref_connection_view_row_selected_cb (GtkTreeView *tree_view,
+                                               gpointer data)
+{
+	NwamNetConfPanel*   self = NWAM_NET_CONF_PANEL(data);
+    GtkTreePath*        path = NULL;
+    GtkTreeViewColumn*  focus_column = NULL;;
+    GtkTreeIter         iter;
+    GtkTreeModel*       model = gtk_tree_view_get_model(tree_view);
+
+    gtk_tree_view_get_cursor ( tree_view, &path, &focus_column );
+
+    if (path != NULL && gtk_tree_model_get_iter (model, &iter, path))
+    {
+        gpointer    connection;
+        NwamuiNcu*  ncu;
+
+        gtk_tree_model_get(model, &iter, 0, &connection, -1);
+
+        ncu  = NWAMUI_NCU( connection );
+        
+        self->prv->selected_ncu = ncu;
+
+        update_rules_from_ncu(self, ncu);
+        
+    }
+    else if ( self->prv->selected_ncu != NULL ) {
+        g_object_unref( self->prv->selected_ncu );
+        self->prv->selected_ncu = NULL;
+    }
+}
+
+
+
+static void
+nwam_net_pref_rule_ncu_enabled_toggled_cb  (    GtkCellRendererToggle *cell_renderer,
+                                                gchar                 *path,
+                                                gpointer               user_data) 
+{
+	NwamNetConfPanel*           self = NWAM_NET_CONF_PANEL(user_data);
+    NwamNetConfPanelPrivate*    prv = self->prv;
+    GtkTreeIter                 iter;
+    GtkTreeModel*               model = GTK_TREE_MODEL(prv->rules_model);
+    GtkTreePath*                tpath;
+    gboolean                    active = !gtk_cell_renderer_toggle_get_active( cell_renderer);
+
+    if ( prv->selected_ncu != NULL 
+         && prv->update_inprogress != TRUE
+         && (tpath = gtk_tree_path_new_from_string(path)) != NULL 
+         && gtk_tree_model_get_iter (model, &iter, tpath) )
+    {
+        gpointer    connection;
+        NwamuiNcu*  ncu;
+
+        gtk_tree_model_get(model, &iter, 0, &connection, -1);
+
+        ncu  = NWAMUI_NCU( connection );
+
+        if ( active ) {
+            nwamui_ncu_selection_rule_ncus_add( prv->selected_ncu, ncu );
         }
+        else {
+            nwamui_ncu_selection_rule_ncus_remove( prv->selected_ncu, ncu );
+        }
+
+        g_object_unref(G_OBJECT(connection));
+        
+        gtk_tree_path_free(tpath);
+    }
 }
 
 /*
@@ -659,6 +1005,72 @@ connection_rename_btn_cb( GtkButton* button, gpointer user_data )
 
             gtk_tree_path_free(tpath);
         }
+    }
+}
+
+static void 
+conditions_connected_toggled_cb(GtkToggleButton *togglebutton, gpointer user_data)
+{
+    NwamNetConfPanel*           self = NWAM_NET_CONF_PANEL(user_data);
+    NwamNetConfPanelPrivate*    prv = self->prv;
+
+    if ( prv->selected_ncu != NULL && prv->update_inprogress != TRUE )
+    {
+        nwamui_ncu_set_selection_rules_enabled(prv->selected_ncu, gtk_toggle_button_get_active(togglebutton));
+        
+        update_rules_from_ncu(self, prv->selected_ncu);
+    }
+}
+
+static void 
+conditions_set_status_changed(GtkComboBox* combo, gpointer user_data )
+{
+    NwamNetConfPanel*           self = NWAM_NET_CONF_PANEL(user_data);
+    NwamNetConfPanelPrivate*    prv = self->prv;
+
+    if ( prv->selected_ncu != NULL && prv->update_inprogress != TRUE )
+    {
+        nwamui_ncu_rule_action_t action = NWAMUI_NCU_RULE_ACTION_DISABLE;
+        
+        switch( gtk_combo_box_get_active(combo)) {
+            case 0:
+                action = NWAMUI_NCU_RULE_ACTION_ENABLE;
+                break;
+            case 1:
+                action = NWAMUI_NCU_RULE_ACTION_DISABLE;
+                break;
+            default:
+                g_assert_not_reached();
+                break;
+        }
+        
+        nwamui_ncu_set_selection_rule_action(prv->selected_ncu, action );
+    }
+}
+
+static void 
+conditions_connected_changed(GtkComboBox* combo, gpointer user_data )
+{
+    NwamNetConfPanel*           self = NWAM_NET_CONF_PANEL(user_data);
+    NwamNetConfPanelPrivate*    prv = self->prv;
+
+    if ( prv->selected_ncu != NULL && prv->update_inprogress != TRUE )
+    {
+        nwamui_ncu_rule_state_t state = NWAMUI_NCU_RULE_STATE_IS_CONNECTED;
+        
+        switch( gtk_combo_box_get_active(combo)) {
+            case 0:
+                state = NWAMUI_NCU_RULE_STATE_IS_CONNECTED;;
+                break;
+            case 1:
+                state = NWAMUI_NCU_RULE_STATE_IS_NOT_CONNECTED;;
+                break;
+            default:
+                g_assert_not_reached();
+                break;
+        }
+        
+        nwamui_ncu_set_selection_rule_state(prv->selected_ncu, state );
     }
 }
 

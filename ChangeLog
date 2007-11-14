@@ -1,3 +1,11 @@
+2007-11-14  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_ncu.h, common/nwamui_ncu.c,
+	  capplet/nwam_net_conf_panel.c: 
+	  Add rules handling to the network conf panel and NCU.
+	* daemon/status_icon.c: 
+	  Fix a small compilation warning.
+
 2007-11-12  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.glade:

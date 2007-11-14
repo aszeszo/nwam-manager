@@ -69,6 +69,17 @@ typedef enum {
     NWAMUI_NCU_TYPE_LAST /* Not to be used directly */
 } nwamui_ncu_type_t;
 
+typedef enum {
+    NWAMUI_NCU_RULE_ACTION_ENABLE,
+    NWAMUI_NCU_RULE_ACTION_DISABLE,
+    NWAMUI_NCU_RULE_ACTION_LAST /* Not to be used directly */
+} nwamui_ncu_rule_action_t;
+
+typedef enum {
+    NWAMUI_NCU_RULE_STATE_IS_CONNECTED,
+    NWAMUI_NCU_RULE_STATE_IS_NOT_CONNECTED,
+    NWAMUI_NCU_RULE_STATE_LAST /* Not to be used directly */
+} nwamui_ncu_rule_state_t;
 
 extern  NwamuiNcu*          nwamui_ncu_new (    const gchar*        vanity_name,
                                                 const gchar*        device_name,
@@ -135,6 +146,35 @@ extern NwamuiWifiNet*       nwamui_ncu_get_wifi_info ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_wifi_info ( NwamuiNcu *self, NwamuiWifiNet* wifi_info );
 
 extern nwamui_wifi_signal_strength_t    nwamui_ncu_get_wifi_signal_strength ( NwamuiNcu *self );
+
+
+extern void                 nwamui_ncu_set_selection_rules_enabled( NwamuiNcu*  self,
+                                                                    gboolean enabled );
+
+extern gboolean             nwamui_ncu_get_selection_rules_enabled (NwamuiNcu *self);
+
+extern gboolean             nwamui_ncu_get_selection_rule(  NwamuiNcu*                   self,
+                                                            GList**                      selected_ncus,
+                                                            nwamui_ncu_rule_state_t*     ncu_state,    
+                                                            nwamui_ncu_rule_action_t*    action );
+
+extern void                 nwamui_ncu_set_selection_rule_ncus( NwamuiNcu*                   self,
+                                                                GList*                       selected_ncus );
+
+extern void                 nwamui_ncu_selection_rule_ncus_add( NwamuiNcu*  self,
+                                                                NwamuiNcu*  ncu_to_add );
+
+extern void                 nwamui_ncu_selection_rule_ncus_remove( NwamuiNcu*  self,
+                                                                   NwamuiNcu*  ncu_to_remove );
+
+extern gboolean             nwamui_ncu_selection_rule_ncus_contains( NwamuiNcu*  self,
+                                                                     NwamuiNcu*  ncu_to_find );
+
+extern void                 nwamui_ncu_set_selection_rule_state(  NwamuiNcu*                   self,
+                                                                  nwamui_ncu_rule_state_t      ncu_state );
+
+extern void                 nwamui_ncu_set_selection_rule_action(  NwamuiNcu*                   self,
+                                                                   nwamui_ncu_rule_action_t     action );
 
 G_END_DECLS
 
