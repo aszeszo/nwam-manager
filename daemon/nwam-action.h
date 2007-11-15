@@ -44,7 +44,7 @@ typedef struct _NwamActionClass   NwamActionClass;
 
 struct _NwamAction
 {
-  GtkToggleAction parent;
+  GtkRadioAction parent;
 
 	/*< private >*/
 
@@ -53,7 +53,7 @@ struct _NwamAction
 
 struct _NwamActionClass
 {
-  GtkToggleActionClass parent_class;
+  GtkRadioActionClass parent_class;
 
   void (* nwamd) (NwamAction *action);
 

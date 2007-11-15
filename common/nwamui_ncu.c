@@ -41,6 +41,7 @@ struct _NwamuiNcuPrivate {
         gchar*                      device_name;
         nwamui_ncu_type_t           ncu_type;
         gboolean                    active;
+        guint                       speed;
         gboolean                    ipv4_auto_conf;
         gchar*                      ipv4_address;
         gchar*                      ipv4_subnet;
@@ -61,6 +62,7 @@ enum {
         PROP_DEVICE_NAME,
         PROP_NCU_TYPE,
         PROP_ACTIVE,
+        PROP_SPEED,
         PROP_IPV4_AUTO_CONF,
         PROP_IPV4_ADDRESS,
         PROP_IPV4_SUBNET,
@@ -142,6 +144,16 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           _("active"),
                                                           FALSE,
                                                           G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_SPEED,
+                                     g_param_spec_uint ("speed",
+                                                       _("speed"),
+                                                       _("speed"),
+                                                       0,
+                                                       G_MAXUINT,
+                                                       0,
+                                                       G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_IPV4_AUTO_CONF,
@@ -265,6 +277,7 @@ nwamui_ncu_init (NwamuiNcu *self)
     self->prv->device_name = NULL;
     self->prv->ncu_type = NWAMUI_NCU_TYPE_WIRED;
     self->prv->active = FALSE;
+    self->prv->speed = 0;
     self->prv->ipv4_auto_conf = TRUE;
     self->prv->ipv4_address = NULL;
     self->prv->ipv4_subnet = NULL;
@@ -314,6 +327,10 @@ nwamui_ncu_set_property ( GObject         *object,
             break;
         case PROP_ACTIVE: {
                 self->prv->active = g_value_get_boolean( value );
+            }
+            break;
+        case PROP_SPEED: {
+                self->prv->speed = g_value_get_uint( value );
             }
             break;
         case PROP_IPV4_AUTO_CONF: {
@@ -425,6 +442,10 @@ nwamui_ncu_get_property (GObject         *object,
                 g_value_set_boolean(value, self->prv->active);
             }
             break;
+        case PROP_SPEED: {
+                g_value_set_uint( value, self->prv->speed );
+            }
+            break;
         case PROP_IPV4_AUTO_CONF: {
                 g_value_set_boolean(value, self->prv->ipv4_auto_conf);
             }
@@ -501,6 +522,7 @@ nwamui_ncu_new (    const gchar*        vanity_name,
                     const gchar*        device_name,
                     nwamui_ncu_type_t   ncu_type,
                     gboolean            active,
+                    guint               speed,
                     gboolean            ipv4_auto_conf,
                     const gchar*        ipv4_address,
                     const gchar*        ipv4_subnet,
@@ -518,6 +540,7 @@ nwamui_ncu_new (    const gchar*        vanity_name,
                     "device_name", device_name,
                     "ncu_type", ncu_type,
                     "active", active,
+                    "speed", speed,
                     "ipv4_auto_conf", ipv4_auto_conf,
                     "ipv4_address", ipv4_address,
                     "ipv4_subnet", ipv4_subnet,
@@ -635,9 +658,9 @@ nwamui_ncu_get_display_name ( NwamuiNcu *self )
 
     if ( vname != NULL & dname != NULL ) {
         disp_name = g_strdup_printf(_("%s (%s)"), vname, dname );
-        g_free( vname );
-        g_free( dname );
     }
+    g_free( vname );
+    g_free( dname );
     
     return( disp_name );
 }
@@ -713,6 +736,44 @@ nwamui_ncu_set_active (   NwamuiNcu *self,
     g_object_set (G_OBJECT (self),
                   "active", active,
                   NULL);
+}
+
+/** 
+ * nwamui_ncu_set_speed:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @speed: Value to set speed to.
+ * 
+ **/ 
+extern void
+nwamui_ncu_set_speed (   NwamuiNcu *self,
+                              guint        speed )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+    g_assert (speed >= 0 && speed <= G_MAXUINT );
+
+    g_object_set (G_OBJECT (self),
+                  "speed", speed,
+                  NULL);
+}
+
+/**
+ * nwamui_ncu_get_speed:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @returns: the speed.
+ *
+ **/
+extern guint
+nwamui_ncu_get_speed (NwamuiNcu *self)
+{
+    guint  speed = 0; 
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), speed);
+
+    g_object_get (G_OBJECT (self),
+                  "speed", &speed,
+                  NULL);
+
+    return( speed );
 }
 
 /** 

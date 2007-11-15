@@ -29,6 +29,7 @@
 #include <glib/gi18n.h>
 
 #include "nwam_vpn_pref_dialog.h"
+#include "nwam_pref_iface.h"
 #include "libnwamui.h"
 
 #define VPN_APP_VIEW_COL_ID	"nwam_vpn_app_column_id"
@@ -83,6 +84,7 @@ struct _NwamVPNPrefDialogPrivate {
 	GObject	*cur_obj;	/* current selection of tree */
 };
 
+static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static void nwam_vpn_pref_dialog_finalize(NwamVPNPrefDialog *self);
 static void nwam_compose_vpn_apps_view (NwamVPNPrefDialog *self);
 static void set_property (GObject         *object,
@@ -96,6 +98,7 @@ static void get_property (GObject         *object,
 static void nwam_vpn_add (NwamVPNPrefDialog *self, NwamuiEnm* obj);
 static void nwam_vpn_clear (NwamVPNPrefDialog *self);
 static void populate_panel( NwamVPNPrefDialog* self);
+static gboolean help (NwamPrefIFace *self, gpointer data);
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -118,7 +121,18 @@ static void nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	gpointer          data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 
-G_DEFINE_TYPE(NwamVPNPrefDialog, nwam_vpn_pref_dialog, G_TYPE_OBJECT)
+G_DEFINE_TYPE_EXTENDED (NwamVPNPrefDialog,
+                        nwam_vpn_pref_dialog,
+                        G_TYPE_OBJECT,
+                        0,
+                        G_IMPLEMENT_INTERFACE (NWAM_TYPE_PREF_IFACE, nwam_pref_init))
+
+static void
+nwam_pref_init (gpointer g_iface, gpointer iface_data)
+{
+	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
+    iface->help = help;
+}
 
 static void
 nwam_vpn_pref_dialog_class_init(NwamVPNPrefDialogClass *klass)
@@ -376,6 +390,13 @@ populate_panel( NwamVPNPrefDialog* self)
 	}
 }
 
+static gboolean
+help (NwamPrefIFace *self, gpointer data)
+{
+    g_debug ("NwamVPNPrefDialog: Help");
+    nwamui_util_show_help ("");
+}
+
 /* call backs */
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
@@ -426,7 +447,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 			gtk_widget_hide (GTK_WIDGET(prv->vpn_pref_dialog));
 			break;
 		case GTK_RESPONSE_HELP:
-			g_debug("GTK_RESPONSE_HELP");
+            nwam_pref_help (NWAM_VPN_PREF_DIALOG(data), NULL);
 			break;
 	}
 	g_signal_stop_emission_by_name(widget, "response" );

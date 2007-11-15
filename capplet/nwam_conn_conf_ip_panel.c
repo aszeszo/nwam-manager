@@ -134,7 +134,7 @@ enum {
 	WIFI_FAV_ESSID=0,
 	WIFI_FAV_SECURITY,
 	WIFI_FAV_SPEED,
-        WIFI_FAV_SIGNAL
+    WIFI_FAV_SIGNAL
 };
 
 static void nwam_conf_ip_panel_finalize(NwamConnConfIPPanel *self);
@@ -181,6 +181,7 @@ static void wireless_tab_down_button_clicked_cb( GtkButton *button, gpointer dat
 static void refresh_clicked_cb( GtkButton *button, gpointer data );
 static gboolean refresh (NwamPrefIFace *self, gpointer data);
 static gboolean apply (NwamPrefIFace *self, gpointer data);
+static gboolean help (NwamPrefIFace *self, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnConfIPPanel,
                         nwam_conf_ip_panel,
@@ -194,6 +195,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
 	iface->apply = NULL;
+    iface->help = help;
 }
 
 static void
@@ -610,7 +612,7 @@ populate_panel( NwamConnConfIPPanel* self)
         if ( ipv4_address != NULL || ipv4_subnet != NULL ) {
             gtk_list_store_append(GTK_LIST_STORE(model), &iter );
             gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                                IP_VIEW_HOSTNAME,   g_strdup("myhostname"),
+                                IP_VIEW_HOSTNAME,   "myhostname",
                                 IP_VIEW_ADDR,       ipv4_address?ipv4_address:"NULL",
                                 IP_VIEW_MASK,       ipv4_subnet?ipv4_subnet:"NULL",
                                 -1);
@@ -635,7 +637,7 @@ populate_panel( NwamConnConfIPPanel* self)
         if ( ipv6_address != NULL || ipv6_prefix != NULL ) {
             gtk_list_store_append(GTK_LIST_STORE(model), &iter );
             gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-                                IP_VIEW_HOSTNAME,   g_strdup("myhostname"),
+                                IP_VIEW_HOSTNAME,   "myhostname",
                                 IP_VIEW_ADDR,       ipv6_address?ipv6_address:"NULL",
                                 IP_VIEW_MASK,       ipv6_prefix?ipv6_prefix:"NULL",
                                 -1);
@@ -648,6 +650,11 @@ populate_panel( NwamConnConfIPPanel* self)
 	GtkCheckButton *ipv6_accept_stateful_cb;
 	GtkCheckButton *ipv6_accept_stateless_cb;
 */
+    g_free (ipv4_address);
+    g_free (ipv4_subnet);
+    g_free (ipv4_gateway);
+    g_free (ipv6_address);
+    g_free (ipv6_prefix);
 }
 
 /*
@@ -682,6 +689,18 @@ refresh (NwamPrefIFace *self, gpointer data)
     g_assert( NWAM_IS_CONN_CONF_IP_PANEL(self));
     
     populate_panel(NWAM_CONN_CONF_IP_PANEL(self));
+}
+
+/**
+ * help:
+ *
+ * Help #NwamConnConfIPPanel
+ **/
+static gboolean
+help (NwamPrefIFace *self, gpointer data)
+{
+    g_debug ("NwamConnConfIPPanel: Help");
+    nwamui_util_show_help ("");
 }
 
 /**
@@ -1008,6 +1027,9 @@ nwam_conn_multi_ip_cell_cb (    GtkTreeViewColumn *col,
     default:
         g_assert_not_reached ();
     }
+    g_free (hostname);
+    g_free (addr);
+    g_free (subnet);
 }
 
 static void

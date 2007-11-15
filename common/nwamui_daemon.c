@@ -213,6 +213,16 @@ static nwamui_wifi_essid_t demo_pref_essids[] = {
     {NULL, NULL, NULL, NULL, NULL},
 };
 
+static nwamui_wifi_essid_t demo_essids[] = {
+    { "MyESSID", NWAMUI_WIFI_SEC_NONE, "2001:0db8:0:0:0:0:1428:57ab", "g", 54, NWAMUI_WIFI_STRENGTH_EXCELLENT , NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
+#if 1
+    {"My Absolute Fav Network", NWAMUI_WIFI_SEC_NONE, "11:22:33:44:55:66", "g", 54, NWAMUI_WIFI_STRENGTH_EXCELLENT , NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
+    {"essid_open", NWAMUI_WIFI_SEC_NONE, "AA:bb:cc:dd:ee:ff", "b", 11, NWAMUI_WIFI_STRENGTH_GOOD, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
+    {"essid_wep", NWAMUI_WIFI_SEC_WEP_HEX, "BB:bb:cc:dd:ee:ff", "g", 54, NWAMUI_WIFI_STRENGTH_EXCELLENT, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
+    {"essid_wpa", NWAMUI_WIFI_SEC_WPA_PERSONAL, "CC:bb:cc:dd:ee:ff", "g", 36, NWAMUI_WIFI_STRENGTH_WEAK, NWAMUI_WIFI_WPA_CONFIG_PEAP },
+#endif
+    {NULL, NULL, NULL, NULL, NULL},
+};
 
 static void
 nwamui_daemon_init (NwamuiDaemon *self)
@@ -357,12 +367,6 @@ nwamui_daemon_get_instance (void)
 extern void 
 nwamui_daemon_wifi_start_scan(NwamuiDaemon *self) 
 {
-    static nwamui_wifi_essid_t demo_essids[] = {
-        {"essid_open", NWAMUI_WIFI_SEC_NONE, "AA:bb:cc:dd:ee:ff", "b", 11, NWAMUI_WIFI_STRENGTH_GOOD, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
-        {"essid_wep", NWAMUI_WIFI_SEC_WEP_HEX, "BB:bb:cc:dd:ee:ff", "g", 54, NWAMUI_WIFI_STRENGTH_EXCELLENT, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
-        {"essid_wpa", NWAMUI_WIFI_SEC_WPA_PERSONAL, "CC:bb:cc:dd:ee:ff", "g", 36, NWAMUI_WIFI_STRENGTH_WEAK, NWAMUI_WIFI_WPA_CONFIG_PEAP },
-        {NULL, NULL, NULL, NULL, NULL},
-    };
     nwamui_wifi_essid_t    *ptr;
     NwamuiWifiNet          *wifi_net = NULL;
     
@@ -763,8 +767,11 @@ default_wifi_scan_result_signal_handler (NwamuiDaemon *self, GObject* data, gpoi
     }
     else {
         NwamuiWifiNet*  wifi_net = NWAMUI_WIFI_NET(data);
+        gchar *name;
 
-        g_debug("Scan Result : Got ESSID %s", nwamui_wifi_net_get_essid( wifi_net ));
+        name = nwamui_wifi_net_get_essid( wifi_net );
+        g_debug("Scan Result : Got ESSID %s", name);
+        g_free (name);
     }
 }
 

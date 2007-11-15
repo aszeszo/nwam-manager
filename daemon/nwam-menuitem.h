@@ -45,7 +45,7 @@ typedef struct _NwamMenuItemPrivate		NwamMenuItemPrivate;
 
 struct _NwamMenuItem
 {
-	GtkCheckMenuItem menu_item;
+	GtkRadioMenuItem menu_item;
 
 	/*< private >*/
 	NwamMenuItemPrivate *prv;
@@ -53,7 +53,7 @@ struct _NwamMenuItem
 
 struct _NwamMenuItemClass
 {
-	GtkCheckMenuItemClass parent_class;
+	GtkRadioMenuItemClass parent_class;
 };
 
 

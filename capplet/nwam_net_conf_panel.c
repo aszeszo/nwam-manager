@@ -45,6 +45,8 @@
 #define CONDITIONS_CONNECTED_TABLE      "conditions_connected_table"
 #define SET_STATUS_LBL                  "set_status_lbl"
 #define CONDITIONS_SET_STATUS_COMBO     "conditions_set_status_combo"
+#define CONDITIONS_EXPANDER				"conditions_expander"
+
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 
@@ -63,13 +65,15 @@ struct _NwamNetConfPanelPrivate {
     GtkLabel*           set_status_lbl;
     GtkComboBox*        conditions_set_status_combo;
 
+    GtkExpander*	conditions_expander;
+    GtkComboBox*	set_status_combo;
 
 	/* Other Data */
     NwamCappletDialog*  pref_dialog;
     NwamuiNcp*          ncp;
     NwamuiNcu*          selected_ncu;
     gboolean            update_inprogress;
-
+    gboolean			manual_expander_flag;
 };
 
 enum {
@@ -130,7 +134,7 @@ static void connection_move_down_btn_cb( GtkButton*, gpointer user_data );
 static void connection_rename_btn_cb( GtkButton*, gpointer user_data );
 static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
-static gboolean refresh (NwamPrefIFace *self, gpointer data);
+static gboolean help (NwamPrefIFace *self, gpointer data);
 static gboolean apply (NwamPrefIFace *self, gpointer data);
 
 static void update_rules_from_ncu( NwamNetConfPanel* self, NwamuiNcu* ncu );
@@ -151,6 +155,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = nwam_net_conf_panel_refresh;
 	iface->apply = NULL;
+	iface->help = help;
 }
 
 static void
@@ -473,6 +478,13 @@ nwam_net_conf_panel_refresh(NwamPrefIFace *pref_iface, gpointer data)
     return( TRUE );
 }
 
+static gboolean
+help (NwamPrefIFace *self, gpointer data)
+{
+    g_debug("NwamNetConfPanel: Help");
+    nwamui_util_show_help ("");
+}
+
 /**
  * nwam_net_conf_add:
  * @self,
@@ -642,6 +654,7 @@ nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
                 if ( ncu_ipv4_addr != NULL )
                     g_free( ncu_ipv4_addr );
 
+                g_free (info_string);
                 g_free( ncu_markup );
                 g_free( ncu_text );
             }
@@ -770,7 +783,7 @@ update_rules_from_ncu( NwamNetConfPanel* self, NwamuiNcu* ncu )
     nwamui_ncu_rule_action_t    action;
     nwamui_ncu_rule_state_t     ncu_state;
     GtkTreeModel*               model = NULL;
-    gchar*                      display_name = "";
+    gchar*                      display_name = NULL;
     gchar*                      status_string = NULL;
     
     
@@ -787,7 +800,7 @@ update_rules_from_ncu( NwamNetConfPanel* self, NwamuiNcu* ncu )
 
     gtk_widget_set_sensitive(GTK_WIDGET(prv->conditions_connected_cbox), ncu != NULL );
 
-    status_string = g_strdup_printf(_("Then set status of '%s' to: "), display_name);
+    status_string = g_strdup_printf(_("Then set status of '%s' to: "), display_name != NULL ? display_name : "");
 
     gtk_label_set_text(GTK_LABEL(prv->set_status_lbl), status_string );
 
@@ -868,6 +881,7 @@ nwam_net_pref_connection_view_row_selected_cb (GtkTreeView *tree_view,
         g_object_unref( self->prv->selected_ncu );
         self->prv->selected_ncu = NULL;
     }
+    gtk_tree_path_free (path);
 }
 
 

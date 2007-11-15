@@ -93,7 +93,7 @@ static void nwam_conn_status_conn_view_row_activated_cb (GtkTreeView *tree_view,
 					gpointer data);
 static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
-static gboolean refresh (NwamPrefIFace *self, gpointer data);
+static gboolean help (NwamConnStatusPanel *self, gpointer data);
 static gboolean apply (NwamPrefIFace *self, gpointer data);
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -111,6 +111,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = nwam_conn_status_panel_refresh;
 	iface->apply = NULL;
+	iface->help = help;
 }
 
 static void
@@ -342,6 +343,16 @@ nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
 }
 
 /* Callbacks */
+
+/**
+ * help:
+ **/
+static gboolean
+help (NwamConnStatusPanel *self, gpointer data)
+{
+    g_debug ("NwamConnStatusPanel: Help");
+    nwamui_util_show_help ("");
+}
 
 static void
 nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,

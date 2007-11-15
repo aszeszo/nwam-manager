@@ -48,6 +48,7 @@ nwam_pref_iface_class_init (gpointer g_class, gpointer g_class_data)
 
 	self->refresh = NULL;
 	self->apply = NULL;
+    self->help = NULL;
 }
 
 GType
@@ -116,7 +117,29 @@ nwam_pref_apply (NwamPrefIFace *self, gpointer data)
 {
 	NwamPrefInterface *iface = NWAM_GET_PREF_INTERFACE (self);
 
-	if (iface->refresh)
-		return (iface)->refresh(self, data);
+	if (iface->apply)
+		return (iface)->apply(self, data);
+	return FALSE;
+}
+
+/**
+ * nwam_pref_help:
+ * @self: a #NwamPrefIFace instance.
+ * @data: User data
+ * 
+ * Help each @self.
+ * Invork by nwam_pref_dialog, willcheck the application is successfully or not.
+ * If all are successfully, nwam_pref_dialog will hide itself, else maybe popup
+ * a error dialog(?) and keep living.
+ *
+ * Returns: TRUE, if help @self successfully. Default FALSE.
+ **/
+gboolean
+nwam_pref_help (NwamPrefIFace *self, gpointer data)
+{
+	NwamPrefInterface *iface = NWAM_GET_PREF_INTERFACE (self);
+
+	if (iface->help)
+		return (iface)->help(self, data);
 	return FALSE;
 }

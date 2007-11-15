@@ -29,7 +29,6 @@
 #endif
 
 #include <gtk/gtk.h>
-#include <gtk/gtkstatusicon.h>
 #include <glib.h>
 #include <glib/gi18n.h>
 
@@ -50,7 +49,7 @@ struct _NwamActionPrivate {
 	GtkWidget *widgetr;
 };
 
-G_DEFINE_TYPE (NwamAction, nwam_action, GTK_TYPE_TOGGLE_ACTION)
+G_DEFINE_TYPE (NwamAction, nwam_action, GTK_TYPE_RADIO_ACTION)
 
 static void
 nwam_action_class_init (NwamActionClass *klass)
@@ -97,20 +96,49 @@ create_menu_item (GtkAction *action)
 	NwamAction *toggle_action = NWAM_ACTION (action);
 	
 	return g_object_new(NWAM_TYPE_MENU_ITEM,
-		"draw-as-radio",  gtk_toggle_action_get_draw_as_radio (GTK_TOGGLE_ACTION (action)),
-		NULL);
+                        //"draw-as-radio", gtk_toggle_action_get_draw_as_radio (GTK_TOGGLE_ACTION (action)),
+                        "draw-as-radio", TRUE,
+                        NULL);
 }
 
 static void 
 connect_proxy (GtkAction *action,  
                GtkWidget *proxy) 
-{ 
+{
 	(* GTK_ACTION_CLASS(nwam_action_parent_class)->connect_proxy) (action, proxy);
+    if (NWAM_IS_MENU_ITEM (proxy)) {
+#if 0
+        if (nwam_menu_item_get_widget (NWAM_MENU_ITEM(proxy), 0) == NULL)
+            nwam_menu_item_set_widget (NWAM_MENU_ITEM(proxy),
+                                       gtk_image_new (), 0);
+        if (nwam_menu_item_get_widget (NWAM_MENU_ITEM(proxy), 1) == NULL)
+            nwam_menu_item_set_widget (NWAM_MENU_ITEM(proxy),
+                                       gtk_image_new (), 1);
+        GList *childs;
+        GList *idx;
+
+        childs = gtk_container_get_children (proxy);
+        for (idx = childs; idx; idx = idx->next) {
+            g_debug ("connect_proxy found widget %s", gtk_widget_get_name (idx->data));
+        }
+#endif
+    }
 }
 
 static void 
 disconnect_proxy (GtkAction *action,  
                   GtkWidget *proxy) 
 { 
+    if (NWAM_IS_MENU_ITEM (proxy)) {
+#if 0
+        GList *childs;
+        GList *idx;
+
+        childs = gtk_container_get_children (proxy);
+        for (idx = childs; idx; idx = idx->next) {
+            g_debug ("found widget %s", gtk_widget_get_name (idx->data));
+        }
+#endif
+    }
 	(* GTK_ACTION_CLASS(nwam_action_parent_class)->disconnect_proxy) (action, proxy);
 } 

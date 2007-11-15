@@ -85,6 +85,7 @@ extern  NwamuiNcu*          nwamui_ncu_new (    const gchar*        vanity_name,
                                                 const gchar*        device_name,
                                                 nwamui_ncu_type_t   ncu_type,
                                                 gboolean            enabled,
+                                                guint				speed,
                                                 gboolean            ipv4_auto_conf,
                                                 const gchar*        ipv4_address,
                                                 const gchar*        ipv4_subnet,
@@ -109,6 +110,10 @@ extern nwamui_ncu_type_t    nwamui_ncu_get_ncu_type ( NwamuiNcu *self );
 
 extern void                 nwamui_ncu_set_active ( NwamuiNcu *self, gboolean active );
 extern gboolean             nwamui_ncu_get_active ( NwamuiNcu *self );
+
+
+extern void                 nwamui_ncu_set_speed ( NwamuiNcu *self, guint speed );
+extern guint                nwamui_ncu_get_speed ( NwamuiNcu *self );
 
 
 extern void                 nwamui_ncu_set_ipv4_auto_conf ( NwamuiNcu *self, gboolean ipv4_auto_conf );

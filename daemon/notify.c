@@ -25,7 +25,11 @@
  * 
  */
 #include <gtk/gtk.h>
+#include <glib/gi18n.h>
 #include <libnotify/notify.h>
+#include "notify.h"
+
+#define DEBUG()	g_debug ("[[ %20s : %-4d ]]", __func__, __LINE__)
 
 static NotifyNotification*   notification           = NULL;
 static GtkStatusIcon*        parent_status_icon     = NULL;
@@ -42,16 +46,6 @@ NotifyNotification *get_notification( void ) {
         notification = notify_notification_new_with_status_icon("Empty Text", "Empty Body", "nwam-earth-normal", parent_status_icon  );
     }
     return notification;
-}
-
-void
-nwam_notification_init( GtkStatusIcon* status_icon )
-{
-    g_assert ( status_icon != NULL );
-    
-    g_object_ref( status_icon );
-    parent_status_icon = status_icon;
-    
 }
 
 static void
@@ -77,8 +71,130 @@ nwam_notification_show_message( const gchararray summary, const gchararray body,
     }
 }
 
+static void
+on_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer udata)
+{
+    gchar *sname;
+    gchar *ifname;
+    gchar *addr;
+    gint speed;
+    gint signal;
+    gchar *summary, *body;
+
+    DEBUG();
+
+	/* generic info */
+    ifname = nwamui_ncu_get_device_name (ncu);
+    if (!nwamui_ncu_get_ipv6_active (ncu)) {
+        addr = nwamui_ncu_get_ipv4_address (ncu);
+    } else {
+        addr = nwamui_ncu_get_ipv6_address (ncu);
+    }
+    speed = nwamui_ncu_get_speed (ncu);
+
+    switch (nwamui_ncu_get_ncu_type (ncu)) {
+    case NWAMUI_NCU_TYPE_WIRED:
+        sname = nwamui_ncu_get_vanity_name (ncu);
+        summary = g_strdup_printf (_("'%s' is connected"), sname);
+        body = g_strdup_printf (_("Interface: %s\n"
+                                  "Address: %s\n"
+                                  "Speed: %d\n"),
+                                ifname, addr, speed);
+        break;
+    case NWAMUI_NCU_TYPE_WIRELESS: {
+        NwamuiWifiNet *wifi = nwamui_ncu_get_wifi_info (ncu);
+        sname = nwamui_wifi_net_get_essid (wifi);
+        signal = (gint) ((gfloat) (nwamui_wifi_net_get_signal_strength (wifi) /
+                                   NWAMUI_WIFI_STRENGTH_LAST) * 100);
+        summary = g_strdup_printf (_("Connected to '%s'"), sname);
+        body = g_strdup_printf (_("Interface: %s\n"
+                                  "Address: %s\n"
+                                  "Speed: %d\n"
+                                  "Signal Strength: %d%%\n"),
+                                ifname, addr, speed);
+        break;
+    }
+    default:
+        g_assert_not_reached ();
+    }
+    nwam_notification_show_message (summary, body, NULL);
+    g_free (sname);
+    g_free (ifname);
+    g_free (addr);
+    g_free (summary);
+    g_free (body);
+}
+
+static void
+on_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer udata)
+{
+    gchar *sname;
+    gchar *summary, *body;
+
+    DEBUG();
+
+    switch (nwamui_ncu_get_ncu_type (ncu)) {
+    case NWAMUI_NCU_TYPE_WIRED:
+        sname = nwamui_ncu_get_vanity_name (ncu);
+        summary = g_strdup_printf (_("'%s' has disconnected"), sname);
+        body = g_strdup_printf (_("%s\n"), "Wired Unknown");
+        break;
+    case NWAMUI_NCU_TYPE_WIRELESS: {
+        NwamuiWifiNet *wifi = nwamui_ncu_get_wifi_info (ncu);
+        sname = nwamui_wifi_net_get_essid (wifi);
+        summary = g_strdup_printf (_("Disconnected from '%s'"), sname);
+        body = g_strdup_printf (_("Interface: %s\n"), "Wireless Unkown");
+        break;
+    }
+    default:
+        g_assert_not_reached ();
+    }
+    nwam_notification_show_message (summary, body, NULL);
+    g_free (sname);
+    g_free (summary);
+    g_free (body);
+}
+
+static void
+on_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer udata)
+{
+    gchar *sname;
+    gchar *summary, *body;
+    NwamuiNcp* ncp;
+
+    DEBUG();
+    sname = nwamui_env_get_name (env);
+    summary = g_strdup_printf (_("Switched to environment '%s'"), sname);
+    nwamui_daemon_get_active_ncp (daemon);
+    body = g_strdup_printf (_("%s\n"), "Unknown");
+    nwam_notification_show_message (summary, body, NULL);
+
+    g_free (sname);
+    g_free (summary);
+    g_free (body);
+}
+
 void
 nwam_notification_cleanup( void )
 {
     notification_cleanup();
+}
+
+void
+nwam_notification_init( GtkStatusIcon* status_icon )
+{
+    g_assert ( status_icon != NULL );
+    
+    g_object_ref( status_icon );
+    parent_status_icon = status_icon;
+    
+}
+
+void
+nwam_notification_connect (NwamuiDaemon* daemon)
+{
+    g_signal_connect(daemon, "ncu_up", G_CALLBACK(on_ncu_up), NULL);
+    g_signal_connect(daemon, "ncu_down", G_CALLBACK(on_ncu_down), NULL);
+    g_signal_connect(daemon, "active_env_changed",
+                     G_CALLBACK(on_active_env_changed), NULL);
 }

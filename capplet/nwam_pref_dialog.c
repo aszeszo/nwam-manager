@@ -62,11 +62,9 @@ struct _NwamCappletDialogPrivate {
 	
         /* Panel Objects */
 	NwamPrefIFace* panel[N_PANELS];
-	//NwamConnConfIPPanel*        ip_panel;
-        //NwamConnstatusPanel*        status_panel;
                 
-        /* Other Data */
-        NwamuiNcp*                  ncp; /* currently active NCP */
+    /* Other Data */
+    NwamuiNcp*                  ncp; /* currently active NCP */
 };
 
 static void nwam_capplet_dialog_finalize(NwamCappletDialog *self);
@@ -87,6 +85,7 @@ static void show_changed_cb( GtkWidget* widget, gpointer data );
 static void refresh_clicked_cb( GtkButton *button, gpointer data );
 static gboolean refresh (NwamPrefIFace *self, gpointer data);
 static gboolean apply (NwamPrefIFace *self, gpointer data);
+static gboolean help (NwamPrefIFace *self, gpointer data);
 
 /* Utility Functions */
 static void     update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp );
@@ -105,6 +104,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
 	iface->apply = apply;
+    iface->help = help;
 }
 
 static void
@@ -234,16 +234,22 @@ nwam_capplet_dialog_finalize(NwamCappletDialog *self)
 static gboolean
 refresh (NwamPrefIFace *self, gpointer data)
 {
-	/*
-	 * here we should refresh a specific panel, so we need a g_interface
-	 * or a function pointer to invork
-	 */
+    gint idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
+    nwam_pref_refresh (NWAM_CAPPLET_DIALOG(self)->prv->panel[idx], NULL);
 }
 
 static gboolean
 apply (NwamPrefIFace *self, gpointer data)
 {
-	
+    gint idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
+    nwam_pref_apply (NWAM_CAPPLET_DIALOG(self)->prv->panel[idx], NULL);
+}
+
+static gboolean
+help (NwamPrefIFace *self, gpointer data)
+{
+    gint idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
+    nwam_pref_help (NWAM_CAPPLET_DIALOG(self)->prv->panel[idx], NULL);
 }
 
 /*
@@ -265,17 +271,15 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
 			break;
 		case GTK_RESPONSE_OK:
 			g_debug("GTK_RESPONSE_OK");
-			/* FIXME, ok need call into separated panel/instance
-			 * apply all changes, if no errors, hide all
-			 */
-			gtk_widget_hide_all (GTK_WIDGET(self->prv->capplet_dialog));
+            if (nwam_pref_apply (self, NULL)) {
+                gtk_widget_hide_all (GTK_WIDGET(self->prv->capplet_dialog));
+            }
 			break;
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
-			gtk_widget_hide_all (GTK_WIDGET(self->prv->capplet_dialog));
 			break;
 		case GTK_RESPONSE_HELP:
-			g_debug("GTK_RESPONSE_HELP");
+            nwam_pref_help (self, NULL);
 			break;
 	}
 	g_signal_stop_emission_by_name(widget, "response" );
@@ -287,7 +291,8 @@ show_changed_cb( GtkWidget* widget, gpointer data )
 	gpointer user_data = NULL;
 	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(data);
 	gint idx = gtk_combo_box_get_active(GTK_COMBO_BOX(widget));
-	
+
+    g_debug ("show_changed_cb idx = %d", idx);
 	/* update the notetab according to the selected entry */
 	if (idx == PANEL_CONN_STATUS) {
 		/* Connection Status */
@@ -311,7 +316,6 @@ show_changed_cb( GtkWidget* widget, gpointer data )
             gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &current_ncu, -1);
 
             nwam_conf_ip_panel_set_ncu(NWAM_CONN_CONF_IP_PANEL(self->prv->panel[PANEL_CONF_IP]), NWAMUI_NCU(current_ncu));
-            g_object_unref( G_OBJECT(current_ncu) );
 
             gtk_notebook_set_current_page(self->prv->main_nb, 2);
         }
@@ -321,6 +325,7 @@ show_changed_cb( GtkWidget* widget, gpointer data )
     }
     
     nwam_pref_refresh (self->prv->panel[idx], user_data);
+    /* Note, do not unref current_ncu, since tree mode doesn't keep its ref */
 }
 
 static gboolean
@@ -383,9 +388,8 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 static void
 refresh_clicked_cb( GtkButton *button, gpointer data )
 {
-	/* FIXME, refresh need call into separated panel/instance */
 	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(data);
-	refresh (NWAM_PREF_IFACE(self), NULL);
+	nwam_pref_refresh (NWAM_PREF_IFACE(self), NULL);
 }
 
 /*
@@ -450,13 +454,16 @@ add_ncu_element(    GtkTreeModel *model,
 	NwamuiNcu*      ncu = NULL;
 	GtkTreeStore*   combo_model = GTK_TREE_STORE(user_data);
     GtkTreeIter     new_iter;
+    gchar *name;
 	
   	gtk_tree_model_get(model, iter, 0, &ncu, -1);
 
     g_assert( NWAMUI_IS_NCU(ncu) );
     
-    g_debug("NwamPrefDialog: Adding NCU %s to drop-down list", nwamui_ncu_get_display_name(ncu));
-    
+    name = nwamui_ncu_get_display_name(ncu);
+    g_debug("NwamPrefDialog: Adding NCU %s ( 0x%p ) to drop-down list", name, ncu);
+    g_free (name);
+
     gtk_tree_store_append(GTK_TREE_STORE(combo_model), &new_iter, NULL);
     gtk_tree_store_set(GTK_TREE_STORE(combo_model), &new_iter, 0, ncu, -1);
     

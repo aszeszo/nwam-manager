@@ -333,7 +333,7 @@ add_essid_list_item_to_essid_liststore(GObject* daemon, GObject* wifi, gpointer 
     /* g_free(essid); - TODO - should we free this here or not?? */
     g_object_unref (encrypted_icon);
     g_object_unref (open_icon);
-
+    g_free (essid);
 }
 
 static void 

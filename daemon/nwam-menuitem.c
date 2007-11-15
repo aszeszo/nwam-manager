@@ -29,7 +29,6 @@
 #endif
 
 #include <gtk/gtk.h>
-#include <gtk/gtkstatusicon.h>
 #include <glib.h>
 #include <glib/gi18n.h>
 
@@ -43,58 +42,66 @@ static void nwam_menu_item_get_property (GObject         *object,
 					 guint            prop_id,
 					 GValue          *value,
 					 GParamSpec      *pspec);
+static void nwam_menu_item_size_request (GtkWidget        *widget, 
+                                         GtkRequisition   *requisition); 
+static void nwam_menu_item_size_allocate (GtkWidget        *widget, 
+                                          GtkAllocation    *allocation);
+static void nwam_menu_item_toggle_size_request (GtkMenuItem *menu_item,
+                                                 gint        *requisition);
+static void nwam_menu_item_forall (GtkContainer   *container,
+                                   gboolean    include_internals,
+                                   GtkCallback     callback,
+                                   gpointer        callback_data);
+static void nwam_menu_item_remove (GtkContainer   *container,
+                                   GtkWidget *child);
 static void nwam_menu_item_draw_indicator  (NwamMenuItem      *self,
 					GdkRectangle          *area);
-
 static void nwam_menu_item_finalize (NwamMenuItem *self);
 
 enum {
 	PROP_ZERO,
-	PROP_LABEL,
 	PROP_LWIDGET,
 	PROP_RWIDGET,
 };
 
+#define MAX_WIDGET_NUM	2
+#define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
+	NWAM_TYPE_MENU_ITEM, NwamMenuItemPrivate))
+
 struct _NwamMenuItemPrivate {
-	GtkWidget *hbox;
-	guint img_num;
-	GtkWidget *image;
-	GtkWidget *label;
-	GtkWidget *widgetl;
-	GtkWidget *widgetr;
+	GtkWidget *w[MAX_WIDGET_NUM];
 };
 
-G_DEFINE_TYPE (NwamMenuItem, nwam_menu_item, GTK_TYPE_CHECK_MENU_ITEM)
+G_DEFINE_TYPE (NwamMenuItem, nwam_menu_item, GTK_TYPE_RADIO_MENU_ITEM)
 
 static void
 nwam_menu_item_class_init (NwamMenuItemClass *klass)
 {
 	GObjectClass *gobject_class;
 	GtkWidgetClass *widget_class;
+    GtkMenuItemClass *menu_item_class; 
 	GtkCheckMenuItemClass *check_menu_item_class;
 	GtkContainerClass *container_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
 	widget_class = GTK_WIDGET_CLASS (klass);
+    menu_item_class = (GtkMenuItemClass*) klass; 
 	check_menu_item_class = GTK_CHECK_MENU_ITEM_CLASS (klass);
 	container_class = GTK_CONTAINER_CLASS (klass);
 
-//	container_class->forall = nwam_menu_item_forall;
-//	container_class->remove = nwam_menu_item_remove;
-  
 	gobject_class->set_property = nwam_menu_item_set_property;
 	gobject_class->get_property = nwam_menu_item_get_property;
 	gobject_class->finalize = (void (*)(GObject*)) nwam_menu_item_finalize;
-	
+
+	container_class->forall = nwam_menu_item_forall;
+    container_class->remove = nwam_menu_item_remove;
+
+    widget_class->size_allocate = nwam_menu_item_size_allocate;
+	widget_class->size_request = nwam_menu_item_size_request;
+
+    menu_item_class->toggle_size_request = nwam_menu_item_toggle_size_request;
+
 	check_menu_item_class->draw_indicator = nwam_menu_item_draw_indicator;
-  
-	g_object_class_install_property (gobject_class,
-					 PROP_LABEL,
-					 g_param_spec_string ("label",
-							      N_("Label widget"),
-							      N_("Child widget to appear next to the menu text"),
-							      NULL,
-							      G_PARAM_READWRITE));
 
 	g_object_class_install_property (gobject_class,
 					 PROP_LWIDGET,
@@ -110,22 +117,16 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
 							      N_("Right widget, ref'd"),
 							      GTK_TYPE_WIDGET,
 							      G_PARAM_READWRITE));
+
+	g_type_class_add_private (klass, sizeof (NwamMenuItemPrivate));
 }
 
 static void
 nwam_menu_item_init (NwamMenuItem *self)
 {
-	GtkWidget* hbox = NULL;
+    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
 
-	/* must keep a ref, due to gtkaction will unref gtkbox->child
-	 * (due to setting a label as its child) since firstly gtk_container_add
-	 * will set hbox as gtkbox->child
-	 */
-	hbox = GTK_WIDGET(g_object_ref(G_OBJECT(gtk_hbox_new (FALSE, 0))));
-	gtk_container_add (GTK_CONTAINER (self), hbox);
-
-	self->prv = g_new0 (NwamMenuItemPrivate, 1);
-	self->prv->hbox = hbox;
+	self->prv = prv;
 }
 
 static void
@@ -135,68 +136,20 @@ nwam_menu_item_set_property (GObject         *object,
 			     GParamSpec      *pspec)
 {
 	NwamMenuItem *self = NWAM_MENU_ITEM (object);
-	GtkWidget *hbox = self->prv->hbox;
-	gchar *label = NULL;
+    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
 
-	switch (prop_id)
-	{
-	case PROP_LABEL:
-	{
-		label = (gchar *) g_value_get_string (value);
-		if (self->prv->label != NULL) {
-			gtk_label_set_text (GTK_LABEL (self->prv->label), label);
-		} else {
-			self->prv->label = gtk_label_new (label);
-			gtk_box_pack_start (GTK_BOX (hbox),
-					    self->prv->label, TRUE, TRUE, 2);
-			if (self->prv->widgetl || self->prv->widgetr) {
-				gtk_box_reorder_child (GTK_BOX (hbox),
-						       self->prv->label,
-						       0);
-			}
-		}
-		gtk_misc_set_alignment (GTK_MISC (self->prv->label),
-					0.0, 0.5);
-	}
-	gtk_widget_show (self->prv->label);
-	break;
+    g_assert (GTK_IS_WIDGET (g_value_get_object (value)));
+	switch (prop_id) {
 	case PROP_LWIDGET:
 	{
-		g_assert (GTK_IS_WIDGET (g_value_get_object (value)));
-		if (self->prv->widgetl == g_value_get_object (value))
-			return;
-		if (self->prv->widgetl != NULL ) {
-			gtk_container_remove (GTK_CONTAINER (hbox),
-					      self->prv->widgetl);
-		}
-		self->prv->widgetl = GTK_WIDGET (GTK_WIDGET (g_value_get_object(value)));
-		gtk_box_pack_start (GTK_BOX (hbox),
-				    self->prv->widgetl, FALSE, FALSE, 2);
-		if (self->prv->label) {
-			gtk_box_reorder_child (GTK_BOX (hbox),
-					       self->prv->widgetl,
-					       1);
-		} else {
-			gtk_box_reorder_child (GTK_BOX (hbox),
-					       self->prv->widgetl,
-					       0);
-		}
-		gtk_widget_show (self->prv->widgetl);
+        nwam_menu_item_set_widget (self,
+                                   GTK_WIDGET (g_value_get_object (value)), 0);
 	}
 	break;
 	case PROP_RWIDGET:
 	{
-		g_assert (GTK_IS_WIDGET (g_value_get_object (value)));
-		if (self->prv->widgetr == g_value_get_object (value))
-			return;
-		if (self->prv->widgetr != NULL) {
-			gtk_container_remove (GTK_CONTAINER (hbox),
-					      self->prv->widgetr);
-		}
-		self->prv->widgetr = GTK_WIDGET (GTK_WIDGET (g_value_get_object(value)));
-		gtk_box_pack_start (GTK_BOX (hbox),
-				    self->prv->widgetr, FALSE, FALSE, 2);
-		gtk_widget_show (self->prv->widgetr);
+        nwam_menu_item_set_widget (self,
+                                   GTK_WIDGET (g_value_get_object (value)), 0);
 	}
 	break;
 	default:
@@ -212,22 +165,15 @@ nwam_menu_item_get_property (GObject         *object,
                                   GParamSpec      *pspec)
 {
 	NwamMenuItem *self = NWAM_MENU_ITEM (object);
-	GtkWidget *hbox = self->prv->hbox;
+    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
 
 	switch (prop_id)
 	{
-	case PROP_LABEL:
-		if (self->prv->label != NULL) {
-			g_value_set_string (value, gtk_label_get_text (GTK_LABEL (self->prv->label)));
-		} else {
-			g_value_set_string (value, NULL);
-		}
-		break;
 	case PROP_LWIDGET:
-		g_value_set_object (value, (GObject*) self->prv->widgetl);
+		g_value_set_object (value, (GObject*) prv->w[0]);
 		break;
 	case PROP_RWIDGET:
-		g_value_set_object (value, (GObject*) self->prv->widgetr);
+		g_value_set_object (value, (GObject*) prv->w[1]);
 		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -241,12 +187,43 @@ nwam_menu_item_forall (GtkContainer   *container,
                             GtkCallback     callback,
                             gpointer        callback_data)
 {
-	NwamMenuItem *nwam_menu_item = NWAM_MENU_ITEM (container);
-	(* GTK_CONTAINER_CLASS (nwam_menu_item_parent_class)->forall) (container,
+	NwamMenuItem *self = NWAM_MENU_ITEM (container);
+    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    int i;
+
+    //g_debug ("foreach container 0x%p", container);
+
+	(*GTK_CONTAINER_CLASS (nwam_menu_item_parent_class)->forall) (container,
 									   include_internals,
 									   callback,
 									   callback_data);
+    for (i = 0; i < MAX_WIDGET_NUM; i++) {
+        if (prv->w[i]) {
+            (*callback) (prv->w[i], callback_data);
+        }
+    }
+}
 
+static void
+nwam_menu_item_remove (GtkContainer   *container,
+                       GtkWidget *child)
+{
+	NwamMenuItem *self = NWAM_MENU_ITEM (container);
+    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    int i;
+
+    for (i = 0; i < MAX_WIDGET_NUM; i++) {
+        if (prv->w[i] == child) {
+            gtk_widget_unparent (child);
+            prv->w[i] = NULL;
+            if (GTK_WIDGET_VISIBLE (container) && GTK_WIDGET_VISIBLE (child))
+                gtk_widget_queue_resize (GTK_WIDGET (container));
+            return;
+        }
+    }
+    if (i == MAX_WIDGET_NUM) {
+        (*GTK_CONTAINER_CLASS (nwam_menu_item_parent_class)->remove) (container, child);
+    }
 }
 
 /**
@@ -258,6 +235,7 @@ nwam_menu_item_forall (GtkContainer   *container,
 GtkWidget*
 nwam_menu_item_new (void)
 {
+    g_debug ("nwam_menu_item_new");
 	return g_object_new (NWAM_TYPE_MENU_ITEM, NULL);
 }
 
@@ -272,12 +250,10 @@ GtkWidget*
 nwam_menu_item_new_with_label (const gchar *label)
 {
 	NwamMenuItem *nwam_menu_item;
-
+    g_debug ("nwam_menu_item_new_with_label");
 	nwam_menu_item = g_object_new (NWAM_TYPE_MENU_ITEM, NULL);
 
-	g_object_set (G_OBJECT (nwam_menu_item),
-		      "label", label,
-		      NULL);
+    gtk_container_add (GTK_CONTAINER (nwam_menu_item), label);
 	return GTK_WIDGET(nwam_menu_item);
 }
 
@@ -295,24 +271,25 @@ nwam_menu_item_set_widget (NwamMenuItem *self,
 			  GtkWidget *widget,
 			  gint pos)
 {
-	g_return_if_fail (NWAM_IS_MENU_ITEM (self));
-	g_assert (pos > 0);
+    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
 
-	if (pos == 1) {
-		g_object_set (G_OBJECT (self),
-			      "left-widget", widget,
-			      NULL);
-		g_object_notify (G_OBJECT (self), "left-widget");
-	}
-	else if (pos == 2) {
-		g_object_set (G_OBJECT (self),
-			      "right-widget", widget,
-			      NULL);
-		g_object_notify (G_OBJECT (self), "right-widget");
-	}
-	else
-		// extend ?
-		return;
+	g_return_if_fail (NWAM_IS_MENU_ITEM (self));
+	g_assert (pos >= 0 && pos < MAX_WIDGET_NUM);
+
+    if (widget == prv->w[pos])
+        return;
+
+    if (prv->w[pos]) {
+        gtk_container_remove (GTK_CONTAINER(self), prv->w[pos]);
+    }
+    prv->w[pos] = widget;
+
+    if (widget == NULL)
+        return;
+
+    gtk_widget_set_parent (widget, GTK_WIDGET (self));
+    //gtk_widget_queue_resize (GTK_WIDGET (self));
+    gtk_widget_show (widget);
 }
 
 /**
@@ -327,49 +304,317 @@ GtkWidget*
 nwam_menu_item_get_widget (NwamMenuItem *self,
 			  gint pos)
 {
-	GtkWidget *widget = NULL;
+    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
 
 	g_return_val_if_fail (NWAM_IS_MENU_ITEM (self), NULL);
-	g_assert (pos > 0);
+	g_assert (pos >= 0 && pos < MAX_WIDGET_NUM);
 
-	if (pos == 1)
-		return self->prv->widgetl;
-	else if (pos == 2)
-		return self->prv->widgetr;
-	else
-		return NULL;
+    return prv->w[pos];
 }
 
 static void
 nwam_menu_item_finalize (NwamMenuItem *self)
 {
-	g_object_unref (G_OBJECT(self->prv->hbox));
-	g_free (self->prv);
-	self->prv = NULL;
+    g_debug ("nwam_menu_item_finalize");
 
 	(*G_OBJECT_CLASS(nwam_menu_item_parent_class)->finalize) (G_OBJECT (self));
+}
+
+static void
+nwam_menu_item_toggle_size_request (GtkMenuItem *menu_item,
+                                    gint        *requisition)
+{
+    NwamMenuItem *self = NWAM_MENU_ITEM (menu_item);
+    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    GtkPackDirection pack_dir; 
+
+    //g_debug ("nwam_menu_item_toggle_size_request 0x%p", self);
+    if (GTK_IS_MENU_BAR (GTK_WIDGET(self)->parent)) 
+        pack_dir = gtk_menu_bar_get_child_pack_direction (GTK_MENU_BAR (GTK_WIDGET(self)->parent)); 
+    else 
+        pack_dir = GTK_PACK_DIRECTION_LTR; 
+
+	(*GTK_MENU_ITEM_CLASS(nwam_menu_item_parent_class)->toggle_size_request) (menu_item, requisition);
+
+    if (prv->w[0])
+    { 
+        GtkRequisition child_requisition; 
+
+        gtk_widget_get_child_requisition (prv->w[0],
+                                           &child_requisition);
+
+#if 0
+        g_debug ("w0, [%d,%d] [%d,%d]",
+                 prv->w[0]->allocation.x,
+                 prv->w[0]->allocation.y,
+                 prv->w[0]->allocation.width,
+                 prv->w[0]->allocation.height);
+#endif
+
+        if (pack_dir == GTK_PACK_DIRECTION_LTR || 
+            pack_dir == GTK_PACK_DIRECTION_RTL) 
+        { 
+            if (child_requisition.width > 0) 
+                *requisition += child_requisition.width; 
+        } 
+        else 
+        { 
+            if (child_requisition.height > 0) 
+                *requisition += child_requisition.height; 
+        } 
+    } 
+}
+
+static void 
+nwam_menu_item_size_request (GtkWidget      *widget, 
+                             GtkRequisition *requisition) 
+{
+    NwamMenuItem *self = NWAM_MENU_ITEM (widget); 
+    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    gint i = 0;
+    gint child_width = 0; 
+    gint child_height = 0; 
+    GtkPackDirection pack_dir; 
+   
+    //g_debug ("nwam_menu_item_size_request 0x%p", self);
+    if (GTK_IS_MENU_BAR (widget->parent)) 
+        pack_dir = gtk_menu_bar_get_child_pack_direction (GTK_MENU_BAR (widget->parent)); 
+    else 
+        pack_dir = GTK_PACK_DIRECTION_LTR; 
+ 
+    for (i = 0; i < MAX_WIDGET_NUM; i++) {
+        if (prv->w[i])
+        { 
+            GtkRequisition child_requisition; 
+       
+            gtk_widget_size_request (prv->w[i], 
+                                     &child_requisition); 
+ 
+#if 0
+            g_debug ("w[%d], [%d,%d] [%d,%d]", i,
+                     prv->w[i]->allocation.x,
+                     prv->w[i]->allocation.y,
+                     prv->w[i]->allocation.width,
+                     prv->w[i]->allocation.height);
+#endif
+
+            child_width = child_requisition.width; 
+            child_height = child_requisition.height; 
+        } 
+
+        if (pack_dir == GTK_PACK_DIRECTION_LTR || pack_dir == GTK_PACK_DIRECTION_RTL) {
+            requisition->height = MAX (requisition->height, child_height); 
+            requisition->width += child_width;
+        }
+        else {
+            requisition->height += child_height;
+            requisition->width = MAX (requisition->width, child_width); 
+        }
+    }
+    (*GTK_WIDGET_CLASS (nwam_menu_item_parent_class)->size_request) (widget, requisition); 
+} 
+
+static void 
+nwam_menu_item_size_allocate (GtkWidget     *widget, 
+                              GtkAllocation *allocation) 
+{ 
+    NwamMenuItem *self = NWAM_MENU_ITEM (widget); 
+    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    GtkPackDirection pack_dir; 
+    guint toggle_spacing;
+    guint toggle_size;
+    gint i = 0;
+   
+    if (GTK_IS_MENU_BAR (widget->parent)) 
+        pack_dir = gtk_menu_bar_get_child_pack_direction (GTK_MENU_BAR (widget->parent)); 
+    else 
+        pack_dir = GTK_PACK_DIRECTION_LTR; 
+   
+    (*GTK_WIDGET_CLASS (nwam_menu_item_parent_class)->size_allocate) (widget, allocation); 
+
+    gtk_widget_style_get (widget, 
+                          "toggle-spacing", &toggle_spacing, 
+                          NULL); 
+    toggle_size = GTK_MENU_ITEM (self)->toggle_size; 
+
+    i = 0;
+    if (prv->w[i])
+    { 
+        gint x, y, offset; 
+        GtkRequisition child_requisition; 
+        GtkAllocation child_allocation; 
+        guint horizontal_padding;
+        guint indicator_size;
+ 
+        gtk_widget_style_get (widget, 
+                              "horizontal-padding", &horizontal_padding, 
+                              "indicator-size", &indicator_size,
+                              NULL); 
+       
+        gtk_widget_get_child_requisition (prv->w[i],
+                                          &child_requisition); 
+ 
+        if (pack_dir == GTK_PACK_DIRECTION_LTR || 
+            pack_dir == GTK_PACK_DIRECTION_RTL) 
+        { 
+            offset = GTK_CONTAINER (self)->border_width + 
+                widget->style->xthickness + 2; 
+           
+            if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
+                (pack_dir == GTK_PACK_DIRECTION_LTR)) 
+                x = offset + horizontal_padding + indicator_size +
+                    horizontal_padding;
+            else 
+                x = widget->allocation.width - offset - horizontal_padding - 
+                    indicator_size - child_requisition.width;
+           
+            y = (widget->allocation.height - child_requisition.height) / 2; 
+        } 
+        else 
+        { 
+            offset = GTK_CONTAINER (self)->border_width +
+                widget->style->ythickness; 
+           
+            if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
+                (pack_dir == GTK_PACK_DIRECTION_TTB)) 
+                y = offset + horizontal_padding + indicator_size +
+                    horizontal_padding;
+            else 
+                y = widget->allocation.height - offset - horizontal_padding - 
+                    indicator_size - child_requisition.height;
+ 
+            x = (widget->allocation.width - child_requisition.width) / 2; 
+        } 
+       
+        child_allocation.width = child_requisition.width; 
+        child_allocation.height = child_requisition.height; 
+        child_allocation.x = widget->allocation.x + MAX (x, 0); 
+        child_allocation.y = widget->allocation.y + MAX (y, 0); 
+ 
+        gtk_widget_size_allocate (prv->w[i], &child_allocation); 
+    } 
+
+    if (prv->w[1])
+    { 
+        gint x, y, offset; 
+        GtkRequisition child_requisition; 
+        GtkAllocation child_allocation; 
+ 
+        gtk_widget_get_child_requisition (prv->w[1],
+                                          &child_requisition); 
+ 
+        if (pack_dir == GTK_PACK_DIRECTION_LTR || 
+            pack_dir == GTK_PACK_DIRECTION_RTL) 
+        { 
+            offset = GTK_CONTAINER (self)->border_width + 
+                widget->style->xthickness + prv->w[1]->style->xthickness;
+           
+            if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
+                (pack_dir == GTK_PACK_DIRECTION_LTR)) 
+                x = widget->allocation.width - offset -
+                    toggle_spacing - 
+                    child_requisition.width;
+            else 
+                x = offset + toggle_spacing;
+
+            y = (widget->allocation.height - child_requisition.height) / 2; 
+        } 
+        else 
+        { 
+            offset = GTK_CONTAINER (self)->border_width + 
+                widget->style->ythickness + prv->w[1]->style->ythickness;
+           
+            if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
+                (pack_dir == GTK_PACK_DIRECTION_TTB)) 
+                y = widget->allocation.height - offset -
+                    toggle_spacing -
+                    child_requisition.height;
+            else
+                y = offset + toggle_spacing;
+ 
+            x = (widget->allocation.width - child_requisition.width) / 2; 
+        } 
+       
+        child_allocation.width = child_requisition.width; 
+        child_allocation.height = child_requisition.height; 
+        child_allocation.x = widget->allocation.x + MAX (x, 0); 
+        child_allocation.y = widget->allocation.y + MAX (y, 0); 
+ 
+        gtk_widget_size_allocate (prv->w[1], &child_allocation); 
+    } 
 }
 
 static void
 nwam_menu_item_draw_indicator  (NwamMenuItem      *self,
 				GdkRectangle          *area)
 {
-	GtkWidget *widget = NULL;
-
-	widget = gtk_bin_get_child(GTK_BIN(self));
-	if (widget && widget != self->prv->hbox) {
-		if (GTK_IS_LABEL(widget)) {
-			g_object_set (G_OBJECT (self),
-			      "label", gtk_label_get_text(GTK_LABEL(widget)),
-			      NULL);
-			gtk_container_remove (GTK_CONTAINER(self), widget);
-			gtk_container_add (GTK_CONTAINER(self),
-				GTK_WIDGET(g_object_ref(G_OBJECT(self->prv->hbox))));
-			//gtk_widget_queue_resize (GTK_WIDGET(self));
-			gtk_widget_show (GTK_WIDGET(self->prv->hbox));
-		} else {
-			g_assert_not_reached ();
-		}
-	}
-	(*GTK_CHECK_MENU_ITEM_CLASS(nwam_menu_item_parent_class)->draw_indicator) (self, area);
+    GtkWidget *widget; 
+    GtkStateType state_type; 
+    GtkShadowType shadow_type; 
+    gint x, y; 
+ 
+    if (GTK_WIDGET_DRAWABLE (self))
+    { 
+        guint offset; 
+        guint toggle_size; 
+        guint toggle_spacing; 
+        guint horizontal_padding; 
+        guint indicator_size; 
+       
+        widget = GTK_WIDGET (self); 
+ 
+        gtk_widget_style_get (GTK_WIDGET (self), 
+                              "toggle-spacing", &toggle_spacing, 
+                              "horizontal-padding", &horizontal_padding, 
+                              "indicator-size", &indicator_size, 
+                              NULL); 
+ 
+        toggle_size = GTK_MENU_ITEM (self)->toggle_size; 
+        offset = GTK_CONTAINER (self)->border_width + 
+            widget->style->xthickness + 2;  
+ 
+        if (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) 
+        { 
+            x = widget->allocation.x + offset + horizontal_padding;
+        } 
+        else  
+        { 
+            x = widget->allocation.x + widget->allocation.width - 
+                indicator_size;
+        } 
+       
+        y = widget->allocation.y + (widget->allocation.height - indicator_size) / 2; 
+ 
+        if (gtk_check_menu_item_get_active (self) ||
+            (GTK_WIDGET_STATE (self) == GTK_STATE_PRELIGHT)) 
+        { 
+            state_type = GTK_WIDGET_STATE (widget); 
+           
+            if (gtk_check_menu_item_get_inconsistent (self)) 
+                shadow_type = GTK_SHADOW_ETCHED_IN; 
+            else if (gtk_check_menu_item_get_active (self)) 
+                shadow_type = GTK_SHADOW_IN; 
+            else  
+                shadow_type = GTK_SHADOW_OUT; 
+           
+            if (!GTK_WIDGET_IS_SENSITIVE (widget)) 
+                state_type = GTK_STATE_INSENSITIVE; 
+ 
+            if (gtk_check_menu_item_get_draw_as_radio (self)) 
+            { 
+                gtk_paint_option (widget->style, widget->window, 
+                                  state_type, shadow_type, 
+                                  area, widget, "option", 
+                                  x, y, indicator_size, indicator_size); 
+            } 
+            else 
+            { 
+                gtk_paint_check (widget->style, widget->window, 
+                                 state_type, shadow_type, 
+                                 area, widget, "check", 
+                                 x, y, indicator_size, indicator_size); 
+            } 
+        } 
+    } 
 }
+

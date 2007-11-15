@@ -11,6 +11,44 @@
 	* capplet/nwam-manager-properties.glade:
 	  Fix order of "Show XXX Dropdown"
 
+2007-11-14  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwam_ui_icons.h:
+	Moved the blank icon to here. Maybe we dont really need a blank icon.
+	* common/nwamui_daemon.c: (nwamui_daemon_wifi_start_scan):
+	Moved the position of testing code to the beginning for conveniently
+	adding/removing code.
+	* daemon/main.c: (get_state):
+	Fixed a memory leak bug.
+	* daemon/nwam-menuitem.c: (nwam_menu_item_class_init),
+	(nwam_menu_item_init), (nwam_menu_item_set_property),
+	(nwam_menu_item_get_property), (nwam_menu_item_forall),
+	(nwam_menu_item_remove), (nwam_menu_item_new),
+	(nwam_menu_item_new_with_label), (nwam_menu_item_set_widget),
+	(nwam_menu_item_get_widget), (nwam_menu_item_finalize),
+	(nwam_menu_item_toggle_size_request),
+	(nwam_menu_item_size_request), (nwam_menu_item_size_allocate),
+	(nwam_menu_item_draw_indicator):
+	* daemon/nwam-menuitem.h:
+	Inherit GtkRadioMenuItem due to GUI v1.5. Added some debug code.
+	* daemon/nwam-action.c: (create_menu_item), (connect_proxy),
+	(disconnect_proxy):
+	* daemon/nwam-action.h:
+	Inherit GtkRadioAction due to GUI v1.5. Added some debug code.
+	* daemon/nwam-menu.c: (nwam_menu_init), (nwam_menu_finalize),
+	(nwam_display_name_to_menuitem), (nwam_menu_connect),
+	(nwam_menu_recreate_menuitems), (nwam_menu_create_static_part),
+	(on_activate_pref), (on_nwam_wifi_enable), (on_nwam_ncu_notify_cb),
+	(on_nwam_wifi_notify_cb), (on_nwam_enm_notify_cb), (on_ncu_up),
+	(on_ncu_down), (on_active_env_changed),
+	(nwam_menu_menuitem_postfix), (nwam_menu_create_wifi_menuitems),
+	(nwam_menu_create_vpn_menuitems):
+	* daemon/nwam-ui.xml:
+	Reuse nwam-ui.xml to compose the static menuitems, because GUI design
+	maybe changes many time in the future, it's more convenient to use XML
+	file. Compose wifi menuitems during run-time. Added some singal
+	handlers.
+
 2007-11-06  Calum Benson  <calum.benson@sun.com>
 
 	* capplet/nwam-manager-properties.glade:
@@ -18,6 +56,61 @@
 	* capplet/nwam_conn_conf_ip_panel.c: (nwam_conf_ip_panel_init):
 	  Comment out Renew Lease button code as button is no longer
 	  present; Darren/Lin can dispose of this code properly :)
+
+2007-11-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c: (nwam_pref_init),
+	(populate_panel), (help), (nwam_conn_multi_ip_cell_cb):
+	Implemeted the inteface "help". Fixed memory leak.
+	* capplet/nwam_conn_stat_panel.c: (nwam_pref_init), (help):
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_pref_init), (help),
+	(response_cb):
+	Implemeted the inteface "help".
+	* capplet/nwam_net_conf_panel.c: (nwam_pref_init),
+	(nwam_compose_tree_view), (nnwam_net_conf_panel_set_ncp),
+	(nwam_net_conf_panel_init), (nwam_net_conf_panel_refresh), (help),
+	(nwam_net_conf_update_status_cell_cb),
+	(nwam_net_pref_connection_view_selection_changed),
+	(expander_activate_callback), (conditions_filter_visible_callback):
+	Implemeted the inteface "help".
+	Some basic work on "Wireless Sub Panel".
+	* capplet/nwam_pref_dialog.c: (nwam_pref_init), (refresh), (apply),
+	(help), (response_cb), (show_changed_cb), (refresh_clicked_cb),
+	(add_ncu_element):
+	Implemeted the inteface "help". Top level invoke "apply, refresh, help"
+	for each child panel. Fixed memory leak.
+	* capplet/nwam_pref_iface.c: (nwam_pref_iface_class_init),
+	(nwam_pref_apply), (nwam_pref_help):
+	* capplet/nwam_pref_iface.h:
+	Added new interface for "help". Fixed the copy/paste nit "apply".
+	* capplet/nwam_wireless_dialog.c: (add_essid_list_item_to_essid_liststore)
+	* common/nwamui_daemon.c: (default_wifi_scan_result_signal_handler)
+	* common/nwamui_ncu.c: (nwamui_ncu_get_display_name)
+	Fixed memory leak.
+	* daemon/nwam-menu.c: (nwam_menu_init), (nwam_menu_connect),
+	(on_activate_help), (on_nwam_wifi_enable), (on_nwam_ncu_notify_cb),
+	(on_ncu_up), (on_ncu_down), (on_active_env_changed),
+	(nwam_menu_create_favorwifi_menuitems),
+	(nwam_menu_create_wifi_menuitems):
+	Linked to the existing daemon signals. Added those signal callbacks.
+
+2007-10-30  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_ncp.c: (nwamui_ncp_init):
+	* common/nwamui_ncu.c: (nwamui_ncu_class_init), (nwamui_ncu_init),
+	(nwamui_ncu_set_property), (nwamui_ncu_get_property),
+	(nwamui_ncu_new), (nwamui_ncu_set_speed), (nwamui_ncu_get_speed):
+	* common/nwamui_ncu.h:
+	Copy speed function to ncu.
+	* daemon/main.c: (main):
+	* daemon/notify.c: (on_ncu_up), (on_ncu_down),
+	(on_active_env_changed), (nwam_notification_init),
+	(nwam_notification_connect):
+	* daemon/notify.h:
+	Notification connects to the signals of daemon.
+	* daemon/nwam-menu.c: (on_nwam_wifi_enable),
+	(nwam_menu_create_favorwifi_menuitems):
+	Callback for enabling a Wifi.
 
 2007-10-26  Darren Kenny  <darren.kenny@sun.com>
 

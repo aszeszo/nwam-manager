@@ -28,6 +28,8 @@
 #ifndef _notify_H
 #define	_notify_H
 
+#include "libnwamui.h"
+
 #ifdef	__cplusplus
 extern "C" {
 #endif
@@ -43,6 +45,8 @@ void nwam_notification_init( GtkStatusIcon* status_icon );
  * Displays a message. Only the summary is needed, the body text and icon can be NULL.
  */
 void nwam_notification_show_message( const gchararray summary, const gchararray body, const gchararray icon );
+
+void nwam_notification_connect (NwamuiDaemon* daemon);
 
 /* 
  * Should be called prior to exiting, to ensure notificaiton area is cleaned up.

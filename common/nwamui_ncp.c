@@ -110,6 +110,7 @@ struct _ncu_info {
     gchar*              device_name;
     nwamui_ncu_type_t   type;
     gboolean            enabled;
+    guint               speed;
     gboolean            ipv4_auto_conf;
     gchar*              ipv4_address;
     gchar*              ipv4_subnet;
@@ -127,9 +128,9 @@ static void
 nwamui_ncp_init ( NwamuiNcp *self)
 {
     static ncu_info_t   tmp_ncu_list[] = {
-        { "MyWireless", "ath0", NWAMUI_NCU_TYPE_WIRELESS, TRUE, FALSE, "192.168.1.20", "255.255.255.0", "192.168.1.1", TRUE, TRUE, "2001:0db8:0:0:0:0:1428:57ab", "2001:0db8:1234::/48", "MyESSID" },
-        { "MyWired1", "bge0", NWAMUI_NCU_TYPE_WIRED, FALSE, TRUE, NULL, NULL, NULL, FALSE, TRUE, NULL, NULL, NULL },
-        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
+        { "MyWireless", "ath0", NWAMUI_NCU_TYPE_WIRELESS, TRUE, 54, FALSE, "192.168.1.20", "255.255.255.0", "192.168.1.1", TRUE, TRUE, "2001:0db8:0:0:0:0:1428:57ab", "2001:0db8:1234::/48", "MyESSID" },
+        { "MyWired1", "bge0", NWAMUI_NCU_TYPE_WIRED, FALSE, 100, TRUE, NULL, NULL, NULL, FALSE, TRUE, NULL, NULL, NULL },
+        { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
     };
     
     self->prv = g_new0 (NwamuiNcpPrivate, 1);
@@ -152,6 +153,7 @@ nwamui_ncp_init ( NwamuiNcp *self)
                                 ptr->device_name,
                                 ptr->type,
                                 ptr->enabled,
+                                ptr->speed,
                                 ptr->ipv4_auto_conf,
                                 ptr->ipv4_address,
                                 ptr->ipv4_subnet,

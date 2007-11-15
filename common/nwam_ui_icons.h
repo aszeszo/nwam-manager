@@ -73,6 +73,7 @@ struct _NwamUIIconsClass
 #define  NWAM_ICON_WIRELESS_STRENGTH_25_49	    "nwam-wireless-strength-25-49"
 #define  NWAM_ICON_WIRELESS_STRENGTH_50_74	    "nwam-wireless-strength-50-74"
 #define  NWAM_ICON_WIRELESS_STRENGTH_75_100	    "nwam-wireless-strength-75-100"
+#define NWAMUI_WIFI_SEC_NONE_STOCKID			"nwam-wireless-fragile"
 
 GType nwam_ui_icons_get_type (void) G_GNUC_CONST;
 NwamUIIcons* nwam_ui_icons_get_instance (void);

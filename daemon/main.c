@@ -80,6 +80,7 @@ get_state(  GtkTreeModel *model,
 	}
 	name = nwamui_ncu_get_device_name (ncu);
 	g_string_append_printf (str, format, name, "test again");
+    g_free (name);
     
     g_object_unref( ncu );
     
@@ -171,6 +172,7 @@ int main( int argc,
     menu = get_nwam_menu_instance();
     
     nwam_notification_init( nwam_status_icon_get_widget(status_icon_index) );
+    nwam_notification_connect (daemon);
 
     nwam_status_icon_set_activate_callback( status_icon_index, G_CALLBACK(activate_cb) );
 
