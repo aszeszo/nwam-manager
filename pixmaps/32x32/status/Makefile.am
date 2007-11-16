@@ -17,36 +17,18 @@
 # 
 # CDDL HEADER END
 #
-SUBDIRS = 16x16 24x24 32x32 48x48
 
-NULL =
+icondir = $(datadir)/icons/hicolor/32x32/status
 
-install-data-local:
-	@-if test -z "$(DESTDIR)"; then \
-		echo "Updating Gtk icon cache."; \
-		$(gtk_update_icon_cache); \
-	else \
-		echo "*** Icon cache not updated.  After install, run this:"; \
-		echo "***   $(gtk_update_icon_cache)"; \
-	fi
+icon_DATA =  \
+			network-location-connected.png \
+			network-location-error.png \
+			network-location-warning.png \
+			network-wired-connected.png \
+			network-wired-error.png \
+			network-wired-warning.png \
+			network-wireless-connected.png \
+			network-wireless-error.png \
+			network-wireless-warning.png
 
-gtk_update_icon_cache = /usr/bin/gtk-update-icon-cache -f -t $(icondir)
-
-icondir   = $(datadir)/$(PACKAGE)/icons
-
-icon_DATA = \
-	earth-info.png \
-	earth-normal.png \
-	network-idle.png \
-	network-offline.png \
-	network-wireless.png \
-	wireless-strength-0-24.png \
-	wireless-strength-25-49.png \
-	wireless-strength-50-74.png \
-	wireless-strength-75-100.png \
-	wireless-fragile.png
-
-EXTRA_DIST = 		\
-	$(icon_DATA) \
-	$(NULL)
-
+EXTRA_DIST = $(icon_DATA)

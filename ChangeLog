@@ -1,3 +1,63 @@
+2007-11-16  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	* pixmaps/Makefile.am:
+	* pixmaps/16x16/Makefile.am:
+	* pixmaps/16x16/status/Makefile.am:
+	* pixmaps/16x16/status/network-secure.png:
+	* pixmaps/16x16/status/network-wired-connected.png:
+	* pixmaps/16x16/status/network-wired-error.png:
+	* pixmaps/16x16/status/network-wired-warning.png:
+	* pixmaps/16x16/status/network-wireless-connected.png:
+	* pixmaps/16x16/status/network-wireless-error.png:
+	* pixmaps/16x16/status/network-wireless-signal-fair.png:
+	* pixmaps/16x16/status/network-wireless-signal-good.png:
+	* pixmaps/16x16/status/network-wireless-signal-none.png:
+	* pixmaps/16x16/status/network-wireless-signal-poor.png:
+	* pixmaps/16x16/status/network-wireless-warning.png:
+	* pixmaps/24x24/Makefile.am:
+	* pixmaps/24x24/apps/Makefile.am:
+	* pixmaps/24x24/apps/network-location.png:
+	* pixmaps/24x24/status/Makefile.am:
+	* pixmaps/24x24/status/network-location-connected.png:
+	* pixmaps/24x24/status/network-location-error.png:
+	* pixmaps/24x24/status/network-location-warning.png:
+	* pixmaps/24x24/status/network-secure.png:
+	* pixmaps/24x24/status/network-wired-connected.png:
+	* pixmaps/24x24/status/network-wired-error.png:
+	* pixmaps/24x24/status/network-wired-warning.png:
+	* pixmaps/24x24/status/network-wireless-connected.png:
+	* pixmaps/24x24/status/network-wireless-error.png:
+	* pixmaps/24x24/status/network-wireless-warning.png:
+	* pixmaps/32x32/Makefile.am:
+	* pixmaps/32x32/apps/Makefile.am:
+	* pixmaps/32x32/apps/network-location.png:
+	* pixmaps/32x32/status/Makefile.am:
+	* pixmaps/32x32/status/network-location-connected.png:
+	* pixmaps/32x32/status/network-location-error.png:
+	* pixmaps/32x32/status/network-location-warning.png:
+	* pixmaps/32x32/status/network-wired-connected.png:
+	* pixmaps/32x32/status/network-wired-error.png:
+	* pixmaps/32x32/status/network-wired-warning.png:
+	* pixmaps/32x32/status/network-wireless-connected.png:
+	* pixmaps/32x32/status/network-wireless-error.png:
+	* pixmaps/32x32/status/network-wireless-warning.png:
+	* pixmaps/48x48/Makefile.am:
+	* pixmaps/48x48/apps/Makefile.am:
+	* pixmaps/48x48/apps/network-location.png:
+	* pixmaps/48x48/status/Makefile.am:
+	* pixmaps/48x48/status/network-location-connected.png:
+	* pixmaps/48x48/status/network-location-error.png:
+	* pixmaps/48x48/status/network-location-warning.png:
+	* pixmaps/48x48/status/network-secure.png:
+	* pixmaps/48x48/status/network-wired-connected.png:
+	* pixmaps/48x48/status/network-wired-error.png:
+	* pixmaps/48x48/status/network-wired-warning.png:
+	* pixmaps/48x48/status/network-wireless-connected.png:
+	* pixmaps/48x48/status/network-wireless-error.png:
+	* pixmaps/48x48/status/network-wireless-warning.png:
+	Import new icons into SVN, not integrated yet though... 
+
 2007-11-14  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_ncu.h, common/nwamui_ncu.c,
