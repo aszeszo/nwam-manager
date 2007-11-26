@@ -639,9 +639,13 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     
     /* TODO - Not as per UI Spec - should be using a copy on write mechanism, allowing edits */
     if ( nwamui_env_is_modifiable( current_env ) ) {
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->delete_environment_btn), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->edit_environment_btn), TRUE);
         gtk_container_foreach(GTK_CONTAINER(self->prv->environment_notebook), (GtkCallback)gtk_widget_set_sensitive, (gpointer)TRUE);
     }
     else {
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->delete_environment_btn), FALSE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->edit_environment_btn), FALSE);
         gtk_container_foreach(GTK_CONTAINER(self->prv->environment_notebook), (GtkCallback)gtk_widget_set_sensitive, (gpointer)FALSE);
     }
     
@@ -1028,7 +1032,7 @@ env_add_button_clicked_cb(GtkButton *button, gpointer  user_data)
     NwamuiEnv*                  new_env = NULL;
     gchar*                      new_name;
     
-    new_name = nwamui_util_rename_dialog_run(GTK_WINDOW(self->prv->env_pref_dialog), _("New Environment"), "" );
+    new_name = nwamui_util_rename_dialog_run(GTK_WINDOW(self->prv->env_pref_dialog), _("New Location"), "" );
 
     if ( new_name != NULL && strlen( new_name ) > 0 ) {
         new_env = nwamui_env_new( new_name );
@@ -1062,7 +1066,7 @@ env_rename_button_clicked_cb(GtkButton *button, gpointer  user_data)
         
         current_name = nwamui_env_get_name(current_env);
         
-        new_name = nwamui_util_rename_dialog_run(GTK_WINDOW(self->prv->env_pref_dialog), _("Rename Environment"), current_name );
+        new_name = nwamui_util_rename_dialog_run(GTK_WINDOW(self->prv->env_pref_dialog), _("Rename Location"), current_name );
         
         if ( new_name != NULL ) {
             GtkTreePath*    path = gtk_tree_model_get_path(model, &iter);
@@ -1125,9 +1129,9 @@ env_delete_button_clicked_cb(GtkButton *button, gpointer  user_data)
         if ( nwamui_env_is_modifiable( current_env ) ) {
             /* TODO - Are you sure?? - if active, pick next best... ? */
             gchar*  name = nwamui_env_get_name( current_env );
-            gchar*  message = g_strdup_printf(_("Remove environment '%s'?"), name?name:"" );
-            if (nwamui_util_ask_yes_no( GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))), _("Remove Environment?"), message )) {
-                g_debug("Removing environment: '%s'", name);
+            gchar*  message = g_strdup_printf(_("Remove location '%s'?"), name?name:"" );
+            if (nwamui_util_ask_yes_no( GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))), _("Remove Location?"), message )) {
+                g_debug("Removing location: '%s'", name);
                 
                 nwamui_daemon_env_remove(self->prv->daemon, current_env );
         

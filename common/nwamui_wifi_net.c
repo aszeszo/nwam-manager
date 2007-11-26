@@ -129,7 +129,7 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
                                                           _("Wifi Network Signal Strength"),
                                                           _("Wifi Network Signal Strength"),
                                                           NWAMUI_WIFI_STRENGTH_NONE, /* Min */
-                                                          NWAMUI_WIFI_STRENGTH_EXCELLENT, /* Max */
+                                                          NWAMUI_WIFI_STRENGTH_GOOD, /* Max */
                                                           NWAMUI_WIFI_STRENGTH_NONE, /* Default */
                                                           G_PARAM_READWRITE));    
 

@@ -40,7 +40,6 @@ noinst_LTLIBRARIES = libnwamui.la
 
 libnwamui_la_SOURCES =		\
 	libnwamui.c		\
-	nwam_ui_icons.c	\
 	nwamui_wifi_net.c \
 	nwamui_daemon.c \
 	nwamui_enm.c \

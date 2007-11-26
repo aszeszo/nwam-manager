@@ -390,7 +390,8 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
                     g_object_unref(G_OBJECT(status_icon));
                 }
                 else if( cell_num > 0 && ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-                    status_icon = nwamui_util_get_wireless_strength_icon( ncu );
+                    status_icon = nwamui_util_get_wireless_strength_icon( 
+                                            nwamui_ncu_get_wifi_signal_strength(ncu), FALSE );
                     g_object_set (G_OBJECT(renderer),
                             "pixbuf", status_icon,
                             NULL);

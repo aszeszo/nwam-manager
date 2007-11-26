@@ -468,9 +468,7 @@ on_nwam_wifi_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     GtkWidget *menuitem;
     GtkAction *action;
     gchar *m_name;
-    gchar *stock_id;
     GtkWidget* img = NULL;
-    gdouble strength;
 
     nwamobj = NWAMUI_WIFI_NET(gobject);
     m_name = nwamui_wifi_net_get_essid (nwamobj);
@@ -481,35 +479,12 @@ on_nwam_wifi_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     g_assert (menuitem);
     g_assert (action);
 
-    switch (nwamui_wifi_net_get_signal_strength (nwamobj)) {
-    case NWAMUI_WIFI_STRENGTH_NONE:
-    case NWAMUI_WIFI_STRENGTH_VERY_WEAK:
-        stock_id = NWAM_ICON_WIRELESS_STRENGTH_0_24;
-        break;
-    case NWAMUI_WIFI_STRENGTH_WEAK:
-        stock_id = NWAM_ICON_WIRELESS_STRENGTH_25_49;
-        break;
-    case NWAMUI_WIFI_STRENGTH_GOOD:
-        stock_id = NWAM_ICON_WIRELESS_STRENGTH_50_74;
-        break;
-    case NWAMUI_WIFI_STRENGTH_VERY_GOOD:
-    case NWAMUI_WIFI_STRENGTH_EXCELLENT:
-        stock_id = NWAM_ICON_WIRELESS_STRENGTH_75_100;
-        break;
-    default:
-        g_assert_not_reached ();
-    }
-    img = gtk_image_new_from_stock (stock_id, GTK_ICON_SIZE_MENU); 
+    img = gtk_image_new_from_pixbuf (
+            nwamui_util_get_wireless_strength_icon(nwamui_wifi_net_get_signal_strength(nwamobj), TRUE )); 
     nwam_menu_item_set_widget (NWAM_MENU_ITEM(menuitem), img, 0);
 
-    switch (nwamui_wifi_net_get_security (nwamobj)) {
-    case NWAMUI_WIFI_SEC_NONE:
-        img = gtk_image_new_from_stock (NWAMUI_WIFI_SEC_NONE_STOCKID, GTK_ICON_SIZE_MENU);
-        break;
-    default:
-        img = gtk_image_new_from_stock (GTK_STOCK_YES, GTK_ICON_SIZE_MENU);
-        break;
-    }
+    img = gtk_image_new_from_pixbuf (
+            nwamui_util_get_network_security_icon(nwamui_wifi_net_get_security (nwamobj), TRUE )); 
     nwam_menu_item_set_widget (NWAM_MENU_ITEM(menuitem), img, 1);
 }
 

@@ -1738,7 +1738,7 @@ Office</property>
                   <widget class="GtkButton" id="add_environment_btn">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="tooltip" translatable="yes">Add Environment</property>
+                    <property name="tooltip" translatable="yes">Add Location</property>
                     <property name="response_id">0</property>
                     <child>
                       <widget class="GtkImage" id="image9">
@@ -1757,7 +1757,7 @@ Office</property>
                   <widget class="GtkButton" id="edit_environment_btn">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="tooltip" translatable="yes">Rename Environment</property>
+                    <property name="tooltip" translatable="yes">Rename Location</property>
                     <property name="response_id">0</property>
                     <child>
                       <widget class="GtkImage" id="image11">
@@ -1776,7 +1776,7 @@ Office</property>
                   <widget class="GtkButton" id="dup_environment_btn">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="tooltip" translatable="yes">Duplicate Environment</property>
+                    <property name="tooltip" translatable="yes">Duplicate Location</property>
                     <property name="response_id">0</property>
                     <child>
                       <widget class="GtkImage" id="image12">
@@ -1795,7 +1795,7 @@ Office</property>
                   <widget class="GtkButton" id="delete_environment_btn">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
-                    <property name="tooltip" translatable="yes">Delete Environment</property>
+                    <property name="tooltip" translatable="yes">Delete Location</property>
                     <property name="response_id">0</property>
                     <child>
                       <widget class="GtkImage" id="image10">

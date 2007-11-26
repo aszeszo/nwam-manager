@@ -259,6 +259,68 @@ nwamui_util_copy_obj_list( GList*   obj_list )
     g_list_foreach(new_list, nwamui_util_obj_ref, NULL );    
 }
 
+static gint small_icon_size = -1;
+static gint normal_icon_size = -1;
+
+static GdkPixbuf*   
+get_pixbuf( const gchar* stock_id, gboolean small )
+{
+    GtkIconTheme*   icon_theme = gtk_icon_theme_get_default();
+    GdkPixbuf*      pixbuf = NULL;
+    GError*         error = NULL;
+
+    g_debug("get_pixbuf: Seeking %s stock_id = %s", small?"small":"normal", stock_id );
+
+    if ( small_icon_size == -1 ) {
+        gint dummy;
+        if ( !gtk_icon_size_lookup(GTK_ICON_SIZE_MENU, &small_icon_size, &dummy) ) {
+            small_icon_size=16;
+        }
+        if ( !gtk_icon_size_lookup(GTK_ICON_SIZE_LARGE_TOOLBAR, &normal_icon_size, &dummy) ) {
+            normal_icon_size=24;
+        }
+        g_debug("get_pixbuf: small_icon_size = %d", small_icon_size );
+        g_debug("get_pixbuf: normal_icon_size = %d", normal_icon_size );
+    }
+    
+    pixbuf = gtk_icon_theme_load_icon( icon_theme, stock_id, 
+                                       small?small_icon_size:normal_icon_size, 0, &error );
+
+    if ( pixbuf == NULL ) {
+        g_debug("get_pixbuf: pixbuf = NULL");
+    }
+    else {
+        g_debug("get_pixbuf: pixbuf loaded");
+    }
+    return( pixbuf );
+}
+
+/* 
+ * Returns a GdkPixbuf that reflects the status of the environment
+ */
+extern GdkPixbuf*
+nwamui_util_get_env_status_icon( nwamui_env_status_t env_status )
+{
+    GdkPixbuf* icon = NULL;
+    
+    switch( env_status ) {
+        case NWAMUI_ENV_STATUS_CONNECTED:
+            icon = get_pixbuf(NWAM_ICON_EARTH_CONNECTED, FALSE);
+            break;
+        case NWAMUI_ENV_STATUS_WARNING:
+            icon = get_pixbuf(NWAM_ICON_EARTH_WARNING, FALSE);
+            break;
+        case NWAMUI_ENV_STATUS_ERROR:
+            icon = get_pixbuf(NWAM_ICON_EARTH_ERROR, FALSE);
+            break;
+        default:
+            g_assert_not_reached();
+            break;
+    }
+    
+    return( icon );
+}
+
 /* 
  * Returns a GdkPixbuf that reflects the type of the network.
  */
@@ -268,16 +330,11 @@ nwamui_util_get_network_type_icon( nwamui_ncu_type_t ncu_type )
         static GdkPixbuf       *wireless_icon = NULL;
         static GdkPixbuf       *wired_icon = NULL;
 
-        GtkIconTheme           *icon_theme;
-        
-        icon_theme = gtk_icon_theme_get_default();
         if ( wireless_icon == NULL ) {
-            wireless_icon = gtk_icon_theme_load_icon (GTK_ICON_THEME(icon_theme),
-                                         "network-wireless", 32, 0, NULL);
+            wireless_icon = get_pixbuf("network-wireless", FALSE);
         }
         if (wired_icon == NULL ) {
-            wired_icon = gtk_icon_theme_load_icon (GTK_ICON_THEME(icon_theme),
-                                           "network-idle", 32, 0, NULL);
+            wired_icon = get_pixbuf("network-idle", FALSE);
         }
         
         switch (ncu_type) {
@@ -290,7 +347,36 @@ nwamui_util_get_network_type_icon( nwamui_ncu_type_t ncu_type )
         }
 }
        
+/* 
+ * Returns a GdkPixbuf that reflects the security type of the network.
+ */
+extern GdkPixbuf*
+nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type, gboolean small )
+{
+    static GdkPixbuf       *secured_icon = NULL;
+    static GdkPixbuf       *open_icon = NULL;
 
+    /* TODO - get REAL icons for drop-downlist, these are borrowed */
+    if ( secured_icon == NULL ) {
+        secured_icon = get_pixbuf("gnome-dev-wavelan-encrypted", small);
+    }
+    if ( open_icon == NULL ) {
+        open_icon = get_pixbuf("gnome-dev-wavelan", small);
+    }
+
+    switch (sec_type) {
+        case NWAMUI_WIFI_SEC_WEP_ASCII:
+        case NWAMUI_WIFI_SEC_WEP_HEX:
+        case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
+        case NWAMUI_WIFI_SEC_WPA_PERSONAL:
+            return( GDK_PIXBUF(g_object_ref(G_OBJECT(secured_icon) )) );
+        case NWAMUI_WIFI_SEC_NONE: 
+            /* Fall-through */
+        default:
+            return( GDK_PIXBUF(g_object_ref(G_OBJECT(open_icon) )) );
+    }
+}
+       
 /* 
  * Returns a GdkPixbuf that reflects the status of the network.
  */
@@ -312,13 +398,13 @@ nwamui_util_get_network_status_icon( NwamuiNcu* ncu )
 
         if ( enabled_wired_icon == NULL ) { /* Load all icons */
 
-            enabled_wired_icon = nwam_ui_icons_get_pixbuf(nwam_ui_icons_get_instance(), NWAM_ICON_NETWORK_IDLE );
+            enabled_wired_icon = get_pixbuf( NWAM_ICON_NETWORK_IDLE, FALSE );
 
             
-            enabled_wireless_icon = nwam_ui_icons_get_pixbuf(nwam_ui_icons_get_instance(), NWAM_ICON_NETWORK_IDLE );
+            enabled_wireless_icon = get_pixbuf( NWAM_ICON_NETWORK_IDLE, FALSE );
             
             
-            disabled_icon = nwam_ui_icons_get_pixbuf(nwam_ui_icons_get_instance(), NWAM_ICON_NETWORK_OFFLINE );
+            disabled_icon = get_pixbuf( NWAM_ICON_NETWORK_OFFLINE, FALSE );
         }
         
         /* TODO - handle other status icon cases */
@@ -338,35 +424,28 @@ nwamui_util_get_network_status_icon( NwamuiNcu* ncu )
 }
        
 extern GdkPixbuf*
-nwamui_util_get_wireless_strength_icon( NwamuiNcu* ncu  )
+nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength, gboolean small )
 {
-    static GdkPixbuf*   enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_LAST];
+    static GdkPixbuf*   enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_LAST][2];
+    gint                icon_size = small?0:1;
     
-    nwamui_wifi_signal_strength_t   signal_strength;
-    
-    g_return_val_if_fail( NWAMUI_IS_NCU(ncu) 
-                          && nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS, NULL );
-    
-    signal_strength = nwamui_ncu_get_wifi_signal_strength( ncu );
-    
-    if ( enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE] == NULL ) {
+    if ( enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] == NULL ) {
         /* TODO - Get wireless icons to match the various strengths */
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE] = /* Same as below for now, but need new icons */
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_WEAK] = 
-                                    nwam_ui_icons_get_pixbuf(nwam_ui_icons_get_instance(), NWAM_ICON_WIRELESS_STRENGTH_0_24 );
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] = 
+                                    get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_NONE, small );
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_WEAK] = 
-                                    nwam_ui_icons_get_pixbuf(nwam_ui_icons_get_instance(), NWAM_ICON_WIRELESS_STRENGTH_25_49 );
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_POOR][icon_size] = 
+                                    get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_POOR, small );
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD] = 
-                                    nwam_ui_icons_get_pixbuf(nwam_ui_icons_get_instance(), NWAM_ICON_WIRELESS_STRENGTH_50_74 );
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_FAIR][icon_size] = 
+                                    get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_FAIR, small );
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_GOOD] = /* Same as below for now, but need new icons */
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT] = 
-                                    nwam_ui_icons_get_pixbuf(nwam_ui_icons_get_instance(), NWAM_ICON_WIRELESS_STRENGTH_75_100 );
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD][icon_size]= 
+                                    get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_GOOD, small );
+
     }
     
-    return( GDK_PIXBUF(g_object_ref( G_OBJECT(enabled_wireless_icons[signal_strength]) )) );
+    return( GDK_PIXBUF(g_object_ref( G_OBJECT(enabled_wireless_icons[signal_strength][icon_size]) )) );
     
 }
 

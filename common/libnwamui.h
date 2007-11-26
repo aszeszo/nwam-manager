@@ -72,9 +72,16 @@ G_BEGIN_DECLS
 #include "nwamui_daemon.h"
 #endif /* _NWAMUI_DAEMON_H */
 
-#ifndef _NWAM_UI_ICONS_H
-#include "nwam_ui_icons.h"
-#endif /* _NWAM_UI_ICONS_H */
+#define  NWAM_ICON_EARTH_ERROR              "network-location-error"
+#define  NWAM_ICON_EARTH_WARNING            "network-location-warning"
+#define  NWAM_ICON_EARTH_CONNECTED          "network-location-connected"
+#define  NWAM_ICON_NETWORK_IDLE             "network-wired-connected"
+#define  NWAM_ICON_NETWORK_OFFLINE          "network-wired-error"
+#define  NWAM_ICON_NETWORK_WIRELESS         "network-wireless-connected"
+#define  NWAM_ICON_WIRELESS_STRENGTH_NONE   "network-wireless-signal-none"
+#define  NWAM_ICON_WIRELESS_STRENGTH_POOR   "network-wireless-signal-poor"
+#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "network-wireless-signal-fair"
+#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "network-wireless-signal-good"
 
 /* Utility Functions */
 extern GtkWidget*               nwamui_util_glade_get_widget( const gchar* widget_name );
@@ -97,7 +104,13 @@ extern GdkPixbuf*               nwamui_util_get_network_status_icon( NwamuiNcu* 
 
 extern GdkPixbuf*               nwamui_util_get_network_type_icon( nwamui_ncu_type_t ncu_type );
 
-extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon( NwamuiNcu* ncu  );
+extern GdkPixbuf*               nwamui_util_get_env_status_icon( nwamui_env_status_t env_status );
+
+extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength,
+                                                                        gboolean small);
+
+extern GdkPixbuf*               nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type,
+                                                                        gboolean small);
 
 extern void                     nwamui_util_show_help( gchar* link_name );
 

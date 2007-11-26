@@ -293,7 +293,7 @@ add_essid_list_item_to_essid_liststore(GObject* daemon, GObject* wifi, gpointer 
     NwamuiWifiNet          *wifi_elem = NULL;
     GtkTreeModel           *model = (GtkTreeModel*)user_data;
     GtkIconTheme           *icon_theme;
-    GdkPixbuf              *encrypted_icon, *open_icon, *used_pix;
+    GdkPixbuf              *icon;
     GtkTreeIter             iter;
     nwamui_wifi_security_t  sec;
     gchar*                  essid;
@@ -314,25 +314,16 @@ add_essid_list_item_to_essid_liststore(GObject* daemon, GObject* wifi, gpointer 
     
     wifi_elem = NWAMUI_WIFI_NET(wifi);
     
-    /* TODO - get REAL icons for drop-downlist, these are borrowed */
-    icon_theme = gtk_icon_theme_get_default();
-    encrypted_icon = gtk_icon_theme_load_icon (GTK_ICON_THEME(icon_theme),
-				     "gnome-dev-wavelan-encrypted", 16, 0, NULL);
-    open_icon = gtk_icon_theme_load_icon (GTK_ICON_THEME(icon_theme),
-				       "gnome-dev-wavelan", 16, 0, NULL);
-    
     essid = nwamui_wifi_net_get_essid(wifi_elem);
     sec = nwamui_wifi_net_get_security(wifi_elem);
     
-    used_pix = ( sec != NWAMUI_WIFI_SEC_NONE) ? g_object_ref (encrypted_icon) : g_object_ref (open_icon);
+    icon = nwamui_util_get_network_security_icon( sec, TRUE );
+    
     gtk_list_store_append (GTK_LIST_STORE (model), &iter);
     gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                        0, essid, 1, used_pix, 2, (gint)sec, -1);
-    g_object_unref (used_pix);
+                        0, essid, 1, icon, 2, (gint)sec, -1);
+    g_object_unref (icon);
     
-    /* g_free(essid); - TODO - should we free this here or not?? */
-    g_object_unref (encrypted_icon);
-    g_object_unref (open_icon);
     g_free (essid);
 }
 
@@ -941,7 +932,7 @@ nwam_wireless_dialog_run (NwamWirelessDialog  *self)
                                 nwam_wireless_dialog_get_bssid(self),
                                 "g",
                                 (gint)g_random_int_range(0, 56), /* Random speed */
-                                (nwamui_wifi_signal_strength_t)g_random_int_range((gint32)NWAMUI_WIFI_STRENGTH_NONE, (gint32)NWAMUI_WIFI_STRENGTH_EXCELLENT),
+                                (nwamui_wifi_signal_strength_t)g_random_int_range((gint32)NWAMUI_WIFI_STRENGTH_NONE, (gint32)NWAMUI_WIFI_STRENGTH_GOOD),
                                 nwam_wireless_dialog_get_wpa_config_type(self)
                             );
                 }

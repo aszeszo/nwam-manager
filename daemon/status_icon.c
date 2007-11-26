@@ -30,7 +30,7 @@
 
 #include "nwam-menu.h"
 #include "nwam-menuitem.h"
-#include "nwam_ui_icons.h"
+#include "libnwamui.h"
 
 /* This might seem a bit overkill, but once we start handling more than 1 icon it should make it 
  * easier to do. Currently the index parameter is ignored...
@@ -40,10 +40,7 @@ static GtkStatusIcon*   status_icon                     = NULL; /* TODO - Allow 
 static GCallback       status_icon_activate_callback    = NULL;
 
 static GtkStatusIcon*   get_status_icon( gint index );
-static NwamUIIcons* nwam_icons;
-static gchar *icon_stock[2];
 static gint icon_stock_index;
-static gint icon_stock_num;
 
 static gboolean animation_panel_icon_timeout (gpointer data);
 static void trigger_animation_panel_icon (GConfClient *client,
@@ -54,7 +51,9 @@ static void trigger_animation_panel_icon (GConfClient *client,
 static gboolean
 animation_panel_icon_timeout (gpointer data)
 {
-	gtk_status_icon_set_from_stock(status_icon, icon_stock[(++icon_stock_index)%icon_stock_num]);
+	gtk_status_icon_set_from_pixbuf(status_icon, 
+                                    nwamui_util_get_env_status_icon(
+                                            (nwamui_env_status_t)(++icon_stock_index)%NWAMUI_ENV_STATUS_LAST));
 	return TRUE;
 }
 
@@ -80,7 +79,8 @@ trigger_animation_panel_icon (GConfClient *client,
 		g_source_remove (animation_panel_icon_timeout_id);
 		animation_panel_icon_timeout_id = 0;
 		/* reset everything of animation_panel_icon here */
-		gtk_status_icon_set_from_stock(status_icon, icon_stock[0]);
+		gtk_status_icon_set_from_pixbuf(status_icon, 
+                                        nwamui_util_get_env_status_icon(NWAMUI_ENV_STATUS_CONNECTED));
 		icon_stock_index = 0;
 	}
 }
@@ -88,11 +88,8 @@ trigger_animation_panel_icon (GConfClient *client,
 static void
 animation_panel_icon_init ()
 {
-	icon_stock_num = 0;
-	icon_stock[icon_stock_num++] = "nwam-earth-normal";
-	icon_stock[icon_stock_num++] = "nwam-earth-info";
-	
-	gtk_status_icon_set_from_stock(status_icon, icon_stock[0]);
+    gtk_status_icon_set_from_pixbuf(status_icon, 
+                                    nwamui_util_get_env_status_icon(NWAMUI_ENV_STATUS_CONNECTED));
 }
 
 gint 
@@ -202,7 +199,6 @@ status_icon_activate_cb(GtkStatusIcon *status_icon, gpointer user_data)
 static GtkStatusIcon*
 get_status_icon( gint index ) { 
     if ( status_icon == NULL ) {  
-	nwam_icons = nwam_ui_icons_get_instance();
 
 	status_icon = gtk_status_icon_new();
 	animation_panel_icon_init ();

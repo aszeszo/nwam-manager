@@ -70,6 +70,13 @@ typedef enum {
     NWAMUI_ENV_PROXY_TYPE_LAST /* Not to be used directly */
 } nwamui_env_proxy_type_t;
 
+typedef enum {
+    NWAMUI_ENV_STATUS_CONNECTED,
+    NWAMUI_ENV_STATUS_WARNING,
+    NWAMUI_ENV_STATUS_ERROR,
+    NWAMUI_ENV_STATUS_LAST /* Not to be used directly */
+} nwamui_env_status_t; /* TODO - provide means to get status in env */
+
 extern  NwamuiEnv*          nwamui_env_new ( gchar* name );
 
 extern  NwamuiEnv*          nwamui_env_clone( NwamuiEnv* self );

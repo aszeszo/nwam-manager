@@ -1,3 +1,34 @@
+2007-11-26  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/Makefile.am, common/nwam_ui_icons.c, common/nwam_ui_icons.h:
+	  Removed need for this icon factory, all icons should be retrieved using
+	  utility functions in libnwamui.c
+	* common/libnwamui.h, common/libnwamui.c: 
+	  (get_pixbuf),
+	  (nwamui_util_get_env_status_icon),
+	  (nwamui_util_get_network_type_icon),
+	  (nwamui_util_get_network_security_icon),
+	  (nwamui_util_get_network_status_icon),
+	  (nwamui_util_get_wireless_strength_icon):
+	  Use standard icon functions, and get icons using enums rather than
+	  names.
+	* daemon/nwam-menu.c, daemon/status_icon.c, 
+	  capplet/nwam_conn_stat_panel.c, capplet/nwam_wireless_dialog.c:
+	  Update to use new icon functions.
+	* capplet/nwam_env_pref_dialog.c,
+	  capplet/main.c, capplet/nwam-manager-properties.glade:
+	  Replace all strings referencing "Environment" to be "Location".
+	  Also added some conditional sensitivity to location buttons.
+	* common/nwamui_env.h:
+	  Add NWAMUI_ENV_STATUS_* enums - currently missing abilty to get the
+	  actualy status, but is used to obtain icon for displaying.
+	* common/nwamui_daemon.c, common/nwamui_ncp.c,
+	  common/nwamui_wifi_net.c, common/nwamui_wifi_net.h:
+	  Update with new signal strength enums.
+	* scripts/link_icons.sh:
+	  Utility script to help during development if installing icons normally
+	  to non-/usr dir (e.g. /opt).
+
 2007-11-26  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_init),
