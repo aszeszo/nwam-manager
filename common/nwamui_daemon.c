@@ -218,7 +218,7 @@ static nwamui_wifi_essid_t demo_essids[] = {
 #if 1
     {"My Absolute Fav Network", NWAMUI_WIFI_SEC_NONE, "11:22:33:44:55:66", "g", 54, NWAMUI_WIFI_STRENGTH_EXCELLENT , NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
     {"essid_open", NWAMUI_WIFI_SEC_NONE, "AA:bb:cc:dd:ee:ff", "b", 11, NWAMUI_WIFI_STRENGTH_GOOD, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
-    {"essid_wep", NWAMUI_WIFI_SEC_WEP_HEX, "BB:bb:cc:dd:ee:ff", "g", 54, NWAMUI_WIFI_STRENGTH_EXCELLENT, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
+    {"essid_wep ooooooooooooooooooooooooooooooooooooooooooooooooooooooo", NWAMUI_WIFI_SEC_WEP_HEX, "BB:bb:cc:dd:ee:ff", "g", 54, NWAMUI_WIFI_STRENGTH_EXCELLENT, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
     {"essid_wpa", NWAMUI_WIFI_SEC_WPA_PERSONAL, "CC:bb:cc:dd:ee:ff", "g", 36, NWAMUI_WIFI_STRENGTH_WEAK, NWAMUI_WIFI_WPA_CONFIG_PEAP },
 #endif
     {NULL, NULL, NULL, NULL, NULL},

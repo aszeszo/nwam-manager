@@ -1,3 +1,26 @@
+2007-11-26  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_init),
+	(nwam_compose_tree_view), (populate_panels_from_env),
+	(default_svc_status_cb), (default_svc_toggled_cb),
+	(additional_svc_status_cb), (additional_svc_toggled_cb),
+	(default_netservices_vfunc), (additional_netservices_vfunc):
+	Finished glue code for Netservices default list and additional list.
+	* common/nwamui_daemon.c:
+	Changed one test data.
+	* common/nwamui_env.c: (nwamui_env_class_init), (nwamui_env_init),
+	(nwamui_env_get_property), (nwamui_env_new), (nwamui_env_get_svcs),
+	(nwamui_env_find_svc), (nwamui_env_svc_remove),
+	(nwamui_env_svc_add), (nwamui_env_svc_set_default),
+	(nwamui_env_svc_add_full), (nwamui_env_svc_is_default),
+	(nwamui_env_svc_set_status), (nwamui_env_svc_get_status),
+	(nwamui_env_svc_get_name):
+	* common/nwamui_env.h:
+	Services api. Need more work.
+	* daemon/main.c: (detect_and_set_singleton), (clear_singleton),
+	(cleanup_and_exit), (main):
+	Test code for the singlonten instance by using X/GDK atom.
+
 2007-11-16  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in:

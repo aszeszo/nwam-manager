@@ -30,19 +30,75 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #include "status_icon.h"
 #include "notify.h"
 #include "libnwamui.h"
 #include "nwam-menu.h"
 
+#define NWAM_MANAGER_ATOM	"nwam-manger-atom"
 static GtkWidget *my_menu = NULL;
 static GtkStatusIcon *status_icon = NULL;
 
-static void 
-cleanup_and_exit(GtkWidget *widget,
-        gpointer data)
+#include <X11/Xatom.h>
+#include <gdk/gdkx.h>
+gboolean
+detect_and_set_singleton ()
 {
+    Atom actualtype;
+    int actualformat;
+    unsigned long nitems;
+    unsigned long bytes_after;
+    unsigned char *buf;
+    unsigned char data[] = {(char)TRUE};
+
+    gdk_atom_intern (NWAM_MANAGER_ATOM, FALSE);
+    if (XGetWindowProperty (gdk_x11_get_default_xdisplay (),
+                            gdk_x11_get_default_root_xwindow (),
+                            gdk_x11_get_xatom_by_name (NWAM_MANAGER_ATOM),
+                            0, 1,
+                            False,
+                            XA_INTEGER, &actualtype,
+                            &actualformat, &nitems, &bytes_after, &buf)) {
+        goto set_property_atom;
+    }
+    if (nitems == 0) {
+        goto set_property_atom;
+    }
+    if ((gboolean)*buf == TRUE) {
+        XFree (buf);
+        return FALSE;
+    }
+    XFree (buf);
+ set_property_atom:
+    nitems = 1;
+    XChangeProperty (gdk_x11_get_default_xdisplay (),
+                     gdk_x11_get_default_root_xwindow (),
+                     gdk_x11_get_xatom_by_name (NWAM_MANAGER_ATOM),
+                     XA_INTEGER, 8, PropModeReplace,
+                     data, nitems);
+    return TRUE;
+}
+
+void
+clear_singleton ()
+{
+    unsigned long nitems;
+    unsigned char data[] = {(char)FALSE};
+
+    nitems = 1;
+    XChangeProperty (gdk_x11_get_default_xdisplay (),
+                     gdk_x11_get_default_root_xwindow (),
+                     gdk_x11_get_xatom_by_name (NWAM_MANAGER_ATOM),
+                     XA_INTEGER, 8, PropModeReplace,
+                     data, nitems);
+}
+
+static void 
+cleanup_and_exit(int sig, siginfo_t *sip, void *data)
+{
+    clear_singleton ();
     gtk_main_quit ();
 }
 
@@ -122,43 +178,30 @@ int main( int argc,
     gint    status_icon_index = 0;
     NwamMenu *menu;
     NwamuiDaemon* daemon;
-    gchar *pidfile;
-    int pidfd;
+    struct sigaction act;
     
 #ifdef ENABLE_NLS
-        bindtextdomain (GETTEXT_PACKAGE, NWAM_MANAGER_LOCALEDIR);
-        bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
-        textdomain (GETTEXT_PACKAGE);
+    bindtextdomain (GETTEXT_PACKAGE, NWAM_MANAGER_LOCALEDIR);
+    bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+    textdomain (GETTEXT_PACKAGE);
 #endif
 
-        program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,
-                                      argc, argv,
-                                      GNOME_PARAM_APP_DATADIR, NWAM_MANAGER_DATADIR,
-                                      NULL);
+    program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,
+                                  argc, argv,
+                                  GNOME_PARAM_APP_DATADIR,
+                                  NWAM_MANAGER_DATADIR,
+                                  NULL);
 
-        pidfile = g_build_filename (g_get_user_cache_dir(), "nwam-manager.lock", NULL);
-        pidfd = open (pidfile, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
-        if (pidfd == -1) {
-            g_debug ("open lock file %s error", pidfile);
-            return 1;
-        } else {
-            struct flock pidlock;
-            pidlock.l_type = F_WRLCK;
-            pidlock.l_whence = SEEK_SET;
-            pidlock.l_start = 0;
-            pidlock.l_len = 0;
-            if (fcntl (pidfd, F_SETLK, &pidlock) == -1) {
-                if (errno == EAGAIN || errno == EACCES) {
-                    g_debug ("%s is already running", argv[0]);
-                    return 0;
-                } else {
-                    g_debug ("obtain lock file %s error", pidfile);
-                    return 1;
-                }
-            }
-        }
-        g_free (pidfile);
-        
+    act.sa_sigaction = cleanup_and_exit;
+    sigemptyset (&act.sa_mask);
+    act.sa_flags = SA_SIGINFO;
+    sigaction (SIGKILL, &act, NULL);
+    sigaction (SIGINT, &act, NULL);
+
+    if (!detect_and_set_singleton ()) {
+        g_debug ("Another process is running.\n");
+        exit (0);
+    }
 #ifndef DEBUG
     client = gnome_master_client ();
     gnome_client_set_restart_command (client, argc, argv);
@@ -185,10 +228,10 @@ int main( int argc,
     on_trigger_network_changed (daemon, nwamui_daemon_get_active_env (daemon), status_icon_index);
     gtk_main();
 
+    g_debug ("exiting...\n");
     nwam_notification_cleanup();
     g_object_unref (daemon);
     g_object_unref (G_OBJECT (menu));
-exit_session:
     g_object_unref (G_OBJECT (program));
     
     return 0;

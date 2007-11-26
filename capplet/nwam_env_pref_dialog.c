@@ -89,6 +89,11 @@ enum {
     LAST_SIGNAL
 };
 
+enum {
+    SVC_CHECK_BOX = 0,
+    SVC_INFO
+};
+
 static guint env_signals[LAST_SIGNAL] = {0};
 
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
@@ -175,6 +180,7 @@ static void default_condition_remove_signal_handler (NwamEnvPrefDialog *self, GO
 static void condition_field_changed_cb( GtkWidget* widget, gpointer data );
 static void condition_op_changed_cb( GtkWidget* widget, gpointer data );
 static void condition_value_changed_cb( GtkWidget* widget, gpointer data );
+static void nwam_compose_tree_view (NwamEnvPrefDialog *self);
 
 /* Callbacks */
 static void         env_selection_changed_cb( GtkWidget* widget, gpointer data );
@@ -200,6 +206,29 @@ static void         http_password_button_clicked_cb(GtkButton *button, gpointer 
 static void table_add_condition_cb(GtkButton *button, gpointer  data);
 static void table_delete_condition_cb(GtkButton *button, gpointer  data);
 static void table_line_cache_all_cb (GtkWidget *widget, gpointer data);
+
+static void default_svc_status_cb (GtkTreeViewColumn *tree_column,
+                                   GtkCellRenderer *cell,
+                                   GtkTreeModel *tree_model,
+                                   GtkTreeIter *iter,
+                                   gpointer data);
+static void default_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
+                                    gchar                 *path,
+                                    gpointer               user_data);
+static void additional_svc_status_cb (GtkTreeViewColumn *tree_column,
+                                      GtkCellRenderer *cell,
+                                      GtkTreeModel *tree_model,
+                                      GtkTreeIter *iter,
+                                      gpointer data);
+static void additional_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
+                                       gchar                 *path,
+                                       gpointer               user_data);
+static gboolean default_netservices_vfunc (GtkTreeModel *model,
+                                           GtkTreeIter *iter,
+                                           gpointer data);
+static gboolean additional_netservices_vfunc (GtkTreeModel *model,
+                                              GtkTreeIter *iter,
+                                              gpointer data);
 
 static void
 nwam_env_pref_dialog_class_init (NwamEnvPrefDialogClass *klass)
@@ -329,6 +358,8 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     g_signal_connect( prv->no_proxy_entry, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
 
     table_lines_new (self);
+
+    nwam_compose_tree_view (self);
 }
 
 static void
@@ -427,6 +458,119 @@ nwam_env_pref_dialog_run (NwamEnvPrefDialog  *self, GtkWindow* parent)
     
 }
 
+static void
+nwam_compose_tree_view (NwamEnvPrefDialog *self)
+{
+	GtkTreeViewColumn *col;
+	GtkCellRenderer *cell;
+	GtkTreeView *view;
+
+    /*
+     * compose the default netservices view
+     */
+    view = self->prv->default_netservices_list;
+
+	g_object_set (G_OBJECT(view),
+		      "headers-clickable", FALSE,
+		      "reorderable", TRUE,
+		      NULL);
+	
+	// column enabled
+	col = gtk_tree_view_column_new();
+	cell = gtk_cell_renderer_toggle_new();
+	gtk_tree_view_column_pack_start(col, cell, FALSE);
+	gtk_tree_view_column_set_cell_data_func (col,
+                                             cell,
+                                             default_svc_status_cb,
+                                             (gpointer) self,
+                                             NULL);
+    g_object_set_data (G_OBJECT (cell), "column",
+                       GINT_TO_POINTER (SVC_CHECK_BOX));
+	g_object_set (cell, "activatable", TRUE, NULL);
+    g_signal_connect(G_OBJECT(cell), "toggled",
+                     G_CALLBACK(default_svc_toggled_cb),
+                     (gpointer)self);
+	g_object_set (col,
+		      "resizable", FALSE,
+		      "clickable", FALSE,
+		      "sort-indicator", FALSE,
+		      "reorderable", FALSE,
+		      NULL);
+	gtk_tree_view_append_column (view, col);
+
+	// column name
+	col = gtk_tree_view_column_new();
+	cell = gtk_cell_renderer_text_new();
+	gtk_tree_view_column_pack_start(col, cell, TRUE);
+	gtk_tree_view_column_set_cell_data_func (col,
+                                             cell,
+                                             default_svc_status_cb,
+                                             (gpointer) self,
+                                             NULL);
+    g_object_set_data (G_OBJECT (cell), "column",
+                       GINT_TO_POINTER (SVC_INFO));
+	g_object_set (col,
+                  "expand", TRUE,
+                  "resizable", FALSE,
+                  "clickable", FALSE,
+                  "sort-indicator", FALSE,
+                  "reorderable", FALSE,
+                  NULL);
+	gtk_tree_view_append_column (view, col);
+        
+    /*
+     * compose view for additional netservices view
+     */
+    view = self->prv->additional_netservices_list;
+
+	g_object_set (G_OBJECT(view),
+		      "headers-clickable", FALSE,
+		      "reorderable", TRUE,
+		      NULL);
+	
+	// column enabled
+	col = gtk_tree_view_column_new();
+	cell = gtk_cell_renderer_toggle_new();
+	gtk_tree_view_column_pack_start(col, cell, FALSE);
+	gtk_tree_view_column_set_cell_data_func (col,
+                                             cell,
+                                             default_svc_status_cb,
+                                             (gpointer) self,
+                                             NULL);
+    g_object_set_data (G_OBJECT (cell), "column",
+                       GINT_TO_POINTER (SVC_CHECK_BOX));
+	g_object_set (cell, "activatable", TRUE, NULL);
+    g_signal_connect(G_OBJECT(cell), "toggled",
+                     G_CALLBACK(additional_svc_toggled_cb),
+                     (gpointer)self);
+	g_object_set (col,
+		      "resizable", FALSE,
+		      "clickable", FALSE,
+		      "sort-indicator", FALSE,
+		      "reorderable", FALSE,
+		      NULL);
+	gtk_tree_view_append_column (view, col);
+
+	// column name
+	col = gtk_tree_view_column_new();
+	cell = gtk_cell_renderer_text_new();
+	gtk_tree_view_column_pack_start(col, cell, TRUE);
+	gtk_tree_view_column_set_cell_data_func (col,
+                                             cell,
+                                             default_svc_status_cb,
+                                             (gpointer) self,
+                                             NULL);
+    g_object_set_data (G_OBJECT (cell), "column",
+                       GINT_TO_POINTER (SVC_INFO));
+	g_object_set (col,
+                  "expand", TRUE,
+                  "resizable", FALSE,
+                  "clickable", FALSE,
+                  "sort-indicator", FALSE,
+                  "reorderable", FALSE,
+                  NULL);
+	gtk_tree_view_append_column (view, col);
+}
 
 static void
 update_combo( gpointer obj, gpointer user_data )
@@ -573,6 +717,39 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     g_free(env_name);
     g_free(new_rules_label);
     table_lines_init (self);
+
+    /*
+     * SVC Tab
+     */
+    GtkTreeModel *model;
+    GtkTreeModelFilter *filter;
+    
+    model = nwamui_env_get_svcs (current_env);
+
+    /* default view */
+    filter = GTK_TREE_MODEL_FILTER(gtk_tree_model_filter_new (model,
+                                     NULL));
+    gtk_tree_view_set_model (prv->default_netservices_list,
+      GTK_TREE_MODEL(filter));
+    gtk_tree_model_filter_set_visible_func (filter,
+      default_netservices_vfunc,
+      self,
+      NULL);
+    gtk_tree_model_filter_refilter (filter);
+    g_object_unref (filter);
+
+    /* additional view */
+    filter = GTK_TREE_MODEL_FILTER(gtk_tree_model_filter_new (model,
+                                     NULL));
+    gtk_tree_view_set_model (prv->additional_netservices_list,
+      GTK_TREE_MODEL(filter));
+    gtk_tree_model_filter_set_visible_func (filter,
+      additional_netservices_vfunc,
+      self,
+      NULL);
+    gtk_tree_model_filter_refilter (filter);
+    g_object_unref (filter);
+    g_object_unref (model);
 }
 
 static void
@@ -1307,5 +1484,124 @@ default_condition_remove_signal_handler (NwamEnvPrefDialog *self, GObject* data,
     /* TODO - Move this from default sig handler to specific handler. */
     if ( self->prv->selected_env != NULL && data != NULL ) {
         nwamui_env_condition_remove(self->prv->selected_env, NWAMUI_COND(data) );
+    }
+}
+
+static void
+default_svc_status_cb (GtkTreeViewColumn *tree_column,
+                       GtkCellRenderer *cell,
+                       GtkTreeModel *tree_model,
+                       GtkTreeIter *iter,
+                       gpointer data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+    gint col;
+    GtkTreeIter piter;
+    
+    col = GPOINTER_TO_INT(g_object_get_data (G_OBJECT (cell), "column"));
+    gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (tree_model),
+      &piter,
+      iter);
+    
+    switch (col) {
+    case SVC_CHECK_BOX:
+    {
+        gboolean enabled = nwamui_env_svc_get_status (prv->selected_env, &piter);
+
+        g_object_set(G_OBJECT(cell),
+          "active", enabled,
+          NULL);
+        break;
+    }
+    case SVC_INFO:
+    {
+        gchar *info = nwamui_env_svc_get_name (prv->selected_env, &piter);
+
+        g_assert (info);
+        g_object_set(G_OBJECT(cell),
+          "markup", info,
+          NULL);
+        g_free (info);
+        break;
+    }
+    }
+}
+
+static void
+default_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
+                        gchar                 *path,
+                        gpointer               user_data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(user_data);
+    GtkTreeIter iter, piter;
+    GtkTreeModel *model;
+    GtkTreePath  *tpath;
+
+    model = gtk_tree_view_get_model (prv->default_netservices_list);
+    if ((tpath = gtk_tree_path_new_from_string(path)) != NULL
+      && gtk_tree_model_get_iter (model, &iter, tpath)) {
+        gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &piter, &iter);
+
+        nwamui_env_svc_set_status(prv->selected_env, &piter, !gtk_cell_renderer_toggle_get_active(cell_renderer));
+
+        gtk_tree_path_free(tpath);
+    }
+}
+
+static void
+additional_svc_status_cb (GtkTreeViewColumn *tree_column,
+                          GtkCellRenderer *cell,
+                          GtkTreeModel *tree_model,
+                          GtkTreeIter *iter,
+                          gpointer data)
+{
+}
+
+static void
+additional_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
+                           gchar                 *path,
+                           gpointer               user_data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(user_data);
+    GtkTreeIter iter, piter;
+    GtkTreeModel *model;
+    GtkTreePath  *tpath;
+
+    model = gtk_tree_view_get_model (prv->additional_netservices_list);
+    if ((tpath = gtk_tree_path_new_from_string(path)) != NULL
+      && gtk_tree_model_get_iter (model, &iter, tpath)) {
+        gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &piter, &iter);
+
+        nwamui_env_svc_set_status (prv->selected_env, &piter, !gtk_cell_renderer_toggle_get_active(cell_renderer));
+
+        gtk_tree_path_free(tpath);
+    }
+}
+
+static gboolean
+default_netservices_vfunc (GtkTreeModel *model,
+                           GtkTreeIter *iter,
+                           gpointer data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+
+    if (nwamui_env_svc_is_default (prv->selected_env, iter)) {
+        return TRUE;
+    } else {
+        return FALSE;
+    }
+}
+
+static gboolean
+additional_netservices_vfunc (GtkTreeModel *model,
+                              GtkTreeIter *iter,
+                              gpointer data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+
+    if (!nwamui_env_svc_is_default (prv->selected_env, iter)) {
+        return TRUE;
+    } else {
+        return FALSE;
     }
 }
