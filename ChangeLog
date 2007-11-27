@@ -1,5 +1,13 @@
 2007-11-27  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_ip.c: 
+	  Fix typo in property name.
+	* common/nwamui_ncu.c:
+	  Change storage of addresses and subnets to use gtk_list_store for
+	  existing APIs.
+
+2007-11-27  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/Makefile.am, common/libnwamui.h,
 	  common/nwamui_ip.c, common/nwamui_ip.h,
 	  common/nwamui_ncu.c, common/nwamui_ncu.h:

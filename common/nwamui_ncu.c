@@ -44,13 +44,11 @@ struct _NwamuiNcuPrivate {
         gboolean                    active;
         guint                       speed;
         gboolean                    ipv4_auto_conf;
-        gchar*                      ipv4_address;
-        gchar*                      ipv4_subnet;
+        NwamuiIp*                   ipv4_primary_ip;
         gchar*                      ipv4_gateway;
         gboolean                    ipv6_active;
         gboolean                    ipv6_auto_conf;
-        gchar*                      ipv6_address;
-        gchar*                      ipv6_prefix;
+        NwamuiIp*                   ipv6_primary_ip;
         GtkListStore*               v4addresses;
         GtkListStore*               v6addresses;
         NwamuiWifiNet*              wifi_info;
@@ -228,7 +226,7 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
 
     g_object_class_install_property (gobject_class,
                                      PROP_V4ADDRESSES,
-                                     g_param_spec_string ("v4addresses",
+                                     g_param_spec_object ("v4addresses",
                                                           _("v4addresses"),
                                                           _("v4addresses"),
                                                           GTK_TYPE_LIST_STORE,
@@ -236,7 +234,7 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
 
     g_object_class_install_property (gobject_class,
                                      PROP_V6ADDRESSES,
-                                     g_param_spec_string ("v6addresses",
+                                     g_param_spec_object ("v6addresses",
                                                           _("v6addresses"),
                                                           _("v6addresses"),
                                                           GTK_TYPE_LIST_STORE,
@@ -300,15 +298,13 @@ nwamui_ncu_init (NwamuiNcu *self)
     self->prv->active = FALSE;
     self->prv->speed = 0;
     self->prv->ipv4_auto_conf = TRUE;
-    self->prv->ipv4_address = NULL;
-    self->prv->ipv4_subnet = NULL;
+    self->prv->ipv4_primary_ip = NULL;
     self->prv->ipv4_gateway = NULL;
     self->prv->ipv6_active = FALSE;
     self->prv->ipv6_auto_conf = TRUE;
-    self->prv->ipv6_address = NULL;
-    self->prv->ipv6_prefix = NULL;    
-    self->prv->v4addresses = NULL;
-    self->prv->v6addresses = NULL;
+    self->prv->ipv6_primary_ip = NULL;
+    self->prv->v4addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
+    self->prv->v6addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
     self->prv->wifi_info = NULL;
     self->prv->rules_enabled = FALSE;
     self->prv->rules_ncus = NULL;
@@ -361,17 +357,39 @@ nwamui_ncu_set_property ( GObject         *object,
             }
             break;
         case PROP_IPV4_ADDRESS: {
-                if ( self->prv->ipv4_address != NULL ) {
-                        g_free( self->prv->ipv4_address );
+                const gchar* new_addr  = g_value_get_string( value );
+                
+                if ( new_addr != NULL ) {
+                    if ( self->prv->ipv4_primary_ip != NULL ) {
+                        nwamui_ip_set_address(self->prv->ipv4_primary_ip, new_addr );
+                    }
+                    else {
+                        NwamuiIp*   ip = nwamui_ip_new( new_addr, "", FALSE );
+                        GtkTreeIter iter;
+
+                        gtk_list_store_insert(self->prv->v4addresses, &iter, 0 );
+                        gtk_list_store_set(self->prv->v4addresses, &iter, 0, ip, -1 );
+                        self->prv->ipv4_primary_ip = ip;
+                    }
                 }
-                self->prv->ipv4_address = g_strdup( g_value_get_string( value ) );
             }
             break;
         case PROP_IPV4_SUBNET: {
-                if ( self->prv->ipv4_subnet != NULL ) {
-                        g_free( self->prv->ipv4_subnet );
+                const gchar* new_subnet  = g_value_get_string( value );
+                
+                if ( new_subnet != NULL ) {
+                    if ( self->prv->ipv4_primary_ip != NULL ) {
+                        nwamui_ip_set_subnet_prefix(self->prv->ipv4_primary_ip, new_subnet );
+                    }
+                    else {
+                        NwamuiIp*   ip = nwamui_ip_new( "", new_subnet, FALSE );
+                        GtkTreeIter iter;
+
+                        gtk_list_store_insert(self->prv->v4addresses, &iter, 0 );
+                        gtk_list_store_set(self->prv->v4addresses, &iter, 0, ip, -1 );
+                        self->prv->ipv4_primary_ip = ip;
+                    }
                 }
-                self->prv->ipv4_subnet = g_strdup( g_value_get_string( value ) );
             }
             break;
         case PROP_IPV4_GATEWAY: {
@@ -390,17 +408,39 @@ nwamui_ncu_set_property ( GObject         *object,
             }
             break;
         case PROP_IPV6_ADDRESS: {
-                if ( self->prv->ipv6_address != NULL ) {
-                        g_free( self->prv->ipv6_address );
+                const gchar* new_addr  = g_value_get_string( value );
+                
+                if ( new_addr != NULL ) {
+                    if ( self->prv->ipv6_primary_ip != NULL ) {
+                        nwamui_ip_set_address(self->prv->ipv6_primary_ip, new_addr );
+                    }
+                    else {
+                        NwamuiIp*   ip = nwamui_ip_new( new_addr, "", TRUE);
+                        GtkTreeIter iter;
+
+                        gtk_list_store_insert(self->prv->v6addresses, &iter, 0 );
+                        gtk_list_store_set(self->prv->v6addresses, &iter, 0, ip, -1 );
+                        self->prv->ipv6_primary_ip = ip;
+                    }
                 }
-                self->prv->ipv6_address = g_strdup( g_value_get_string( value ) );
             }
             break;
         case PROP_IPV6_PREFIX: {
-                if ( self->prv->ipv6_prefix != NULL ) {
-                        g_free( self->prv->ipv6_prefix );
+                const gchar* new_subnet  = g_value_get_string( value );
+                
+                if ( new_subnet != NULL ) {
+                    if ( self->prv->ipv6_primary_ip != NULL ) {
+                        nwamui_ip_set_subnet_prefix(self->prv->ipv6_primary_ip, new_subnet );
+                    }
+                    else {
+                        NwamuiIp*   ip = nwamui_ip_new( "", new_subnet, TRUE );
+                        GtkTreeIter iter;
+
+                        gtk_list_store_insert(self->prv->v6addresses, &iter, 0 );
+                        gtk_list_store_set(self->prv->v6addresses, &iter, 0, ip, -1 );
+                        self->prv->ipv6_primary_ip = ip;
+                    }
                 }
-                self->prv->ipv6_prefix = g_strdup( g_value_get_string( value ) );
             }
             break;
         case PROP_V4ADDRESSES: {
@@ -483,11 +523,25 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
         case PROP_IPV4_ADDRESS: {
-                g_value_set_string(value, self->prv->ipv4_address);
+                gchar *address = NULL;
+                if ( self->prv->ipv4_primary_ip != NULL ) {
+                    address = nwamui_ip_get_address(self->prv->ipv4_primary_ip);
+                }
+                g_value_set_string(value, address);
+                if ( address != NULL ) {
+                    g_free(address);
+                }
             }
             break;
         case PROP_IPV4_SUBNET: {
-                g_value_set_string(value, self->prv->ipv4_subnet);
+                gchar *subnet = NULL;
+                if ( self->prv->ipv4_primary_ip != NULL ) {
+                    subnet = nwamui_ip_get_subnet_prefix(self->prv->ipv4_primary_ip);
+                }
+                g_value_set_string(value, subnet);
+                if ( subnet != NULL ) {
+                    g_free(subnet);
+                }
             }
             break;
         case PROP_IPV4_GATEWAY: {
@@ -503,11 +557,25 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
         case PROP_IPV6_ADDRESS: {
-                g_value_set_string(value, self->prv->ipv6_address);
+                gchar *address = NULL;
+                if ( self->prv->ipv6_primary_ip != NULL ) {
+                    address = nwamui_ip_get_address(self->prv->ipv6_primary_ip);
+                }
+                g_value_set_string(value, address);
+                if ( address != NULL ) {
+                    g_free(address);
+                }
             }
             break;
         case PROP_IPV6_PREFIX: {
-                g_value_set_string(value, self->prv->ipv6_prefix);
+                gchar *prefix = NULL;
+                if ( self->prv->ipv6_primary_ip != NULL ) {
+                    prefix = nwamui_ip_get_subnet_prefix(self->prv->ipv6_primary_ip);
+                }
+                g_value_set_string(value, prefix);
+                if ( prefix != NULL ) {
+                    g_free(prefix);
+                }
             }
             break;
         case PROP_V4ADDRESSES: {

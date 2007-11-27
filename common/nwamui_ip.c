@@ -239,7 +239,7 @@ nwamui_ip_new(  const gchar*    addr,
     self = NWAMUI_IP(g_object_new (NWAMUI_TYPE_IP, NULL));
     
     g_object_set (G_OBJECT (self),
-                    "addr", addr,
+                    "address", addr,
                     "subnet_prefix", subnet_prefix,
                     "is_v6", is_v6,
                     NULL);
