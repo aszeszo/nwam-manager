@@ -1,3 +1,12 @@
+2007-11-27  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/Makefile.am, common/libnwamui.h,
+	  common/nwamui_ip.c, common/nwamui_ip.h,
+	  common/nwamui_ncu.c, common/nwamui_ncu.h:
+	  Add a new IP object to store an ip address and subnet/prefix.
+	  Add two GtkListStore for v4 and v6 addresses to NCU object, IP objects
+	  will be stored in here - not done yet.
+
 2007-11-26  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/Makefile.am, common/nwam_ui_icons.c, common/nwam_ui_icons.h:

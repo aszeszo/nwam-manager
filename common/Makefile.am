@@ -40,6 +40,7 @@ noinst_LTLIBRARIES = libnwamui.la
 
 libnwamui_la_SOURCES =		\
 	libnwamui.c		\
+	nwamui_ip.c \
 	nwamui_wifi_net.c \
 	nwamui_daemon.c \
 	nwamui_enm.c \
@@ -64,7 +65,7 @@ gladedir   = $(datadir)/nwam-manager
 
 EXTRA_DIST = 		\
 	libnwamui.h		\
-	nwam_ui_icons.h	\
+	nwamui_ip.h \
 	nwamui_wifi_net.h \
 	nwamui_daemon.h \
 	nwamui_enm.h \

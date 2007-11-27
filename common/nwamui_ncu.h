@@ -147,6 +147,13 @@ extern gchar*               nwamui_ncu_get_ipv6_address ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_ipv6_prefix ( NwamuiNcu *self, const gchar* ipv6_prefix );
 extern gchar*               nwamui_ncu_get_ipv6_prefix ( NwamuiNcu *self );
 
+extern void                 nwamui_ncu_set_v4addresses ( NwamuiNcu *self, GtkListStore* v4addresses );
+extern GtkListStore*        nwamui_ncu_get_v4addresses ( NwamuiNcu *self );
+
+
+extern void                 nwamui_ncu_set_v6addresses ( NwamuiNcu *self, GtkListStore* v6addresses );
+extern GtkListStore*        nwamui_ncu_get_v6addresses ( NwamuiNcu *self );
+
 extern NwamuiWifiNet*       nwamui_ncu_get_wifi_info ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_wifi_info ( NwamuiNcu *self, NwamuiWifiNet* wifi_info );
 

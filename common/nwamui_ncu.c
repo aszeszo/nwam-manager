@@ -29,6 +29,7 @@
 
 #include <glib-object.h>
 #include <glib/gi18n.h>
+#include <gtk/gtkliststore.h>
 #include <strings.h>
 
 #include "libnwamui.h"
@@ -50,6 +51,8 @@ struct _NwamuiNcuPrivate {
         gboolean                    ipv6_auto_conf;
         gchar*                      ipv6_address;
         gchar*                      ipv6_prefix;
+        GtkListStore*               v4addresses;
+        GtkListStore*               v6addresses;
         NwamuiWifiNet*              wifi_info;
         gboolean                    rules_enabled;
         gpointer                    rules_ncus;
@@ -71,6 +74,8 @@ enum {
         PROP_IPV6_AUTO_CONF,
         PROP_IPV6_ADDRESS,
         PROP_IPV6_PREFIX,
+        PROP_V4ADDRESSES,
+        PROP_V6ADDRESSES,
         PROP_WIFI_INFO,
         PROP_RULES_ENABLED,
         PROP_RULES_NCUS,
@@ -222,6 +227,22 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
+                                     PROP_V4ADDRESSES,
+                                     g_param_spec_string ("v4addresses",
+                                                          _("v4addresses"),
+                                                          _("v4addresses"),
+                                                          GTK_TYPE_LIST_STORE,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_V6ADDRESSES,
+                                     g_param_spec_string ("v6addresses",
+                                                          _("v6addresses"),
+                                                          _("v6addresses"),
+                                                          GTK_TYPE_LIST_STORE,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
                                      PROP_WIFI_INFO,
                                      g_param_spec_object ("wifi_info",
                                                           _("Wi-Fi configuration information."),
@@ -286,6 +307,8 @@ nwamui_ncu_init (NwamuiNcu *self)
     self->prv->ipv6_auto_conf = TRUE;
     self->prv->ipv6_address = NULL;
     self->prv->ipv6_prefix = NULL;    
+    self->prv->v4addresses = NULL;
+    self->prv->v6addresses = NULL;
     self->prv->wifi_info = NULL;
     self->prv->rules_enabled = FALSE;
     self->prv->rules_ncus = NULL;
@@ -378,6 +401,15 @@ nwamui_ncu_set_property ( GObject         *object,
                         g_free( self->prv->ipv6_prefix );
                 }
                 self->prv->ipv6_prefix = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+        case PROP_V4ADDRESSES: {
+                self->prv->v4addresses = GTK_LIST_STORE(g_value_dup_object( value ));
+            }
+            break;
+
+        case PROP_V6ADDRESSES: {
+                self->prv->v6addresses = GTK_LIST_STORE(g_value_dup_object( value ));
             }
             break;
         case PROP_WIFI_INFO: {
@@ -476,6 +508,15 @@ nwamui_ncu_get_property (GObject         *object,
             break;
         case PROP_IPV6_PREFIX: {
                 g_value_set_string(value, self->prv->ipv6_prefix);
+            }
+            break;
+        case PROP_V4ADDRESSES: {
+                g_value_set_object( value, (gpointer)self->prv->v4addresses);
+            }
+            break;
+
+        case PROP_V6ADDRESSES: {
+                g_value_set_object( value, (gpointer)self->prv->v6addresses);
             }
             break;
         case PROP_WIFI_INFO: {
@@ -1087,6 +1128,86 @@ nwamui_ncu_get_ipv6_prefix (NwamuiNcu *self)
     return( ipv6_prefix );
 }
 
+/** 
+ * nwamui_ncu_set_v4addresses:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @v4addresses: Value to set v4addresses to.
+ * 
+ **/ 
+extern void
+nwamui_ncu_set_v4addresses (   NwamuiNcu *self,
+                              GtkListStore*  v4addresses )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+    g_assert (v4addresses != NULL );
+
+    if ( v4addresses != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "v4addresses", v4addresses,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_ncu_get_v4addresses:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @returns: the v4addresses.
+ *
+ **/
+extern GtkListStore*
+nwamui_ncu_get_v4addresses (NwamuiNcu *self)
+{
+    GtkListStore*  v4addresses = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), v4addresses);
+
+    g_object_get (G_OBJECT (self),
+                  "v4addresses", &v4addresses,
+                  NULL);
+
+    return( v4addresses );
+}
+
+/** 
+ * nwamui_ncu_set_v6addresses:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @v6addresses: Value to set v6addresses to.
+ * 
+ **/ 
+extern void
+nwamui_ncu_set_v6addresses (   NwamuiNcu *self,
+                              GtkListStore*  v6addresses )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+    g_assert (v6addresses != NULL );
+
+    if ( v6addresses != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "v6addresses", v6addresses,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_ncu_get_v6addresses:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @returns: the v6addresses.
+ *
+ **/
+extern GtkListStore*
+nwamui_ncu_get_v6addresses (NwamuiNcu *self)
+{
+    GtkListStore*  v6addresses = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), v6addresses);
+
+    g_object_get (G_OBJECT (self),
+                  "v6addresses", &v6addresses,
+                  NULL);
+
+    return( v6addresses );
+}
+
 /**
  * nwamui_ncu_get_wifi_info:
  * @returns: #NwamuiWifiNet object
@@ -1340,6 +1461,13 @@ nwamui_ncu_get_selection_rule(  NwamuiNcu*                   self,
 static void
 nwamui_ncu_finalize (NwamuiNcu *self)
 {
+    if (self->prv->v4addresses != NULL ) {
+        g_object_unref( G_OBJECT(self->prv->v4addresses) );
+    }
+
+    if (self->prv->v6addresses != NULL ) {
+        g_object_unref( G_OBJECT(self->prv->v6addresses) );
+    }
     if (self->prv->rules_ncus != NULL ) {
         nwamui_util_free_obj_list(self->prv->rules_ncus);
     }

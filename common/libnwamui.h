@@ -52,6 +52,10 @@ G_BEGIN_DECLS
 #include "nwamui_wifi_net.h"
 #endif /* _NWAMUI_WIFI_NET_H */
 
+#ifndef _NWAMUI_IP_H
+#include "nwamui_ip.h"
+#endif /* _NWAMUI_IP_H */
+
 #ifndef _NWAMUI_NCP_H
 #include "nwamui_ncp.h"
 #endif /* _NWAMUI_NCP_H */
