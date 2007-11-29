@@ -198,10 +198,13 @@ int main( int argc,
     sigaction (SIGKILL, &act, NULL);
     sigaction (SIGINT, &act, NULL);
 
+#if 0
     if (!detect_and_set_singleton ()) {
         g_debug ("Another process is running.\n");
         exit (0);
     }
+#endif
+
 #ifndef DEBUG
     client = gnome_master_client ();
     gnome_client_set_restart_command (client, argc, argv);

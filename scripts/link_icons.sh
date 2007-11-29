@@ -63,7 +63,7 @@ fi
 
 echo "Creating symbolic links for images..."
 find $SRC_BASEDIR/${DEST_THEME} -name \*.png  | \
-    sed -e "s@\(^.*\)\(${DEST_THEME}.*\)\(/.*\)@[ ! -d ${DEST_THEME_BASE_DIR}/\2 ] \&\& mkdir ${DEST_THEME_BASE_DIR}/\2; ln -s \1\2\3 ${DEST_THEME_BASE_DIR}/\2\3@" | \
+    sed -e "s@^\(.*\)\(${DEST_THEME}.*\)\(/.*\)@[ ! -d ${DEST_THEME_BASE_DIR}/\2 ] \&\& mkdir ${DEST_THEME_BASE_DIR}/\2; ln -s \1\2\3 ${DEST_THEME_BASE_DIR}/\2\3@" | \
     /bin/sh -s
 
 STATUS_CNT=`grep -c "/status" ${DEST_THEME_DIR}/index.theme`
