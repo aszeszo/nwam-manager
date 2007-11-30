@@ -34,6 +34,7 @@ AM_LDFLAGS = \
 	$(PACKAGE_LIBS)		\
 	$(INTLLIBS)		\
 	$(NWAM_MANAGER_LIBS)		\
+	$(NWAM_LIBS)		\
 	$(NULL)
 
 noinst_LTLIBRARIES = libnwamui.la
@@ -41,6 +42,7 @@ noinst_LTLIBRARIES = libnwamui.la
 libnwamui_la_SOURCES =		\
 	libnwamui.c		\
 	nwamui_ip.c \
+	nwamui_svc.c \
 	nwamui_wifi_net.c \
 	nwamui_daemon.c \
 	nwamui_enm.c \
@@ -66,6 +68,7 @@ gladedir   = $(datadir)/nwam-manager
 EXTRA_DIST = 		\
 	libnwamui.h		\
 	nwamui_ip.h \
+	nwamui_svc.h \
 	nwamui_wifi_net.h \
 	nwamui_daemon.h \
 	nwamui_enm.h \

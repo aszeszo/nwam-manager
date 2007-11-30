@@ -1499,6 +1499,7 @@ default_svc_status_cb (GtkTreeViewColumn *tree_column,
                        gpointer data)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+    NwamuiSvc *svc;
     gint col;
     GtkTreeIter piter;
     
@@ -1506,11 +1507,12 @@ default_svc_status_cb (GtkTreeViewColumn *tree_column,
     gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (tree_model),
       &piter,
       iter);
+    svc = nwamui_env_get_svc (prv->selected_env, &piter);
     
     switch (col) {
     case SVC_CHECK_BOX:
     {
-        gboolean enabled = nwamui_env_svc_get_status (prv->selected_env, &piter);
+        gboolean enabled = nwamui_svc_get_status (svc);
 
         g_object_set(G_OBJECT(cell),
           "active", enabled,
@@ -1519,7 +1521,7 @@ default_svc_status_cb (GtkTreeViewColumn *tree_column,
     }
     case SVC_INFO:
     {
-        gchar *info = nwamui_env_svc_get_name (prv->selected_env, &piter);
+        gchar *info = nwamui_svc_get_name (svc);
 
         g_assert (info);
         g_object_set(G_OBJECT(cell),
@@ -1529,6 +1531,7 @@ default_svc_status_cb (GtkTreeViewColumn *tree_column,
         break;
     }
     }
+    g_object_unref (svc);
 }
 
 static void
@@ -1540,13 +1543,17 @@ default_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
     GtkTreeIter iter, piter;
     GtkTreeModel *model;
     GtkTreePath  *tpath;
+    NwamuiSvc *svc;
 
     model = gtk_tree_view_get_model (prv->default_netservices_list);
     if ((tpath = gtk_tree_path_new_from_string(path)) != NULL
       && gtk_tree_model_get_iter (model, &iter, tpath)) {
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &piter, &iter);
 
-        nwamui_env_svc_set_status(prv->selected_env, &piter, !gtk_cell_renderer_toggle_get_active(cell_renderer));
+        svc = nwamui_env_get_svc (prv->selected_env, &piter);
+        nwamui_svc_set_status (svc,
+          !gtk_cell_renderer_toggle_get_active(cell_renderer));
+        g_object_unref (svc);
 
         gtk_tree_path_free(tpath);
     }
@@ -1570,13 +1577,17 @@ additional_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
     GtkTreeIter iter, piter;
     GtkTreeModel *model;
     GtkTreePath  *tpath;
+    NwamuiSvc *svc;
 
     model = gtk_tree_view_get_model (prv->additional_netservices_list);
     if ((tpath = gtk_tree_path_new_from_string(path)) != NULL
       && gtk_tree_model_get_iter (model, &iter, tpath)) {
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &piter, &iter);
 
-        nwamui_env_svc_set_status (prv->selected_env, &piter, !gtk_cell_renderer_toggle_get_active(cell_renderer));
+        svc = nwamui_env_get_svc (prv->selected_env, &piter);
+        nwamui_svc_set_status (svc,
+          !gtk_cell_renderer_toggle_get_active(cell_renderer));
+        g_object_unref (svc);
 
         gtk_tree_path_free(tpath);
     }
@@ -1588,12 +1599,15 @@ default_netservices_vfunc (GtkTreeModel *model,
                            gpointer data)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+    NwamuiSvc *svc;
+    gboolean ret;
+    
+    svc = nwamui_env_get_svc (prv->selected_env, iter);
 
-    if (nwamui_env_svc_is_default (prv->selected_env, iter)) {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
+    ret = nwamui_svc_is_default (svc);
+    g_object_unref (svc);
+    
+    return ret;
 }
 
 static gboolean
@@ -1602,10 +1616,13 @@ additional_netservices_vfunc (GtkTreeModel *model,
                               gpointer data)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+    NwamuiSvc *svc;
+    gboolean ret;
+    
+    svc = nwamui_env_get_svc (prv->selected_env, iter);
 
-    if (!nwamui_env_svc_is_default (prv->selected_env, iter)) {
-        return TRUE;
-    } else {
-        return FALSE;
-    }
+    ret = nwamui_svc_is_default (svc);
+    g_object_unref (svc);
+
+    return !ret;
 }

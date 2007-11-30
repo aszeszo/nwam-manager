@@ -156,15 +156,12 @@ extern void                 nwamui_env_condition_remove (NwamuiEnv *self, Nwamui
 extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GFunc func, gpointer data);
 
 extern GtkTreeModel *       nwamui_env_get_svcs (NwamuiEnv *self);
-extern GtkTreeIter *        nwamui_env_svc_add (NwamuiEnv *self, const gchar *svc);
+extern NwamuiSvc*           nwamui_env_svc_add (NwamuiEnv *self, const gchar *svc);
 extern void                 nwamui_env_svc_add_full (NwamuiEnv *self,
   const gchar* svc,
   gboolean is_default,
   gboolean status);
 extern void                 nwamui_env_svc_remove (NwamuiEnv *self, GtkTreeIter *iter);
-extern gboolean             nwamui_env_svc_set_status (NwamuiEnv *self, GtkTreeIter *iter, gboolean status);
-extern gboolean             nwamui_env_svc_get_status (NwamuiEnv *self, GtkTreeIter *iter);
-extern gchar *              nwamui_env_svc_get_name (NwamuiEnv *self, GtkTreeIter *iter);
 extern gboolean             nwamui_env_has_svc (NwamuiEnv *self, const gchar* svc);
 
 G_END_DECLS

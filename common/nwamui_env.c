@@ -36,9 +36,7 @@
 static GObjectClass *parent_class = NULL;
 
 enum {
-    SVC_NAME = 0,
-    SVC_DEFAULT,
-    SVC_STATUS,
+    SVC_OBJECT = 0,
     SVC_N_COL,
 };
 
@@ -332,7 +330,7 @@ nwamui_env_init (NwamuiEnv *self)
     self->prv->proxy_password = NULL;
     self->prv->condition_match = NWAMUI_COND_MATCH_ANY;
     self->prv->conditions = NULL;
-    self->prv->svcs_model = GTK_TREE_MODEL(gtk_list_store_new(SVC_N_COL, G_TYPE_STRING, G_TYPE_BOOLEAN, G_TYPE_BOOLEAN));
+    self->prv->svcs_model = GTK_TREE_MODEL(gtk_list_store_new(SVC_N_COL, G_TYPE_OBJECT));
 
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
@@ -1545,28 +1543,42 @@ nwamui_env_get_svcs (NwamuiEnv *self)
     return model;
 }
 
-extern GtkTreeIter *
+extern NwamuiSvc*
+nwamui_env_get_svc (NwamuiEnv *self, GtkTreeIter *iter)
+{
+    NwamuiSvc *svcobj = NULL;
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), svcobj);
+
+    gtk_tree_model_get (self->prv->svcs_model, iter, SVC_OBJECT, &svcobj, -1);
+
+    return svcobj;
+}
+
+extern NwamuiSvc*
 nwamui_env_find_svc (NwamuiEnv *self, const gchar *svc)
 {
-    GtkTreeIter *iter;
-    gchar *tsvc;
+    NwamuiSvc *svcobj = NULL;
+    GtkTreeIter iter;
 
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), FALSE);
-    g_assert (svc);
+    g_return_val_if_fail (svc, NULL);
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), svcobj);
 
-    iter = g_new (GtkTreeIter, 1);
-    
-    if (gtk_tree_model_get_iter_first (self->prv->svcs_model, iter)) {
+    if (gtk_tree_model_get_iter_first (self->prv->svcs_model, &iter)) {
         do {
-            gtk_tree_model_get (self->prv->svcs_model, iter, SVC_NAME, &tsvc, -1);
-            if (g_ascii_strcasecmp (tsvc, svc) == 0) {
-                g_free (tsvc);
-                return iter;
+            gchar *name;
+            
+            gtk_tree_model_get (self->prv->svcs_model, &iter, SVC_OBJECT, &svcobj, -1);
+            name = nwamui_svc_get_name (svcobj);
+            
+            if (g_ascii_strcasecmp (name, svc) == 0) {
+                g_free (name);
+                return svcobj;
             }
-            g_free (tsvc);
-        } while (gtk_tree_model_iter_next(self->prv->svcs_model, iter));
+            g_free (name);
+            g_object_unref (svcobj);
+        } while (gtk_tree_model_iter_next(self->prv->svcs_model, &iter));
     }
-    g_free (iter);
     return NULL;
 }
 
@@ -1576,25 +1588,19 @@ nwamui_env_svc_remove (NwamuiEnv *self, GtkTreeIter *iter)
     gtk_list_store_remove (GTK_LIST_STORE(self->prv->svcs_model), iter);
 }
 
-extern GtkTreeIter *
+extern NwamuiSvc*
 nwamui_env_svc_add (NwamuiEnv *self, const gchar* svc)
 {
-	GtkTreeIter *iter;
-    if ((iter = nwamui_env_find_svc (self, svc)) == NULL) {
-        iter = g_new (GtkTreeIter, 1);
-        gtk_list_store_append (GTK_LIST_STORE(self->prv->svcs_model), iter);
-        gtk_list_store_set (GTK_LIST_STORE(self->prv->svcs_model), iter,
-          SVC_NAME, svc, -1);
-    }
-    return iter;
-}
+	GtkTreeIter iter;
+    NwamuiSvc *svcobj;
 
-static void
-nwamui_env_svc_set_default (NwamuiEnv *self, 
-  GtkTreeIter *iter, gboolean is_default)
-{
-    gtk_list_store_set (GTK_LIST_STORE(self->prv->svcs_model), iter,
-      SVC_DEFAULT, is_default, -1);
+    if ((svcobj = nwamui_env_find_svc (self, svc)) == NULL) {
+        svcobj = nwamui_svc_new (svc);
+        gtk_list_store_append (GTK_LIST_STORE(self->prv->svcs_model), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(self->prv->svcs_model), &iter,
+          SVC_OBJECT, svcobj, -1);
+    }
+    return svcobj;
 }
 
 extern void
@@ -1603,49 +1609,11 @@ nwamui_env_svc_add_full (NwamuiEnv *self,
   gboolean is_default,
   gboolean status)
 {
-	GtkTreeIter *iter;
-    iter = nwamui_env_svc_add (self, svc);
-    nwamui_env_svc_set_default (self, iter, is_default);
-    nwamui_env_svc_set_status (self, iter, status);
-}
-
-extern gboolean
-nwamui_env_svc_is_default (NwamuiEnv *self, GtkTreeIter *iter)
-{
-    gboolean is_default;
-    gtk_tree_model_get (self->prv->svcs_model, iter,
-      SVC_DEFAULT, &is_default, -1);
-    return is_default;
-}
-
-extern gboolean
-nwamui_env_svc_set_status (NwamuiEnv *self, GtkTreeIter *iter, gboolean status)
-{
-    g_debug ("nwamui_env_svc_set_status %s", status? "on" : "off");
-    
-    if (status /* TODO && set_status() */) {
-    }
-    gtk_list_store_set (GTK_LIST_STORE(self->prv->svcs_model), iter,
-      SVC_STATUS, status, -1);
-    return status;
-}
-
-extern gboolean
-nwamui_env_svc_get_status (NwamuiEnv *self, GtkTreeIter *iter)
-{
-    gboolean status;
-    gtk_tree_model_get (self->prv->svcs_model, iter,
-      SVC_STATUS, &status, -1);
-    return status;
-}
-
-extern gchar *
-nwamui_env_svc_get_name (NwamuiEnv *self, GtkTreeIter *iter)
-{
-    gchar *name;
-    gtk_tree_model_get (self->prv->svcs_model, iter,
-      SVC_NAME, &name, -1);
-    return name;
+    NwamuiSvc *svcobj;
+    svcobj = nwamui_env_svc_add (self, svc);
+    nwamui_svc_set_default (svcobj, is_default);
+    nwamui_svc_set_status (svcobj, status);
+    g_object_unref (svcobj);
 }
 
 static void

@@ -56,6 +56,10 @@ G_BEGIN_DECLS
 #include "nwamui_ip.h"
 #endif /* _NWAMUI_IP_H */
 
+#ifndef _NWAMUI_SVC_H
+#include "nwamui_svc.h"
+#endif /* _NWAMUI_SVC_H */
+
 #ifndef _NWAMUI_NCP_H
 #include "nwamui_ncp.h"
 #endif /* _NWAMUI_NCP_H */

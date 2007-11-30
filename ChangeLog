@@ -1,3 +1,19 @@
+2007-11-30  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_env_pref_dialog.c: (default_svc_status_cb),
+	(default_svc_toggled_cb), (additional_svc_toggled_cb),
+	(default_netservices_vfunc), (additional_netservices_vfunc):
+	Turn to nwamui_svc.
+	* common/Makefile.am:
+	* common/libnwamui.h:
+	* common/nwamui_env.c: (nwamui_env_init), (nwamui_env_get_svc),
+	(nwamui_env_find_svc), (nwamui_env_svc_add),
+	(nwamui_env_svc_add_full):
+	* common/nwamui_env.h:
+	Added a new SVC object to store service information.
+	* configure.in:
+	Enabled libnwam.
+
 2007-11-29  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/main.c: (main): Disable singleton window.
