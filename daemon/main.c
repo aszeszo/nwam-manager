@@ -37,68 +37,70 @@
 #include "libnwamui.h"
 #include "nwam-menu.h"
 
-#define NWAM_MANAGER_ATOM	"nwam-manger-atom"
 static GtkWidget *my_menu = NULL;
 static GtkStatusIcon *status_icon = NULL;
 
-#include <X11/Xatom.h>
-#include <gdk/gdkx.h>
+#define NWAM_MANAGER_LOCK	"nwam-manger-lock"
+
 gboolean
 detect_and_set_singleton ()
 {
-    Atom actualtype;
-    int actualformat;
-    unsigned long nitems;
-    unsigned long bytes_after;
-    unsigned char *buf;
-    unsigned char data[] = {(char)TRUE};
+    enum { NORMAL_SESSION = 1, SUNRAY_SESSION };
+    static gint session_type = 0;
+    gchar *lockfile = NULL;
+    int fd;
+    
+    if (session_type == 0) {
+        const gchar *sunray_token;
+        g_assert (lockfile == NULL);
+        if ((sunray_token = g_getenv ("SUN_SUNRAY_TOKEN")) == NULL) {
+            session_type = NORMAL_SESSION;
+        } else {
+            g_debug ("$SUN_SUNRAY_TOKEN = %s\n", sunray_token);
+            session_type = SUNRAY_SESSION;
+        }
+    }
+    
+    switch (session_type) {
+    case NORMAL_SESSION:
+        lockfile = g_build_filename ("/tmp", NWAM_MANAGER_LOCK, NULL);
+        break;
+    case SUNRAY_SESSION:
+        lockfile = g_build_filename ("/tmp", g_get_user_name (),
+          NWAM_MANAGER_LOCK, NULL);
+        break;
+    default:
+        g_debug ("Unknown session type.");
+        exit (1);
+    }
 
-    gdk_atom_intern (NWAM_MANAGER_ATOM, FALSE);
-    if (XGetWindowProperty (gdk_x11_get_default_xdisplay (),
-                            gdk_x11_get_default_root_xwindow (),
-                            gdk_x11_get_xatom_by_name (NWAM_MANAGER_ATOM),
-                            0, 1,
-                            False,
-                            XA_INTEGER, &actualtype,
-                            &actualformat, &nitems, &bytes_after, &buf)) {
-        goto set_property_atom;
+    fd = open (lockfile, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
+    if (fd == -1) {
+        g_debug ("open lock file %s error", lockfile);
+        exit (1);
+    } else {
+        struct flock pidlock;
+        pidlock.l_type = F_WRLCK;
+        pidlock.l_whence = SEEK_SET;
+        pidlock.l_start = 0;
+        pidlock.l_len = 0;
+        if (fcntl (fd, F_SETLK, &pidlock) == -1) {
+            if (errno == EAGAIN || errno == EACCES) {
+                g_free (lockfile);
+                return FALSE;
+            } else {
+                g_debug ("obtain lock file %s error", lockfile);
+                exit (1);
+            }
+        }
     }
-    if (nitems == 0) {
-        goto set_property_atom;
-    }
-    if ((gboolean)*buf == TRUE) {
-        XFree (buf);
-        return FALSE;
-    }
-    XFree (buf);
- set_property_atom:
-    nitems = 1;
-    XChangeProperty (gdk_x11_get_default_xdisplay (),
-                     gdk_x11_get_default_root_xwindow (),
-                     gdk_x11_get_xatom_by_name (NWAM_MANAGER_ATOM),
-                     XA_INTEGER, 8, PropModeReplace,
-                     data, nitems);
+    g_free (lockfile);
     return TRUE;
-}
-
-void
-clear_singleton ()
-{
-    unsigned long nitems;
-    unsigned char data[] = {(char)FALSE};
-
-    nitems = 1;
-    XChangeProperty (gdk_x11_get_default_xdisplay (),
-                     gdk_x11_get_default_root_xwindow (),
-                     gdk_x11_get_xatom_by_name (NWAM_MANAGER_ATOM),
-                     XA_INTEGER, 8, PropModeReplace,
-                     data, nitems);
 }
 
 static void 
 cleanup_and_exit(int sig, siginfo_t *sip, void *data)
 {
-    clear_singleton ();
     gtk_main_quit ();
 }
 
@@ -198,12 +200,10 @@ int main( int argc,
     sigaction (SIGKILL, &act, NULL);
     sigaction (SIGINT, &act, NULL);
 
-#if 0
     if (!detect_and_set_singleton ()) {
         g_debug ("Another process is running.\n");
         exit (0);
     }
-#endif
 
 #ifndef DEBUG
     client = gnome_master_client ();

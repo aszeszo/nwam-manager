@@ -1,3 +1,12 @@
+2007-12-03  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/main.c: (detect_and_set_singleton), (cleanup_and_exit),
+	(main):
+	Enable singleton window.
+	* daemon/nwam-menuitem.c: (nwam_menu_item_size_request),
+	(nwam_menu_item_size_allocate):
+	Fixed the position of the last icon.
+
 2007-11-30  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_env_pref_dialog.c: (default_svc_status_cb),

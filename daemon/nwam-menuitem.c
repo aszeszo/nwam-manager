@@ -376,12 +376,12 @@ nwam_menu_item_size_request (GtkWidget      *widget,
     gint child_height = 0; 
     GtkPackDirection pack_dir; 
    
-    //g_debug ("nwam_menu_item_size_request 0x%p", self);
     if (GTK_IS_MENU_BAR (widget->parent)) 
         pack_dir = gtk_menu_bar_get_child_pack_direction (GTK_MENU_BAR (widget->parent)); 
     else 
         pack_dir = GTK_PACK_DIRECTION_LTR; 
  
+    (*GTK_WIDGET_CLASS (nwam_menu_item_parent_class)->size_request) (widget, requisition); 
     for (i = 0; i < MAX_WIDGET_NUM; i++) {
         if (prv->w[i])
         { 
@@ -411,7 +411,6 @@ nwam_menu_item_size_request (GtkWidget      *widget,
             requisition->width = MAX (requisition->width, child_width); 
         }
     }
-    (*GTK_WIDGET_CLASS (nwam_menu_item_parent_class)->size_request) (widget, requisition); 
 } 
 
 static void 
@@ -458,7 +457,7 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
             pack_dir == GTK_PACK_DIRECTION_RTL) 
         { 
             offset = GTK_CONTAINER (self)->border_width + 
-                widget->style->xthickness + 2; 
+                widget->style->xthickness; 
            
             if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
                 (pack_dir == GTK_PACK_DIRECTION_LTR)) 
@@ -473,7 +472,7 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
         else 
         { 
             offset = GTK_CONTAINER (self)->border_width +
-                widget->style->ythickness; 
+                widget->style->ythickness;
            
             if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
                 (pack_dir == GTK_PACK_DIRECTION_TTB)) 
@@ -507,7 +506,7 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
             pack_dir == GTK_PACK_DIRECTION_RTL) 
         { 
             offset = GTK_CONTAINER (self)->border_width + 
-                widget->style->xthickness + prv->w[1]->style->xthickness;
+                widget->style->xthickness;
            
             if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
                 (pack_dir == GTK_PACK_DIRECTION_LTR)) 
