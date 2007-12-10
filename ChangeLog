@@ -1,5 +1,9 @@
 2007-12-10  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/libdladm.h: Added this to build the ui with libnwam.
+
+2007-12-10  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_svc.c: (nwamui_svc_class_init), (nwamui_svc_init),
 	(nwamui_svc_set_property), (nwamui_svc_get_property),
 	(nwamui_svc_finalize), (nwamui_svc_new),
