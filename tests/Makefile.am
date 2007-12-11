@@ -17,17 +17,34 @@
 # 
 # CDDL HEADER END
 #
+NULL =
 
-SUBDIRS = common tests daemon capplet po pixmaps
+AM_CPPFLAGS = \
+	$(PACKAGE_CFLAGS)	\
+	$(NOTIFY_CFLAGS)	\
+	$(NWAM_MANAGER_CFLAGS)		\
+	-DNWAM_MANAGER_DATADIR=\""$(datadir)"\"			\
+	-DNWAM_MANAGER_LOCALEDIR=\""$(prefix)/$(DATADIRNAME)/locale"\"	\
+	-DGLADEDIR=\""$(gladedir)"\"			\
+	-DSYSCONFDIR=\"$(sysconfdir)\"				\
+	-DPRINTER_HELPER_PATH=\"$(libexecdir)\"			\
+	$(NULL)
 
-EXTRA_DIST =			\
-        intltool-extract.in	\
-        intltool-merge.in	\
-        intltool-update.in	\
-	SUNWnwam-manager.spec	\
-	nwam-manager.spec
+AM_LDFLAGS = \
+	$(PACKAGE_LIBS)		\
+	$(INTLLIBS)		\
+	$(NWAM_MANAGER_LIBS)		\
+	$(NWAM_LIBS)		\
+	$(NULL)
 
-DISTCLEANFILES =		\
-        intltool-extract	\
-        intltool-merge		\
-        intltool-update
+noinst_PROGRAMS = test-nwam
+
+test_nwam_SOURCES =		\
+	main.c		\
+	$(NULL)
+
+install-data-local:
+
+EXTRA_DIST = 		\
+	$(NULL)
+

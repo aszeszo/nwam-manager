@@ -117,6 +117,7 @@ AC_SUBST(NWAM_LIBS)
 AC_CONFIG_FILES([
 Makefile
 common/Makefile
+tests/Makefile
 daemon/Makefile
 capplet/Makefile
 po/Makefile.in

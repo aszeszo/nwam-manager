@@ -1,3 +1,8 @@
+2007-12-11  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* Makefile.am, configure.in, tests/Makefile.am, tests/main.c: (main):
+	Added tests source directory to test libnwam.
+
 2007-12-10  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/libdladm.h: Added this to build the ui with libnwam.
