@@ -58,6 +58,8 @@ struct _NwamConnConfIPPanel
 struct _NwamConnConfIPPanelClass
 {
 	GObjectClass                parent_class;
+
+    void (*ncu_changed)         (NwamConnConfIPPanel *self, GObject *data, gpointer user_data);
 };
 
 GType nwam_conf_ip_panel_get_type (void) G_GNUC_CONST;

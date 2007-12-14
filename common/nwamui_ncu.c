@@ -97,6 +97,11 @@ static void nwamui_ncu_finalize (     NwamuiNcu *self);
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
+static void ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data); 
+
+static void ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
+
+
 G_DEFINE_TYPE (NwamuiNcu, nwamui_ncu, G_TYPE_OBJECT)
 
 static void
@@ -313,6 +318,9 @@ nwamui_ncu_init (NwamuiNcu *self)
 
     
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
+    g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-deleted", (GCallback)ip_row_deleted_cb, (gpointer)self);
+    g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-changed", (GCallback)ip_row_inserted_or_changed_cb, (gpointer)self);
+    g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-inserted", (GCallback)ip_row_inserted_or_changed_cb, (gpointer)self);
 }
 
 static void
@@ -364,7 +372,7 @@ nwamui_ncu_set_property ( GObject         *object,
                         nwamui_ip_set_address(self->prv->ipv4_primary_ip, new_addr );
                     }
                     else {
-                        NwamuiIp*   ip = nwamui_ip_new( new_addr, "", FALSE );
+                        NwamuiIp*   ip = nwamui_ip_new( self, new_addr, "", FALSE );
                         GtkTreeIter iter;
 
                         gtk_list_store_insert(self->prv->v4addresses, &iter, 0 );
@@ -382,7 +390,7 @@ nwamui_ncu_set_property ( GObject         *object,
                         nwamui_ip_set_subnet_prefix(self->prv->ipv4_primary_ip, new_subnet );
                     }
                     else {
-                        NwamuiIp*   ip = nwamui_ip_new( "", new_subnet, FALSE );
+                        NwamuiIp*   ip = nwamui_ip_new( self, "", new_subnet, FALSE );
                         GtkTreeIter iter;
 
                         gtk_list_store_insert(self->prv->v4addresses, &iter, 0 );
@@ -415,7 +423,7 @@ nwamui_ncu_set_property ( GObject         *object,
                         nwamui_ip_set_address(self->prv->ipv6_primary_ip, new_addr );
                     }
                     else {
-                        NwamuiIp*   ip = nwamui_ip_new( new_addr, "", TRUE);
+                        NwamuiIp*   ip = nwamui_ip_new( self, new_addr, "", TRUE);
                         GtkTreeIter iter;
 
                         gtk_list_store_insert(self->prv->v6addresses, &iter, 0 );
@@ -433,7 +441,7 @@ nwamui_ncu_set_property ( GObject         *object,
                         nwamui_ip_set_subnet_prefix(self->prv->ipv6_primary_ip, new_subnet );
                     }
                     else {
-                        NwamuiIp*   ip = nwamui_ip_new( "", new_subnet, TRUE );
+                        NwamuiIp*   ip = nwamui_ip_new( self, "", new_subnet, TRUE );
                         GtkTreeIter iter;
 
                         gtk_list_store_insert(self->prv->v6addresses, &iter, 0 );
@@ -1556,4 +1564,25 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     g_debug("NwamuiNcu: %s: notify %s changed\n", name?name:"", arg1->name);
 }
+
+static void 
+ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
+{
+    NwamuiNcu* self = NWAMUI_NCU(data);
+    gboolean is_v6 = (tree_model == GTK_TREE_MODEL(self->prv->v6addresses));
+
+    /* Chain events in the tree to the NCU object*/
+    g_object_notify(G_OBJECT(self), is_v6?"v6addresses":"v4addresses");
+}
+
+static void 
+ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer data)
+{
+    NwamuiNcu* self = NWAMUI_NCU(data);
+    gboolean is_v6 = (tree_model == GTK_TREE_MODEL(self->prv->v6addresses));
+
+    /* Chain events in the tree to the NCU object*/
+    g_object_notify(G_OBJECT(self), is_v6?"v6addresses":"v4addresses");
+}
+
 

@@ -66,7 +66,8 @@ struct _NwamuiIpClass
 
 extern  GType               nwamui_ip_get_type (void) G_GNUC_CONST;
 
-extern  NwamuiIp*           nwamui_ip_new(  const gchar*    addr, 
+extern  NwamuiIp*           nwamui_ip_new(  NwamuiNcu*      ncu_parent,
+                                            const gchar*    addr, 
                                             const gchar*    subnet_prefix, 
                                             gboolean        is_v6 );
 

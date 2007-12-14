@@ -1,3 +1,20 @@
+2007-12-14  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	  Change the response if for the "Refresh" button.
+	* capplet/nwam_pref_dialog.c: 
+	  Modify response_cb to only stop emission of response given specific
+	  conditions. Also link the Refresh Button.
+	* common/nwamui_ip.h, common/nwamui_ip.c: 
+	  Link the NwamuiIp with a specific NwamuiNcu, and sent events to
+	  NwamuiNcu if the NwamuiIp changes.
+	* common/libnwamui.h:
+	  Move NwamuiIp to below NwamuiNcu to fix references.
+	* common/nwamui_ncu.c: 
+	  Chain row insert/delete/change events to notify signal.
+	* capplet/nwam_conn_conf_ip_panel.h, capplet/nwam_conn_conf_ip_panel.c:
+	  Correctly link the multiple IP address case with the NCU treestores.
+
 2007-12-11  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* Makefile.am, configure.in, tests/Makefile.am, tests/main.c: (main):

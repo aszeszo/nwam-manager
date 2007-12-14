@@ -38,6 +38,7 @@ static GObjectClass *parent_class = NULL;
 
 
 struct _NwamuiIpPrivate {
+    NwamuiNcu*                ncu_parent;
     gboolean                  is_v6;
     gchar*                    address;
     gchar*                    subnet_prefix;
@@ -113,6 +114,7 @@ nwamui_ip_init (NwamuiIp *self)
 {
     NwamuiIpPrivate *prv = (NwamuiIpPrivate*)g_new0 (NwamuiIpPrivate, 1);
 
+    prv->ncu_parent = NULL;
     prv->is_v6 = FALSE;
     prv->address = NULL;
     prv->subnet_prefix = NULL;
@@ -230,19 +232,24 @@ nwamui_ip_finalize (NwamuiIp *self)
  * Creates a new #NwamuiIp.
  **/
 extern  NwamuiIp*
-nwamui_ip_new(  const gchar*    addr, 
+nwamui_ip_new(  NwamuiNcu*      ncu_parent,
+                const gchar*    addr, 
                 const gchar*    subnet_prefix, 
                 gboolean        is_v6 )
 {
     NwamuiIp*  self = NULL;
     
+    g_assert( NWAMUI_IS_NCU( ncu_parent ) );
+
     self = NWAMUI_IP(g_object_new (NWAMUI_TYPE_IP, NULL));
-    
+
     g_object_set (G_OBJECT (self),
                     "address", addr,
                     "subnet_prefix", subnet_prefix,
                     "is_v6", is_v6,
                     NULL);
+    
+    self->prv->ncu_parent = ncu_parent;
     
     return( self );
 }
@@ -372,5 +379,9 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     NwamuiIp* self = NWAMUI_IP(data);
 
     g_debug("NwamuiIp: notify %s changed\n", arg1->name);
+
+    if ( self->prv->ncu_parent != NULL ) {
+        g_object_notify(G_OBJECT(self->prv->ncu_parent), (gpointer)(self->prv->is_v6?"v6addresses":"v4addresses") );
+    }
 }
 
