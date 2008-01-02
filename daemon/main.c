@@ -151,11 +151,15 @@ on_trigger_network_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gint sicon_id)
 	GString *str;
 	gchar *env_name = NULL;
 	NwamuiNcp *ncp = NULL;
-	
-	env_name = nwamui_env_get_name (env);
+
 	str = g_string_new (_("Environment: "));
-	g_string_append_printf (str, "%s", env_name);
-	g_free (env_name);
+	if (env) {
+        env_name = nwamui_env_get_name (env);
+        g_string_append_printf (str, "%s", env_name);
+        g_free (env_name);
+    } else {
+        g_string_append_printf (str, "%s", _("nil"));
+    }
 	
 	ncp = nwamui_daemon_get_active_ncp (daemon);
 	nwamui_ncp_foreach_ncu (ncp, get_state, (gpointer)str);
@@ -218,7 +222,6 @@ int main( int argc,
     menu = get_nwam_menu_instance();
     
     nwam_notification_init( nwam_status_icon_get_widget(status_icon_index) );
-    nwam_notification_connect (daemon);
 
     nwam_status_icon_set_activate_callback( status_icon_index, G_CALLBACK(activate_cb) );
 

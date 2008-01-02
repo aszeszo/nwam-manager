@@ -311,7 +311,7 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
 	txt = gtk_entry_get_text(prv->stop_cmd_entry);
 	nwamui_enm_set_stop_command(NWAMUI_ENM(prv->cur_obj), txt?txt:"");
 	txt = gtk_entry_get_text(prv->process_entry);
-	nwamui_enm_set_smf_frmi(NWAMUI_ENM(prv->cur_obj), txt?txt:"");
+	nwamui_enm_set_smf_fmri(NWAMUI_ENM(prv->cur_obj), txt?txt:"");
 	return TRUE;
 }
 
@@ -408,23 +408,11 @@ static void
 response_cb(GtkWidget* widget, gint responseid, gpointer data)
 {
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
+    gboolean            stop_emission = FALSE;
 	GtkTreeSelection *selection = NULL;
 	GtkTreeIter iter;
-	gboolean is_finished = TRUE;
-
-	selection = gtk_tree_view_get_selection (prv->view);
-	if (gtk_tree_selection_get_selected(selection,
-		NULL, &iter)) {
-		GtkTreeModel *model;
-		GObject *obj;
-
-		model = gtk_tree_view_get_model (prv->view);
-		gtk_tree_model_get (model, &iter, 0, &obj, -1);
-		/* update the new one before close */
-		if (prv->cur_obj && prv->cur_obj == obj) {
-			is_finished = nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), obj);
-		}
-	}
+    GtkTreeModel *model;
+    GObject *obj;
 
 	switch (responseid) {
 		case GTK_RESPONSE_NONE:
@@ -435,22 +423,54 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 			break;
 		case GTK_RESPONSE_OK:
 			g_debug("GTK_RESPONSE_OK");
+
+            model = gtk_tree_view_get_model (prv->view);
+            selection = gtk_tree_view_get_selection (prv->view);
+            if (gtk_tree_selection_get_selected(selection,
+                  NULL, &iter)) {
+
+                gtk_tree_model_get (model, &iter, 0, &obj, -1);
+                /* update the new one before close */
+                if (prv->cur_obj && prv->cur_obj == obj) {
+                    nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), obj);
+                }
+            }
+
 			/* FIXME, ok need call into separated panel/instance
 			 * apply all changes, if no errors, hide all
 			 */
-			if (is_finished) {
-				gtk_widget_hide (GTK_WIDGET(prv->vpn_pref_dialog));
-			}
+            if (gtk_tree_model_get_iter_first (model, &iter)) {
+                do {
+                    gtk_tree_model_get (model, &iter, 0, &obj, -1);
+                    if (!nwamui_enm_commit (NWAMUI_ENM (obj))) {
+                        gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
+                        gchar *msg = g_strdup_printf (_("Committing %s faild..."), name);
+                        nwamui_util_show_message (prv->vpn_pref_dialog,
+                          GTK_MESSAGE_ERROR,
+                          _("Commit ENM error"),
+                          msg);
+                        g_free (msg);
+                        g_free (name);
+                        return;
+                    }
+                } while (gtk_tree_model_iter_next (model, &iter));
+                gtk_widget_hide (GTK_WIDGET(prv->vpn_pref_dialog));
+                stop_emission = TRUE;
+            }
 			break;
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
 			gtk_widget_hide (GTK_WIDGET(prv->vpn_pref_dialog));
+            stop_emission = TRUE;
 			break;
 		case GTK_RESPONSE_HELP:
             nwam_pref_help (NWAM_VPN_PREF_DIALOG(data), NULL);
+            stop_emission = TRUE;
 			break;
 	}
-	g_signal_stop_emission_by_name(widget, "response" );
+    if ( stop_emission ) {
+        g_signal_stop_emission_by_name(widget, "response" );
+    }
 }
 
 static void
@@ -563,9 +583,7 @@ nwam_vpn_cell_cb (GtkTreeViewColumn *col,
 	GObject *obj;
 	
 	gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &obj, -1);
-	/* FIXME, get the current status of ip_tuple then update the
-	 * tree view
-	 */
+
 	switch (gtk_tree_view_column_get_sort_column_id(col)) {
 		case APP_NAME: {
 			if (obj) {
@@ -576,7 +594,7 @@ nwam_vpn_cell_cb (GtkTreeViewColumn *col,
 				g_free(app_name);
 			} else {
 				g_object_set((gpointer)renderer,
-					"text", "",
+					"text", _("New name"),
 					NULL);
 			}
 		}
@@ -690,7 +708,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 			txt = nwamui_enm_get_stop_command (obj);
 			gtk_entry_set_text (prv->stop_cmd_entry, txt?txt:"");
 			g_free (txt);
-			txt = nwamui_enm_get_smf_frmi (obj);
+			txt = nwamui_enm_get_smf_fmri (obj);
 			gtk_entry_set_text (prv->process_entry, txt?txt:"");
 			g_free (txt);
             on_nwam_enm_notify_cb(obj, NULL, data);

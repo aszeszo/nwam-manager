@@ -66,6 +66,9 @@ struct _NwamuiDaemonClass
 	void (*ncu_destroy)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
 	void (*ncu_up)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
 	void (*ncu_down)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
+	void (*daemon_info)  (NwamuiDaemon *self, gpointer data, gpointer user_data);
+    void (*add_wifi_fav) (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
+    void (*remove_wifi_fav) (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
 };
 
 extern  GType                       nwamui_daemon_get_type (void) G_GNUC_CONST;

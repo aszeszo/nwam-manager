@@ -40,7 +40,9 @@ struct _NwamuiEnmPrivate {
     gboolean             active;
     gchar*               start_command;
     gchar*               stop_command;
-    gchar*               smf_frmi;
+    gchar*               smf_fmri;
+
+    nwam_enm_handle_t	nwam_enm;
 };
 
 enum {
@@ -48,7 +50,8 @@ enum {
     PROP_ACTIVE,
     PROP_START_COMMAND,
     PROP_STOP_COMMAND,
-    PROP_SMF_FRMI
+    PROP_SMF_FMRI,
+    PROP_NWAM_ENM,
 };
 
 
@@ -118,13 +121,20 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_SMF_FRMI,
-                                     g_param_spec_string ("smf_frmi",
-                                                          _("smf_frmi"),
-                                                          _("smf_frmi"),
+                                     PROP_SMF_FMRI,
+                                     g_param_spec_string ("smf_fmri",
+                                                          _("smf_fmri"),
+                                                          _("smf_fmri"),
                                                           "",
                                                           G_PARAM_READWRITE));
 
+
+    g_object_class_install_property (gobject_class,
+      PROP_NWAM_ENM,
+      g_param_spec_pointer ("nwam_enm",
+        _("Nwam Enm handle"),
+        _("Nwam Enm handle"),
+        G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
 }
 
 
@@ -139,7 +149,7 @@ nwamui_enm_init ( NwamuiEnm *self)
     self->prv->active = FALSE;
     self->prv->start_command = NULL;
     self->prv->stop_command = NULL;
-    self->prv->smf_frmi = NULL;
+    self->prv->smf_fmri = NULL;
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
@@ -153,18 +163,49 @@ nwamui_enm_set_property (   GObject         *object,
     NwamuiEnm *self = NWAMUI_ENM(object);
     gchar*      tmpstr = NULL;
     gint        tmpint = 0;
-
+    nwam_error_t nerr;
+    int num;
+    nwam_data_t nwamdata[1];
+    nwam_data_t *nwamdata_p = nwamdata;
+    
     switch (prop_id) {
        case PROP_NAME: {
                 if ( self->prv->name != NULL ) {
-                        g_free( self->prv->name );
+                    g_free( self->prv->name );
                 }
                 self->prv->name = g_strdup( g_value_get_string( value ) );
+                /* we may rename here */
+                if (self->prv->nwam_enm == NULL) {
+                    nerr = nwam_enm_load (self->prv->name, NWAM_FLAG_NONBLOCK,
+                      &self->prv->nwam_enm);
+                    if (nerr == NWAM_SUCCESS) {
+                        g_debug ("nwamui_enm_set_property found nwam_enm_handle %s", self->prv->name);
+                    } else {
+                        nerr = nwam_enm_create (self->prv->name, NULL, &self->prv->nwam_enm);
+                        g_assert (nerr == NWAM_SUCCESS);
+                    }
+                }
+
+                nerr = nwam_enm_set_name (self->prv->nwam_enm, self->prv->name);
+                if (nerr != NWAM_SUCCESS) {
+                    g_debug ("nwam_enm_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+                }
             }
             break;
 
         case PROP_ACTIVE: {
                 self->prv->active = g_value_get_boolean( value );
+                if (self->prv->active) {
+                    if ((nerr = nwam_enm_start (self->prv->nwam_enm)) != NWAM_SUCCESS) {
+                        self->prv->active = FALSE;
+                        g_debug ("nwam_enm_start error: %s", nwam_strerror (nerr));
+                    }
+                } else {
+                    if ((nerr = nwam_enm_stop (self->prv->nwam_enm)) != NWAM_SUCCESS) {
+                        self->prv->active = TRUE;
+                        g_debug ("nwam_enm_stop error: %s", nwam_strerror (nerr));
+                    }
+                }
             }
             break;
 
@@ -173,6 +214,15 @@ nwamui_enm_set_property (   GObject         *object,
                         g_free( self->prv->start_command );
                 }
                 self->prv->start_command = g_strdup( g_value_get_string( value ) );
+
+                num = 1;
+                nwamdata[0].data_type = NWAM_STRING_TYPE;
+                strncpy (nwamdata[0].value.value_string,
+                  self->prv->start_command,
+                  NWAM_MAX_VALUE_LEN);
+                nerr = nwam_enm_set_prop (self->prv->nwam_enm,
+                  NWAM_ENM_START, num, &nwamdata_p);
+                g_assert (nerr == NWAM_SUCCESS);
             }
             break;
 
@@ -181,14 +231,38 @@ nwamui_enm_set_property (   GObject         *object,
                         g_free( self->prv->stop_command );
                 }
                 self->prv->stop_command = g_strdup( g_value_get_string( value ) );
+
+                num = 1;
+                nwamdata[0].data_type = NWAM_STRING_TYPE;
+                strncpy (nwamdata[0].value.value_string,
+                  self->prv->stop_command,
+                  NWAM_MAX_VALUE_LEN);
+                nerr = nwam_enm_set_prop (self->prv->nwam_enm,
+                  NWAM_ENM_STOP, num, &nwamdata_p);
+                g_assert (nerr == NWAM_SUCCESS);
             }
             break;
 
-        case PROP_SMF_FRMI: {
-                if ( self->prv->smf_frmi != NULL ) {
-                        g_free( self->prv->smf_frmi );
+        case PROP_SMF_FMRI: {
+                if ( self->prv->smf_fmri != NULL ) {
+                        g_free( self->prv->smf_fmri );
                 }
-                self->prv->smf_frmi = g_strdup( g_value_get_string( value ) );
+                self->prv->smf_fmri = g_strdup( g_value_get_string( value ) );
+
+                num = 1;
+                nwamdata[0].data_type = NWAM_STRING_TYPE;
+                strncpy (nwamdata[0].value.value_string,
+                  self->prv->smf_fmri,
+                  NWAM_MAX_VALUE_LEN);
+                nerr = nwam_enm_set_prop (self->prv->nwam_enm,
+                  NWAM_ENM_FMRI, num, &nwamdata_p);
+                g_assert (nerr == NWAM_SUCCESS);
+            }
+            break;
+
+        case PROP_NWAM_ENM: {
+            g_assert (self->prv->nwam_enm == NULL);
+            self->prv->nwam_enm = g_value_get_pointer (value);
             }
             break;
 
@@ -205,30 +279,75 @@ nwamui_enm_get_property (   GObject         *object,
                             GParamSpec      *pspec)
 {
     NwamuiEnm *self = NWAMUI_ENM(object);
+    nwam_error_t nerr;
+    int num;
+    nwam_data_t **nwamdata;
 
     switch (prop_id) {
         case PROP_NAME: {
-                g_value_set_string( value, self->prv->name );
+            if (self->prv->name == NULL) {
+                char *name;
+                nerr = nwam_enm_get_name (self->prv->nwam_enm, &name);
+                if (nerr != NWAM_SUCCESS) {
+                    g_debug ("nwam_enm_get_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+                }
+                if (g_ascii_strcasecmp (self->prv->name, name) != 0) {
+                    g_assert_not_reached ();
+                }
+                free (name);
             }
+            g_value_set_string( value, self->prv->name );
+        }
             break;
 
         case PROP_ACTIVE: {
+            g_assert (self->prv->nwam_enm || self->prv->name);
+            nerr = nwam_enm_get_prop (self->prv->nwam_enm,
+              NWAM_ENM_STATE, &num, &nwamdata);
+            g_assert (num == 1);
+            g_assert ((*nwamdata)->data_type == NWAM_UINT64_TYPE);
+            self->prv->active = ((*nwamdata)->value.value_uint64 == NWAM_ENM_ENABLED);
+            free (nwamdata);
                 g_value_set_boolean( value, self->prv->active );
             }
             break;
 
         case PROP_START_COMMAND: {
+            if (self->prv->start_command == NULL) {
+                nerr = nwam_enm_get_prop (self->prv->nwam_enm,
+                  NWAM_ENM_STOP, &num, &nwamdata);
+                g_assert (num == 1);
+                g_assert ((*nwamdata)->data_type == NWAM_STRING_TYPE);
+                self->prv->start_command = g_strdup ((*nwamdata)->value.value_string);
+                free (nwamdata);
+            }
                 g_value_set_string( value, self->prv->start_command );
             }
             break;
 
         case PROP_STOP_COMMAND: {
+            if (self->prv->stop_command == NULL) {
+                nerr = nwam_enm_get_prop (self->prv->nwam_enm,
+                  NWAM_ENM_STOP, &num, &nwamdata);
+                g_assert (num == 1);
+                g_assert ((*nwamdata)->data_type == NWAM_STRING_TYPE);
+                self->prv->stop_command = g_strdup ((*nwamdata)->value.value_string);
+                free (nwamdata);
+            }
                 g_value_set_string( value, self->prv->stop_command );
             }
             break;
 
-        case PROP_SMF_FRMI: {
-                g_value_set_string( value, self->prv->smf_frmi );
+        case PROP_SMF_FMRI: {
+            if (self->prv->smf_fmri == NULL) {
+                nerr = nwam_enm_get_prop (self->prv->nwam_enm,
+                  NWAM_ENM_FMRI, &num, &nwamdata);
+                g_assert (num == 1);
+                g_assert ((*nwamdata)->data_type == NWAM_STRING_TYPE);
+                self->prv->smf_fmri = g_strdup ((*nwamdata)->value.value_string);
+                free (nwamdata);
+            }
+                g_value_set_string( value, self->prv->smf_fmri );
             }
             break;
 
@@ -238,7 +357,6 @@ nwamui_enm_get_property (   GObject         *object,
     }
 }
 
-
 /**
  * nwamui_enm_new:
  * @returns: a new #NwamuiEnm.
@@ -247,7 +365,7 @@ nwamui_enm_get_property (   GObject         *object,
 extern  NwamuiEnm*          
 nwamui_enm_new (    const gchar*    name, 
                     gboolean        active, 
-                    const gchar*    smf_frmi,
+                    const gchar*    smf_fmri,
                     const gchar*    start_command,
                     const gchar*    stop_command )
 {
@@ -256,7 +374,7 @@ nwamui_enm_new (    const gchar*    name,
     g_object_set (G_OBJECT (self),
                   "name", name,
                   "active", active,
-                  "smf_frmi", smf_frmi,
+                  "smf_fmri", smf_fmri,
                   "start_command", start_command,
                   "stop_command", stop_command,
                   NULL);
@@ -264,6 +382,70 @@ nwamui_enm_new (    const gchar*    name,
     return( self );
 }
 
+/**
+ * nwamui_enm_new_with_handle:
+ * @returns: a new #NwamuiEnm.
+ *
+ **/
+extern  NwamuiEnm*          
+nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
+{
+    NwamuiEnm *self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM,
+                                   "nwam_enm", enm,
+                                   NULL));
+#if 0
+    gchar* name;
+    gboolean        active;
+    gchar*    smf_fmri;
+    gchar*    start_command;
+    gchar*    stop_command;
+
+    nwam_error_t nerr;
+    int num;
+    nwam_data_t **nwam_data;
+    nwam_enm_state_t enm_stat;
+    
+    nerr = nwam_enm_get_name (enm, &name);
+    if (nerr != NWAM_SUCCESS) {
+        g_debug ("nwam_enm_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+    }
+
+    nerr = nwam_enm_get_prop (enm, NWAM_ENM_FMRI, &num, &nwam_data);
+    g_assert ((*nwam_data)->data_type == NWAM_STRING_TYPE);
+    smf_fmri = g_strdup ((*nwam_data)->value.value_string);
+    free (nwam_data);
+    
+    nerr = nwam_enm_get_prop (enm, NWAM_ENM_STATE, &num, &nwam_data);
+    g_assert ((*nwam_data)->data_type == NWAM_UINT64_TYPE);
+    enm_stat = (*nwam_data)->value.value_uint64;
+    active = enm_stat == NWAM_ENM_ENABLED;
+    free (nwam_data);
+
+    nerr = nwam_enm_get_prop (enm, NWAM_ENM_START, &num, &nwam_data);
+    g_assert ((*nwam_data)->data_type == NWAM_STRING_TYPE);
+    start_command = g_strdup ((*nwam_data)->value.value_string);
+    free (nwam_data);
+
+    nerr = nwam_enm_get_prop (enm, NWAM_ENM_STOP, &num, &nwam_data);
+    g_assert ((*nwam_data)->data_type == NWAM_STRING_TYPE);
+    stop_command = g_strdup ((*nwam_data)->value.value_string);
+    free (nwam_data);
+    
+    g_object_set (G_OBJECT (self),
+                  "name", name,
+                  "active", active,
+                  "smf_fmri", smf_fmri,
+                  "start_command", start_command,
+                  "stop_command", stop_command,
+                  NULL);
+    free (name);
+    g_free (smf_fmri);
+    g_free (start_command);
+    g_free (stop_command);
+    
+#endif
+    return( self );
+}
 
 /** 
  * nwamui_enm_set_name:
@@ -423,48 +605,60 @@ nwamui_enm_get_stop_command (NwamuiEnm *self)
 }
 
 /** 
- * nwamui_enm_set_smf_frmi:
+ * nwamui_enm_set_smf_fmri:
  * @nwamui_enm: a #NwamuiEnm.
- * @smf_frmi: Value to set smf_frmi to.
+ * @smf_fmri: Value to set smf_fmri to.
  * 
  **/ 
 extern void
-nwamui_enm_set_smf_frmi (   NwamuiEnm *self,
-                              const gchar*  smf_frmi )
+nwamui_enm_set_smf_fmri (   NwamuiEnm *self,
+                              const gchar*  smf_fmri )
 {
     g_return_if_fail (NWAMUI_IS_ENM (self));
-    g_assert (smf_frmi != NULL );
+    g_assert (smf_fmri != NULL );
 
-    if ( smf_frmi != NULL ) {
+    if ( smf_fmri != NULL ) {
         g_object_set (G_OBJECT (self),
-                      "smf_frmi", smf_frmi,
+                      "smf_fmri", smf_fmri,
                       NULL);
     }
 }
 
 /**
- * nwamui_enm_get_smf_frmi:
+ * nwamui_enm_get_smf_fmri:
  * @nwamui_enm: a #NwamuiEnm.
- * @returns: the smf_frmi.
+ * @returns: the smf_fmri.
  *
  **/
 extern gchar*
-nwamui_enm_get_smf_frmi (NwamuiEnm *self)
+nwamui_enm_get_smf_fmri (NwamuiEnm *self)
 {
-    gchar*  smf_frmi = NULL; 
+    gchar*  smf_fmri = NULL; 
 
-    g_return_val_if_fail (NWAMUI_IS_ENM (self), smf_frmi);
+    g_return_val_if_fail (NWAMUI_IS_ENM (self), smf_fmri);
 
     g_object_get (G_OBJECT (self),
-                  "smf_frmi", &smf_frmi,
+                  "smf_fmri", &smf_fmri,
                   NULL);
 
-    return( smf_frmi );
+    return( smf_fmri );
+}
+
+extern gboolean
+nwamui_enm_commit (NwamuiEnm *self)
+{
+    nwam_error_t nerr;
+    
+    nerr = nwam_enm_commit (self->prv->nwam_enm, NWAM_FLAG_NONBLOCK);
+    return nerr == NWAM_SUCCESS;
 }
 
 static void
 nwamui_enm_finalize (NwamuiEnm *self)
 {
+    if (self->prv->nwam_enm != NULL) {
+        nwam_enm_free (self->prv->nwam_enm);
+    }
 
     if (self->prv->name != NULL ) {
         g_free( self->prv->name );
@@ -478,8 +672,8 @@ nwamui_enm_finalize (NwamuiEnm *self)
         g_free( self->prv->stop_command );
     }
 
-    if (self->prv->smf_frmi != NULL ) {
-        g_free( self->prv->smf_frmi );
+    if (self->prv->smf_fmri != NULL ) {
+        g_free( self->prv->smf_fmri );
     }
 
     g_free (self->prv); 

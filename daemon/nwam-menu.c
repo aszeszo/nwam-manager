@@ -34,6 +34,7 @@
 #include <glib/gi18n.h>
 #include <stdlib.h>
 
+#include "notify.h"
 #include "nwam-menu.h"
 #include "nwam-menuitem.h"
 #include "nwam-action.h"
@@ -82,6 +83,8 @@ struct _NwamMenuPrivate {
 	guint uid[N_ID];
 	GtkActionGroup *group[N_ID];
 	gboolean has_wifi;
+    gboolean force_wifi_rescan_due_to_env_changed;
+    gboolean force_wifi_rescan;
     GSList *wireless_group;
 };
 
@@ -93,24 +96,25 @@ static void nwam_menu_create_env_menuitems (NwamMenu *self);
 static void nwam_menu_create_vpn_menuitems (NwamMenu *self);
 static void nwam_menu_recreate_menuitems (NwamMenu *self);
 static void nwam_menu_connect (NwamMenu *self);
+static void notification_joinwireless_cb (NotifyNotification *n, gchar *action, gpointer data);
+static void notification_listwireless_cb (NotifyNotification *n, gchar *action, gpointer data);
 
 /* call back */
 static void on_activate_about (GtkAction *action, gpointer data);
 static void on_activate_help (GtkAction *action, gpointer udata);
 static void on_activate_pref (GtkAction *action, gpointer udata);
-static void on_activate_addwireless (GtkAction *action, gpointer udata);
+static void on_activate_joinwireless (GtkAction *action, gpointer udata);
 static void on_activate_env (GtkAction *action, gpointer data);
 static void on_activate_enm (GtkAction *action, gpointer data);
 static void on_nwam_ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_wifi_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_env_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
-static void on_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data);
-static void on_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data);
-static void on_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data);
-
-/* utils */
-static GtkWidget* nwam_display_name_to_menuitem (NwamMenu *self, const gchar *dn, int id);
+static void event_daemon_info (NwamuiDaemon* daemon, gpointer data, gpointer udata);
+static void event_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data);
+static void event_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data);
+static void event_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data);
+static void event_add_wifi_fav (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
 
 /* utils */
 static GtkWidget* nwam_display_name_to_menuitem (NwamMenu *self, const gchar *dn, int id);
@@ -125,7 +129,7 @@ static GtkActionEntry entries[] = {
     { "joinwireless",
       NULL, N_("Join Unlisted Wireless Network..."),
       NULL, NULL,
-      G_CALLBACK(on_activate_addwireless) },
+      G_CALLBACK(on_activate_joinwireless) },
     { MENUITEM_NAME_NET_PREF,
       NULL, N_("Network Preferences"),
       NULL, NULL,
@@ -158,14 +162,20 @@ nwam_menu_init (NwamMenu *self)
 	
 	/* ref daemon instance */
 	self->prv->daemon = nwamui_daemon_get_instance ();
-	g_signal_connect(self->prv->daemon, "wifi_scan_result",
-                     (GCallback)nwam_menu_create_wifi_menuitems, self);
+
+    /* handle all daemon signals here */
+    g_signal_connect(self->prv->daemon, "daemon_info",
+      G_CALLBACK(event_daemon_info), (gpointer) self);
+	g_signal_connect((gpointer) self->prv->daemon, "wifi_scan_result",
+      (GCallback)nwam_menu_create_wifi_menuitems, (gpointer) self);
     g_signal_connect(self->prv->daemon, "ncu_up",
-                     G_CALLBACK(on_ncu_up), (gpointer) self);
+      G_CALLBACK(event_ncu_up), (gpointer) self);
     g_signal_connect(self->prv->daemon, "ncu_down",
-                     G_CALLBACK(on_ncu_down), (gpointer) self);
+      G_CALLBACK(event_ncu_down), (gpointer) self);
     g_signal_connect(self->prv->daemon, "active_env_changed",
-                     G_CALLBACK(on_active_env_changed), (gpointer) self);
+      G_CALLBACK(event_active_env_changed), (gpointer) self);
+    g_signal_connect(self->prv->daemon, "add_wifi_fav",
+      G_CALLBACK(event_add_wifi_fav), (gpointer) self);
 
 	self->prv->action_group = gtk_action_group_new ("StatusIconMenuActions");
 	gtk_action_group_set_translation_domain (self->prv->action_group, NULL);
@@ -266,6 +276,10 @@ nwam_menu_recreate_menuitems (NwamMenu *self)
 	self->prv->group[ID_WIFI] = gtk_action_group_new ("wifi_action_group");
 	gtk_ui_manager_insert_action_group (self->prv->ui_manager, self->prv->group[ID_WIFI], 0);
     g_object_unref (G_OBJECT(self->prv->group[ID_WIFI]));
+
+    /* set force rescan flag so that we can identify daemon scan wifi event */
+    self->prv->force_wifi_rescan = TRUE;
+    
 	nwamui_daemon_wifi_start_scan (self->prv->daemon);
 }
 
@@ -278,9 +292,9 @@ nwam_menu_create_static_part (NwamMenu *self)
     if ((mid = gtk_ui_manager_add_ui_from_file (self->prv->ui_manager,
                                                 NWAM_UI, &error)) != 0) {
         gtk_action_group_add_actions (self->prv->action_group,
-                                      entries,
-                                      G_N_ELEMENTS (entries),
-                                      NULL);
+          entries,
+          G_N_ELEMENTS (entries),
+          (gpointer) self);
     } else {
         g_error ("Can't find %s: %s", NWAM_UI, error->message);
         g_error_free (error);
@@ -384,9 +398,11 @@ on_nwam_wifi_enable (GtkAction *action, gpointer data)
 }
 
 static void
-on_activate_addwireless (GtkAction *action, gpointer data)
+on_activate_joinwireless (GtkAction *action, gpointer data)
 {
+	NwamMenu *self = NWAM_MENU (data);
 	if (data) {
+#if 0
 		gchar *argv = NULL;
 		gchar *name = NULL;
 		/* add valid wireless */
@@ -397,6 +413,7 @@ on_activate_addwireless (GtkAction *action, gpointer data)
 		g_free (name);
 		g_free (argv);
 	} else {
+#endif
 		/* add other wireless */
 		nwam_exec("--add-wireless-dialog=");
 	}
@@ -527,21 +544,162 @@ on_nwam_enm_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 }
 
 static void
-on_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data)
+event_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data)
 {
-    DEBUG ();
+    gchar *sname;
+    gchar *ifname;
+    gchar *addr;
+    gint speed;
+    gint signal;
+    gchar *summary, *body;
+
+    DEBUG();
+
+	/* generic info */
+    ifname = nwamui_ncu_get_device_name (ncu);
+    if (!nwamui_ncu_get_ipv6_active (ncu)) {
+        addr = nwamui_ncu_get_ipv4_address (ncu);
+    } else {
+        addr = nwamui_ncu_get_ipv6_address (ncu);
+    }
+    speed = nwamui_ncu_get_speed (ncu);
+
+    switch (nwamui_ncu_get_ncu_type (ncu)) {
+    case NWAMUI_NCU_TYPE_WIRED:
+        sname = nwamui_ncu_get_vanity_name (ncu);
+        summary = g_strdup_printf (_("'%s' is connected"), sname);
+        body = g_strdup_printf (_("Interface: %s\n"
+                                  "Address: %s\n"
+                                  "Speed: %d Mb/s\n"),
+                                ifname, addr, speed);
+        break;
+    case NWAMUI_NCU_TYPE_WIRELESS: {
+        NwamuiWifiNet *wifi = nwamui_ncu_get_wifi_info (ncu);
+        sname = nwamui_wifi_net_get_essid (wifi);
+        signal = (gint) ((gfloat) (nwamui_wifi_net_get_signal_strength (wifi) /
+                                   NWAMUI_WIFI_STRENGTH_LAST) * 100);
+        summary = g_strdup_printf (_("Connected to '%s'"), sname);
+        body = g_strdup_printf (_("Interface: %s\n"
+                                  "Address: %s\n"
+                                  "Speed: %d Mb/s\n"
+                                  "Signal Strength: %d%%\n"),
+                                ifname, addr, speed);
+        break;
+    }
+    default:
+        g_assert_not_reached ();
+    }
+    nwam_notification_show_message (summary, body, NULL);
+    g_free (sname);
+    g_free (ifname);
+    g_free (addr);
+    g_free (summary);
+    g_free (body);
 }
 
 static void
-on_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data)
+event_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data)
 {
-    DEBUG ();
+	NwamMenu *self = NWAM_MENU (data);
+    gchar *sname;
+    gchar *summary, *body;
+
+    DEBUG();
+
+    switch (nwamui_ncu_get_ncu_type (ncu)) {
+    case NWAMUI_NCU_TYPE_WIRED:
+        sname = nwamui_ncu_get_vanity_name (ncu);
+        summary = g_strdup_printf (_("'%s' is disconnected"), sname);
+        body = g_strdup (_("Cable unplugged"));
+        nwam_notification_show_message (summary, body, NULL);
+        break;
+    case NWAMUI_NCU_TYPE_WIRELESS: {
+        NwamuiWifiNet *wifi = nwamui_ncu_get_wifi_info (ncu);
+        sname = nwamui_wifi_net_get_essid (wifi);
+        summary = g_strdup_printf (_("Disconnected from '%s'"), sname);
+        body = g_strdup (_("Wireless signal lost.\nClick here to join another\nwireless network."));
+        nwam_notification_show_message_with_action (summary,
+          body,
+          NULL,
+          NULL,
+          NULL,
+          notification_joinwireless_cb,
+          (gpointer) g_object_ref (self),
+          (GFreeFunc) g_object_unref);
+        break;
+    }
+    default:
+        g_assert_not_reached ();
+    }
+    g_free (sname);
+    g_free (summary);
+    g_free (body);
 }
 
 static void
-on_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
+event_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
 {
-    DEBUG ();
+	NwamMenu *self = NWAM_MENU (data);
+    gchar *sname;
+    gchar *summary, *body;
+    NwamuiNcp* ncp;
+
+    DEBUG();
+    sname = nwamui_env_get_name (env);
+    summary = g_strdup_printf (_("Switched to location '%s'"), sname);
+    nwamui_daemon_get_active_ncp (daemon);
+    body = g_strdup_printf (_("%s\n"), "Now configuring your network");
+    nwam_notification_show_message (summary, body, NULL);
+
+    g_free (sname);
+    g_free (summary);
+    g_free (body);
+
+    /* TODO - we should receive this signal iff change to env successfully */
+    /* according to v1.5 P4 rescan wifi now */
+    self->prv->force_wifi_rescan_due_to_env_changed = TRUE;
+    nwam_menu_recreate_menuitems (self);
+}
+
+static void
+event_add_wifi_fav (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data)
+{
+	NwamMenu *self = NWAM_MENU (data);
+    gchar *summary;
+    gchar *name;
+
+    /* TODO - we should send notification iff wifi is automatically added */
+    /* according to v1.5 P4 */
+    name = nwamui_wifi_net_get_essid (wifi);
+    summary = g_strdup_printf (_("Wireless network '%s' added to favorites"),
+      name);
+    
+    nwam_notification_show_message_with_action (summary,
+      _("Click here to view or edit your list of favorite\nwireless networks."),
+      NULL,
+      NULL,
+      NULL,
+      notification_listwireless_cb,
+      (gpointer) g_object_ref (self),
+      (GFreeFunc) g_object_unref);
+}
+
+static void
+event_daemon_info (NwamuiDaemon* daemon, gpointer data, gpointer udata)
+{
+    nwam_notification_show_message ("Information", (gchar *)data, NULL);
+}
+
+static void
+notification_joinwireless_cb (NotifyNotification *n, gchar *action, gpointer data)
+{
+    nwam_exec("--add-wireless-dialog=");
+}
+
+static void
+notification_listwireless_cb (NotifyNotification *n, gchar *action, gpointer data)
+{
+    nwam_exec("--list-fav-wireless=");
 }
 
 /*
@@ -576,6 +734,8 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
 	NwamMenu *self = NWAM_MENU (data);
 	GtkAction *action = NULL;
 	
+    /* TODO - Make this more efficient */
+
 	if (wifi) {
 		gchar *name = NULL;
 		
@@ -604,20 +764,43 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
 		nwam_menu_menuitem_postfix(self, wifi);
 		g_free(name);
 		self->prv->has_wifi = TRUE;
-	} else if (!self->prv->has_wifi) {
-		action = GTK_ACTION(gtk_action_new (NOWIFI, _(NOWIFI), NULL, NULL));
-		gtk_action_set_sensitive (action, FALSE);
-		gtk_action_group_add_action_with_accel (self->prv->group[ID_WIFI], action, NULL);
-		g_object_unref (action);
+	} else {
+        /* scan is over */
 
-		gtk_ui_manager_add_ui (self->prv->ui_manager,
-				       self->prv->uid[ID_WIFI],
-				       dynamic_part_menu_path[ID_WIFI],
-				       NOWIFI, /* name */
-				       NOWIFI, /* action */
-				       GTK_UI_MANAGER_MENUITEM,
-				       FALSE);
-	}
+        /* we must clear force rescan flag if it is */
+        if (self->prv->force_wifi_rescan) {
+            self->prv->force_wifi_rescan = FALSE;
+        }
+
+        /* no wifi */
+        if (!self->prv->has_wifi) {
+            action = GTK_ACTION(gtk_action_new (NOWIFI, _(NOWIFI), NULL, NULL));
+            gtk_action_set_sensitive (action, FALSE);
+            gtk_action_group_add_action_with_accel (self->prv->group[ID_WIFI], action, NULL);
+            g_object_unref (action);
+
+            gtk_ui_manager_add_ui (self->prv->ui_manager,
+              self->prv->uid[ID_WIFI],
+              dynamic_part_menu_path[ID_WIFI],
+              NOWIFI, /* name */
+              NOWIFI, /* action */
+              GTK_UI_MANAGER_MENUITEM,
+              FALSE);
+
+            /* happens iff env is just changed and wifi rescan just happenned */
+            if (self->prv->force_wifi_rescan_due_to_env_changed) {
+                self->prv->force_wifi_rescan_due_to_env_changed = FALSE;
+                nwam_notification_show_message_with_action (_("No wireless networks detected"),
+                  _("Click here to join an unlisted\nwireless network."),
+                  NULL,
+                  NULL,
+                  NULL,
+                  notification_joinwireless_cb,
+                  (gpointer) g_object_ref (self),
+                  (GFreeFunc) g_object_unref);
+            }
+        }
+    }
 }
 
 static void

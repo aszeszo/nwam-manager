@@ -27,22 +27,29 @@
  *
  */
 
+#include <libnwam.h>
 #include <glib-object.h>
 #include <glib/gi18n.h>
 #include <strings.h>
+#include <sys/errno.h>
+#include <pthread.h>
 
 #include "libnwamui.h"
 
 static GObjectClass    *parent_class    = NULL;
 static NwamuiDaemon*    instance        = NULL;
+static pthread_t        tid = 0;
 
 enum {
+    DAEMON_INFO,
     WIFI_SCAN_RESULT,
     ACTIVE_ENV_CHANGED,
     S_NCU_CREATE,
     S_NCU_DESTROY,
     S_NCU_UP,
     S_NCU_DOWN,
+    S_WIFI_FAV_ADD,
+    S_WIFI_FAV_REMOVE,
     LAST_SIGNAL
 };
 
@@ -58,6 +65,8 @@ struct _NwamuiDaemonPrivate {
     GList       *env_list;
     GList       *enm_list;
     GList       *wifi_fav_list;
+
+    /* others */
 };
 
 static void nwamui_daemon_set_property ( GObject         *object,
@@ -83,7 +92,14 @@ static void default_ncu_create_signal_handler (NwamuiDaemon *self, GObject* data
 static void default_ncu_destroy_signal_handler (NwamuiDaemon *self, GObject* data, gpointer user_data);
 static void default_ncu_up_signal_handler (NwamuiDaemon *self, GObject* data, gpointer user_data);
 static void default_ncu_down_signal_handler (NwamuiDaemon *self, GObject* data, gpointer user_data);
+static void default_daemon_info_signal_handler (NwamuiDaemon *self, gpointer data, gpointer user_data);
+static void default_add_wifi_fav_signal_handler (NwamuiDaemon *self, gpointer data, gpointer user_data);
+static void default_remove_wifi_fav_signal_handler (NwamuiDaemon *self, gpointer data, gpointer user_data);
+static int nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse);
 
+/* walkers */
+static int nwam_env_walker_cb (nwam_env_handle_t env, void *data);
+static int nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data);
 
 G_DEFINE_TYPE (NwamuiDaemon, nwamui_daemon, G_TYPE_OBJECT)
 
@@ -177,13 +193,49 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                   G_TYPE_NONE,                  /* Return Type */
                   1,                            /* Number of Args */
                   G_TYPE_OBJECT);               /* Types of Args */
+
+    nwamui_daemon_signals[DAEMON_INFO] =   
+            g_signal_new ("daemon_info",
+                  G_TYPE_FROM_CLASS (klass),
+                  G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+                  G_STRUCT_OFFSET (NwamuiDaemonClass, daemon_info),
+                  NULL, NULL,
+                  g_cclosure_marshal_VOID__POINTER, 
+                  G_TYPE_NONE,                  /* Return Type */
+                  1,                            /* Number of Args */
+                  G_TYPE_POINTER);               /* Types of Args */
     
+    nwamui_daemon_signals[S_WIFI_FAV_ADD] =   
+      g_signal_new ("add_wifi_fav",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+        G_STRUCT_OFFSET (NwamuiDaemonClass, add_wifi_fav),
+        NULL, NULL,
+        g_cclosure_marshal_VOID__OBJECT, 
+        G_TYPE_NONE,                  /* Return Type */
+        1,                            /* Number of Args */
+        NWAMUI_TYPE_WIFI_NET);               /* Types of Args */
+    
+    nwamui_daemon_signals[S_WIFI_FAV_REMOVE] =   
+      g_signal_new ("remove_wifi_fav",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+        G_STRUCT_OFFSET (NwamuiDaemonClass, remove_wifi_fav),
+        NULL, NULL,
+        g_cclosure_marshal_VOID__OBJECT, 
+        G_TYPE_NONE,                  /* Return Type */
+        1,                            /* Number of Args */
+        NWAMUI_TYPE_WIFI_NET);               /* Types of Args */
+
     klass->wifi_scan_result = default_wifi_scan_result_signal_handler;
     klass->active_env_changed = default_active_env_changed_signal_handler;
     klass->ncu_create = default_ncu_create_signal_handler;
     klass->ncu_destroy = default_ncu_destroy_signal_handler;
     klass->ncu_up = default_ncu_up_signal_handler;
     klass->ncu_down = default_ncu_down_signal_handler;
+    klass->daemon_info = default_daemon_info_signal_handler;
+    klass->add_wifi_fav = default_add_wifi_fav_signal_handler;
+    klass->remove_wifi_fav = default_remove_wifi_fav_signal_handler;
 }
 /* TODO - Remove static Environemnts when using libnwam */
 static  gchar* environment_names[] = {
@@ -252,12 +304,35 @@ nwamui_daemon_init (NwamuiDaemon *self)
         }
         self->prv->env_list = g_list_append(self->prv->env_list, (gpointer)new_env);
     }
-
+    {
+        nwam_error_t nerr;
+        int cbret;
+        nwam_walk_envs (nwam_env_walker_cb, (void *)self,
+          NWAM_FLAG_NONBLOCK, &cbret);
+        if (nerr != NWAM_SUCCESS) {
+            g_debug ("[libnwam] nwam_walk_envs %s", nwam_strerror (nerr));
+        }
+    }
+    
     /* TODO - Get list of ENM from libnwam */
     self->prv->enm_list = NULL;
-    new_enm = nwamui_enm_new("Punchin", FALSE, NULL, "/usr/local/bin/punchctl -x start", "/usr/local/bin/punchctl -x stop");
-    self->prv->enm_list = g_list_append(self->prv->enm_list, (gpointer)new_enm);
+    //new_enm = nwamui_enm_new("Punchin", FALSE, NULL, "/usr/local/bin/punchctl -x start", "/usr/local/bin/punchctl -x stop");
+    //self->prv->enm_list = g_list_append(self->prv->enm_list, (gpointer)new_enm);
+    {
+        nwam_error_t nerr;
+        int cbret;
+        nwam_walk_enms (nwam_enm_walker_cb, (void *)self,
+          NWAM_FLAG_NONBLOCK, &cbret);
+        if (nerr != NWAM_SUCCESS) {
+            g_debug ("[libnwam] nwam_walk_enms %s", nwam_strerror (nerr));
+        }
+    }
 
+    /* TODO - Register Nwam event callback */
+    if (tid == 0) {
+        nwam_events_register (nwam_events_callback, &tid);
+    }
+    
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
 
@@ -274,17 +349,25 @@ nwamui_daemon_set_property ( GObject         *object,
     g_debug("set property called");
     switch (prop_id) {
         case PROP_ACTIVE_ENV: {
+            NwamuiEnv *env;
+            
                 if ( self->prv->active_env != NULL ) {
                     g_object_unref(G_OBJECT(self->prv->active_env));
                 }
 
-                self->prv->active_env = NWAMUI_ENV(g_value_dup_object( value ));
+                env = NWAMUI_ENV(g_value_dup_object( value ));
 
-                g_signal_emit (self,
-                             nwamui_daemon_signals[ACTIVE_ENV_CHANGED],
-                             0, /* details */
-                             self->prv->active_env );
-
+                /* TODO - I presume that keep the prev active env if failded */
+                if (nwamui_env_activate (env)) {
+                    self->prv->active_env = env;
+                    
+                    g_signal_emit (self,
+                      nwamui_daemon_signals[ACTIVE_ENV_CHANGED],
+                      0, /* details */
+                      self->prv->active_env );
+                } else {
+                    /* TODO - We should tell user we are failed */
+                }
             }
             break;
         default:
@@ -313,11 +396,20 @@ nwamui_daemon_get_property (GObject         *object,
     }
 }
 
-
-
 static void
 nwamui_daemon_finalize (NwamuiDaemon *self)
 {
+    int retval;
+    
+    /* TODO - kill tid before destruct self */
+    if ((retval = pthread_cancel (tid)) == 0) {
+        if (pthread_join (tid, NULL) != 0) {
+            perror ("cancel event handle thread error");
+        }
+    } else if (retval != ESRCH) {
+        g_assert_not_reached ();
+    }
+    
     if (self->prv->active_env != NULL ) {
         g_object_unref( G_OBJECT(self->prv->active_env) );
     }
@@ -501,7 +593,8 @@ nwamui_daemon_set_active_env( NwamuiDaemon* self, NwamuiEnv* env )
  *
  * @returns: null-terminated C String
  *
- * Gets the active Environment Name
+ * Gets the active Environment Name. If NWAM doesn't support creating
+ * "auto/default" envs, the active env may be NULL.
  *
  **/
 extern gchar*
@@ -510,8 +603,9 @@ nwamui_daemon_get_active_env_name(NwamuiDaemon *self)
     NwamuiEnv*  active = nwamui_daemon_get_active_env( self );
     gchar*      name = NULL;
     
-    g_assert( active != NULL );
-
+    if (active == NULL)
+        return NULL;
+    
     name = nwamui_env_get_name(active);
     
     g_object_unref(G_OBJECT(active));
@@ -694,9 +788,7 @@ nwamui_daemon_add_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* new_wifi )
 {
 
     /* TODO - Make this more efficient */
-    if( self->prv->wifi_fav_list != NULL ) {
-        self->prv->wifi_fav_list = g_list_append(self->prv->wifi_fav_list, (gpointer)g_object_ref(new_wifi) );
-    }
+    self->prv->wifi_fav_list = g_list_append(self->prv->wifi_fav_list, (gpointer)g_object_ref(new_wifi) );
 }
 
         
@@ -755,6 +847,137 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     NwamuiDaemon* self = NWAMUI_DAEMON(data);
 
     g_debug("NwamuiDaemon: notify %s changed\n", arg1->name);
+}
+
+/**
+ * nwam_events_callback:
+ *
+ * This callback is needed to be MT safe.
+ */
+static int
+nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse)
+{
+    nwam_events_msg_t *idx;
+    NwamuiDaemon *self = nwamui_daemon_get_instance ();
+    
+    g_debug ("nwam_events_callback\n");
+    
+    for (idx = msg; idx; idx = idx->next) {
+        
+        switch (idx->type) {
+        case NWAM_EVENTS_NOOP:
+        case NWAM_EVENTS_SOURCE_DEAD:
+            g_debug ("NWAM daemon died.");
+            break;
+        case NWAM_EVENTS_SOURCE_BACK:
+            g_debug ("NWAM events synthesized.");
+            break;
+        case NWAM_EVENTS_NO_MAGIC:
+            g_debug ("NWAM events require user's interaction.");
+            break;
+        case NWAM_EVENTS_INFO:
+            /* Directly deliver to upper consumers */
+            g_signal_emit (self,
+              nwamui_daemon_signals[DAEMON_INFO],
+              0, /* details */
+              g_strdup (idx->data.info.message));
+            break;
+        case NWAM_EVENTS_IF_STATE:
+            /* TODO - */
+            if (idx->data.if_state.addr_valid) {
+                char address[INET6_ADDRSTRLEN];
+                struct sockaddr_in *sin;
+                sin = (struct sockaddr_in *)&idx->data.if_state.addr;
+                printf("address %s", inet_ntoa(sin->sin_addr));
+                g_signal_emit (self,
+                  nwamui_daemon_signals[DAEMON_INFO],
+                  0, /* details */
+                  g_strdup_printf ("interface %s (%d) flags %x\naddress %s",
+                    idx->data.if_state.name, 
+                    idx->data.if_state.index,
+                    idx->data.if_state.flags,
+                    inet_ntoa(sin->sin_addr)));
+            } else {
+                g_debug ("interface %s (%d) flags %x",
+                  idx->data.if_state.name, 
+                  idx->data.if_state.index,
+                  idx->data.if_state.flags);
+            }
+            break;
+        case NWAM_EVENTS_IF_REMOVED:
+            /* TODO - */
+            g_signal_emit (self,
+              nwamui_daemon_signals[DAEMON_INFO],
+              0, /* details */
+              g_strdup_printf ("interface %s is removed.", idx->data.removed.name));
+            break;
+        case NWAM_EVENTS_LINK_STATE:
+            /* TODO - map to NCU up/down */
+            switch (idx->data.link_state.link_state) {
+            }
+            
+            g_signal_emit (self,
+              nwamui_daemon_signals[DAEMON_INFO],
+              0, /* details */
+              g_strdup_printf ("link %s is removed.", idx->data.removed.name));
+            break;
+        case NWAM_EVENTS_LINK_REMOVED:
+            /* TODO - map to NCU destroy */
+            g_signal_emit (self,
+              nwamui_daemon_signals[DAEMON_INFO],
+              0, /* details */
+              g_strdup_printf ("link %s is removed.", idx->data.removed.name));
+            break;
+        case NWAM_EVENTS_SCAN_REPORT: {
+            nwam_events_wlan_t *wlans;
+            int i;
+            NwamuiWifiNet          *wifi_net = NULL;
+            
+            wlans = idx->data.wlan_scan.wlans;
+            /* TODO - We should list all the wlans from all interfaces */
+            g_signal_emit (self,
+              nwamui_daemon_signals[DAEMON_INFO],
+              0, /* details */
+              g_strdup_printf ("got some essids from interface %s.",
+                idx->data.wlan_scan.name));
+             
+            for (i = 0; i < idx->data.wlan_scan.num_wlans; i++) {
+                wifi_net = nwamui_wifi_net_new (wlans->essid,
+                  nwamui_wifi_net_security_map (wlans->security_mode),
+                  wlans->bssid,
+                  NULL,
+                  0,
+                  nwamui_wifi_net_strength_map (wlans->signal_strength),
+                  NULL);
+                /* trigger event */
+                g_signal_emit (self,
+                  nwamui_daemon_signals[WIFI_SCAN_RESULT],
+                  0, /* details */
+                  wifi_net);
+                
+                wlans++;
+            }
+             
+            /* Signal End List */
+            g_signal_emit (self,
+              nwamui_daemon_signals[WIFI_SCAN_RESULT],
+              0, /* details */
+              NULL);
+        }
+            break;
+        default:
+            /* Directly deliver to upper consumers */
+            g_signal_emit (self,
+              nwamui_daemon_signals[DAEMON_INFO],
+              0, /* details */
+              g_strdup_printf ("Unknown NWAM event type %d.", idx->type));
+            break;
+        }
+    }
+    
+    g_object_unref (self);
+    
+    return 0;
 }
 
 /* Default Signal Handlers */
@@ -828,4 +1051,58 @@ default_ncu_down_signal_handler(NwamuiDaemon *self, GObject* data, gpointer user
 	g_debug("NCU %s down", name );
 	
 	g_free(name);
+}
+
+static void
+default_daemon_info_signal_handler(NwamuiDaemon *self, gpointer data, gpointer user_data)
+{
+    gchar *msg = (gchar *) data;
+    
+	g_debug ("Daemon got information %s.", msg);
+	
+	g_free (msg);
+}
+
+static void
+default_add_wifi_fav_signal_handler (NwamuiDaemon *self, gpointer data, gpointer user_data)
+{
+}
+
+static void
+default_remove_wifi_fav_signal_handler (NwamuiDaemon *self, gpointer data, gpointer user_data)
+{
+}
+
+/* walkers */
+static int
+nwam_env_walker_cb (nwam_env_handle_t env, void *data)
+{
+    char *name;
+    nwam_error_t nerr;
+    NwamuiEnv* new_env;
+        
+    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON(data)->prv;
+
+    g_debug ("nwam_env_walker_cb 0x%p", env);
+    
+    new_env = nwamui_env_new_with_handle (env);
+        
+    nwamui_env_set_modifiable(new_env, TRUE);
+    prv->env_list = g_list_append(prv->env_list, (gpointer)new_env);
+}
+
+static int
+nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data)
+{
+    char *name;
+    nwam_error_t nerr;
+    NwamuiEnm* new_enm;
+    
+    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON(data)->prv;
+
+    g_debug ("nwam_enm_walker_cb 0x%p", enm);
+    
+    new_enm = nwamui_enm_new_with_handle (enm);
+        
+    prv->enm_list = g_list_append(prv->enm_list, (gpointer)new_enm);
 }

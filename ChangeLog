@@ -1,3 +1,81 @@
+2008-01-02  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c: (process_enm): Correct typo FMRI.
+	* capplet/nwam-manager-properties.glade: Changed help/OK butten names.
+	* capplet/nwam_conn_stat_panel.c: (nwam_conn_status_panel_init),
+	(nwam_conn_status_panel_refresh), (repair_clicked_cb),
+	(on_nwam_env_notify_cb):
+	Add code for repair button due to v1.5. Fix the unactive env.
+	* capplet/nwam_env_pref_dialog.c: (nwam_pref_init),
+	(nwam_env_pref_dialog_init), (nwam_env_pref_dialog_run),
+	(response_cb), (apply), (help):
+	Add code for applying Changes and help.
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_update_obj), (response_cb),
+	(nwam_vpn_cell_cb), (nwam_vpn_selection_changed):
+	Added code for applying changes.
+	* common/nwamui_daemon.c: (nwamui_daemon_class_init),
+	(nwamui_daemon_init), (nwamui_daemon_set_property),
+	(nwamui_daemon_finalize), (nwamui_daemon_get_active_env_name),
+	(nwamui_daemon_add_wifi_fav), (nwam_events_callback),
+	(default_daemon_info_signal_handler),
+	(default_add_wifi_fav_signal_handler),
+	(default_remove_wifi_fav_signal_handler), (nwam_env_walker_cb),
+	(nwam_enm_walker_cb):
+	* common/nwamui_daemon.h:
+	New signals "daemon_info, add_wifi_fav, remove_wifi_fav". Daemon info
+	is used to deliver the unsolved/uninterested libnwam msg to upper
+	level. Add libnwam event call back to process the libnwam events. We
+	cancel the event call back thread in nwamuidaemon finalize func and
+	wait for its return code.
+	* common/nwamui_enm.c: (nwamui_enm_class_init), (nwamui_enm_init),
+	(nwamui_enm_set_property), (nwamui_enm_get_property),
+	(nwamui_enm_new), (nwamui_enm_new_with_handle),
+	(nwamui_enm_set_smf_fmri), (nwamui_enm_get_smf_fmri),
+	(nwamui_enm_commit), (nwamui_enm_finalize):
+	* common/nwamui_enm.h:
+	Correct typo FMRI. Add libnwam code in set/get property.
+	* common/nwamui_env.c: (nwamui_env_class_init), (nwamui_env_init),
+	(nwamui_env_set_property), (nwamui_env_get_property),
+	(nwamui_env_new), (nwamui_env_new_with_handle), (nwamui_env_clone),
+	(nwamui_env_get_svc), (nwamui_env_svc_foreach),
+	(nwamui_env_svc_insert), (nwamui_env_svc_delete),
+	(nwamui_env_svc_add), (nwamui_env_svc_add_full),
+	(nwamui_env_svc_commit), (nwamui_env_activate),
+	(nwamui_env_commit), (nwamui_env_finalize),
+	(svc_row_inserted_or_changed_cb), (svc_row_deleted_cb),
+	(nwam_env_svc_walker_cb), (nwam_env_sys_svc_walker_cb):
+	* common/nwamui_env.h:
+	Add libnwam code in set/get property. Add nwamui_env_activate,
+	nwamui_env_commit and nwamui_env_svc_commit.
+	* common/nwamui_svc.c: (nwamui_svc_class_init),
+	(nwamui_svc_set_property), (nwamui_svc_get_property),
+	(nwamui_svc_finalize), (nwamui_svc_new):
+	* common/nwamui_svc.h:
+	Add libnwam code in set/get property.
+	* common/nwamui_wifi_net.c: (nwamui_wifi_net_security_map),
+	(nwamui_wifi_net_strength_map):
+	* common/nwamui_wifi_net.h:
+	Add libnwam code in set/get property. Add two maps to map libnwam data
+	to nwamuiwifi.
+	* daemon/main.c: (on_trigger_network_changed), (main):
+	Currently the active env may be null, so fix it. Remove
+	nwam_notification_connect since nwamuidaemon signals are processed in
+	nwam-menu.c.
+	* daemon/notify.c: (nwam_notification_show_message),
+	(nwam_notification_show_message_with_action),
+	(nwam_notification_init):
+	* daemon/notify.h:
+	Remove nwam_notification_connect. Add function to show messages with
+	actions.
+	* daemon/nwam-menu.c: (nwam_menu_init),
+	(nwam_menu_recreate_menuitems), (nwam_menu_create_static_part),
+	(on_activate_joinwireless), (event_ncu_up), (event_ncu_down),
+	(event_active_env_changed), (event_add_wifi_fav),
+	(event_daemon_info), (notification_joinwireless_cb),
+	(notification_listwireless_cb), (nwam_menu_create_wifi_menuitems):
+	Update some notifications due to v1.5, and process nwamuidaemon signals
+	here. Updated scan wifi and construct wifi menuitems code.
+
 2007-12-14  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.glade:

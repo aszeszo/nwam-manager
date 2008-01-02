@@ -28,6 +28,7 @@
 #ifndef _notify_H
 #define	_notify_H
 
+#include <libnotify/notify.h>
 #include "libnwamui.h"
 
 #ifdef	__cplusplus
@@ -46,7 +47,19 @@ void nwam_notification_init( GtkStatusIcon* status_icon );
  */
 void nwam_notification_show_message( const gchararray summary, const gchararray body, const gchararray icon );
 
-void nwam_notification_connect (NwamuiDaemon* daemon);
+/* 
+ * Displays a message. Only the summary is needed, the body text and icon can
+ * be NULL. If action is NULL or is empty, the default action "default" will be
+ * used.
+ */
+void nwam_notification_show_message_with_action (const gchararray summary,
+  const gchararray body,
+  const gchararray icon,
+  const gchararray action,
+  const gchararray label,
+  NotifyActionCallback callback,
+  gpointer user_data,
+  GFreeFunc free_func);
 
 /* 
  * Should be called prior to exiting, to ensure notificaiton area is cleaned up.

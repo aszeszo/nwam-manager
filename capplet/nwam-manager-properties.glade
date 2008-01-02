@@ -1481,6 +1481,8 @@ Remain offline
                             </child>
                           </widget>
                           <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
                             <property name="position">1</property>
                           </packing>
                         </child>
@@ -2646,7 +2648,7 @@ Additional network services:</property>
             <property name="visible">True</property>
             <property name="layout_style">GTK_BUTTONBOX_END</property>
             <child>
-              <widget class="GtkButton" id="helpbutton2">
+              <widget class="GtkButton" id="help_button">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -2656,7 +2658,7 @@ Additional network services:</property>
               </widget>
             </child>
             <child>
-              <widget class="GtkButton" id="cancelbutton1">
+              <widget class="GtkButton" id="cancel_button">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -2669,7 +2671,7 @@ Additional network services:</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="button15">
+              <widget class="GtkButton" id="apply_button">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -2682,7 +2684,7 @@ Additional network services:</property>
               </packing>
             </child>
             <child>
-              <widget class="GtkButton" id="button17">
+              <widget class="GtkButton" id="ok_button">
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>

@@ -814,6 +814,20 @@ nwamui_wifi_net_get_wpa_cert_file (NwamuiWifiNet *self )
     return( ret_str );
 }
 
+extern nwamui_wifi_security_t
+nwamui_wifi_net_security_map (guint security)
+{
+    /* TODO - */
+    return NWAMUI_WIFI_SEC_NONE;
+}
+
+extern nwamui_wifi_signal_strength_t
+nwamui_wifi_net_strength_map (const gchar *strength)
+{
+    /* TODO - */
+    return NWAMUI_WIFI_STRENGTH_GOOD;
+}
+
 /* Callbacks */
 
 static void

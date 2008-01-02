@@ -87,8 +87,10 @@ extern void                 nwamui_enm_set_stop_command ( NwamuiEnm *self, const
 extern gchar*               nwamui_enm_get_stop_command ( NwamuiEnm *self );
 
 
-extern void                 nwamui_enm_set_smf_frmi ( NwamuiEnm *self, const gchar* smf_frmi );
-extern gchar*               nwamui_enm_get_smf_frmi ( NwamuiEnm *self );
+extern void                 nwamui_enm_set_smf_fmri ( NwamuiEnm *self, const gchar* smf_frmi );
+extern gchar*               nwamui_enm_get_smf_fmri ( NwamuiEnm *self );
+
+extern gboolean             nwamui_enm_commit (NwamuiEnm *self);
 
 G_END_DECLS
 

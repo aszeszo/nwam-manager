@@ -34,6 +34,8 @@
 #error "Please include libnwamui.h header instead."
 #endif
 
+#include <libnwam.h>
+
 G_BEGIN_DECLS
 
 /* GObject Creation */
@@ -65,7 +67,7 @@ struct _NwamuiSvcClass
 
 extern GType nwamui_svc_get_type (void) G_GNUC_CONST;
 
-extern NwamuiSvc*			nwamui_svc_new(const gchar* fmri);
+extern NwamuiSvc*			nwamui_svc_new (nwam_env_svc_t *svc);
 extern gchar*				nwamui_svc_get_description (NwamuiSvc *self);
 extern void                 nwamui_svc_set_status (NwamuiSvc *self, gboolean status);
 extern gboolean             nwamui_svc_get_status (NwamuiSvc *self);

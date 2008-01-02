@@ -452,7 +452,7 @@ process_enm( gpointer data, gpointer user_data )
     g_debug("NwamuiEnm : stop_command = %s", stop_command?stop_command:"NULL" );
 
 
-    smf_frmi = nwamui_enm_get_smf_frmi ( NWAMUI_ENM(enm) );
+    smf_frmi = nwamui_enm_get_smf_fmri ( NWAMUI_ENM(enm) );
     g_debug("NwamuiEnm : smf_frmi = %s", smf_frmi?smf_frmi:"NULL" );
 
     if (name != NULL ) {

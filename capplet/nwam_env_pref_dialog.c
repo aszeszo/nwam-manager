@@ -34,6 +34,7 @@
 #include <glib/gi18n.h>
 
 #include <libnwamui.h>
+#include "nwam_pref_iface.h"
 #include "nwam_env_pref_dialog.h"
 #include "nwam_proxy_password_dialog.h"
 #include <strings.h>
@@ -150,10 +151,8 @@ struct _NwamEnvPrefDialogPrivate {
     NwamuiEnv*                  selected_env;
 };
 
-G_DEFINE_TYPE (NwamEnvPrefDialog, nwam_env_pref_dialog, G_TYPE_OBJECT)
-
-
 static void         nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self);
+static void         nwam_pref_init (gpointer g_iface, gpointer iface_data);
 
 static void         change_env_combo_model(NwamEnvPrefDialog *self);
 
@@ -181,6 +180,9 @@ static void condition_field_changed_cb( GtkWidget* widget, gpointer data );
 static void condition_op_changed_cb( GtkWidget* widget, gpointer data );
 static void condition_value_changed_cb( GtkWidget* widget, gpointer data );
 static void nwam_compose_tree_view (NwamEnvPrefDialog *self);
+static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
+static gboolean apply (NwamPrefIFace *self, gpointer data);
+static gboolean help (NwamPrefIFace *self, gpointer data);
 
 /* Callbacks */
 static void         env_selection_changed_cb( GtkWidget* widget, gpointer data );
@@ -229,6 +231,21 @@ static gboolean default_netservices_vfunc (GtkTreeModel *model,
 static gboolean additional_netservices_vfunc (GtkTreeModel *model,
                                               GtkTreeIter *iter,
                                               gpointer data);
+
+G_DEFINE_TYPE_EXTENDED (NwamEnvPrefDialog,
+  nwam_env_pref_dialog,
+  G_TYPE_OBJECT,
+  0,
+  G_IMPLEMENT_INTERFACE (NWAM_TYPE_PREF_IFACE, nwam_pref_init))
+
+static void
+nwam_pref_init (gpointer g_iface, gpointer iface_data)
+{
+	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
+	iface->refresh = NULL;
+	iface->apply = apply;
+    iface->help = help;
+}
 
 static void
 nwam_env_pref_dialog_class_init (NwamEnvPrefDialogClass *klass)
@@ -329,6 +346,8 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     change_env_combo_model(self);
     
     /* Add Signal Handlers */
+	g_signal_connect(GTK_DIALOG(self->prv->env_pref_dialog), "response", (GCallback)response_cb, (gpointer)self);
+
     g_signal_connect(GTK_COMBO_BOX(prv->environment_name_combo), "changed", (GCallback)env_selection_changed_cb, (gpointer)self);
     
     g_signal_connect(GTK_BUTTON(prv->add_environment_btn), "clicked", G_CALLBACK(env_add_button_clicked_cb), (gpointer)self);
@@ -450,8 +469,7 @@ nwam_env_pref_dialog_run (NwamEnvPrefDialog  *self, GtkWindow* parent)
         populate_dialog( self );
         
         response =  gtk_dialog_run(GTK_DIALOG(self->prv->env_pref_dialog));
-        
-        gtk_widget_hide( GTK_WIDGET(self->prv->env_pref_dialog) );
+
     }
     return(response);
     
@@ -1625,4 +1643,81 @@ additional_netservices_vfunc (GtkTreeModel *model,
     g_object_unref (svc);
 
     return !ret;
+}
+
+static void
+response_cb( GtkWidget* widget, gint responseid, gpointer data )
+{
+    NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(data);
+    gboolean            stop_emission = FALSE;
+    
+    switch (responseid) {
+    case GTK_RESPONSE_NONE:
+        g_debug("GTK_RESPONSE_NONE");
+        break;
+    case GTK_RESPONSE_APPLY:
+    case GTK_RESPONSE_OK:
+        if (nwam_pref_apply (NWAM_ENV_PREF_DIALOG(data), NULL)) {
+
+            if (responseid == GTK_RESPONSE_OK) {
+                gtk_widget_hide( GTK_WIDGET(self->prv->env_pref_dialog) );
+            }
+            stop_emission = TRUE;
+        }
+        break;
+    case GTK_RESPONSE_CANCEL:
+        g_debug("GTK_RESPONSE_CANCEL");
+        gtk_widget_hide( GTK_WIDGET(self->prv->env_pref_dialog) );
+        stop_emission = TRUE;
+        break;
+    case GTK_RESPONSE_HELP:
+        g_debug("GTK_RESPONSE_HELP");
+        nwam_pref_help (NWAM_ENV_PREF_DIALOG(data), NULL);
+        stop_emission = TRUE;
+        break;
+    }
+    if ( stop_emission ) {
+        g_signal_stop_emission_by_name(widget, "response" );
+    }
+}
+
+static gboolean
+apply (NwamPrefIFace *self, gpointer data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+	GtkTreeIter iter;
+    GtkTreeModel *model;
+    GObject *obj;
+
+    g_debug("NwamEnvPrefDialog apply");
+
+	model = gtk_combo_box_get_model (GTK_COMBO_BOX(prv->environment_name_combo));
+    
+    /* FIXME, ok need call into separated panel/instance
+     * apply all changes, if no errors, hide all
+     */
+    if (gtk_tree_model_get_iter_first (model, &iter)) {
+        do {
+            gtk_tree_model_get (model, &iter, 0, &obj, -1);
+            if (!nwamui_env_commit (NWAMUI_ENV (obj))) {
+                gchar *name = nwamui_env_get_name (NWAMUI_ENV (obj));
+                gchar *msg = g_strdup_printf (_("Committing %s faild..."), name);
+                nwamui_util_show_message (prv->env_pref_dialog,
+                  GTK_MESSAGE_ERROR,
+                  _("Commit ENV error"),
+                  msg);
+                g_free (msg);
+                g_free (name);
+                return FALSE;
+            }
+        } while (gtk_tree_model_iter_next (model, &iter));
+    }
+    return TRUE;
+}
+
+static gboolean
+help (NwamPrefIFace *self, gpointer data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+    g_debug("NwamEnvPrefDialog help");
 }

@@ -34,6 +34,8 @@
 #error "Please include libnwamui.h header instead."
 #endif
 
+#include <libnwam.h>
+
 G_BEGIN_DECLS
 
 #define NWAMUI_TYPE_ENV               (nwamui_env_get_type ())
@@ -78,6 +80,8 @@ typedef enum {
 } nwamui_env_status_t; /* TODO - provide means to get status in env */
 
 extern  NwamuiEnv*          nwamui_env_new ( gchar* name );
+
+extern	NwamuiEnv*			nwamui_env_new_with_handle (nwam_env_handle_t envh);
 
 extern  NwamuiEnv*          nwamui_env_clone( NwamuiEnv* self );
 
@@ -156,13 +160,20 @@ extern void                 nwamui_env_condition_remove (NwamuiEnv *self, Nwamui
 extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GFunc func, gpointer data);
 
 extern GtkTreeModel *       nwamui_env_get_svcs (NwamuiEnv *self);
-extern NwamuiSvc*           nwamui_env_svc_add (NwamuiEnv *self, const gchar *svc);
+
+extern NwamuiSvc*           nwamui_env_svc_add (NwamuiEnv *self, nwam_env_svc_t *svc);
+
 extern void                 nwamui_env_svc_add_full (NwamuiEnv *self,
-  const gchar* svc,
+  nwam_env_svc_t *svc,
   gboolean is_default,
   gboolean status);
 extern void                 nwamui_env_svc_remove (NwamuiEnv *self, GtkTreeIter *iter);
-extern gboolean             nwamui_env_has_svc (NwamuiEnv *self, const gchar* svc);
+
+extern void                 nwamui_env_svc_foreach (NwamuiEnv *self, GtkTreeModelForeachFunc func, gpointer data);
+
+extern gboolean             nwamui_env_activate (NwamuiEnv *self);
+
+extern gboolean             nwamui_env_commit (NwamuiEnv *self);
 
 G_END_DECLS
 

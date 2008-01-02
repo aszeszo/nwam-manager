@@ -40,10 +40,9 @@
 
 struct _NwamuiSvcPrivate {
     nwam_env_svc_t *svc;
-	gchar	*fmri;
     gboolean	status;
     gboolean	is_default;
-    
+    gboolean	is_new;
 };
 
 static void nwamui_svc_set_property (GObject		 *object,
@@ -63,7 +62,8 @@ static void nwamui_svc_finalize (NwamuiSvc *self);
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 enum {
-	PROP_FMRI = 1,
+	PROP_SVC = 1,
+	PROP_FMRI,
 	PROP_DESC,
 	PROP_STAT,
 	PROP_DEFAULT,
@@ -84,13 +84,20 @@ nwamui_svc_class_init (NwamuiSvcClass *klass)
 	g_type_class_add_private (klass, sizeof (NwamuiSvcPrivate));
 
 	/* Create some properties */
+    g_object_class_install_property (gobject_class,
+      PROP_SVC,
+      g_param_spec_pointer ("nwam_svc",
+        _("Nwam ENV SVC handle"),
+        _("Nwam ENV SVC handle"),
+        G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
+
 	g_object_class_install_property (gobject_class,
       PROP_FMRI,
       g_param_spec_string ("fmri",
         _("fmri"),
         _("fmri"),
         "",
-        G_PARAM_READWRITE));
+        G_PARAM_READABLE));
 
 	g_object_class_install_property (gobject_class,
       PROP_DESC,
@@ -136,10 +143,13 @@ nwamui_svc_set_property (GObject		 *object,
 	NwamuiSvcPrivate *prv = GET_PRIVATE(object);
 
 	switch (prop_id) {
+    case PROP_SVC: {
+        g_assert (prv->svc == NULL);
+        prv->svc = g_value_get_pointer (value);
+    }
+        break;
     case PROP_FMRI: {
-        if (prv->fmri)
-            g_free (prv->fmri);
-        prv->fmri = g_value_dup_string (value);
+        g_assert_not_reached ();
     }
         break;
     case PROP_STAT: {
@@ -166,12 +176,16 @@ nwamui_svc_get_property (GObject		 *object,
 	NwamuiSvcPrivate *prv = GET_PRIVATE(object);
 
 	switch (prop_id) {
+    case PROP_SVC: {
+        g_value_set_pointer (value, prv->svc);
+    }
+        break;
     case PROP_FMRI: {
-        g_value_set_string(value, prv->fmri);
+        g_value_set_string(value, prv->svc->es_fmri);
     }
         break;
     case PROP_DESC: {
-        g_value_set_string(value, "Unknown description");
+        g_value_set_string(value, prv->svc->es_attrs->ea_desc);
     }
         break;
     case PROP_STAT: {
@@ -193,10 +207,10 @@ nwamui_svc_finalize (NwamuiSvc *self)
 {
 	NwamuiSvcPrivate *prv = GET_PRIVATE(self);
 
-	if (prv->fmri != NULL) {
-		g_free(prv->fmri);
-	}
-
+    if (prv->svc != NULL) {
+        nwam_env_svc_free (prv->svc);
+    }
+    
 	(*G_OBJECT_CLASS(nwamui_svc_parent_class)->finalize) (G_OBJECT(self));
 }
 
@@ -212,15 +226,13 @@ nwamui_svc_finalize (NwamuiSvc *self)
  * Creates a new #NwamuiSvc.
  **/
 extern	NwamuiSvc*
-nwamui_svc_new(const gchar*	 fmri)
+nwamui_svc_new (nwam_env_svc_t *svc)
 {
 	NwamuiSvc*	self = NULL;
 	
-	self = NWAMUI_SVC(g_object_new (NWAMUI_TYPE_SVC, NULL));
-	
-	g_object_set (G_OBJECT (self),
-					"fmri", fmri,
-					NULL);
+	self = NWAMUI_SVC(g_object_new (NWAMUI_TYPE_SVC,
+                        "nwam_svc", svc,
+                        NULL));
 	
 	return( self );
 }
