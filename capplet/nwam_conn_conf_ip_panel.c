@@ -54,6 +54,11 @@
 #define IP_PANEL_WIRELESS_TAB_EDIT_BUTTON       "wireless_tab_edit_button"
 #define IP_PANEL_WIRELESS_TAB_UP_BUTTON         "wireless_tab_up_button"
 #define IP_PANEL_WIRELESS_TAB_DOWN_BUTTON       "wireless_tab_down_button"
+#define IP_PANEL_WIRELESS_TAB_WIRELESS_OPT_EXPANDER    "wireless_options_expander"
+#define IP_PANEL_WIRELESS_TAB_JOIN_OPEN_CBOX    "ask_before_join_open_cbox"
+#define IP_PANEL_WIRELESS_TAB_JOIN_PREF_CBOX    "ask_before_join_preferred_cbox"
+#define IP_PANEL_WIRELESS_TAB_ADD_CBOX          "ask_before_add_cbox"
+#define IP_PANEL_WIRELESS_TAB_PREF_NET_COMBO    "no_preferred_networks_combo"
 
 #define IP_DHCP_PANEL_IPV4_ADDRESS_LBL              "dhcp_address_lbl"
 #define IP_DHCP_PANEL_IPV4_SUBNET_LBL               "dhcp_subnet_lbl"
@@ -102,6 +107,10 @@ struct _NwamConnConfIPPanelPrivate {
     GtkButton   *wireless_tab_edit_button;
     GtkButton   *wireless_tab_up_button;
     GtkButton   *wireless_tab_down_button;
+	GtkComboBox *no_preferred_networks_combo;
+    GtkCheckButton *join_open_cbox;
+    GtkCheckButton *join_preferred_cbox;
+    GtkCheckButton *add_cbox;
 
 /*
  *      Currently not relevant.
@@ -121,6 +130,9 @@ struct _NwamConnConfIPPanelPrivate {
 	/* Other Data */
     NwamuiDaemon*       daemon;
     NwamuiNcu*          ncu;
+    gboolean            join_open;
+    gboolean            join_preferred;
+    gboolean            add_any_wifi;
     gulong              ncu_handler_id;
     NwamWirelessDialog* wifi_dialog;
 };
@@ -186,7 +198,7 @@ static void refresh_clicked_cb( GtkButton *button, gpointer data );
 static void ipv4_addr_changed_cb( GtkEditable* editable, gpointer user_data );
 static void ipv4_subnet_changed_cb( GtkEditable* editable, gpointer user_data );
 static gboolean refresh (NwamPrefIFace *self, gpointer data);
-static gboolean apply (NwamPrefIFace *self, gpointer data);
+static gboolean apply (NwamPrefIFace *iface, gpointer data);
 static gboolean help (NwamPrefIFace *self, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnConfIPPanel,
@@ -200,7 +212,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
-	iface->apply = NULL;
+	iface->apply = apply;
     iface->help = help;
 }
 
@@ -440,7 +452,12 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
     g_signal_connect(G_OBJECT(self->prv->wireless_tab_edit_button), "clicked", (GCallback)wireless_tab_edit_button_clicked_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->wireless_tab_up_button), "clicked", (GCallback)wireless_tab_up_button_clicked_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->wireless_tab_down_button), "clicked", (GCallback)wireless_tab_down_button_clicked_cb, (gpointer)self);
-        
+
+	self->prv->no_preferred_networks_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_PREF_NET_COMBO));
+    self->prv->join_open_cbox = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_JOIN_OPEN_CBOX));
+    self->prv->join_preferred_cbox = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_JOIN_PREF_CBOX));
+    self->prv->add_cbox = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_ADD_CBOX));
+
 	self->prv->ipv4_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(IP_PANEL_IPV4_COMBO));
 	g_signal_connect(G_OBJECT(self->prv->ipv4_combo), "changed", (GCallback)show_changed_cb, (gpointer)self);
 	self->prv->ipv6_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(IP_PANEL_IPV6_COMBO));
@@ -554,6 +571,27 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
         }
         
         nwamui_util_free_obj_list( fav_list );
+
+        /* Populate WiFi conditions */
+        {
+            NwamuiProf*     prof;
+
+            prof = nwamui_prof_get_instance ();
+            g_object_get (prof,
+              "join_wifi_not_in_fav", &prv->join_open,
+              "join_any_fav_wifi", &prv->join_preferred,
+              "add_any_new_wifi_to_fav", &prv->add_any_wifi,
+              NULL);
+            
+            /* TODO */
+            gtk_combo_box_set_active (prv->no_preferred_networks_combo, 0);
+
+            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->join_open_cbox), prv->join_open);
+            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->join_preferred_cbox), prv->join_preferred);
+            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->add_cbox), prv->add_any_wifi);
+
+            g_object_unref (prof);
+        }
     }
     else {
         gtk_widget_hide_all( GTK_WIDGET(self->prv->wireless_tab) );
@@ -642,6 +680,49 @@ refresh (NwamPrefIFace *self, gpointer data)
     g_assert( NWAM_IS_CONN_CONF_IP_PANEL(self));
     
     populate_panel(NWAM_CONN_CONF_IP_PANEL(self), FALSE);
+}
+
+static gboolean
+apply (NwamPrefIFace *iface, gpointer data)
+{
+    g_assert( NWAM_IS_CONN_CONF_IP_PANEL(iface));
+    NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(iface);
+    NwamConnConfIPPanelPrivate* prv = self->prv;
+    
+    /* Populate WiFi conditions */
+    {
+        NwamuiProf*     prof;
+        gboolean join_open, join_preferred, add_any_wifi;
+        
+        prof = nwamui_prof_get_instance ();
+            
+        /* TODO */
+        gtk_combo_box_set_active (prv->no_preferred_networks_combo, 0);
+        join_open = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->join_open_cbox));
+        join_preferred = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->join_preferred_cbox));
+        add_any_wifi = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->add_cbox));
+        
+        if (prv->join_open != join_open) {
+            prv->join_open = join_open;
+            g_object_set (prof,
+              "join_wifi_not_in_fav", prv->join_open,
+              NULL);
+        }
+        if (prv->join_preferred != join_preferred) {
+            prv->join_preferred = join_preferred;
+            g_object_set (prof,
+              "join_any_fav_wifi", prv->join_preferred,
+              NULL);
+        }
+        if (prv->add_any_wifi != add_any_wifi) {
+            prv->add_any_wifi = add_any_wifi;
+            g_object_set (prof,
+              "add_any_new_wifi_to_fav", prv->add_any_wifi,
+              NULL);
+        }
+
+        g_object_unref (prof);
+    }
 }
 
 /**

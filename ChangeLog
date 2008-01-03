@@ -1,3 +1,24 @@
+2008-01-03  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c: (nwam_pref_init),
+	(nwam_conf_ip_panel_init), (populate_panel), (apply):
+	According to P14 of v1.5. Added code for wireless settings like "join
+	an open network that is not in your favorites list" etc.
+	* common/Makefile.am:
+	* common/libnwamui.h:
+	Add nwamui_prof.[hc]
+	* common/nwamui_prof.c: (nwamui_prof_class_init),
+	(nwamui_prof_init), (nwamui_prof_set_property),
+	(nwamui_prof_get_property), (nwamui_prof_finalize),
+	(gconf_notify_cb), (nwamui_prof_get_instance),
+	(nwamui_prof_notify_begin), (object_notify_cb):
+	* common/nwamui_prof.h:
+	Currently use GConf to get/set wireless settings. Use g_object signals
+	to get the notification if any settings are changed rather than GConf
+	notifications.
+	* daemon/nwam-manager.schemas.in:
+	Updated to add those gconf key value.
+
 2008-01-02  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/main.c: (process_enm): Correct typo FMRI.

@@ -44,6 +44,10 @@ G_BEGIN_DECLS
 #include <gdk/gdkpixbuf.h>
 #endif /* __GDK_PIXBUF_H__ */
         
+#ifndef _NWAMUI_PROF_H
+#include "nwamui_prof.h"
+#endif /*_NWAMUI_PROF_H */
+
 #ifndef _NWAMUI_COND_H
 #include "nwamui_cond.h"
 #endif /*_NWAMUI_COND_H */

@@ -8,19 +8,46 @@
     <!-- General preferences -->
 
     <schema>
-      <key>/schemas/apps/nwam/todo</key>
-      <applyto>/apps/nwam/todo</applyto>
-      <owner>nwam</owner>
+      <key>/schemas/apps/nwam-manager/join_wifi_not_in_fav</key>
+      <applyto>/apps/nwam-manager/join_wifi_not_in_fav</applyto>
+      <owner>nwam-manager</owner>
       <type>bool</type>
       <default>true</default>
       <locale name="C">
-         <short>todo</short>
+         <short>join_wifi_not_in_fav</short>
          <long>
-		todo
+		Joining an open network that is not in your favorites list
          </long>
       </locale>
     </schema>
 
+    <schema>
+      <key>/schemas/apps/nwam-manager/join_any_fav_wifi</key>
+      <applyto>/apps/nwam-manager/join_any_fav_wifi</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>false</default>
+      <locale name="C">
+         <short>join_any_fav_wifi</short>
+         <long>
+		Joining any favorite network
+         </long>
+      </locale>
+    </schema>
+
+    <schema>
+      <key>/schemas/apps/nwam-manager/add_any_new_wifi_to_fav</key>
+      <applyto>/apps/nwam-manager/add_any_new_wifi_to_fav</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>add_any_new_wifi_to_fav</short>
+         <long>
+		Adding any new network to your favorites list
+         </long>
+      </locale>
+    </schema>
 
   </schemalist>  
 </gconfschemafile>
