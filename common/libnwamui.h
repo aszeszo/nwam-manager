@@ -95,6 +95,14 @@ G_BEGIN_DECLS
 #define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "network-wireless-signal-fair"
 #define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "network-wireless-signal-good"
 
+/* if no favorite networks are available, what should we do ? */
+enum 
+{
+    PROF_SHOW_AVAILABLE_NETWORK_LIST = 0,
+    PROF_JOIN_OPEN_NETWORK,
+    PROF_REMAIN_OFFLINE,
+};
+
 /* Utility Functions */
 extern GtkWidget*               nwamui_util_glade_get_widget( const gchar* widget_name );
 

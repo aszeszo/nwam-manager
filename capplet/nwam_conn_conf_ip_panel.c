@@ -133,6 +133,7 @@ struct _NwamConnConfIPPanelPrivate {
     gboolean            join_open;
     gboolean            join_preferred;
     gboolean            add_any_wifi;
+    gint                action_if_no_fav;
     gulong              ncu_handler_id;
     NwamWirelessDialog* wifi_dialog;
 };
@@ -578,13 +579,14 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
 
             prof = nwamui_prof_get_instance ();
             g_object_get (prof,
+              "action_on_no_fav_networks", &prv->action_if_no_fav,
               "join_wifi_not_in_fav", &prv->join_open,
               "join_any_fav_wifi", &prv->join_preferred,
               "add_any_new_wifi_to_fav", &prv->add_any_wifi,
               NULL);
             
-            /* TODO */
-            gtk_combo_box_set_active (prv->no_preferred_networks_combo, 0);
+            gtk_combo_box_set_active (prv->no_preferred_networks_combo,
+              prv->action_if_no_fav);
 
             gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->join_open_cbox), prv->join_open);
             gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->join_preferred_cbox), prv->join_preferred);
@@ -693,15 +695,22 @@ apply (NwamPrefIFace *iface, gpointer data)
     {
         NwamuiProf*     prof;
         gboolean join_open, join_preferred, add_any_wifi;
+        gint action_if_no_fav;
         
         prof = nwamui_prof_get_instance ();
             
-        /* TODO */
-        gtk_combo_box_set_active (prv->no_preferred_networks_combo, 0);
+        action_if_no_fav = gtk_combo_box_get_active (prv->no_preferred_networks_combo);
         join_open = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->join_open_cbox));
         join_preferred = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->join_preferred_cbox));
         add_any_wifi = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->add_cbox));
         
+        if (prv->action_if_no_fav != action_if_no_fav) {
+            prv->action_if_no_fav = action_if_no_fav;
+            g_object_set (prof,
+              "action_on_no_fav_networks", prv->action_if_no_fav,
+              NULL);
+        }
+            
         if (prv->join_open != join_open) {
             prv->join_open = join_open;
             g_object_set (prof,

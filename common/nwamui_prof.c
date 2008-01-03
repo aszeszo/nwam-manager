@@ -39,30 +39,34 @@ enum {
     S_JOIN_WIFI_NOT_IN_FAV = 0,
     S_JOIN_ANY_FAV_WIFI,
     S_ADD_ANY_NEW_WIFI_TO_FAV,
+    S_ACTION_ON_NO_FAV_NETWORKS,
     LAST_SIGNAL
-};
-
-static guint nwamui_daemon_signals [LAST_SIGNAL] = { 0 };
-
-#define PROF_GCONF_ROOT "/apps/nwam-manager/"
-#define PROF_BOOL_JOIN_WIFI_NOT_IN_FAV PROF_GCONF_ROOT \
-	"join_wifi_not_in_fav"
-#define PROF_BOOL_JOIN_ANY_FAV_WIFI PROF_GCONF_ROOT \
-	"join_any_fav_wifi"
-#define PROF_BOOL_ADD_ANY_NEW_WIFI_TO_FAV PROF_GCONF_ROOT \
-    "add_any_new_wifi_to_fav"
-
-struct _NwamuiProfPrivate {
-
-    /*<private>*/
-    GConfClient* client;
-    guint gconf_notify_id;
 };
 
 enum {
     PROP_JOIN_WIFI_NOT_IN_FAV = 1,
     PROP_JOIN_ANY_FAV_WIFI,
     PROP_ADD_ANY_NEW_WIFI_TO_FAV,
+    PROP_ACTION_ON_NO_FAV_NETWORKS,
+};
+
+static guint nwamui_daemon_signals [LAST_SIGNAL] = { 0 };
+
+#define PROF_GCONF_ROOT "/apps/nwam-manager"
+#define PROF_BOOL_JOIN_WIFI_NOT_IN_FAV PROF_GCONF_ROOT \
+	"/join_wifi_not_in_fav"
+#define PROF_BOOL_JOIN_ANY_FAV_WIFI PROF_GCONF_ROOT \
+	"/join_any_fav_wifi"
+#define PROF_BOOL_ADD_ANY_NEW_WIFI_TO_FAV PROF_GCONF_ROOT \
+    "/add_any_new_wifi_to_fav"
+#define PROF_STRING_ACTION_ON_NO_FAV_NETWORKS PROF_GCONF_ROOT \
+    "/action_on_no_fav_networks"
+
+struct _NwamuiProfPrivate {
+
+    /*<private>*/
+    GConfClient* client;
+    guint gconf_notify_id;
 };
 
 static void nwamui_prof_set_property ( GObject         *object,
@@ -127,6 +131,16 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         TRUE,
         G_PARAM_READWRITE));
 
+    g_object_class_install_property (gobject_class,
+      PROP_ACTION_ON_NO_FAV_NETWORKS,
+      g_param_spec_int ("action_on_no_fav_networks",
+        _("The action if no favorite networks are available"),
+        _("The action if no favorite networks are available"),
+        PROF_SHOW_AVAILABLE_NETWORK_LIST,
+        PROF_REMAIN_OFFLINE,
+        PROF_SHOW_AVAILABLE_NETWORK_LIST,
+        G_PARAM_READWRITE));
+
     /* Create some signals */
     nwamui_daemon_signals[S_JOIN_WIFI_NOT_IN_FAV] =   
       g_signal_new ("join_wifi_not_in_fav",
@@ -160,6 +174,17 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         G_TYPE_NONE,                  /* Return Type */
         1,                            /* Number of Args */
         G_TYPE_BOOLEAN);              /* Types of Args */
+
+    nwamui_daemon_signals[S_ACTION_ON_NO_FAV_NETWORKS] =   
+      g_signal_new ("action_on_no_fav_networks",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+        0,                            /* No class method */
+        NULL, NULL,
+        g_cclosure_marshal_VOID__INT,
+        G_TYPE_NONE,                  /* Return Type */
+        1,                            /* Number of Args */
+        G_TYPE_INT);              /* Types of Args */
 }
 
 
@@ -168,8 +193,20 @@ nwamui_prof_init (NwamuiProf *self)
 {
 	NwamuiProfPrivate *prv = GET_PRIVATE(self);
 	self->prv = prv;
+    GError *err = NULL;
     
     prv->client = gconf_client_get_default ();
+
+    gconf_client_add_dir (self->prv->client,
+      PROF_GCONF_ROOT,
+      GCONF_CLIENT_PRELOAD_ONELEVEL,
+      &err);
+
+    if (err) {
+        g_error ("Unable to call gconf_client_add_dir: %s\n", err->message);
+        g_error_free (err);
+        g_assert_not_reached ();
+    }
     
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
@@ -202,6 +239,13 @@ nwamui_prof_set_property (GObject         *object,
     case PROP_ADD_ANY_NEW_WIFI_TO_FAV: {
         gconf_client_set_bool (prv->client, PROF_BOOL_ADD_ANY_NEW_WIFI_TO_FAV,
           g_value_get_boolean (value),
+          &err);
+    }
+        break;
+
+    case PROP_ACTION_ON_NO_FAV_NETWORKS: {
+        gconf_client_set_int (prv->client, PROF_STRING_ACTION_ON_NO_FAV_NETWORKS,
+          g_value_get_int (value),
           &err);
     }
         break;
@@ -249,6 +293,13 @@ nwamui_prof_get_property (GObject         *object,
     }
         break;
 
+    case PROP_ACTION_ON_NO_FAV_NETWORKS: {
+        g_value_set_int (value, gconf_client_get_int (prv->client,
+                           PROF_STRING_ACTION_ON_NO_FAV_NETWORKS,
+                           &err));
+    }
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -264,6 +315,17 @@ static void
 nwamui_prof_finalize (NwamuiProf *self)
 {
     NwamuiProfPrivate *prv = self->prv;
+    GError *err = NULL;
+
+    gconf_client_remove_dir (self->prv->client,
+      PROF_GCONF_ROOT,
+      &err);
+
+    if (err) {
+        g_error ("Unable to call gconf_client_remove_dir: %s\n", err->message);
+        g_error_free (err);
+        g_assert_not_reached ();
+    }
 
     /* we may not need to remove notify */
     if (prv->gconf_notify_id) {
@@ -308,6 +370,11 @@ static void gconf_notify_cb (GConfClient *client,
           nwamui_daemon_signals[S_ADD_ANY_NEW_WIFI_TO_FAV],
           0, /* details */
           gconf_value_get_bool (value));
+    } else if (g_ascii_strcasecmp (key, PROF_STRING_ACTION_ON_NO_FAV_NETWORKS) == 0) {
+        g_signal_emit (self,
+          nwamui_daemon_signals[S_ACTION_ON_NO_FAV_NETWORKS],
+          0, /* details */
+          gconf_value_get_int (value));
     } else {
         g_assert_not_reached ();
     }
@@ -335,7 +402,7 @@ extern void
 nwamui_prof_notify_begin (NwamuiProf* self)
 {
     GError *err = NULL;
-    
+
     self->prv->gconf_notify_id = gconf_client_notify_add (self->prv->client,
       PROF_GCONF_ROOT,
       gconf_notify_cb,

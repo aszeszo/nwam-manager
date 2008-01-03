@@ -41,6 +41,16 @@ static GtkWidget *my_menu = NULL;
 static GtkStatusIcon *status_icon = NULL;
 
 #define NWAM_MANAGER_LOCK	"nwam-manger-lock"
+gint prof_action_if_no_fav_networks = NULL;
+gboolean prof_ask_join_open_network;
+gboolean prof_ask_join_fav_network;
+gboolean prof_ask_add_to_fav;
+
+/* nwamui preference signal */
+static void join_wifi_not_in_fav (NwamuiProf* prof, gboolean val, gpointer data);
+static void join_any_fav_wifi (NwamuiProf* prof, gboolean val, gpointer data);
+static void add_any_new_wifi_to_fav (NwamuiProf* prof, gboolean val, gpointer data);
+static void action_on_no_fav_networks (NwamuiProf* prof, gint val, gpointer data);
 
 gboolean
 detect_and_set_singleton ()
@@ -176,6 +186,54 @@ activate_cb ()
     nwam_exec ("-e");
 }
 
+static void
+join_wifi_not_in_fav (NwamuiProf* prof, gboolean val, gpointer data)
+{
+    NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
+    gchar *body;
+    
+    prof_ask_join_open_network = val;
+    body = g_strdup_printf ("prof_ask_join_open_network = %d", prof_ask_join_open_network);
+    nwam_notification_show_message("Prof signal", body, NULL);
+    g_free (body);
+}
+
+static void
+join_any_fav_wifi (NwamuiProf* prof, gboolean val, gpointer data)
+{
+    NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
+    gchar *body;
+
+    prof_ask_join_fav_network = val;
+    body = g_strdup_printf ("prof_ask_join_fav_network = %d", prof_ask_join_fav_network);
+    nwam_notification_show_message("Prof signal", body, NULL);
+    g_free (body);
+}
+
+static void
+add_any_new_wifi_to_fav (NwamuiProf* prof, gboolean val, gpointer data)
+{
+    NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
+    gchar *body;
+
+    prof_ask_add_to_fav = val;
+    body = g_strdup_printf ("prof_ask_add_to_fav = %d", prof_ask_add_to_fav);
+    nwam_notification_show_message("Prof signal", body, NULL);
+    g_free (body);
+}
+
+static void
+action_on_no_fav_networks (NwamuiProf* prof, gint val, gpointer data)
+{
+    NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
+    gchar *body;
+
+    prof_action_if_no_fav_networks = val;
+    body = g_strdup_printf ("prof_action_if_no_fav_networks = %d", prof_action_if_no_fav_networks);
+    nwam_notification_show_message("Prof signal", body, NULL);
+    g_free (body);
+}
+
 int main( int argc, 
       char* argv[] )
 {
@@ -185,6 +243,7 @@ int main( int argc,
     NwamMenu *menu;
     NwamuiDaemon* daemon;
     struct sigaction act;
+    NwamuiProf* prof;
     
 #ifdef ENABLE_NLS
     bindtextdomain (GETTEXT_PACKAGE, NWAM_MANAGER_LOCALEDIR);
@@ -229,6 +288,19 @@ int main( int argc,
     g_signal_connect(daemon, "active_env_changed",
 	    G_CALLBACK(on_trigger_network_changed),
 	    (gpointer)status_icon_index);
+
+    /* nwamui preference signals */
+    prof = nwamui_prof_get_instance ();
+    g_signal_connect(prof, "join_wifi_not_in_fav",
+      G_CALLBACK(join_wifi_not_in_fav), (gpointer) daemon);
+    g_signal_connect(prof, "join_any_fav_wifi",
+      G_CALLBACK(join_any_fav_wifi), (gpointer) daemon);
+    g_signal_connect(prof, "add_any_new_wifi_to_fav",
+      G_CALLBACK(add_any_new_wifi_to_fav), (gpointer) daemon);
+    g_signal_connect(prof, "action_on_no_fav_networks",
+      G_CALLBACK(action_on_no_fav_networks), (gpointer) daemon);
+
+    nwamui_prof_notify_begin (prof);
     
     /* first time app trigger tooltip */
     on_trigger_network_changed (daemon, nwamui_daemon_get_active_env (daemon), status_icon_index);
@@ -236,6 +308,7 @@ int main( int argc,
 
     g_debug ("exiting...\n");
     nwam_notification_cleanup();
+    g_object_unref (prof);
     g_object_unref (daemon);
     g_object_unref (G_OBJECT (menu));
     g_object_unref (G_OBJECT (program));
