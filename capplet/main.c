@@ -32,6 +32,7 @@
 #include "nwam_wireless_dialog.h"
 #include "nwam_env_pref_dialog.h"
 #include "nwam_vpn_pref_dialog.h"
+#include "nwam_wireless_chooser.h"
 #include "nwam_pref_dialog.h"
 #include <libnwamui.h>
 
@@ -41,6 +42,7 @@ static gchar        *add_wireless_dialog = NULL;
 static gboolean     env_pref_dialog = FALSE;
 static gboolean     vpn_pref_dialog = FALSE;
 static gboolean     nwam_pref_dialog = TRUE;
+static gboolean     wireless_chooser = FALSE;
 
 static void debug_response_id( gint responseid );
 static void test_nwam_wireless_dialog( NwamWirelessDialog* dialog );
@@ -54,6 +56,7 @@ GOptionEntry application_options[] = {
         { "env-pref-dialog", 'e', 0, G_OPTION_ARG_NONE, &env_pref_dialog, "Show 'Location Preferences' Dialog only", NULL  },
         { "nwam-pref-dialog", 'p', 0, G_OPTION_ARG_NONE, &nwam_pref_dialog, "Show 'Network Preferences' Dialog only", NULL  },
         { "vpn-pref-dialog", 'n', 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, "Show 'VPN Preferences' Dialog only", NULL  },
+        { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, "Show 'Wireless Network Chooser' Dialog only", NULL  },
         { NULL }
 };
 
@@ -122,6 +125,13 @@ main(int argc, char** argv)
         NwamVPNPrefDialog *vpn_pref_dialog = nwam_vpn_pref_dialog_new();
         
         gint responseid = nwam_vpn_pref_dialog_run( vpn_pref_dialog, NULL );
+        
+        debug_response_id( responseid );
+    }
+    else if( wireless_chooser ) {
+        NwamWirelessChooser *wifi_chooser = nwam_wireless_chooser_new();
+        
+        gint responseid = nwam_wireless_chooser_run( wifi_chooser, NULL );
         
         debug_response_id( responseid );
     }

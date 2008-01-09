@@ -1,3 +1,20 @@
+2008-01-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am: Add nwam_wireless_chooser.[hc].
+	* capplet/main.c: (main):
+	Add options for Wireless Network Chooser dialog.
+	* capplet/nwam_wireless_chooser.c: (nwam_pref_init),
+	(nwam_wireless_chooser_class_init),
+	(nwam_compose_wifi_chooser_view), (nwam_wireless_chooser_init),
+	(populate_panel), (wifi_add), (wifi_remove), (nwam_rescan_wifi),
+	(nwam_wireless_chooser_new), (nwam_wireless_chooser_run),
+	(refresh), (apply), (help), (nwam_wireless_chooser_finalize),
+	(nwam_wifi_chooser_comp_cb), (object_notify_cb),
+	(nwam_wifi_chooser_cell_cb), (nwam_create_wifi_cb):
+	* capplet/nwam_wireless_chooser.h:
+	Basic code.
+	* daemon/main.c: (main): Initially read wifi settings first.
+
 2008-01-03  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_conf_ip_panel.c: (populate_panel), (apply):

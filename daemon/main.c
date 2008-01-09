@@ -291,6 +291,12 @@ int main( int argc,
 
     /* nwamui preference signals */
     prof = nwamui_prof_get_instance ();
+    g_object_get (prof,
+      "action_on_no_fav_networks", &prof_action_if_no_fav_networks,
+      "join_wifi_not_in_fav", &prof_ask_join_open_network,
+      "join_any_fav_wifi", &prof_ask_join_fav_network,
+      "add_any_new_wifi_to_fav", &prof_ask_add_to_fav,
+      NULL);
     g_signal_connect(prof, "join_wifi_not_in_fav",
       G_CALLBACK(join_wifi_not_in_fav), (gpointer) daemon);
     g_signal_connect(prof, "join_any_fav_wifi",

@@ -52,6 +52,7 @@ nwam_manager_properties_SOURCES =		\
 	nwam_conn_conf_ip_panel.c	\
 	nwam_proxy_password_dialog.c	\
 	nwam_env_svc.c	\
+	nwam_wireless_chooser.c	\
 	$(NULL)
 
 nwam_manager_properties_CPPFLAGS = \
@@ -80,6 +81,7 @@ EXTRA_DIST = 		\
 	nwam_conn_conf_ip_panel.h	\
 	nwam_env_svc.h	\
 	nwam_proxy_password_dialog.h	\
+	nwam_wireless_chooser.h	\
 	$(glade_DATA)	\
 	$(NULL)
 
