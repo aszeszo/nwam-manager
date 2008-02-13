@@ -1,0 +1,8 @@
+2008-02-13  Calum Benson <calum.benson@sun.com>
+
+	* ChangeLog: added
+
+        * ui-spec.odp: modified
+        * img/capplet/wireless-security-wep-ascii.png: added
+
+	Add Key Index for WEP+ASCII.
