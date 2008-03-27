@@ -1,5 +1,10 @@
 2008-03-27  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam-manager-properties.glade: Enable "rules hint" on all
+	tree views.
+
+2008-03-27  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam-manager-properties.glade: P8, add a mnemonic "Ru_les".
 	* capplet/nwam_conn_conf_ip_panel.c:
 	(nwam_compose_multi_ip_tree_view), (nwam_conf_ip_panel_init),

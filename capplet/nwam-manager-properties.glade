@@ -89,6 +89,7 @@ Wireless (bcm0)</property>
                             <property name="can_focus">True</property>
                             <property name="headers_visible">False</property>
                             <property name="enable_search">False</property>
+                            <property name="rules_hint">True</property>
                           </widget>
                         </child>
                       </widget>
@@ -350,6 +351,7 @@ Wireless (bcm0)</property>
                               <widget class="GtkTreeView" id="network_profile_table">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
+								<property name="rules_hint">True</property>
                               </widget>
                             </child>
                           </widget>
@@ -496,6 +498,7 @@ disconnected</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="headers_visible">False</property>
+										<property name="rules_hint">True</property>
                                       </widget>
                                     </child>
                                   </widget>
@@ -742,6 +745,7 @@ Multiple addresses</property>
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">True</property>
                                                     <property name="enable_search">False</property>
+													<property name="rules_hint">True</property>
                                                   </widget>
                                                 </child>
                                               </widget>
@@ -1238,6 +1242,7 @@ Enabled</property>
                                         <property name="visible">True</property>
                                         <property name="can_focus">True</property>
                                         <property name="enable_search">False</property>
+										<property name="rules_hint">True</property>
                                       </widget>
                                     </child>
                                   </widget>
@@ -1342,6 +1347,7 @@ Enabled</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="enable_search">False</property>
+									<property name="rules_hint">True</property>
                                   </widget>
                                 </child>
                               </widget>
@@ -2512,6 +2518,7 @@ From configuration (PAC) file</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="headers_visible">False</property>
+							<property name="rules_hint">True</property>
                           </widget>
                         </child>
                       </widget>
@@ -2591,6 +2598,7 @@ Additional network services:</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="headers_visible">False</property>
+							<property name="rules_hint">True</property>
                           </widget>
                         </child>
                       </widget>
@@ -3213,6 +3221,7 @@ WPA Enterprise (Radius)</property>
                   <widget class="GtkTreeView" id="wireless_list">
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
+					<property name="rules_hint">True</property>
                   </widget>
                 </child>
               </widget>
@@ -3331,6 +3340,7 @@ WPA Enterprise (Radius)</property>
                           <widget class="GtkTreeView" id="vpn_apps_list">
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
+							<property name="rules_hint">True</property>
                           </widget>
                         </child>
                       </widget>
