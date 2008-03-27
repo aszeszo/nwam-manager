@@ -121,12 +121,11 @@ struct _NwamConnConfIPPanelPrivate {
 	GtkEntry *ipv6_prefix_entry;
  	GtkButton *ipv6_mutli_add_btn;
 	GtkButton *ipv6_mutli_del_btn;
-*/
-	GtkTreeView *ipv6_tv;
-	
 	GtkCheckButton *ipv6_accept_stateful_cb;
 	GtkCheckButton *ipv6_accept_stateless_cb;
-        
+*/      
+	GtkTreeView *ipv6_tv;
+
 	/* Other Data */
     NwamuiDaemon*       daemon;
     NwamuiNcu*          ncu;
@@ -139,8 +138,8 @@ struct _NwamConnConfIPPanelPrivate {
 };
 
 enum {
-	IP_VIEW_HOSTNAME=0,
-	IP_VIEW_ADDR,
+	/* IP_VIEW_HOSTNAME=0, */
+	IP_VIEW_ADDR = 0,
 	IP_VIEW_MASK,
 };
 
@@ -348,6 +347,7 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 		      NULL);
 	
 	// column IP_VIEW_HOSTNAME
+/*
 	col = gtk_tree_view_column_new();
 	renderer = gtk_cell_renderer_text_new();
 	gtk_tree_view_column_set_title(col, _("Hostname"));
@@ -370,7 +370,7 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	g_signal_connect(G_OBJECT(renderer), "edited",
 		(GCallback) nwam_conn_multi_ip_cell_edited_cb, (gpointer) view);
 	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_HOSTNAME));
-
+*/
 	// column IP_VIEW_ADDR
 	col = gtk_tree_view_column_new();
 	renderer = gtk_cell_renderer_text_new();
@@ -400,7 +400,7 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	if (view == self->prv->ipv4_tv) {
 		gtk_tree_view_column_set_title(col, _("Subnet"));
 	} else {
-		gtk_tree_view_column_set_title(col, _("Prefix"));
+		gtk_tree_view_column_set_title(col, _("Prefix Length"));
 	}
 	gtk_tree_view_column_pack_start(col, renderer, TRUE);
 	gtk_tree_view_column_set_cell_data_func (col,
@@ -501,12 +501,11 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
         self->prv->ipv6_mutli_del_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_DEL_BTN));
 	g_signal_connect(G_OBJECT(self->prv->ipv6_mutli_del_btn), "clicked", (GCallback)multi_line_del_cb, (gpointer)self);
 	
+	self->prv->ipv6_accept_stateful_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ACCEPT_STATEFUL_CBTN));
+	self->prv->ipv6_accept_stateless_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ACCEPT_STATELESS_CBTN));
 */
 
 	self->prv->ipv6_tv = GTK_TREE_VIEW(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ADDR_TABLE_TVIEW));
-
-	self->prv->ipv6_accept_stateful_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ACCEPT_STATEFUL_CBTN));
-	self->prv->ipv6_accept_stateless_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ACCEPT_STATELESS_CBTN));
 
     nwam_compose_multi_ip_tree_view (self, self->prv->ipv4_tv);
 
@@ -946,7 +945,8 @@ show_changed_cb( GtkComboBox* widget, gpointer data )
 	if (lbl) {
 		switch (actid) {
                     case 0: 
-                        ipv6_lbl = _("None");
+                        /* ipv6_lbl = _("None"); */
+                        ipv6_lbl = "";
                         break;
                     case 1: 
                         ipv6_lbl = _("Enabled");
@@ -1063,6 +1063,7 @@ nwam_conn_multi_ip_cell_cb (    GtkTreeViewColumn *col,
     subnet = nwamui_ip_get_subnet_prefix( ip );
 
     switch (gtk_tree_view_column_get_sort_column_id (col)) {
+/*
     case IP_VIEW_HOSTNAME:
         if ( hostname != NULL ) {
             g_object_set (G_OBJECT(renderer),
@@ -1070,6 +1071,7 @@ nwam_conn_multi_ip_cell_cb (    GtkTreeViewColumn *col,
                     NULL);
         }
         break;
+*/
     case IP_VIEW_ADDR:
         if ( addr != NULL ) {
             g_object_set (G_OBJECT(renderer),
@@ -1109,9 +1111,10 @@ nwam_conn_multi_ip_cell_edited_cb ( GtkCellRendererText *renderer,
 
     /* TODO - Validate data in editing */
 	switch (col_id) {
+/*
 	case IP_VIEW_HOSTNAME:
-		/* FIXME, update the hostname */
 		break;
+*/
 	case IP_VIEW_ADDR:
         nwamui_ip_set_address(ip, new_text);
 		break;

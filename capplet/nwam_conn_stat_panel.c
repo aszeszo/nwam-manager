@@ -154,8 +154,7 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 						 cell,
 						 nwam_conn_status_update_status_cell_cb,
 						 (gpointer) 0,
-						 NULL
-		);
+						 NULL);
         /* Add 2nd wireless strength icon */
 	cell = gtk_cell_renderer_pixbuf_new();
 	gtk_tree_view_column_pack_end(col, cell, FALSE);
@@ -163,8 +162,7 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 						 cell,
 						 nwam_conn_status_update_status_cell_cb,
 						 (gpointer) 1, /* Important to know this is wireless cell in 1st col */
-						 NULL
-		);
+						 NULL);
 	gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_ICON);	
 	g_object_set (col,
 		      "resizable", TRUE,
@@ -183,8 +181,7 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 						 cell,
 						 nwam_conn_status_update_status_cell_cb,
 						 (gpointer) 0,
-						 NULL
-		);
+						 NULL);
 	gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_INFO);	
 	g_object_set (col,
 		      "expand", TRUE,
@@ -204,11 +201,11 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 						 cell,
 						 nwam_conn_status_update_status_cell_cb,
 						 (gpointer) 0,
-						 NULL
-		);
+						 NULL);
 	g_object_set (cell,
-		      "weight", PANGO_WEIGHT_BOLD,
-                      NULL );
+      "xalign", 1.0,
+      "weight", PANGO_WEIGHT_BOLD,
+      NULL );
 	gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_STATUS);	
 	g_object_set (col,
 		      "resizable", TRUE,

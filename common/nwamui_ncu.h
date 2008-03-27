@@ -83,6 +83,7 @@ typedef enum {
 
 extern  NwamuiNcu*          nwamui_ncu_new (    const gchar*        vanity_name,
                                                 const gchar*        device_name,
+				   								const gchar*        phy_address,
                                                 nwamui_ncu_type_t   ncu_type,
                                                 gboolean            enabled,
                                                 guint				speed,
@@ -101,6 +102,9 @@ extern void                 nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const 
 
 extern gchar*               nwamui_ncu_get_device_name ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_device_name ( NwamuiNcu *self, const gchar* name );
+
+extern gchar*               nwamui_ncu_get_phy_address ( NwamuiNcu *self );
+extern void                 nwamui_ncu_set_phy_address ( NwamuiNcu *self, const gchar* phy_address );
 
 extern gchar*               nwamui_ncu_get_display_name ( NwamuiNcu *self );
 

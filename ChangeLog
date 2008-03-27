@@ -1,3 +1,37 @@
+2008-03-27  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam-manager-properties.glade: P8, add a mnemonic "Ru_les".
+	* capplet/nwam_conn_conf_ip_panel.c:
+	(nwam_compose_multi_ip_tree_view), (nwam_conf_ip_panel_init),
+	(show_changed_cb), (nwam_conn_multi_ip_cell_cb),
+	(nwam_conn_multi_ip_cell_edited_cb): P10 ~ P12
+	Remove "(None)" from ipv6 expander label; Remove "Hostname" column;
+	Change "Prefix" to "Prefix Length".
+	* capplet/nwam_conn_stat_panel.c: (nwam_compose_tree_view):
+	P7 Use different colors for even/odd row.
+	* capplet/nwam_net_conf_panel.c: (nwam_net_conf_panel_class_init),
+	(net_conf_set_property), (net_conf_get_property),
+	(nwam_compose_tree_view), (nwam_net_conf_panel_init),
+	(nwam_net_conf_panel_finalize),
+	(nwam_net_conf_update_status_cell_cb),
+	(nwam_net_pref_connection_enabled_toggled_cb),
+	(vanity_name_editing_started),
+	(nwam_net_pref_connection_view_row_activated_cb),
+	(update_rules_from_ncu),
+	(nwam_net_pref_connection_view_row_selected_cb),
+	(conditions_connected_toggled_cb), (ncu_notify_cb): P8, 9
+	Support "indeterminate" state, remove "Connection Status" column,
+	double-clicking checkbox only affect checkbox, display MAC address,
+	"set status of $inf" is auto-updated.
+	* common/nwamui_ncp.c: (nwamui_ncp_init):
+	Test code supports MAC address.
+	* common/nwamui_ncu.c: (nwamui_ncu_class_init),
+	(nwamui_ncu_set_property), (nwamui_ncu_get_property),
+	(nwamui_ncu_new), (nwamui_ncu_get_phy_address),
+	(nwamui_ncu_set_phy_address):
+	* common/nwamui_ncu.h:
+	Add api for MAC address.
+
 2008-01-09  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/Makefile.am: Add nwam_wireless_chooser.[hc].

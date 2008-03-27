@@ -540,7 +540,8 @@ Disabled</property>
                         <child>
                           <widget class="GtkLabel" id="label79">
                             <property name="visible">True</property>
-                            <property name="label" translatable="yes">Rules for enabling selected connection</property>
+                            <property name="label" translatable="yes">Ru_les for enabling selected connection</property>
+                            <property name="use_underline">True</property>
                           </widget>
                           <packing>
                             <property name="type">label_item</property>

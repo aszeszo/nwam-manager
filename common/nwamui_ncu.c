@@ -40,6 +40,7 @@ static GObjectClass *parent_class = NULL;
 struct _NwamuiNcuPrivate {
         gchar*                      vanity_name;
         gchar*                      device_name;
+        gchar*                      phy_address;
         nwamui_ncu_type_t           ncu_type;
         gboolean                    active;
         guint                       speed;
@@ -61,6 +62,7 @@ struct _NwamuiNcuPrivate {
 enum {
         PROP_VANITY_NAME = 1,
         PROP_DEVICE_NAME,
+        PROP_PHY_ADDRESS,
         PROP_NCU_TYPE,
         PROP_ACTIVE,
         PROP_SPEED,
@@ -132,6 +134,14 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                      g_param_spec_string ("device_name",
                                                           _("device_name"),
                                                           _("device_name"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_PHY_ADDRESS,
+                                     g_param_spec_string ("phy_address",
+                                                          _("phy_address"),
+                                                          _("phy_address"),
                                                           "",
                                                           G_PARAM_READWRITE));
 
@@ -348,6 +358,13 @@ nwamui_ncu_set_property ( GObject         *object,
                 self->prv->device_name = g_strdup( g_value_get_string( value ) );
             }
             break;
+        case PROP_PHY_ADDRESS: {
+                if ( self->prv->phy_address != NULL ) {
+                        g_free( self->prv->phy_address );
+                }
+                self->prv->phy_address = g_strdup( g_value_get_string( value ) );
+            }
+            break;
         case PROP_NCU_TYPE: {
                 self->prv->ncu_type = g_value_get_int( value );
             }
@@ -514,6 +531,10 @@ nwamui_ncu_get_property (GObject         *object,
                 g_value_set_string(value, self->prv->device_name);
             }
             break;
+        case PROP_PHY_ADDRESS: {
+                g_value_set_string(value, self->prv->phy_address);
+            }
+            break;
         case PROP_NCU_TYPE: {
                 g_value_set_int(value, self->prv->ncu_type);
             }
@@ -637,6 +658,7 @@ nwamui_ncu_get_property (GObject         *object,
 extern  NwamuiNcu*          
 nwamui_ncu_new (    const gchar*        vanity_name,
                     const gchar*        device_name,
+                    const gchar*        phy_address,
                     nwamui_ncu_type_t   ncu_type,
                     gboolean            active,
                     guint               speed,
@@ -655,6 +677,7 @@ nwamui_ncu_new (    const gchar*        vanity_name,
     g_object_set (  G_OBJECT (self),
                     "vanity_name", vanity_name,
                     "device_name", device_name,
+                    "phy_address", phy_address,
                     "ncu_type", ncu_type,
                     "active", active,
                     "speed", speed,
@@ -711,6 +734,44 @@ nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name )
     if ( name != NULL ) {
         g_object_set (G_OBJECT (self),
                       "vanity_name", name,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_ncu_get_phy_address:
+ * @returns: null-terminated C String with the device name of the the NCU.
+ *
+ **/
+extern gchar*
+nwamui_ncu_get_phy_address ( NwamuiNcu *self )
+{
+    gchar*  name = NULL;
+    
+    g_return_val_if_fail (NWAMUI_IS_NCU(self), name); 
+    
+    g_object_get (G_OBJECT (self),
+                  "phy_address", &name,
+                  NULL);
+
+    return( name );
+}
+
+/**
+ * nwamui_ncu_set_phy_address:
+ * @phy_address: null-terminated C String with the device phy_address of the the NCU.
+ *
+ **/
+extern void
+nwamui_ncu_set_phy_address ( NwamuiNcu *self, const gchar* phy_address )
+{
+    g_return_if_fail (NWAMUI_IS_NCU(self)); 
+    
+    g_assert (phy_address != NULL );
+
+    if ( phy_address != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "phy_address", phy_address,
                       NULL);
     }
 }

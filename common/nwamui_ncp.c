@@ -108,6 +108,7 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 struct _ncu_info {
     gchar*              vanity_name;
     gchar*              device_name;
+    gchar*              phy_address;
     nwamui_ncu_type_t   type;
     gboolean            enabled;
     guint               speed;
@@ -128,8 +129,8 @@ static void
 nwamui_ncp_init ( NwamuiNcp *self)
 {
     static ncu_info_t   tmp_ncu_list[] = {
-        { "MyWireless", "ath0", NWAMUI_NCU_TYPE_WIRELESS, TRUE, 54, FALSE, "192.168.1.20", "255.255.255.0", "192.168.1.1", TRUE, TRUE, "2001:0db8:0:0:0:0:1428:57ab", "2001:0db8:1234::/48", "MyESSID" },
-        { "MyWired1", "bge0", NWAMUI_NCU_TYPE_WIRED, FALSE, 100, TRUE, NULL, NULL, NULL, FALSE, TRUE, NULL, NULL, NULL },
+        { "MyWireless", "ath0", "00:64:7a:8b:1f:aa", NWAMUI_NCU_TYPE_WIRELESS, TRUE, 54, FALSE, "192.168.1.20", "255.255.255.0", "192.168.1.1", TRUE, TRUE, "2001:0db8:0:0:0:0:1428:57ab", "2001:0db8:1234::/48", "MyESSID" },
+        { "MyWired1", "bge0", "00:32:5d:7c:ff:66", NWAMUI_NCU_TYPE_WIRED, FALSE, 100, TRUE, NULL, NULL, NULL, FALSE, TRUE, NULL, NULL, NULL },
         { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
     };
     
@@ -151,6 +152,7 @@ nwamui_ncp_init ( NwamuiNcp *self)
         }
         ncu = nwamui_ncu_new(   ptr->vanity_name,
                                 ptr->device_name,
+					            ptr->phy_address,
                                 ptr->type,
                                 ptr->enabled,
                                 ptr->speed,
