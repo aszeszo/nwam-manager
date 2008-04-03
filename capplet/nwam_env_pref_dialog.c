@@ -160,6 +160,7 @@ static void         populate_dialog( NwamEnvPrefDialog* self );
 
 static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_proxy_type_t proxy_type );
 
+#define	_CU_COND_FILTER_VALUE	"custom_cond_combo_filter_value"
 #define TABLE_PREF_PARENT "table_pref_parent"
 #define TABLE_ROW_COMBO1 "condition_vbox_row_combo1"
 #define TABLE_ROW_COMBO2 "condition_vbox_row_combo2"
@@ -176,8 +177,7 @@ static void table_condition_delete(GtkWidget *clist, GtkWidget *crow);
 static void default_condition_add_signal_handler (NwamEnvPrefDialog *self, GObject* data, gpointer user_data);
 static void default_condition_remove_signal_handler (NwamEnvPrefDialog *self, GObject* data, gpointer user_data);
 
-static void condition_field_changed_cb( GtkWidget* widget, gpointer data );
-static void condition_op_changed_cb( GtkWidget* widget, gpointer data );
+static void condition_field_op_changed_cb( GtkWidget* widget, gpointer data );
 static void condition_value_changed_cb( GtkWidget* widget, gpointer data );
 static void nwam_compose_tree_view (NwamEnvPrefDialog *self);
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
@@ -1202,27 +1202,152 @@ http_password_button_clicked_cb(GtkButton *button, gpointer  user_data)
     }
 }
 
-static void condition_field_changed_cb( GtkWidget* widget, gpointer data )
+static void
+_cu_cond_combo_filter_value (GtkWidget *combo, gint value)
 {
-    NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
-    gint        index = gtk_combo_box_get_active(GTK_COMBO_BOX(widget));
-
-    nwamui_cond_set_field( cond, (nwamui_cond_field_t)index);
-}   
-
-static void condition_op_changed_cb( GtkWidget* widget, gpointer data )
-{
-    NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
-    gint        index = gtk_combo_box_get_active(GTK_COMBO_BOX(widget));
-
-    nwamui_cond_set_oper( cond, (nwamui_cond_op_t)index);
+    g_object_set_data (G_OBJECT(combo),
+      _CU_COND_FILTER_VALUE,
+      (gpointer)value);
+    gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER(gtk_combo_box_get_model(GTK_COMBO_BOX(combo))));
 }
 
-static void condition_value_changed_cb( GtkWidget* widget, gpointer data )
+static void
+condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
+{
+    NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
+    gint index;
+    GtkTreeIter iter, realiter;
+    GtkTreeModelFilter *filter;
+    GtkTreeModel *model;
+
+    filter = GTK_TREE_MODEL_FILTER(gtk_combo_box_get_model (GTK_COMBO_BOX(widget)));
+    model = gtk_tree_model_filter_get_model (filter);
+
+    if (gtk_combo_box_get_active_iter (GTK_COMBO_BOX(widget), &iter)) {
+        gtk_tree_model_filter_convert_iter_to_child_iter (filter,
+          &realiter, &iter);
+        gtk_tree_model_get (model, &realiter, 0, &index, -1);
+
+        if (model == nwamui_env_get_condition_subject ()) {
+            GtkComboBox *combo2 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_COMBO2));
+            /*
+             * work out thec contents depends on the selection
+             * of the first combo and also update self to remove
+             * < No conditions >.
+             */
+            _cu_cond_combo_filter_value (GTK_COMBO_BOX(widget), index);
+            _cu_cond_combo_filter_value (combo2, index);
+            nwamui_cond_set_field( cond, (nwamui_cond_field_t)index);
+        } else {
+            nwamui_cond_set_oper( cond, (nwamui_cond_op_t)index);
+        }
+    }
+}
+
+static void
+condition_value_changed_cb( GtkWidget* widget, gpointer data )
 {
     NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
     
     nwamui_cond_set_value(cond, gtk_entry_get_text(GTK_ENTRY(widget)));
+}
+
+static void
+_cu_cond_combo_cell_cb (GtkCellLayout *cell_layout,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data)
+{
+    GtkTreeModel *realmodel;
+    GtkTreeModelFilter *filter;
+    GtkTreeIter realiter;
+    const gchar *str;
+
+	gint row_data = 0;
+
+    filter = GTK_TREE_MODEL_FILTER(model);
+    realmodel = gtk_tree_model_filter_get_model (filter);
+    gtk_tree_model_filter_convert_iter_to_child_iter (filter,
+      &realiter, iter);
+	gtk_tree_model_get(realmodel, &realiter, 0, &row_data, -1);
+
+    if (realmodel == nwamui_env_get_condition_subject ()) {
+        if (row_data != NWAMUI_COND_FIELD_LAST) {
+            str = nwamui_cond_field_to_str ((nwamui_cond_field_t)row_data);
+        } else {
+            str = _("< No conditions >");
+        }
+    } else {
+        str = nwamui_cond_op_to_str ((nwamui_cond_op_t)row_data);
+    }
+    g_object_set (G_OBJECT(renderer),
+      "text",
+      str,
+      NULL);
+}
+
+static gboolean
+_cu_cond_combo_filter_visible_cb (GtkTreeModel *model,
+  GtkTreeIter *iter,
+  gpointer data)
+{
+    gint value;
+    gint row_data;
+    value = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(data),
+                              _CU_COND_FILTER_VALUE));
+
+    gtk_tree_model_get (GTK_LIST_STORE(model), iter, 0, &row_data, -1);
+
+    if (model == nwamui_env_get_condition_subject ()) {
+        if (value != NWAMUI_COND_FIELD_LAST) {
+            return row_data != NWAMUI_COND_FIELD_LAST;
+        } else {
+            return TRUE;
+        }
+    } else {
+        switch (row_data) {
+        case NWAMUI_COND_OP_EQUALS:
+        case NWAMUI_COND_OP_NOT_EQUAL:
+            return TRUE;
+        case NWAMUI_COND_OP_IN_RANGE:
+            return value == NWAMUI_COND_FIELD_IP_ADDRESS;
+        case NWAMUI_COND_OP_CONTAINS:
+        case NWAMUI_COND_OP_DOESNT_CONTAIN:
+            return (value == NWAMUI_COND_FIELD_DOMAIN_NAME) ||
+              (value == NWAMUI_COND_FIELD_ESSID);
+        default:
+            return FALSE;
+        }
+    }
+}
+
+static GtkWidget*
+_cu_cond_combo_new (GtkTreeModel *model)
+{
+    GtkWidget *combo;
+	GtkTreeModel      *filter;
+	GtkCellRenderer *renderer;
+
+    combo = gtk_combo_box_new ();
+
+    filter = gtk_tree_model_filter_new (model, NULL);
+	gtk_combo_box_set_model (GTK_COMBO_BOX(combo), GTK_TREE_MODEL (filter));
+    gtk_tree_model_filter_set_visible_func (filter,
+      _cu_cond_combo_filter_visible_cb,
+      (gpointer)combo,
+      NULL);
+
+    gtk_cell_layout_clear (GTK_CELL_LAYOUT(combo));
+	renderer = gtk_cell_renderer_text_new ();
+	gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(combo), renderer, TRUE);
+	gtk_cell_layout_set_cell_data_func (GTK_CELL_LAYOUT(combo),
+      renderer,
+      _cu_cond_combo_cell_cb,
+      NULL,
+      NULL);
+
+    return combo;
 }
 
 /*
@@ -1259,6 +1384,20 @@ table_condition_add_row( gpointer data, gpointer user_data )
 }
 
 static void
+table_one_line_state (GtkWidget *box)
+{
+	GtkComboBox *combo1, *combo2;
+	GtkEntry *entry;
+	GtkButton *add, *remove;
+
+    combo1 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO1));
+    combo2 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO2));
+    entry = GTK_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENTRY));
+    add = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_ADD));
+    remove = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_REMOVE));
+}
+
+static void
 table_lines_init (NwamEnvPrefDialog *self)
 {
     NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
@@ -1272,8 +1411,9 @@ table_lines_init (NwamEnvPrefDialog *self)
 
     if ( self->prv->selected_env ) {
         /* for each condition of NwamuiEnv; do */
-        nwamui_env_condition_foreach(self->prv->selected_env, table_condition_add_row, 
-                                     (gpointer)self);
+        nwamui_env_condition_foreach(self->prv->selected_env,
+          table_condition_add_row, 
+          (gpointer)self);
 
         /* If there are no rows inserted */
         if (prv->table_line_num == 0) {
@@ -1319,18 +1459,17 @@ table_conditon_new (NwamEnvPrefDialog *self, NwamuiCond* cond )
         remove = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_REMOVE));
 	} else {
 		box = GTK_BOX(gtk_hbox_new (FALSE, 2));
-		combo1 = GTK_COMBO_BOX(gtk_combo_box_new_text ());
-		combo2 = GTK_COMBO_BOX(gtk_combo_box_new_text ());
-		gtk_combo_box_set_model (combo1, nwamui_env_get_condition_subject());
-		gtk_combo_box_set_model (combo2, nwamui_env_get_condition_predicate());
+		combo1 = GTK_COMBO_BOX(_cu_cond_combo_new (nwamui_env_get_condition_subject()));
+		combo2 = GTK_COMBO_BOX(_cu_cond_combo_new (nwamui_env_get_condition_predicate()));
+
         entry = GTK_ENTRY(gtk_entry_new ());
 
         g_signal_connect(combo1, "changed",
-                         G_CALLBACK(condition_field_changed_cb),
+                         G_CALLBACK(condition_field_op_changed_cb),
                          (gpointer)box);
 
         g_signal_connect(combo2, "changed",
-                         G_CALLBACK(condition_op_changed_cb),
+                         G_CALLBACK(condition_field_op_changed_cb),
                          (gpointer)box);
 
         g_signal_connect(entry, "changed",
@@ -1360,7 +1499,7 @@ table_conditon_new (NwamEnvPrefDialog *self, NwamuiCond* cond )
 	}
     g_object_set_data (G_OBJECT(box), TABLE_ROW_CDATA, cond);
 
-    if (NWAMUI_IS_COND( cond )) {
+    if (cond && NWAMUI_IS_COND( cond )) {
         // Initialize box according to data
         nwamui_cond_field_t field = nwamui_cond_get_field( cond );
         nwamui_cond_op_t    oper  = nwamui_cond_get_oper( cond );
@@ -1370,8 +1509,8 @@ table_conditon_new (NwamEnvPrefDialog *self, NwamuiCond* cond )
         gtk_entry_set_text (GTK_ENTRY(entry), value?value:"" );
     } else {
         // default initialize box
-        gtk_combo_box_set_active (GTK_COMBO_BOX(combo1), 0);
-        gtk_combo_box_set_active (GTK_COMBO_BOX(combo2), 0);
+        _cu_cond_combo_filter_value (GTK_COMBO_BOX(combo1),
+          NWAMUI_COND_FIELD_LAST);
         gtk_entry_set_text (GTK_ENTRY(entry), "");
     }
 	return GTK_WIDGET(box);

@@ -1,3 +1,15 @@
+2008-04-03  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_env_pref_dialog.c: (_cu_cond_combo_filter_value),
+	(condition_field_op_changed_cb), (condition_value_changed_cb),
+	(_cu_cond_combo_cell_cb), (_cu_cond_combo_filter_visible_cb),
+	(_cu_cond_combo_new), (table_one_line_state), (table_lines_init),
+	(table_conditon_new): Fix some parts of conditions, need more work.
+	* common/nwamui_cond.c: (nwamui_cond_op_to_str): Some strings should
+	changed according to the spec.
+	* common/nwamui_env.c: (nwamui_env_get_condition_subject),
+	(nwamui_env_get_condition_predicate): Use integer tree model.
+
 2008-03-27  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam-manager-properties.glade: Enable "rules hint" on all

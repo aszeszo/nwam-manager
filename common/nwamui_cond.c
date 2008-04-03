@@ -373,8 +373,8 @@ extern const gchar*
 nwamui_cond_op_to_str( nwamui_cond_op_t op )
 {
     switch( op ) {
-        case NWAMUI_COND_OP_EQUALS:         return(_("equal to"));
-        case NWAMUI_COND_OP_NOT_EQUAL:      return(_("not equal to"));
+        case NWAMUI_COND_OP_EQUALS:         return(_("is"));
+        case NWAMUI_COND_OP_NOT_EQUAL:      return(_("is not"));
         case NWAMUI_COND_OP_IN_RANGE:       return(_("in the range"));
         case NWAMUI_COND_OP_BEGINS:         return(_("begins with"));
         case NWAMUI_COND_OP_ENDS:           return(_("ends with"));

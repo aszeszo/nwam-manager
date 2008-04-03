@@ -1588,20 +1588,19 @@ nwamui_env_condition_foreach (NwamuiEnv *self, GFunc func, gpointer data)
 extern GtkTreeModel *
 nwamui_env_get_condition_subject ()
 {
-    static GtkTreeModel*    condition_subject = NULL;
+    static GtkTreeModel *condition_subject = NULL;
 	GtkTreeIter iter;
-    GtkBox *box;
+    gint i;
 
-    if (condition_subject == NULL) {
-        condition_subject = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
-        for (gint i = NWAMUI_COND_FIELD_IP_ADDRESS; i < NWAMUI_COND_FIELD_LAST; i++) {
-            const gchar* str = nwamui_cond_field_to_str((nwamui_cond_field_t)i);
-            if ( str != NULL ) {
-                gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
-                gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, 
-                                    str, -1);
-            }
-        }
+    if (condition_subject != NULL) {
+        return condition_subject;
+    }
+
+	condition_subject = GTK_TREE_MODEL(gtk_list_store_new (1, G_TYPE_INT));
+	/* Note we use NWAMUI_COND_FIELD_LAST to display <No conditions> */
+    for (i = NWAMUI_COND_FIELD_IP_ADDRESS; i <= NWAMUI_COND_FIELD_LAST; i++) {
+        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, i, -1);
     }
     return condition_subject;
 }
@@ -1609,20 +1608,19 @@ nwamui_env_get_condition_subject ()
 extern GtkTreeModel *
 nwamui_env_get_condition_predicate ()
 {
-    static GtkTreeModel*    condition_predicate = NULL;
+    static GtkTreeModel *condition_predicate = NULL;
 	GtkTreeIter iter;
-    GtkBox *box;
+    gint i;
 
-    if (condition_predicate == NULL) {
-        condition_predicate = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
-        for (gint i = NWAMUI_COND_OP_EQUALS; i < NWAMUI_COND_OP_LAST; i++) {
-            const gchar* str = nwamui_cond_op_to_str((nwamui_cond_op_t) i);
-            if (str != NULL ) {
-                gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
-                gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, 
-                                    str, -1);
-            }
-        }
+    if (condition_predicate != NULL) {
+        return condition_predicate;
+    }
+
+	condition_predicate = GTK_TREE_MODEL(gtk_list_store_new (1, G_TYPE_INT));
+	
+    for (i = NWAMUI_COND_OP_EQUALS; i < NWAMUI_COND_OP_LAST; i++) {
+        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
+        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, i, -1);
     }
     return condition_predicate;
 }
