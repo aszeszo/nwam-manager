@@ -1,6 +1,11 @@
 2008-04-28  Calum Benson <calum.benson@sun.com>
 
 	* uispec.odt:
+
+	Actually commit the updated UI spec this time.
+
+2008-04-28  Calum Benson <calum.benson@sun.com>
+
 	* img/capplet/connection-status.png:
 	* img/capplet/connection-status-advanced.png:
 	* img/capplet/network-profile-noexpand.png:
