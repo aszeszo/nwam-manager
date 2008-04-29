@@ -227,7 +227,7 @@ nwam_capplet_dialog_finalize(NwamCappletDialog *self)
  * refresh:
  *
  * Refresh #NwamCappletDialog with the new connections.
- * Including two static enties "Connection Status" and "Network Configuration"
+ * Including two static enties "Connection Status" and "Network Profile"
  * And dynamic adding connection enties.
  * FIXED ME.
  **/
@@ -313,7 +313,7 @@ show_changed_cb( GtkWidget* widget, gpointer data )
 		/* Connection Status */
 		gtk_notebook_set_current_page(self->prv->main_nb, PANEL_CONN_STATUS);
 	} else if (idx == PANEL_NET_PREF) {
-		/* Network Configuration */
+		/* Network Profile */
 		gtk_notebook_set_current_page(self->prv->main_nb, PANEL_NET_PREF);
 	} else {
         /* Wired/Wireless */
@@ -382,7 +382,7 @@ show_combo_cell_cb (GtkCellLayout *cell_layout,
 		text = _("Connection Status");
 	} 
 	else if (NWAM_IS_NET_CONF_PANEL( row_data )) {
-		text = _("Network Configuration");
+		text = _("Network Profile");
 	}
 	else {
 		g_assert_not_reached();
