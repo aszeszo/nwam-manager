@@ -1,8 +1,19 @@
+2008-04-28  Calum Benson <calum.benson@sun.com>
+
+	* uispec.odt:
+	* img/capplet/connection-status.png:
+	* img/capplet/connection-status-advanced.png:
+	* img/capplet/network-profile-noexpand.png:
+	* img/capplet/network-profile.png
+
+	Update to accommodate the availability of an 'Automatic' NCP.
+
+
 2008-02-13  Calum Benson <calum.benson@sun.com>
 
 	* ChangeLog: added
 
-        * ui-spec.odp: modified
+        * ui-spec.odt: modified
         * img/capplet/wireless-security-wep-ascii.png: added
 
 	Add Key Index for WEP+ASCII.
