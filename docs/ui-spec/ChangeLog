@@ -1,3 +1,12 @@
+2008-05-01  Calum Benson <calum.benson@sun.com>
+
+	* ui-spec.odt: minor wording fixes
+	* img/capplet/env-name-services-manual.png: added
+	* img/capplet/env-name-services-auto.png: added
+
+	Add images for first stab at name services tab (not yet
+	added to spec itself).
+
 2008-04-28  Calum Benson <calum.benson@sun.com>
 
 	* uispec.odt:
