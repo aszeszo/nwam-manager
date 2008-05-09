@@ -1,5 +1,14 @@
 2008-05-09  Calum Benson <calum.benson@sun.com>
 
+	* ui-spec.odt
+	* img/capplet/env-name-services-manual.png
+	* img/capplet/env-name-services-auto.png
+	* img/capplet/env-name-services.png: deleted
+
+	Add name services tab screenshots to spec.
+
+2008-05-09  Calum Benson <calum.benson@sun.com>
+
 	* ui-spec.odt: 
 	* img/capplet/connection-status.png:
 	* img/capplet/connection-status-advanced.png:
