@@ -1,3 +1,9 @@
+2008-05-09  Calum Benson  <calum.benson@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+
+	s/Name/Profile on connection status page.
+
 2008-05-01  Calum Benson  <calum.benson@sun.com>
 
 	* capplet/nwam-manager-properties.glade:

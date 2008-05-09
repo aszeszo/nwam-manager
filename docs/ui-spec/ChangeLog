@@ -1,3 +1,11 @@
+2008-05-09  Calum Benson <calum.benson@sun.com>
+
+	* ui-spec.odt: 
+	* img/capplet/connection-status.png:
+	* img/capplet/connection-status-advanced.png:
+
+        s/Name/Profile on connection status page.
+
 2008-05-01  Calum Benson <calum.benson@sun.com>
 
 	* ui-spec.odt: minor wording fixes
