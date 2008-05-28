@@ -98,7 +98,7 @@ static void default_remove_wifi_fav_signal_handler (NwamuiDaemon *self, gpointer
 static int nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse);
 
 /* walkers */
-static int nwam_env_walker_cb (nwam_env_handle_t env, void *data);
+static int nwam_loc_walker_cb (nwam_loc_handle_t env, void *data);
 static int nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data);
 
 G_DEFINE_TYPE (NwamuiDaemon, nwamui_daemon, G_TYPE_OBJECT)
@@ -307,10 +307,10 @@ nwamui_daemon_init (NwamuiDaemon *self)
     {
         nwam_error_t nerr;
         int cbret;
-        nwam_walk_envs (nwam_env_walker_cb, (void *)self,
+        nwam_walk_locs (nwam_loc_walker_cb, (void *)self,
           NWAM_FLAG_NONBLOCK, &cbret);
         if (nerr != NWAM_SUCCESS) {
-            g_debug ("[libnwam] nwam_walk_envs %s", nwam_strerror (nerr));
+            g_debug ("[libnwam] nwam_walk_locs %s", nwam_strerror (nerr));
         }
     }
     
@@ -1075,7 +1075,7 @@ default_remove_wifi_fav_signal_handler (NwamuiDaemon *self, gpointer data, gpoin
 
 /* walkers */
 static int
-nwam_env_walker_cb (nwam_env_handle_t env, void *data)
+nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
 {
     char *name;
     nwam_error_t nerr;
@@ -1083,7 +1083,7 @@ nwam_env_walker_cb (nwam_env_handle_t env, void *data)
         
     NwamuiDaemonPrivate *prv = NWAMUI_DAEMON(data)->prv;
 
-    g_debug ("nwam_env_walker_cb 0x%p", env);
+    g_debug ("nwam_loc_walker_cb 0x%p", env);
     
     new_env = nwamui_env_new_with_handle (env);
         

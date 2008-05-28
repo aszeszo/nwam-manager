@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <glib/gi18n.h>
+#include <libgnomeui/libgnomeui.h>
 
 #include "nwam_wireless_dialog.h"
 #include "nwam_env_pref_dialog.h"
@@ -66,7 +67,8 @@ GOptionEntry application_options[] = {
 int
 main(int argc, char** argv) 
 {
-    GError*     err = NULL;
+    GnomeProgram*   program = NULL;
+    GError*         err = NULL;
     
     int         do_tests = (getenv("DO_TESTS") != NULL );
     
@@ -82,6 +84,12 @@ main(int argc, char** argv)
         g_debug("DO_TESTS is set, will run test functions.");
     else 
         g_debug("DO_TESTS not set");
+
+    program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,
+                                  argc, argv,
+                                  GNOME_PARAM_APP_DATADIR,
+                                  NWAM_MANAGER_DATADIR,
+                                  NULL);
 
     if (gtk_init_with_args(&argc, &argv, _("NWAM Configuration Capplet"), application_options, NULL, &err) == FALSE ) {
         if ( err != NULL && err->message != NULL ) {

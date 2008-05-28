@@ -35,6 +35,7 @@ AM_CPPFLAGS = \
 AM_LDFLAGS = \
 	$(PACKAGE_LIBS)		\
 	$(INTLLIBS)		\
+	$(NWAM_LIBS)		\
 	$(NWAM_MANAGER_LIBS)		\
 	$(NULL)
 

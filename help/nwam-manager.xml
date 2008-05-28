@@ -1,0 +1,192 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd"[
+  <!ENTITY legal SYSTEM "legal.xml">
+  <!ENTITY appversion "2.9.0">
+  <!ENTITY manualversion "2.9.0">
+  <!ENTITY date "October 2006">
+  <!ENTITY appname "NWAM Manager">
+  <!ENTITY app "<application>NWAM Manager</application>">
+<!-- replace version above with actual application version number -->
+<!--  Template Version: 1.0.1  (do not remove this line) -->
+]>
+
+<!-- =============Document Header ============================= -->
+
+<article id="index" lang="en"> <!-- please do not change the id -->
+
+  <articleinfo>
+    <title>&app; Manual V&manualversion;</title>
+    <copyright>
+      <year>2007</year>
+      <year>2008</year>
+      <holder>Sun Microsystems</holder>
+    </copyright>
+
+    <!-- translators: uncomment this:
+
+    <copyright>
+     <year>2000</year>
+     <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
+    </copyright>
+
+    -->
+
+    <!-- An address can be added to the publisher information.  If a role is
+     not specified, the publisher/author is the same for all versions of the
+     document.  -->
+    <publisher>
+      <publishername> Sun Microsystems </publishername>
+    </publisher>
+
+    &legal;
+
+    <authorgroup>
+      <author role="maintainer">
+        <firstname>Stephanie</firstname>
+	<surname>Brucker</surname>
+	<affiliation>
+	  <address> <email>stephanie.brucker@sun.com</email> </address>
+        </affiliation>
+      </author>
+      <author>
+	<firstname>Darren</firstname>
+	<surname>Kenny</surname>
+	<affiliation>
+	  <address> <email>darren.kenny@sun.com</email> </address>
+	</affiliation>
+      </author>
+    </authorgroup>
+    <!-- do not put authorname in the header except in copyright - use
+         section "authors" below -->
+    <revhistory>
+      <revision>
+	<revnumber>&manualversion;</revnumber>
+	<date>&date;</date>
+	<revdescription>
+	  <para role="author">Darren Kenny</para>
+	  <para role="publisher">Sun Microsystems</para>
+	</revdescription>
+      </revision>
+    </revhistory>
+
+
+    <!-- this is version of manual, not application -->
+    <releaseinfo>
+      This is manual describes version &appversion; of &appname;
+    </releaseinfo>
+    <abstract role="description"><para>&app; provides a desktop presence for
+    NWAM</para></abstract>
+  </articleinfo>
+
+  <indexterm>
+    <primary>&appname;</primary>
+  </indexterm>
+  <indexterm>
+    <primary>network</primary>
+  </indexterm>
+  <indexterm>
+    <secondary>management</secondary>
+  </indexterm>
+
+  <!-- ============= Document Body ============================= -->
+
+  <!-- ============= Introduction ============================== -->
+
+  <sect1 id="intro">
+    <title>Introduction</title>
+    <para>
+        Put a paragraph about &app; here.
+    </para>
+    <para>
+        Next para here...
+    </para>
+  </sect1>
+
+  <!-- ============= Getting Started ==============================  -->
+  <sect1 id="gthumb-getting-started">
+  <title>Getting Started</title>
+  <para>
+    This section provides information on how to start &app;, and
+    describes the main window interface.
+  </para>
+  </sect1>
+
+  <!-- ============= Help menu item, applet menu ==============================  -->
+  <sect1 id="PANEL_APPLET">
+  <title>Help menu item, applet menu</title>
+    <para>
+      A paragraph about "Help menu item, applet menu"
+    </para>
+  </sect1>
+  <!-- ============= Network Preferences, Connection Status tab ==============================  -->
+  <sect1 id="PREF_CONN_STATUS">
+  <title>Network Preferences, Connection Status tab</title>
+    <para>
+      A paragraph about "Network Preferences, Connection Status tab"
+    </para>
+  </sect1>
+  <!-- ============= Network Preferences, Network Configuration tab ==============================  -->
+  <sect1 id="PREF_NET_CONFIG">
+  <title>Network Preferences, Network Configuration tab</title>
+    <para>
+      A paragraph about "Network Preferences, Network Configuration tab"
+    </para>
+  </sect1>
+  <!-- ============= Network Preferences, IP Address tab ==============================  -->
+  <sect1 id="PREF_IP_ADDR_TAB">
+  <title>Network Preferences, IP Address tab</title>
+    <para>
+      A paragraph about "Network Preferences, IP Address tab"
+    </para>
+  </sect1>
+  <!-- ============= Network Preferences, Wireless tab ==============================  -->
+  <sect1 id="PREF_WIFI_TAB">
+  <title>Network Preferences, Wireless tab</title>
+    <para>
+      A paragraph about "Network Preferences, Wireless tab"
+    </para>
+  </sect1>
+  <!-- ============= Location Preferences, Proxy tab ==============================  -->
+  <sect1 id="LOC_PROXY_TAB">
+  <title>Location Preferences, Proxy tab</title>
+    <para>
+      A paragraph about "Location Preferences, Proxy tab"
+    </para>
+  </sect1>
+  <!-- ============= Location Preferences, Rules tab ==============================  -->
+  <sect1 id="LOC_RULES_TAB">
+  <title>Location Preferences, Rules tab</title>
+    <para>
+      A paragraph about "Location Preferences, Rules tab"
+    </para>
+  </sect1>
+  <!-- ============= Location Preferences, Network Services tab ==============================  -->
+  <sect1 id="LOC_NET_SVC_TAB">
+  <title>Location Preferences, Network Services tab</title>
+    <para>
+      A paragraph about "Location Preferences, Network Services tab"
+    </para>
+  </sect1>
+  <!-- ============= Add/Edit/Join Wireless Network dialog ==============================  -->
+  <sect1 id="WIFI_EDIT_DIALOG">
+  <title>Add/Edit/Join Wireless Network dialog</title>
+    <para>
+      A paragraph about "Add/Edit/Join Wireless Network dialog"
+    </para>
+  </sect1>
+  <!-- ============= Choose Wireless Network dialog ==============================  -->
+  <sect1 id="WIFI_CHOICE_DIALOG">
+  <title>Choose Wireless Network dialog</title>
+    <para>
+      A paragraph about "Choose Wireless Network dialog"
+    </para>
+  </sect1>
+  <!-- ============= VPN Preferences dialog ==============================  -->
+  <sect1 id="VPN_PREF_DIALOG">
+  <title>VPN Preferences dialog</title>
+    <para>
+      A paragraph about "VPN Preferences dialog"
+    </para>
+  </sect1>
+</article>

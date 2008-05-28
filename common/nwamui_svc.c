@@ -39,7 +39,7 @@
 	NWAMUI_TYPE_SVC, NwamuiSvcPrivate)) 
 
 struct _NwamuiSvcPrivate {
-    nwam_env_svc_t *svc;
+    nwam_loc_svc_t *svc;
     gboolean	status;
     gboolean	is_default;
     gboolean	is_new;
@@ -181,11 +181,11 @@ nwamui_svc_get_property (GObject		 *object,
     }
         break;
     case PROP_FMRI: {
-        g_value_set_string(value, prv->svc->es_fmri);
+        g_value_set_string(value, prv->svc->ls_fmri);
     }
         break;
     case PROP_DESC: {
-        g_value_set_string(value, prv->svc->es_attrs->ea_desc);
+        g_value_set_string(value, prv->svc->ls_attrs->la_desc);
     }
         break;
     case PROP_STAT: {
@@ -208,7 +208,7 @@ nwamui_svc_finalize (NwamuiSvc *self)
 	NwamuiSvcPrivate *prv = GET_PRIVATE(self);
 
     if (prv->svc != NULL) {
-        nwam_env_svc_free (prv->svc);
+        nwam_loc_svc_free (prv->svc);
     }
     
 	(*G_OBJECT_CLASS(nwamui_svc_parent_class)->finalize) (G_OBJECT(self));
@@ -226,7 +226,7 @@ nwamui_svc_finalize (NwamuiSvc *self)
  * Creates a new #NwamuiSvc.
  **/
 extern	NwamuiSvc*
-nwamui_svc_new (nwam_env_svc_t *svc)
+nwamui_svc_new (nwam_loc_svc_t *svc)
 {
 	NwamuiSvc*	self = NULL;
 	
