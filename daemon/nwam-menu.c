@@ -317,7 +317,7 @@ nwam_exec (const gchar *nwam_arg)
 		g_free (base);
 	}
 	argv[argc++] = nwam_arg;
-	g_debug ("\nnwam-menu-exec: %s\n", nwam_arg);
+	g_debug ("\n\nnwam-menu-exec: %s %s\n", argv[0], nwam_arg);
 
 	if (!g_spawn_async(NULL,
 		argv,

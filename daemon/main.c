@@ -234,7 +234,8 @@ action_on_no_fav_networks (NwamuiProf* prof, gint val, gpointer data)
     g_free (body);
 }
 
-int main( int argc, 
+int
+main( int argc, 
       char* argv[] )
 {
     GnomeProgram *program;

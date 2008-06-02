@@ -954,8 +954,12 @@ show_changed_cb( GtkComboBox* widget, gpointer data )
                     default: 
                         g_assert_not_reached();
 		}
-		ipv6_lbl = g_strdup_printf(_("Configure IPv_6 (%s)"), ipv6_lbl);
-		gtk_label_set_text (lbl, ipv6_lbl);
+        if (*ipv6_lbl != '\0') {
+            ipv6_lbl = g_strdup_printf(_("Configure IPv_6 (%s)"), ipv6_lbl);
+        } else {
+            ipv6_lbl = g_strdup_printf(_("Configure IPv_6"));
+        }
+        gtk_label_set_text_with_mnemonic (lbl, ipv6_lbl);
 		g_free (ipv6_lbl);
 	}
 

@@ -1,3 +1,12 @@
+2008-06-02  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c: (main): Use GOptionContext to parse options.
+	* capplet/nwam-manager-properties.glade: Enable match_all|any_rbtn by
+	default.
+	* capplet/nwam_conn_conf_ip_panel.c: (show_changed_cb): Ipv6 lable uses
+	mnemonic.
+	* common/nwamui_daemon.c: Removed the very long essid.
+
 2008-05-28  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/Makefile.am, daemon/Makefile.am:

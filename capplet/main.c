@@ -68,6 +68,7 @@ int
 main(int argc, char** argv) 
 {
     GnomeProgram*   program = NULL;
+    GOptionContext*	option_context = NULL;
     GError*         err = NULL;
     
     int         do_tests = (getenv("DO_TESTS") != NULL );
@@ -85,12 +86,20 @@ main(int argc, char** argv)
     else 
         g_debug("DO_TESTS not set");
 
+    option_context = g_option_context_new("nwam-manager-properties");
+    g_option_context_add_main_entries(option_context, application_options, NULL);
     program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,
                                   argc, argv,
+                                  GNOME_PARAM_GOPTION_CONTEXT, option_context,
                                   GNOME_PARAM_APP_DATADIR,
                                   NWAM_MANAGER_DATADIR,
-                                  NULL);
+                                  GNOME_PARAM_NONE);
 
+#if 0
+    /*
+     * FIXME, we probably don't need this any more if we are using
+     * gnome_program_init.
+     */
     if (gtk_init_with_args(&argc, &argv, _("NWAM Configuration Capplet"), application_options, NULL, &err) == FALSE ) {
         if ( err != NULL && err->message != NULL ) {
             g_printerr(err->message);
@@ -101,6 +110,7 @@ main(int argc, char** argv)
         }
         exit(1);
     }
+#endif
 
     if ( add_wireless_dialog ) {
         NwamWirelessDialog *wireless_dialog = NWAM_WIRELESS_DIALOG(nwam_wireless_dialog_new());
