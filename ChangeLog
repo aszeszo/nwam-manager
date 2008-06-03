@@ -1,5 +1,11 @@
 2008-06-03  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_daemon.c: (nwamui_daemon_set_property):
+	  Set the active_env all of the time, regardless of nwam_loc API right
+	  now. Will need to remove this later.
+
+2008-06-03  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_net_conf_panel.c: 
 	  Add reference to active profile combobox, and set to Custom by default.
 	  (Should be set from ncp, but isn't right now).
