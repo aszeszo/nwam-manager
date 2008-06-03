@@ -46,18 +46,21 @@
 #define SET_STATUS_LBL                  "set_status_lbl"
 #define CONDITIONS_SET_STATUS_COMBO     "conditions_set_status_combo"
 #define CONDITIONS_EXPANDER				"conditions_expander"
+#define ACTIVE_PROFILE_CBOX             "profile_name_combo1"
 
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 
 struct _NwamNetConfPanelPrivate {
 	/* Widget Pointers */
-	GtkTreeView*	net_conf_treeview;
-    GtkTreeModel*   model;
-    GtkTreeModel*   rules_model;
-    GtkButton*      connection_move_up_btn;	
-    GtkButton*      connection_move_down_btn;	
-    GtkButton*      connection_rename_btn;	
+	GtkTreeView*	    net_conf_treeview;
+    GtkTreeModel*       model;
+    GtkTreeModel*       rules_model;
+    GtkButton*          connection_move_up_btn;	
+    GtkButton*          connection_move_down_btn;	
+    GtkButton*          connection_rename_btn;	
+
+    GtkComboBox*        active_profile_combo;
 
     GtkCheckButton*     conditions_connected_cbox;
     GtkComboBox*        conditions_connected_combo;
@@ -65,8 +68,8 @@ struct _NwamNetConfPanelPrivate {
     GtkLabel*           set_status_lbl;
     GtkComboBox*        conditions_set_status_combo;
 
-    GtkExpander*	conditions_expander;
-    GtkComboBox*	set_status_combo;
+    GtkExpander*	    conditions_expander;
+    GtkComboBox*	    set_status_combo;
 
 	/* Other Data */
     NwamCappletDialog*  pref_dialog;
@@ -157,6 +160,7 @@ static void update_rules_from_ncu (NwamNetConfPanel* self,
 static void conditions_connected_toggled_cb(GtkToggleButton *togglebutton, gpointer user_data);
 static void conditions_set_status_changed(GtkComboBox* combo, gpointer user_data );
 static void conditions_connected_changed(GtkComboBox* combo, gpointer user_data );
+static void active_profile_changed(GtkComboBox* combo, gpointer user_data);
 
 G_DEFINE_TYPE_EXTENDED (NwamNetConfPanel,
   nwam_net_conf_panel,
@@ -469,6 +473,9 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     g_signal_connect(self->prv->connection_move_down_btn, "clicked", G_CALLBACK(connection_move_down_btn_cb), (gpointer)self);	
     self->prv->connection_rename_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_RENAME_BTN));	
     g_signal_connect(self->prv->connection_rename_btn, "clicked", G_CALLBACK(connection_rename_btn_cb), (gpointer)self);	
+    self->prv->active_profile_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(ACTIVE_PROFILE_CBOX));
+    g_signal_connect(self->prv->active_profile_combo, "changed", G_CALLBACK(active_profile_changed),(gpointer)self);
+
     self->prv->conditions_connected_cbox = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(CONDITIONS_CONNECTED_CBOX));
     g_signal_connect(self->prv->conditions_connected_cbox, "toggled", G_CALLBACK(conditions_connected_toggled_cb), (gpointer)self);
     self->prv->conditions_connected_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CONDITIONS_CONNECTED_COMBO));
@@ -517,6 +524,9 @@ nwam_net_conf_panel_new(NwamCappletDialog *pref_dialog, NwamuiNcp* ncp)
         
     /* FIXME - Use GOBJECT Properties */
     self->prv->pref_dialog = g_object_ref( G_OBJECT( pref_dialog ));
+
+    /* FIXME: Set active profile - should be in set_ncp? */
+    gtk_combo_box_set_active(GTK_COMBO_BOX(self->prv->active_profile_combo), 1);
 
     nnwam_net_conf_panel_set_ncp(self, ncp);
 
@@ -1109,6 +1119,16 @@ connection_rename_btn_cb( GtkButton* button, gpointer user_data )
             gtk_tree_path_free(tpath);
         }
     }
+}
+
+static void 
+active_profile_changed(GtkComboBox* combo, gpointer user_data)
+{
+
+    /* TODO : Handle profile changing */
+
+    g_debug("Active Profile changed");
+    return;
 }
 
 static void 

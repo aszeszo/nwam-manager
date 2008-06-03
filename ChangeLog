@@ -1,3 +1,11 @@
+2008-06-03  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_net_conf_panel.c: 
+	  Add reference to active profile combobox, and set to Custom by default.
+	  (Should be set from ncp, but isn't right now).
+	* common/nwamui_enm.c: 
+	  Fix NULL Pointer crash, on clicking OK in VPN dialog.
+
 2008-06-02  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/main.c: (main): Use GOptionContext to parse options.

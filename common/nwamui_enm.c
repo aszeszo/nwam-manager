@@ -648,7 +648,9 @@ extern gboolean
 nwamui_enm_commit (NwamuiEnm *self)
 {
     nwam_error_t nerr;
-    
+
+    g_return_val_if_fail( self != NULL, NWAM_ERROR_INTERNAL);
+
     nerr = nwam_enm_commit (self->prv->nwam_enm, NWAM_FLAG_NONBLOCK);
     return nerr == NWAM_SUCCESS;
 }
