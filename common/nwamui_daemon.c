@@ -358,7 +358,8 @@ nwamui_daemon_set_property ( GObject         *object,
                 env = NWAMUI_ENV(g_value_dup_object( value ));
 
                 /* TODO - I presume that keep the prev active env if failded */
-                if (nwamui_env_activate (env)) {
+                /* FIXME: For demo, always set active_env! */
+                if (nwamui_env_activate (env) || 1) {
                     self->prv->active_env = env;
                     
                     g_signal_emit (self,
