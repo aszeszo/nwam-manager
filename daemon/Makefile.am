@@ -90,7 +90,11 @@ gladedir   = $(datadir)/nwam-manager
 glade_DATA = nwam-manager-daemon.glade
 
 uidir           = $(datadir)/nwam-manager
+if 0
 ui_DATA         = nwam-ui.xml
+else
+ui_DATA         = nwam-ui-picea.xml
+endif
 
 EXTRA_DIST = 		\
 	notify.h	\

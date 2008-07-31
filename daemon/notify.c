@@ -32,8 +32,8 @@ static NotifyNotification*   notification           = NULL;
 static GtkStatusIcon*        parent_status_icon     = NULL;
 static gchararray            default_icon           = GTK_STOCK_NETWORK;
 
-static 
-NotifyNotification *get_notification( void ) {
+static NotifyNotification *
+get_notification( void ) {
     
     g_assert ( parent_status_icon != NULL );
 

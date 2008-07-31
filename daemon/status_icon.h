@@ -28,9 +28,7 @@
 #ifndef _status_icon_H
 #define	_status_icon_H
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
+G_BEGIN_DECLS
 
 gint nwam_status_icon_create( void );
 
@@ -48,9 +46,7 @@ void nwam_status_icon_no_blink( gint index );
 
 void nwam_status_icon_set_tooltip (gint index, const gchar *str);
 
-#ifdef	__cplusplus
-}
-#endif
+G_END_DECLS
 
 #endif	/* _status_icon_H */
 

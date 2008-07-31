@@ -31,10 +31,8 @@
 #include <libnotify/notify.h>
 #include "libnwamui.h"
 
-#ifdef	__cplusplus
-extern "C" {
-#endif
-    
+G_BEGIN_DECLS
+
 /* 
  * Should be called before trying to display any messages.
  *
@@ -66,9 +64,7 @@ void nwam_notification_show_message_with_action (const gchararray summary,
  */
 void nwam_notification_cleanup( void );
 
-#ifdef	__cplusplus
-}
-#endif
+G_END_DECLS
 
 #endif	/* _notify_H */
 

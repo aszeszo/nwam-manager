@@ -1,0 +1,10 @@
+<ui>
+	<popup name="StatusIconMenu">
+		<menuitem action="automatic"/>
+		<separator name="section_if_end"/>
+		<menuitem action="if_prior"/>
+		<separator name="section_fav_ap_begin"/>
+		<separator name="section_fav_ap_end"/>
+		<menuitem action="joinwireless"/>
+	</popup>
+</ui>

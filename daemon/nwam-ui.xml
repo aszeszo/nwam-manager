@@ -1,14 +1,14 @@
 <ui>
 	<popup name="StatusIconMenu">
 		<menuitem action="envpref"/>
-		<separator name="begin_fav_wifi"/>
-		<separator name="end_fav_wifi"/>
+		<separator name="section_fav_ap_begin"/>
+		<separator name="section_fav_ap_end"/>
 		<menuitem action="joinwireless"/>
 		<separator/>
 		<menuitem action="netpref"/>
 		<menu action="swtchenv"/>
 		<menu action="vpn">
-			<separator name="end_vpn"/>
+			<separator name="section_vpn_end"/>
 			<menuitem action="vpnpref"/>
 		</menu>
 		<separator/>

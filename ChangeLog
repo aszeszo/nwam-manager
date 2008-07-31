@@ -1,3 +1,22 @@
+2008-07-31  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/Makefile.am:
+	* daemon/nwam-menu.c: (nwam_menu_init),
+	(nwam_menu_recreate_menuitem_group),
+	(nwam_menu_recreate_wifi_menuitems),
+	(nwam_menu_recreate_if_menuitems), (nwam_menu_create_static_part),
+	(on_activate_if_prior), (event_active_env_changed),
+	(nwam_menu_create_if_menuitems), (nwam_menu_create_wifi_menuitems),
+	(nwam_menu_create_env_menuitems), (nwam_menu_create_vpn_menuitems),
+	(nwam_menu_get_statusicon_menu):
+	* daemon/nwam-ui-picea.xml:
+	Some code for Picea notification menus without building test.
+	* daemon/nwam-ui.xml:
+	* daemon/status_icon.h:
+	* daemon/notify.c: (get_notification):
+	* daemon/notify.h:
+	Some code cleaning.
+
 2008-06-03  Darren Kenny  <darren.kenny@sun.com>
 
 	* scripts/link_icons.sh:
