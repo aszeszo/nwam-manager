@@ -52,24 +52,18 @@ static NwamMenu *instance = NULL;
 #define NWAMUI_ACTION_ROOT	"StatusIconMenuActions"
 #define NWAMUI_ROOT "StatusIconMenu"
 #define NWAMUI_PROOT "/"NWAMUI_ROOT
-/* NWAM UI 1.0 */
 #define MENUITEM_SECTION_FAV_AP_BEGIN	NWAMUI_PROOT"/section_fav_ap_begin"
 #define MENUITEM_SECTION_FAV_AP_END	NWAMUI_PROOT"/section_fav_ap_end"
 #define MENUITEM_SECTION_VPN_END	NWAMUI_PROOT"/vpn/section_vpn_end"
 #define MENUITEM_NAME_ENV_PREF "envpref"
 #define MENUITEM_NAME_NET_PREF "netpref"
 #define MENUITEM_NAME_VPN_PREF "vpnpref"
-#define MENUITEM_NAME_IF_PRIOR "if_prior"
-/* NWAM UI 0.5 */
-#define MENUITEM_SECTION_IF_END	NWAMUI_PROOT"/section_if_end"
 
 enum {
 	ID_WIFI = 0,
 	ID_FAV_WIFI,
 	ID_ENV,
 	ID_VPN,
-    /* 0.5 */
-	ID_IF,
 	N_ID
 };
 
@@ -78,8 +72,6 @@ static const gchar * dynamic_part_menu_path[N_ID] = {
 	NWAMUI_PROOT"/addfavor",	/* ID_FAV_WIFI */
 	NWAMUI_PROOT"/swtchenv",	/* ID_ENV */
 	NWAMUI_PROOT"/vpn",		/* ID_VPN */
-    /* 0.5 */
-    NWAMUI_PROOT,			/* ID_IF */
 };
 
 struct _NwamMenuPrivate {
@@ -93,8 +85,6 @@ struct _NwamMenuPrivate {
     gboolean force_wifi_rescan_due_to_env_changed;
     gboolean force_wifi_rescan;
     GSList *wireless_group;	/* Radio groups for menus */
-    /* 0.5 */
-    GSList *if_group;	/* Radio groups for menus */
 };
 
 static void nwam_menu_finalize (NwamMenu *self);
@@ -102,12 +92,8 @@ static GtkWidget* nwam_menu_get_menuitem (GObject *obj);
 static void nwam_menu_connect (NwamMenu *self);
 static guint nwam_menu_create_static_part (NwamMenu *self);
 static void nwam_menu_recreate_menuitem_group (NwamMenu *self, int group_id,
-  const gchar *group_name)
+  const gchar *group_name);
 
-/* 0.5 */
-static void nwam_menu_recreate_if_menuitems (NwamMenu *self);
-static void nwam_menu_create_if_menuitems (GObject *daemon, GObject *wifi, gpointer data);
-/* 1.0 */
 static void nwam_menu_recreate_wifi_menuitems (NwamMenu *self);
 static void nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data);
 static void nwam_menu_create_env_menuitems (NwamMenu *self);
@@ -121,9 +107,6 @@ static GtkWidget* nwam_display_name_to_menuitem (NwamMenu *self, const gchar *dn
 
 /* call back */
 /* Notification menuitem events */
-/* NWAM UI 0.5 */
-static void on_activate_if_prior (GtkAction *action, gpointer data);
-/* NWAM UI 1.0 */
 static void on_activate_about (GtkAction *action, gpointer data);
 static void on_activate_help (GtkAction *action, gpointer udata);
 static void on_activate_pref (GtkAction *action, gpointer udata);
@@ -147,12 +130,6 @@ static void event_add_wifi_fav (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpoin
 G_DEFINE_TYPE (NwamMenu, nwam_menu, G_TYPE_OBJECT)
 
 static GtkActionEntry entries[] = {
-    /* NWAM UI 0.5 */
-    { MENUITEM_NAME_IF_PRIOR,
-      NULL, N_("Edit interface priorities..."), 
-      NULL, NULL,
-      G_CALLBACK(on_activate_if_prior) },
-    /* NWAM UI 1.0 */
     { MENUITEM_NAME_ENV_PREF,
       NULL, N_("Location Preferences"), 
       NULL, NULL,
@@ -223,10 +200,7 @@ nwam_menu_init (NwamMenu *self)
 	nwam_menu_create_env_menuitems (self);
 	nwam_menu_create_vpn_menuitems (self);
     /* test code */
-    /* 1.0 */
     nwam_menu_recreate_wifi_menuitems (self);
-    /* 0.5 */
-    nwam_menu_recreate_if_menuitems (self);
 
     nwam_menu_connect (self);
 }
@@ -331,15 +305,6 @@ nwam_menu_recreate_wifi_menuitems (NwamMenu *self)
 	nwamui_daemon_wifi_start_scan (self->prv->daemon);
 }
 
-static void
-nwam_menu_recreate_if_menuitems (NwamMenu *self)
-{
-    self->prv->if_group = NULL;
-    nwam_menu_recreate_menuitem_group (self, ID_IF, "if_action_group");
-
-    /* TODO */
-}
-
 static guint
 nwam_menu_create_static_part (NwamMenu *self)
 {
@@ -425,20 +390,6 @@ static void
 on_activate_help (GtkAction *action, gpointer udata)
 {
     nwamui_util_show_help ("");
-}
-
-/**
- * on_activate_if_prior:
- * @action:
- * @udata:
- *
- * NWAM UI 0.5 only
- * Pop up a dialog to change the priority of all interfaces.
- */
-static void
-on_activate_if_prior (GtkAction *action, gpointer udata)
-{
-    g_debug("TODO");
 }
 
 static void
@@ -771,17 +722,6 @@ static void
 notification_listwireless_cb (NotifyNotification *n, gchar *action, gpointer data)
 {
     nwam_exec("--list-fav-wireless=");
-}
-
-/**
- * nwam_menu_create_if_menuitems:
- *
- * 0.5 only, create a menuitem for each network interface.
- */
-static void
-nwam_menu_create_if_menuitems (GObject *daemon, GObject *wifi, gpointer data)
-{
-    /* TODO */
 }
 
 /**

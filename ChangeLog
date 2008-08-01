@@ -1,3 +1,10 @@
+2008-08-01  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/Makefile.am:
+	* daemon/nwam-menu.c: (nwam_menu_init): back out some parts of
+	my last modification.
+	* daemon/nwam-ui-picea.xml: removed.
+
 2008-07-31  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/Makefile.am:
