@@ -1,0 +1,882 @@
+# Copyright (C) 2008 Sun Microsystems, Inc
+# This file is distributed under the same license as the nwam-manager package.
+#
+# Desktop Discuss <desktop-discuss@opensolaris.org>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: nwam-manager HEAD\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-10-01 12:57+0900\n"
+"PO-Revision-Date: 2008-10-01 12:57+0900\n"
+"Last-Translator: desktop-discuss@opensolaris.org\n"
+"Language-Team: desktop-discuss@opensolaris.org\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: ../capplet/nwam-manager-properties.glade.h:1
+msgid "<small><i><b>Example:</b> 12:34:56:78:9A:BC</i></small>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:2
+msgid "Add Wireless Network"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:3
+msgid "Certificate _File:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:4
+msgid "Co_nfirm Password:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:5
+msgid "Favorite Wireless Networks"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:6
+msgid ""
+"LEAP\n"
+"PEAP/MSCHAPv2"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:8
+msgid "Network Interface Priority"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:9
+msgid ""
+"None\n"
+"WEP Hex\n"
+"WEP ASCII\n"
+"WPA Personal (PSK)\n"
+"WPA Enterprise (Radius)"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:14 ../common/libnwamui.c:172
+#: ../common/libnwamui.c:173
+msgid "WEP"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:15
+msgid "WPA/2"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:16
+msgid "_Add to list of favorite networks on successful connection"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:17
+msgid "_BSSID (optional):"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:18
+msgid "_Configuration:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:19
+msgid "_More Options"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:20
+msgid "_Network name (ESSID):"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:21
+msgid "_Password:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:22
+msgid "_Security type:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:23
+msgid "_Show passwords while typing"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:24
+msgid "_Username:"
+msgstr ""
+
+#: ../capplet/nwam_fav_networks_dialog.c:159
+msgid "Network Name (ESSID)"
+msgstr ""
+
+#: ../capplet/nwam_fav_networks_dialog.c:180
+msgid "Access Point (BSSID)"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:150
+msgid "Wireless NCU"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:151
+msgid "The Wireless NCU that the dialog is to work with."
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:158
+msgid "Wireless ESSID"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:159
+msgid "The Wireless ESSID to connect to."
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:165
+msgid "Wireless Security Type"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:166
+msgid "The Wireless security (None/WEP/WPA)."
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:173
+msgid "Wireless Security Key"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:174
+msgid "The Wireless security key."
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:180
+msgid "WPA Username"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:181
+msgid "The Username to use for a WPA connection."
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:187
+msgid "WPA Password"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:188
+msgid "The Password to use for a WPA connection."
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:194
+msgid "WPA Config Type"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:195
+msgid "The type of WPA Connection (Automatic or TTLS-PAP)"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:203
+msgid "WPA Cert File"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:204
+msgid "The Certificate File to use for WPA."
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:210
+msgid "Wireless BSSID"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:211
+msgid "The Wireless AP BSSID to connect to."
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:217
+msgid "Wireless Network is Transient"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:218
+msgid "This Wireless Network shouldn't be remembered on permanently"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:1077
+msgid ""
+"The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:1082
+msgid "The Wireless network name (ESSID) should not be blank."
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:1093
+msgid "Wireless AP (BSSID) is not a valid address"
+msgstr ""
+
+#. Different, so FALSE
+#: ../capplet/nwam_wireless_dialog.c:1114
+msgid "Keys entered are different"
+msgstr ""
+
+#. All other conditions, FALSE
+#: ../capplet/nwam_wireless_dialog.c:1136
+msgid "Invalid data entered"
+msgstr ""
+
+#: ../capplet/nwam_wireless_dialog.c:1208
+msgid "Validation Failed."
+msgstr ""
+
+#: ../capplet/nwam_net_priority_dialog.c:157 ../daemon/main.c:508
+msgid "Network Interface"
+msgstr ""
+
+#: ../capplet/nwam_net_priority_dialog.c:371
+msgid "Enabled"
+msgstr ""
+
+#: ../capplet/nwam_net_priority_dialog.c:371
+msgid "Disabled"
+msgstr ""
+
+#: ../daemon/nwam-manager.schemas.in.h:1 ../common/nwamui_prof.c:141
+#: ../common/nwamui_prof.c:142
+msgid "Adding any new network to your favorites list"
+msgstr ""
+
+#: ../daemon/nwam-manager.schemas.in.h:2 ../common/nwamui_prof.c:125
+#: ../common/nwamui_prof.c:126
+msgid "Joining an open network that is not in your favorites list"
+msgstr ""
+
+#: ../daemon/nwam-manager.schemas.in.h:3 ../common/nwamui_prof.c:133
+#: ../common/nwamui_prof.c:134
+msgid "Joining any favorite network"
+msgstr ""
+
+#: ../daemon/nwam-manager.schemas.in.h:4
+msgid ""
+"The default timeout of notification in milliseconds, must greater than zero."
+msgstr ""
+
+#: ../daemon/nwam-manager.schemas.in.h:5
+msgid "add_any_new_wifi_to_fav"
+msgstr ""
+
+#: ../daemon/nwam-manager.schemas.in.h:6
+msgid "join_any_fav_wifi"
+msgstr ""
+
+#: ../daemon/nwam-manager.schemas.in.h:7
+msgid "join_wifi_not_in_fav"
+msgstr ""
+
+#: ../daemon/nwam-manager.schemas.in.h:8
+msgid "notification_default_timeout"
+msgstr ""
+
+#: ../daemon/nwam-menuitem.c:111 ../daemon/nwam-menuitem.c:112
+#: ../daemon/nwam-action.c:110 ../daemon/nwam-action.c:111
+msgid "Left widget, ref'd"
+msgstr ""
+
+#: ../daemon/nwam-menuitem.c:118 ../daemon/nwam-menuitem.c:119
+#: ../daemon/nwam-action.c:117 ../daemon/nwam-action.c:118
+msgid "Right widget, ref'd"
+msgstr ""
+
+#: ../daemon/status_icon.c:182
+#, c-format
+msgid ""
+"%s\n"
+"%s"
+msgstr ""
+
+#: ../daemon/status_icon.c:185 ../common/nwamui_wifi_net.c:768
+#, c-format
+msgid "%s"
+msgstr ""
+
+#: ../daemon/nwam-action.c:103
+msgid "NwamuiWifiNet instance"
+msgstr ""
+
+#: ../daemon/nwam-action.c:104
+msgid "Wireless AP"
+msgstr ""
+
+#: ../daemon/main.c:58
+msgid "Enable debugging messages"
+msgstr ""
+
+#: ../daemon/main.c:150
+#, c-format
+msgid ""
+"\n"
+"Wired (%s): %s"
+msgstr ""
+
+#: ../daemon/main.c:153
+#, c-format
+msgid ""
+"\n"
+"Wireless (%s): %s"
+msgstr ""
+
+#: ../daemon/main.c:196
+#, c-format
+msgid "Wireless (%s) network interface is active."
+msgstr ""
+
+#: ../daemon/main.c:199
+#, c-format
+msgid "Wired (%s) network interface is active."
+msgstr ""
+
+#: ../daemon/main.c:205
+#, c-format
+msgid "No network interface is active."
+msgstr ""
+
+#: ../daemon/main.c:254 ../daemon/main.c:256
+msgid "Automatic network configuration daemon is unavailable."
+msgstr ""
+
+#: ../daemon/main.c:257
+msgid ""
+"For further information please run\n"
+"\"svcs -xv nwam\" in a terminal."
+msgstr ""
+
+#: ../daemon/main.c:319 ../daemon/main.c:523
+#, c-format
+msgid "Connected to wireless network '%s'"
+msgstr ""
+
+#: ../daemon/main.c:344
+#, c-format
+msgid "Disconnected from Wireless Network '%s'"
+msgstr ""
+
+#: ../daemon/main.c:345
+#, c-format
+msgid ""
+"%s\n"
+"Click here to join another wireless network."
+msgstr ""
+
+#: ../daemon/main.c:380 ../daemon/main.c:405
+msgid "Automatic Network Configuration Daemon"
+msgstr ""
+
+#: ../daemon/main.c:426
+#, c-format
+msgid "'%s' requires authentication"
+msgstr ""
+
+#: ../daemon/main.c:428
+#, c-format
+msgid "Click here to enter the wireless network key."
+msgstr ""
+
+#: ../daemon/main.c:460
+#, c-format
+msgid "Wireless networks available"
+msgstr ""
+
+#: ../daemon/main.c:461
+#, c-format
+msgid ""
+"Right-click the icon to connect \n"
+"%s network interface to an available network."
+msgstr ""
+
+#: ../daemon/main.c:467
+msgid "Right-click to select wireless network"
+msgstr ""
+
+#: ../daemon/main.c:507 ../daemon/main.c:528
+#, c-format
+msgid "%s network interface is connected."
+msgstr ""
+
+#: ../daemon/main.c:508 ../daemon/main.c:531
+#, c-format
+msgid "%s: %s"
+msgstr ""
+
+#: ../daemon/main.c:510 ../daemon/main.c:533
+#, c-format
+msgid ""
+"\n"
+"%s: %s"
+msgstr ""
+
+#: ../daemon/main.c:510
+msgid "Network Address"
+msgstr ""
+
+#: ../daemon/main.c:531
+msgid "Interface"
+msgstr ""
+
+#: ../daemon/main.c:533
+msgid "Address"
+msgstr ""
+
+#: ../daemon/main.c:536
+#, c-format
+msgid ""
+"\n"
+"%s: %d"
+msgstr ""
+
+#: ../daemon/main.c:536
+msgid "Signal Strength"
+msgstr ""
+
+#: ../daemon/main.c:581 ../daemon/main.c:592
+#, c-format
+msgid "%s disconnected from network."
+msgstr ""
+
+#: ../daemon/main.c:628
+#, c-format
+msgid "Activating %s network interface..."
+msgstr ""
+
+#: ../daemon/main.c:663
+#, c-format
+msgid "Failed to connect to wireless network '%s'. %s"
+msgstr ""
+
+#: ../daemon/main.c:665
+msgid ""
+"The DHCP server may not be responding, or\n"
+"you may have entered the wrong wireless key.\n"
+"\n"
+"Click here to re-enter the wireless key."
+msgstr ""
+
+#: ../daemon/main.c:844
+msgid "There are no wireless network interfaces"
+msgstr ""
+
+#: ../daemon/main.c:935
+msgid "No wireless network interfaces available"
+msgstr ""
+
+#: ../daemon/nwam-menu.c:188
+msgid "_Edit Network Interface Priorities..."
+msgstr ""
+
+#: ../daemon/nwam-menu.c:192
+msgid "_Join Unlisted Wireless Network..."
+msgstr ""
+
+#: ../daemon/nwam-menu.c:196
+msgid "_Manage Favorite Wireless Networks..."
+msgstr ""
+
+#: ../daemon/nwam-menu.c:273 ../daemon/nwam-menu.c:1047
+#: ../common/nwamui_ncp.c:583
+msgid "Wireless"
+msgstr ""
+
+#: ../daemon/nwam-menu.c:276 ../daemon/nwam-menu.c:1050
+#: ../common/nwamui_ncp.c:583
+msgid "Wired"
+msgstr ""
+
+#: ../daemon/nwam-menu.c:278
+#, c-format
+msgid "_Automatic Network Interface Selection - Current: %s (%s)"
+msgstr ""
+
+#: ../daemon/nwam-menu.c:282
+#, c-format
+msgid "_Automatic Network Interface Selection "
+msgstr ""
+
+#: ../daemon/nwam-menu.c:665
+msgid "NWAM Manager"
+msgstr ""
+
+#: ../daemon/nwam-menu.c:666
+msgid "About NWAM Manager"
+msgstr ""
+
+#: ../daemon/nwam-menu.c:889
+#, c-format
+msgid "Wireless network '%s' added to favorites"
+msgstr ""
+
+#: ../daemon/nwam-menu.c:891
+#, c-format
+msgid ""
+"Click here to view or edit your list of favorite\n"
+"wireless networks."
+msgstr ""
+
+#: ../daemon/nwam-menu.c:1052
+#, c-format
+msgid "Always Use %s Network Interface (%s)"
+msgstr ""
+
+#: ../daemon/notify.c:487
+#, c-format
+msgid ""
+"  %s\n"
+"    %s"
+msgstr ""
+
+#: ../daemon/notify.c:490
+#, c-format
+msgid "  %s"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:149 ../common/nwamui_ncu.c:150
+msgid "vanity_name"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:157 ../common/nwamui_ncu.c:158
+msgid "device_name"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:165 ../common/nwamui_ncu.c:166
+msgid "phy_address"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:173 ../common/nwamui_ncu.c:174
+msgid "ncu_type"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:183 ../common/nwamui_ncu.c:184
+msgid "active"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:191 ../common/nwamui_ncu.c:192
+#: ../common/nwamui_wifi_net.c:173 ../common/nwamui_wifi_net.c:174
+msgid "speed"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:201 ../common/nwamui_ncu.c:202
+msgid "ipv4_auto_conf"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:210 ../common/nwamui_ncu.c:211
+msgid "ipv4_address"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:218 ../common/nwamui_ncu.c:219
+msgid "ipv4_subnet"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:226 ../common/nwamui_ncu.c:227
+msgid "ipv4_gateway"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:234 ../common/nwamui_ncu.c:235
+msgid "ipv6_active"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:242 ../common/nwamui_ncu.c:243
+msgid "ipv6_auto_conf"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:251 ../common/nwamui_ncu.c:252
+msgid "ipv6_address"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:259 ../common/nwamui_ncu.c:260
+msgid "ipv6_prefix"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:267 ../common/nwamui_ncu.c:268
+msgid "v4addresses"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:275 ../common/nwamui_ncu.c:276
+msgid "v6addresses"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:283 ../common/nwamui_ncu.c:284
+msgid "Wi-Fi configuration information."
+msgstr ""
+
+#: ../common/nwamui_ncu.c:291 ../common/nwamui_ncu.c:292
+msgid "rules_enabled"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:299 ../common/nwamui_ncu.c:300
+msgid "rules_ncus"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:306 ../common/nwamui_ncu.c:307
+msgid "rules_ncu_state"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:316 ../common/nwamui_ncu.c:317
+msgid "rules_action"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:326 ../common/nwamui_ncu.c:327
+msgid "priority"
+msgstr ""
+
+#: ../common/nwamui_ncu.c:924 ../common/nwamui_ncp.c:582
+#, c-format
+msgid "%s (%s)"
+msgstr ""
+
+#: ../common/libnwamui.c:153
+msgid "WEP Hex"
+msgstr ""
+
+#: ../common/libnwamui.c:154
+msgid "WEP ASCII"
+msgstr ""
+
+#: ../common/libnwamui.c:155
+msgid "WPA Personal(PSK)"
+msgstr ""
+
+#: ../common/libnwamui.c:156
+msgid "WPA Enterprise (Radius)"
+msgstr ""
+
+#: ../common/libnwamui.c:157
+msgid "None"
+msgstr ""
+
+#: ../common/libnwamui.c:174 ../common/libnwamui.c:175
+msgid "WPA"
+msgstr ""
+
+#: ../common/libnwamui.c:176
+msgid "Open"
+msgstr ""
+
+#: ../common/libnwamui.c:192
+msgid "LEAP"
+msgstr ""
+
+#: ../common/libnwamui.c:193
+msgid "PEAP/MSCHAPv2"
+msgstr ""
+
+#. fall through
+#: ../common/libnwamui.c:195
+msgid "Automatic"
+msgstr ""
+
+#: ../common/libnwamui.c:469
+msgid "Could not display help"
+msgstr ""
+
+#: ../common/libnwamui.c:551
+msgid "This operation cannot be undone."
+msgstr ""
+
+#: ../common/nwamui_prof.c:149 ../common/nwamui_prof.c:150
+msgid "The action if no favorite networks are available"
+msgstr ""
+
+#: ../common/nwamui_prof.c:159 ../common/nwamui_prof.c:160
+#: ../common/nwamui_prof.c:167 ../common/nwamui_prof.c:168
+msgid "Active Interface"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:111 ../common/nwamui_wifi_net.c:112
+msgid "NCU that AP is seen on"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:119 ../common/nwamui_wifi_net.c:120
+msgid "Wifi Network ESSID"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:127 ../common/nwamui_wifi_net.c:128
+msgid "Wifi Network BSSID"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:135 ../common/nwamui_wifi_net.c:136
+msgid "Wifi Network Status"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:144 ../common/nwamui_wifi_net.c:145
+msgid "Wifi Network Security"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:153 ../common/nwamui_wifi_net.c:154
+msgid "Wifi Network Signal Strength"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:163
+msgid "Wifi BSS Type"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:164
+msgid "Wifi BSS Type (AP or AD-HOC)"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:183 ../common/nwamui_wifi_net.c:184
+msgid "mode"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:191 ../common/nwamui_wifi_net.c:192
+msgid "Wifi WPA Configuration Type"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:202 ../common/nwamui_wifi_net.c:203
+msgid "Wifi WEP Password"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:210 ../common/nwamui_wifi_net.c:211
+msgid "Wifi WPA Username"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:218 ../common/nwamui_wifi_net.c:219
+msgid "Wifi WPA Password"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:226 ../common/nwamui_wifi_net.c:227
+msgid "Wifi WPA Certificate File Path"
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:652
+msgid "Failed to initiate connection to wireless network."
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:763
+#, c-format
+msgid "[%s] "
+msgstr ""
+
+#: ../common/nwamui_wifi_net.c:771
+#, c-format
+msgid " (Computer-to-Computer)"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:161 ../common/nwamui_daemon.c:162
+msgid "status"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:171 ../common/nwamui_daemon.c:172
+msgid "event_cause"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1031 ../common/nwamui_daemon.c:1049
+msgid "unknown"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1034
+msgid "DHCP down"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1035
+msgid "DHCP timed out"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1036
+msgid "Cable disconnected"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1037
+msgid "User changed priority"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1038
+msgid "Higher priority, cable connected"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1039
+msgid "Scan done on higher-priority wireless network interface"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1040
+msgid "Periodic scan shows wireless network gone."
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1041
+msgid "Periodic scan shows very weak signal on wireless network"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1042
+msgid "All network interfaces but one going down"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1043
+msgid "Another network interface is already active"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1044
+msgid "NWAM Daemon is shutting down"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1045
+msgid "Different AP selected"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1046
+msgid "Hardware removed"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1047
+msgid "none"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1415 ../common/nwamui_daemon.c:1703
+#, c-format
+msgid "New wireless networks found."
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1429
+#, c-format
+msgid "User script '%s' activated"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1439
+#, c-format
+msgid "User script '%s' deactivated"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1564
+#, c-format
+msgid "%s network interface is up."
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1603
+#, c-format
+msgid ""
+"%s network interface brought down\n"
+"Reason: %s"
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1785
+#, c-format
+msgid "%s network interface failed to start DHCP request."
+msgstr ""
+
+#: ../common/nwamui_daemon.c:1795
+#, c-format
+msgid "%s network interface failed to get response from DHCP request."
+msgstr ""
+
+#: ../common/nwamui_ip.c:89 ../common/nwamui_ip.c:90
+msgid "is_v6"
+msgstr ""
+
+#: ../common/nwamui_ip.c:97 ../common/nwamui_ip.c:98
+msgid "address"
+msgstr ""
+
+#: ../common/nwamui_ip.c:105 ../common/nwamui_ip.c:106
+msgid "subnet_prefix"
+msgstr ""
+
+#: ../common/nwamui_ncp.c:112 ../common/nwamui_ncp.c:113
+msgid "Name of the NCP"
+msgstr ""
+
+#: ../common/nwamui_ncp.c:120 ../common/nwamui_ncp.c:121
+msgid "List of NCUs in the NCP"
+msgstr ""
+
+#: ../common/nwamui_ncp.c:128 ../common/nwamui_ncp.c:129
+msgid "Active NCU"
+msgstr ""
+
+#: ../common/nwamui_ncp.c:136 ../common/nwamui_ncp.c:137
+msgid "selection_mode"
+msgstr ""
+
+#: ../common/nwamui_ncp.c:146 ../common/nwamui_ncp.c:147
+msgid "many_wireless"
+msgstr ""

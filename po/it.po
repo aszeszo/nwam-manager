@@ -1,0 +1,1510 @@
+# Copyright (C) 2008 Sun Microsystems, Inc
+# This file is distributed under the same license as the nwam-manager package.
+#
+# Desktop Discuss <desktop-discuss@opensolaris.org>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: nwam-manager HEAD\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-10-01 12:57+0900\n"
+"PO-Revision-Date: 2008-10-14 18:26+0100\n"
+"Last-Translator: desktop-discuss@opensolaris.org\n"
+"Language-Team: desktop-discuss@opensolaris.org\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:1
+msgid "<small><i><b>Example:</b> 12:34:56:78:9A:BC</i></small>"
+msgstr "<small><i><b>Esempio:</b> 12:34:56:78:9A:BC</i></small>"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:2
+msgid "Add Wireless Network"
+msgstr "Aggiungi rete wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:3
+msgid "Certificate _File:"
+msgstr "Certifica _file:"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:4
+msgid "Co_nfirm Password:"
+msgstr "Co_nferma password:"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:5
+msgid "Favorite Wireless Networks"
+msgstr "Reti wireless preferite"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:6
+msgid ""
+"LEAP\n"
+"PEAP/MSCHAPv2"
+msgstr ""
+"LEAP\n"
+"PEAP/MSCHAPv2"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:8
+msgid "Network Interface Priority"
+msgstr "Priorità interfaccia di rete"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:9
+msgid ""
+"None\n"
+"WEP Hex\n"
+"WEP ASCII\n"
+"WPA Personal (PSK)\n"
+"WPA Enterprise (Radius)"
+msgstr ""
+"Nessuna\n"
+"WEP esa\n"
+"WEP ASCII\n"
+"WPA Personal (PSK)\n"
+"WPA Enterprise (Radius)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:14 ../common/libnwamui.c:172
+#: ../common/libnwamui.c:173
+msgid "WEP"
+msgstr "WEP"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:15
+msgid "WPA/2"
+msgstr "WPA/2"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:16
+msgid "_Add to list of favorite networks on successful connection"
+msgstr ""
+"_Aggiungi a elenco di reti preferite una volta stabilita la connessione"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:17
+msgid "_BSSID (optional):"
+msgstr "_BSSID (facoltativo):"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:18
+msgid "_Configuration:"
+msgstr "_Configurazione:"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:19
+msgid "_More Options"
+msgstr "_Altre opzioni"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:20
+msgid "_Network name (ESSID):"
+msgstr "_Nome rete (ESSID):"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:21
+msgid "_Password:"
+msgstr "_Password:"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:22
+msgid "_Security type:"
+msgstr "_Tipo di protezione:"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:23
+msgid "_Show passwords while typing"
+msgstr "_Mostra password durante la digitazione"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:24
+msgid "_Username:"
+msgstr "_Nome utente:"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_fav_networks_dialog.c:159
+msgid "Network Name (ESSID)"
+msgstr "Nome rete (ESSID):"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_fav_networks_dialog.c:180
+msgid "Access Point (BSSID)"
+msgstr "Punto di accesso (BSSID)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:150
+msgid "Wireless NCU"
+msgstr "NCU wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:151
+msgid "The Wireless NCU that the dialog is to work with."
+msgstr "L'NCU wireless da utilizzare nella finestra di dialogo."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:158
+msgid "Wireless ESSID"
+msgstr "ESSID wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:159
+msgid "The Wireless ESSID to connect to."
+msgstr "L'ESSID wireless a cui connettersi."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:165
+msgid "Wireless Security Type"
+msgstr "Tipo di protezione wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:166
+msgid "The Wireless security (None/WEP/WPA)."
+msgstr "Il tipo di protezione wireless (nessuna/WEP/WPA)."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:173
+msgid "Wireless Security Key"
+msgstr "Chiave di sicurezza wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:174
+msgid "The Wireless security key."
+msgstr "La chiave di sicurezza wireless."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:180
+msgid "WPA Username"
+msgstr "Nome utente WPA"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:181
+msgid "The Username to use for a WPA connection."
+msgstr "Il nome utente da utilizzare per una connessione WPA."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:187
+msgid "WPA Password"
+msgstr "Password WPA"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:188
+msgid "The Password to use for a WPA connection."
+msgstr "La password da utilizzare per la connessione WPA."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:194
+msgid "WPA Config Type"
+msgstr "Tipo di configurazione WPA"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:195
+msgid "The type of WPA Connection (Automatic or TTLS-PAP)"
+msgstr "Il tipo di connessione WPA (automatica o TTLS-PAP)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:203
+msgid "WPA Cert File"
+msgstr "File certificato WPA"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:204
+msgid "The Certificate File to use for WPA."
+msgstr "Il file di certificato da utilizzare per WAP."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:210
+msgid "Wireless BSSID"
+msgstr "BSSID wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:211
+msgid "The Wireless AP BSSID to connect to."
+msgstr "Il punto di accesso ESSID wireless a cui connettersi."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:217
+msgid "Wireless Network is Transient"
+msgstr "La rete wireless è temporanea"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:218
+msgid "This Wireless Network shouldn't be remembered on permanently"
+msgstr "La rete wireless non deve essere memorizzata in modo definitivo"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:1077
+msgid ""
+"The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
+msgstr ""
+"Il nome della rete wireless (ESSID) contiene caratteri non validi (non "
+"ASCII)."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:1082
+msgid "The Wireless network name (ESSID) should not be blank."
+msgstr "Il nome della rete wireless (ESSID) non deve essere vuoto."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:1093
+msgid "Wireless AP (BSSID) is not a valid address"
+msgstr "Il punto di accesso wireless (BSSID) non è un indirizzo valido"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#. Different, so FALSE
+#: ../capplet/nwam_wireless_dialog.c:1114
+msgid "Keys entered are different"
+msgstr "Le chiavi immesse sono diverse"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#. All other conditions, FALSE
+#: ../capplet/nwam_wireless_dialog.c:1136
+msgid "Invalid data entered"
+msgstr "Dati immessi non validi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:1208
+msgid "Validation Failed."
+msgstr "Convalida non riuscita."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_net_priority_dialog.c:157 ../daemon/main.c:508
+msgid "Network Interface"
+msgstr "Interfaccia di rete"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_net_priority_dialog.c:371
+msgid "Enabled"
+msgstr "Abilitata"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_net_priority_dialog.c:371
+msgid "Disabled"
+msgstr "Disabilitata"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:1 ../common/nwamui_prof.c:141
+#: ../common/nwamui_prof.c:142
+msgid "Adding any new network to your favorites list"
+msgstr "Aggiunta di reti nuove all'elenco dei preferiti"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:2 ../common/nwamui_prof.c:125
+#: ../common/nwamui_prof.c:126
+msgid "Joining an open network that is not in your favorites list"
+msgstr ""
+"Partecipazione a una rete aperta non presente nell'elenco dei preferiti"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:3 ../common/nwamui_prof.c:133
+#: ../common/nwamui_prof.c:134
+msgid "Joining any favorite network"
+msgstr "Partecipazione a una rete preferita"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:4
+msgid ""
+"The default timeout of notification in milliseconds, must greater than zero."
+msgstr ""
+"Timeout di notifica predefinito in millisecondi; deve essere superiore a "
+"zero."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:5
+msgid "add_any_new_wifi_to_fav"
+msgstr "aggiungi_nuovo_wifi_a_pref"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:6
+msgid "join_any_fav_wifi"
+msgstr "partecipa_a_qualsiasi_wifi_pref"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:7
+msgid "join_wifi_not_in_fav"
+msgstr "partecipa_a_wifi_non_in_pref"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:8
+msgid "notification_default_timeout"
+msgstr "timeout_di notifica_predefinito"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menuitem.c:111 ../daemon/nwam-menuitem.c:112
+#: ../daemon/nwam-action.c:110 ../daemon/nwam-action.c:111
+msgid "Left widget, ref'd"
+msgstr "Widget sinistro, con riferimento"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menuitem.c:118 ../daemon/nwam-menuitem.c:119
+#: ../daemon/nwam-action.c:117 ../daemon/nwam-action.c:118
+msgid "Right widget, ref'd"
+msgstr "Widget destro, con riferimento"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/status_icon.c:182
+#, c-format
+msgid ""
+"%s\n"
+"%s"
+msgstr ""
+"%s\n"
+"%s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/status_icon.c:185 ../common/nwamui_wifi_net.c:768
+#, c-format
+msgid "%s"
+msgstr "%s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-action.c:103
+msgid "NwamuiWifiNet instance"
+msgstr "Istanza NwamuiWifiNet"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-action.c:104
+msgid "Wireless AP"
+msgstr "Punto di accesso wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:58
+msgid "Enable debugging messages"
+msgstr "Abilita messaggi di debug"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:150
+#, c-format
+msgid ""
+"\n"
+"Wired (%s): %s"
+msgstr ""
+"\n"
+"Con cavo (%s): %s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:153
+#, c-format
+msgid ""
+"\n"
+"Wireless (%s): %s"
+msgstr ""
+"\n"
+"Wireless (%s): %s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:196
+#, c-format
+msgid "Wireless (%s) network interface is active."
+msgstr "L'interfaccia di rete wireless (%s) è attiva."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:199
+#, c-format
+msgid "Wired (%s) network interface is active."
+msgstr "L'interfaccia di rete con cavo (%s) è attiva."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:205
+#, c-format
+msgid "No network interface is active."
+msgstr "Nessuna interfaccia di rete attiva."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:254 ../daemon/main.c:256
+msgid "Automatic network configuration daemon is unavailable."
+msgstr "Daemon di configurazione automatica della rete non disponibile."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:257
+msgid ""
+"For further information please run\n"
+"\"svcs -xv nwam\" in a terminal."
+msgstr ""
+"Per ulteriori informazioni, eseguire\n"
+"\"svcs -xv nwam\" in un terminale."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:319 ../daemon/main.c:523
+#, c-format
+msgid "Connected to wireless network '%s'"
+msgstr "Connesso alla rete wireless '%s'"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:344
+#, c-format
+msgid "Disconnected from Wireless Network '%s'"
+msgstr "Disconnesso dalla rete wireless '%s'"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:345
+#, c-format
+msgid ""
+"%s\n"
+"Click here to join another wireless network."
+msgstr ""
+"%s\n"
+"Fare clic qui per partecipare a un'altra rete wireless."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:380 ../daemon/main.c:405
+msgid "Automatic Network Configuration Daemon"
+msgstr "Daemon di configurazione automatica della rete"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:426
+#, c-format
+msgid "'%s' requires authentication"
+msgstr "'%s' richiede l'autenticazione"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:428
+#, c-format
+msgid "Click here to enter the wireless network key."
+msgstr "Fare clic qui per immettere la chiave di rete wireless."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:460
+#, c-format
+msgid "Wireless networks available"
+msgstr "Reti wireless disponibili"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:461
+#, c-format
+msgid ""
+"Right-click the icon to connect \n"
+"%s network interface to an available network."
+msgstr ""
+"Fare clic con il pulsante destro del mouse sull'icona per connettere \n"
+"l'interfaccia di rete %s a una rete disponibile."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:467
+msgid "Right-click to select wireless network"
+msgstr ""
+"Fare clic con il pulsante destro del mouse per selezionare una rete wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:507 ../daemon/main.c:528
+#, c-format
+msgid "%s network interface is connected."
+msgstr "L'interfaccia di rete %s è connessa."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:508 ../daemon/main.c:531
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:510 ../daemon/main.c:533
+#, c-format
+msgid ""
+"\n"
+"%s: %s"
+msgstr ""
+"\n"
+"%s: %s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:510
+msgid "Network Address"
+msgstr "Indirizzo di rete"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:531
+msgid "Interface"
+msgstr "Interfaccia"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:533
+msgid "Address"
+msgstr "Indirizzo"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:536
+#, c-format
+msgid ""
+"\n"
+"%s: %d"
+msgstr ""
+"\n"
+"%s: %d"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:536
+msgid "Signal Strength"
+msgstr "Potenza segnale"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:581 ../daemon/main.c:592
+#, c-format
+msgid "%s disconnected from network."
+msgstr "%s disconnesso dalla rete."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:628
+#, c-format
+msgid "Activating %s network interface..."
+msgstr "Attivazione dell'interfaccia di rete %s in corso..."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:663
+#, c-format
+msgid "Failed to connect to wireless network '%s'. %s"
+msgstr "Impossibile connettersi alla rete wireless '%s'. %s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:665
+msgid ""
+"The DHCP server may not be responding, or\n"
+"you may have entered the wrong wireless key.\n"
+"\n"
+"Click here to re-enter the wireless key."
+msgstr ""
+"È possibile che il server DHCP non risponda o\n"
+"che sia stata immessa una chiave wireless errata.\n"
+"\n"
+"Fare clic qui per immettere nuovamente la chiave di rete."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:844
+msgid "There are no wireless network interfaces"
+msgstr "Nessuna interfaccia di rete wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:935
+msgid "No wireless network interfaces available"
+msgstr "Nessuna interfaccia di rete wireless disponibile"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:188
+msgid "_Edit Network Interface Priorities..."
+msgstr "_Modifica priorità interfaccia di rete..."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:192
+msgid "_Join Unlisted Wireless Network..."
+msgstr "_Partecipa a rete wireless non in elenco..."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:196
+msgid "_Manage Favorite Wireless Networks..."
+msgstr "_Gestisci reti wireless preferite..."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:273 ../daemon/nwam-menu.c:1047
+#: ../common/nwamui_ncp.c:583
+msgid "Wireless"
+msgstr "Wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:276 ../daemon/nwam-menu.c:1050
+#: ../common/nwamui_ncp.c:583
+msgid "Wired"
+msgstr "Con cavo"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:278
+#, c-format
+msgid "_Automatic Network Interface Selection - Current: %s (%s)"
+msgstr "_Selezione automatica interfaccia di rete - Corrente: %s (%s)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:282
+#, c-format
+msgid "_Automatic Network Interface Selection "
+msgstr "_Selezione automatica interfaccia di rete "
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:665
+msgid "NWAM Manager"
+msgstr "NWAM Manager"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:666
+msgid "About NWAM Manager"
+msgstr "Informazioni su NWAM Manager"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:889
+#, c-format
+msgid "Wireless network '%s' added to favorites"
+msgstr "Rete wireless '%s' aggiunta ai preferiti"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:891
+#, c-format
+msgid ""
+"Click here to view or edit your list of favorite\n"
+"wireless networks."
+msgstr ""
+"Fare clic qui per visualizzare o modificare l'elenco dei preferiti\n"
+"reti wireless."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:1052
+#, c-format
+msgid "Always Use %s Network Interface (%s)"
+msgstr "Usa sempre l'interfaccia di rete %s (%s)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/notify.c:487
+#, c-format
+msgid ""
+"  %s\n"
+"    %s"
+msgstr ""
+"  %s\n"
+"    %s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/notify.c:490
+#, c-format
+msgid "  %s"
+msgstr "  %s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:149 ../common/nwamui_ncu.c:150
+msgid "vanity_name"
+msgstr "pseudonimo"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:157 ../common/nwamui_ncu.c:158
+msgid "device_name"
+msgstr "nome_dispositivo"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:165 ../common/nwamui_ncu.c:166
+msgid "phy_address"
+msgstr "indirizzo_phy"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:173 ../common/nwamui_ncu.c:174
+msgid "ncu_type"
+msgstr "tipo_ncu"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:183 ../common/nwamui_ncu.c:184
+msgid "active"
+msgstr "attivo"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:191 ../common/nwamui_ncu.c:192
+#: ../common/nwamui_wifi_net.c:173 ../common/nwamui_wifi_net.c:174
+msgid "speed"
+msgstr "velocità"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:201 ../common/nwamui_ncu.c:202
+msgid "ipv4_auto_conf"
+msgstr "conf_autom_ipv4"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:210 ../common/nwamui_ncu.c:211
+msgid "ipv4_address"
+msgstr "indirizzo_ipv4"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:218 ../common/nwamui_ncu.c:219
+msgid "ipv4_subnet"
+msgstr "subnet_ipv4"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:226 ../common/nwamui_ncu.c:227
+msgid "ipv4_gateway"
+msgstr "gateway_ipv4"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:234 ../common/nwamui_ncu.c:235
+msgid "ipv6_active"
+msgstr "ipv6_attivo"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:242 ../common/nwamui_ncu.c:243
+msgid "ipv6_auto_conf"
+msgstr "conf_autom_ipv6"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:251 ../common/nwamui_ncu.c:252
+msgid "ipv6_address"
+msgstr "indirizzo_ipv6"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:259 ../common/nwamui_ncu.c:260
+msgid "ipv6_prefix"
+msgstr "prefisso_ipv6"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:267 ../common/nwamui_ncu.c:268
+msgid "v4addresses"
+msgstr "indirizziv4"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:275 ../common/nwamui_ncu.c:276
+msgid "v6addresses"
+msgstr "indirizziv6"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:283 ../common/nwamui_ncu.c:284
+msgid "Wi-Fi configuration information."
+msgstr "Informazioni configurazione Wi-Fi."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:291 ../common/nwamui_ncu.c:292
+msgid "rules_enabled"
+msgstr "regole_abilitate"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:299 ../common/nwamui_ncu.c:300
+msgid "rules_ncus"
+msgstr "regole_ncu"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:306 ../common/nwamui_ncu.c:307
+msgid "rules_ncu_state"
+msgstr "stato_regole_ncu"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:316 ../common/nwamui_ncu.c:317
+msgid "rules_action"
+msgstr "azione_regole"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:326 ../common/nwamui_ncu.c:327
+msgid "priority"
+msgstr "priorità"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:924 ../common/nwamui_ncp.c:582
+#, c-format
+msgid "%s (%s)"
+msgstr "%s (%s)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:153
+msgid "WEP Hex"
+msgstr "WEP esa"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:154
+msgid "WEP ASCII"
+msgstr "WEP ASCII"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:155
+msgid "WPA Personal(PSK)"
+msgstr "WPA Personal(PSK)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:156
+msgid "WPA Enterprise (Radius)"
+msgstr "WPA Enterprise (Radius)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:157
+msgid "None"
+msgstr "Nessuna"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:174 ../common/libnwamui.c:175
+msgid "WPA"
+msgstr "WPA"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:176
+msgid "Open"
+msgstr "Aperta"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:192
+msgid "LEAP"
+msgstr "LEAP"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:193
+msgid "PEAP/MSCHAPv2"
+msgstr "PEAP/MSCHAPv2"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#. fall through
+#: ../common/libnwamui.c:195
+msgid "Automatic"
+msgstr "Automatica"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:469
+msgid "Could not display help"
+msgstr "Impossibile visualizzare la Guida"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:551
+msgid "This operation cannot be undone."
+msgstr "Impossibile annullare l'operazione."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_prof.c:149 ../common/nwamui_prof.c:150
+msgid "The action if no favorite networks are available"
+msgstr "L'azione da eseguire se non sono disponibili reti preferite"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_prof.c:159 ../common/nwamui_prof.c:160
+#: ../common/nwamui_prof.c:167 ../common/nwamui_prof.c:168
+msgid "Active Interface"
+msgstr "Interfaccia attiva"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:111 ../common/nwamui_wifi_net.c:112
+msgid "NCU that AP is seen on"
+msgstr "NCU su cui è visibile il punto di accesso"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:119 ../common/nwamui_wifi_net.c:120
+msgid "Wifi Network ESSID"
+msgstr "ESSID rete Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:127 ../common/nwamui_wifi_net.c:128
+msgid "Wifi Network BSSID"
+msgstr "BSSID rete Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:135 ../common/nwamui_wifi_net.c:136
+msgid "Wifi Network Status"
+msgstr "Stato rete Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:144 ../common/nwamui_wifi_net.c:145
+msgid "Wifi Network Security"
+msgstr "Protezione rete Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:153 ../common/nwamui_wifi_net.c:154
+msgid "Wifi Network Signal Strength"
+msgstr "Potenza segnale rete Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:163
+msgid "Wifi BSS Type"
+msgstr "Tipo di BSS Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:164
+msgid "Wifi BSS Type (AP or AD-HOC)"
+msgstr "Tipo di BSS (punto di accesso o specifico)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:183 ../common/nwamui_wifi_net.c:184
+msgid "mode"
+msgstr "modalità"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:191 ../common/nwamui_wifi_net.c:192
+msgid "Wifi WPA Configuration Type"
+msgstr "Tipo di configurazione WPA Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:202 ../common/nwamui_wifi_net.c:203
+msgid "Wifi WEP Password"
+msgstr "Password WEP Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:210 ../common/nwamui_wifi_net.c:211
+msgid "Wifi WPA Username"
+msgstr "Nome utente WPA Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:218 ../common/nwamui_wifi_net.c:219
+msgid "Wifi WPA Password"
+msgstr "Password WPA Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:226 ../common/nwamui_wifi_net.c:227
+msgid "Wifi WPA Certificate File Path"
+msgstr "Percorso file certificato WPA Wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:652
+msgid "Failed to initiate connection to wireless network."
+msgstr "Impossibile inizializzare la connessione alla rete wireless."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:763
+#, c-format
+msgid "[%s] "
+msgstr "[%s] "
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:771
+#, c-format
+msgid " (Computer-to-Computer)"
+msgstr " (Da computer a Computer)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:161 ../common/nwamui_daemon.c:162
+msgid "status"
+msgstr "stato"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:171 ../common/nwamui_daemon.c:172
+msgid "event_cause"
+msgstr "causa_evento"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1031 ../common/nwamui_daemon.c:1049
+msgid "unknown"
+msgstr "sconosciuto"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1034
+msgid "DHCP down"
+msgstr "DHCP inattivo"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1035
+msgid "DHCP timed out"
+msgstr "Timeout DHCP"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1036
+msgid "Cable disconnected"
+msgstr "Cavo scollegato"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1037
+msgid "User changed priority"
+msgstr "L'utente ha modificato la priorità"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1038
+msgid "Higher priority, cable connected"
+msgstr "Priorità più alta, cavo collegato"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1039
+msgid "Scan done on higher-priority wireless network interface"
+msgstr ""
+"Scansione eseguita sull'interfaccia di rete wireless con priorità più alta"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1040
+msgid "Periodic scan shows wireless network gone."
+msgstr "La scansione periodica mostra la disconnessione dalla rete wireless."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1041
+msgid "Periodic scan shows very weak signal on wireless network"
+msgstr ""
+"La scansione periodica mostra una connessione molto debole alla rete wireless"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1042
+msgid "All network interfaces but one going down"
+msgstr "Tutte le interfacce di rete salvo una sono in fase di arresto"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1043
+msgid "Another network interface is already active"
+msgstr "È già attiva un'altra interfaccia di rete"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1044
+msgid "NWAM Daemon is shutting down"
+msgstr "È in corso l'arresto del daemon NWAM"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1045
+msgid "Different AP selected"
+msgstr "Diverso punto di accesso selezionato"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1046
+msgid "Hardware removed"
+msgstr "Hardware rimosso"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1047
+msgid "none"
+msgstr "nessuno"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1415 ../common/nwamui_daemon.c:1703
+#, c-format
+msgid "New wireless networks found."
+msgstr "Nuova rete wireless trovata."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1429
+#, c-format
+msgid "User script '%s' activated"
+msgstr "Script utente '%s' attivato"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1439
+#, c-format
+msgid "User script '%s' deactivated"
+msgstr "Script utente '%s' disattivato"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1564
+#, c-format
+msgid "%s network interface is up."
+msgstr "L'interfaccia di rete %s è attiva."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1603
+#, c-format
+msgid ""
+"%s network interface brought down\n"
+"Reason: %s"
+msgstr ""
+"%s interfaccia di rete non disponibile\n"
+"Motivo: %s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1785
+#, c-format
+msgid "%s network interface failed to start DHCP request."
+msgstr "l'interfaccia di rete %s non è riuscita ad avviare la richiesta DHCP."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1795
+#, c-format
+msgid "%s network interface failed to get response from DHCP request."
+msgstr ""
+"L'interfaccia di rete %s non ha ottenuto una risposta dalla richiesta DHCP."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ip.c:89 ../common/nwamui_ip.c:90
+msgid "is_v6"
+msgstr "is_v6"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ip.c:97 ../common/nwamui_ip.c:98
+msgid "address"
+msgstr "indirizzo"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ip.c:105 ../common/nwamui_ip.c:106
+msgid "subnet_prefix"
+msgstr "prefisso_subnet"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncp.c:112 ../common/nwamui_ncp.c:113
+msgid "Name of the NCP"
+msgstr "Nome di NCP"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncp.c:120 ../common/nwamui_ncp.c:121
+msgid "List of NCUs in the NCP"
+msgstr "Elenco di NCU in NCP"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncp.c:128 ../common/nwamui_ncp.c:129
+msgid "Active NCU"
+msgstr "NCU attivo"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncp.c:136 ../common/nwamui_ncp.c:137
+msgid "selection_mode"
+msgstr "modalità_selezione"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncp.c:146 ../common/nwamui_ncp.c:147
+msgid "many_wireless"
+msgstr "numerose_wireless"

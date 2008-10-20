@@ -1,0 +1,1500 @@
+# Copyright (C) 2008 Sun Microsystems, Inc
+# This file is distributed under the same license as the nwam-manager package.
+#
+# Desktop Discuss <desktop-discuss@opensolaris.org>
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: nwam-manager HEAD\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-10-01 12:57+0900\n"
+"PO-Revision-Date: 2008-10-01 12:57+0900\n"
+"Last-Translator: desktop-discuss@opensolaris.org\n"
+"Language-Team: desktop-discuss@opensolaris.org\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:1
+msgid "<small><i><b>Example:</b> 12:34:56:78:9A:BC</i></small>"
+msgstr "<small><i><b>範例：</b> 12:34:56:78:9A:BC</i></small>"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:2
+msgid "Add Wireless Network"
+msgstr "增加無線網路"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:3
+msgid "Certificate _File:"
+msgstr "憑證檔案(_F)："
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:4
+msgid "Co_nfirm Password:"
+msgstr "確認密碼(_N)："
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:5
+msgid "Favorite Wireless Networks"
+msgstr "常用的無線網路"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:6
+msgid ""
+"LEAP\n"
+"PEAP/MSCHAPv2"
+msgstr ""
+"LEAP\n"
+"PEAP/MSCHAPv2"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:8
+msgid "Network Interface Priority"
+msgstr "網路介面優先權"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:9
+msgid ""
+"None\n"
+"WEP Hex\n"
+"WEP ASCII\n"
+"WPA Personal (PSK)\n"
+"WPA Enterprise (Radius)"
+msgstr ""
+"無\n"
+"WEP Hex\n"
+"WEP ASCII\n"
+"WPA 個人版 (PSK)\n"
+"WPA 企業版 (Radius)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:14 ../common/libnwamui.c:172
+#: ../common/libnwamui.c:173
+msgid "WEP"
+msgstr "WEP"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:15
+msgid "WPA/2"
+msgstr "WPA/2"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:16
+msgid "_Add to list of favorite networks on successful connection"
+msgstr "在連線成功時增加至常用網路清單(_A)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:17
+msgid "_BSSID (optional):"
+msgstr "BSSID (可選擇) (_B)："
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:18
+msgid "_Configuration:"
+msgstr "配置(_C)："
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:19
+msgid "_More Options"
+msgstr "更多選項(_M)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:20
+msgid "_Network name (ESSID):"
+msgstr "網路名稱 (ESSID)(_N)："
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:21
+msgid "_Password:"
+msgstr "密碼(_P)："
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:22
+msgid "_Security type:"
+msgstr "安全性類型(_S)："
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:23
+msgid "_Show passwords while typing"
+msgstr "鍵入時顯示密碼(_S)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam-manager-properties.glade.h:24
+msgid "_Username:"
+msgstr "使用者名稱(_U)："
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_fav_networks_dialog.c:159
+msgid "Network Name (ESSID)"
+msgstr "網路名稱 (ESSID)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_fav_networks_dialog.c:180
+msgid "Access Point (BSSID)"
+msgstr "存取點 (BSSID)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:150
+msgid "Wireless NCU"
+msgstr "無線 NCU"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:151
+msgid "The Wireless NCU that the dialog is to work with."
+msgstr "要與該對話方塊搭配使用的無線 NCU。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:158
+msgid "Wireless ESSID"
+msgstr "無線 ESSID"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:159
+msgid "The Wireless ESSID to connect to."
+msgstr "要連線的無線 ESSID。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:165
+msgid "Wireless Security Type"
+msgstr "無線安全性類型"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:166
+msgid "The Wireless security (None/WEP/WPA)."
+msgstr "無線安全性 (無/WEP/WPA)。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:173
+msgid "Wireless Security Key"
+msgstr "無線安全性金鑰"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:174
+msgid "The Wireless security key."
+msgstr "無線安全性金鑰。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:180
+msgid "WPA Username"
+msgstr "WPA 使用者名稱"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:181
+msgid "The Username to use for a WPA connection."
+msgstr "用於 WPA 連線的使用者名稱。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:187
+msgid "WPA Password"
+msgstr "WPA 密碼"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:188
+msgid "The Password to use for a WPA connection."
+msgstr "用於 WPA 連線的密碼。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:194
+msgid "WPA Config Type"
+msgstr "WPA 配置類型"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:195
+msgid "The type of WPA Connection (Automatic or TTLS-PAP)"
+msgstr "WPA 連線類型 (自動或 TTLS-PAP)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:203
+msgid "WPA Cert File"
+msgstr "WPA 憑證檔案"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:204
+msgid "The Certificate File to use for WPA."
+msgstr "用於 WPA 的憑證檔案。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:210
+msgid "Wireless BSSID"
+msgstr "無線 BSSID"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:211
+msgid "The Wireless AP BSSID to connect to."
+msgstr "要連線的無線 AP BSSID。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:217
+msgid "Wireless Network is Transient"
+msgstr "無線網路為暫態"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:218
+msgid "This Wireless Network shouldn't be remembered on permanently"
+msgstr "不應該永久記住此無線網路"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:1077
+msgid ""
+"The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
+msgstr "無線網路名稱 (ESSID) 包含無效的 (非 ASCII) 字元。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:1082
+msgid "The Wireless network name (ESSID) should not be blank."
+msgstr "無線網路名稱 (ESSID) 不得為空白。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:1093
+msgid "Wireless AP (BSSID) is not a valid address"
+msgstr "無線 AP (BSSID) 不是有效的位址"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#. Different, so FALSE
+#: ../capplet/nwam_wireless_dialog.c:1114
+msgid "Keys entered are different"
+msgstr "輸入的金鑰不同"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#. All other conditions, FALSE
+#: ../capplet/nwam_wireless_dialog.c:1136
+msgid "Invalid data entered"
+msgstr "輸入的資料無效"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_wireless_dialog.c:1208
+msgid "Validation Failed."
+msgstr "驗證失敗。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_net_priority_dialog.c:157 ../daemon/main.c:508
+msgid "Network Interface"
+msgstr "網路介面"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_net_priority_dialog.c:371
+msgid "Enabled"
+msgstr "已啟用"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../capplet/nwam_net_priority_dialog.c:371
+msgid "Disabled"
+msgstr "已停用"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:1 ../common/nwamui_prof.c:141
+#: ../common/nwamui_prof.c:142
+msgid "Adding any new network to your favorites list"
+msgstr "將任何新網路增加至 [我的最愛] 清單"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:2 ../common/nwamui_prof.c:125
+#: ../common/nwamui_prof.c:126
+msgid "Joining an open network that is not in your favorites list"
+msgstr "加入不在 [我的最愛] 清單中的開放網路"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:3 ../common/nwamui_prof.c:133
+#: ../common/nwamui_prof.c:134
+msgid "Joining any favorite network"
+msgstr "加入任何常用的網路"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:4
+msgid ""
+"The default timeout of notification in milliseconds, must greater than zero."
+msgstr "通知的預設逾時 (以毫秒為單位) 必須大於零。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:5
+msgid "add_any_new_wifi_to_fav"
+msgstr "add_any_new_wifi_to_fav"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:6
+msgid "join_any_fav_wifi"
+msgstr "join_any_fav_wifi"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:7
+msgid "join_wifi_not_in_fav"
+msgstr "join_wifi_not_in_fav"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-manager.schemas.in.h:8
+msgid "notification_default_timeout"
+msgstr "notification_default_timeout"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menuitem.c:111 ../daemon/nwam-menuitem.c:112
+#: ../daemon/nwam-action.c:110 ../daemon/nwam-action.c:111
+msgid "Left widget, ref'd"
+msgstr "參照的左視窗元件"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menuitem.c:118 ../daemon/nwam-menuitem.c:119
+#: ../daemon/nwam-action.c:117 ../daemon/nwam-action.c:118
+msgid "Right widget, ref'd"
+msgstr "參照的右視窗元件"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/status_icon.c:182
+#, c-format
+msgid ""
+"%s\n"
+"%s"
+msgstr ""
+"%s\n"
+"%s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/status_icon.c:185 ../common/nwamui_wifi_net.c:768
+#, c-format
+msgid "%s"
+msgstr "%s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-action.c:103
+msgid "NwamuiWifiNet instance"
+msgstr "NwamuiWifiNet 實例"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-action.c:104
+msgid "Wireless AP"
+msgstr "無線 AP"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:58
+msgid "Enable debugging messages"
+msgstr "啟用除錯訊息"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:150
+#, c-format
+msgid ""
+"\n"
+"Wired (%s): %s"
+msgstr ""
+"\n"
+"有線 (%s)：%s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:153
+#, c-format
+msgid ""
+"\n"
+"Wireless (%s): %s"
+msgstr ""
+"\n"
+"無線 (%s)：%s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:196
+#, c-format
+msgid "Wireless (%s) network interface is active."
+msgstr "無線 (%s) 網路介面為使用中狀態。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:199
+#, c-format
+msgid "Wired (%s) network interface is active."
+msgstr "有線 (%s) 網路介面為使用中狀態。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:205
+#, c-format
+msgid "No network interface is active."
+msgstr "沒有任何網路介面為使用中狀態。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:254 ../daemon/main.c:256
+msgid "Automatic network configuration daemon is unavailable."
+msgstr "無法使用自動網路配置常駐程式。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:257
+msgid ""
+"For further information please run\n"
+"\"svcs -xv nwam\" in a terminal."
+msgstr ""
+"如需進一步資訊，請在終端機\n"
+"執行「svcs -xv nwam」。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:319 ../daemon/main.c:523
+#, c-format
+msgid "Connected to wireless network '%s'"
+msgstr "已連線至無線網路「%s」"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:344
+#, c-format
+msgid "Disconnected from Wireless Network '%s'"
+msgstr "已結束與無線網路「%s」的連線"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:345
+#, c-format
+msgid ""
+"%s\n"
+"Click here to join another wireless network."
+msgstr ""
+"%s\n"
+"按一下此處以加入其他無線網路。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:380 ../daemon/main.c:405
+msgid "Automatic Network Configuration Daemon"
+msgstr "自動網路配置常駐程式"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:426
+#, c-format
+msgid "'%s' requires authentication"
+msgstr "「%s」需要認證"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:428
+#, c-format
+msgid "Click here to enter the wireless network key."
+msgstr "按一下此處以輸入無線網路金鑰。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:460
+#, c-format
+msgid "Wireless networks available"
+msgstr "無線網路可用"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:461
+#, c-format
+msgid ""
+"Right-click the icon to connect \n"
+"%s network interface to an available network."
+msgstr ""
+"在圖示上按一下滑鼠右鍵，將 \n"
+"%s 網路介面連接至可用的網路。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:467
+msgid "Right-click to select wireless network"
+msgstr "按一下滑鼠右鍵以選取無線網路"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:507 ../daemon/main.c:528
+#, c-format
+msgid "%s network interface is connected."
+msgstr "%s 網路介面已連線。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:508 ../daemon/main.c:531
+#, c-format
+msgid "%s: %s"
+msgstr "%s：%s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:510 ../daemon/main.c:533
+#, c-format
+msgid ""
+"\n"
+"%s: %s"
+msgstr ""
+"\n"
+"%s：%s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:510
+msgid "Network Address"
+msgstr "網路位址"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:531
+msgid "Interface"
+msgstr "介面"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:533
+msgid "Address"
+msgstr "位址"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:536
+#, c-format
+msgid ""
+"\n"
+"%s: %d"
+msgstr ""
+"\n"
+"%s：%d"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:536
+msgid "Signal Strength"
+msgstr "訊號強度"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:581 ../daemon/main.c:592
+#, c-format
+msgid "%s disconnected from network."
+msgstr "%s 已結束網路連線。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:628
+#, c-format
+msgid "Activating %s network interface..."
+msgstr "正在啟用 %s 網路介面..."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:663
+#, c-format
+msgid "Failed to connect to wireless network '%s'. %s"
+msgstr "無法連線至無線網路「%s」。%s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:665
+msgid ""
+"The DHCP server may not be responding, or\n"
+"you may have entered the wrong wireless key.\n"
+"\n"
+"Click here to re-enter the wireless key."
+msgstr ""
+"DHCP 伺服器可能沒有回應，或\n"
+"輸入的無線金鑰可能錯誤。\n"
+"\n"
+"按一下此處以重新輸入無線金鑰。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:844
+msgid "There are no wireless network interfaces"
+msgstr "沒有無線網路介面"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/main.c:935
+msgid "No wireless network interfaces available"
+msgstr "沒有可用的無線網路介面"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:188
+msgid "_Edit Network Interface Priorities..."
+msgstr "編輯網路介面優先權(_E)..."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:192
+msgid "_Join Unlisted Wireless Network..."
+msgstr "加入未列入清單的無線網路(_J)..."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:196
+msgid "_Manage Favorite Wireless Networks..."
+msgstr "管理常用的無線網路(_M)..."
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:273 ../daemon/nwam-menu.c:1047
+#: ../common/nwamui_ncp.c:583
+msgid "Wireless"
+msgstr "無線"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:276 ../daemon/nwam-menu.c:1050
+#: ../common/nwamui_ncp.c:583
+msgid "Wired"
+msgstr "有線"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:278
+#, c-format
+msgid "_Automatic Network Interface Selection - Current: %s (%s)"
+msgstr "自動選取網路介面 – 目前(_A)：%s (%s)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:282
+#, c-format
+msgid "_Automatic Network Interface Selection "
+msgstr "自動選取網路介面 (_A) "
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:665
+msgid "NWAM Manager"
+msgstr "NWAM 管理員"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:666
+msgid "About NWAM Manager"
+msgstr "關於 NWAM 管理員"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:889
+#, c-format
+msgid "Wireless network '%s' added to favorites"
+msgstr "無線網路「%s」已加入我的最愛"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:891
+#, c-format
+msgid ""
+"Click here to view or edit your list of favorite\n"
+"wireless networks."
+msgstr ""
+"按一下此處以檢視或編輯常用的\n"
+"無線網路清單。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/nwam-menu.c:1052
+#, c-format
+msgid "Always Use %s Network Interface (%s)"
+msgstr "一律使用 %s 網路介面 (%s)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/notify.c:487
+#, c-format
+msgid ""
+"  %s\n"
+"    %s"
+msgstr ""
+"  %s\n"
+"    %s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../daemon/notify.c:490
+#, c-format
+msgid "  %s"
+msgstr "  %s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:149 ../common/nwamui_ncu.c:150
+msgid "vanity_name"
+msgstr "vanity_name"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:157 ../common/nwamui_ncu.c:158
+msgid "device_name"
+msgstr "device_name"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:165 ../common/nwamui_ncu.c:166
+msgid "phy_address"
+msgstr "phy_address"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:173 ../common/nwamui_ncu.c:174
+msgid "ncu_type"
+msgstr "ncu_type"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:183 ../common/nwamui_ncu.c:184
+msgid "active"
+msgstr "使用中"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:191 ../common/nwamui_ncu.c:192
+#: ../common/nwamui_wifi_net.c:173 ../common/nwamui_wifi_net.c:174
+msgid "speed"
+msgstr "速度"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:201 ../common/nwamui_ncu.c:202
+msgid "ipv4_auto_conf"
+msgstr "ipv4_auto_conf"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:210 ../common/nwamui_ncu.c:211
+msgid "ipv4_address"
+msgstr "ipv4_address"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:218 ../common/nwamui_ncu.c:219
+msgid "ipv4_subnet"
+msgstr "ipv4_subnet"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:226 ../common/nwamui_ncu.c:227
+msgid "ipv4_gateway"
+msgstr "ipv4_gateway"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:234 ../common/nwamui_ncu.c:235
+msgid "ipv6_active"
+msgstr "ipv6_active"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:242 ../common/nwamui_ncu.c:243
+msgid "ipv6_auto_conf"
+msgstr "ipv6_auto_conf"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:251 ../common/nwamui_ncu.c:252
+msgid "ipv6_address"
+msgstr "ipv6_address"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:259 ../common/nwamui_ncu.c:260
+msgid "ipv6_prefix"
+msgstr "ipv6_prefix"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:267 ../common/nwamui_ncu.c:268
+msgid "v4addresses"
+msgstr "v4addresses"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:275 ../common/nwamui_ncu.c:276
+msgid "v6addresses"
+msgstr "v6addresses"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:283 ../common/nwamui_ncu.c:284
+msgid "Wi-Fi configuration information."
+msgstr "Wi-Fi 配置資訊。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:291 ../common/nwamui_ncu.c:292
+msgid "rules_enabled"
+msgstr "rules_enabled"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:299 ../common/nwamui_ncu.c:300
+msgid "rules_ncus"
+msgstr "rules_ncus"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:306 ../common/nwamui_ncu.c:307
+msgid "rules_ncu_state"
+msgstr "rules_ncu_state"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:316 ../common/nwamui_ncu.c:317
+msgid "rules_action"
+msgstr "rules_action"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:326 ../common/nwamui_ncu.c:327
+msgid "priority"
+msgstr "優先權"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncu.c:924 ../common/nwamui_ncp.c:582
+#, c-format
+msgid "%s (%s)"
+msgstr "%s (%s)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:153
+msgid "WEP Hex"
+msgstr "WEP Hex"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:154
+msgid "WEP ASCII"
+msgstr "WEP ASCII"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:155
+msgid "WPA Personal(PSK)"
+msgstr "WPA 個人版 (PSK)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:156
+msgid "WPA Enterprise (Radius)"
+msgstr "WPA 企業版 (Radius)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:157
+msgid "None"
+msgstr "無"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:174 ../common/libnwamui.c:175
+msgid "WPA"
+msgstr "WPA"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:176
+msgid "Open"
+msgstr "開啟"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:192
+msgid "LEAP"
+msgstr "LEAP"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:193
+msgid "PEAP/MSCHAPv2"
+msgstr "PEAP/MSCHAPv2"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#. fall through
+#: ../common/libnwamui.c:195
+msgid "Automatic"
+msgstr "自動"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:469
+msgid "Could not display help"
+msgstr "無法顯示說明"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/libnwamui.c:551
+msgid "This operation cannot be undone."
+msgstr "無法還原此作業。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_prof.c:149 ../common/nwamui_prof.c:150
+msgid "The action if no favorite networks are available"
+msgstr "沒有可用的常用網路時所採取的動作"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_prof.c:159 ../common/nwamui_prof.c:160
+#: ../common/nwamui_prof.c:167 ../common/nwamui_prof.c:168
+msgid "Active Interface"
+msgstr "使用中介面"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:111 ../common/nwamui_wifi_net.c:112
+msgid "NCU that AP is seen on"
+msgstr "AP 顯示為開啟狀態的 NCU"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:119 ../common/nwamui_wifi_net.c:120
+msgid "Wifi Network ESSID"
+msgstr "Wifi 網路 ESSID"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:127 ../common/nwamui_wifi_net.c:128
+msgid "Wifi Network BSSID"
+msgstr "Wifi 網路 BSSID"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:135 ../common/nwamui_wifi_net.c:136
+msgid "Wifi Network Status"
+msgstr "Wifi 網路狀態"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:144 ../common/nwamui_wifi_net.c:145
+msgid "Wifi Network Security"
+msgstr "Wifi 網路安全性"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:153 ../common/nwamui_wifi_net.c:154
+msgid "Wifi Network Signal Strength"
+msgstr "Wifi 網路訊號強度"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:163
+msgid "Wifi BSS Type"
+msgstr "Wifi BSS 類型"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:164
+msgid "Wifi BSS Type (AP or AD-HOC)"
+msgstr "Wifi BSS 類型 (AP 或 AD-HOC)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:183 ../common/nwamui_wifi_net.c:184
+msgid "mode"
+msgstr "模式"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:191 ../common/nwamui_wifi_net.c:192
+msgid "Wifi WPA Configuration Type"
+msgstr "Wifi WPA 配置類型"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:202 ../common/nwamui_wifi_net.c:203
+msgid "Wifi WEP Password"
+msgstr "Wifi WEP 密碼"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:210 ../common/nwamui_wifi_net.c:211
+msgid "Wifi WPA Username"
+msgstr "Wifi WPA 使用者名稱"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:218 ../common/nwamui_wifi_net.c:219
+msgid "Wifi WPA Password"
+msgstr "Wifi WPA 密碼"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:226 ../common/nwamui_wifi_net.c:227
+msgid "Wifi WPA Certificate File Path"
+msgstr "Wifi WPA 憑證檔案路徑"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:652
+msgid "Failed to initiate connection to wireless network."
+msgstr "無法初始化無線網路的連線。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:763
+#, c-format
+msgid "[%s] "
+msgstr "[%s] "
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_wifi_net.c:771
+#, c-format
+msgid " (Computer-to-Computer)"
+msgstr " (電腦對電腦)"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:161 ../common/nwamui_daemon.c:162
+msgid "status"
+msgstr "狀態"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:171 ../common/nwamui_daemon.c:172
+msgid "event_cause"
+msgstr "event_cause"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1031 ../common/nwamui_daemon.c:1049
+msgid "unknown"
+msgstr "不明的"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1034
+msgid "DHCP down"
+msgstr "DHCP 已關閉"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1035
+msgid "DHCP timed out"
+msgstr "DHCP 逾時"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1036
+msgid "Cable disconnected"
+msgstr "電纜已中斷連線"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1037
+msgid "User changed priority"
+msgstr "使用者變更了優先權"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1038
+msgid "Higher priority, cable connected"
+msgstr "較高優先權，已連接電纜"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1039
+msgid "Scan done on higher-priority wireless network interface"
+msgstr "已完成較高優先權之無線網路介面的掃描"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1040
+msgid "Periodic scan shows wireless network gone."
+msgstr "定期掃描顯示無線網路已離線。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1041
+msgid "Periodic scan shows very weak signal on wireless network"
+msgstr "定期掃描顯示無線網路的訊號非常弱"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1042
+msgid "All network interfaces but one going down"
+msgstr "所有網路介面，但其中一個網路介面關閉中"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1043
+msgid "Another network interface is already active"
+msgstr "其他網路介面已在使用中。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1044
+msgid "NWAM Daemon is shutting down"
+msgstr "NWAM 常駐程式正在關閉中"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1045
+msgid "Different AP selected"
+msgstr "已選取不同的 AP"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1046
+msgid "Hardware removed"
+msgstr "已移除硬體"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1047
+msgid "none"
+msgstr "無"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1415 ../common/nwamui_daemon.c:1703
+#, c-format
+msgid "New wireless networks found."
+msgstr "找到新的無線網路。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1429
+#, c-format
+msgid "User script '%s' activated"
+msgstr "已啟用使用者程序檔「%s」"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1439
+#, c-format
+msgid "User script '%s' deactivated"
+msgstr "已停用使用者程序檔「%s」"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1564
+#, c-format
+msgid "%s network interface is up."
+msgstr "%s 網路介面已開啟。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1603
+#, c-format
+msgid ""
+"%s network interface brought down\n"
+"Reason: %s"
+msgstr ""
+"%s 網路介面已關閉\n"
+"原因：%s"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1785
+#, c-format
+msgid "%s network interface failed to start DHCP request."
+msgstr "%s 網路介面無法啟動 DHCP 請求。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_daemon.c:1795
+#, c-format
+msgid "%s network interface failed to get response from DHCP request."
+msgstr "%s 網路介面無法取得來自 DHCP 請求的回應。"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ip.c:89 ../common/nwamui_ip.c:90
+msgid "is_v6"
+msgstr "is_v6"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ip.c:97 ../common/nwamui_ip.c:98
+msgid "address"
+msgstr "位址"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ip.c:105 ../common/nwamui_ip.c:106
+msgid "subnet_prefix"
+msgstr "subnet_prefix"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncp.c:112 ../common/nwamui_ncp.c:113
+msgid "Name of the NCP"
+msgstr "NCP 的名稱"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncp.c:120 ../common/nwamui_ncp.c:121
+msgid "List of NCUs in the NCP"
+msgstr "NCP 中的 NCU 清單"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncp.c:128 ../common/nwamui_ncp.c:129
+msgid "Active NCU"
+msgstr "使用中的 NCU"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncp.c:136 ../common/nwamui_ncp.c:137
+msgid "selection_mode"
+msgstr "selection_mode"
+
+# COMMUNITY UNTRANS
+# SUN CHANGED MESSAGE
+# SUN LING REVIEWED
+#: ../common/nwamui_ncp.c:146 ../common/nwamui_ncp.c:147
+msgid "many_wireless"
+msgstr "many_wireless"

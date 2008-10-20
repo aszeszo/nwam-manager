@@ -1,3 +1,9 @@
+2008-10-20  Takao Fujiwara  <takao.fujiwara@sun.com>
+
+	* cs.po de.po es.po fr.po hu.po it.po ja.po ko.po pl.po pt_BR.po 
+	  ru.po sv.po zh_CN.po zh_HK.po zh_TW.po: Added new .po files.
+	* LINGUAS: Added to compile .mo files.
+
 2008-05-28  Darren Kenny  <darren.kenny@sun.com>
 
 	* Makefile.in.in:
