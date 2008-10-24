@@ -1,3 +1,9 @@
+2008-10-24  Calum Benson  <calum.benson@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Update to match latest draft of UI spec in trunk.
+
 2008-10-20  Takao Fujiwara  <takao.fujiwara@sun.com>
 
 	* capplet/nwam-manager-properties.glade: Updated to remove translatable tag.
