@@ -1,3 +1,21 @@
+2008-10-21  Calum Benson <calum.benson@sun.com>
+
+	* ui-spec.odt
+	* img/capplet/network-profile-rename.png
+	* img/capplet/env-dlg.png
+	* img/capplet/env-proxies-none.png
+	* img/capplet/env-proxies-pac.png
+	* img/capplet/env-ext-properties.png
+	* img/capplet/network-profile-prioritised-expand.png
+	* img/capplet/env-conditions.png
+	* img/capplet/network-profile-noexpand.png
+	* img/capplet/env-ipfilter.png
+	* img/capplet/env-proxies.png
+	* img/capplet/network-profile.png
+
+	Updates to match NWAM Phase 1 spec; more to come.
+
+
 2008-05-09  Calum Benson <calum.benson@sun.com>
 
 	* ui-spec.odt
