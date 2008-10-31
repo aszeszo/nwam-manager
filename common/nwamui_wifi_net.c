@@ -30,6 +30,7 @@
 #include <glib-object.h>
 #include <glib/gi18n.h>
 #include <strings.h>
+#include <errno.h>
 
 #include "libnwamui.h"
 #include "nwamui_wifi_net.h"
@@ -39,8 +40,10 @@ static GObjectClass *parent_class = NULL;
 
 struct _NwamuiWifiNetPrivate {
         gchar                          *essid;            
+        NwamuiNcu                      *ncu;
         nwamui_wifi_security_t          security;
         gchar                          *bssid;            /* May be NULL if unknown */
+        nwamui_wifi_bss_type_t          bss_type;
         nwamui_wifi_signal_strength_t   signal_strength;
         guint                           speed;
         gchar*                          mode;
@@ -49,6 +52,7 @@ struct _NwamuiWifiNetPrivate {
         gchar                          *wpa_username;
         gchar                          *wpa_password;
         gchar                          *wpa_cert_file;
+        gint                            status;
 };
 
 static void nwamui_wifi_net_set_property (  GObject         *object,
@@ -69,9 +73,12 @@ static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 
 enum {
 	PROP_ESSID = 1,
+        PROP_NCU,
+        PROP_STATUS,
         PROP_SECURITY,
         PROP_BSSID,
         PROP_SIGNAL_STRENGTH,
+        PROP_BSS_TYPE,
         PROP_SPEED,
         PROP_MODE,
         PROP_WPA_CONFIG,
@@ -99,6 +106,14 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
+                                     PROP_NCU,
+                                     g_param_spec_object ("ncu",
+                                                          _("NCU that AP is seen on"),
+                                                          _("NCU that AP is seen on"),
+                                                          NWAMUI_TYPE_NCU,
+                                                          G_PARAM_READWRITE));
+    
+    g_object_class_install_property (gobject_class,
                                      PROP_ESSID,
                                      g_param_spec_string ("essid",
                                                           _("Wifi Network ESSID"),
@@ -115,6 +130,15 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
+                                     PROP_STATUS,
+                                     g_param_spec_int    ("status",
+                                                          _("Wifi Network Status"),
+                                                          _("Wifi Network Status"),
+                                                          NWAMUI_WIFI_STATUS_CONNECTED, /* Min */
+                                                          NWAMUI_WIFI_STATUS_LAST-1, /* Max */
+                                                          NWAMUI_WIFI_STATUS_DISCONNECTED, /* Default */
+                                                          G_PARAM_READWRITE));
+    g_object_class_install_property (gobject_class,
                                      PROP_SECURITY,
                                      g_param_spec_int    ("security",
                                                           _("Wifi Network Security"),
@@ -129,8 +153,18 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
                                                           _("Wifi Network Signal Strength"),
                                                           _("Wifi Network Signal Strength"),
                                                           NWAMUI_WIFI_STRENGTH_NONE, /* Min */
-                                                          NWAMUI_WIFI_STRENGTH_GOOD, /* Max */
+                                                          NWAMUI_WIFI_STRENGTH_LAST-1, /* Max */
                                                           NWAMUI_WIFI_STRENGTH_NONE, /* Default */
+                                                          G_PARAM_READWRITE));    
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_BSS_TYPE,
+                                     g_param_spec_int    ("bss_type",
+                                                          _("Wifi BSS Type"),
+                                                          _("Wifi BSS Type (AP or AD-HOC)"),
+                                                          NWAMUI_WIFI_BSS_TYPE_AUTO, /* Min */
+                                                          NWAMUI_WIFI_BSS_TYPE_LAST-1, /* Max */
+                                                          NWAMUI_WIFI_BSS_TYPE_AUTO, /* Default */
                                                           G_PARAM_READWRITE));    
 
     g_object_class_install_property (gobject_class,
@@ -206,6 +240,7 @@ nwamui_wifi_net_init (NwamuiWifiNet *self)
     prv->security = NWAMUI_WIFI_SEC_NONE;
     prv->bssid = NULL;
     prv->signal_strength = NWAMUI_WIFI_STRENGTH_NONE;
+    prv->bss_type = NWAMUI_WIFI_BSS_TYPE_AUTO;
     prv->speed = 0;
     prv->mode = NULL;
     prv->wpa_config = NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC; 
@@ -213,6 +248,7 @@ nwamui_wifi_net_init (NwamuiWifiNet *self)
     prv->wpa_username = NULL;
     prv->wpa_password = NULL;
     prv->wpa_cert_file = NULL;
+    prv->status = NWAMUI_WIFI_STATUS_DISCONNECTED;
     
     self->prv = prv;
     
@@ -234,8 +270,19 @@ nwamui_wifi_net_set_property (  GObject         *object,
     g_assert( prv != NULL );
     
     switch (prop_id) {
-	case PROP_ESSID: {
-		const gchar *essid = g_value_get_string (value);
+    case PROP_NCU: {
+            NwamuiNcu* ncu = NWAMUI_NCU( g_value_dup_object( value ) );
+
+            g_assert( nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS );
+
+            if ( self->prv->ncu != NULL ) {
+                    g_object_unref( self->prv->ncu );
+            }
+            self->prv->ncu = ncu;
+        }
+        break;
+	  case PROP_ESSID: {
+	            const gchar *essid = g_value_get_string (value);
                 if ( essid != NULL ) {
                     if ( prv->essid != NULL ) {
                         g_free( prv->essid );
@@ -274,6 +321,15 @@ nwamui_wifi_net_set_property (  GObject         *object,
                 g_assert( tmpint >= NWAMUI_WIFI_STRENGTH_NONE && tmpint < NWAMUI_WIFI_STRENGTH_LAST );
 
                 prv->signal_strength = (nwamui_wifi_signal_strength_t)tmpint;
+            }
+            break;
+
+        case PROP_BSS_TYPE: {
+                gint tmpint = g_value_get_int (value);
+
+                g_assert( tmpint >= NWAMUI_WIFI_BSS_TYPE_AUTO && tmpint < NWAMUI_WIFI_BSS_TYPE_LAST );
+
+                prv->bss_type = (nwamui_wifi_bss_type_t)tmpint;
             }
             break;
 
@@ -347,6 +403,10 @@ nwamui_wifi_net_set_property (  GObject         *object,
                 }
             }
             break;
+        case PROP_STATUS: {
+                self->prv->status = g_value_get_int( value );
+            }
+            break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -368,6 +428,10 @@ nwamui_wifi_net_get_property (GObject         *object,
     g_assert( prv != NULL );
 
     switch (prop_id) {
+	case PROP_NCU: {
+                g_value_set_object( value, self->prv->ncu );
+            }
+            break;
 	case PROP_ESSID: {
                 g_value_set_string(value, prv->essid);
             }
@@ -382,6 +446,10 @@ nwamui_wifi_net_get_property (GObject         *object,
             break;
         case PROP_SIGNAL_STRENGTH: {
                 g_value_set_int(value, (gint)prv->signal_strength );
+            }
+            break;
+        case PROP_BSS_TYPE: {
+                g_value_set_int(value, (gint)prv->bss_type );
             }
             break;
         case PROP_SPEED: {
@@ -413,6 +481,10 @@ nwamui_wifi_net_get_property (GObject         *object,
                 g_value_set_string(value, prv->wpa_cert_file);
             }
             break;
+        case PROP_STATUS: {
+                g_value_set_int(value, self->prv->status);
+            }
+            break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -422,6 +494,7 @@ nwamui_wifi_net_get_property (GObject         *object,
 static void
 nwamui_wifi_net_finalize (NwamuiWifiNet *self)
 {
+    g_debug("%s wifi 0x%p essid %s", __func__, self, self->prv->essid ? self->prv->essid:"nil");
     if ( self->prv ) {
         if ( self->prv->essid ) {
             g_free( self->prv->essid );
@@ -456,12 +529,14 @@ nwamui_wifi_net_finalize (NwamuiWifiNet *self)
  * Creates a new #NwamuiWifiNet.
  **/
 extern  NwamuiWifiNet*
-nwamui_wifi_net_new(    const gchar                     *essid, 
+nwamui_wifi_net_new(NwamuiNcu                       *ncu,
+				const gchar                     *essid, 
                         nwamui_wifi_security_t           security,
                         const gchar                     *bssid,
                         const gchar                     *mode,
                         guint                            speed,
                         nwamui_wifi_signal_strength_t    signal_strength,
+                        nwamui_wifi_bss_type_t           bss_type,
                         nwamui_wifi_wpa_config_t         wpa_config )
 {
     NwamuiWifiNet*  self = NULL;
@@ -469,16 +544,68 @@ nwamui_wifi_net_new(    const gchar                     *essid,
     self = NWAMUI_WIFI_NET(g_object_new (NWAMUI_TYPE_WIFI_NET, NULL));
     
     g_object_set (G_OBJECT (self),
+                    "ncu", ncu,
                     "essid", essid,
                     "security", security,
                     "bssid", bssid,
                     "mode", mode,
                     "speed", speed,
                     "signal_strength", signal_strength,
+                    "bss_type", bss_type,
                     "wpa_config", wpa_config,
                     NULL);
     
     return( self );
+}
+
+/**
+ * Ask NWAM to connect to this network.
+ **/
+extern void
+nwamui_wifi_net_connect ( NwamuiWifiNet *self )
+{
+    gchar* device = nwamui_ncu_get_device_name(self->prv->ncu);
+
+    if (FALSE) {
+        NwamuiDaemon*   daemon = nwamui_daemon_get_instance();
+
+        g_warning("Error selecting network with NWAM : %s", strerror(errno));
+        nwamui_daemon_emit_info_message(daemon, _("Failed to initiate connection to wireless network."));
+
+        g_object_unref(daemon);
+    }
+    
+    g_free(device);
+}
+
+/* Get/Set NCU */
+extern void
+nwamui_wifi_net_set_ncu ( NwamuiWifiNet *self, NwamuiNcu* ncu )
+{
+    g_return_if_fail (NWAMUI_IS_WIFI_NET(self));
+
+    if ( ncu != NULL ) {
+
+        g_assert ( NWAMUI_IS_NCU( ncu ));
+
+        g_object_set (G_OBJECT (self),
+                      "ncu", ncu,
+                      NULL);
+    }
+}
+                                
+extern NwamuiNcu*
+nwamui_wifi_net_get_ncu ( NwamuiWifiNet *self )
+{
+    NwamuiNcu   *ncu = NULL;
+    
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), ncu);
+
+    g_object_get (G_OBJECT (self),
+                  "ncu", &ncu,
+                  NULL);
+    
+    return( ncu );
 }
 
 /* Get/Set ESSID */
@@ -539,6 +666,87 @@ nwamui_wifi_net_get_bssid (NwamuiWifiNet *self )
     return( ret_str );
 }
 
+gchar*                  
+nwamui_wifi_net_get_display_string (NwamuiWifiNet *self, gboolean has_many_wireless )
+{
+    gchar*  ret_str = NULL;
+    gchar*  name = NULL;
+    gchar*  dev_name = NULL;
+    GString* gstr = g_string_new("");
+    
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), ret_str);
+    
+    if ( self->prv->ncu && has_many_wireless ) {
+        dev_name = nwamui_ncu_get_device_name( self->prv->ncu );
+
+        g_string_append_printf(gstr, _("[%s] "), dev_name );
+    }
+
+    name = self->prv->essid?self->prv->essid:"";
+
+    g_string_append_printf(gstr, _("%s"), name );
+
+    if ( self->prv->bss_type == NWAMUI_WIFI_BSS_TYPE_ADHOC ) {
+        g_string_append_printf(gstr, _(" (Computer-to-Computer)") );
+    }
+
+    ret_str = g_string_free(gstr, FALSE);
+
+    return( ret_str );
+}
+
+extern gchar*
+nwamui_wifi_net_get_unique_name ( NwamuiWifiNet *self )
+{
+    gchar*  ret_str = NULL;
+    gchar*  bssid = NULL;
+    gchar*  essid = NULL;
+    gchar*  device_name = NULL;
+    
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), ret_str);
+
+    device_name = nwamui_ncu_get_device_name(self->prv->ncu);
+
+    g_object_get (G_OBJECT (self),
+                  "essid", &essid,
+                  "bssid", &bssid,
+                  NULL);
+
+    /* "%s - %s", so it's different to FALSEWLAN */
+    ret_str = g_strconcat(device_name?device_name:"", " - ", essid ? essid : "", " - ", bssid ? bssid : "", NULL);
+
+    g_free(device_name);
+    g_free(essid);
+    g_free(bssid);
+
+    return( ret_str );
+}
+
+extern void
+nwamui_wifi_net_set_status ( NwamuiWifiNet *self, nwamui_wifi_status_t status )
+{
+    g_return_if_fail (NWAMUI_IS_WIFI_NET(self));
+    g_assert (status >= NWAMUI_WIFI_STATUS_CONNECTED && status < NWAMUI_WIFI_STATUS_LAST );
+
+    g_object_set (G_OBJECT (self),
+                  "status", status,
+                  NULL);
+}
+          
+extern nwamui_wifi_status_t
+nwamui_wifi_net_get_status ( NwamuiWifiNet *self )
+{
+    gint    retval = NWAMUI_WIFI_STATUS_CONNECTED;
+    
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), (nwamui_wifi_status_t)retval);
+
+    g_object_get (G_OBJECT (self),
+                  "status", &retval,
+                  NULL);
+    
+    return( (nwamui_wifi_status_t)retval );
+}
+
 /* Get/Set Security Type */
 extern void                    
 nwamui_wifi_net_set_security ( NwamuiWifiNet           *self,
@@ -591,6 +799,20 @@ nwamui_wifi_net_get_signal_strength (NwamuiWifiNet *self )
                   NULL);
     
     return( (nwamui_wifi_signal_strength_t)retval );
+}
+
+extern nwamui_wifi_bss_type_t
+nwamui_wifi_net_get_bss_type (NwamuiWifiNet *self )
+{
+    gint    retval = NWAMUI_WIFI_BSS_TYPE_AUTO;
+    
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), (nwamui_wifi_bss_type_t)retval);
+
+    g_object_get (G_OBJECT (self),
+                  "bss_type", &retval,
+                  NULL);
+    
+    return( (nwamui_wifi_bss_type_t)retval );
 }
 
 /** 
@@ -815,17 +1037,54 @@ nwamui_wifi_net_get_wpa_cert_file (NwamuiWifiNet *self )
 }
 
 extern nwamui_wifi_security_t
-nwamui_wifi_net_security_map (guint security)
+nwamui_wifi_net_security_map ( const char* str )
 {
-    /* TODO - */
-    return NWAMUI_WIFI_SEC_NONE;
+    if ( g_ascii_strcasecmp( str, "wep" ) == 0 ) {
+        return NWAMUI_WIFI_SEC_WEP_HEX;
+    }
+    else if ( g_ascii_strcasecmp( str, "wpa" ) == 0 ) {
+        return NWAMUI_WIFI_SEC_WPA_PERSONAL;
+    }
+    else {
+        return NWAMUI_WIFI_SEC_NONE;
+    }
 }
 
 extern nwamui_wifi_signal_strength_t
 nwamui_wifi_net_strength_map (const gchar *strength)
 {
-    /* TODO - */
-    return NWAMUI_WIFI_STRENGTH_GOOD;
+    if ( g_ascii_strcasecmp( strength, "very weak" ) == 0 ) {
+        return NWAMUI_WIFI_STRENGTH_VERY_WEAK;
+    }
+    else if ( g_ascii_strcasecmp( strength, "weak" ) == 0 ) {
+        return NWAMUI_WIFI_STRENGTH_WEAK;
+    }
+    else if ( g_ascii_strcasecmp( strength, "good" ) == 0 ) {
+        return NWAMUI_WIFI_STRENGTH_GOOD;
+    }
+    else if ( g_ascii_strcasecmp( strength, "very good" ) == 0 ) {
+        return NWAMUI_WIFI_STRENGTH_VERY_GOOD;
+    }
+    else if ( g_ascii_strcasecmp( strength, "excellent" ) == 0 ) {
+        return NWAMUI_WIFI_STRENGTH_EXCELLENT;
+    }
+    else {
+        return NWAMUI_WIFI_STRENGTH_NONE;
+    }
+}
+
+extern nwamui_wifi_bss_type_t
+nwamui_wifi_net_bss_type_map (const gchar *bss_type)
+{
+    if ( g_ascii_strcasecmp( bss_type, "bss" ) == 0 ) {
+        return NWAMUI_WIFI_BSS_TYPE_AP;
+    }
+    else if ( g_ascii_strcasecmp( bss_type, "ibss" ) == 0 ) {
+        return NWAMUI_WIFI_BSS_TYPE_ADHOC;
+    }
+    else {
+        return NWAMUI_WIFI_BSS_TYPE_AUTO;
+    }
 }
 
 /* Callbacks */

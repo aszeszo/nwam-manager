@@ -25,9 +25,9 @@ AM_CPPFLAGS = \
 	$(NOTIFY_CFLAGS)	\
 	$(NWAM_MANAGER_CFLAGS)		\
 	-DPACKAGE=\"$(PACKAGE)\" \
-	-DNWAM_MANAGER_DATADIR=\""$(datadir)"\"			\
+	-DNWAM_MANAGER_DATADIR=\""$(pkgdatadir)"\"			\
 	-DNWAM_MANAGER_LOCALEDIR=\""$(prefix)/$(DATADIRNAME)/locale"\"	\
-	-DGLADEDIR=\""$(datadir)/nwam-manager/glade"\"			\
+	-DGLADEDIR=\""$(gladedir)"\"			\
 	-DUIDATA=\""$(uidir)/$(ui_DATA)"\"			\
 	-DSYSCONFDIR=\"$(sysconfdir)\"				\
 	-DGCONF_CONFIG_SOURCE=\"$(GCONF_SCHEMA_CONFIG_SOURCE)\"	\
@@ -38,11 +38,13 @@ AM_LDFLAGS = \
 	$(PACKAGE_LIBS)		\
 	$(INTLLIBS)		\
 	$(NWAM_LIBS)		\
+	$(SECDB_LIBS)		\
+	$(KSTAT_LIBS)		\
 	$(NWAM_MANAGER_LIBS)		\
 	$(LIBNOTIFY_LIBS) \
 	$(NULL)
 
-bin_PROGRAMS = nwam-manager
+libexec_PROGRAMS = nwam-manager
 
 nwam_manager_SOURCES =		\
 	main.c			\
@@ -50,7 +52,16 @@ nwam_manager_SOURCES =		\
 	status_icon.c	\
 	nwam-menu.c	\
 	nwam-menuitem.c	\
-	nwam-action.c	\
+	nwam-wifi-action.c	\
+	nwam-env-action.c	\
+	nwam-enm-action.c	\
+	nwam-wifi-group.c	\
+	nwam-env-group.c	\
+	nwam-enm-group.c	\
+	nwam-menu-group.c	\
+	nwam-menu-action-group.c	\
+	nwam-menu-radio-action-group.c	\
+	nwam-obj-proxy-iface.c	\
 	$(NULL)
 
 nwam_manager_CPPFLAGS = \
@@ -69,9 +80,9 @@ schemas_DATA     = $(schemas_in_files:.schemas.in=.schemas)
 SUFFIXES = .desktop.in .desktop
 
 .desktop.in.desktop:
-	LC_ALL=C sed -e "s|\@BINDIR\@|$(bindir)|;s|\@PROGRAM\@|nwam-manager|" $< > $@
+	LC_ALL=C sed -e "s|\@LIBEXECDIR\@|$(libexecdir)|;s|\@PROGRAM\@|nwam-manager|" $< > $@
 
-autosessiondir      = $(datadir)/gnome/autostart
+autosessiondir      = $(sysconfdir)/xdg/autostart
 autosession_in_files = nwam-manager.desktop.in
 autosession_DATA    = $(autosession_in_files:.desktop.in=.desktop)
 
@@ -86,10 +97,7 @@ else
 install-data-local:
 endif
 
-gladedir   = $(datadir)/nwam-manager
-glade_DATA = nwam-manager-daemon.glade
-
-uidir           = $(datadir)/nwam-manager
+uidir           = $(pkgdatadir)
 ui_DATA         = nwam-ui.xml
 
 EXTRA_DIST = 		\
@@ -97,9 +105,17 @@ EXTRA_DIST = 		\
 	status_icon.h	\
 	nwam-menu.h	\
 	nwam-menuitem.h	\
-	nwam-action.h	\
+	nwam-wifi-action.h	\
+	nwam-env-action.h	\
+	nwam-enm-action.h	\
+	nwam-wifi-group.h	\
+	nwam-env-group.h	\
+	nwam-enm-group.h	\
+	nwam-menu-group.h	\
+	nwam-menu-action-group.h	\
+	nwam-menu-radio-action-group.h	\
+	nwam-obj-proxy-iface.h	\
 	$(ui_DATA)	\
-	$(glade_DATA)	\
 	$(schemas_in_files)	\
 	$(autosession_in_files)	\
 	$(NULL)

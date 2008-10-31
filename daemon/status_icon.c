@@ -27,19 +27,27 @@
 #include <gtk/gtk.h>
 #include <gtk/gtkstatusicon.h>
 #include <gconf/gconf-client.h>
+#include <glib/gi18n.h>
 
 #include "nwam-menu.h"
 #include "nwam-menuitem.h"
+#include "status_icon.h"
 #include "libnwamui.h"
 
 /* This might seem a bit overkill, but once we start handling more than 1 icon it should make it 
  * easier to do. Currently the index parameter is ignored...
  */
 
-static GtkStatusIcon*   status_icon                     = NULL; /* TODO - Allow for more than 1 icon. */
-static GCallback       status_icon_activate_callback    = NULL;
+static GtkStatusIcon*           status_icon                     = NULL; /* TODO - Allow for more than 1 icon. */
+static StatusIconCallback       status_icon_activate_callback    = NULL;
+static GObject                 *status_icon_activate_callback_user_data    = NULL;
+static gchar                   *status_icon_reason_message = NULL;
+static gchar                   *tooltip_message = NULL;
+
 
 static GtkStatusIcon*   get_status_icon( gint index );
+static void             nwam_status_icon_refresh_tooltip( gint index );
+
 static gint icon_stock_index;
 
 static gboolean animation_panel_icon_timeout (gpointer data);
@@ -52,8 +60,8 @@ static gboolean
 animation_panel_icon_timeout (gpointer data)
 {
 	gtk_status_icon_set_from_pixbuf(status_icon, 
-                                    nwamui_util_get_env_status_icon(
-                                            (nwamui_env_status_t)(++icon_stock_index)%NWAMUI_ENV_STATUS_LAST));
+		nwamui_util_get_env_status_icon(
+		(nwamui_env_status_t)(++icon_stock_index)%NWAMUI_ENV_STATUS_LAST));
 	return TRUE;
 }
 
@@ -80,7 +88,7 @@ trigger_animation_panel_icon (GConfClient *client,
 		animation_panel_icon_timeout_id = 0;
 		/* reset everything of animation_panel_icon here */
 		gtk_status_icon_set_from_pixbuf(status_icon, 
-                                        nwamui_util_get_env_status_icon(NWAMUI_ENV_STATUS_CONNECTED));
+          nwamui_util_get_env_status_icon(NWAMUI_ENV_STATUS_CONNECTED));
 		icon_stock_index = 0;
 	}
 }
@@ -107,29 +115,92 @@ GtkStatusIcon* nwam_status_icon_get_widget( gint index )
 }
 
 void 
-nwam_status_icon_set_activate_callback( gint index, GCallback activate_cb )
+nwam_status_icon_set_activate_callback( gint index, 
+                                        const char* message, 
+                                        StatusIconCallback activate_cb, 
+                                        GObject* user_data )
 {
     status_icon_activate_callback = activate_cb;
+    if ( status_icon_activate_callback_user_data != NULL ) {
+        g_object_unref(status_icon_activate_callback_user_data);
+    }
+    if ( user_data != NULL ) {
+        status_icon_activate_callback_user_data = g_object_ref(user_data);
+    }
+    else {
+        status_icon_activate_callback_user_data = NULL;
+    }
 }
 
 void
-nwam_status_icon_show( gint index )
+nwam_status_icon_set_status(gint index, gint env_status, const gchar* reason )
+{
+    gtk_status_icon_set_from_pixbuf(status_icon, 
+      nwamui_util_get_env_status_icon(env_status));
+
+    if ( status_icon_reason_message != NULL ) {
+        g_free( status_icon_reason_message );
+    }
+
+    if ( reason != NULL ) {
+        status_icon_reason_message = g_strdup( reason );
+    }
+    else {
+        status_icon_reason_message = NULL;
+    }
+
+    nwam_status_icon_refresh_tooltip( index );
+}
+
+void
+nwam_status_icon_set_visible(gint index, gboolean visible)
 {
     GtkStatusIcon* s_icon = get_status_icon( index );
     
-    gtk_status_icon_set_visible( s_icon, TRUE);
+    gtk_status_icon_set_visible(s_icon, visible);
+}
+
+gboolean
+nwam_status_icon_get_visible(gint index)
+{
+    GtkStatusIcon* s_icon = get_status_icon( index );
+    
+    return gtk_status_icon_get_visible(s_icon);
+}
+
+static void
+nwam_status_icon_refresh_tooltip( gint index )
+{
+	GtkStatusIcon*  s_icon = get_status_icon (index);
+
+    gchar          *newstr = NULL;
+
+    if ( tooltip_message == NULL )
+        return;
+
+    if ( status_icon_reason_message  != NULL ) {
+        newstr = g_strdup_printf(_("%s\n%s"), tooltip_message, status_icon_reason_message );
+    }
+    else {
+        newstr = g_strdup_printf(_("%s"), tooltip_message );
+    }
+
+	gtk_status_icon_set_tooltip (s_icon, newstr);
+
+    g_free(newstr);
 }
 
 void
 nwam_status_icon_set_tooltip (gint index, const gchar *str)
 {
-	const gchar *ttstr = str;
-	GtkStatusIcon* s_icon = get_status_icon (index);
 	
-	if (str && strlen (str) == 0)
-		ttstr = NULL;
-	
-	gtk_status_icon_set_tooltip (s_icon, ttstr);
+    if ( tooltip_message != NULL ) {
+        g_free(tooltip_message);
+    }
+
+    tooltip_message = g_strdup( str );
+    
+    nwam_status_icon_refresh_tooltip( index );
 }
 
 void
@@ -156,14 +227,18 @@ nwam_status_icon_no_blink( gint index )
     gtk_status_icon_set_blinking( s_icon, FALSE );
 }
 
-static void
-status_icon_show_menu( gint index, guint button, guint activate_time ) 
+void
+nwam_status_icon_show_menu( gint index, guint button, guint activate_time ) 
 {
 	GtkStatusIcon* s_icon = get_status_icon( index );
 	GtkWidget*     s_menu = get_status_icon_menu( index );
 
 	/* TODO - handle dynamic menu, for now let's do nothing, if there's no menu. */
 	if ( s_menu != NULL ) {
+        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+        /* Trigger a re-scan of the networks while we're at it */
+        nwamui_daemon_wifi_start_scan(daemon);
+
 		gtk_menu_popup(GTK_MENU(s_menu),
 			       NULL,
 			       NULL,
@@ -183,16 +258,21 @@ status_icon_popup_cb(GtkStatusIcon *status_icon,
 {
     gint index = (gint)user_data;
     
-    status_icon_show_menu( index, button, activate_time );
+    nwam_status_icon_show_menu( index, button, activate_time );
 }
 
 static void
-status_icon_activate_cb(GtkStatusIcon *status_icon, gpointer user_data)
+status_icon_activate_cb(GtkStatusIcon *status_icon, GObject* user_data)
 {
     gint index = (gint)user_data;
 
     if ( status_icon_activate_callback != NULL ) {
-        (*status_icon_activate_callback)( );
+        (*status_icon_activate_callback)( status_icon_activate_callback_user_data );
+    }
+    else {
+        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+        /* Trigger a re-scan of the networks while we're at it */
+        nwamui_daemon_wifi_start_scan(daemon);
     }
 }
 

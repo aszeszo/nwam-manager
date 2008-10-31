@@ -248,7 +248,7 @@ nwam_env_svc_finalize(NwamEnvSvc *self)
 	g_free(self->prv);
 	self->prv = NULL;
 	
-	(*G_OBJECT_CLASS(nwam_env_svc_parent_class)->finalize) (G_OBJECT(self));
+	G_OBJECT_CLASS(nwam_env_svc_parent_class)->finalize(G_OBJECT(self));
 }
 
 /* Callbacks */

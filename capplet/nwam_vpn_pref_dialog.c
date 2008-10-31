@@ -208,7 +208,7 @@ nwam_vpn_pref_dialog_finalize(NwamVPNPrefDialog *self)
 {
 	g_object_unref (G_OBJECT(self->prv->daemon));
 	
-	(*G_OBJECT_CLASS(nwam_vpn_pref_dialog_parent_class)->finalize) (G_OBJECT(self));
+	G_OBJECT_CLASS(nwam_vpn_pref_dialog_parent_class)->finalize(G_OBJECT(self));
 }
 
 static void set_property (GObject         *object,

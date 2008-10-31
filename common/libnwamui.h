@@ -89,7 +89,7 @@ G_BEGIN_DECLS
 #define  NWAM_ICON_EARTH_CONNECTED          "network-location-connected"
 #define  NWAM_ICON_NETWORK_IDLE             "network-wired-connected"
 #define  NWAM_ICON_NETWORK_OFFLINE          "network-wired-error"
-#define  NWAM_ICON_NETWORK_WIRELESS         "network-wireless-connected"
+#define  NWAM_ICON_NETWORK_WIRELESS         "network-wireless"
 #define  NWAM_ICON_WIRELESS_STRENGTH_NONE   "network-wireless-signal-none"
 #define  NWAM_ICON_WIRELESS_STRENGTH_POOR   "network-wireless-signal-poor"
 #define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "network-wireless-signal-fair"
@@ -102,6 +102,21 @@ enum
     PROF_JOIN_OPEN_NETWORK,
     PROF_REMAIN_OFFLINE,
 };
+
+/* Marshal Functions */
+void marshal_VOID__INT_POINTER (GClosure     *closure,
+  GValue       *return_value G_GNUC_UNUSED,
+  guint         n_param_values,
+  const GValue *param_values,
+  gpointer      invocation_hint G_GNUC_UNUSED,
+  gpointer      marshal_data);
+
+void marshal_VOID__INT_OBJECT_POINTER (GClosure     *closure,
+  GValue       *return_value G_GNUC_UNUSED,
+  guint         n_param_values,
+  const GValue *param_values,
+  gpointer      invocation_hint G_GNUC_UNUSED,
+  gpointer      marshal_data);
 
 /* Utility Functions */
 extern GtkWidget*               nwamui_util_glade_get_widget( const gchar* widget_name );

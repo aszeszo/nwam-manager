@@ -67,6 +67,14 @@ extern NwamuiProf*          nwamui_prof_get_instance ();
 
 extern void                 nwamui_prof_notify_begin (NwamuiProf* self);
 
+extern void                 nwamui_prof_set_active_interface ( NwamuiProf *self, const gchar* active_interface );
+
+extern gchar*               nwamui_prof_get_active_interface (NwamuiProf* self);
+
+extern void                 nwamui_prof_set_notification_default_timeout ( NwamuiProf *self, gint notification_default_timeout );
+
+extern gint                 nwamui_prof_get_notification_default_timeout (NwamuiProf* self);
+
 G_END_DECLS
 
 #endif	/* _NWAMUI_PROF_H */

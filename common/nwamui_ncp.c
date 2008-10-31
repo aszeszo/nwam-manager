@@ -148,7 +148,7 @@ nwamui_ncp_init ( NwamuiNcp *self)
         GtkTreeIter      iter;
         
         if ( ptr->essid != NULL ) {
-            wifi_info = nwamui_wifi_net_new( ptr->essid, NWAMUI_WIFI_SEC_NONE, "aa:bb:cc:dd:ee", "g", 54, NWAMUI_WIFI_STRENGTH_GOOD, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC);
+            wifi_info = nwamui_wifi_net_new( NULL, ptr->essid, NWAMUI_WIFI_SEC_NONE, "aa:bb:cc:dd:ee", "g", 54, NWAMUI_WIFI_STRENGTH_GOOD, NWAMUI_WIFI_BSS_TYPE_AUTO, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC);
         }
         ncu = nwamui_ncu_new(   ptr->vanity_name,
                                 ptr->device_name,

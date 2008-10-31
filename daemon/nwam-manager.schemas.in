@@ -49,5 +49,20 @@
       </locale>
     </schema>
 
+    <schema>
+      <key>/schemas/apps/nwam-manager/notification_default_timeout</key>
+      <applyto>/apps/nwam-manager/notification_default_timeout</applyto>
+      <owner>nwam-manager</owner>
+      <type>int</type>
+      <default>3000</default>
+      <locale name="C">
+         <short>notification_default_timeout</short>
+         <long>
+		The default timeout of notification in milliseconds,
+		must greater than zero.
+         </long>
+      </locale>
+    </schema>
+
   </schemalist>  
 </gconfschemafile>

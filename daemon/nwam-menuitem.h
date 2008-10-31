@@ -45,7 +45,8 @@ typedef struct _NwamMenuItemPrivate		NwamMenuItemPrivate;
 
 struct _NwamMenuItem
 {
-	GtkRadioMenuItem menu_item;
+	//GtkRadioMenuItem menu_item;
+    GtkCheckMenuItem menu_item;
 
 	/*< private >*/
 	NwamMenuItemPrivate *prv;
@@ -53,7 +54,8 @@ struct _NwamMenuItem
 
 struct _NwamMenuItemClass
 {
-	GtkRadioMenuItemClass parent_class;
+	//GtkRadioMenuItemClass parent_class;
+    GtkCheckMenuItemClass parent_class;
 };
 
 
@@ -67,6 +69,13 @@ void nwam_menu_item_set_widget (NwamMenuItem *self,
 GtkWidget* nwam_menu_item_get_widget (NwamMenuItem *self,
 				     gint pos);
 
+/*
+ * MAX_WIDGET_NUM:
+ * max number of widget show on a nwam menuitem
+ */
+#ifndef MAX_WIDGET_NUM
+#define MAX_WIDGET_NUM	2
+#endif
 
 G_END_DECLS
 

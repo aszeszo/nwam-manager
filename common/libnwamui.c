@@ -358,10 +358,10 @@ nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type, gboolean
 
     /* TODO - get REAL icons for drop-downlist, these are borrowed */
     if ( secured_icon == NULL ) {
-        secured_icon = get_pixbuf("gnome-dev-wavelan-encrypted", small);
+        secured_icon = get_pixbuf("network-secure", small);
     }
     if ( open_icon == NULL ) {
-        open_icon = get_pixbuf("gnome-dev-wavelan", small);
+        open_icon = get_pixbuf("network-insecure", small);
     }
 
     switch (sec_type) {
@@ -434,14 +434,16 @@ nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_str
         enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] = 
                                     get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_NONE, small );
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_POOR][icon_size] = 
-                                    get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_POOR, small );
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_WEAK][icon_size] = 
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_WEAK][icon_size] = 
+                                    g_object_ref(get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_POOR, small ));
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_FAIR][icon_size] = 
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD][icon_size] = 
                                     get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_FAIR, small );
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD][icon_size]= 
-                                    get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_GOOD, small );
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_GOOD][icon_size]= 
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT][icon_size]= 
+                                    g_object_ref(get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_GOOD, small ));
 
     }
     
@@ -584,3 +586,106 @@ nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gc
    (void)gtk_dialog_run(GTK_DIALOG(message_dialog));
 }
 
+/* VOID:INT,POINTER */
+void
+marshal_VOID__INT_POINTER (GClosure     *closure,
+  GValue       *return_value G_GNUC_UNUSED,
+  guint         n_param_values,
+  const GValue *param_values,
+  gpointer      invocation_hint G_GNUC_UNUSED,
+  gpointer      marshal_data)
+{
+    typedef void (*GMarshalFunc_VOID__INT_POINTER) (gpointer     data1,
+      gint         arg_1,
+      gpointer     arg_2,
+      gpointer     data2);
+    register GMarshalFunc_VOID__INT_POINTER callback;
+    register GCClosure *cc = (GCClosure*) closure;
+    register gpointer data1, data2;
+ 
+    g_return_if_fail (n_param_values == 3);
+ 
+    if (G_CCLOSURE_SWAP_DATA (closure)) {
+        data1 = closure->data;
+        data2 = g_value_peek_pointer (param_values + 0);
+    } else {
+        data1 = g_value_peek_pointer (param_values + 0);
+        data2 = closure->data;
+    }
+    callback = (GMarshalFunc_VOID__INT_POINTER) (marshal_data ? marshal_data : cc->callback);
+ 
+    callback (data1,
+      g_value_get_int (param_values + 1),
+      g_value_get_pointer (param_values + 2),
+      data2);
+}
+
+/* VOID:OBJECT,OBJECT */
+void
+marshal_VOID__OBJECT_OBJECT (GClosure     *closure,
+  GValue       *return_value G_GNUC_UNUSED,
+  guint         n_param_values,
+  const GValue *param_values,
+  gpointer      invocation_hint G_GNUC_UNUSED,
+  gpointer      marshal_data)
+{
+    typedef void (*GMarshalFunc_VOID__OBJECT_OBJECT) (gpointer     data1,
+      gpointer     arg_1,
+      gpointer     arg_2,
+      gpointer     data2);
+    register GMarshalFunc_VOID__OBJECT_OBJECT callback;
+    register GCClosure *cc = (GCClosure*) closure;
+    register gpointer data1, data2;
+ 
+    g_return_if_fail (n_param_values == 3);
+ 
+    if (G_CCLOSURE_SWAP_DATA (closure)) {
+        data1 = closure->data;
+        data2 = g_value_peek_pointer (param_values + 0);
+    } else {
+        data1 = g_value_peek_pointer (param_values + 0);
+        data2 = closure->data;
+    }
+    callback = (GMarshalFunc_VOID__OBJECT_OBJECT) (marshal_data ? marshal_data : cc->callback);
+ 
+    callback (data1,
+      g_value_get_object (param_values + 1),
+      g_value_get_object (param_values + 2),
+      data2);
+}
+
+/* VOID:INT, OBJECT, POINTER */
+void
+marshal_VOID__INT_OBJECT_POINTER (GClosure     *closure,
+  GValue       *return_value G_GNUC_UNUSED,
+  guint         n_param_values,
+  const GValue *param_values,
+  gpointer      invocation_hint G_GNUC_UNUSED,
+  gpointer      marshal_data)
+{
+    typedef void (*GMarshalFunc_VOID__INT_OBJECT_POINTER) (gpointer     data1,
+      gint         arg_1,
+      gpointer     arg_2,
+      gpointer     arg_3,
+      gpointer     data2);
+    register GMarshalFunc_VOID__INT_OBJECT_POINTER callback;
+    register GCClosure *cc = (GCClosure*) closure;
+    register gpointer data1, data2;
+ 
+    g_return_if_fail (n_param_values == 4);
+ 
+    if (G_CCLOSURE_SWAP_DATA (closure)) {
+        data1 = closure->data;
+        data2 = g_value_peek_pointer (param_values + 0);
+    } else {
+        data1 = g_value_peek_pointer (param_values + 0);
+        data2 = closure->data;
+    }
+    callback = (GMarshalFunc_VOID__INT_OBJECT_POINTER) (marshal_data ? marshal_data : cc->callback);
+ 
+    callback (data1,
+      g_value_get_int (param_values + 1),
+      g_value_get_object (param_values + 2),
+      g_value_get_pointer (param_values + 3),
+      data2);
+}

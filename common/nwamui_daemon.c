@@ -31,7 +31,11 @@
 #include <glib-object.h>
 #include <glib/gi18n.h>
 #include <strings.h>
-#include <sys/errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <errno.h>
 #include <pthread.h>
 
 #include "libnwamui.h"
@@ -41,9 +45,12 @@ static NwamuiDaemon*    instance        = NULL;
 static pthread_t        tid = 0;
 
 enum {
+    DAEMON_STATUS_CHANGED,
     DAEMON_INFO,
     WIFI_SCAN_RESULT,
     ACTIVE_ENV_CHANGED,
+    WIFI_KEY_NEEDED,
+    WIFI_SELECTION_NEEDED,
     S_NCU_CREATE,
     S_NCU_DESTROY,
     S_NCU_UP,
@@ -68,6 +75,18 @@ struct _NwamuiDaemonPrivate {
 
     /* others */
 };
+
+typedef struct _NwamuiEvent {
+    int e;	/* ui daemon event type */
+    nwam_events_msg_t *led;	/* daemon data */
+    NwamuiDaemon* daemon;
+} NwamuiEvent;
+
+static gboolean nwamd_event_handler(gpointer data);
+
+static NwamuiEvent* nwamui_event_new(NwamuiDaemon* daemon, int e, nwam_events_msg_t *led);
+
+static void nwamui_event_free(NwamuiEvent *e);
 
 static void nwamui_daemon_set_property ( GObject         *object,
                                       guint            prop_id,
@@ -261,16 +280,16 @@ typedef struct nwamui_wifi_essid nwamui_wifi_essid_t;
 static nwamui_wifi_essid_t demo_pref_essids[] = {
     {"My Absolute Fav Network", NWAMUI_WIFI_SEC_NONE, "11:22:33:44:55:66", "g", 54, NWAMUI_WIFI_STRENGTH_GOOD , NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
     {"2nd Favourite", NWAMUI_WIFI_SEC_WEP_HEX, "22:33:44:55:66:77", "b", 11, NWAMUI_WIFI_STRENGTH_NONE, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
-    {"Last Favourite", NWAMUI_WIFI_SEC_WPA_PERSONAL, "33:44:55:66:77:88", "b", 2, NWAMUI_WIFI_STRENGTH_POOR, NWAMUI_WIFI_WPA_CONFIG_PEAP },
+    {"Last Favourite", NWAMUI_WIFI_SEC_WPA_PERSONAL, "33:44:55:66:77:88", "b", 2, NWAMUI_WIFI_STRENGTH_VERY_WEAK, NWAMUI_WIFI_WPA_CONFIG_PEAP },
     {NULL, NULL, NULL, NULL, NULL},
 };
 
 static nwamui_wifi_essid_t demo_essids[] = {
     { "MyESSID", NWAMUI_WIFI_SEC_NONE, "2001:0db8:0:0:0:0:1428:57ab", "g", 54, NWAMUI_WIFI_STRENGTH_GOOD , NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
 #if 1
-    {"My Absolute Fav Network", NWAMUI_WIFI_SEC_NONE, "11:22:33:44:55:66", "g", 54, NWAMUI_WIFI_STRENGTH_POOR , NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
+    {"My Absolute Fav Network", NWAMUI_WIFI_SEC_NONE, "11:22:33:44:55:66", "g", 54, NWAMUI_WIFI_STRENGTH_VERY_WEAK , NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
     {"essid_open", NWAMUI_WIFI_SEC_NONE, "AA:bb:cc:dd:ee:ff", "b", 11, NWAMUI_WIFI_STRENGTH_GOOD, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
-    {"essid_wep", NWAMUI_WIFI_SEC_WEP_HEX, "BB:bb:cc:dd:ee:ff", "g", 54, NWAMUI_WIFI_STRENGTH_FAIR, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
+    {"essid_wep", NWAMUI_WIFI_SEC_WEP_HEX, "BB:bb:cc:dd:ee:ff", "g", 54, NWAMUI_WIFI_STRENGTH_GOOD, NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC },
     {"essid_wpa", NWAMUI_WIFI_SEC_WPA_PERSONAL, "CC:bb:cc:dd:ee:ff", "g", 36, NWAMUI_WIFI_STRENGTH_GOOD, NWAMUI_WIFI_WPA_CONFIG_PEAP },
 #endif
     {NULL, NULL, NULL, NULL, NULL},
@@ -290,7 +309,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     /* TODO - Link with libnwam proper, currently a stub */
 
     for( ptr = demo_pref_essids; ptr != NULL && ptr->essid != NULL; ptr++) {
-        wifi_net = nwamui_wifi_net_new(ptr->essid, ptr->security, ptr->bssid, ptr->mode, ptr->speed, ptr->signal_strength, ptr->wpa_config);
+        wifi_net = nwamui_wifi_net_new(NULL, ptr->essid, ptr->security, ptr->bssid, ptr->mode, ptr->speed, ptr->signal_strength, NWAMUI_WIFI_BSS_TYPE_AUTO, ptr->wpa_config);
         self->prv->wifi_fav_list = g_list_append(self->prv->wifi_fav_list, (gpointer)wifi_net);
     }
 
@@ -308,7 +327,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
         nwam_error_t nerr;
         int cbret;
         nwam_walk_locs (nwam_loc_walker_cb, (void *)self,
-          NWAM_FLAG_NONBLOCK, &cbret);
+          NWAM_FLAG_ACTIVATION_MODE_ALL, &cbret);
         if (nerr != NWAM_SUCCESS) {
             g_debug ("[libnwam] nwam_walk_locs %s", nwam_strerror (nerr));
         }
@@ -322,7 +341,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
         nwam_error_t nerr;
         int cbret;
         nwam_walk_enms (nwam_enm_walker_cb, (void *)self,
-          NWAM_FLAG_NONBLOCK, &cbret);
+          NWAM_FLAG_ACTIVATION_MODE_ALL, &cbret);
         if (nerr != NWAM_SUCCESS) {
             g_debug ("[libnwam] nwam_walk_enms %s", nwam_strerror (nerr));
         }
@@ -466,7 +485,7 @@ nwamui_daemon_wifi_start_scan(NwamuiDaemon *self)
     
     /* TODO - Link with libnwam proper, currently a stub */
     for( ptr = demo_essids; ptr != NULL && ptr->essid != NULL; ptr++) {
-        wifi_net = nwamui_wifi_net_new(ptr->essid, ptr->security, ptr->bssid, ptr->mode, ptr->speed, ptr->signal_strength, ptr->wpa_config);
+        wifi_net = nwamui_wifi_net_new(NULL, ptr->essid, ptr->security, ptr->bssid, ptr->mode, ptr->speed, ptr->signal_strength, NWAMUI_WIFI_BSS_TYPE_AUTO, ptr->wpa_config);
           /* trigger event */
           g_signal_emit (self,
                  nwamui_daemon_signals[WIFI_SCAN_RESULT],
@@ -866,24 +885,24 @@ nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse)
     for (idx = msg; idx; idx = idx->next) {
         
         switch (idx->type) {
-        case NWAM_EVENTS_NOOP:
-        case NWAM_EVENTS_SOURCE_DEAD:
+        case NWAM_EVENT_TYPE_NOOP:
+        case NWAM_EVENT_TYPE_SOURCE_DEAD:
             g_debug ("NWAM daemon died.");
             break;
-        case NWAM_EVENTS_SOURCE_BACK:
+        case NWAM_EVENT_TYPE_SOURCE_BACK:
             g_debug ("NWAM events synthesized.");
             break;
-        case NWAM_EVENTS_NO_MAGIC:
+        case NWAM_EVENT_TYPE_NO_MAGIC:
             g_debug ("NWAM events require user's interaction.");
             break;
-        case NWAM_EVENTS_INFO:
+        case NWAM_EVENT_TYPE_INFO:
             /* Directly deliver to upper consumers */
             g_signal_emit (self,
               nwamui_daemon_signals[DAEMON_INFO],
               0, /* details */
               g_strdup (idx->data.info.message));
             break;
-        case NWAM_EVENTS_IF_STATE:
+        case NWAM_EVENT_TYPE_IF_STATE:
             /* TODO - */
             if (idx->data.if_state.addr_valid) {
                 char address[INET6_ADDRSTRLEN];
@@ -905,14 +924,14 @@ nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse)
                   idx->data.if_state.flags);
             }
             break;
-        case NWAM_EVENTS_IF_REMOVED:
+        case NWAM_EVENT_TYPE_IF_REMOVED:
             /* TODO - */
             g_signal_emit (self,
               nwamui_daemon_signals[DAEMON_INFO],
               0, /* details */
               g_strdup_printf ("interface %s is removed.", idx->data.removed.name));
             break;
-        case NWAM_EVENTS_LINK_STATE:
+        case NWAM_EVENT_TYPE_LINK_STATE:
             /* TODO - map to NCU up/down */
             switch (idx->data.link_state.link_state) {
             }
@@ -922,14 +941,14 @@ nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse)
               0, /* details */
               g_strdup_printf ("link %s is removed.", idx->data.removed.name));
             break;
-        case NWAM_EVENTS_LINK_REMOVED:
+        case NWAM_EVENT_TYPE_LINK_REMOVED:
             /* TODO - map to NCU destroy */
             g_signal_emit (self,
               nwamui_daemon_signals[DAEMON_INFO],
               0, /* details */
               g_strdup_printf ("link %s is removed.", idx->data.removed.name));
             break;
-        case NWAM_EVENTS_SCAN_REPORT: {
+        case NWAM_EVENT_TYPE_SCAN_REPORT: {
             nwam_events_wlan_t *wlans;
             int i;
             NwamuiWifiNet          *wifi_net = NULL;
@@ -943,12 +962,14 @@ nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse)
                 idx->data.wlan_scan.name));
              
             for (i = 0; i < idx->data.wlan_scan.num_wlans; i++) {
-                wifi_net = nwamui_wifi_net_new (wlans->essid,
+                wifi_net = nwamui_wifi_net_new (NULL,
+                  wlans->essid,
                   nwamui_wifi_net_security_map (wlans->security_mode),
                   wlans->bssid,
                   NULL,
                   0,
                   nwamui_wifi_net_strength_map (wlans->signal_strength),
+                  NWAMUI_WIFI_BSS_TYPE_AUTO,
                   NULL);
                 /* trigger event */
                 g_signal_emit (self,
@@ -979,6 +1000,39 @@ nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse)
     g_object_unref (self);
     
     return 0;
+}
+
+static NwamuiEvent*
+nwamui_event_new(NwamuiDaemon* daemon, int e, nwam_events_msg_t *led)
+{
+    NwamuiEvent *event = g_new(NwamuiEvent, 1);
+    event->e = e;
+    event->led = led;
+    event->daemon = g_object_ref(daemon);
+    return event;
+}
+
+static void
+nwamui_event_free(NwamuiEvent *event)
+{
+    g_object_unref(event->daemon);
+    if (event->led) {
+        free(event->led);
+    }
+    g_free(event);
+}
+
+extern void
+nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message )
+{
+    g_return_if_fail( (NWAMUI_IS_DAEMON(self) && message != NULL ) );
+
+    g_signal_emit (self,
+      nwamui_daemon_signals[DAEMON_INFO],
+      0, /* details */
+      NWAMUI_DAEMON_INFO_UNKNOWN,
+      NULL,
+      g_strdup(message?message:""));
 }
 
 /* Default Signal Handlers */

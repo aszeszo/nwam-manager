@@ -30,13 +30,20 @@
 
 G_BEGIN_DECLS
 
+typedef     void (*StatusIconCallback)(GObject *user_data);
+
 gint nwam_status_icon_create( void );
 
 GtkStatusIcon* nwam_status_icon_get_widget( gint index );
 
-void nwam_status_icon_set_activate_callback( gint index, GCallback activate_cb );
+void nwam_status_icon_set_activate_callback( gint index, const char* message, 
+                                             StatusIconCallback activate_cb, GObject* user_data );
 
-void nwam_status_icon_show( gint index );
+void nwam_status_icon_set_status(gint index, gint env_status, const gchar* reason );
+
+void nwam_status_icon_set_visible(gint index, gboolean visible);
+
+gboolean nwam_status_icon_get_visible(gint index);
 
 void nwam_status_icon_hide( gint index );
 
@@ -45,6 +52,8 @@ void nwam_status_icon_blink( gint index );
 void nwam_status_icon_no_blink( gint index );
 
 void nwam_status_icon_set_tooltip (gint index, const gchar *str);
+
+void nwam_status_icon_show_menu( gint index, guint button, guint activate_time );
 
 G_END_DECLS
 

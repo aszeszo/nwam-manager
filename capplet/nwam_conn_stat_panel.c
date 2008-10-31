@@ -345,7 +345,7 @@ nwam_conn_status_add (NwamConnStatusPanel *self, NwamuiNcu* connection)
 static void
 nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
 {
-	(*G_OBJECT_CLASS(nwam_conn_status_panel_parent_class)->finalize) (G_OBJECT(self));
+	G_OBJECT_CLASS(nwam_conn_status_panel_parent_class)->finalize(G_OBJECT(self));
 }
 
 /* Callbacks */

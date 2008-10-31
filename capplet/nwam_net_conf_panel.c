@@ -601,7 +601,7 @@ nwam_net_conf_panel_finalize(NwamNetConfPanel *self)
     g_free(self->prv);
 	self->prv = NULL;
 	
-	(*G_OBJECT_CLASS(nwam_net_conf_panel_parent_class)->finalize) (G_OBJECT(self));
+	G_OBJECT_CLASS(nwam_net_conf_panel_parent_class)->finalize(G_OBJECT(self));
 }
 
 /* Callbacks */

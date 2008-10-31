@@ -427,7 +427,7 @@ nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
     g_object_unref(G_OBJECT(self->prv->only_allow_label));
     g_object_unref(G_OBJECT(self->prv->daemon));
     table_lines_free (self);
-    (*G_OBJECT_CLASS(nwam_env_pref_dialog_parent_class)->finalize) (G_OBJECT(self));
+    G_OBJECT_CLASS(nwam_env_pref_dialog_parent_class)->finalize(G_OBJECT(self));
 }
 
 /**

@@ -362,7 +362,7 @@ nwam_wireless_chooser_finalize(NwamWirelessChooser *self)
     g_free(self->prv);
     self->prv = NULL;
 
-    (*G_OBJECT_CLASS(nwam_wireless_chooser_parent_class)->finalize) (G_OBJECT(self));
+    G_OBJECT_CLASS(nwam_wireless_chooser_parent_class)->finalize(G_OBJECT(self));
 }
 
 /* Callbacks */

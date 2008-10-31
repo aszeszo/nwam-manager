@@ -84,23 +84,48 @@ typedef enum {
 
 typedef enum {
     NWAMUI_WIFI_STRENGTH_NONE,
-    NWAMUI_WIFI_STRENGTH_POOR,
-    NWAMUI_WIFI_STRENGTH_FAIR,
+    NWAMUI_WIFI_STRENGTH_VERY_WEAK,
+    NWAMUI_WIFI_STRENGTH_WEAK,
     NWAMUI_WIFI_STRENGTH_GOOD,
+    NWAMUI_WIFI_STRENGTH_VERY_GOOD,
+    NWAMUI_WIFI_STRENGTH_EXCELLENT,
     NWAMUI_WIFI_STRENGTH_LAST /* Not to be used directly */	
 } nwamui_wifi_signal_strength_t;
 
 
+typedef enum {
+    NWAMUI_WIFI_STATUS_CONNECTED,
+    NWAMUI_WIFI_STATUS_DISCONNECTED,
+    NWAMUI_WIFI_STATUS_FAILED,
+    NWAMUI_WIFI_STATUS_LAST /* Not to be used directly */	
+} nwamui_wifi_status_t;
+
+typedef enum {
+    NWAMUI_WIFI_BSS_TYPE_AUTO,
+    NWAMUI_WIFI_BSS_TYPE_AP,
+    NWAMUI_WIFI_BSS_TYPE_ADHOC,
+    NWAMUI_WIFI_BSS_TYPE_LAST /* Not to be used directly */	
+} nwamui_wifi_bss_type_t;
+
+extern struct _NwamuiNcu; /* forwardref */
+
 extern  GType                       nwamui_wifi_net_get_type (void) G_GNUC_CONST;
 
-extern  NwamuiWifiNet*              nwamui_wifi_net_new(    const gchar                     *essid, 
+extern  NwamuiWifiNet*              nwamui_wifi_net_new(    struct _NwamuiNcu               *ncu,
+                                                            const gchar                     *essid, 
                                                             nwamui_wifi_security_t           security,
                                                             const gchar                     *bssid,
                                                             const gchar                     *mode,
                                                             guint                            speed,
                                                             nwamui_wifi_signal_strength_t    signal_strength,
+                                                            nwamui_wifi_bss_type_t           bss_type,
                                                             nwamui_wifi_wpa_config_t         wpa_config );
 
+extern void                         nwamui_wifi_net_connect ( NwamuiWifiNet *self );
+
+extern void                         nwamui_wifi_net_set_ncu ( NwamuiWifiNet *self, struct _NwamuiNcu* ncu );
+                                
+extern struct _NwamuiNcu*           nwamui_wifi_net_get_ncu ( NwamuiWifiNet *self );
 
 extern void                         nwamui_wifi_net_set_essid ( NwamuiWifiNet *self, const gchar *essid );
                                 
@@ -109,6 +134,14 @@ extern gchar*                       nwamui_wifi_net_get_essid ( NwamuiWifiNet *s
 extern void                         nwamui_wifi_net_set_bssid ( NwamuiWifiNet *self, const gchar *bssid );
                           
 extern gchar*                       nwamui_wifi_net_get_bssid ( NwamuiWifiNet *self );
+
+extern gchar*                       nwamui_wifi_net_get_unique_name ( NwamuiWifiNet *self );
+
+extern gchar*                       nwamui_wifi_net_get_display_string (NwamuiWifiNet *self, gboolean has_many_wireless );
+
+extern void                         nwamui_wifi_net_set_status ( NwamuiWifiNet *self, nwamui_wifi_status_t status );
+          
+extern nwamui_wifi_status_t         nwamui_wifi_net_get_status ( NwamuiWifiNet *self );
 
 extern void                         nwamui_wifi_net_set_security ( NwamuiWifiNet *self, nwamui_wifi_security_t security );
           
@@ -125,6 +158,8 @@ extern void                         nwamui_wifi_net_set_signal_strength (   Nwam
                                                                             nwamui_wifi_signal_strength_t   signal_strength );
                         
 extern nwamui_wifi_signal_strength_t nwamui_wifi_net_get_signal_strength (NwamuiWifiNet *self );
+
+extern nwamui_wifi_bss_type_t        nwamui_wifi_net_get_bss_type (NwamuiWifiNet *self );
 
 extern void                         nwamui_wifi_net_set_wpa_config (    NwamuiWifiNet           *self,
                                                                         nwamui_wifi_wpa_config_t wpa_config );
@@ -147,10 +182,11 @@ extern void                         nwamui_wifi_net_set_wpa_cert_file ( NwamuiWi
                       
 extern gchar*                       nwamui_wifi_net_get_wpa_cert_file ( NwamuiWifiNet *self );
 
-extern nwamui_wifi_security_t       nwamui_wifi_net_security_map (guint security);
+extern nwamui_wifi_security_t       nwamui_wifi_net_security_map ( const char* str );
 
 extern nwamui_wifi_signal_strength_t nwamui_wifi_net_strength_map (const gchar *strength);
 
+extern nwamui_wifi_bss_type_t        nwamui_wifi_net_bss_type_map (const gchar *bss_type);
 G_END_DECLS
         
 #endif	/* _NWAMUI_WIFI_NET_H */

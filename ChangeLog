@@ -1,3 +1,196 @@
+2008-10-31  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am:
+	* capplet/nwam_conn_conf_ip_panel.c: (nwam_conf_ip_panel_finalize):
+	* capplet/nwam_conn_stat_panel.c:
+	(nwam_conn_status_panel_finalize):
+	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_finalize):
+	* capplet/nwam_env_svc.c: (nwam_env_svc_finalize):
+	* capplet/nwam_net_conf_panel.c: (nwam_net_conf_panel_finalize):
+	* capplet/nwam_pref_dialog.c: (nwam_capplet_dialog_finalize):
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_vpn_pref_dialog_finalize):
+	* capplet/nwam_wireless_chooser.c:
+	(nwam_wireless_chooser_finalize):
+	* common/libnwamui.c: (nwamui_util_get_network_security_icon),
+	(nwamui_util_get_wireless_strength_icon),
+	(marshal_VOID__INT_POINTER), (marshal_VOID__OBJECT_OBJECT),
+	(marshal_VOID__INT_OBJECT_POINTER):
+	* common/libnwamui.h:
+	* common/nwamui_daemon.c: (nwamui_daemon_init),
+	(nwamui_daemon_wifi_start_scan), (nwam_events_callback),
+	(nwamui_event_new), (nwamui_event_free),
+	(nwamui_daemon_emit_info_message):
+	* common/nwamui_daemon.h:
+	* common/nwamui_enm.c: (nwamui_enm_set_property),
+	(nwamui_enm_get_property), (nwamui_enm_new_with_handle),
+	(nwamui_enm_commit):
+	* common/nwamui_env.c: (nwamui_env_set_property),
+	(nwamui_env_get_property), (nwamui_env_new_with_handle),
+	(nwamui_env_svc_add), (nwamui_env_svc_add_full),
+	(nwamui_env_svc_commit), (nwamui_env_commit),
+	(nwam_loc_svc_walker_cb), (nwam_loc_sys_svc_walker_cb):
+	* common/nwamui_env.h:
+	* common/nwamui_ncp.c: (nwamui_ncp_init):
+	* common/nwamui_prof.c: (nwamui_prof_class_init),
+	(nwamui_prof_set_property), (nwamui_prof_get_property),
+	(nwamui_prof_finalize), (gconf_notify_cb),
+	(nwamui_prof_get_active_interface),
+	(nwamui_prof_set_active_interface),
+	(nwamui_prof_get_notification_default_timeout),
+	(nwamui_prof_set_notification_default_timeout):
+	* common/nwamui_prof.h:
+	* common/nwamui_svc.c: (nwamui_svc_get_property),
+	(nwamui_svc_finalize), (nwamui_svc_new):
+	* common/nwamui_svc.h:
+	* common/nwamui_wifi_net.c: (nwamui_wifi_net_class_init),
+	(nwamui_wifi_net_init), (nwamui_wifi_net_set_property),
+	(nwamui_wifi_net_get_property), (nwamui_wifi_net_finalize),
+	(nwamui_wifi_net_new), (nwamui_wifi_net_connect),
+	(nwamui_wifi_net_set_ncu), (nwamui_wifi_net_get_ncu),
+	(nwamui_wifi_net_get_display_string),
+	(nwamui_wifi_net_get_unique_name), (nwamui_wifi_net_set_status),
+	(nwamui_wifi_net_get_status), (nwamui_wifi_net_get_bss_type),
+	(nwamui_wifi_net_security_map), (nwamui_wifi_net_strength_map),
+	(nwamui_wifi_net_bss_type_map):
+	* common/nwamui_wifi_net.h:
+	* configure.in:
+	* daemon/Makefile.am:
+	* daemon/main.c: (update_tooltip), (on_trigger_network_changed),
+	(event_daemon_status_changed),
+	(ncu_is_higher_priority_than_active_ncu), (event_daemon_info),
+	(on_status_activate_wifi_key_needed), (event_wifi_key_needed),
+	(event_wifi_selection_needed), (event_ncu_up), (event_ncu_down),
+	(ncp_activate_ncu), (ncp_deactivate_ncu),
+	(on_notifyaction_wifi_key_need), (on_notifyaction_popup_menus),
+	(activate_cb), (join_wifi_not_in_fav), (join_any_fav_wifi),
+	(add_any_new_wifi_to_fav), (action_on_no_fav_networks),
+	(find_wireless_interface), (join_wireless), (manage_known_ap),
+	(change_ncu_priority), (default_log_handler),
+	(user_has_autoconf_auth), (on_ncp_notify_cb), (main):
+	* daemon/notify.c: (nwam_notification_msg_new),
+	(nwam_notification_msg_free),
+	(on_prof_notification_default_timeout), (on_notification_closed),
+	(get_notification), (notify_notification_adjust_nth),
+	(notify_notification_adjust_first), (nwam_notification_hide_cb),
+	(nwam_notification_show_nth_message),
+	(nwam_notification_show_message_cb),
+	(nwam_notification_show_message),
+	(nwam_notification_show_message_with_action),
+	(nwam_notification_get_status_msg), (set_last_message):
+	* daemon/notify.h:
+	* daemon/nwam-action.c:
+	* daemon/nwam-action.h:
+	* daemon/nwam-enm-action.c: (nwam_obj_proxy_init),
+	(nwam_enm_action_class_init), (nwam_enm_action_init),
+	(nwam_enm_action_new), (nwam_enm_action_finalize),
+	(nwam_enm_action_set_property), (nwam_enm_action_get_property),
+	(connect_enm_net_signals), (disconnect_enm_net_signals),
+	(on_nwam_enm_toggled), (on_nwam_enm_notify),
+	(nwam_enm_action_set_label), (get_proxy),
+	(nwam_enm_action_get_enm), (nwam_enm_action_set_enm):
+	* daemon/nwam-enm-action.h:
+	* daemon/nwam-enm-group.c: (nwam_enm_group_class_init),
+	(nwam_enm_group_init), (nwam_enm_group_finalize),
+	(nwam_enm_group_get_item_by_name),
+	(nwam_enm_group_get_item_by_proxy), (nwam_enm_group_add_item),
+	(nwam_enm_group_remove_item), (nwam_enm_group_attach),
+	(nwam_enm_group_detach), (nwam_enm_group_new):
+	* daemon/nwam-enm-group.h:
+	* daemon/nwam-env-action.c: (nwam_obj_proxy_init),
+	(nwam_env_action_class_init), (nwam_env_action_init),
+	(nwam_env_action_new), (nwam_env_action_finalize),
+	(nwam_env_action_set_property), (nwam_env_action_get_property),
+	(connect_env_net_signals), (disconnect_env_net_signals),
+	(on_nwam_env_toggled), (on_nwam_env_notify),
+	(nwam_env_action_set_label), (get_proxy),
+	(nwam_env_action_get_env), (nwam_env_action_set_env):
+	* daemon/nwam-env-action.h:
+	* daemon/nwam-env-group.c: (nwam_env_group_class_init),
+	(nwam_env_group_init), (nwam_env_group_finalize),
+	(nwam_env_group_get_item_by_name),
+	(nwam_env_group_get_item_by_proxy), (nwam_env_group_add_item),
+	(nwam_env_group_remove_item), (nwam_env_group_attach),
+	(nwam_env_group_detach), (nwam_env_group_new):
+	* daemon/nwam-env-group.h:
+	* daemon/nwam-manager.desktop.in:
+	* daemon/nwam-manager.schemas.in:
+	* daemon/nwam-menu-action-group.c:
+	(nwam_menu_action_group_class_init),
+	(nwam_menu_action_group_set_property),
+	(nwam_menu_action_group_get_property),
+	(nwam_menu_action_group_init), (nwam_menu_action_group_finalize),
+	(nwam_menu_action_group_get_item_by_name),
+	(nwam_menu_action_group_get_item_by_proxy),
+	(nwam_menu_action_group_add_item),
+	(nwam_menu_action_group_remove_item),
+	(nwam_menu_action_group_attach), (nwam_menu_action_group_detach),
+	(nwam_menu_action_group_new):
+	* daemon/nwam-menu-action-group.h:
+	* daemon/nwam-menu-group.c: (nwam_menu_group_class_init),
+	(nwam_menu_group_constructor), (nwam_menu_group_finalize),
+	(nwam_menu_group_set_property), (nwam_menu_group_get_property),
+	(nwam_menu_group_init), (nwam_menu_group_attach),
+	(nwam_menu_group_detach), (nwam_menu_group_add_item),
+	(nwam_menu_group_remove_item), (nwam_menu_group_get_item_by_name),
+	(nwam_menu_group_get_item_by_proxy):
+	* daemon/nwam-menu-group.h:
+	* daemon/nwam-menu-radio-action-group.c:
+	(nwam_menu_radio_action_group_class_init),
+	(nwam_menu_radio_action_group_init),
+	(nwam_menu_radio_action_group_finalize),
+	(nwam_menu_radio_action_group_add_item):
+	* daemon/nwam-menu-radio-action-group.h:
+	* daemon/nwam-menu.c: (nwam_menu_init), (nwam_menu_finalize),
+	(menus_set_automatic_label), (menus_get_menuitem),
+	(menus_set_action_visible), (menus_set_action_sensitive),
+	(menus_set_toggle_action_active), (nwam_menu_group_recreate),
+	(nwam_menu_delete_wifi_menuitems),
+	(nwam_menu_recreate_wifi_menuitems),
+	(nwam_menu_delete_ncu_menuitems),
+	(nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_create_static_menuitems), (nwam_exec),
+	(on_activate_static_menuitems), (on_nwam_ncu_toggled),
+	(on_nwam_ncu_notify_cb), (on_ncp_notify_cb), (event_ncu_down),
+	(event_active_env_changed), (event_add_wifi_fav),
+	(connect_daemon_signals), (disconnect_daemon_signals),
+	(event_daemon_status_changed), (event_daemon_info),
+	(nwam_menu_create_ncu_menuitems),
+	(nwam_menu_create_wifi_menuitems), (connect_ncp_signals),
+	(disconnect_ncp_signals), (nwam_menu_create_env_menuitems),
+	(nwam_menu_create_vpn_menuitems), (nwam_menu_get_statusicon_menu):
+	* daemon/nwam-menuitem.c: (nwam_menu_item_class_init),
+	(nwam_menu_item_init), (nwam_menu_item_new_with_label),
+	(nwam_menu_item_finalize), (nwam_menu_item_draw_indicator),
+	(nwam_menu_item_activate):
+	* daemon/nwam-menuitem.h:
+	* daemon/nwam-obj-proxy-iface.c: (nwam_obj_proxy_iface_base_init),
+	(nwam_obj_proxy_iface_class_init), (nwam_obj_proxy_iface_get_type),
+	(nwam_obj_proxy_get_proxy), (nwam_obj_proxy_delete_notify):
+	* daemon/nwam-obj-proxy-iface.h:
+	* daemon/nwam-ui.xml:
+	* daemon/nwam-wifi-action.c: (nwam_obj_proxy_init),
+	(nwam_wifi_action_class_init), (nwam_wifi_action_init),
+	(nwam_wifi_action_new), (create_menu_item),
+	(nwam_wifi_action_finalize), (nwam_wifi_action_set_property),
+	(nwam_wifi_action_get_property), (connect_proxy),
+	(disconnect_proxy), (on_nwam_wifi_toggled),
+	(nwam_wifi_action_set_label), (get_proxy),
+	(nwam_wifi_action_set_widget), (nwam_action_get_widget),
+	(nwam_action_get_wifi), (nwam_action_set_wifi):
+	* daemon/nwam-wifi-action.h:
+	* daemon/nwam-wifi-group.c: (nwam_wifi_group_class_init),
+	(nwam_wifi_group_init), (nwam_wifi_group_finalize),
+	(nwam_wifi_group_new):
+	* daemon/nwam-wifi-group.h:
+	* daemon/status_icon.c: (nwam_status_icon_set_activate_callback),
+	(nwam_status_icon_set_status), (nwam_status_icon_set_visible),
+	(nwam_status_icon_get_visible), (nwam_status_icon_refresh_tooltip),
+	(nwam_status_icon_set_tooltip), (nwam_status_icon_show_menu),
+	(status_icon_popup_cb), (status_icon_activate_cb):
+	* daemon/status_icon.h:
+	Merged phase0.5 and LN new interfaces. Refactor menus. Trunk isn't
+	buildable.
+
 2008-10-24  Calum Benson  <calum.benson@sun.com>
 
 	* capplet/nwam-manager-properties.glade:

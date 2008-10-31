@@ -807,7 +807,7 @@ nwam_conf_ip_panel_finalize(NwamConnConfIPPanel *self)
     g_free(self->prv);
     self->prv = NULL;
 
-    (*G_OBJECT_CLASS(nwam_conf_ip_panel_parent_class)->finalize) (G_OBJECT(self));
+    G_OBJECT_CLASS(nwam_conf_ip_panel_parent_class)->finalize(G_OBJECT(self));
 }
 
 /* Callbacks */

@@ -43,26 +43,35 @@ void nwam_notification_init( GtkStatusIcon* status_icon );
 /* 
  * Displays a message. Only the summary is needed, the body text and icon can be NULL.
  */
-void nwam_notification_show_message( const gchararray summary, const gchararray body, const gchararray icon );
+void nwam_notification_show_message( const gchar* summary,
+  const gchar* body,
+  const gchar* icon,
+  gint timeout );
 
 /* 
  * Displays a message. Only the summary is needed, the body text and icon can
  * be NULL. If action is NULL or is empty, the default action "default" will be
  * used.
  */
-void nwam_notification_show_message_with_action (const gchararray summary,
-  const gchararray body,
-  const gchararray icon,
-  const gchararray action,
-  const gchararray label,
+void nwam_notification_show_message_with_action (const gchar* summary,
+  const gchar* body,
+  const gchar* icon,
+  const gchar* action,
+  const gchar* label,
   NotifyActionCallback callback,
   gpointer user_data,
-  GFreeFunc free_func);
+  GFreeFunc free_func,
+  gint timeout);
 
 /* 
  * Should be called prior to exiting, to ensure notificaiton area is cleaned up.
  */
 void nwam_notification_cleanup( void );
+
+/*
+ * Returns a string containing the last status message sent.
+ */
+const gchar* nwam_notification_get_status_msg( void );
 
 G_END_DECLS
 

@@ -25,7 +25,7 @@ AM_CPPFLAGS = \
 	$(PACKAGE_CFLAGS)	\
 	$(NOTIFY_CFLAGS)	\
 	$(NWAM_MANAGER_CFLAGS)		\
-	-DNWAM_MANAGER_DATADIR=\""$(datadir)"\"			\
+	-DNWAM_MANAGER_DATADIR=\""$(pkgdatadir)"\"			\
 	-DNWAM_MANAGER_LOCALEDIR=\""$(prefix)/$(DATADIRNAME)/locale"\"	\
 	-DGLADEDIR=\""$(gladedir)"\"			\
 	-DSYSCONFDIR=\"$(sysconfdir)\"				\
@@ -68,7 +68,7 @@ nwam_manager_properties_LDADD =			\
 
 install-data-local:
 
-gladedir   = $(datadir)/nwam-manager
+gladedir   = $(pkgdatadir)
 glade_DATA = nwam-manager-properties.glade
 
 EXTRA_DIST = 		\

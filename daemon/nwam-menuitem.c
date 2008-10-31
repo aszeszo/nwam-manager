@@ -48,6 +48,7 @@ static void nwam_menu_item_size_allocate (GtkWidget        *widget,
                                           GtkAllocation    *allocation);
 static void nwam_menu_item_toggle_size_request (GtkMenuItem *menu_item,
                                                  gint        *requisition);
+static void nwam_menu_item_activate (GtkMenuItem *menu_item);
 static void nwam_menu_item_forall (GtkContainer   *container,
                                    gboolean    include_internals,
                                    GtkCallback     callback,
@@ -64,7 +65,6 @@ enum {
 	PROP_RWIDGET,
 };
 
-#define MAX_WIDGET_NUM	2
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAM_TYPE_MENU_ITEM, NwamMenuItemPrivate))
 
@@ -72,7 +72,8 @@ struct _NwamMenuItemPrivate {
 	GtkWidget *w[MAX_WIDGET_NUM];
 };
 
-G_DEFINE_TYPE (NwamMenuItem, nwam_menu_item, GTK_TYPE_RADIO_MENU_ITEM)
+//G_DEFINE_TYPE (NwamMenuItem, nwam_menu_item, GTK_TYPE_RADIO_MENU_ITEM)
+G_DEFINE_TYPE (NwamMenuItem, nwam_menu_item, GTK_TYPE_CHECK_MENU_ITEM)
 
 static void
 nwam_menu_item_class_init (NwamMenuItemClass *klass)
@@ -85,7 +86,7 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
 
 	gobject_class = G_OBJECT_CLASS (klass);
 	widget_class = GTK_WIDGET_CLASS (klass);
-    menu_item_class = (GtkMenuItemClass*) klass; 
+    menu_item_class = GTK_MENU_ITEM_CLASS (klass); 
 	check_menu_item_class = GTK_CHECK_MENU_ITEM_CLASS (klass);
 	container_class = GTK_CONTAINER_CLASS (klass);
 
@@ -100,6 +101,7 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
 	widget_class->size_request = nwam_menu_item_size_request;
 
     menu_item_class->toggle_size_request = nwam_menu_item_toggle_size_request;
+    /* menu_item_class->activate = nwam_menu_item_activate; */
 
 	check_menu_item_class->draw_indicator = nwam_menu_item_draw_indicator;
 
@@ -125,8 +127,16 @@ static void
 nwam_menu_item_init (NwamMenuItem *self)
 {
     NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    GSList *group = NULL;
 
 	self->prv = prv;
+
+    /*
+     * TODO - DISABLED because it was causing CRITICAL warnings...
+     *
+    group = g_slist_prepend (NULL, self);
+    gtk_radio_menu_item_set_group (self, group);
+    */
 }
 
 static void
@@ -253,7 +263,7 @@ nwam_menu_item_new_with_label (const gchar *label)
     g_debug ("nwam_menu_item_new_with_label");
 	nwam_menu_item = g_object_new (NWAM_TYPE_MENU_ITEM, NULL);
 
-    gtk_container_add (GTK_CONTAINER (nwam_menu_item), label);
+    gtk_container_add (GTK_CONTAINER (nwam_menu_item), GTK_WIDGET(label));
 	return GTK_WIDGET(nwam_menu_item);
 }
 
@@ -315,9 +325,9 @@ nwam_menu_item_get_widget (NwamMenuItem *self,
 static void
 nwam_menu_item_finalize (NwamMenuItem *self)
 {
-    g_debug ("nwam_menu_item_finalize");
+/*     g_debug ("nwam_menu_item_finalize"); */
 
-	(*G_OBJECT_CLASS(nwam_menu_item_parent_class)->finalize) (G_OBJECT (self));
+	G_OBJECT_CLASS(nwam_menu_item_parent_class)->finalize(G_OBJECT (self));
 }
 
 static void
@@ -584,14 +594,14 @@ nwam_menu_item_draw_indicator  (NwamMenuItem      *self,
        
         y = widget->allocation.y + (widget->allocation.height - indicator_size) / 2; 
  
-        if (gtk_check_menu_item_get_active (self) ||
+        if (gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM(self)) ||
             (GTK_WIDGET_STATE (self) == GTK_STATE_PRELIGHT)) 
         { 
             state_type = GTK_WIDGET_STATE (widget); 
            
-            if (gtk_check_menu_item_get_inconsistent (self)) 
+            if (gtk_check_menu_item_get_inconsistent(GTK_CHECK_MENU_ITEM(self)))
                 shadow_type = GTK_SHADOW_ETCHED_IN; 
-            else if (gtk_check_menu_item_get_active (self)) 
+            else if (gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(self)))
                 shadow_type = GTK_SHADOW_IN; 
             else  
                 shadow_type = GTK_SHADOW_OUT; 
@@ -599,7 +609,7 @@ nwam_menu_item_draw_indicator  (NwamMenuItem      *self,
             if (!GTK_WIDGET_IS_SENSITIVE (widget)) 
                 state_type = GTK_STATE_INSENSITIVE; 
  
-            if (gtk_check_menu_item_get_draw_as_radio (self)) 
+            if (gtk_check_menu_item_get_draw_as_radio (GTK_CHECK_MENU_ITEM(self)))
             { 
                 gtk_paint_option (widget->style, widget->window, 
                                   state_type, shadow_type, 
@@ -617,3 +627,9 @@ nwam_menu_item_draw_indicator  (NwamMenuItem      *self,
     } 
 }
 
+static void
+nwam_menu_item_activate (GtkMenuItem *menu_item)
+{
+    //g_debug("item 0x%p group: 0x%p", menu_item, gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM(menu_item)));
+    (*GTK_MENU_ITEM_CLASS (nwam_menu_item_parent_class)->activate) (menu_item);
+}

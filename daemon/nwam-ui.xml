@@ -1,17 +1,17 @@
 <ui>
 	<popup name="StatusIconMenu">
-		<menuitem action="envpref"/>
+		<menuitem action="0_location_pref"/>
 		<separator name="section_fav_ap_begin"/>
 		<separator name="section_fav_ap_end"/>
-		<menuitem action="joinwireless"/>
+		<menuitem action="1_join_wireless"/>
 		<separator/>
-		<menuitem action="netpref"/>
-		<menu action="swtchenv"/>
+		<menuitem action="2_network_pref"/>
+		<menu action="switch_location"/>
 		<menu action="vpn">
 			<separator name="section_vpn_end"/>
-			<menuitem action="vpnpref"/>
+			<menuitem action="3_vpn_pref"/>
 		</menu>
 		<separator/>
-		<menuitem action="help"/>
+		<menuitem action="4_help"/>
 	</popup>
 </ui>

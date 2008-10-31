@@ -40,6 +40,8 @@ enum {
     S_JOIN_ANY_FAV_WIFI,
     S_ADD_ANY_NEW_WIFI_TO_FAV,
     S_ACTION_ON_NO_FAV_NETWORKS,
+    S_ACTIVE_INTERFACE,
+    S_NOTIFICATION_DEFAULT_TIMEOUT,
     LAST_SIGNAL
 };
 
@@ -48,6 +50,8 @@ enum {
     PROP_JOIN_ANY_FAV_WIFI,
     PROP_ADD_ANY_NEW_WIFI_TO_FAV,
     PROP_ACTION_ON_NO_FAV_NETWORKS,
+    PROP_ACTIVE_INTERFACE,
+    PROP_NOTIFICATION_DEFAULT_TIMEOUT,
 };
 
 static guint nwamui_daemon_signals [LAST_SIGNAL] = { 0 };
@@ -61,6 +65,14 @@ static guint nwamui_daemon_signals [LAST_SIGNAL] = { 0 };
     "/add_any_new_wifi_to_fav"
 #define PROF_STRING_ACTION_ON_NO_FAV_NETWORKS PROF_GCONF_ROOT \
     "/action_on_no_fav_networks"
+
+/* To Allow GNOME Netstatus Applet to follow NWAM Active interface */
+#define PROF_STRING_ACTIVE_INTERFACE PROF_GCONF_ROOT \
+    "/active_interface"
+
+/* Accept positive milliseconds, default is 2000 */
+#define PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT PROF_GCONF_ROOT \
+    "/notification_default_timeout"
 
 struct _NwamuiProfPrivate {
 
@@ -141,6 +153,24 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         PROF_SHOW_AVAILABLE_NETWORK_LIST,
         G_PARAM_READWRITE));
 
+    g_object_class_install_property (gobject_class,
+      PROP_ACTIVE_INTERFACE,
+      g_param_spec_string ("active_interface",
+        _("Active Interface"),
+        _("Active Interface"),
+        "",
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NOTIFICATION_DEFAULT_TIMEOUT,
+      g_param_spec_int ("notification_default_timeout",
+        _("Active Interface"),
+        _("Active Interface"),
+        1,
+        G_MAXINT,
+        2000,
+        G_PARAM_READWRITE));
+
     /* Create some signals */
     nwamui_daemon_signals[S_JOIN_WIFI_NOT_IN_FAV] =   
       g_signal_new ("join_wifi_not_in_fav",
@@ -177,6 +207,28 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
 
     nwamui_daemon_signals[S_ACTION_ON_NO_FAV_NETWORKS] =   
       g_signal_new ("action_on_no_fav_networks",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+        0,                            /* No class method */
+        NULL, NULL,
+        g_cclosure_marshal_VOID__INT,
+        G_TYPE_NONE,                  /* Return Type */
+        1,                            /* Number of Args */
+        G_TYPE_INT);              /* Types of Args */
+    
+    nwamui_daemon_signals[S_ACTIVE_INTERFACE] =   
+      g_signal_new ("active_interface",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+        0,                            /* No class method */
+        NULL, NULL,
+        g_cclosure_marshal_VOID__STRING,
+        G_TYPE_NONE,                  /* Return Type */
+        1,                            /* Number of Args */
+        G_TYPE_STRING);              /* Types of Args */
+
+    nwamui_daemon_signals[S_NOTIFICATION_DEFAULT_TIMEOUT] =   
+      g_signal_new ("notification_default_timeout",
         G_TYPE_FROM_CLASS (klass),
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
         0,                            /* No class method */
@@ -250,6 +302,21 @@ nwamui_prof_set_property (GObject         *object,
     }
         break;
 
+    case PROP_ACTIVE_INTERFACE: {
+        gconf_client_set_string (prv->client, PROF_STRING_ACTIVE_INTERFACE,
+          g_value_get_string (value),
+          &err);
+    }
+        break;
+
+    case PROP_NOTIFICATION_DEFAULT_TIMEOUT: {
+        gconf_client_set_int (prv->client,
+          PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT,
+          g_value_get_int (value),
+          &err);
+    }
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -300,6 +367,20 @@ nwamui_prof_get_property (GObject         *object,
     }
         break;
 
+    case PROP_ACTIVE_INTERFACE: {
+        g_value_set_string (value, gconf_client_get_string (prv->client,
+                           PROF_STRING_ACTION_ON_NO_FAV_NETWORKS,
+                           &err));
+    }
+        break;
+
+    case PROP_NOTIFICATION_DEFAULT_TIMEOUT: {
+        g_value_set_int (value, gconf_client_get_int (prv->client,
+            PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT,
+            &err));
+    }
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -336,7 +417,7 @@ nwamui_prof_finalize (NwamuiProf *self)
         g_object_unref (prv->client);
     }
 
-	(*G_OBJECT_CLASS(nwamui_prof_parent_class)->finalize) (G_OBJECT(self));
+	G_OBJECT_CLASS(nwamui_prof_parent_class)->finalize(G_OBJECT(self));
 
     /* tricky */
     g_assert (instance);
@@ -375,6 +456,16 @@ static void gconf_notify_cb (GConfClient *client,
           nwamui_daemon_signals[S_ACTION_ON_NO_FAV_NETWORKS],
           0, /* details */
           gconf_value_get_int (value));
+    } else if (g_ascii_strcasecmp (key, PROF_STRING_ACTIVE_INTERFACE ) == 0) {
+        g_signal_emit (self,
+          nwamui_daemon_signals[S_ACTIVE_INTERFACE],
+          0, /* details */
+          gconf_value_get_string (value));
+    } else if (g_ascii_strcasecmp (key, PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT ) == 0) {
+        g_signal_emit (self,
+          nwamui_daemon_signals[S_NOTIFICATION_DEFAULT_TIMEOUT],
+          0, /* details */
+          gconf_value_get_int (value));
     } else {
         g_assert_not_reached ();
     }
@@ -397,6 +488,63 @@ nwamui_prof_get_instance ()
     
     return (instance);
 }
+
+extern gchar*
+nwamui_prof_get_active_interface (NwamuiProf* self)
+{
+    gchar*  interface = NULL;
+    
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), interface); 
+    
+    g_object_get (G_OBJECT (self),
+                  "active_interface", &interface,
+                  NULL);
+
+    return( interface );
+
+}
+
+extern void
+nwamui_prof_set_active_interface ( NwamuiProf *self, const gchar* active_interface )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self)); 
+    
+    g_assert (active_interface != NULL );
+
+    if ( active_interface != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "active_interface", active_interface,
+                      NULL);
+    }
+}
+
+extern gint
+nwamui_prof_get_notification_default_timeout (NwamuiProf* self)
+{
+    gint timeout;
+    
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), timeout); 
+    
+    g_object_get (G_OBJECT (self),
+      "notification_default_timeout", &timeout,
+      NULL);
+
+    return( timeout );
+
+}
+
+extern void
+nwamui_prof_set_notification_default_timeout ( NwamuiProf *self, gint notification_default_timeout )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self)); 
+    
+    g_assert (notification_default_timeout > 0 );
+
+    g_object_set (G_OBJECT (self),
+      "notification_default_timeout", notification_default_timeout,
+      NULL);
+}
+
 
 extern void
 nwamui_prof_notify_begin (NwamuiProf* self)

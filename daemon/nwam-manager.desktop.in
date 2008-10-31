@@ -2,10 +2,9 @@
 Encoding=UTF-8
 Name=Network Auto-magic Manager applet
 Comment=Show network status and config network
-Icon=earth-normal.png
-Exec=@BINDIR@/@PROGRAM@
+Icon=network-location
+Exec=@LIBEXECDIR@/@PROGRAM@
 Terminal=false
 Type=Application
 Categories=
-OnlyShowIn=GNOME;
 X-GNOME-Autostart-enabled=true

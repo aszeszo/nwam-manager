@@ -103,14 +103,14 @@ dnl
 dnl NWAM checks 
 dnl TODO - Enable this when libnwam is available
 dnl
-AC_CHECK_LIB(nwam, nwam_ncp_walk_ncus,
-	[NWAM_LIBS="-lnwam -lnsl"
-	AC_DEFINE(HAVE_NWAM, 1, [Define to 1 if the libnwam library is present.])],
-        [AC_MSG_ERROR(
-***
-*** libnwam was not found. 
-***
-	)])
+NWAM_LIBS="-lnwam -lnsl"
+dnl AC_CHECK_LIB(nwam, nwam_ncp_walk_ncus,
+dnl 	[AC_DEFINE(HAVE_NWAM, 1, [Define to 1 if the libnwam library is present.])],
+dnl         [AC_MSG_ERROR(
+dnl ***
+dnl *** libnwam was not found. 
+dnl ***
+dnl 	)])
 AC_SUBST(NWAM_LIBS)
 
 
