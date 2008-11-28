@@ -867,7 +867,7 @@ multi_line_add_cb( GtkButton *button, gpointer data )
         is_v6 = TRUE;
 	}
 
-    ip = nwamui_ip_new(self->prv->ncu, "", "", is_v6);
+    ip = nwamui_ip_new(self->prv->ncu, "", "", is_v6, FALSE, FALSE, FALSE );
 
 	model = gtk_tree_view_get_model (view);
 	gtk_list_store_append(GTK_LIST_STORE(model), &iter );

@@ -1,3 +1,7 @@
+2008-11-28  Darren Kenny  <darren.kenny@sun.com>
+
+	* Makefile.in.in:
+
 2008-10-31  Lin Ma  <Lin.Ma@Sun.COM>
 
 	reviewed by: <delete if not using a buddy>

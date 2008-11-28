@@ -199,7 +199,7 @@ nwam_menu_action_group_get_item_by_proxy(NwamMenuActionGroup *self, GObject* pro
 
     actions = gtk_action_group_list_actions(prv->action_group);
     for(idx = actions; idx; idx = idx->next) {
-        if (nwam_obj_proxy_get_proxy(NWAM_MENUITEM_PROXY_IFACE(idx->data)) == proxy) {
+        if (nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(idx->data)) == proxy) {
             item = G_OBJECT(idx->data);
             break;
         }

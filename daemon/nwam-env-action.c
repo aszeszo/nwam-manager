@@ -93,7 +93,7 @@ nwam_env_action_class_init (NwamEnvActionClass *klass)
 	GtkActionClass *action_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
-	action_class = GTK_ENV_ACTION_CLASS (klass);
+	action_class = GTK_ACTION_CLASS (klass);
 
 	gobject_class->set_property = nwam_env_action_set_property;
 	gobject_class->get_property = nwam_env_action_get_property;
@@ -141,7 +141,7 @@ nwam_env_action_new(NwamuiEnv *env)
     NwamEnvAction *action;
     gchar *menu_text = NULL;
 
-    menu_text = nwamui_env_get_name(NWAMUI_ENV_NET(env));
+    menu_text = nwamui_env_get_name(NWAMUI_ENV(env));
 
     action = g_object_new (NWAM_TYPE_ENV_ACTION,
       "name", menu_text,
@@ -196,14 +196,14 @@ nwam_env_action_set_property (GObject         *object,
 
 	switch (prop_id) {
 	case PROP_ENV:
-        if (prv->env != NWAMUI_ENV_NET(obj)) {
+        if (prv->env != NWAMUI_ENV(obj)) {
             if (prv->env) {
                 /* remove signal callback */
                 disconnect_env_net_signals(self, prv->env);
 
                 g_object_unref(prv->env);
             }
-            prv->env = NWAMUI_ENV_NET(obj);
+            prv->env = NWAMUI_ENV(obj);
 
             /* connect signal callback */
             connect_env_net_signals(self, prv->env);
@@ -306,8 +306,18 @@ nwam_env_action_get_env (NwamEnvAction *self)
 void
 nwam_env_action_set_env (NwamEnvAction *self, NwamuiEnv *env)
 {
-    g_return_if_fail(NWAMUI_IS_ENV_NET(env));
+    g_return_if_fail(NWAMUI_IS_ENV(env));
 
     g_object_set(self, "env", env, NULL);
+}
+
+static void 
+connect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
+{
+}
+
+static void 
+disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
+{
 }
 

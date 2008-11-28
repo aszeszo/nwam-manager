@@ -39,10 +39,10 @@
 	NWAMUI_TYPE_SVC, NwamuiSvcPrivate)) 
 
 struct _NwamuiSvcPrivate {
-    nwam_loc_prop_template_t *svc;
-    gboolean	status;
-    gboolean	is_default;
-    gboolean	is_new;
+    nwam_loc_prop_template_t    svc;
+    gboolean                    status;
+    gboolean                    is_default;
+    gboolean                    is_new;
 };
 
 static void nwamui_svc_set_property (GObject		 *object,
@@ -181,11 +181,19 @@ nwamui_svc_get_property (GObject		 *object,
     }
         break;
     case PROP_FMRI: {
-/*         g_value_set_string(value, prv->svc->ls_fmri); */
+        nwam_error_t err;
+        const char* fmri;
+        if ( ( err = nwam_loc_prop_template_get_fmri( prv->svc, &fmri )) == NWAM_SUCCESS ) {
+            g_value_set_string(value, fmri);
+        }
     }
         break;
     case PROP_DESC: {
-/*         g_value_set_string(value, prv->svc->ls_attrs->la_desc); */
+        nwam_error_t err;
+        const char* desc;
+        if ( ( err = nwam_loc_prop_template_get_prop_desc( prv->svc, &desc )) == NWAM_SUCCESS ) {
+            g_value_set_string(value, desc);
+        }
     }
         break;
     case PROP_STAT: {
@@ -208,7 +216,7 @@ nwamui_svc_finalize (NwamuiSvc *self)
 	NwamuiSvcPrivate *prv = GET_PRIVATE(self);
 
     if (prv->svc != NULL) {
-/*         Nwam_Loc_Svc_Free (Prv->Svc); */
+        nwam_loc_prop_template_free (prv->svc);
     }
     
 	G_OBJECT_CLASS(nwamui_svc_parent_class)->finalize(G_OBJECT(self));

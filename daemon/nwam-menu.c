@@ -37,6 +37,7 @@
 #include "notify.h"
 #include "nwam-menu.h"
 #include "nwam-wifi-group.h"
+#include "nwam-wifi-action.h"
 #include "nwam-env-group.h"
 #include "nwam-enm-group.h"
 #include "libnwamui.h"
@@ -210,18 +211,7 @@ nwam_menu_init (NwamMenu *self)
 	self->prv->daemon = nwamui_daemon_get_instance ();
 
     /* handle all daemon signals here */
-    g_signal_connect(self->prv->daemon, "daemon_info",
-      G_CALLBACK(event_daemon_info), (gpointer) self);
-	g_signal_connect((gpointer) self->prv->daemon, "wifi_scan_result",
-      (GCallback)nwam_menu_create_wifi_menuitems, (gpointer) self);
-    g_signal_connect(self->prv->daemon, "ncu_up",
-      G_CALLBACK(event_ncu_up), (gpointer) self);
-    g_signal_connect(self->prv->daemon, "ncu_down",
-      G_CALLBACK(event_ncu_down), (gpointer) self);
-    g_signal_connect(self->prv->daemon, "active_env_changed",
-      G_CALLBACK(event_active_env_changed), (gpointer) self);
-    g_signal_connect(self->prv->daemon, "add_wifi_fav",
-      G_CALLBACK(event_add_wifi_fav), (gpointer) self);
+    connect_daemon_signals(G_OBJECT(self), self->prv->daemon);
 
 	self->prv->group[ID_GLOBAL] = gtk_action_group_new (NWAMUI_ACTION_ROOT);
 	gtk_action_group_set_translation_domain (self->prv->group[ID_GLOBAL], NULL);
@@ -274,6 +264,22 @@ nwam_menu_finalize (NwamMenu *self)
 	G_OBJECT_CLASS(nwam_menu_parent_class)->finalize(G_OBJECT(self));
 }
 
+static GtkAction*
+menu_group_get_action_by_name(NwamMenu *self, gint group_id, const gchar* action_name)
+{
+    GtkAction *action = NULL;
+
+    g_assert(group_id >= ID_GLOBAL && group_id < N_ID);
+
+    if (self->prv->group[group_id]) {
+        action = gtk_action_group_get_action(self->prv->group[group_id],
+          action_name);
+    }
+
+    return action;
+}
+
+
 static void
 menus_set_automatic_label(NwamMenu *self, NwamuiNcu *ncu)
 {
@@ -297,7 +303,7 @@ menus_set_automatic_label(NwamMenu *self, NwamuiNcu *ncu)
 
 #if 0
     {
-        GtkAction *action = menu_group_get_item_by_name(self, ID_NCU, FALSENCU);
+        GtkAction *action = menu_group_get_action_by_name(self, ID_NCU, FALSENCU);
         g_object_set(action,
           "label", automatic_label,
           NULL);
@@ -325,7 +331,7 @@ menus_set_action_visible(NwamMenu *self, gint group_id,
   const gchar* action_name,
   gboolean visible)
 {
-    GtkAction *action = menu_group_get_item_by_name(self, group_id, action_name);
+    GtkAction *action = menu_group_get_action_by_name(self, group_id, action_name);
 
     if (action) {
         gtk_action_set_visible(action, visible);
@@ -337,7 +343,7 @@ menus_set_action_sensitive(NwamMenu *self, gint group_id,
   const gchar* action_name,
   gboolean sensitive)
 {
-    GtkAction *action = menu_group_get_item_by_name(self, group_id, action_name);
+    GtkAction *action = menu_group_get_action_by_name(self, group_id, action_name);
 
     if (action) {
         gtk_action_set_sensitive(action, sensitive);
@@ -350,7 +356,7 @@ menus_set_toggle_action_active(NwamMenu *self,
   const gchar* action_name,
   gboolean active)
 {
-    GtkAction *action = menu_group_get_item_by_name(self, group_id, action_name);
+    GtkAction *action = menu_group_get_action_by_name(self, group_id, action_name);
 
     if (action) {
         g_return_if_fail(GTK_IS_TOGGLE_ACTION(action));
@@ -568,14 +574,14 @@ nwam_menu_connect (NwamMenu *self)
             switch (nwamui_ncu_get_ncu_type (ncu)) {
             case NWAMUI_NCU_TYPE_WIRELESS: {
                 NwamuiWifiNet *wifi;
-                GtkWidget *menuitem;
+                GtkWidget *menuitem = NULL;
                 gchar *m_name;
 
                 wifi = nwamui_ncu_get_wifi_info (ncu);
 
                 m_name = nwamui_wifi_net_get_essid (wifi);
                 g_debug ("found ncu-wifi %s", m_name ? m_name : "NULL");
-                menuitem = nwam_display_name_to_menuitem (self, m_name, ID_WIFI);
+                /* menuitem = nwam_display_name_to_menuitem (self, m_name, ID_WIFI); */
                 g_free (m_name);
 
                 if (menuitem) {
@@ -834,6 +840,8 @@ connect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
 /*       G_CALLBACK(event_ncu_up), (gpointer) self); */
 /*     g_signal_connect(daemon, "ncu_down", */
 /*       G_CALLBACK(event_ncu_down), (gpointer) self); */
+    g_signal_connect(daemon, "active_env_changed",
+      G_CALLBACK(event_active_env_changed), (gpointer) self);
     g_signal_connect(daemon, "add_wifi_fav",
       G_CALLBACK(event_add_wifi_fav), (gpointer) self);
 }
@@ -900,7 +908,7 @@ event_daemon_info (NwamuiDaemon* daemon,
         /* Since nwamui daemon may create another wifi net instance for a same
          * wlan and set to a ncu, so we should try to find the menu item which
          * has the same essid so that we can update its wifi data. */
-        GtkAction* action = menu_group_get_item_by_name(self, ID_WIFI, name);
+        GtkAction* action = menu_group_get_action_by_name(self, ID_WIFI, name);
 
         g_free(name);
 
@@ -1023,7 +1031,7 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
 		action = GTK_ACTION(nwam_wifi_action_new(NWAMUI_WIFI_NET(wifi)));
 
 		self->prv->has_wifi = TRUE;
-        nwam_menuitem_proxy_new(action, self->prv->group[ID_WIFI]);
+        // nwam_menuitem_proxy_new(action, self->prv->group[ID_WIFI]);
 
         /* If the wifi net is connected, then it should be selected in the
          * menus. Do this here since the active ncu could be NULL, yet still

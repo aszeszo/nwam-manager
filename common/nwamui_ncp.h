@@ -59,25 +59,52 @@ struct _NwamuiNcp
 struct _NwamuiNcpClass
 {
 	GObjectClass                parent_class;
+    void (*activate_ncu) (NwamuiNcp *self, NwamuiNcu *ncu, gpointer user_data);
+    void (*deactivate_ncu) (NwamuiNcp *self, NwamuiNcu *ncu, gpointer user_data);
 };
 
 
 
 extern  GType                   nwamui_ncp_get_type (void) G_GNUC_CONST;
 
-/* For Phase 1 there is only one instance, so using a singleton, but 
- * for Phase 2+, with multiple instances, we would use the _new function.
- *
- * extern  NwamuiNcp*              nwamui_ncp_new (void);
- *
- */
-extern  NwamuiNcp*              nwamui_ncp_get_instance (void);
+typedef enum {
+    NWAMUI_NCP_SELECTION_MODE_AUTOMATIC = 1,
+    NWAMUI_NCP_SELECTION_MODE_MANUAL,
+    NWAMUI_NCP_SELECTION_MODE_LAST /* Not to be used directly */
+} nwamui_ncp_selection_mode_t;
+
+extern  NwamuiNcp*              nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp);
+
+extern  gboolean                nwamui_ncp_activate ( NwamuiNcp *self );
 
 extern  gchar*                  nwamui_ncp_get_name ( NwamuiNcp *self );
 
+extern gboolean                 nwamui_ncp_is_modifiable( NwamuiNcp *self);
+
+extern void                     nwamui_ncp_set_modifiable( NwamuiNcp *self, gboolean modifiable );
+
 extern	GtkListStore*           nwamui_ncp_get_ncu_list_store ( NwamuiNcp *self );
 
+extern  NwamuiNcu*              nwamui_ncp_get_active_ncu( NwamuiNcp *self );
+
+extern  void                    nwamui_ncp_set_active_ncu( NwamuiNcp *self, NwamuiNcu* ncu );
+
+extern  NwamuiNcu*              nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name );
+
 extern  void                    nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data );
+
+extern void                     nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon );
+
+extern void                     nwamui_ncp_remove_ncu( NwamuiNcp* self, const gchar* device_name );
+
+extern void                     nwamui_ncp_set_manual_ncu_selection( NwamuiNcp *self, NwamuiNcu *ncu);
+
+extern void                     nwamui_ncp_set_automatic_ncu_selection( NwamuiNcp *self );
+
+extern nwamui_ncp_selection_mode_t  nwamui_ncp_get_selection_mode( NwamuiNcp* self );
+
+extern gboolean                  nwamui_ncp_has_many_wireless( NwamuiNcp* self );
+
 G_END_DECLS
 
 #endif	/* _NWAMUI_NCP_H */

@@ -34,13 +34,19 @@
 #include "libnwamui.h"
 #include "nwamui_ip.h"
 
-static GObjectClass *parent_class = NULL;
+#define ADDRSRC_NONE       ( 0 )
+#define ADDRSRC_DHCP       ( 1 )
+#define ADDRSRC_AUTOCONF   ( 1 << 1 )
+#define ADDRSRC_STATIC     ( 1 << 2 )
 
+
+static GObjectClass *parent_class = NULL;
 
 struct _NwamuiIpPrivate {
     NwamuiNcu*                ncu_parent;
     gboolean                  is_v6;
     gchar*                    address;
+    gint                      addr_src;
     gchar*                    subnet_prefix;
 };
 
@@ -64,6 +70,9 @@ enum {
     PROP_IS_V6 = 1,
     PROP_ADDRESS,
     PROP_SUBNET_PREFIX,
+    PROP_IS_DHCP,
+    PROP_IS_AUTOCONF,
+    PROP_IS_STATIC
 };
 
 G_DEFINE_TYPE (NwamuiIp, nwamui_ip, G_TYPE_OBJECT)
@@ -106,6 +115,31 @@ nwamui_ip_class_init (NwamuiIpClass *klass)
                                                           _("subnet_prefix"),
                                                           "",
                                                           G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IS_DHCP,
+                                     g_param_spec_boolean ("is_dhcp",
+                                                          _("is_dhcp"),
+                                                          _("is_dhcp"),
+                                                          FALSE,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IS_AUTOCONF,
+                                     g_param_spec_boolean ("is_autoconf",
+                                                          _("is_autoconf"),
+                                                          _("is_autoconf"),
+                                                          FALSE,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IS_STATIC,
+                                     g_param_spec_boolean ("is_static",
+                                                          _("is_static"),
+                                                          _("is_static"),
+                                                          FALSE,
+                                                          G_PARAM_READWRITE));
+
 }
 
 
@@ -118,6 +152,7 @@ nwamui_ip_init (NwamuiIp *self)
     prv->is_v6 = FALSE;
     prv->address = NULL;
     prv->subnet_prefix = NULL;
+    prv->addr_src = ADDRSRC_NONE;
 
     self->prv = prv;
     
@@ -160,6 +195,40 @@ nwamui_ip_set_property (    GObject         *object,
             }
             break;
 
+        case PROP_IS_DHCP: {
+                /* TODO: Determine if can have more than one of these set */
+                if ( g_value_get_boolean( value ) ) {
+                    self->prv->addr_src = ADDRSRC_DHCP; 
+                }
+                else {
+                    self->prv->addr_src &= ~ADDRSRC_DHCP; 
+                }
+            }
+            break;
+
+        case PROP_IS_AUTOCONF: {
+                /* TODO: Determine if can have more than one of these set */
+                if ( g_value_get_boolean( value ) ) {
+                    self->prv->addr_src = ADDRSRC_AUTOCONF; 
+                }
+                else {
+                    self->prv->addr_src &= ~ADDRSRC_AUTOCONF; 
+                }
+            }
+            break;
+
+        case PROP_IS_STATIC: {
+                /* TODO: Determine if can have more than one of these set */
+                if ( g_value_get_boolean( value ) ) {
+                    self->prv->addr_src = ADDRSRC_STATIC; 
+                }
+                else {
+                    self->prv->addr_src &= ~ADDRSRC_STATIC; 
+                }
+                self->prv->addr_src = g_value_get_boolean( value );
+            }
+            break;
+
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -195,6 +264,21 @@ nwamui_ip_get_property (GObject         *object,
                 g_value_set_string( value, self->prv->subnet_prefix );
             }
             break;
+        case PROP_IS_DHCP: {
+                g_value_set_boolean( value, (self->prv->addr_src & ADDRSRC_DHCP)?TRUE:FALSE );
+            }
+            break;
+
+        case PROP_IS_AUTOCONF: {
+                g_value_set_boolean( value, (self->prv->addr_src & ADDRSRC_AUTOCONF)?TRUE:FALSE );
+            }
+            break;
+
+        case PROP_IS_STATIC: {
+                g_value_set_boolean( value, (self->prv->addr_src & ADDRSRC_STATIC)?TRUE:FALSE );
+            }
+            break;
+
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -226,6 +310,9 @@ nwamui_ip_finalize (NwamuiIp *self)
  * @addr: a C string containing the IP address
  * @subnet_prefix: a C string containing the address subnet/prefix
  * @is_v6: TRUE if the addr is an IPv6 Address
+ * @is_dhcp: TRUE if the addr is allocated by DHCP
+ * @is_autoconf: TRUE if the addr is a Link Local Address
+ * @is_static: TRUE if the addr is an statically configured
  * 
  * @returns: a new #NwamuiIp.
  *
@@ -235,7 +322,10 @@ extern  NwamuiIp*
 nwamui_ip_new(  NwamuiNcu*      ncu_parent,
                 const gchar*    addr, 
                 const gchar*    subnet_prefix, 
-                gboolean        is_v6 )
+                gboolean        is_v6,
+                gboolean        is_dhcp,
+                gboolean        is_autoconf,
+                gboolean        is_static )
 {
     NwamuiIp*  self = NULL;
     
@@ -247,6 +337,9 @@ nwamui_ip_new(  NwamuiNcu*      ncu_parent,
                     "address", addr,
                     "subnet_prefix", subnet_prefix,
                     "is_v6", is_v6,
+                    "is_dhcp", is_dhcp,
+                    "is_autoconf", is_autoconf,
+                    "is_static", is_static,
                     NULL);
     
     self->prv->ncu_parent = ncu_parent;
@@ -280,15 +373,102 @@ nwamui_ip_set_v6 (   NwamuiIp *self,
 extern gboolean
 nwamui_ip_is_v6 (NwamuiIp *self)
 {
-    gboolean  is_v6 = FALSE; 
+    g_return_val_if_fail (NWAMUI_IS_IP (self), FALSE);
 
-    g_return_val_if_fail (NWAMUI_IS_IP (self), is_v6);
+    return( self->prv->is_v6 );
+}
 
-    g_object_get (G_OBJECT (self),
-                  "is_v6", &is_v6,
+/** 
+ * nwamui_ip_set_dhcp:
+ * @nwamui_ip: a #NwamuiIp.
+ * @is_dhcp: Value to set is_dhcp to.
+ * 
+ **/ 
+extern void
+nwamui_ip_set_dhcp (   NwamuiIp *self,
+                     gboolean        is_dhcp )
+{
+    g_return_if_fail (NWAMUI_IS_IP (self));
+
+    g_object_set (G_OBJECT (self),
+                  "is_dhcp", is_dhcp,
                   NULL);
+}
 
-    return( is_v6 );
+/**
+ * nwamui_ip_is_dhcp:
+ * @nwamui_ip: a #NwamuiIp.
+ * @returns: the whether the address is a an IPdhcp addr.
+ *
+ **/
+extern gboolean
+nwamui_ip_is_dhcp (NwamuiIp *self)
+{
+    g_return_val_if_fail (NWAMUI_IS_IP (self), FALSE);
+
+    return( (self->prv->addr_src & ADDRSRC_DHCP)?TRUE:FALSE );
+}
+
+/** 
+ * nwamui_ip_set_autoconf:
+ * @nwamui_ip: a #NwamuiIp.
+ * @is_autoconf: Value to set is_autoconf to.
+ * 
+ **/ 
+extern void
+nwamui_ip_set_autoconf (   NwamuiIp *self,
+                     gboolean        is_autoconf )
+{
+    g_return_if_fail (NWAMUI_IS_IP (self));
+
+    g_object_set (G_OBJECT (self),
+                  "is_autoconf", is_autoconf,
+                  NULL);
+}
+
+/**
+ * nwamui_ip_is_autoconf:
+ * @nwamui_ip: a #NwamuiIp.
+ * @returns: the whether the address is a an IPautoconf addr.
+ *
+ **/
+extern gboolean
+nwamui_ip_is_autoconf (NwamuiIp *self)
+{
+    g_return_val_if_fail (NWAMUI_IS_IP (self), FALSE);
+
+    return( (self->prv->addr_src & ADDRSRC_AUTOCONF)?TRUE:FALSE );
+}
+
+/** 
+ * nwamui_ip_set_static:
+ * @nwamui_ip: a #NwamuiIp.
+ * @is_static: Value to set is_static to.
+ * 
+ **/ 
+extern void
+nwamui_ip_set_static (   NwamuiIp *self,
+                     gboolean        is_static )
+{
+    g_return_if_fail (NWAMUI_IS_IP (self));
+
+    g_object_set (G_OBJECT (self),
+                  "is_static", is_static,
+                  NULL);
+}
+
+/**
+ * nwamui_ip_is_static:
+ * @nwamui_ip: a #NwamuiIp.
+ * @returns: the whether the address is a an IPstatic addr.
+ *
+ **/
+extern gboolean
+nwamui_ip_is_static (NwamuiIp *self)
+{
+    g_return_val_if_fail (NWAMUI_IS_IP (self), FALSE);
+
+    return( (self->prv->addr_src & ADDRSRC_STATIC)?TRUE:FALSE );
 }
 
 /** 

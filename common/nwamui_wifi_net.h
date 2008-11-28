@@ -182,7 +182,7 @@ extern void                         nwamui_wifi_net_set_wpa_cert_file ( NwamuiWi
                       
 extern gchar*                       nwamui_wifi_net_get_wpa_cert_file ( NwamuiWifiNet *self );
 
-extern nwamui_wifi_security_t       nwamui_wifi_net_security_map ( const char* str );
+extern nwamui_wifi_security_t       nwamui_wifi_net_security_map ( uint32_t _sec_mode );
 
 extern nwamui_wifi_signal_strength_t nwamui_wifi_net_strength_map (const gchar *strength);
 

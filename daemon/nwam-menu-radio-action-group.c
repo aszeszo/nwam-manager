@@ -49,7 +49,7 @@ static void nwam_menu_radio_action_group_add_item(NwamMenuRadioActionGroup *self
 G_DEFINE_TYPE(NwamMenuRadioActionGroup,
   nwam_menu_radio_action_group,
   NWAM_TYPE_MENU_GROUP)
-#define NWAM_MENU_RADION_ACTION_GROUP_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_MENU_RADIO_ACTION_GROUP, NwamMenuRadioActionGroupPrivate))
+#define NWAM_MENU_RADIO_ACTION_GROUP_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_MENU_RADIO_ACTION_GROUP, NwamMenuRadioActionGroupPrivate))
 
 static void
 nwam_menu_radio_action_group_class_init(NwamMenuRadioActionGroupClass *klass)

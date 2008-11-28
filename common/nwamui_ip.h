@@ -66,13 +66,28 @@ struct _NwamuiIpClass
 
 extern  GType               nwamui_ip_get_type (void) G_GNUC_CONST;
 
-extern  NwamuiIp*           nwamui_ip_new(  NwamuiNcu*      ncu_parent,
-                                            const gchar*    addr, 
-                                            const gchar*    subnet_prefix, 
-                                            gboolean        is_v6 );
+extern  NwamuiIp*            nwamui_ip_new(  NwamuiNcu*      ncu_parent,
+                                             const gchar*    addr, 
+                                             const gchar*    subnet_prefix, 
+                                             gboolean        is_v6,
+                                             gboolean        is_dhcp,
+                                             gboolean        is_autoconf,
+                                             gboolean        is_static );
 
 extern void                 nwamui_ip_set_v6 ( NwamuiIp *self, gboolean is_v6 );
 extern gboolean             nwamui_ip_is_v6  ( NwamuiIp *self );
+
+
+extern void                 nwamui_ip_set_dhcp ( NwamuiIp *self, gboolean is_dhcp );
+extern gboolean             nwamui_ip_is_dhcp  ( NwamuiIp *self );
+
+
+extern void                 nwamui_ip_set_autoconf ( NwamuiIp *self, gboolean is_autoconf );
+extern gboolean             nwamui_ip_is_autoconf  ( NwamuiIp *self );
+
+
+extern void                 nwamui_ip_set_static ( NwamuiIp *self, gboolean is_static );
+extern gboolean             nwamui_ip_is_static  ( NwamuiIp *self );
 
 
 extern void                 nwamui_ip_set_address ( NwamuiIp *self, const gchar* address );

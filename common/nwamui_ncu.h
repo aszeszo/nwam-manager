@@ -81,21 +81,9 @@ typedef enum {
     NWAMUI_NCU_RULE_STATE_LAST /* Not to be used directly */
 } nwamui_ncu_rule_state_t;
 
-extern  NwamuiNcu*          nwamui_ncu_new (    const gchar*        vanity_name,
-                                                const gchar*        device_name,
-				   								const gchar*        phy_address,
-                                                nwamui_ncu_type_t   ncu_type,
-                                                gboolean            enabled,
-                                                guint				speed,
-                                                gboolean            ipv4_auto_conf,
-                                                const gchar*        ipv4_address,
-                                                const gchar*        ipv4_subnet,
-                                                const gchar*        ipv4_gateway,
-                                                gboolean            ipv6_active,
-                                                gboolean            ipv6_auto_conf,
-                                                const gchar*        ipv6_address,
-                                                const gchar*        ipv6_prefix,
-                                                NwamuiWifiNet*      wifi_info  );
+extern struct _NwamuiNcp;
+
+extern  NwamuiNcu*          nwamui_ncu_new_with_handle( struct _NwamuiNcp* ncp, nwam_ncu_handle_t ncu );
 
 extern gchar*               nwamui_ncu_get_vanity_name ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name );

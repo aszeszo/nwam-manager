@@ -102,24 +102,41 @@ struct _NwamuiDaemonClass
 {
 	GObjectClass                parent_class;
         
-    void (*wifi_scan_result)    (NwamuiDaemon *self, GObject *data, gpointer user_data);
-    void (*active_env_changed)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
-	void (*ncu_create)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
-	void (*ncu_destroy)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
-	void (*ncu_up)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
-	void (*ncu_down)  (NwamuiDaemon *self, GObject *data, gpointer user_data);
-	void (*daemon_info)  (NwamuiDaemon *self, gpointer data, gpointer user_data);
-    void (*add_wifi_fav) (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
-    void (*remove_wifi_fav) (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
+	void (*daemon_info)             (NwamuiDaemon *self, gint info, GObject *obj, gpointer data, gpointer user_data);
+	void (*ncu_create)              (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
+	void (*ncu_destroy)             (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
+	void (*ncu_down)                (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
+	void (*ncu_up)                  (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
+	void (*wifi_selection_needed)   (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
+    void (*active_env_changed)      (NwamuiDaemon *self, GObject *data, gpointer user_data);
+    void (*active_ncp_changed)      (NwamuiDaemon *self, GObject *data, gpointer user_data);
+    void (*add_wifi_fav)            (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
+    void (*remove_wifi_fav)         (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
+    void (*status_changed)          (NwamuiDaemon *self, nwamui_daemon_status_t status, gpointer user_data);
+    void (*wifi_key_needed)         (NwamuiDaemon *self, NwamuiWifiNet* wifi_net, gpointer user_data);
+    void (*wifi_scan_result)        (NwamuiDaemon *self, NwamuiWifiNet* wifi_net, gpointer user_data);
+	
 };
 
 extern  GType                       nwamui_daemon_get_type (void) G_GNUC_CONST;
 
 extern NwamuiDaemon*                nwamui_daemon_get_instance (void);
 
+extern nwamui_daemon_status_t       nwamui_daemon_get_status( NwamuiDaemon* self );
+
 extern NwamuiNcp*                   nwamui_daemon_get_active_ncp(NwamuiDaemon *self);
 
 extern gchar*                       nwamui_daemon_get_active_ncp_name(NwamuiDaemon *self);
+
+extern void                         nwamui_daemon_set_active_ncp( NwamuiDaemon* self, NwamuiNcp* ncp );
+
+extern gboolean                     nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiNcp* ncp ) ;
+
+extern GList*                       nwamui_daemon_get_ncp_list(NwamuiDaemon *self);
+
+extern void                         nwamui_daemon_ncp_append(NwamuiDaemon *self, NwamuiNcp* new_ncp );
+
+extern gboolean                     nwamui_daemon_ncp_remove(NwamuiDaemon *self, NwamuiNcp* ncp );
 
 extern gboolean                     nwamui_daemon_is_active_env(NwamuiDaemon *self, NwamuiEnv* env ) ;
 
@@ -153,6 +170,13 @@ extern void                         nwamui_daemon_add_wifi_fav(NwamuiDaemon *sel
 
 extern void                         nwamui_daemon_remove_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* wifi );
 
+nwamui_daemon_event_cause_t         nwamui_daemon_get_event_cause(NwamuiDaemon* self );
+
+const char *                        nwamui_daemon_get_event_cause_string(NwamuiDaemon* self );
+
+extern void                         nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message );
+
+extern void                         nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, nwam_events_msg_t* event );
 
 G_END_DECLS
 

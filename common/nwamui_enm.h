@@ -71,6 +71,8 @@ extern  NwamuiEnm*          nwamui_enm_new (const gchar*    name,
                                             const gchar*    start_command,
                                             const gchar*    stop_command );
 
+extern  NwamuiEnm*          nwamui_enm_new_with_handle (nwam_enm_handle_t enm);
+
 extern void                 nwamui_enm_set_name ( NwamuiEnm *self, const gchar* name );
 extern gchar*               nwamui_enm_get_name ( NwamuiEnm *self );
 

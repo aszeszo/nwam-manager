@@ -101,7 +101,7 @@ nwam_wifi_action_class_init (NwamWifiActionClass *klass)
 	GtkActionClass *action_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
-	action_class = GTK_WIFI_ACTION_CLASS (klass);
+	action_class = GTK_ACTION_CLASS (klass);
 
 	gobject_class->set_property = nwam_wifi_action_set_property;
 	gobject_class->get_property = nwam_wifi_action_get_property;
@@ -472,7 +472,7 @@ nwam_action_get_widget (NwamWifiAction *self,
 {
     NwamWifiActionPrivate *prv = GET_PRIVATE(self);
 
-	g_return_val_if_fail (NWAM_IS_ACTION (self), NULL);
+	g_return_val_if_fail (NWAM_IS_WIFI_ACTION (self), NULL);
 	g_assert (pos >= 0 && pos < MAX_WIDGET_NUM);
 
     return prv->w[pos];
@@ -496,3 +496,27 @@ nwam_action_set_wifi (NwamWifiAction *self, NwamuiWifiNet *wifi)
     g_object_set(self, "wifi", wifi, NULL);
 }
 
+static void 
+connect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
+{
+}
+
+static void 
+disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
+{
+}
+
+static void 
+connect_wifi_net_signals(NwamWifiAction *self, NwamuiWifiNet *wifi)
+{
+}
+
+static void 
+disconnect_wifi_net_signals(NwamWifiAction *self, NwamuiWifiNet *wifi)
+{
+}
+
+static void 
+wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
+{
+}

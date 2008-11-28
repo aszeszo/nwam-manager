@@ -35,6 +35,7 @@ AM_CPPFLAGS = \
 	$(NULL)
 
 AM_LDFLAGS = \
+	$(LDFLAGS)		\
 	$(PACKAGE_LIBS)		\
 	$(INTLLIBS)		\
 	$(NWAM_LIBS)		\
@@ -70,6 +71,7 @@ nwam_manager_CPPFLAGS = \
 
 nwam_manager_LDADD =				\
 	$(top_srcdir)/common/libnwamui.la \
+	$(top_srcdir)/capplet/libnwamuicapplet.la \
 	$(NWAM_MANAGER_LIBS)			\
 	$(NULL)
 

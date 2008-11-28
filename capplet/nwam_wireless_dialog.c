@@ -927,12 +927,14 @@ nwam_wireless_dialog_run (NwamWirelessDialog  *self)
                 }
                 else {
                     self->prv->wifi_net = nwamui_wifi_net_new(
+                                self->prv->ncu,
                                 nwam_wireless_dialog_get_essid(self),
                                 nwam_wireless_dialog_get_security(self),
                                 nwam_wireless_dialog_get_bssid(self),
                                 "g",
                                 (gint)g_random_int_range(0, 56), /* Random speed */
                                 (nwamui_wifi_signal_strength_t)g_random_int_range((gint32)NWAMUI_WIFI_STRENGTH_NONE, (gint32)NWAMUI_WIFI_STRENGTH_GOOD),
+                                NWAMUI_WIFI_BSS_TYPE_AUTO,
                                 nwam_wireless_dialog_get_wpa_config_type(self)
                             );
                 }

@@ -104,14 +104,27 @@ dnl NWAM checks
 dnl TODO - Enable this when libnwam is available
 dnl
 NWAM_LIBS="-lnwam -lnsl"
-dnl AC_CHECK_LIB(nwam, nwam_ncp_walk_ncus,
-dnl 	[AC_DEFINE(HAVE_NWAM, 1, [Define to 1 if the libnwam library is present.])],
-dnl         [AC_MSG_ERROR(
-dnl ***
-dnl *** libnwam was not found. 
-dnl ***
-dnl 	)])
+AC_CHECK_LIB(nwam, nwam_ncp_walk_ncus,
+ 	[AC_DEFINE(HAVE_NWAM, 1, [Define to 1 if the libnwam library is present.])],
+         [AC_MSG_ERROR(
+ ***
+ *** libnwam was not found. 
+ ***
+)])
 AC_SUBST(NWAM_LIBS)
+
+dnl
+dnl SECDB checks 
+dnl
+AC_CHECK_LIB(secdb, chkauthattr,
+	[SECDB_LIBS="-lsecdb"
+	AC_DEFINE(HAVE_SECDB, 1, [Define to 1 if the libsecdb library is present.])],
+        [AC_MSG_ERROR(
+***
+*** libsecdb was not found. 
+***
+	)])
+AC_SUBST(SECDB_LIBS)
 
 
 AC_CONFIG_FILES([

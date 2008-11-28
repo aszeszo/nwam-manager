@@ -36,6 +36,13 @@ G_BEGIN_DECLS
 
 #include <config.h>
 
+#ifndef _LIBNWAM_H
+#include <libnwam.h>
+#endif /* _LIBNWAM_H */
+
+/* TODO: Figure out a replacement for these Phase 0.5 types */
+typedef guint64 libnwam_diag_cause_t;
+
 #ifndef __GTK_H__
 #include <gtk/gtk.h>
 #endif /* __GTK_H__ */
@@ -60,13 +67,13 @@ G_BEGIN_DECLS
 #include "nwamui_svc.h"
 #endif /* _NWAMUI_SVC_H */
 
-#ifndef _NWAMUI_NCP_H
-#include "nwamui_ncp.h"
-#endif /* _NWAMUI_NCP_H */
-
 #ifndef _NWAMUI_NCU_H
 #include "nwamui_ncu.h"
 #endif /* _NWAMUI_NCU_H */
+
+#ifndef _NWAMUI_NCP_H
+#include "nwamui_ncp.h"
+#endif /* _NWAMUI_NCP_H */
 
 #ifndef _NWAMUI_IP_H
 #include "nwamui_ip.h"

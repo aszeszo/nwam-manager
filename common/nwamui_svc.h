@@ -65,6 +65,8 @@ struct _NwamuiSvcClass
 	GObjectClass			parent_class;
 };
 
+/* Temporary typedef until we figure out what is meant to happen with svc type */
+
 extern GType nwamui_svc_get_type (void) G_GNUC_CONST;
 
 extern NwamuiSvc*			nwamui_svc_new (nwam_loc_prop_template_t svc);

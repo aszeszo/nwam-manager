@@ -31,6 +31,7 @@
 #include <glib-object.h>
 #include <glib/gi18n.h>
 #include <strings.h>
+#include <stdlib.h>
 
 #include "libnwamui.h"
 
@@ -112,8 +113,8 @@ static void svc_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePat
 static void svc_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
 
 /* walkers */
-static int nwam_loc_svc_walker_cb (nwam_loc_prop_template_t *svc, void *data);
-static int nwam_loc_sys_svc_walker_cb (nwam_loc_handle_t env, nwam_loc_prop_template_t *svc, void *data);
+static int nwam_loc_svc_walker_cb (nwam_loc_prop_template_t svc, void *data);
+static int nwam_loc_sys_svc_walker_cb (nwam_loc_handle_t env, nwam_loc_prop_template_t svc, void *data);
 
 G_DEFINE_TYPE (NwamuiEnv, nwamui_env, G_TYPE_OBJECT)
 
@@ -376,25 +377,24 @@ nwamui_env_set_property (   GObject         *object,
     
     switch (prop_id) {
         case PROP_NAME: {
-            if ( self->prv->name != NULL ) {
-                g_free( self->prv->name );
-            }
-            self->prv->name = g_strdup( g_value_get_string( value ) );
-            /* we may rename here */
-            if (prv->nwam_env == NULL) {
-                nerr = nwam_loc_read (prv->name, NWAM_FLAG_BLOCKING,
-                  &prv->nwam_env);
-                if (nerr == NWAM_SUCCESS) {
-                    g_debug ("nwamui_env_set_property found nwam_loc_handle %s", prv->name);
-                } else {
-                    nerr = nwam_loc_create (self->prv->name, &self->prv->nwam_env);
-                    g_assert (nerr == NWAM_SUCCESS);
+                if ( self->prv->name != NULL ) {
+                    g_free( self->prv->name );
                 }
-            }
-            nerr = nwam_loc_set_name (self->prv->nwam_env, self->prv->name);
-            if (nerr != NWAM_SUCCESS) {
-                g_debug ("nwam_loc_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
-            }
+                self->prv->name = g_strdup( g_value_get_string( value ) );
+                /* we may rename here */
+                if (prv->nwam_env == NULL) {
+                    nerr = nwam_loc_read (prv->name, 0, &prv->nwam_env);
+                    if (nerr == NWAM_SUCCESS) {
+                        g_debug ("nwamui_env_set_property found nwam_loc_handle %s", prv->name);
+                    } else {
+                        nerr = nwam_loc_create (self->prv->name, &self->prv->nwam_env);
+                        g_assert (nerr == NWAM_SUCCESS);
+                    }
+                }
+                nerr = nwam_loc_set_name (self->prv->nwam_env, self->prv->name);
+                if (nerr != NWAM_SUCCESS) {
+                    g_debug ("nwam_loc_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+                }
             }
             break;
 
@@ -545,7 +545,7 @@ nwamui_env_get_property (GObject         *object,
     NwamuiEnv *self = NWAMUI_ENV(object);
     nwam_error_t nerr;
     int num;
-    nwam_value_t nwamdata;
+    nwam_value_t **nwamdata;
 
     switch (prop_id) {
         case PROP_NAME: {
@@ -705,6 +705,8 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
     /* TODO, test data */
     {
         nwam_error_t nerr;
+        int          rval;
+        
         nerr = nwam_loc_get_name (envh, (char **)&name);
         if (nerr != NWAM_SUCCESS) {
             g_assert_not_reached ();
@@ -716,18 +718,10 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
         free (name);
 
         g_debug ("loading nwamui_env_new_with_handle %s", name);
-#if 0
-        nerr = nwam_loc_walk_props (env->prv->nwam_env, nwam_loc_svc_walker_cb, env, );
+        nerr = nwam_walk_loc_prop_templates(nwam_loc_svc_walker_cb, env, 0, &rval );
         if (nerr != NWAM_SUCCESS) {
             g_debug ("[libnwam] nwamui_env_new_with_handle walk svc %s", nwam_strerror (nerr));
         }
-
-        /* FIXME: What value should "0" be here?? */
-        nerr = nwam_loc_walk_sys_svcs (env->prv->nwam_env, 0, nwam_loc_sys_svc_walker_cb, env);
-        if (nerr != NWAM_SUCCESS) {
-            g_debug ("[libnwam] nwamui_env_new_with_handle walk sys svc %s", nwam_strerror (nerr));
-        }
-#endif
     }
     
     return( env );
@@ -1661,11 +1655,11 @@ nwamui_env_find_svc (NwamuiEnv *self, const gchar *svc)
     g_return_val_if_fail (svc, NULL);
     g_return_val_if_fail (NWAMUI_IS_ENV (self), svcobj);
 
-    if (gtk_tree_model_get_iter_first (self->prv->svcs_model, &iter)) {
+    if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL(self->prv->svcs_model), &iter)) {
         do {
             gchar *name;
             
-            gtk_tree_model_get (self->prv->svcs_model, &iter, SVC_OBJECT, &svcobj, -1);
+            gtk_tree_model_get (GTK_TREE_MODEL(self->prv->svcs_model), &iter, SVC_OBJECT, &svcobj, -1);
             name = nwamui_svc_get_name (svcobj);
             
             if (g_ascii_strcasecmp (name, svc) == 0) {
@@ -1674,7 +1668,7 @@ nwamui_env_find_svc (NwamuiEnv *self, const gchar *svc)
             }
             g_free (name);
             g_object_unref (svcobj);
-        } while (gtk_tree_model_iter_next(self->prv->svcs_model, &iter));
+        } while (gtk_tree_model_iter_next(GTK_TREE_MODEL(self->prv->svcs_model), &iter));
     }
     return NULL;
 }
@@ -1688,7 +1682,7 @@ nwamui_env_svc_remove (NwamuiEnv *self, GtkTreeIter *iter)
 extern void
 nwamui_env_svc_foreach (NwamuiEnv *self, GtkTreeModelForeachFunc func, gpointer data)
 {
-    gtk_tree_model_foreach (self->prv->svcs_model, func, data);
+    gtk_tree_model_foreach (GTK_TREE_MODEL(self->prv->svcs_model), func, data);
 }
 
 extern gboolean
@@ -1702,7 +1696,7 @@ nwamui_env_svc_insert (NwamuiEnv *self, NwamuiSvc *svc)
     gtk_list_store_set (GTK_LIST_STORE(self->prv->svcs_model), &iter,
       SVC_OBJECT, svcobj, -1);
     
-    return svcobj;
+    return TRUE;
 }
 
 extern gboolean
@@ -1715,21 +1709,25 @@ nwamui_env_svc_delete (NwamuiEnv *self, NwamuiSvc *svc)
     gtk_list_store_append (GTK_LIST_STORE(self->prv->svcs_model), &iter);
     gtk_list_store_set (GTK_LIST_STORE(self->prv->svcs_model), &iter,
       SVC_OBJECT, svcobj, -1);
-    
-    return svcobj;
+   
+    return TRUE;
 }
 
 extern NwamuiSvc*
-nwamui_env_svc_add (NwamuiEnv *self, nwam_loc_prop_template_t *svc)
+nwamui_env_svc_add (NwamuiEnv *self, nwam_loc_prop_template_t svc)
 {
 	GtkTreeIter iter;
-    NwamuiSvc *svcobj;
-
-    if ((svcobj = nwamui_env_find_svc (self, svc)) == NULL) {
-        svcobj = nwamui_svc_new (svc);
-        gtk_list_store_append (GTK_LIST_STORE(self->prv->svcs_model), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(self->prv->svcs_model), &iter,
-          SVC_OBJECT, svcobj, -1);
+    NwamuiSvc *svcobj = NULL;
+    nwam_error_t err;
+    const char* fmri = NULL;
+    
+    if ( ( err = nwam_loc_prop_template_get_fmri( svc, &fmri )) == NWAM_SUCCESS ) {
+        if ( fmri != NULL && (svcobj = nwamui_env_find_svc (self, fmri)) == NULL) {
+            svcobj = nwamui_svc_new (svc);
+            gtk_list_store_append (GTK_LIST_STORE(self->prv->svcs_model), &iter);
+            gtk_list_store_set (GTK_LIST_STORE(self->prv->svcs_model), &iter,
+              SVC_OBJECT, svcobj, -1);
+        }
     }
     return svcobj;
 }
@@ -1750,11 +1748,14 @@ nwamui_env_svc_add_full (NwamuiEnv *self,
 static gboolean
 nwamui_env_svc_commit (NwamuiEnv *self, NwamuiSvc *svc)
 {
-    nwam_error_t nerr;
+    nwam_error_t nerr = NWAM_INVALID_ARG;
     nwam_loc_prop_template_t *svc_h;
     
+    /* FIXME: Can we actually add a service? */
+    g_error("ERROR: Unable to add a service");
+    
     g_object_get (svc, "nwam_svc", &svc_h, NULL);
-    nerr = nwam_loc_svc_insert (self->prv->nwam_env, &svc_h, 1);
+    /* nerr = nwam_loc_svc_insert (self->prv->nwam_env, &svc_h, 1); */
     return nerr == NWAM_SUCCESS;
 }
 
@@ -1762,7 +1763,7 @@ extern gboolean
 nwamui_env_activate (NwamuiEnv *self)
 {
     nwam_error_t nerr;
-    nerr = nwam_loc_activate (self->prv->nwam_env);
+    nerr = nwam_loc_enable (self->prv->nwam_env);
     return nerr == NWAM_SUCCESS;
 }
 
@@ -1773,16 +1774,16 @@ nwamui_env_commit (NwamuiEnv *self)
 	GtkTreeIter iter;
     NwamuiSvc *svcobj;
     
-    if (gtk_tree_model_get_iter_first (self->prv->svcs_model, &iter)) {
+    if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL(self->prv->svcs_model), &iter)) {
         do {
-            gtk_tree_model_get (self->prv->svcs_model, &iter, 0, &svcobj, -1);
+            gtk_tree_model_get (GTK_TREE_MODEL(self->prv->svcs_model), &iter, 0, &svcobj, -1);
             if (! nwamui_env_svc_commit (self, svcobj)) {
                 return FALSE;
             }
-        } while (gtk_tree_model_iter_next (self->prv->svcs_model, &iter));
+        } while (gtk_tree_model_iter_next (GTK_TREE_MODEL(self->prv->svcs_model), &iter));
     }
     
-    nerr = nwam_loc_commit (self->prv->nwam_env, NWAM_FLAG_BLOCKING);
+    nerr = nwam_loc_commit (self->prv->nwam_env, 0);
     return nerr == NWAM_SUCCESS;
 }
 
@@ -1875,7 +1876,7 @@ svc_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer data)
 
 /* walkers */
 static int
-nwam_loc_svc_walker_cb (nwam_loc_prop_template_t *svc, void *data)
+nwam_loc_svc_walker_cb (nwam_loc_prop_template_t svc, void *data)
 {
     NwamuiEnv* self = NWAMUI_ENV(data);
     NwamuiEnvPrivate* prv = NWAMUI_ENV(data)->prv;
@@ -1885,7 +1886,7 @@ nwam_loc_svc_walker_cb (nwam_loc_prop_template_t *svc, void *data)
 }
 
 static int
-nwam_loc_sys_svc_walker_cb (nwam_loc_handle_t env, nwam_loc_prop_template_t *svc, void *data)
+nwam_loc_sys_svc_walker_cb (nwam_loc_handle_t env, nwam_loc_prop_template_t svc, void *data)
 {
     NwamuiEnv* self = NWAMUI_ENV(data);
     NwamuiEnvPrivate* prv = NWAMUI_ENV(data)->prv;

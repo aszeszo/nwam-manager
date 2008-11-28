@@ -1,3 +1,42 @@
+2008-11-28  Darren Kenny  <darren.kenny@sun.com>
+
+	* Makefile.am, 
+	  capplet/Makefile.am, capplet/nwam_conn_conf_ip_panel.c,
+	  capplet/nwam_pref_dialog.c, capplet/nwam_wireless_dialog.c,
+	  common/Makefile.am, common/libnwamui.h, common/nwamui_daemon.c,
+	  common/nwamui_daemon.h, common/nwamui_enm.c, common/nwamui_enm.h,
+	  common/nwamui_env.c, common/nwamui_env.h, common/nwamui_ip.c,
+	  common/nwamui_ip.h, common/nwamui_ncp.c, common/nwamui_ncp.h,
+	  common/nwamui_ncu.c, common/nwamui_ncu.h, common/nwamui_svc.c,
+	  common/nwamui_svc.h, common/nwamui_wifi_net.c,
+	  common/nwamui_wifi_net.h, configure.in, daemon/Makefile.am,
+	  daemon/main.c, daemon/notify.h, daemon/nwam-enm-action.c,
+	  daemon/nwam-env-action.c, daemon/nwam-menu-action-group.c,
+	  daemon/nwam-menu-radio-action-group.c, daemon/nwam-menu.c, 
+	  daemon/nwam-wifi-action.c:
+	  Lots up updates for Phase 1 API - still not complete, but most
+	  things run alright.
+	* nwam_core/run_nwam.sh:
+	  Script that will set LD_LIBRARY_PATH to allow you to run using the
+	  Phase 1 libraries.
+	* nwam_core/usr/include/inetcfg.h,
+	  nwam_core/usr/include/libdladm.h,
+	  nwam_core/usr/include/libdladm_impl.h,
+	  nwam_core/usr/include/libdlaggr.h,
+	  nwam_core/usr/include/libdllink.h,
+	  nwam_core/usr/include/libdlmgmt.h,
+	  nwam_core/usr/include/libdlvlan.h,
+	  nwam_core/usr/include/libdlvnic.h,
+	  nwam_core/usr/include/libdlwlan.h,
+	  nwam_core/usr/include/libdlwlan_impl.h,
+	  nwam_core/usr/include/libnwam.h, nwam_core/usr/lib/libinetcfg.so.1,
+	  nwam_core/usr/lib/libnwam.so, nwam_core/usr/lib/libnwam.so.1,
+	  nwam_core/usr/sbin/nwamadm, nwam_core/usr/sbin/nwamcfg:
+	  Phase 1 binaries and headers, to allow you to develop on non-Phase 1
+	  system.
+	* tests/Makefile.am, tests/main.c: 
+	  API Test program.
+
 2008-10-31  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/Makefile.am:

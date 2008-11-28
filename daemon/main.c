@@ -237,7 +237,8 @@ update_tooltip(NwamuiDaemon* daemon, gint sicon_id, NwamuiNcu* ncu)
     }
 
     if ( ncu == NULL ) {
-        ncu_ref = nwamui_ncp_get_active_ncu(ncp);
+        /* TODO: Handle active NCUs */
+        /* ncu_ref = nwamui_ncp_get_active_ncu(ncp); */
     }
     else {
         ncu_ref = g_object_ref(ncu);
@@ -326,13 +327,17 @@ ncu_is_higher_priority_than_active_ncu( NwamuiNcu* ncu, gboolean *is_active_ptr 
     NwamuiDaemon*  daemon  = nwamui_daemon_get_instance();
     NwamuiNcp*     active_ncp  = nwamui_daemon_get_active_ncp( daemon );
     NwamuiNcu*     active_ncu  = NULL;
-    gint           ncu_prio    = nwamui_ncu_get_priority(ncu);
+    /* gint           ncu_prio    = nwamui_ncu_get_priority(ncu); */
     gint           active_ncu_prio = -1;
     gboolean       is_active_ncu = FALSE;
     gboolean       retval = FALSE;
 
     g_object_unref(daemon);
+    
+    return (TRUE);
 
+    /* TODO: How to get the acitve ncu and priorities */
+#if 0 
     if ( active_ncp != NULL && NWAMUI_NCP( active_ncp ) ) {
         active_ncu = nwamui_ncp_get_active_ncu( active_ncp );
         g_object_unref(active_ncp);
@@ -359,6 +364,7 @@ ncu_is_higher_priority_than_active_ncu( NwamuiNcu* ncu, gboolean *is_active_ptr 
     }
 
     return( retval );
+#endif /* 0 */
 }
 
 static void
@@ -526,7 +532,7 @@ event_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gint sicon_id
           NULL,	/* action */
           NULL,	/* label */
           on_notifyaction_popup_menus,
-          sicon_id,
+          (gpointer)sicon_id,
           NULL,
           NOTIFY_EXPIRES_DEFAULT);
 

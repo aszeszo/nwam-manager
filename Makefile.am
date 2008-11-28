@@ -18,7 +18,7 @@
 # CDDL HEADER END
 #
 
-SUBDIRS = common tests daemon capplet po pixmaps
+SUBDIRS = common tests capplet daemon po pixmaps
 
 EXTRA_DIST =			\
         intltool-extract.in	\

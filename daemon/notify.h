@@ -29,6 +29,7 @@
 #define	_notify_H
 
 #include <libnotify/notify.h>
+#include <libnotify/notification.h>
 #include "libnwamui.h"
 
 G_BEGIN_DECLS

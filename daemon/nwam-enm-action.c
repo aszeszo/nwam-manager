@@ -92,7 +92,7 @@ nwam_enm_action_class_init (NwamEnmActionClass *klass)
 	GtkActionClass *action_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
-	action_class = GTK_ENM_ACTION_CLASS (klass);
+	action_class = GTK_ACTION_CLASS (klass);
 
 	gobject_class->set_property = nwam_enm_action_set_property;
 	gobject_class->get_property = nwam_enm_action_get_property;
@@ -195,14 +195,14 @@ nwam_enm_action_set_property (GObject         *object,
 
 	switch (prop_id) {
 	case PROP_ENM:
-        if (prv->enm != NWAMUI_ENM_NET(obj)) {
+        if (prv->enm != NWAMUI_ENM(obj)) {
             if (prv->enm) {
                 /* remove signal callback */
                 disconnect_enm_net_signals(self, prv->enm);
 
                 g_object_unref(prv->enm);
             }
-            prv->enm = NWAMUI_ENM_NET(obj);
+            prv->enm = NWAMUI_ENM(obj);
 
             /* connect signal callback */
             connect_enm_net_signals(self, prv->enm);
@@ -317,8 +317,18 @@ nwam_enm_action_get_enm (NwamEnmAction *self)
 void
 nwam_enm_action_set_enm (NwamEnmAction *self, NwamuiEnm *enm)
 {
-    g_return_if_fail(NWAMUI_IS_ENM_NET(enm));
+    g_return_if_fail(NWAMUI_IS_ENM(enm));
 
     g_object_set(self, "enm", enm, NULL);
+}
+
+static void 
+connect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
+{
+}
+
+static void 
+disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
+{
 }
 

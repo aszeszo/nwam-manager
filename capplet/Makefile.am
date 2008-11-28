@@ -33,6 +33,7 @@ AM_CPPFLAGS = \
 	$(NULL)
 
 AM_LDFLAGS = \
+	$(LDFLAGS)		\
 	$(PACKAGE_LIBS)		\
 	$(INTLLIBS)		\
 	$(NWAM_LIBS)		\
@@ -63,6 +64,22 @@ nwam_manager_properties_CPPFLAGS = \
 
 nwam_manager_properties_LDADD =			\
     $(top_srcdir)/common/libnwamui.la \
+	$(NWAM_MANAGER_LIBS)			\
+	$(NULL)
+
+noinst_LTLIBRARIES = libnwamuicapplet.la
+
+libnwamuicapplet_la_SOURCES =		\
+	nwam_wireless_dialog.c	\
+	$(NULL)
+
+libnwamuicapplet_la_CPPFLAGS = \
+	$(AM_CPPFLAGS)		\
+	-I../applet		\
+	$(NULL)
+
+libnwamuicapplet_la_LIBADD =			\
+	$(top_srcdir)/common/libnwamui.la \
 	$(NWAM_MANAGER_LIBS)			\
 	$(NULL)
 

@@ -34,6 +34,8 @@
 
 #include "libnwamui.h"
 #include "nwamui_wifi_net.h"
+#include <sys/mac.h>
+#include <libdlwlan.h>
 
 static GObjectClass *parent_class = NULL;
 
@@ -72,7 +74,7 @@ static void nwamui_wifi_net_finalize (      NwamuiWifiNet *self);
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 enum {
-	PROP_ESSID = 1,
+        PROP_ESSID = 1,
         PROP_NCU,
         PROP_STATUS,
         PROP_SECURITY,
@@ -1037,16 +1039,18 @@ nwamui_wifi_net_get_wpa_cert_file (NwamuiWifiNet *self )
 }
 
 extern nwamui_wifi_security_t
-nwamui_wifi_net_security_map ( const char* str )
+nwamui_wifi_net_security_map ( uint32_t _sec_mode )
 {
-    if ( g_ascii_strcasecmp( str, "wep" ) == 0 ) {
-        return NWAMUI_WIFI_SEC_WEP_HEX;
-    }
-    else if ( g_ascii_strcasecmp( str, "wpa" ) == 0 ) {
-        return NWAMUI_WIFI_SEC_WPA_PERSONAL;
-    }
-    else {
-        return NWAMUI_WIFI_SEC_NONE;
+    /* Is really a dladm_wlan_secmode_t */
+    dladm_wlan_secmode_t sec_mode = (dladm_wlan_secmode_t)_sec_mode;
+    
+    switch (sec_mode ) {
+        case DLADM_WLAN_SECMODE_WEP:
+            return NWAMUI_WIFI_SEC_WEP_HEX;
+        case DLADM_WLAN_SECMODE_WPA:
+            return NWAMUI_WIFI_SEC_WPA_PERSONAL;
+        default:
+            return NWAMUI_WIFI_SEC_NONE;
     }
 }
 

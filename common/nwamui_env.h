@@ -79,6 +79,8 @@ typedef enum {
     NWAMUI_ENV_STATUS_LAST /* Not to be used directly */
 } nwamui_env_status_t; /* TODO - provide means to get status in env */
 
+
+
 extern  NwamuiEnv*          nwamui_env_new ( gchar* name );
 
 extern	NwamuiEnv*			nwamui_env_new_with_handle (nwam_loc_handle_t envh);
@@ -161,7 +163,7 @@ extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GFunc
 
 extern GtkTreeModel *       nwamui_env_get_svcs (NwamuiEnv *self);
 
-extern NwamuiSvc*           nwamui_env_svc_add (NwamuiEnv *self, nwam_loc_prop_template_t *svc);
+extern NwamuiSvc*           nwamui_env_svc_add (NwamuiEnv *self, nwam_loc_prop_template_t svc);
 
 extern void                 nwamui_env_svc_add_full (NwamuiEnv *self,
   nwam_loc_prop_template_t svc,
