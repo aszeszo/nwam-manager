@@ -1,3 +1,10 @@
+2008-12-04  Calum Benson <calum.benson@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Some changes to Location and VPN dialog for Phase 1; more to
+	come...	
+
 2008-11-28  Darren Kenny  <darren.kenny@sun.com>
 
 	* Makefile.am, 
