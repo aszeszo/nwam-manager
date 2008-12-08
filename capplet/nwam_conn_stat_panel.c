@@ -135,6 +135,10 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 	GtkTreeView *view = self->prv->conn_status_treeview;
 	GtkTreeModel *model = NULL;
 
+    if ( self->prv->ncp == NULL ) {
+        return( NULL );
+    }
+
     model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(self->prv->ncp));
 
     g_assert( GTK_IS_LIST_STORE( model ) );
@@ -225,9 +229,11 @@ nwam_conn_status_panel_set_ncp(NwamConnStatusPanel *self, NwamuiNcp* ncp )
 {
 	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(self);
 
-    prv->ncp = NWAMUI_NCP(g_object_ref(ncp));
+    if ( ncp != NULL ) {
+        prv->ncp = NWAMUI_NCP(g_object_ref(ncp));
 
-    prv->model = nwam_compose_tree_view (self);
+        prv->model = nwam_compose_tree_view (self);
+    }
 
     nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL);
 }

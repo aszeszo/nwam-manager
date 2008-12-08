@@ -273,6 +273,10 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
 	GtkTreeView *view = self->prv->net_conf_treeview;
 	GtkTreeModel *model = NULL;
 
+    if ( self->prv->ncp == NULL ) {
+        return NULL;
+    }
+
     model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(self->prv->ncp));
         
     g_assert( GTK_IS_LIST_STORE( model ) );
@@ -384,6 +388,9 @@ nwam_compose_rules_tree_view (NwamNetConfPanel *self, GtkTreeView* view )
 	GtkCellRenderer *cell;
 	GtkTreeModel *model = NULL;
 
+    if ( self->prv->ncp == NULL ) {
+        return;
+    }
     model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(self->prv->ncp));
         
     /* Create a filter model */
@@ -448,11 +455,13 @@ nwam_compose_rules_tree_view (NwamNetConfPanel *self, GtkTreeView* view )
 }
 
 static void
-nnwam_net_conf_panel_set_ncp(NwamNetConfPanel *self, NwamuiNcp* ncp )
+nwam_net_conf_panel_set_ncp(NwamNetConfPanel *self, NwamuiNcp* ncp )
 {
 	NwamNetConfPanelPrivate *prv = self->prv;
 
-    prv->ncp = NWAMUI_NCP(g_object_ref(ncp));
+    if ( ncp != NULL ) {
+        prv->ncp = NWAMUI_NCP(g_object_ref(ncp));
+    }
 
     prv->model = nwam_compose_tree_view (self);
     
@@ -528,7 +537,7 @@ nwam_net_conf_panel_new(NwamCappletDialog *pref_dialog, NwamuiNcp* ncp)
     /* FIXME: Set active profile - should be in set_ncp? */
     gtk_combo_box_set_active(GTK_COMBO_BOX(self->prv->active_profile_combo), 1);
 
-    nnwam_net_conf_panel_set_ncp(self, ncp);
+    nwam_net_conf_panel_set_ncp(self, ncp);
 
     return( self );
 }

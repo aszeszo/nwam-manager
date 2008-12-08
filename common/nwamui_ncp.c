@@ -496,6 +496,10 @@ nwamui_ncp_get_ncu_list_store( NwamuiNcp *self )
 {
     GtkListStore* ncu_list_store = NULL;
     
+    if ( self == NULL ) {
+        return( NULL );
+    }
+
     g_return_val_if_fail (NWAMUI_IS_NCP(self), ncu_list_store); 
     
     g_object_get (G_OBJECT (self),

@@ -510,6 +510,10 @@ update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp )
 	GtkTreeModel   *model = NULL;
 	gboolean        has_next;
 	
+    if ( ncp == NULL ) {
+        return;
+    }
+
 	g_return_if_fail( combo != NULL && ncp != NULL );
 	
 	/* Update list of connections in "show_combo" */

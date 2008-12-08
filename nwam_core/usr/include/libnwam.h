@@ -30,8 +30,6 @@
 #ifndef _LIBNWAM_H
 #define	_LIBNWAM_H
 
-#pragma ident	"%Z%%M%	%I%	%E% SMI"
-
 #ifdef	__cplusplus
 extern "C" {
 #endif
@@ -108,13 +106,15 @@ typedef enum {
 	NWAM_ENTITY_NO_VALUE,		/* No value associated with entity */
 	NWAM_ENTITY_MULTIPLE_VALUES,	/* Multiple values for entity */
 	NWAM_WALK_HALTED,		/* Callback function returned nonzero */
+	NWAM_ERROR_BIND,		/* Could not bind to backend */
+	NWAM_ERROR_BACKEND_INIT,	/* Could not initialize backend */
 	NWAM_ERROR_INTERNAL		/* Internal error */
 } nwam_error_t;
 
-#define	NWAM_MAX_NAME_LEN		256
+#define	NWAM_MAX_NAME_LEN		128
 #define	NWAM_MAX_VALUE_LEN		1024
 #define	NWAM_MAX_FMRI_LEN		256
-#define	NWAM_MAX_NUM_VALUES		64
+#define	NWAM_MAX_NUM_VALUES		32
 
 /* used for getting and setting of properties */
 typedef enum {
@@ -125,6 +125,17 @@ typedef enum {
 	NWAM_VALUE_TYPE_UNKNOWN
 } nwam_value_type_t;
 
+/*
+ * Definitions relevant to backend processing of NWAM data, as used
+ * by netcfgd in processing libnwam backend door requests.
+ */
+
+/*
+ * Functions needed to initialize/stop processing of libnwam backend data
+ * (used in netcfgd).
+ */
+nwam_error_t nwam_backend_init(void);
+void nwam_backend_fini(void);
 
 /* Holds values of various types for getting and setting of properties */
 /* Forward definition */
@@ -331,17 +342,13 @@ typedef enum {
 #define	NWAM_LOC_PROP_NAMESERVICE_DISCOVER	"nameservice-discover"
 #define	NWAM_LOC_PROP_NAMESERVICES		"nameservices"
 #define	NWAM_LOC_PROP_NAMESERVICES_CONFIG_FILE	"nameservices-config-file"
+#define	NWAM_LOC_PROP_DOMAINNAME		"domainname"
 #define	NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS	"dns-nameservice-servers"
-#define	NWAM_LOC_PROP_DNS_NAMESERVICE_DOMAIN	"dns-nameservice-domain"
 #define	NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH	"dns-nameservice-search"
 #define	NWAM_LOC_PROP_NIS_NAMESERVICE_SERVERS	"nis-nameservice-servers"
-#define	NWAM_LOC_PROP_NIS_NAMESERVICE_DOMAIN	"nis-nameservice-domain"
 #define	NWAM_LOC_PROP_NISPLUS_NAMESERVICE_SERVERS	\
 						"nisplus-nameservice-servers"
-#define	NWAM_LOC_PROP_NISPLUS_NAMESERVICE_DOMAIN	\
-						"nisplus-nameservice-domain"
 #define	NWAM_LOC_PROP_LDAP_NAMESERVICE_SERVERS	"ldap-nameservice-servers"
-#define	NWAM_LOC_PROP_LDAP_NAMESERVICE_DOMAIN	"ldap-nameservice-domain"
 
 /* Path to hosts/ipnodes database */
 #define	NWAM_LOC_PROP_HOSTS_FILE		"hosts-file"
@@ -449,8 +456,6 @@ typedef enum {
 #define	NWAM_NCU_PROP_ENABLED		"enabled"
 #define	NWAM_NCU_PROP_PRIORITY_GROUP	"priority-group"
 #define	NWAM_NCU_PROP_PRIORITY_MODE	"priority-mode"
-#define	NWAM_NCU_PROP_OVER		"over"
-#define	NWAM_NCU_PROP_UNDER		"under"
 
 /* Link NCU properties */
 #define	NWAM_NCU_PROP_LINK_MAC_ADDR	"link-mac-addr"

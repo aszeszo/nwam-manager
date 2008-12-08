@@ -31,6 +31,7 @@
 #include <glib/gi18n.h>
 #include <gtk/gtkliststore.h>
 #include <strings.h>
+#include <string.h>
 #include <stdlib.h>
 
 #include "libnwamui.h"
@@ -874,6 +875,23 @@ populate_ip_ncu_data( NwamuiNcu *ncu )
 
 }
 
+/* 
+ * An NCU name is <type>:<devicename>, extract the devicename part 
+ */
+static gchar*
+get_device_from_ncu_name( const gchar* ncu_name )
+{
+    gchar*  ptr = NULL;
+
+    if ( ncu_name != NULL ) {
+        ptr = strrchr( ncu_name, ':');
+        if ( ptr != NULL ) {
+            ptr = g_strdup(ptr);
+        }
+    }
+
+    return( ptr );
+}
 
 extern  NwamuiNcu*
 nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
@@ -894,7 +912,7 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
     }
 
     self->prv->vanity_name = name;
-    self->prv->device_name = get_nwam_ncu_string_prop(ncu, NWAM_NCU_PROP_OVER);;
+    self->prv->device_name = get_device_from_ncu_name( name );
 
     ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu, NWAM_NCU_PROP_CLASS);
 

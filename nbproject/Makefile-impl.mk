@@ -27,8 +27,8 @@ CLEAN_SUBPROJECTS=${CLEAN_SUBPROJECTS_${SUBPROJECTS}}
 PROJECTNAME=nwam-manager
 
 # Active Configuration
-ACTIVECONF=capplet
-CONF=${ACTIVECONF}
+DEFAULTCONF=capplet
+CONF=${DEFAULTCONF}
 
 # All Configurations
 ALLCONFS=capplet daemon 
