@@ -1,3 +1,16 @@
+2008-12-12  Calum Benson <calum.benson@sun.com>
+	
+	Added:
+	* img/capplet/vpn-dlg-condition-expanded.png
+	* img/capplet/locations-new.png
+	
+	Modified:
+	* img/capplet/network-profile-prioritised-expand.png
+	* img/capplet/network-profile-noexpand.png
+	* img/capplet/vpn-dlg-adding.png
+
+	More updates for Phase 1.
+
 2008-12-04  Calum Benson <calum.benson@sun.com>
 
 	* ui-spec.odt
