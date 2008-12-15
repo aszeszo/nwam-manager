@@ -151,8 +151,10 @@ extern gchar*               nwamui_env_get_proxy_password ( NwamuiEnv *self );
 extern GtkTreeModel *       nwamui_env_get_condition_predicate ();
 extern GtkTreeModel *       nwamui_env_get_condition_subject ();
 
-extern void                 nwamui_env_set_condition_match ( NwamuiEnv *self, nwamui_cond_match_t condition_match );
-extern nwamui_cond_match_t  nwamui_env_get_condition_match ( NwamuiEnv *self );
+extern void                 nwamui_env_set_condition_match ( NwamuiEnv *self, 
+                                                             nwamui_cond_activation_mode_t condition_match );
+extern nwamui_cond_activation_mode_t 
+                            nwamui_env_get_condition_match ( NwamuiEnv *self );
 
 extern void                 nwamui_env_set_conditions ( NwamuiEnv *self, const GList* conditions );
 extern GList*               nwamui_env_get_conditions ( NwamuiEnv *self );

@@ -1,3 +1,15 @@
+2008-12-15  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_cond.h, common/nwamui_cond.c: 
+	  Update condition object to match libnwam equivalent, and also
+	  support addition of an object for NCU/ENM/LOC field types.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c:
+	  Update to add API accessors for activation_mode, priority group,
+	  priority group mode and use of a list of NwamuiCond objects for
+	  conditions.
+	* common/nwamui_env.h, common/nwamui_env.h:
+	  Update to use new type names for conditions.
+
 2008-12-08  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_stat_panel.c, capplet/nwam_net_conf_panel.c,

@@ -37,12 +37,16 @@ struct _NwamuiCondPrivate {
     nwamui_cond_field_t     field;
     nwamui_cond_op_t        op;
     gchar*                  value;
+
+    /* NCU, ENM and LOC require a pointer to an object */
+    GObject*                object;
 };
 
 enum {
     PROP_FIELD = 1,
     PROP_OPER,
-    PROP_VALUE
+    PROP_VALUE,
+    PROP_OBJECT
 };
 
 static void nwamui_cond_set_property ( GObject         *object,
@@ -83,9 +87,9 @@ nwamui_cond_class_init (NwamuiCondClass *klass)
                                      g_param_spec_int ("field",
                                                        _("field"),
                                                        _("field"),
-                                                       NWAMUI_COND_FIELD_IP_ADDRESS,
+                                                       NWAMUI_COND_FIELD_NCU,
                                                        NWAMUI_COND_FIELD_LAST,
-                                                       NWAMUI_COND_FIELD_IP_ADDRESS,
+                                                       NWAMUI_COND_FIELD_NCU,
                                                        G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -93,9 +97,9 @@ nwamui_cond_class_init (NwamuiCondClass *klass)
                                      g_param_spec_int ("op",
                                                        _("op"),
                                                        _("op"),
-                                                       NWAMUI_COND_OP_EQUALS,
+                                                       NWAMUI_COND_OP_IS,
                                                        NWAMUI_COND_OP_LAST,
-                                                       NWAMUI_COND_OP_EQUALS,
+                                                       NWAMUI_COND_OP_IS,
                                                        G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -106,6 +110,13 @@ nwamui_cond_class_init (NwamuiCondClass *klass)
                                                           "",
                                                           G_PARAM_READWRITE));
 
+    g_object_class_install_property (gobject_class,
+                                     PROP_OBJECT,
+                                     g_param_spec_object ("object",
+                                                          _("object"),
+                                                          _("object"),
+                                                          G_TYPE_OBJECT,
+                                                          G_PARAM_READWRITE));
 
 }
 
@@ -117,9 +128,10 @@ nwamui_cond_init ( NwamuiCond *self)
 {  
     self->prv = g_new0 (NwamuiCondPrivate, 1);
     
-    self->prv->field = NWAMUI_COND_FIELD_IP_ADDRESS;
-    self->prv->op = NWAMUI_COND_OP_EQUALS;
+    self->prv->field = NWAMUI_COND_FIELD_NCU;
+    self->prv->op = NWAMUI_COND_OP_IS;
     self->prv->value = NULL;
+    self->prv->object = NULL;
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
@@ -130,6 +142,10 @@ nwamui_cond_finalize (NwamuiCond *self)
     g_debug("nwamui_cond_finalize called");
     if (self->prv->value != NULL ) {
         g_free( self->prv->value );
+    }
+
+    if (self->prv->object != NULL ) {
+        g_object_unref( G_OBJECT(self->prv->object) );
     }
 
     g_free (self->prv); 
@@ -167,6 +183,14 @@ nwamui_cond_set_property (   GObject         *object,
             }
             break;
 
+        case PROP_OBJECT: {
+                if ( self->prv->object != NULL ) {
+                        g_object_unref( self->prv->object );
+                }
+                self->prv->object = G_OBJECT(g_value_dup_object( value ));
+            }
+            break;
+
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -194,6 +218,11 @@ nwamui_cond_get_property (   GObject         *object,
 
         case PROP_VALUE: {
                 g_value_set_string( value, self->prv->value );
+            }
+            break;
+
+        case PROP_OBJECT: {
+                g_value_set_object( value, (gpointer)self->prv->object);
             }
             break;
 
@@ -225,9 +254,35 @@ nwamui_cond_new ( void )
 extern  NwamuiCond*          
 nwamui_cond_new_with_args ( nwamui_cond_field_t     field,
                             nwamui_cond_op_t        op,
-                            gchar*                  value )
+                            const gchar*            value )
 {
     NwamuiCond *self = NWAMUI_COND(g_object_new (NWAMUI_TYPE_COND, NULL));
+
+    g_object_set (G_OBJECT (self),
+                  "field", field,
+                  "op", op,
+                  "value", value,
+                  NULL);
+    
+    return( self );
+}
+
+/**
+ * nwamui_cond_new_from_str:
+ * args: condition_str - libnwam formatted condition string
+ * @returns: a new #NwamuiCond, or NULL if string can't be parsed.
+ *
+ **/
+extern  NwamuiCond*          
+nwamui_cond_new_from_str( const gchar* condition_str )
+{
+    NwamuiCond         *self = NWAMUI_COND(g_object_new (NWAMUI_TYPE_COND, NULL));
+    nwamui_cond_field_t field;
+    nwamui_cond_op_t    op;
+    char*               value;
+
+    /* TODO - Parse string */
+    g_assert("String not being parsed yet");
 
     g_object_set (G_OBJECT (self),
                   "field", field,
@@ -287,7 +342,7 @@ nwamui_cond_set_oper (   NwamuiCond *self,
                               nwamui_cond_op_t        op )
 {
     g_return_if_fail (NWAMUI_IS_COND (self));
-    g_assert (op >= NWAMUI_COND_OP_EQUALS && op <= NWAMUI_COND_OP_LAST );
+    g_assert (op >= NWAMUI_COND_OP_IS && op <= NWAMUI_COND_OP_LAST );
 
     g_object_set (G_OBJECT (self),
                   "op", (gint)op,
@@ -303,7 +358,7 @@ nwamui_cond_set_oper (   NwamuiCond *self,
 extern nwamui_cond_op_t
 nwamui_cond_get_oper (NwamuiCond *self)
 {
-    gint  op = NWAMUI_COND_OP_EQUALS; 
+    gint  op = NWAMUI_COND_OP_IS; 
 
     g_return_val_if_fail (NWAMUI_IS_COND (self), op);
 
@@ -354,13 +409,72 @@ nwamui_cond_get_value (NwamuiCond *self)
     return( value );
 }
 
+/** 
+ * nwamui_cond_set_object:
+ * @nwamui_cond: a #NwamuiCond.
+ * @object: Value to set object to.
+ * 
+ **/ 
+extern void
+nwamui_cond_set_object (   NwamuiCond *self,
+                              GObject*  object )
+{
+    g_return_if_fail (NWAMUI_IS_COND (self));
+    g_assert (object != NULL );
+
+    switch ( self->prv->field ) {
+        case NWAMUI_COND_FIELD_NCU:
+            g_return_if_fail( NWAMUI_IS_NCU( object ) );
+            break;
+        case NWAMUI_COND_FIELD_ENM:
+            g_return_if_fail( NWAMUI_IS_ENM( object ) );
+            break;
+        case NWAMUI_COND_FIELD_LOC:
+            g_return_if_fail( NWAMUI_IS_ENV( object ) );
+            break;
+        default:
+            g_warning("Setting object with field type '%s'", 
+                      nwamui_cond_field_to_str( self->prv->field ) );
+            return;
+    }
+
+    if ( object != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "object", object,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_cond_get_object:
+ * @nwamui_cond: a #NwamuiCond.
+ * @returns: the object.
+ *
+ **/
+extern GObject*
+nwamui_cond_get_object (NwamuiCond *self)
+{
+    GObject*  object = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_COND (self), object);
+
+    g_object_get (G_OBJECT (self),
+                  "object", &object,
+                  NULL);
+
+    return( object );
+}
+
 extern const gchar*
 nwamui_cond_field_to_str( nwamui_cond_field_t field )
 {
     
     switch( field ) {
+        case NWAMUI_COND_FIELD_NCU:          return(_("LINK"));
+        case NWAMUI_COND_FIELD_ENM:          return(_("ENM"));
+        case NWAMUI_COND_FIELD_LOC:          return(_("Location"));
         case NWAMUI_COND_FIELD_IP_ADDRESS:   return(_("IP Address"));
-        case NWAMUI_COND_FIELD_DOMAIN_NAME:  return(_("Domain Name"));
+        case NWAMUI_COND_FIELD_DOMAINNAME:   return(_("Domain Name"));
         case NWAMUI_COND_FIELD_ESSID:        return(_("Wireless Name (ESSID)"));
         case NWAMUI_COND_FIELD_BSSID:        return(_("Wireless AP (BSSID)"));
         default:
@@ -373,18 +487,24 @@ extern const gchar*
 nwamui_cond_op_to_str( nwamui_cond_op_t op )
 {
     switch( op ) {
-        case NWAMUI_COND_OP_EQUALS:         return(_("is"));
-        case NWAMUI_COND_OP_NOT_EQUAL:      return(_("is not"));
-        case NWAMUI_COND_OP_IN_RANGE:       return(_("in the range"));
-        case NWAMUI_COND_OP_BEGINS:         return(_("begins with"));
-        case NWAMUI_COND_OP_ENDS:           return(_("ends with"));
-        case NWAMUI_COND_OP_CONTAINS:       return(_("contains"));
-        case NWAMUI_COND_OP_DOESNT_CONTAIN: return(_("doesn't contain"));
+        case NWAMUI_COND_OP_IS:                 return(_("is"));
+        case NWAMUI_COND_OP_IS_NOT:             return(_("is not"));
+        case NWAMUI_COND_OP_IS_IN_RANGE:        return(_("is in the range"));
+        case NWAMUI_COND_OP_IS_NOT_IN_RANGE:    return(_("is not in the range"));
+        case NWAMUI_COND_OP_CONTAINS:           return(_("contains"));
+        case NWAMUI_COND_OP_DOES_NOT_CONTAIN:   return(_("does not contain"));
         default:
             g_assert_not_reached();
             return(NULL);
     }
 }
+
+extern const gchar*
+nwamui_cond_to_str( NwamuiCond* self )
+{
+    return(NULL);
+}
+
 
 /* Callbacks */
 

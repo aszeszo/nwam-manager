@@ -61,7 +61,8 @@ struct _NwamuiEnvPrivate {
     gint                        proxy_socks_port;
     gchar*                      proxy_username;
     gchar*                      proxy_password;
-    nwamui_cond_match_t         condition_match;
+    nwamui_cond_activation_mode_t
+                                condition_match;
     GList*                      conditions;
     GtkListStore*               svcs_model;
     GtkListStore*               sys_svcs_model;
@@ -302,9 +303,9 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                      g_param_spec_int ("condition_match",
                                                        _("condition_match"),
                                                        _("condition_match"),
-                                                       NWAMUI_COND_MATCH_ANY,
-                                                       NWAMUI_COND_MATCH_LAST-1,
-                                                       NWAMUI_COND_MATCH_ANY,
+                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
+                                                       NWAMUI_COND_ACTIVATION_MODE_LAST-1,
+                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
                                                        G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -347,7 +348,7 @@ nwamui_env_init (NwamuiEnv *self)
     self->prv->proxy_socks_port = 1080;
     self->prv->proxy_username = NULL;
     self->prv->proxy_password = NULL;
-    self->prv->condition_match = NWAMUI_COND_MATCH_ANY;
+    self->prv->condition_match = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
     self->prv->conditions = NULL;
     self->prv->svcs_model = gtk_list_store_new(SVC_N_COL, G_TYPE_OBJECT);
 
@@ -512,7 +513,7 @@ nwamui_env_set_property (   GObject         *object,
             break;
 
         case PROP_CONDITION_MATCH: {
-                self->prv->condition_match = (nwamui_cond_match_t)g_value_get_int( value );
+                self->prv->condition_match = (nwamui_cond_activation_mode_t)g_value_get_int( value );
             }
             break;
 
@@ -1486,10 +1487,10 @@ nwamui_env_get_proxy_socks_port (NwamuiEnv *self)
  **/ 
 extern void
 nwamui_env_set_condition_match (   NwamuiEnv *self,
-                                  nwamui_cond_match_t        condition_match )
+                                  nwamui_cond_activation_mode_t        condition_match )
 {
     g_return_if_fail (NWAMUI_IS_ENV(self));
-    g_assert (condition_match >= NWAMUI_COND_MATCH_ANY && condition_match <= NWAMUI_COND_MATCH_LAST );
+    g_assert (condition_match >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && condition_match <= NWAMUI_COND_ACTIVATION_MODE_LAST );
 
     g_object_set (G_OBJECT (self),
                   "condition_match", (gint)condition_match,
@@ -1502,10 +1503,10 @@ nwamui_env_set_condition_match (   NwamuiEnv *self,
  * @returns: the condition_match.
  *
  **/
-extern nwamui_cond_match_t
+extern nwamui_cond_activation_mode_t
 nwamui_env_get_condition_match (NwamuiEnv *self)
 {
-    gint  condition_match = NWAMUI_COND_MATCH_ANY; 
+    gint  condition_match = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
 
     g_return_val_if_fail (NWAMUI_IS_ENV (self), condition_match);
 
@@ -1513,7 +1514,7 @@ nwamui_env_get_condition_match (NwamuiEnv *self)
                   "condition_match", &condition_match,
                   NULL);
 
-    return( (nwamui_cond_match_t)condition_match );
+    return( (nwamui_cond_activation_mode_t)condition_match );
 }
 
 /** 
@@ -1615,7 +1616,7 @@ nwamui_env_get_condition_predicate ()
 
 	condition_predicate = GTK_TREE_MODEL(gtk_list_store_new (1, G_TYPE_INT));
 	
-    for (i = NWAMUI_COND_OP_EQUALS; i < NWAMUI_COND_OP_LAST; i++) {
+    for (i = NWAMUI_COND_OP_IS; i < NWAMUI_COND_OP_LAST; i++) {
         gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
         gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, i, -1);
     }

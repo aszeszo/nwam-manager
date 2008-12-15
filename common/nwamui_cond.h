@@ -62,35 +62,48 @@ struct _NwamuiCondClass
 extern  GType                   nwamui_cond_get_type (void) G_GNUC_CONST;
 
 typedef enum {
-    NWAMUI_COND_FIELD_IP_ADDRESS,
-    NWAMUI_COND_FIELD_DOMAIN_NAME,
-    NWAMUI_COND_FIELD_ESSID,
-    NWAMUI_COND_FIELD_BSSID,
+    NWAMUI_COND_ACTIVATION_MODE_MANUAL,
+    NWAMUI_COND_ACTIVATION_MODE_SYSTEM,
+    NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED,
+    NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY,
+    NWAMUI_COND_ACTIVATION_MODE_LAST /* Not to be used directly */
+} nwamui_cond_activation_mode_t;
+
+typedef enum {
+	NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE,
+	NWAMUI_COND_PRIORITY_GROUP_MODE_SHARED,
+	NWAMUI_COND_PRIORITY_GROUP_MODE_ALL,
+	NWAMUI_COND_PRIORITY_GROUP_MODE_LAST /* Not to be used directly */
+} nwamui_cond_priority_group_mode_t;
+
+typedef enum {
+	NWAMUI_COND_FIELD_NCU = 1,
+	NWAMUI_COND_FIELD_ENM,
+	NWAMUI_COND_FIELD_LOC,
+	NWAMUI_COND_FIELD_IP_ADDRESS,
+	NWAMUI_COND_FIELD_DOMAINNAME,
+	NWAMUI_COND_FIELD_ESSID,
+	NWAMUI_COND_FIELD_BSSID,
     NWAMUI_COND_FIELD_LAST /* Not to be used directly */                
 } nwamui_cond_field_t;
 
 typedef enum {
-    NWAMUI_COND_OP_EQUALS,
-    NWAMUI_COND_OP_NOT_EQUAL,
-    NWAMUI_COND_OP_IN_RANGE,
-    NWAMUI_COND_OP_BEGINS,
-    NWAMUI_COND_OP_ENDS,
+    NWAMUI_COND_OP_IS = 1,
+    NWAMUI_COND_OP_IS_NOT,
+    NWAMUI_COND_OP_IS_IN_RANGE,
+    NWAMUI_COND_OP_IS_NOT_IN_RANGE,
     NWAMUI_COND_OP_CONTAINS,
-    NWAMUI_COND_OP_DOESNT_CONTAIN,
+    NWAMUI_COND_OP_DOES_NOT_CONTAIN,
     NWAMUI_COND_OP_LAST /* Not to be used directly */
 } nwamui_cond_op_t;
 
-typedef enum {
-    NWAMUI_COND_MATCH_ANY = 1,
-    NWAMUI_COND_MATCH_ALL,
-    NWAMUI_COND_MATCH_LAST
-} nwamui_cond_match_t;
-
-
 extern  NwamuiCond*          nwamui_cond_new ( void );
+
+extern  NwamuiCond*          nwamui_cond_new_from_str( const gchar* condition_str );
+
 extern  NwamuiCond*          nwamui_cond_new_with_args (    nwamui_cond_field_t     field,
                                                             nwamui_cond_op_t        op,
-                                                            gchar*                  value );
+                                                            const gchar*            value );
 
 extern void                 nwamui_cond_set_field ( NwamuiCond *self, nwamui_cond_field_t field );
 extern nwamui_cond_field_t  nwamui_cond_get_field ( NwamuiCond *self );
@@ -103,10 +116,15 @@ extern nwamui_cond_op_t     nwamui_cond_get_oper ( NwamuiCond *self );
 extern void                 nwamui_cond_set_value ( NwamuiCond *self, const gchar* value );
 extern gchar*               nwamui_cond_get_value ( NwamuiCond *self );
 
+extern void                 nwamui_cond_set_object ( NwamuiCond *self, GObject* object );
+extern GObject*             nwamui_cond_get_object ( NwamuiCond *self );
+
 /* Utility functions to convert enum to a displayable string */
 extern const gchar*         nwamui_cond_op_to_str( nwamui_cond_op_t op );
 extern const gchar*         nwamui_cond_field_to_str( nwamui_cond_field_t field );
 
+/* Convert to string suitable for libnwam - uses libnwam */
+extern const gchar*         nwamui_cond_to_str( NwamuiCond* self );
 
 G_END_DECLS
 
