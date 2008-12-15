@@ -140,10 +140,10 @@ extern void                 nwamui_ncu_set_wifi_info ( NwamuiNcu *self, NwamuiWi
 extern nwamui_wifi_signal_strength_t    
                             nwamui_ncu_get_wifi_signal_strength ( NwamuiNcu *self );
 
-extern void                 nwamui_ncu_set_activiation_mode ( NwamuiNcu *self, 
-                                                              nwamui_cond_activation_mode_t activiation_mode );
+extern void                 nwamui_ncu_set_activation_mode ( NwamuiNcu *self, 
+                                                              nwamui_cond_activation_mode_t activation_mode );
 extern nwamui_cond_activation_mode_t 
-                            nwamui_ncu_get_activiation_mode ( NwamuiNcu *self );
+                            nwamui_ncu_get_activation_mode ( NwamuiNcu *self );
 
 
 extern void                 nwamui_ncu_set_enabled ( NwamuiNcu *self, gboolean enabled );

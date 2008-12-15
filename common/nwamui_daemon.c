@@ -443,7 +443,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     {
         nwam_error_t nerr;
         int cbret;
-        nwam_walk_ncps (nwam_ncp_walker_cb, (void *)self, 0, &cbret);
+        nerr = nwam_walk_ncps (nwam_ncp_walker_cb, (void *)self, 0, &cbret);
         if (nerr != NWAM_SUCCESS) {
             g_debug ("[libnwam] nwam_walk_ncps %s", nwam_strerror (nerr));
         }
@@ -453,7 +453,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     {
         nwam_error_t nerr;
         int cbret;
-        nwam_walk_locs (nwam_loc_walker_cb, (void *)self, 0, &cbret);
+        nerr = nwam_walk_locs (nwam_loc_walker_cb, (void *)self, 0, &cbret);
         if (nerr != NWAM_SUCCESS) {
             g_debug ("[libnwam] nwam_walk_locs %s", nwam_strerror (nerr));
         }
@@ -464,7 +464,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     {
         nwam_error_t nerr;
         int cbret;
-        nwam_walk_enms (nwam_enm_walker_cb, (void *)self, 0, &cbret);
+        nerr = nwam_walk_enms (nwam_enm_walker_cb, (void *)self, 0, &cbret);
         if (nerr != NWAM_SUCCESS) {
             g_debug ("[libnwam] nwam_walk_enms %s", nwam_strerror (nerr));
         }

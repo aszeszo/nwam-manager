@@ -71,9 +71,9 @@ struct _NwamuiNcuPrivate {
         GtkListStore*                   v4addresses;
         GtkListStore*                   v6addresses;
         NwamuiWifiNet*                  wifi_info;
-        nwamui_cond_activation_mode_t   activiation_mode;
+        nwamui_cond_activation_mode_t   activation_mode;
         gboolean                        enabled;
-        gint                            priority_group;
+        guint                           priority_group;
         nwamui_cond_priority_group_mode_t    
                                         priority_group_mode;
         gpointer                        conditions;
@@ -100,7 +100,7 @@ enum {
         PROP_V6ADDRESSES,
         PROP_WIFI_INFO,
         PROP_RULES_ENABLED,
-        PROP_ACTIVIATION_MODE,
+        PROP_ACTIVATION_MODE,
         PROP_ENABLED,
         PROP_PRIORITY_GROUP,
         PROP_PRIORITY_GROUP_MODE,
@@ -312,6 +312,44 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           G_PARAM_READWRITE));
     
     g_object_class_install_property (gobject_class,
+                                     PROP_ACTIVATION_MODE,
+                                     g_param_spec_int ("activation_mode",
+                                                       _("activation_mode"),
+                                                       _("activation_mode"),
+                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
+                                                       NWAMUI_COND_ACTIVATION_MODE_LAST,
+                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
+                                                       G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_ENABLED,
+                                     g_param_spec_boolean ("enabled",
+                                                          _("enabled"),
+                                                          _("enabled"),
+                                                          FALSE,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_PRIORITY_GROUP,
+                                     g_param_spec_uint ("priority_group",
+                                                       _("priority_group"),
+                                                       _("priority_group"),
+                                                       0,
+                                                       G_MAXUINT,
+                                                       0,
+                                                       G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_PRIORITY_GROUP_MODE,
+                                     g_param_spec_int ("priority_group_mode",
+                                                       _("priority_group_mode"),
+                                                       _("priority_group_mode"),
+                                                       NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE,
+                                                       NWAMUI_COND_PRIORITY_GROUP_MODE_LAST,
+                                                       NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE,
+                                                       G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
                                      PROP_CONDITIONS,
                                      g_param_spec_pointer ("conditions",
                                                           _("conditions"),
@@ -337,7 +375,7 @@ nwamui_ncu_init (NwamuiNcu *self)
     self->prv->v4addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
     self->prv->v6addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
     self->prv->wifi_info = NULL;
-    self->prv->activiation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
+    self->prv->activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
     self->prv->enabled = FALSE;
     self->prv->priority_group = 0;
     self->prv->priority_group_mode = NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE;
@@ -549,8 +587,8 @@ nwamui_ncu_set_property ( GObject         *object,
             }
             break;
 
-        case PROP_ACTIVIATION_MODE: {
-                self->prv->activiation_mode = (nwamui_cond_activation_mode_t)g_value_get_int( value );
+        case PROP_ACTIVATION_MODE: {
+                self->prv->activation_mode = (nwamui_cond_activation_mode_t)g_value_get_int( value );
             }
             break;
 
@@ -560,7 +598,7 @@ nwamui_ncu_set_property ( GObject         *object,
             break;
 
         case PROP_PRIORITY_GROUP: {
-                self->prv->priority_group = g_value_get_int( value );
+                self->prv->priority_group = g_value_get_uint( value );
             }
             break;
 
@@ -706,8 +744,8 @@ nwamui_ncu_get_property (GObject         *object,
                 g_value_set_object( value, (gpointer)self->prv->wifi_info );
             }
             break;
-        case PROP_ACTIVIATION_MODE: {
-                g_value_set_int( value, (gint)self->prv->activiation_mode );
+        case PROP_ACTIVATION_MODE: {
+                g_value_set_int( value, (gint)self->prv->activation_mode );
             }
             break;
 
@@ -717,7 +755,7 @@ nwamui_ncu_get_property (GObject         *object,
             break;
 
         case PROP_PRIORITY_GROUP: {
-                g_value_set_int( value, self->prv->priority_group );
+                g_value_set_uint( value, self->prv->priority_group );
             }
             break;
 
@@ -733,6 +771,73 @@ nwamui_ncu_get_property (GObject         *object,
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
     }
+}
+
+static GList*
+map_condition_strings_to_object_list( char** conditions )
+{
+    GList*  new_list = NULL;
+
+    if ( conditions == NULL ) {
+        return( NULL );
+    }
+
+    for ( int i = 0; conditions[i] != NULL; i++ ) {
+        NwamuiCond* cond = nwamui_cond_new_from_str( conditions[i] );
+        if ( cond != NULL ) {
+            new_list = g_list_append( new_list, cond);
+        }
+    }
+
+    return( new_list );
+}
+
+static void
+populate_common_ncu_data( NwamuiNcu *ncu )
+{
+    char*               name = NULL;
+    nwam_error_t        nerr;
+    gchar**             condition_str;
+    GList*              conditions = NULL;
+    gboolean            enabled;
+    guint               priority_group;
+    nwamui_cond_activation_mode_t 
+                        activation_mode;
+    nwamui_cond_priority_group_mode_t
+                        priority_group_mode;
+
+    if ( (nerr = nwam_ncu_get_name (ncu->prv->nwam_ncu, &name)) != NWAM_SUCCESS ) {
+        g_debug ("Failed to get name for ncu, error: %s", nwam_strerror (nerr));
+    }
+
+    g_object_set( ncu,
+                  "device_name", name,
+                  "vanity_name", name,
+                  NULL);
+
+    activation_mode = (nwamui_cond_activation_mode_t)
+        get_nwam_ncu_uint64_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_ACTIVATION_MODE );
+
+    enabled = get_nwam_ncu_boolean_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_ENABLED );
+
+    priority_group = (guint)get_nwam_ncu_uint64_prop( ncu->prv->nwam_ncu,
+                                                      NWAM_NCU_PROP_PRIORITY_GROUP );
+    priority_group_mode = (nwamui_cond_priority_group_mode_t)
+        get_nwam_ncu_uint64_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_PRIORITY_MODE );
+
+    condition_str = get_nwam_ncu_string_array_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_CONDITION );
+
+    conditions = map_condition_strings_to_object_list( condition_str);
+
+    g_object_set( ncu,
+                  "activation_mode", activation_mode,
+                  "enabled", enabled,
+                  "priority_group", priority_group,
+                  "priority_group_mode", priority_group_mode,
+                  "conditions", conditions,
+                  NULL);
+
+    g_strfreev( condition_str );
 }
 
 static void
@@ -890,24 +995,18 @@ extern  NwamuiNcu*
 nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
 {
     NwamuiNcu*          self = NULL;
-    char*               name = NULL;
-    char*               over_name = NULL;
     nwam_ncu_class_t    ncu_class;
-    nwam_error_t        nerr;
     
     self = NWAMUI_NCU(g_object_new (NWAMUI_TYPE_NCU,
                                     "nwam_ncu", ncu,
                                     "ncp", ncp,
                                     NULL));
 
-    if ( (nerr = nwam_ncu_get_name (ncu, &name)) != NWAM_SUCCESS ) {
-        g_debug ("Failed to get name for ncu, error: %s", nwam_strerror (nerr));
-    }
-
-    self->prv->vanity_name = g_strdup( name );
-    self->prv->device_name = g_strdup( name );
-
     ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu, NWAM_NCU_PROP_CLASS);
+
+    g_object_freeze_notify( G_OBJECT(self) );
+
+    populate_common_ncu_data( self );
 
     switch ( ncu_class ) {
         case NWAM_NCU_CLASS_PHYS: {
@@ -927,6 +1026,8 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
             g_error("Unexpected ncu class %u", (guint)ncu_class);
     }
     
+    g_object_thaw_notify( G_OBJECT(self) );
+
     return( self );
 }
 
@@ -1692,41 +1793,41 @@ nwamui_ncu_get_wifi_signal_strength ( NwamuiNcu *self )
 }
 
 /** 
- * nwamui_ncu_set_activiation_mode:
+ * nwamui_ncu_set_activation_mode:
  * @nwamui_ncu: a #NwamuiNcu.
- * @activiation_mode: Value to set activiation_mode to.
+ * @activation_mode: Value to set activation_mode to.
  * 
  **/ 
 extern void
-nwamui_ncu_set_activiation_mode (   NwamuiNcu                      *self,
-                                    nwamui_cond_activation_mode_t        activiation_mode )
+nwamui_ncu_set_activation_mode (   NwamuiNcu                      *self,
+                                    nwamui_cond_activation_mode_t        activation_mode )
 {
     g_return_if_fail (NWAMUI_IS_NCU (self));
-    g_assert (activiation_mode >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && activiation_mode <= NWAMUI_COND_ACTIVATION_MODE_LAST );
+    g_assert (activation_mode >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && activation_mode <= NWAMUI_COND_ACTIVATION_MODE_LAST );
 
     g_object_set (G_OBJECT (self),
-                  "activiation_mode", (gint)activiation_mode,
+                  "activation_mode", (gint)activation_mode,
                   NULL);
 }
 
 /**
- * nwamui_ncu_get_activiation_mode:
+ * nwamui_ncu_get_activation_mode:
  * @nwamui_ncu: a #NwamuiNcu.
- * @returns: the activiation_mode.
+ * @returns: the activation_mode.
  *
  **/
 extern nwamui_cond_activation_mode_t
-nwamui_ncu_get_activiation_mode (NwamuiNcu *self)
+nwamui_ncu_get_activation_mode (NwamuiNcu *self)
 {
-    gint  activiation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
+    gint  activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
 
-    g_return_val_if_fail (NWAMUI_IS_NCU (self), activiation_mode);
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), activation_mode);
 
     g_object_get (G_OBJECT (self),
-                  "activiation_mode", &activiation_mode,
+                  "activation_mode", &activation_mode,
                   NULL);
 
-    return( (nwamui_cond_activation_mode_t)activiation_mode );
+    return( (nwamui_cond_activation_mode_t)activation_mode );
 }
 
 /** 

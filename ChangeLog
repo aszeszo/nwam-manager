@@ -1,5 +1,14 @@
 2008-12-15  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_cond.c: 
+	  Read conditions using libnwam.
+	* common/nwamui_daemon.c: 
+	  Actually use nerr to get errors.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Fix typos on activation_mode.
+
+2008-12-15  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_cond.h, common/nwamui_cond.c: 
 	  Update condition object to match libnwam equivalent, and also
 	  support addition of an object for NCU/ENM/LOC field types.

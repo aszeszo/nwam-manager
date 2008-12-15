@@ -267,6 +267,160 @@ nwamui_cond_new_with_args ( nwamui_cond_field_t     field,
     return( self );
 }
 
+static nwamui_cond_field_t
+map_condition_obj_to_field( nwam_condition_object_type_t condition_object )
+{
+    nwamui_cond_field_t field;
+
+    switch( condition_object ) {
+        case NWAM_CONDITION_OBJECT_TYPE_NCU:
+            field = NWAMUI_COND_FIELD_NCU;
+            break;
+        case NWAM_CONDITION_OBJECT_TYPE_ENM:
+            field = NWAMUI_COND_FIELD_ENM;
+            break;
+        case NWAM_CONDITION_OBJECT_TYPE_LOC:
+            field = NWAMUI_COND_FIELD_LOC;
+            break;
+        case NWAM_CONDITION_OBJECT_TYPE_IP_ADDRESS:
+            field = NWAMUI_COND_FIELD_IP_ADDRESS;
+            break;
+        case NWAM_CONDITION_OBJECT_TYPE_DOMAINNAME:
+            field = NWAMUI_COND_FIELD_DOMAINNAME;
+            break;
+        case NWAM_CONDITION_OBJECT_TYPE_ESSID:
+            field = NWAMUI_COND_FIELD_ESSID;
+            break;
+        case NWAM_CONDITION_OBJECT_TYPE_BSSID:
+            field = NWAMUI_COND_FIELD_BSSID;
+            break;
+        default:
+            g_assert_not_reached();
+    }
+
+    return( field );
+}
+
+static nwam_condition_object_type_t 
+map_field_to_condition_obj( nwamui_cond_field_t field )
+{
+    nwam_condition_object_type_t condition_object;
+
+    switch( field ) {
+        case NWAMUI_COND_FIELD_NCU:
+            condition_object = NWAM_CONDITION_OBJECT_TYPE_NCU;
+            break;
+        case NWAMUI_COND_FIELD_ENM:
+            condition_object = NWAM_CONDITION_OBJECT_TYPE_ENM;
+            break;
+        case NWAMUI_COND_FIELD_LOC:
+            condition_object = NWAM_CONDITION_OBJECT_TYPE_LOC;
+            break;
+        case NWAMUI_COND_FIELD_IP_ADDRESS:
+            condition_object = NWAM_CONDITION_OBJECT_TYPE_IP_ADDRESS;
+            break;
+        case NWAMUI_COND_FIELD_DOMAINNAME:
+            condition_object = NWAM_CONDITION_OBJECT_TYPE_DOMAINNAME;
+            break;
+        case NWAMUI_COND_FIELD_ESSID:
+            condition_object = NWAM_CONDITION_OBJECT_TYPE_ESSID;
+            break;
+        case NWAMUI_COND_FIELD_BSSID:
+            condition_object = NWAM_CONDITION_OBJECT_TYPE_BSSID;
+            break;
+        default:
+            g_assert_not_reached();
+    }
+
+    return( condition_object );
+}
+
+static nwamui_cond_op_t
+map_condition_to_op( nwam_condition_t condition ) 
+{
+    nwamui_cond_op_t op;
+
+    switch( condition ) {
+        case NWAM_CONDITION_IS:
+            op = NWAMUI_COND_OP_IS;
+            break;
+        case NWAM_CONDITION_IS_NOT:
+            op = NWAMUI_COND_OP_IS_NOT;
+            break;
+        case NWAM_CONDITION_IS_IN_RANGE:
+            op = NWAMUI_COND_OP_IS_IN_RANGE;
+            break;
+        case NWAM_CONDITION_IS_NOT_IN_RANGE:
+            op = NWAMUI_COND_OP_IS_NOT_IN_RANGE;
+            break;
+        case NWAM_CONDITION_CONTAINS:
+            op = NWAMUI_COND_OP_CONTAINS;
+            break;
+        case NWAM_CONDITION_DOES_NOT_CONTAIN:
+            op = NWAMUI_COND_OP_DOES_NOT_CONTAIN;
+            break;
+        default:
+            g_assert_not_reached();
+    }
+
+    return( op );
+}
+
+static nwam_condition_t 
+map_op_to_condition( nwamui_cond_op_t op )
+{
+    nwam_condition_t condition;
+
+    switch( op ) {
+        case NWAMUI_COND_OP_IS:
+            condition = NWAM_CONDITION_IS;
+            break;
+        case NWAMUI_COND_OP_IS_NOT:
+            condition = NWAM_CONDITION_IS_NOT;
+            break;
+        case NWAMUI_COND_OP_IS_IN_RANGE:
+            condition = NWAM_CONDITION_IS_IN_RANGE;
+            break;
+        case NWAMUI_COND_OP_IS_NOT_IN_RANGE:
+            condition = NWAM_CONDITION_IS_NOT_IN_RANGE;
+            break;
+        case NWAMUI_COND_OP_CONTAINS:
+            condition = NWAM_CONDITION_CONTAINS;
+            break;
+        case NWAMUI_COND_OP_DOES_NOT_CONTAIN:
+            condition = NWAM_CONDITION_DOES_NOT_CONTAIN;
+            break;
+        default:
+            g_assert_not_reached();
+    }
+
+    return( condition );
+}
+
+static gboolean
+populate_fields_from_string( NwamuiCond* self, const gchar* condition_str ) 
+{
+    nwam_error_t nerr;
+    nwam_condition_object_type_t condition_object;
+    nwam_condition_t             condition;
+    char *                       value;
+    
+    g_return_val_if_fail( NWAMUI_IS_COND(self), FALSE );
+    g_return_val_if_fail( condition_str != NULL, FALSE );
+
+    if ( (nerr = nwam_condition_string_to_condition( condition_str, &condition_object, 
+                                                     &condition, &value )) != NWAM_SUCCESS ) {
+        g_warning("Failed to parse condition string: %s", condition_str?condition_str:"NULL");
+        return( FALSE );
+    }
+
+    self->prv->field = map_condition_obj_to_field( condition_object );
+    self->prv->op = map_condition_to_op( condition );
+    self->prv->value = g_strdup((value != NULL)?(value):(""));
+
+    return( TRUE );
+}
+
 /**
  * nwamui_cond_new_from_str:
  * args: condition_str - libnwam formatted condition string
