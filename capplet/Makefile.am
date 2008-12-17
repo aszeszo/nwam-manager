@@ -55,6 +55,8 @@ nwam_manager_properties_SOURCES =		\
 	nwam_proxy_password_dialog.c	\
 	nwam_env_svc.c	\
 	nwam_wireless_chooser.c	\
+	nwam_condition_vbox.c	\
+	capplet-utils.c	\
 	$(NULL)
 
 nwam_manager_properties_CPPFLAGS = \
@@ -100,6 +102,8 @@ EXTRA_DIST = 		\
 	nwam_env_svc.h	\
 	nwam_proxy_password_dialog.h	\
 	nwam_wireless_chooser.h	\
+	nwam_condition_vbox.h	\
+	capplet-utils.h	\
 	$(glade_DATA)	\
 	$(NULL)
 

@@ -66,9 +66,6 @@ GType nwam_conf_ip_panel_get_type (void) G_GNUC_CONST;
 
 extern NwamConnConfIPPanel*     nwam_conf_ip_panel_new (void);
 
-extern void                     nwam_conf_ip_panel_refresh(NwamConnConfIPPanel *self);
-
-extern void                     nwam_conf_ip_panel_set_ncu(NwamConnConfIPPanel *self, NwamuiNcu* ncu);
 
 G_END_DECLS
 

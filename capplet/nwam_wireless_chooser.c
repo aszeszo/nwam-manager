@@ -80,7 +80,7 @@ static gint nwam_wifi_chooser_comp_cb (GtkTreeModel *model,
   gpointer user_data);
 static void wifi_add (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi);
 static void wifi_remove (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi);
-static gboolean refresh (NwamPrefIFace *self, gpointer data);
+static gboolean refresh (NwamPrefIFace *self, gpointer data, gboolean force);
 static gboolean apply (NwamPrefIFace *iface, gpointer data);
 static gboolean help (NwamPrefIFace *self, gpointer data);
 
@@ -125,9 +125,9 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
       NULL);
 
     // Column:	WIFI_FAV_ESSID
-	col = gtk_tree_view_column_new();
-    gtk_tree_view_column_set_title(col, _("Name (ESSID)"));
-    g_object_set (G_OBJECT(col),
+	renderer = gtk_cell_renderer_pixbuf_new();
+	col = gtk_tree_view_column_new_with_attributes(_("Name (ESSID)"),
+      renderer,
       "expand", TRUE,
       "resizable", TRUE,
       "clickable", FALSE,
@@ -136,8 +136,6 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
       NULL);
     gtk_tree_view_append_column (view, col);
     /* first signal strength icon cell */
-	renderer = gtk_cell_renderer_pixbuf_new();
-	gtk_tree_view_column_pack_start(col, renderer, FALSE);
 	gtk_tree_view_column_set_cell_data_func (col,
       renderer,
       nwam_wifi_chooser_cell_cb,
@@ -158,10 +156,9 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
     
     // Column:	WIFI_FAV_SPEED
-    col = gtk_tree_view_column_new();
     renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_set_title(col, _("Speed"));
-    g_object_set (G_OBJECT(col),
+	col = gtk_tree_view_column_new_with_attributes(_("Speed"),
+      renderer,
       "expand", TRUE,
       "resizable", TRUE,
       "clickable", FALSE,
@@ -169,7 +166,6 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
       "reorderable", FALSE,
       NULL);
     gtk_tree_view_append_column (view, col);
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
     gtk_tree_view_column_set_cell_data_func (col,
       renderer,
       nwam_wifi_chooser_cell_cb,
@@ -180,10 +176,9 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
 
     // Column:	WIFI_FAV_SECURITY
-    col = gtk_tree_view_column_new();
     renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_set_title(col, _("Security"));
-    g_object_set (G_OBJECT(col),
+	col = gtk_tree_view_column_new_with_attributes(_("Security"),
+      renderer,
       "expand", TRUE,
       "resizable", TRUE,
       "clickable", FALSE,
@@ -191,7 +186,6 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
       "reorderable", FALSE,
       NULL);
     gtk_tree_view_append_column (view, col);
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
     gtk_tree_view_column_set_cell_data_func (col,
       renderer,
       nwam_wifi_chooser_cell_cb,
@@ -236,7 +230,7 @@ nwam_wireless_chooser_init(NwamWirelessChooser *self)
             
         g_object_unref (prof);
     }
-    nwam_pref_refresh (self, NULL);
+    nwam_pref_refresh (NWAM_PREF_IFACE(self), NULL, TRUE);
 }
 
 static void
@@ -325,11 +319,11 @@ nwam_wireless_chooser_run (NwamWirelessChooser *self, GtkWindow *parent)
  * Refresh #NwamWirelessChooser
  **/
 static gboolean
-refresh (NwamPrefIFace *self, gpointer data)
+refresh (NwamPrefIFace *self, gpointer data, gboolean force)
 {
     g_assert( NWAM_IS_WIRELESS_CHOOSER(self));
     
-    populate_panel(NWAM_WIRELESS_CHOOSER(self), FALSE);
+    populate_panel(NWAM_WIRELESS_CHOOSER(self), force);
 }
 
 static gboolean
@@ -463,7 +457,7 @@ nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data)
         wifi_add (self, model, NWAMUI_WIFI_NET(wifi));
 	} else {
         /* scan is over */
-        gtk_widget_show (self->prv->wifi_tv);
+        gtk_widget_show (GTK_WIDGET(self->prv->wifi_tv));
     }
 }
 

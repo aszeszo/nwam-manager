@@ -84,7 +84,7 @@ static void nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 					     GtkTreeIter       *iter,
 					     gpointer           data);
 
-static gboolean  nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpointer data );
+static gboolean  nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -149,11 +149,15 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 		      NULL);
 	
 	// column icon
-        /* Add first "type" icon cell */
-	col = gtk_tree_view_column_new();
+    /* Add first "type" icon cell */
 	cell = gtk_cell_renderer_pixbuf_new();
-	gtk_tree_view_column_set_title(col, _("Connection Icon"));
-	gtk_tree_view_column_pack_start(col, cell, FALSE);
+	col = gtk_tree_view_column_new_with_attributes(_("Connection Icon"),
+      cell,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", TRUE,
+      "reorderable", TRUE,
+      NULL);
 	gtk_tree_view_column_set_cell_data_func (col,
 						 cell,
 						 nwam_conn_status_update_status_cell_cb,
@@ -168,38 +172,35 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 						 (gpointer) 1, /* Important to know this is wireless cell in 1st col */
 						 NULL);
 	gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_ICON);	
-	g_object_set (col,
-		      "resizable", TRUE,
-		      "clickable", TRUE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
 	gtk_tree_view_append_column (view, col);
 
 	// column info
-	col = gtk_tree_view_column_new();
 	cell = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_set_title(col, _("Connection Information"));
-	gtk_tree_view_column_pack_start(col, cell, TRUE);
+	col = gtk_tree_view_column_new_with_attributes(_("Connection Information"),
+      cell,
+      "expand", TRUE,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", TRUE,
+      "reorderable", TRUE,
+      NULL);
 	gtk_tree_view_column_set_cell_data_func (col,
 						 cell,
 						 nwam_conn_status_update_status_cell_cb,
 						 (gpointer) 0,
 						 NULL);
 	gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_INFO);	
-	g_object_set (col,
-		      "expand", TRUE,
-		      "resizable", TRUE,
-		      "clickable", TRUE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
 	gtk_tree_view_append_column (view, col);
         
     // column status
-	col = gtk_tree_view_column_new();
 	cell = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_set_title(col, _("Connection Status"));
+	col = gtk_tree_view_column_new_with_attributes(_("Connection Status"),
+      cell,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", TRUE,
+      "reorderable", TRUE,
+      NULL);
 	gtk_tree_view_column_pack_end(col, cell, FALSE);
 	gtk_tree_view_column_set_cell_data_func (col,
 						 cell,
@@ -211,12 +212,6 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
       "weight", PANGO_WEIGHT_BOLD,
       NULL );
 	gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_STATUS);	
-	g_object_set (col,
-		      "resizable", TRUE,
-		      "clickable", TRUE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
 	gtk_tree_view_append_column (view, col);
         
     g_object_unref(model); /* Unref here since combobox will have ref-ed it */
@@ -235,7 +230,7 @@ nwam_conn_status_panel_set_ncp(NwamConnStatusPanel *self, NwamuiNcp* ncp )
         prv->model = nwam_compose_tree_view (self);
     }
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL);
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
 }
 
 static void
@@ -289,14 +284,12 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
  * Creates a new #NwamConnStatusPanel with an empty ncu
  **/
 NwamConnStatusPanel*
-nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog, NwamuiNcp* ncp)
+nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog)
 {
 	NwamConnStatusPanel *self =  NWAM_CONN_STATUS_PANEL(g_object_new(NWAM_TYPE_CONN_STATUS_PANEL, NULL));
         
     /* FIXME - Use GOBJECT Properties */
     self->prv->pref_dialog = g_object_ref( G_OBJECT( pref_dialog ));
-    
-    nwam_conn_status_panel_set_ncp(self, ncp );
 
     return( self );
 }
@@ -307,7 +300,7 @@ nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog, NwamuiNcp* ncp)
  * Refresh function for the NwamPrefIface Interface.
  **/
 static gboolean
-nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpointer data)
+nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force)
 {
         GList*                  enm_elem;
         gchar*                  text = NULL;

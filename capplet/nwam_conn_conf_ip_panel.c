@@ -197,7 +197,7 @@ static void wireless_tab_down_button_clicked_cb( GtkButton *button, gpointer dat
 static void refresh_clicked_cb( GtkButton *button, gpointer data );
 static void ipv4_addr_changed_cb( GtkEditable* editable, gpointer user_data );
 static void ipv4_subnet_changed_cb( GtkEditable* editable, gpointer user_data );
-static gboolean refresh (NwamPrefIFace *self, gpointer data);
+static gboolean refresh (NwamConnConfIPPanel *self, gpointer data, gboolean force);
 static gboolean apply (NwamPrefIFace *iface, gpointer data);
 static gboolean help (NwamPrefIFace *self, gpointer data);
 
@@ -245,40 +245,36 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
                   NULL);
 
     // Column:	WIFI_FAV_ESSID
-    col = gtk_tree_view_column_new();
     renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_set_title(col, _("Name (ESSID)"));
-    g_object_set (G_OBJECT(col),
-                  "expand", TRUE,
-                  "resizable", TRUE,
-                  "clickable", FALSE,
-                  "sort-indicator", FALSE,
-                  "reorderable", FALSE,
-                  NULL);
+	col = gtk_tree_view_column_new_with_attributes(_("Name (ESSID)"),
+      renderer,
+      "expand", TRUE,
+      "resizable", TRUE,
+      "clickable", FALSE,
+      "sort-indicator", FALSE,
+      "reorderable", FALSE,
+      NULL);
     gtk_tree_view_append_column (view, col);
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
     gtk_tree_view_column_set_cell_data_func (col,
-                                             renderer,
-                                             nwam_conn_wifi_fav_cell_cb,
-                                             (gpointer) self,
-                                             NULL);
+      renderer,
+      nwam_conn_wifi_fav_cell_cb,
+      (gpointer) self,
+      NULL);
     g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_ESSID));
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
     
     // Column:	WIFI_FAV_SECURITY
-    col = gtk_tree_view_column_new();
     renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_set_title(col, _("Security"));
-    g_object_set (G_OBJECT(col),
-                  "expand", TRUE,
-                  "resizable", TRUE,
-                  "clickable", FALSE,
-                  "sort-indicator", FALSE,
-                  "reorderable", FALSE,
-                  NULL);
+	col = gtk_tree_view_column_new_with_attributes(_("Security"),
+      renderer,
+      "expand", TRUE,
+      "resizable", TRUE,
+      "clickable", FALSE,
+      "sort-indicator", FALSE,
+      "reorderable", FALSE,
+      NULL);
     gtk_tree_view_append_column (view, col);
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
     gtk_tree_view_column_set_cell_data_func (col,
                                              renderer,
                                              nwam_conn_wifi_fav_cell_cb,
@@ -289,18 +285,16 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
     
     // Column:	WIFI_FAV_SPEED
-    col = gtk_tree_view_column_new();
     renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_set_title(col, _("Speed"));
-    g_object_set (G_OBJECT(col),
-                  "expand", TRUE,
-                  "resizable", TRUE,
-                  "clickable", FALSE,
-                  "sort-indicator", FALSE,
-                  "reorderable", FALSE,
-                  NULL);
+	col = gtk_tree_view_column_new_with_attributes(_("Speed"),
+      renderer,
+      "expand", TRUE,
+      "resizable", TRUE,
+      "clickable", FALSE,
+      "sort-indicator", FALSE,
+      "reorderable", FALSE,
+      NULL);
     gtk_tree_view_append_column (view, col);
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
     gtk_tree_view_column_set_cell_data_func (col,
                                              renderer,
                                              nwam_conn_wifi_fav_cell_cb,
@@ -311,19 +305,17 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
 
     // Column:	WIFI_FAV_SIGNAL
-    col = gtk_tree_view_column_new();
     renderer = gtk_cell_renderer_progress_new();
-    gtk_tree_view_column_set_title(col, _("Signal"));
-    g_object_set (G_OBJECT(col),
-                  "expand", TRUE,
-                  "resizable", TRUE,
-                  "clickable", FALSE,
-                  "sort-indicator", FALSE,
-                  "reorderable", FALSE,
-                  NULL);
+	col = gtk_tree_view_column_new_with_attributes(_("Signal"),
+      renderer,
+      "expand", TRUE,
+      "resizable", TRUE,
+      "clickable", FALSE,
+      "sort-indicator", FALSE,
+      "reorderable", FALSE,
+      NULL);
     gtk_tree_view_append_column (view, col);
     gtk_tree_view_column_set_sort_column_id (col, WIFI_FAV_SIGNAL);
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
     gtk_tree_view_column_set_cell_data_func (col,
                                              renderer,
                                              nwam_conn_wifi_fav_cell_cb,
@@ -348,7 +340,7 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	
 	// column IP_VIEW_HOSTNAME
 /*
-	col = gtk_tree_view_column_new();
+	col = gtk_tree_view_column_new_with_attributes();
 	renderer = gtk_cell_renderer_text_new();
 	gtk_tree_view_column_set_title(col, _("Hostname"));
 	g_object_set (G_OBJECT(col),
@@ -372,22 +364,20 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_HOSTNAME));
 */
 	// column IP_VIEW_ADDR
-	col = gtk_tree_view_column_new();
 	renderer = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_set_title(col, _("Address"));
-	gtk_tree_view_column_pack_start(col, renderer, TRUE);
+	col = gtk_tree_view_column_new_with_attributes(_("Address"),
+      renderer,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", TRUE,
+      "reorderable", TRUE,
+      NULL);
 	gtk_tree_view_column_set_cell_data_func (col,
 						 renderer,
 						 nwam_conn_multi_ip_cell_cb,
 						 (gpointer) view,
 						 NULL);
 	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_ADDR);	
-	g_object_set (G_OBJECT(col),
-		      "resizable", TRUE,
-		      "clickable", TRUE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
 	gtk_tree_view_append_column (view, col);
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
 	g_signal_connect(G_OBJECT(renderer), "edited",
@@ -395,26 +385,25 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_ADDR));
 
 	// column IP_VIEW_MASK
-	col = gtk_tree_view_column_new();
 	renderer = gtk_cell_renderer_text_new();
+	col = gtk_tree_view_column_new_with_attributes(NULL,
+      renderer,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", TRUE,
+      "reorderable", TRUE,
+      NULL);
 	if (view == self->prv->ipv4_tv) {
 		gtk_tree_view_column_set_title(col, _("Subnet"));
 	} else {
 		gtk_tree_view_column_set_title(col, _("Prefix Length"));
 	}
-	gtk_tree_view_column_pack_start(col, renderer, TRUE);
 	gtk_tree_view_column_set_cell_data_func (col,
 						 renderer,
 						 nwam_conn_multi_ip_cell_cb,
 						 (gpointer) view,
 						 NULL);
 	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_MASK);	
-	g_object_set (G_OBJECT(col),
-		      "resizable", TRUE,
-		      "clickable", TRUE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
 	gtk_tree_view_append_column (view, col);
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
 	g_signal_connect(G_OBJECT(renderer), "edited",
@@ -676,11 +665,31 @@ nwam_conf_ip_panel_new(void)
  * Refresh #NwamConnConfIPPanel
  **/
 static gboolean
-refresh (NwamPrefIFace *self, gpointer data)
+refresh (NwamConnConfIPPanel *self, gpointer data, gboolean force)
 {
-    g_assert( NWAM_IS_CONN_CONF_IP_PANEL(self));
+    gboolean init_refresh = FALSE;
+    NwamuiNcu* ncu = NWAMUI_NCU(data);
+
+    g_return_if_fail( NWAM_IS_CONN_CONF_IP_PANEL(self) && NWAMUI_IS_NCU(ncu) );
     
-    populate_panel(NWAM_CONN_CONF_IP_PANEL(self), FALSE);
+    if (self->prv->ncu != ncu) {
+        init_refresh = TRUE;
+
+        if ( self->prv->ncu != NULL ) {
+            g_signal_handler_disconnect(G_OBJECT(self->prv->ncu),
+              self->prv->ncu_handler_id );
+            g_object_unref(self->prv->ncu );
+        }
+        self->prv->ncu = g_object_ref(ncu);
+
+        self->prv->ncu_handler_id =     
+          g_signal_connect(G_OBJECT(self->prv->ncu),
+            "notify", (GCallback)ncu_changed_notify_cb, self);
+    }
+    
+    populate_panel(NWAM_CONN_CONF_IP_PANEL(self), init_refresh | force);
+
+    return TRUE;
 }
 
 static gboolean
@@ -772,26 +781,6 @@ nwam_multi_ip_clear (NwamConnConfIPPanel *self)
 	*/
 }
 
-/* 
- * Set the NCU that the IP Panel should be configuring. Will trigger an update to the UI.
- */
-extern void
-nwam_conf_ip_panel_set_ncu(NwamConnConfIPPanel *self, NwamuiNcu* ncu)
-{
-    g_return_if_fail( NWAM_IS_CONN_CONF_IP_PANEL(self) && NWAMUI_IS_NCU(ncu) );
-    
-    if ( self->prv->ncu != NULL ) {
-        g_signal_handler_disconnect(G_OBJECT(self->prv->ncu), self->prv->ncu_handler_id );
-        g_object_unref(self->prv->ncu );
-    }
-    self->prv->ncu = g_object_ref(ncu);
-
-    self->prv->ncu_handler_id =     
-        g_signal_connect(G_OBJECT(self->prv->ncu), "notify", (GCallback)ncu_changed_notify_cb, self);
-    
-    populate_panel( self, TRUE );
-}
-
 static void
 nwam_conf_ip_panel_finalize(NwamConnConfIPPanel *self)
 {
@@ -875,7 +864,7 @@ multi_line_add_cb( GtkButton *button, gpointer data )
 	gtk_tree_selection_select_iter (gtk_tree_view_get_selection(view),
 		&iter);
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(self),NULL); /* Refresh IP Data */
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE); /* Refresh IP Data */
 }
 
 static void
@@ -907,7 +896,7 @@ multi_line_del_cb( GtkButton *button, gpointer data )
 	}
 	g_list_free (list);
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(self),NULL); /* Refresh IP Data */
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE); /* Refresh IP Data */
 }
 
 static void
@@ -921,7 +910,7 @@ ncu_changed_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     g_debug("NwamConnConfIPPanel: ncu_changed " );
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(data), NULL); /* Refresh IP Data */
+    nwam_pref_refresh(NWAM_PREF_IFACE(data), NULL, TRUE); /* Refresh IP Data */
 }
 
 static void
@@ -1143,7 +1132,7 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
                 new_wifi = nwam_wireless_dialog_get_wifi_net( self->prv->wifi_dialog );
                 nwamui_daemon_add_wifi_fav(self->prv->daemon, new_wifi);
                 nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, NULL ); 
-                nwam_pref_refresh(NWAM_PREF_IFACE(self),NULL); /* Refresh IP Data */
+                nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE); /* Refresh IP Data */
             break;
         default:
             break;
@@ -1183,7 +1172,7 @@ wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data )
 
                     nwamui_daemon_remove_wifi_fav(self->prv->daemon, wifi_net );
 
-                    nwam_pref_refresh(NWAM_PREF_IFACE(self),NULL); /* Refresh IP Data */
+                    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE); /* Refresh IP Data */
                 }
             
                 if (name)
@@ -1301,7 +1290,7 @@ ipv4_addr_changed_cb( GtkEditable* editable, gpointer data )
     if ( ipv4_address != NULL ) {
         nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu), ipv4_address );
     }
- }
+}
 
 static void
 ipv4_subnet_changed_cb( GtkEditable* editable, gpointer data )
@@ -1314,5 +1303,5 @@ ipv4_subnet_changed_cb( GtkEditable* editable, gpointer data )
     if ( ipv4_subnet != NULL ) {
         nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu), ipv4_subnet );
     }
- }
+}
 

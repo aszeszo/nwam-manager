@@ -88,16 +88,14 @@ nwam_pref_iface_get_type (void)
  * Returns: TRUE, if refresh @self successfully. Default TRUE.
  **/
 gboolean
-nwam_pref_refresh (NwamPrefIFace *self, gpointer data)
+nwam_pref_refresh (NwamPrefIFace *self, gpointer data, gboolean force)
 {
     NwamPrefInterface *iface = NWAM_GET_PREF_INTERFACE (self);
 
     g_return_val_if_fail( self != NULL, FALSE );
+    g_return_val_if_fail( iface->refresh, FALSE );
 
-    if (iface->refresh)
-        return (iface)->refresh(self, data);
-
-    return TRUE;
+    return (iface)->refresh(self, data, force);
 }
 
 /**
@@ -117,9 +115,10 @@ nwam_pref_apply (NwamPrefIFace *self, gpointer data)
 {
 	NwamPrefInterface *iface = NWAM_GET_PREF_INTERFACE (self);
 
-	if (iface->apply)
-		return (iface)->apply(self, data);
-	return FALSE;
+    g_return_val_if_fail( self != NULL, FALSE );
+    g_return_val_if_fail( iface->apply, FALSE );
+
+    return (iface)->apply(self, data);
 }
 
 /**
@@ -139,7 +138,8 @@ nwam_pref_help (NwamPrefIFace *self, gpointer data)
 {
 	NwamPrefInterface *iface = NWAM_GET_PREF_INTERFACE (self);
 
-	if (iface->help)
-		return (iface)->help(self, data);
-	return FALSE;
+    g_return_val_if_fail( self != NULL, FALSE );
+    g_return_val_if_fail( iface->help, FALSE );
+
+    return (iface)->help(self, data);
 }

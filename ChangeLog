@@ -1,3 +1,73 @@
+2008-12-17  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am:
+	* capplet/capplet-utils.c: (daemon_compose_ncu_panel_mixed_combo),
+	(daemon_update_ncu_panel_mixed_model),
+	(ncu_panel_mixed_combo_cell_cb),
+	(ncu_panel_mixed_combo_separator_cb), (daemon_compose_ncp_combo),
+	(daemon_update_ncp_combo), (ncp_combo_cell_cb),
+	(nwam_pref_iface_combo_changed_cb), (nwamui_obj_get_display_name):
+	* capplet/capplet-utils.h:
+	* capplet/nwam_condition_vbox.c: (refresh), (nwam_pref_init),
+	(nwam_condition_vbox_class_init), (nwam_condition_vbox_init),
+	(nwam_condition_vbox_finalize), (_cu_cond_combo_filter_value),
+	(_cu_cond_combo_cell_cb), (_cu_cond_combo_filter_visible_cb),
+	(_cu_cond_combo_new), (nwam_condition_vbox_new),
+	(table_condition_add_row), (table_one_line_state),
+	(table_lines_init), (table_lines_free), (table_conditon_new),
+	(table_line_cache_all_cb), (table_condition_insert),
+	(table_condition_delete), (table_add_condition_cb),
+	(table_delete_condition_cb), (condition_field_op_changed_cb),
+	(condition_value_changed_cb),
+	(default_condition_add_signal_handler),
+	(default_condition_remove_signal_handler):
+	* capplet/nwam_condition_vbox.h:
+	* capplet/nwam_conn_conf_ip_panel.c: (nwam_compose_wifi_fav_view),
+	(nwam_compose_multi_ip_tree_view), (refresh), (multi_line_add_cb),
+	(multi_line_del_cb), (ncu_changed_notify_cb),
+	(wireless_tab_add_button_clicked_cb),
+	(wireless_tab_remove_button_clicked_cb), (ipv4_addr_changed_cb),
+	(ipv4_subnet_changed_cb):
+	* capplet/nwam_conn_conf_ip_panel.h:
+	* capplet/nwam_conn_stat_panel.c: (nwam_compose_tree_view),
+	(nwam_conn_status_panel_set_ncp), (nwam_conn_status_panel_new),
+	(nwam_conn_status_panel_refresh):
+	* capplet/nwam_conn_stat_panel.h:
+	* capplet/nwam_env_pref_dialog.c:
+	(nwam_env_pref_dialog_class_init), (nwam_env_pref_dialog_init),
+	(nwam_env_pref_dialog_finalize), (nwam_compose_tree_view),
+	(populate_panels_from_env):
+	* capplet/nwam_env_pref_dialog.h:
+	* capplet/nwam_env_svc.c: (nwam_compose_tree_view):
+	* capplet/nwam_net_conf_panel.c: (nwam_compose_tree_view),
+	(nwam_compose_rules_tree_view), (nwam_net_conf_panel_set_ncp),
+	(nwam_net_conf_panel_init), (nwam_net_conf_panel_new),
+	(nwam_net_conf_panel_refresh),
+	(nwam_net_conf_rules_update_cell_cb),
+	(nwam_net_conf_update_status_cell_cb),
+	(nwam_net_pref_connection_enabled_toggled_cb),
+	(vanity_name_editing_started), (vanity_name_edited),
+	(nwam_net_pref_connection_view_row_activated_cb),
+	(update_rules_from_ncu),
+	(nwam_net_pref_rule_ncu_enabled_toggled_cb),
+	(conditions_connected_toggled_cb), (conditions_set_status_changed),
+	(conditions_connected_changed), (on_activate_static_menuitems):
+	* capplet/nwam_net_conf_panel.h:
+	* capplet/nwam_pref_dialog.c: (nwam_capplet_dialog_init),
+	(refresh), (response_cb), (show_changed_cb),
+	(show_combo_separator_cb), (show_combo_cell_cb),
+	(refresh_clicked_cb), (show_comob_add), (change_show_combo_model),
+	(add_ncu_element):
+	* capplet/nwam_pref_iface.c: (nwam_pref_refresh),
+	(nwam_pref_apply), (nwam_pref_help):
+	* capplet/nwam_pref_iface.h:
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_compose_vpn_apps_view):
+	* capplet/nwam_wireless_chooser.c:
+	(nwam_compose_wifi_chooser_view), (nwam_wireless_chooser_init),
+	(refresh):
+	* common/libnwamui.h:
+	split condition vbox out of evn preference dialog.
+
 2008-12-15  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_cond.c: 

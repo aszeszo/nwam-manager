@@ -58,7 +58,7 @@ struct _NwamNetConfPanelClass
 
 GType nwam_net_conf_panel_get_type (void) G_GNUC_CONST;
 
-NwamNetConfPanel* nwam_net_conf_panel_new(NwamCappletDialog *pref_dialog, NwamuiNcp* ncp);
+NwamNetConfPanel* nwam_net_conf_panel_new(NwamCappletDialog *pref_dialog);
 
 G_END_DECLS
 

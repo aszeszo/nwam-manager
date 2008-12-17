@@ -62,7 +62,7 @@ struct _NwamConnStatusPanelClass
 
 GType nwam_conn_status_panel_get_type (void) G_GNUC_CONST;
 
-NwamConnStatusPanel* nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog, NwamuiNcp* ncp);
+NwamConnStatusPanel* nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog);
 
 void nwam_conn_status_add (NwamConnStatusPanel *self, NwamuiNcu* connection);
 

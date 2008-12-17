@@ -102,6 +102,12 @@ typedef guint64 libnwam_diag_cause_t;
 #define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "network-wireless-signal-fair"
 #define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "network-wireless-signal-good"
 
+/* TODO test icons */
+#define  NWAM_ICON_NCU_STATUS_ENABLED       GTK_STOCK_YES
+#define  NWAM_ICON_NCU_STATUS_DISABLED      GTK_STOCK_NO
+#define  NWAM_ICON_NCU_STATUS_CONDITIONAL   GTK_STOCK_STOP
+#define  NWAM_ICON_NCU_STATUS_PRIORITIZED   GTK_STOCK_GO_FORWARD
+
 /* if no favorite networks are available, what should we do ? */
 enum 
 {

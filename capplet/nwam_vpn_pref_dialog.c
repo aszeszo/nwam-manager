@@ -247,19 +247,17 @@ nwam_compose_vpn_apps_view (NwamVPNPrefDialog *self)
 		      NULL);
 	
 	// column APP_NAME
-	col = gtk_tree_view_column_new();
 	renderer = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_set_title(col, _("Application Name"));
-	g_object_set (G_OBJECT(col),
-                      "expand", TRUE,
-		      "resizable", TRUE,
-		      "clickable", TRUE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
+	col = gtk_tree_view_column_new_with_attributes(_("Application Name"),
+      renderer,
+      "expand", TRUE,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", TRUE,
+      "reorderable", TRUE,
+      NULL);
 	gtk_tree_view_append_column (view, col);
 	gtk_tree_view_column_set_sort_column_id (col, APP_NAME);
-	gtk_tree_view_column_pack_start(col, renderer, TRUE);
 	gtk_tree_view_column_set_cell_data_func (col,
 						 renderer,
 						 nwam_vpn_cell_cb,
@@ -280,22 +278,20 @@ nwam_compose_vpn_apps_view (NwamVPNPrefDialog *self)
 					      GTK_SORT_ASCENDING);
 
 	// column APP_STATE
-	col = gtk_tree_view_column_new();
 	renderer = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_set_title(col, _("Status"));
-	gtk_tree_view_column_pack_start(col, renderer, TRUE);
+	col = gtk_tree_view_column_new_with_attributes(_("Status"),
+      renderer,
+      "resizable", TRUE,
+      "clickable", FALSE,
+      "sort-indicator", TRUE,
+      "reorderable", TRUE,
+      NULL);
 	gtk_tree_view_column_set_cell_data_func (col,
 						 renderer,
 						 nwam_vpn_cell_cb,
 						 (gpointer) self,
 						 NULL);
 	gtk_tree_view_column_set_sort_column_id (col, APP_STATE);	
-	g_object_set (G_OBJECT(col),
-		      "resizable", TRUE,
-		      "clickable", FALSE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
 	gtk_tree_view_append_column (view, col);
 }
 
@@ -464,7 +460,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
             stop_emission = TRUE;
 			break;
 		case GTK_RESPONSE_HELP:
-            nwam_pref_help (NWAM_VPN_PREF_DIALOG(data), NULL);
+            nwam_pref_help (NWAM_PREF_IFACE(data), NULL);
             stop_emission = TRUE;
 			break;
 	}
@@ -646,7 +642,7 @@ nwam_vpn_cell_edited_cb (GtkCellRendererText *renderer,
 					nwamui_enm_set_name(NWAMUI_ENM(obj), new_text);
 				} else {
 					obj = nwamui_enm_new(new_text, FALSE, NULL, NULL, NULL);
-					gtk_list_store_set(model, &iter,
+					gtk_list_store_set(GTK_TREE_MODEL(model), &iter,
 						0,  obj, -1);
 					/* assign the new one to the current selection */
 					prv->cur_obj = obj;

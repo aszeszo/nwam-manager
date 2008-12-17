@@ -78,14 +78,14 @@ static void env_rem_clicked_cb( GtkButton *button, gpointer data );
 static void svc_toggle_cb (GtkCellRendererToggle *cell_renderer,
                gchar                 *path,
                gpointer               user_data);
-static gboolean refresh (NwamPrefIFace *self, gpointer data);
+static gboolean refresh (NwamPrefIFace *self, gpointer data, gboolean force);
 static gboolean apply (NwamPrefIFace *self, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamEnvSvc, 
                         nwam_env_svc, 
                         G_TYPE_OBJECT,
                         0, 
-                        G_IMPLEMENT_INTERFACE (NWAM_TYPE_PREF_IFACE, nwam_pref_init));
+                        G_IMPLEMENT_INTERFACE (NWAM_TYPE_PREF_IFACE, nwam_pref_init))
 
 static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
@@ -121,9 +121,14 @@ nwam_compose_tree_view (NwamEnvSvc *self, GtkTreeView *view)
 		      NULL);
 	
 	// column switch
-	col = gtk_tree_view_column_new();
 	renderer = gtk_cell_renderer_toggle_new();
-	gtk_tree_view_column_pack_start(col, renderer, TRUE);
+	col = gtk_tree_view_column_new_with_attributes(NULL,
+      renderer,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", TRUE,
+      "reorderable", TRUE,
+      NULL);
 	gtk_tree_view_column_set_cell_data_func (col,
 						 renderer,
 						 nwam_env_svc_view_cb,
@@ -131,12 +136,6 @@ nwam_compose_tree_view (NwamEnvSvc *self, GtkTreeView *view)
 						 NULL
 		);
 	gtk_tree_view_column_set_sort_column_id (col, SVC_SWITCH);	
-	g_object_set (col,
-		      "resizable", TRUE,
-		      "clickable", TRUE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
 	gtk_tree_view_append_column (view, col);
 	gtk_tree_sortable_set_sort_func	(GTK_TREE_SORTABLE(model),
 					 SVC_SWITCH,
@@ -150,9 +149,14 @@ nwam_compose_tree_view (NwamEnvSvc *self, GtkTreeView *view)
 
 	
 	// column icon
-	col = gtk_tree_view_column_new();
 	renderer = gtk_cell_renderer_pixbuf_new();
-	gtk_tree_view_column_pack_start(col, renderer, TRUE);
+	col = gtk_tree_view_column_new_with_attributes(NULL,
+      renderer,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", TRUE,
+      "reorderable", TRUE,
+      NULL);
 	gtk_tree_view_column_set_cell_data_func (col,
 						 renderer,
 						 nwam_env_svc_view_cb,
@@ -160,12 +164,6 @@ nwam_compose_tree_view (NwamEnvSvc *self, GtkTreeView *view)
 						 NULL
 		);
 	gtk_tree_view_column_set_sort_column_id (col, SVC_ICON);	
-	g_object_set (col,
-		      "resizable", TRUE,
-		      "clickable", TRUE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
 	gtk_tree_view_append_column (view, col);
 	gtk_tree_sortable_set_sort_func	(GTK_TREE_SORTABLE(model),
 					 SVC_SWITCH,
@@ -177,9 +175,14 @@ nwam_compose_tree_view (NwamEnvSvc *self, GtkTreeView *view)
 					      GTK_SORT_ASCENDING);
 
 	// column info
-	col = gtk_tree_view_column_new();
 	renderer = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_pack_start(col, renderer, TRUE);
+	col = gtk_tree_view_column_new_with_attributes(NULL,
+      renderer,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", TRUE,
+      "reorderable", TRUE,
+      NULL);
 	gtk_tree_view_column_set_cell_data_func (col,
 						 renderer,
 						 nwam_env_svc_view_cb,
@@ -187,12 +190,6 @@ nwam_compose_tree_view (NwamEnvSvc *self, GtkTreeView *view)
 						 NULL
 		);
 	gtk_tree_view_column_set_sort_column_id (col, SVC_INFO);	
-	g_object_set (col,
-		      "resizable", TRUE,
-		      "clickable", TRUE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
 	gtk_tree_view_append_column (view, col);
 	gtk_tree_sortable_set_sort_func	(GTK_TREE_SORTABLE(model),
 					 SVC_INFO,
