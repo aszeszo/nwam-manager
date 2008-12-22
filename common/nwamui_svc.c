@@ -34,12 +34,14 @@
 
 #include "libnwamui.h"
 #include "nwamui_svc.h"
+#include "libscf.h"
 
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAMUI_TYPE_SVC, NwamuiSvcPrivate)) 
 
 struct _NwamuiSvcPrivate {
-    nwam_loc_prop_template_t    svc;
+    gchar*                      svc_fmri;
+    gchar*                      svc_description;
     gboolean                    status;
     gboolean                    is_default;
     gboolean                    is_new;
@@ -57,13 +59,13 @@ static void nwamui_svc_get_property (GObject		 *object,
 
 static void nwamui_svc_finalize (NwamuiSvc *self);
 
+static void populate_svc( NwamuiSvc *self );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 enum {
-	PROP_SVC = 1,
-	PROP_FMRI,
+	PROP_FMRI = 1,
 	PROP_DESC,
 	PROP_STAT,
 	PROP_DEFAULT,
@@ -84,13 +86,6 @@ nwamui_svc_class_init (NwamuiSvcClass *klass)
 	g_type_class_add_private (klass, sizeof (NwamuiSvcPrivate));
 
 	/* Create some properties */
-    g_object_class_install_property (gobject_class,
-      PROP_SVC,
-      g_param_spec_pointer ("nwam_svc",
-        _("Nwam ENV SVC handle"),
-        _("Nwam ENV SVC handle"),
-        G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE));
-
 	g_object_class_install_property (gobject_class,
       PROP_FMRI,
       g_param_spec_string ("fmri",
@@ -143,15 +138,21 @@ nwamui_svc_set_property (GObject		 *object,
 	NwamuiSvcPrivate *prv = GET_PRIVATE(object);
 
 	switch (prop_id) {
-    case PROP_SVC: {
-        g_assert (prv->svc == NULL);
-        prv->svc = g_value_get_pointer (value);
-    }
-        break;
     case PROP_FMRI: {
-        g_assert_not_reached ();
+        if ( prv->svc_fmri != NULL ) {
+            g_free(prv->svc_fmri);
+        }
+        prv->svc_fmri = g_strdup( g_value_get_string( value ) );
     }
         break;
+    case PROP_DESC: {
+        if ( prv->svc_description != NULL ) {
+            g_free(prv->svc_description);
+        }
+        prv->svc_description = g_strdup( g_value_get_string( value ) );
+    }
+        break;
+#if 0
     case PROP_STAT: {
         // TODO, enable/disable svc
         prv->status = g_value_get_boolean (value);
@@ -161,6 +162,7 @@ nwamui_svc_set_property (GObject		 *object,
         prv->is_default = g_value_get_boolean (value);
     }
         break;
+#endif
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -176,26 +178,15 @@ nwamui_svc_get_property (GObject		 *object,
 	NwamuiSvcPrivate *prv = GET_PRIVATE(object);
 
 	switch (prop_id) {
-    case PROP_SVC: {
-        g_value_set_pointer (value, prv->svc);
-    }
-        break;
     case PROP_FMRI: {
-        nwam_error_t err;
-        const char* fmri;
-        if ( ( err = nwam_loc_prop_template_get_fmri( prv->svc, &fmri )) == NWAM_SUCCESS ) {
-            g_value_set_string(value, fmri);
-        }
+        g_value_set_string(value, prv->svc_fmri);
     }
         break;
     case PROP_DESC: {
-        nwam_error_t err;
-        const char* desc;
-        if ( ( err = nwam_loc_prop_template_get_prop_desc( prv->svc, &desc )) == NWAM_SUCCESS ) {
-            g_value_set_string(value, desc);
-        }
+        g_value_set_string(value, prv->svc_description);
     }
         break;
+#if 0 
     case PROP_STAT: {
         g_value_set_boolean (value, prv->status);
     }
@@ -204,6 +195,7 @@ nwamui_svc_get_property (GObject		 *object,
         g_value_set_boolean (value, prv->is_default);
     }
         break;
+#endif
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -215,14 +207,19 @@ nwamui_svc_finalize (NwamuiSvc *self)
 {
 	NwamuiSvcPrivate *prv = GET_PRIVATE(self);
 
-    if (prv->svc != NULL) {
-        nwam_loc_prop_template_free (prv->svc);
+    if (prv->svc_fmri != NULL) {
+        g_free( prv->svc_fmri );
+    }
+    
+    if (prv->svc_description != NULL) {
+        g_free( prv->svc_description );
     }
     
 	G_OBJECT_CLASS(nwamui_svc_parent_class)->finalize(G_OBJECT(self));
 }
 
 /* Exported Functions */
+
 
 /**
  * nwamui_svc_new:
@@ -234,15 +231,81 @@ nwamui_svc_finalize (NwamuiSvc *self)
  * Creates a new #NwamuiSvc.
  **/
 extern	NwamuiSvc*
-nwamui_svc_new (nwam_loc_prop_template_t svc)
+nwamui_svc_new (const gchar* fmri)
 {
 	NwamuiSvc*	self = NULL;
+
+    if ( fmri != NULL ) {
+        /* Validate FMRI */
+        const char* state = smf_get_state( fmri );
+        if ( state == NULL ) {
+            /* Failed to validate */
+            return( NULL );
+        }
+    }
 	
 	self = NWAMUI_SVC(g_object_new (NWAMUI_TYPE_SVC,
-                        "nwam_svc", svc,
+                        "fmri", fmri,
                         NULL));
+
+    populate_svc( self );
 	
 	return( self );
+}
+
+static void
+populate_svc( NwamuiSvc *self )
+{
+    static scf_handle_t        *handle = NULL;
+	static ssize_t              max_scf_name_length = 0;
+    static scf_instance_t      *instance = NULL;
+    static scf_propertygroup_t *pg = NULL;
+    static scf_property_t      *prop = NULL;
+    static scf_value_t         *value = NULL;
+    gchar  *desc = g_malloc0( max_scf_name_length + 1 );
+
+
+    if ( handle == NULL ) {
+        max_scf_name_length = scf_limit(SCF_LIMIT_MAX_NAME_LENGTH);
+        instance = scf_instance_create( handle );
+        pg = scf_pg_create( handle );
+        prop = scf_property_create( handle );
+        value = scf_value_create( handle );
+
+        if (scf_handle_bind(handle) == -1 ) {
+            g_warning( "couldn't bind to smf service: %s", scf_strerror(scf_error()) );
+        }
+    }
+
+
+    if ( scf_handle_decode_fmri( handle, self->prv->svc_fmri , NULL, NULL, instance, NULL, NULL,
+            SCF_DECODE_FMRI_REQUIRE_INSTANCE ) < 0 ) {
+        g_warning( "%s", scf_strerror(scf_error()) );
+    }
+
+    if ( scf_instance_get_pg( instance, SCF_PG_TM_COMMON_NAME, pg) < 0 ) {
+        g_warning( "%s", scf_strerror(scf_error()) );
+    }
+
+    if ( scf_pg_get_property(pg, "C", prop ) < 0 ) {
+        g_warning( "%s", scf_strerror(scf_error()) );
+    }
+
+    if ( scf_property_get_value(prop, value ) < 0 ) {
+        g_warning( "%s", scf_strerror(scf_error()) );
+    }
+    else {
+        if ( scf_value_get_ustring(value, desc, max_scf_name_length + 1 ) < 0 ) {
+            g_warning( "%s", scf_strerror(scf_error()) );
+        }
+        else {
+            g_object_set( self,
+                          "description", desc,
+                          NULL);
+        }
+    }
+
+    g_free(desc);
 }
 
 /**
@@ -265,6 +328,21 @@ nwamui_svc_get_description (NwamuiSvc *self)
 	return( description );
 }
 
+extern gchar *
+nwamui_svc_get_name (NwamuiSvc *self)
+{
+    gchar *name = NULL;
+    
+	g_return_val_if_fail (NWAMUI_IS_SVC (self), name);
+
+    g_object_get (self, "fmri", &name, NULL);
+    return name;
+}
+
+/*
+ * TODO: Decide if we still need these.
+ */
+#if 0
 extern void
 nwamui_svc_set_status (NwamuiSvc *self, gboolean status)
 {
@@ -283,17 +361,6 @@ nwamui_svc_get_status (NwamuiSvc *self)
     g_object_get (self, "status", &status, NULL);
 
     return status;
-}
-
-extern gchar *
-nwamui_svc_get_name (NwamuiSvc *self)
-{
-    gchar *name = NULL;
-    
-	g_return_val_if_fail (NWAMUI_IS_SVC (self), name);
-
-    g_object_get (self, "fmri", &name, NULL);
-    return name;
 }
 
 extern void
@@ -315,6 +382,7 @@ nwamui_svc_is_default (NwamuiSvc *self)
 
     return is_default;
 }
+#endif /* 0 */
 
 /* Callbacks */
 

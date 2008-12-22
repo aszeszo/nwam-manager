@@ -106,16 +106,26 @@ static void nwamui_env_get_property ( GObject         *object,
                                       GParamSpec      *pspec);
 
 static void nwamui_env_finalize (     NwamuiEnv *self);
+#if 0
+/* These are not needed right now since we don't support property templates,
+ * but would like to keep around for when we do.
+ */
 static gboolean nwamui_env_svc_commit (NwamuiEnv *self, NwamuiSvc *svc);
+#endif /* 0 */
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void svc_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data); 
 static void svc_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
 
+#if 0
+/* These are not needed right now since we don't support property templates,
+ * but would like to keep around for when we do.
+ */
 /* walkers */
 static int nwam_loc_svc_walker_cb (nwam_loc_prop_template_t svc, void *data);
 static int nwam_loc_sys_svc_walker_cb (nwam_loc_handle_t env, nwam_loc_prop_template_t svc, void *data);
+#endif /* 0 */
 
 G_DEFINE_TYPE (NwamuiEnv, nwamui_env, G_TYPE_OBJECT)
 
@@ -550,17 +560,17 @@ nwamui_env_get_property (GObject         *object,
 
     switch (prop_id) {
         case PROP_NAME: {
-            if (self->prv->name == NULL) {
-                char *name;
-                nerr = nwam_loc_get_name (self->prv->nwam_env, &name);
-                if (nerr != NWAM_SUCCESS) {
-                    g_debug ("nwam_loc_get_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+                if (self->prv->name == NULL) {
+                    char *name;
+                    nerr = nwam_loc_get_name (self->prv->nwam_env, &name);
+                    if (nerr != NWAM_SUCCESS) {
+                        g_debug ("nwam_loc_get_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+                    }
+                    if (g_ascii_strcasecmp (self->prv->name, name) != 0) {
+                        g_assert_not_reached ();
+                    }
+                    free (name);
                 }
-                if (g_ascii_strcasecmp (self->prv->name, name) != 0) {
-                    g_assert_not_reached ();
-                }
-                free (name);
-            }
                 g_value_set_string( value, self->prv->name );
             }
             break;
@@ -719,10 +729,15 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
         free (name);
 
         g_debug ("loading nwamui_env_new_with_handle %s", name);
+#if 0
+/* These are not needed right now since we don't support property templates,
+ * but would like to keep around for when we do.
+ */
         nerr = nwam_walk_loc_prop_templates(nwam_loc_svc_walker_cb, env, 0, &rval );
         if (nerr != NWAM_SUCCESS) {
             g_debug ("[libnwam] nwamui_env_new_with_handle walk svc %s", nwam_strerror (nerr));
         }
+#endif /* 0 */
     }
     
     return( env );
@@ -1623,6 +1638,10 @@ nwamui_env_get_condition_predicate ()
     return condition_predicate;
 }
 
+#if 0
+/* These are not needed right now since we don't support property templates,
+ * but would like to keep around for when we do.
+ */
 extern GtkTreeModel *
 nwamui_env_get_svcs (NwamuiEnv *self)
 {
@@ -1759,6 +1778,7 @@ nwamui_env_svc_commit (NwamuiEnv *self, NwamuiSvc *svc)
     /* nerr = nwam_loc_svc_insert (self->prv->nwam_env, &svc_h, 1); */
     return nerr == NWAM_SUCCESS;
 }
+#endif /* 0 */
 
 extern gboolean
 nwamui_env_activate (NwamuiEnv *self)
@@ -1775,6 +1795,10 @@ nwamui_env_commit (NwamuiEnv *self)
 	GtkTreeIter iter;
     NwamuiSvc *svcobj;
     
+#if 0
+/* These are not needed right now since we don't support property templates,
+ * but would like to keep around for when we do.
+ */
     if (gtk_tree_model_get_iter_first (GTK_TREE_MODEL(self->prv->svcs_model), &iter)) {
         do {
             gtk_tree_model_get (GTK_TREE_MODEL(self->prv->svcs_model), &iter, 0, &svcobj, -1);
@@ -1783,6 +1807,7 @@ nwamui_env_commit (NwamuiEnv *self)
             }
         } while (gtk_tree_model_iter_next (GTK_TREE_MODEL(self->prv->svcs_model), &iter));
     }
+#endif /* 0 */
     
     nerr = nwam_loc_commit (self->prv->nwam_env, 0);
     return nerr == NWAM_SUCCESS;
@@ -1875,6 +1900,10 @@ svc_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer data)
     g_object_notify(G_OBJECT(self), "svcs_model");
 }
 
+#if 0
+/* These are not needed right now since we don't support property templates,
+ * but would like to keep around for when we do.
+ */
 /* walkers */
 static int
 nwam_loc_svc_walker_cb (nwam_loc_prop_template_t svc, void *data)
@@ -1902,3 +1931,5 @@ nwam_loc_sys_svc_walker_cb (nwam_loc_handle_t env, nwam_loc_prop_template_t svc,
       SVC_OBJECT, svcobj, -1);
     g_object_unref (svcobj);
 }
+#endif /* 0 */
+

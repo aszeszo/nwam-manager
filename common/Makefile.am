@@ -36,6 +36,7 @@ AM_LDFLAGS = \
 	$(INTLLIBS)		\
 	$(NWAM_MANAGER_LIBS)		\
 	$(NWAM_LIBS)		\
+	$(SCF_LIBS)		\
 	$(NULL)
 
 noinst_LTLIBRARIES = libnwamui.la

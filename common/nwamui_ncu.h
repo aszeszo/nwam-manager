@@ -72,6 +72,7 @@ typedef enum {
 extern struct _NwamuiNcp;
 
 extern  NwamuiNcu*          nwamui_ncu_new_with_handle( struct _NwamuiNcp* ncp, nwam_ncu_handle_t ncu );
+extern void                 nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   );
 
 extern gchar*               nwamui_ncu_get_vanity_name ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name );

@@ -26,6 +26,7 @@
  * File:   nwamui_ncp.c
  *
  */
+#include <stdlib.h>
 
 #include <glib-object.h>
 #include <glib/gi18n.h>
@@ -657,8 +658,24 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
     g_debug ("nwam_ncu_walker_cb 0x%p", ncu);
 
     /* FIXME: Check if NCU already exists... */
+    if ( (nerr = nwam_ncu_get_name (ncu, &name)) != NWAM_SUCCESS ) {
+        g_debug ("Failed to get name for ncu, error: %s", nwam_strerror (nerr));
+    }
     
-    new_ncu = nwamui_ncu_new_with_handle( NWAMUI_NCP(data), ncu);
+    if ( (new_ncu = nwamui_ncp_get_ncu_by_device_name( ncp, name )) != NULL ) {
+        /* Update rather than create a new object */
+        g_debug("Updating existing ncu (%s) from handle 0x%08X", name, ncu );
+        nwamui_ncu_update_with_handle( new_ncu, ncu);
+
+        free(name);
+        return( 0 );
+    }
+    else {
+        free(name);
+
+        g_debug("Creating a new ncu for %s from handle 0x%08X", name, ncu );
+        new_ncu = nwamui_ncu_new_with_handle( NWAMUI_NCP(data), ncu);
+    }
 
     if ( new_ncu != NULL ) {
         gtk_list_store_append( prv->ncu_list_store, &iter );
@@ -666,7 +683,12 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
 
         g_signal_connect(G_OBJECT(new_ncu), "notify",
                          (GCallback)ncu_notify_cb, (gpointer)ncp);
+
+        return(0);
     }
+
+    g_warning("Failed to create a new NCU");
+    return(1);
 }
 
 /**

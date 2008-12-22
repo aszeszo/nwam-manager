@@ -80,7 +80,7 @@ main(int argc, char** argv)
     return (EXIT_SUCCESS);
 }
 
-static void
+static gboolean
 process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
 {
     NwamuiNcu           *ncu = NULL;
@@ -96,6 +96,8 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     gboolean            ipv6_auto_conf;
     gchar*              ipv6_address;
     gchar*              ipv6_prefix;
+
+    fprintf(stderr,"*************************************************************\n");
 
     gtk_tree_model_get(model, iter, 0, &ncu, -1);
     
@@ -150,6 +152,10 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
         g_free( ipv6_address );
     if ( ipv6_prefix != NULL ) 
         g_free( ipv6_prefix );
+
+    fprintf(stderr,"*************************************************************\n");
+
+    return(FALSE);
 }
 
 static void 
@@ -158,6 +164,7 @@ process_ncp( gpointer data, gpointer user_data )
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     NwamuiNcp       *ncp = NWAMUI_NCP(data);
     
+    fprintf(stderr,"=============================================================\n");
     if ( ncp != NULL ) {
         gchar * name = nwamui_ncp_get_name( ncp );
 
@@ -170,6 +177,7 @@ process_ncp( gpointer data, gpointer user_data )
     }
 
     g_object_unref(G_OBJECT(daemon));
+    fprintf(stderr,"=============================================================\n");
     
 }
 

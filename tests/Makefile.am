@@ -40,6 +40,7 @@ AM_LDFLAGS = \
 	$(INTLLIBS)		\
 	$(NWAM_LIBS)		\
 	$(SECDB_LIBS)		\
+	$(SCF_LIBS)		\
 	$(KSTAT_LIBS)		\
 	$(NWAM_MANAGER_LIBS)		\
 	$(LIBNOTIFY_LIBS) \

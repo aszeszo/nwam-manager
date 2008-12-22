@@ -126,6 +126,19 @@ AC_CHECK_LIB(secdb, chkauthattr,
 	)])
 AC_SUBST(SECDB_LIBS)
 
+dnl
+dnl SCF/SMF checks 
+dnl
+AC_CHECK_LIB(scf, scf_handle_create,
+	[SCF_LIBS="-lscf"
+	AC_DEFINE(HAVE_SECDB, 1, [Define to 1 if the libscf library is present.])],
+        [AC_MSG_ERROR(
+***
+*** libscf was not found. 
+***
+	)])
+AC_SUBST(SCF_LIBS)
+
 
 AC_CONFIG_FILES([
 Makefile

@@ -54,6 +54,14 @@ extern "C" {
 #define	NWAM_FLAG_CREATE		0x00000002
 /* Tell destroy functions not to free handle */
 #define	NWAM_FLAG_DO_NOT_FREE		0x00000004
+/*
+ * Tell commit functions to over-ride readonly object property.
+ * This "back-door" is meant to be used by nwamd to modify objects
+ * that are not user-modifiable, such as the automatic ncp. The flag
+ * should not be used by general consumers of the API interface (such
+ * as nwam ui components).
+ */
+#define	NWAM_FLAG_OKAY_TO_WRITE		0x00000008
 
 /* nwam flags used for selecting ncu type for walk */
 #define	NWAM_FLAG_NCU_TYPE_LINK		0x00000001ULL << 32
@@ -85,6 +93,9 @@ extern "C" {
 				NWAM_FLAG_ACTIVATION_MODE_CONDITIONAL_ANY |\
 				NWAM_FLAG_ACTIVATION_MODE_CONDITIONAL_ALL)
 
+/* Walk known WLANs in order of priroity (lowest first) */
+#define	NWAM_FLAG_KNOWN_WLAN_WALK_PRIORITY_ORDER	0x000010000ULL << 32
+
 /* nwam return codes */
 typedef enum {
 	NWAM_SUCCESS,			/* No error occured */
@@ -105,6 +116,7 @@ typedef enum {
 	NWAM_ENTITY_MISSING_MEMBER,	/* Required member is missing */
 	NWAM_ENTITY_NO_VALUE,		/* No value associated with entity */
 	NWAM_ENTITY_MULTIPLE_VALUES,	/* Multiple values for entity */
+	NWAM_ENTITY_READ_ONLY,		/* Entity is marked read only */
 	NWAM_WALK_HALTED,		/* Callback function returned nonzero */
 	NWAM_ERROR_BIND,		/* Could not bind to backend */
 	NWAM_ERROR_BACKEND_INIT,	/* Could not initialize backend */
@@ -205,24 +217,9 @@ typedef enum {
  * Location definitions.
  */
 
-/*
- * SMF property names in location template property group.  Templates provide
- * a mechanism for adding new location properties via SMF (instead of having
- * to modify libnwam).
- */
-#define	NWAM_LOC_TEMPLATE_PROP_LOC	"nwam_loc_property"
-#define	NWAM_LOC_TEMPLATE_PROP_GROUP	"nwam_loc_property_group"
-#define	NWAM_LOC_TEMPLATE_PROP_NAME	"nwam_loc_property_name"
-#define	NWAM_LOC_TEMPLATE_PROP_DESC	"nwam_loc_property_description"
-#define	NWAM_LOC_TEMPLATE_PROP_DEFAULT	"nwam_loc_property_default"
-
 /* Forward definition */
 struct nwam_loc_handle;
 typedef struct nwam_loc_handle *nwam_loc_handle_t;
-
-/* Forward definition */
-struct nwam_loc_prop_template;
-typedef struct nwam_loc_prop_template *nwam_loc_prop_template_t;
 
 typedef enum {
 	NWAM_ACTIVATION_MODE_MANUAL,
@@ -334,6 +331,7 @@ typedef enum {
 #define	NWAM_NAMESERVICES_NISPLUS_STRING	"nisplus"
 #define	NWAM_NAMESERVICES_LDAP_STRING		"ldap"
 
+#define	NWAM_LOC_PROP_READ_ONLY			"read-only"
 #define	NWAM_LOC_PROP_ACTIVATION_MODE		"activation-mode"
 #define	NWAM_LOC_PROP_CONDITION			"condition"
 #define	NWAM_LOC_PROP_ENABLED			"enabled"
@@ -448,6 +446,7 @@ typedef enum {
 #define	NWAM_PRIORITY_MODE_ALL_STRING		"all"
 
 /* NCU properties common to all type/classes */
+#define	NWAM_NCU_PROP_READ_ONLY		"read-only"
 #define	NWAM_NCU_PROP_TYPE		"type"
 #define	NWAM_NCU_PROP_CLASS		"class"
 #define	NWAM_NCU_PROP_PARENT_NCP	"parent"
@@ -490,6 +489,7 @@ typedef enum {
 struct nwam_enm_handle;
 typedef struct nwam_enm_handle *nwam_enm_handle_t;
 
+#define	NWAM_ENM_PROP_READ_ONLY		"read-only"
 #define	NWAM_ENM_PROP_ACTIVATION_MODE	"activation-mode"
 #define	NWAM_ENM_PROP_CONDITION		"condition"
 #define	NWAM_ENM_PROP_ENABLED		"enabled"
@@ -500,6 +500,18 @@ typedef struct nwam_enm_handle *nwam_enm_handle_t;
 /* Start/stop scripts associated with ENM */
 #define	NWAM_ENM_PROP_START		"start"
 #define	NWAM_ENM_PROP_STOP		"stop"
+
+/*
+ * Known Wireless LAN info (known WLAN) definitions.
+ */
+
+/* Forward definition */
+struct nwam_known_wlan_handle;
+typedef struct nwam_known_wlan_handle *nwam_known_wlan_handle_t;
+
+#define	NWAM_KNOWN_WLAN_PROP_BSSIDS	"bssids"
+#define	NWAM_KNOWN_WLAN_PROP_PRIORITY	"priority"
+
 
 /*
  * Location Functions
@@ -562,24 +574,6 @@ extern nwam_error_t nwam_loc_get_prop_type(const char *, nwam_value_type_t *);
 
 /* get default loc props */
 extern nwam_error_t nwam_loc_get_default_proplist(const char ***, uint_t *);
-
-/* SMF-defined location property template functions */
-nwam_error_t nwam_walk_loc_prop_templates(int (*)(nwam_loc_prop_template_t,
-    void *), void *, uint64_t, int *);
-nwam_error_t nwam_get_loc_prop_template(const char *,
-    nwam_loc_prop_template_t *);
-nwam_error_t nwam_loc_prop_template_get_fmri(nwam_loc_prop_template_t,
-    const char **);
-nwam_error_t nwam_loc_prop_template_get_prop_name(nwam_loc_prop_template_t,
-    const char **);
-nwam_error_t nwam_loc_prop_template_get_prop_group(nwam_loc_prop_template_t,
-    const char **);
-nwam_error_t nwam_loc_prop_template_get_prop_desc(nwam_loc_prop_template_t,
-    const char **);
-nwam_error_t nwam_loc_prop_template_get_prop_default(nwam_loc_prop_template_t,
-    nwam_value_t *);
-void nwam_loc_prop_template_free(nwam_loc_prop_template_t);
-
 
 /*
  * NCP/NCU functions
@@ -748,6 +742,69 @@ extern nwam_error_t nwam_enm_set_name(nwam_enm_handle_t, const char *);
  */
 extern nwam_error_t nwam_enm_enable(nwam_enm_handle_t);
 extern nwam_error_t nwam_enm_disable(nwam_enm_handle_t);
+
+/*
+ * Known Wireless LAN (WLAN) info.
+ */
+
+/* Create a known WLAN */
+extern nwam_error_t nwam_known_wlan_create(const char *,
+    nwam_known_wlan_handle_t *);
+
+/* Read a known WLAN from persistent storage */
+extern nwam_error_t nwam_known_wlan_read(const char *, uint64_t,
+    nwam_known_wlan_handle_t *);
+
+/*
+ * Destroy a known WLAN in persistent storage or free the in-memory
+ * representation.
+ */
+extern nwam_error_t nwam_known_wlan_destroy(nwam_known_wlan_handle_t, uint64_t);
+extern void nwam_known_wlan_free(nwam_known_wlan_handle_t);
+
+/* make a copy of existing known W:AN */
+extern nwam_error_t nwam_known_wlan_copy(nwam_known_wlan_handle_t, const char *,
+    nwam_known_wlan_handle_t *);
+
+/* Commit known WLAN changes to persistent storage */
+extern nwam_error_t nwam_known_wlan_commit(nwam_known_wlan_handle_t, uint64_t);
+
+/* Validate known WLAN content */
+extern nwam_error_t nwam_known_wlan_validate(nwam_known_wlan_handle_t,
+    const char **);
+
+/* Walk known WLANs */
+extern nwam_error_t nwam_walk_known_wlans
+	(int(*)(nwam_known_wlan_handle_t, void *), void *, uint64_t, int *);
+
+/* get/set known WLAN name */
+extern nwam_error_t nwam_known_wlan_get_name(nwam_known_wlan_handle_t, char **);
+extern nwam_error_t nwam_known_wlan_set_name(nwam_known_wlan_handle_t,
+    const char *);
+
+/* walk all properties of an in-memory known WLAN */
+extern nwam_error_t nwam_known_wlan_walk_props(nwam_known_wlan_handle_t,
+    int (*)(const char *, nwam_value_t, void *),
+    void *, uint64_t, int *);
+
+/* delete/get/set/validate known WLAN property */
+extern nwam_error_t nwam_known_wlan_delete_prop(nwam_known_wlan_handle_t,
+    const char *);
+extern nwam_error_t nwam_known_wlan_get_prop_value(nwam_known_wlan_handle_t,
+    const char *, nwam_value_t *);
+extern nwam_error_t nwam_known_wlan_set_prop_value(nwam_known_wlan_handle_t,
+    const char *, nwam_value_t);
+extern nwam_error_t nwam_known_wlan_validate_prop(nwam_known_wlan_handle_t,
+    const char *, nwam_value_t);
+
+/* Retrieve data type */
+extern nwam_error_t nwam_known_wlan_get_prop_type(const char *,
+    nwam_value_type_t *);
+
+/* get default known WLAN props */
+extern nwam_error_t nwam_known_wlan_get_default_proplist(const char ***,
+    uint_t *);
+
 
 
 /*

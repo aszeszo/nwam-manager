@@ -69,13 +69,18 @@ struct _NwamuiSvcClass
 
 extern GType nwamui_svc_get_type (void) G_GNUC_CONST;
 
-extern NwamuiSvc*			nwamui_svc_new (nwam_loc_prop_template_t svc);
+extern NwamuiSvc*			nwamui_svc_new (const gchar* fmri);
+extern gchar *              nwamui_svc_get_name (NwamuiSvc *self);
 extern gchar*				nwamui_svc_get_description (NwamuiSvc *self);
+/*
+ * TODO: Decide if we still need these.
+ */
+#if 0
 extern void                 nwamui_svc_set_status (NwamuiSvc *self, gboolean status);
 extern gboolean             nwamui_svc_get_status (NwamuiSvc *self);
-extern gchar *              nwamui_svc_get_name (NwamuiSvc *self);
 extern void					nwamui_svc_set_default (NwamuiSvc *self, gboolean is_default);
 extern gboolean				nwamui_svc_is_default (NwamuiSvc *self);
+#endif /* 0 */
 
 G_END_DECLS
 		

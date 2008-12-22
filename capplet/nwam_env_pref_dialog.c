@@ -681,6 +681,9 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     GtkTreeModel *model;
     GtkTreeModelFilter *filter;
     
+    /* Not used for Phase 1 any more, but will keep around until needed.
+     */
+#if 0
     model = nwamui_env_get_svcs (current_env);
 
     /* default view */
@@ -707,6 +710,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     gtk_tree_model_filter_refilter (filter);
     g_object_unref (filter);
     g_object_unref (model);
+#endif /* 0 */
 }
 
 static void
@@ -1153,12 +1157,13 @@ default_svc_status_cb (GtkTreeViewColumn *tree_column,
     gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (tree_model),
       &piter,
       iter);
-    svc = nwamui_env_get_svc (prv->selected_env, &piter);
+    /* svc = nwamui_env_get_svc (prv->selected_env, &piter); */
     
     switch (col) {
     case SVC_CHECK_BOX:
     {
-        gboolean enabled = nwamui_svc_get_status (svc);
+        gboolean enabled = FALSE;
+        /* gboolean enabled = nwamui_svc_get_status (svc); */
 
         g_object_set(G_OBJECT(cell),
           "active", enabled,
@@ -1177,7 +1182,7 @@ default_svc_status_cb (GtkTreeViewColumn *tree_column,
         break;
     }
     }
-    g_object_unref (svc);
+    /* g_object_unref (svc); */
 }
 
 static void
@@ -1196,10 +1201,12 @@ default_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
       && gtk_tree_model_get_iter (model, &iter, tpath)) {
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &piter, &iter);
 
+        /*
         svc = nwamui_env_get_svc (prv->selected_env, &piter);
         nwamui_svc_set_status (svc,
           !gtk_cell_renderer_toggle_get_active(cell_renderer));
         g_object_unref (svc);
+          */
 
         gtk_tree_path_free(tpath);
     }
@@ -1230,15 +1237,18 @@ additional_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
       && gtk_tree_model_get_iter (model, &iter, tpath)) {
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &piter, &iter);
 
+        /*
         svc = nwamui_env_get_svc (prv->selected_env, &piter);
         nwamui_svc_set_status (svc,
           !gtk_cell_renderer_toggle_get_active(cell_renderer));
         g_object_unref (svc);
+          */
 
         gtk_tree_path_free(tpath);
     }
 }
 
+#if 0
 static gboolean
 default_netservices_vfunc (GtkTreeModel *model,
                            GtkTreeIter *iter,
@@ -1272,6 +1282,7 @@ additional_netservices_vfunc (GtkTreeModel *model,
 
     return !ret;
 }
+#endif /* 0 */
 
 static void
 response_cb( GtkWidget* widget, gint responseid, gpointer data )

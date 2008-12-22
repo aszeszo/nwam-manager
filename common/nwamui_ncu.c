@@ -40,8 +40,10 @@
 static GObjectClass *parent_class = NULL;
 
 struct _NwamuiNcuPrivate {
-        nwam_ncu_handle_t               nwam_ncu;
         NwamuiNcp*                      ncp;  /* Parent NCP */
+        nwam_ncu_handle_t               nwam_ncu_phys;
+        nwam_ncu_handle_t               nwam_ncu_ip;
+        nwam_ncu_handle_t               nwam_ncu_iptun;
 
         /* General Properties */
         gchar*                          vanity_name;
@@ -49,7 +51,7 @@ struct _NwamuiNcuPrivate {
 
         /* Link Properties */
         gchar*                          phy_address;
-        gchar**                         autopush;
+        GList*                          autopush;
         guint64                         mtu;
 
 
@@ -76,14 +78,14 @@ struct _NwamuiNcuPrivate {
         guint                           priority_group;
         nwamui_cond_priority_group_mode_t    
                                         priority_group_mode;
-        gpointer                        conditions;
+        GList*                          conditions;
 };
 
 enum {
-        PROP_NWAM_NCU = 1,
-        PROP_NCP,
+        PROP_NCP = 1,
         PROP_VANITY_NAME,
         PROP_DEVICE_NAME,
+        PROP_AUTO_PUSH,
         PROP_PHY_ADDRESS,
         PROP_NCU_TYPE,
         PROP_ACTIVE,
@@ -155,13 +157,6 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
-                                     PROP_NWAM_NCU,
-                                     g_param_spec_pointer ("nwam_ncu",
-                                                           _("Nwam Ncu handle"),
-                                                           _("Nwam Ncu handle"),
-                                                           G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
-
-    g_object_class_install_property (gobject_class,
                                      PROP_NCP,
                                      g_param_spec_object ("ncp",
                                                           _("NCP that NCU child of"),
@@ -191,6 +186,13 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           _("phy_address"),
                                                           _("phy_address"),
                                                           "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_AUTO_PUSH,
+                                     g_param_spec_pointer ("autopush",
+                                                          _("autopush"),
+                                                          _("autopush"),
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -363,6 +365,10 @@ nwamui_ncu_init (NwamuiNcu *self)
 {
     self->prv = g_new0 (NwamuiNcuPrivate, 1);
     
+    self->prv->nwam_ncu_phys = NULL;
+    self->prv->nwam_ncu_ip = NULL;
+    self->prv->nwam_ncu_iptun = NULL;
+
     self->prv->vanity_name = NULL;
     self->prv->device_name = NULL;
     self->prv->ncu_type = NWAMUI_NCU_TYPE_WIRED;
@@ -398,12 +404,6 @@ nwamui_ncu_set_property ( GObject         *object,
     gint        tmpint = 0;
 
     switch (prop_id) {
-        case PROP_NWAM_NCU: {
-                g_assert (self->prv->nwam_ncu == NULL);
-                self->prv->nwam_ncu = g_value_get_pointer (value);
-            }
-            break;
-
     case PROP_NCP: {
             NwamuiNcp* ncp = NWAMUI_NCP( g_value_dup_object( value ) );
 
@@ -607,9 +607,17 @@ nwamui_ncu_set_property ( GObject         *object,
             }
             break;
 
+        case PROP_AUTO_PUSH: {
+                if ( self->prv->autopush != NULL ) {
+                    g_list_foreach( self->prv->autopush, (GFunc)g_free, NULL );
+                    g_list_free( self->prv->autopush  );
+                }
+                self->prv->autopush = g_value_get_pointer( value );
+            }
+
         case PROP_CONDITIONS: {
                 if ( self->prv->conditions != NULL ) {
-                        g_free( self->prv->conditions );
+                    nwamui_util_free_obj_list( self->prv->conditions  );
                 }
                 self->prv->conditions = g_value_get_pointer( value );
             }
@@ -767,6 +775,10 @@ nwamui_ncu_get_property (GObject         *object,
                 g_value_set_pointer( value, self->prv->conditions );
             }
             break;
+        case PROP_AUTO_PUSH: {
+                g_value_set_pointer( value, self->prv->autopush );
+            }
+            break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -793,7 +805,7 @@ map_condition_strings_to_object_list( char** conditions )
 }
 
 static void
-populate_common_ncu_data( NwamuiNcu *ncu )
+populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 {
     char*               name = NULL;
     nwam_error_t        nerr;
@@ -806,26 +818,27 @@ populate_common_ncu_data( NwamuiNcu *ncu )
     nwamui_cond_priority_group_mode_t
                         priority_group_mode;
 
-    if ( (nerr = nwam_ncu_get_name (ncu->prv->nwam_ncu, &name)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_get_name (nwam_ncu, &name)) != NWAM_SUCCESS ) {
         g_debug ("Failed to get name for ncu, error: %s", nwam_strerror (nerr));
     }
 
+    /* TODO: Set vanity name as Wired/Wireless(dev0) */
     g_object_set( ncu,
                   "device_name", name,
                   "vanity_name", name,
                   NULL);
 
     activation_mode = (nwamui_cond_activation_mode_t)
-        get_nwam_ncu_uint64_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_ACTIVATION_MODE );
+        get_nwam_ncu_uint64_prop( nwam_ncu, NWAM_NCU_PROP_ACTIVATION_MODE );
 
-    enabled = get_nwam_ncu_boolean_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_ENABLED );
+    enabled = get_nwam_ncu_boolean_prop( nwam_ncu, NWAM_NCU_PROP_ENABLED );
 
-    priority_group = (guint)get_nwam_ncu_uint64_prop( ncu->prv->nwam_ncu,
+    priority_group = (guint)get_nwam_ncu_uint64_prop( nwam_ncu,
                                                       NWAM_NCU_PROP_PRIORITY_GROUP );
     priority_group_mode = (nwamui_cond_priority_group_mode_t)
-        get_nwam_ncu_uint64_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_PRIORITY_MODE );
+        get_nwam_ncu_uint64_prop( nwam_ncu, NWAM_NCU_PROP_PRIORITY_MODE );
 
-    condition_str = get_nwam_ncu_string_array_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_CONDITION );
+    condition_str = get_nwam_ncu_string_array_prop( nwam_ncu, NWAM_NCU_PROP_CONDITION );
 
     conditions = map_condition_strings_to_object_list( condition_str);
 
@@ -840,12 +853,53 @@ populate_common_ncu_data( NwamuiNcu *ncu )
     g_strfreev( condition_str );
 }
 
-static void
-populate_link_ncu_data( NwamuiNcu *ncu )
+static GList*
+strv_to_glist( gchar **strv ) 
 {
-    gchar*      mac_addr = get_nwam_ncu_string_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_LINK_MAC_ADDR );
-    gchar**     autopush = get_nwam_ncu_string_array_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_LINK_AUTOPUSH );
-    guint64     mtu = get_nwam_ncu_uint64_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_LINK_MTU );
+    GList   *new_list = NULL;
+
+    for ( char** strp = strv; strp != NULL && *strp != NULL; strp++ ) {
+        new_list = g_list_append( new_list, g_strdup( *strp ) );
+    }
+
+    return ( new_list );
+}
+
+static gchar**
+glist_to_strv( GList *list ) 
+{
+    gchar** new_strv = NULL;
+
+    if ( list != NULL ) {
+        int     list_len = g_list_length( list );
+        int     i = 0;
+
+        new_strv = (gchar**)g_malloc0( sizeof(gchar*) * (list_len+1) );
+
+        i = 0;
+        for ( GList *element  = g_list_first( list );
+              element != NULL && element->data != NULL;
+              element = g_list_next( element ) ) {
+            new_strv[i]  = g_strdup ( element->data );
+            i++;
+        }
+        new_strv[list_len]=NULL;
+    }
+
+    return ( new_strv );
+}
+
+static void
+populate_link_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
+{
+    gchar*      mac_addr = get_nwam_ncu_string_prop( nwam_ncu, NWAM_NCU_PROP_LINK_MAC_ADDR );
+    gchar**     autopush = get_nwam_ncu_string_array_prop( nwam_ncu, NWAM_NCU_PROP_LINK_AUTOPUSH );
+    guint64     mtu = get_nwam_ncu_uint64_prop( nwam_ncu, NWAM_NCU_PROP_LINK_MTU );
+    GList*      autopush_list;
+
+    if ( autopush != NULL ) {
+        autopush_list = strv_to_glist( autopush );
+    }
 
     g_object_set( ncu,
                   "phy_address", mac_addr,
@@ -858,7 +912,7 @@ populate_link_ncu_data( NwamuiNcu *ncu )
 }
 
 static void
-populate_iptun_ncu_data( NwamuiNcu *ncu )
+populate_iptun_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 {
     nwam_iptun_type_t tun_type; 
     gchar* tun_tsrc;
@@ -868,14 +922,14 @@ populate_iptun_ncu_data( NwamuiNcu *ncu )
     gchar* tun_auth;
 
     /* CLASS IPTUN is of type LINK, so has LINK props too */
-    populate_link_ncu_data( ncu );
+    populate_link_ncu_data( ncu, nwam_ncu );
 
-    tun_type = get_nwam_ncu_uint64_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_IPTUN_TYPE );
-    tun_tsrc = get_nwam_ncu_string_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_IPTUN_TSRC );
-    tun_tdst = get_nwam_ncu_string_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_IPTUN_TDST );
-    tun_encr = get_nwam_ncu_string_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_IPTUN_ENCR );
-    tun_encr_auth = get_nwam_ncu_string_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_IPTUN_ENCR_AUTH );
-    tun_auth = get_nwam_ncu_string_prop( ncu->prv->nwam_ncu, NWAM_NCU_PROP_IPTUN_AUTH );
+    tun_type = get_nwam_ncu_uint64_prop( nwam_ncu, NWAM_NCU_PROP_IPTUN_TYPE );
+    tun_tsrc = get_nwam_ncu_string_prop( nwam_ncu, NWAM_NCU_PROP_IPTUN_TSRC );
+    tun_tdst = get_nwam_ncu_string_prop( nwam_ncu, NWAM_NCU_PROP_IPTUN_TDST );
+    tun_encr = get_nwam_ncu_string_prop( nwam_ncu, NWAM_NCU_PROP_IPTUN_ENCR );
+    tun_encr_auth = get_nwam_ncu_string_prop( nwam_ncu, NWAM_NCU_PROP_IPTUN_ENCR_AUTH );
+    tun_auth = get_nwam_ncu_string_prop( nwam_ncu, NWAM_NCU_PROP_IPTUN_AUTH );
 
     g_object_set( ncu, 
                   "tun_type", tun_type,
@@ -894,7 +948,7 @@ populate_iptun_ncu_data( NwamuiNcu *ncu )
 }
 
 static void
-populate_ip_ncu_data( NwamuiNcu *ncu )
+populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 {
     nwam_ip_version_t   ip_version;
     guint               ipv4_addrsrc_num = 0;
@@ -904,15 +958,15 @@ populate_ip_ncu_data( NwamuiNcu *ncu )
     nwam_addrsrc_t*     ipv6_addrsrc =  NULL;
     gchar**             ipv6_addr = NULL;
     
-    ip_version = (nwam_ip_version_t)get_nwam_ncu_uint64_prop(ncu->prv->nwam_ncu, NWAM_NCU_PROP_IP_VERSION );
+    ip_version = (nwam_ip_version_t)get_nwam_ncu_uint64_prop(nwam_ncu, NWAM_NCU_PROP_IP_VERSION );
 
     if ( (ip_version == NWAM_IP_VERSION_IPV4) || (ip_version == NWAM_IP_VERSION_ALL) )  {
         char**  ptr;
-        ipv4_addrsrc = (nwam_addrsrc_t*)get_nwam_ncu_uint64_array_prop( ncu->prv->nwam_ncu, 
+        ipv4_addrsrc = (nwam_addrsrc_t*)get_nwam_ncu_uint64_array_prop( nwam_ncu, 
                                                                         NWAM_NCU_PROP_IPV4_ADDRSRC, 
                                                                         &ipv4_addrsrc_num );
 
-        ipv4_addr = get_nwam_ncu_string_array_prop(ncu->prv->nwam_ncu, NWAM_NCU_PROP_IPV4_ADDR );
+        ipv4_addr = get_nwam_ncu_string_array_prop(nwam_ncu, NWAM_NCU_PROP_IPV4_ADDR );
 
         /* Populate the v4addresses member */
         g_debug( "ipv4_addrsrc_num = %u", ipv4_addrsrc_num );
@@ -941,11 +995,11 @@ populate_ip_ncu_data( NwamuiNcu *ncu )
     if ( (ip_version == NWAM_IP_VERSION_IPV6) || (ip_version == NWAM_IP_VERSION_ALL) )  {
         char**  ptr;
 
-        ipv6_addrsrc = (nwam_addrsrc_t*)get_nwam_ncu_uint64_array_prop( ncu->prv->nwam_ncu, 
+        ipv6_addrsrc = (nwam_addrsrc_t*)get_nwam_ncu_uint64_array_prop( nwam_ncu, 
                                                                         NWAM_NCU_PROP_IPV6_ADDRSRC, 
                                                                         &ipv6_addrsrc_num );
         
-        ipv6_addr = get_nwam_ncu_string_array_prop(ncu->prv->nwam_ncu, NWAM_NCU_PROP_IPV6_ADDR );
+        ipv6_addr = get_nwam_ncu_string_array_prop(nwam_ncu, NWAM_NCU_PROP_IPV6_ADDR );
 
         /* Populate the v6addresses member */
         g_debug( "ipv6_addrsrc_num = %u", ipv6_addrsrc_num );
@@ -991,6 +1045,44 @@ get_device_from_ncu_name( const gchar* ncu_name )
     return( ptr );
 }
 
+
+extern void
+nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
+{
+    nwam_ncu_class_t    ncu_class;
+    
+    g_return_if_fail( NWAMUI_IS_NCU(self) );
+
+    ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu, NWAM_NCU_PROP_CLASS);
+
+    g_object_freeze_notify( G_OBJECT(self) );
+
+    populate_common_ncu_data( self, ncu );
+
+    switch ( ncu_class ) {
+        case NWAM_NCU_CLASS_PHYS: {
+                /* CLASS PHYS is of type LINK, so has LINK props */
+                self->prv->nwam_ncu_phys = ncu;
+                populate_link_ncu_data( self, ncu );
+            }
+            break;
+        case NWAM_NCU_CLASS_IPTUN: {
+                self->prv->nwam_ncu_iptun = ncu;
+                populate_iptun_ncu_data( self, ncu );
+            }
+            break;
+        case NWAM_NCU_CLASS_IP: {
+                self->prv->nwam_ncu_ip = ncu;
+                populate_ip_ncu_data( self, ncu );
+            }
+            break;
+        default:
+            g_error("Unexpected ncu class %u", (guint)ncu_class);
+    }
+    
+    g_object_thaw_notify( G_OBJECT(self) );
+}
+
 extern  NwamuiNcu*
 nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
 {
@@ -998,7 +1090,6 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
     nwam_ncu_class_t    ncu_class;
     
     self = NWAMUI_NCU(g_object_new (NWAMUI_TYPE_NCU,
-                                    "nwam_ncu", ncu,
                                     "ncp", ncp,
                                     NULL));
 
@@ -1006,20 +1097,23 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
 
     g_object_freeze_notify( G_OBJECT(self) );
 
-    populate_common_ncu_data( self );
+    populate_common_ncu_data( self, ncu );
 
     switch ( ncu_class ) {
         case NWAM_NCU_CLASS_PHYS: {
                 /* CLASS PHYS is of type LINK, so has LINK props */
-                populate_link_ncu_data( self );
+                self->prv->nwam_ncu_phys =ncu;
+                populate_link_ncu_data( self, ncu );
             }
             break;
         case NWAM_NCU_CLASS_IPTUN: {
-                populate_iptun_ncu_data( self );
+                self->prv->nwam_ncu_iptun =ncu;
+                populate_iptun_ncu_data( self, ncu );
             }
             break;
         case NWAM_NCU_CLASS_IP: {
-                populate_ip_ncu_data( self );
+                self->prv->nwam_ncu_ip =ncu;
+                populate_ip_ncu_data( self, ncu );
             }
             break;
         default:
@@ -2034,6 +2128,9 @@ nwamui_ncu_finalize (NwamuiNcu *self)
 
     if (self->prv->v6addresses != NULL ) {
         g_object_unref( G_OBJECT(self->prv->v6addresses) );
+    }
+    if (self->prv->autopush != NULL ) {
+        nwamui_util_free_obj_list(self->prv->autopush);
     }
     if (self->prv->conditions != NULL ) {
         nwamui_util_free_obj_list(self->prv->conditions);
