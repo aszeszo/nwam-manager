@@ -1,5 +1,5 @@
-List of things that still need to be done.
-==========================================
+Based off UI Spec 1.7
+---------------------
 
 General Tasks
 -------------
@@ -7,212 +7,108 @@ General Tasks
   Security
 
     - Determine required privileges to be functional
-      - Will need to wait until using NWAM APIs.
-
-
-  Look & Feel
-
-    - Icons need to be designed.
-      - Lead time?
-      - Easy to slot in?
-    - Installation of App Specific Icons 
-      - http://live.gnome.org/ThemableAppSpecificIcons
-
 
   Documentation
 
-    - Determine "Help" link points
+    - Review "Help" link points
     - Tool-tips, as appropriate.
+
+API Specific
+------------
+
+  Events
+
+  - Translate Daemon Events
+  - Update UI elements to handle
 
 Panel Icon
 ----------
 
-  Events
+  Tooltip
+  - Generation of Vanity Naming - Wired/Wireless + Number if > 1
 
-    - Notifications
-      - Code using Signals in the Daemon
-      - Have nwam-manager listen for these signals
-      - Consider Simulation Mechanism for Events (Temporary API)
-        - Menu Selection of Network/Env could tell daemon to emit signal
-        - Async events could be done using a timer or pipe?
+  Wireless Status
+  - Add support to monitor wireless signal strength in status icon if
+    wireless i/f is connected.
 
+  Panel Menu
+  - Addition of Icon for Location's activation mode.
+  - Sort Wireless by signal strength
+  - Addition of Icon for VPN Activation mode
+  - VPN Message (start/stop) should change by current state.
 
-  Tool-tip in Notification Area
+  Join Wireless Network
+  - Toggle for auto add to wireless favourites?
 
-    - Should reflect status information
-      - Do we need to cache data?
-   
+  Animation
+  - Is it possible to discern start/stop point?
 
-  Encryption Icon
+  Notification Messages
+  - Standardisation of messages - use enum, etc.
 
-    - Consider something more meaningful like a key?
-
-
-  Globe Icon
-
-    - Is this the right symbol? Maybe is too confusing? Doesn't really suggest
-      that it's any way related to the network.
-
-
-  Menu Items (Done by Lin, no callbacks)
-
-    - Add Help Entry	(on_active_help)
-
-
-  Session (Done by Lin, review?)
-
-    - Auto restart on crash?
-    - Save itself in the session.
-    - Should be in default session.
-
-Network Preferences
--------------------
-
-  Network Environment Preferences Dialog
-
-    - Rules Tab [partly done, need glue work]
-      - Condition Combo 
-        - <None> should deactivate other entries
-        - All others should activate them
-      - Add API to Env to support add/delete and creation of rules.
-        - Partially done, some testing still needed
-
-    - Network Services Tab
-      - Default Network Services        
-        - Add API to Env to get state of Default services
-        - May also need to add this to the Daemon for Env to get default set,
-          if not configured in Env.
-	  [lin] Daemon owns the default set, Env provide the locate function.
-	  For each default set call locate in Env set, if there marks yes on
-	  the tree view.
-      - Additional Network Services     
-        - Need a utility function to get list of known SMF services from the
-          OS.
-      - Add Button                      
-        - Dialog to present list of FRMI (and description?).
-        = Env API to add a new service.
-      - Remove Button                   
-        = Env API to delete a service.
-
-    - Proxy Tab
-      - Add Password Dialog
-
-    - Help Button needs to be connected.
-
-
-  VPN Dialog
-
-    - Start/Stop buttons should toggle sensitivity depending on the currently
-      selected ENM's state. [done, lin]
-    - Help Button needs to be connected.
-
-
-  Connection Status Panel
-
-    - If an ENM is activated, the connection status need to be refreshed [done, lin]
-      - It may be worth linking to the objects "notify" signal for each
-        element in a view? [partly done, need filter signals. lin]
-      - VPN label list [done, lin]
-  
-
-  Network Configuration Panel
-
-    - Sorting/Re-ordering of NCUs should be reflected in the NCP.
-      - Will require NCP's API to be updated.
-
-    - Conditions
-      - Update the Condition Label to contain the NCU name.
-      - Handle the Toggle Button
-      - Handle the Connected/Disconnected Combo
-      - Implement NCU Conditions TreeView
-      - Handle the Enable/Disabled Combo
-
-
-  IP Sub Panel
-
-    - General
-      - Validation on values, should be deferred to the NCU object.
-
-    - DHCP
-      - Handle Renew Lease button
-  
-    - Multiple IP Address Tables - IPv4
-      - IPv6 Toggle Buttons
-      - Add/Remove Buttons
-      - Handle in place edits for cells
-
-    - Multiple IP Address Tables - IPv6
-      - Handle Enabled/Disabled Combo
-        - Should reflect state in the NCU
-      - IPv6 Toggle Buttons
-        - Should reflect state in the NCU
-      - Add/Remove Buttons
-      - Handle in place edits for cells
-
-
-  Wireless Sub Panel
-
-    - Handle Combo for "If no favourite..."
-      - Is this a Daemon level preference rather than an NCU specific one?
-
-    - Ask Before... 
-      - Open/Close is leaving a gap - probably needs a fix in the glade file.
-      - Handle Toggle buttons here 
-        - should most likely be set in the Daemon since really they are not
-          specific to the NCU. 
-        - Maybe consider moving them?
-
-Common API
+CApplet
 ----------
 
-  General Tasks
+  Network Preferences
+    Rules Dialog
+    - All new, needs implementation.
+    - Validation of IP address entered
 
-    - Need to consider adding a "modified" / "dirty" flag and a "commit"
-      function to each object to allow us to handle the "OK" button case and
-      know that we will need to commit changes.
+    Status View
 
+    - API to get current status
+    - Standardisation of messages - generate in one place.
 
-  Daemon 
+    Network Profile View
+    - Icon for activation mode
+    - Support for grouping
+      - Handle Group/Ungroup buttons
+      - TBD - determine how grouping is done to get activation message in
+        tree.
+    - Update Activation Mode / Edit Rules based on selection
+    - Remove ability to rename connection.
 
-    - Needs to be modified to emit signals for all the possible events that
-      can be sent from the real daemon.
+    Connection Properties Overview
+    - Subnet or Bitmask - interchangable?
 
+    IP Address Entry
+    - Allow subnet/bitmask entry x.x.x.x/y
+    - Validate IP addresses
 
-  Condition(s)
+    Wireless Tab
+    - Ask before? - Is this possible?
 
-    - Create a conditions GObject for the NCU and Env conditions.
-      - Might need to sub-class if there are differences...
-   
+  Location Preferences
 
-  Env
+    General
+    - Icon for activation mode
+    - Handle activation mode and edit rules based on selection
+    - Generation of new locations (Unamed_X)
+    - Renaming Locations / Duplication of Locations - is this possible?
 
-    - Will need API for Conditions
+    Proxy Tab
+    - Remove this for Phase 1.
 
+    Name Services
+    - Add support - new TAB.
+    - Only allow one of each Name Service
+    
+    IP Filter
+    - Add support for selection of files.
 
-  NCU
+    Network Services
+    - Add support for enable/disable services lists.<F36>-
 
-    - Will need API for Conditions
+    Add/Edit/Join Wireless Network
+    - Update title correctly
 
+    Wireless Network Chooser
+    - New dialog.
+    - Configurable - may not be shown. 
 
-GNOME Netstatus Applet
-----------------------
-
-  Port Wireless support on Solaris.
-
-    - Determine required priv to gather Wifi Info.
-      - Right now, it's not even possible to open() the network device as
-        non-root.
-    - Implement the Solaris wifi gathering functions.
-
-
-General Optional Areas of Rework
---------------------------------
-
-  API
-
-    - Instead of using GList from the common GObjects, consider using a
-      GtkListStore - especially for things like IP addresses, Wifi Favourites,
-      etc.
+    VPN Application Preferences
+    - Activation Status
+    - Handle Edit Rules button based on selection.
 
 --
 vim: ts=2 shiftwidth=2 tw=78
