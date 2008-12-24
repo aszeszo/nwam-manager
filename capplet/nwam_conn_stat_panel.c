@@ -139,9 +139,9 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
         return( NULL );
     }
 
-    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(self->prv->ncp));
+    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store(self->prv->ncp));
 
-    g_assert( GTK_IS_LIST_STORE( model ) );
+    g_assert( GTK_IS_TREE_STORE( model ) );
     gtk_tree_view_set_model(GTK_TREE_VIEW(view), model);
         
 	g_object_set (G_OBJECT(view),
@@ -153,6 +153,7 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 	cell = gtk_cell_renderer_pixbuf_new();
 	col = gtk_tree_view_column_new_with_attributes(_("Connection Icon"),
       cell,
+      "text", CONNVIEW_ICON,
       "resizable", TRUE,
       "clickable", TRUE,
       "sort-indicator", TRUE,
@@ -178,6 +179,7 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 	cell = gtk_cell_renderer_text_new();
 	col = gtk_tree_view_column_new_with_attributes(_("Connection Information"),
       cell,
+      "text", CONNVIEW_INFO,
       "expand", TRUE,
       "resizable", TRUE,
       "clickable", TRUE,
@@ -196,6 +198,7 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 	cell = gtk_cell_renderer_text_new();
 	col = gtk_tree_view_column_new_with_attributes(_("Connection Status"),
       cell,
+      "text", CONNVIEW_STATUS,
       "resizable", TRUE,
       "clickable", TRUE,
       "sort-indicator", TRUE,
@@ -214,12 +217,10 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 	gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_STATUS);	
 	gtk_tree_view_append_column (view, col);
         
-    g_object_unref(model); /* Unref here since combobox will have ref-ed it */
-
     return( model );
 }
 
-static void
+extern void
 nwam_conn_status_panel_set_ncp(NwamConnStatusPanel *self, NwamuiNcp* ncp )
 {
 	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(self);

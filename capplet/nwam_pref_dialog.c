@@ -162,6 +162,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
 	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_NET_PREF])); 
 	show_comob_add (self->prv->show_combo, NULL); /* Separator */
     update_show_combo_from_ncp( self->prv->show_combo, self->prv->active_ncp );
+    nwam_conn_status_panel_set_ncp( NWAM_CONN_STATUS_PANEL(self->prv->panel[PANEL_CONN_STATUS]) , self->prv->active_ncp );
     g_signal_connect(GTK_COMBO_BOX(self->prv->show_combo), "changed", (GCallback)show_changed_cb, (gpointer)self);
                 
     gtk_combo_box_set_active (GTK_COMBO_BOX(self->prv->show_combo), 0);

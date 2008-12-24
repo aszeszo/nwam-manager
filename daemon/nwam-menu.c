@@ -465,7 +465,7 @@ nwam_menu_recreate_ncu_menuitems (NwamMenu *self)
                           G_CALLBACK(on_nwam_ncu_toggled), (gpointer)self);
     }
 
-    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store (active_ncp));
+    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store (active_ncp));
 
     if (gtk_tree_model_get_iter_first (model, &iter)) {
         gboolean has_wireless_inf = FALSE;
@@ -559,7 +559,7 @@ static void
 nwam_menu_connect (NwamMenu *self)
 {
     NwamuiNcp* active_ncp = nwamui_daemon_get_active_ncp (self->prv->daemon);
-    GtkTreeModel *model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store (active_ncp));
+    GtkTreeModel *model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store (active_ncp));
     NwamuiNcu *ncu;
     GtkTreeIter iter;
 

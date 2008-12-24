@@ -1,3 +1,14 @@
+2008-12-24  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/main.c: (main):
+	  Remove tests, these are in the tests/main.c instead.
+	* common/nwamui_ncp.h, common/nwamui_ncp.c:
+	  Make NCU list into a GtkTreeStore.
+	* capplet/nwam_conn_stat_panel.c, capplet/nwam_conn_stat_panel.h,
+	  capplet/nwam_net_conf_panel.c, capplet/nwam_pref_dialog.c,
+	  common/nwamui_daemon.c, daemon/nwam-menu.c: 
+	  Update these to use tree store now.
+
 2008-12-22  Darren Kenny  <darren.kenny@sun.com>
 
 	* nwam_core/usr/include/libnwam.h:

@@ -31,7 +31,7 @@
 #include <glib-object.h>
 #include <glib/gi18n.h>
 #include <strings.h>
-#include <gtk/gtkliststore.h>
+#include <gtk/gtktreestore.h>
 
 #include "libnwamui.h"
 
@@ -44,7 +44,7 @@ enum {
     PROP_NWAM_NCP = 1,
     PROP_MODIFIABLE,
     PROP_NAME,
-    PROP_NCU_LIST_STORE,
+    PROP_NCU_TREE_STORE,
     PROP_ACTIVE_NCU,
     PROP_SELECTION_MODE,
     PROP_MANY_WIRELESS
@@ -62,7 +62,7 @@ struct _NwamuiNcpPrivate {
         nwam_ncp_handle_t           nwam_ncp;
         gboolean                    modifiable;
         gchar*                      name;
-        GtkListStore*               ncu_list_store;
+        GtkTreeStore*               ncu_tree_store;
         NwamuiNcu*                  active_ncu;
         nwamui_ncp_selection_mode_t selection_mode;
         gint                        num_wireless;
@@ -134,11 +134,11 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_NCU_LIST_STORE,
-                                     g_param_spec_object ("ncu_list_store",
+                                     PROP_NCU_TREE_STORE,
+                                     g_param_spec_object ("ncu_tree_store",
                                                           _("List of NCUs in the NCP"),
                                                           _("List of NCUs in the NCP"),
-                                                          GTK_TYPE_LIST_STORE,
+                                                          GTK_TYPE_TREE_STORE,
                                                           G_PARAM_READABLE));
 
     g_object_class_install_property (gobject_class,
@@ -202,7 +202,7 @@ nwamui_ncp_init ( NwamuiNcp *self)
 
     self->prv->modifiable = TRUE;
 
-    self->prv->ncu_list_store = NULL;
+    self->prv->ncu_tree_store = NULL;
 
     self->prv->selection_mode = NWAMUI_NCP_SELECTION_MODE_AUTOMATIC;
     self->prv->num_wireless = 0;
@@ -334,8 +334,8 @@ nwamui_ncp_get_property (   GObject         *object,
                 g_value_set_object( value, self->prv->active_ncu );
             }
             break;
-        case PROP_NCU_LIST_STORE: {
-                g_value_set_object( value, self->prv->ncu_list_store );
+        case PROP_NCU_TREE_STORE: {
+                g_value_set_object( value, self->prv->ncu_tree_store );
             }
             break;
         case PROP_SELECTION_MODE: {
@@ -358,9 +358,9 @@ nwamui_ncp_finalize (NwamuiNcp *self)
 
     g_free( self->prv->name);
     
-    if ( self->prv->ncu_list_store != NULL ) {
-        gtk_list_store_clear(self->prv->ncu_list_store);
-        g_object_unref(self->prv->ncu_list_store);
+    if ( self->prv->ncu_tree_store != NULL ) {
+        gtk_tree_store_clear(self->prv->ncu_tree_store);
+        g_object_unref(self->prv->ncu_tree_store);
     }
     
     g_free (self->prv); 
@@ -488,26 +488,26 @@ nwamui_ncp_is_modifiable (NwamuiNcp *self)
 
 
 /**
- * nwamui_ncp_get_ncu_list_store_store:
+ * nwamui_ncp_get_ncu_tree_store_store:
  * @returns: GList containing NwamuiNcu elements
  *
  **/
-extern GtkListStore*
-nwamui_ncp_get_ncu_list_store( NwamuiNcp *self )
+extern GtkTreeStore*
+nwamui_ncp_get_ncu_tree_store( NwamuiNcp *self )
 {
-    GtkListStore* ncu_list_store = NULL;
+    GtkTreeStore* ncu_tree_store = NULL;
     
     if ( self == NULL ) {
         return( NULL );
     }
 
-    g_return_val_if_fail (NWAMUI_IS_NCP(self), ncu_list_store); 
+    g_return_val_if_fail (NWAMUI_IS_NCP(self), ncu_tree_store); 
     
     g_object_get (G_OBJECT (self),
-                  "ncu_list_store", &ncu_list_store,
+                  "ncu_tree_store", &ncu_tree_store,
                   NULL);
 
-    return( ncu_list_store );
+    return( ncu_tree_store );
 }
 
 
@@ -520,9 +520,9 @@ nwamui_ncp_get_ncu_list_store( NwamuiNcp *self )
 extern void
 nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data )
 {
-    g_return_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_list_store != NULL); 
+    g_return_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL); 
     
-    gtk_tree_model_foreach( GTK_TREE_MODEL(self->prv->ncu_list_store), func, user_data );
+    gtk_tree_model_foreach( GTK_TREE_MODEL(self->prv->ncu_tree_store), func, user_data );
 }
 
 /**
@@ -583,14 +583,14 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
     gchar          *ncu_device_name = NULL;
     gboolean        valid_iter = FALSE;
 
-    g_return_val_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_list_store != NULL, ret_ncu ); 
+    g_return_val_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL, ret_ncu ); 
 
-    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter);
+    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter);
          valid_iter && ret_ncu == NULL;
-         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter)) {
+         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter)) {
         NwamuiNcu      *ncu;
 
-        gtk_tree_model_get( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter, 0, &ncu, -1);
+        gtk_tree_model_get( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter, 0, &ncu, -1);
 
         ncu_device_name = nwamui_ncu_get_device_name( ncu );
         if ( g_ascii_strcasecmp( ncu_device_name, device_name ) == 0 ) {
@@ -614,30 +614,30 @@ nwamui_ncp_remove_ncu( NwamuiNcp* self, const gchar* device_name )
     gchar          *ncu_device_name = NULL;
     gboolean        valid_iter = FALSE;
 
-    g_return_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_list_store != NULL); 
+    g_return_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL); 
     g_return_if_fail (device_name != NULL && strlen(device_name) > 0 );
 
 
-    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter);
+    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter);
          valid_iter;
-         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter)) {
+         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter)) {
         NwamuiNcu      *ncu;
 
-        gtk_tree_model_get( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter, 0, &ncu, -1);
+        gtk_tree_model_get( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter, 0, &ncu, -1);
 
         ncu_device_name = nwamui_ncu_get_device_name( ncu );
 
         if ( strncmp( ncu_device_name, device_name, strlen(device_name) ) == 0 ) {
             /* Set ret_ncu, which will cause for loop to exit */
             g_debug("Remove ncu (%s) from ncp", ncu_device_name);
-            gtk_list_store_remove(GTK_LIST_STORE(self->prv->ncu_list_store), &iter);
+            gtk_tree_store_remove(GTK_TREE_STORE(self->prv->ncu_tree_store), &iter);
 
             if ( nwamui_ncu_get_ncu_type( ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
                 self->prv->num_wireless--;
                 g_object_notify(G_OBJECT(self), "many_wireless" );
             }
 
-            g_object_notify(G_OBJECT(self), "ncu_list_store" );
+            g_object_notify(G_OBJECT(self), "ncu_tree_store" );
             g_free(ncu_device_name);
             break;
         }
@@ -678,8 +678,8 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
     }
 
     if ( new_ncu != NULL ) {
-        gtk_list_store_append( prv->ncu_list_store, &iter );
-        gtk_list_store_set( prv->ncu_list_store, &iter, 0, new_ncu, -1 );
+        gtk_tree_store_append( prv->ncu_tree_store, &iter, NULL );
+        gtk_tree_store_set( prv->ncu_tree_store, &iter, 0, new_ncu, -1 );
 
         g_signal_connect(G_OBJECT(new_ncu), "notify",
                          (GCallback)ncu_notify_cb, (gpointer)ncp);
@@ -702,12 +702,12 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
 
     g_assert(self->prv->nwam_ncp != NULL );
 
-    if ( self->prv->ncu_list_store  == NULL ) {
-        self->prv->ncu_list_store = gtk_list_store_new ( 1, NWAMUI_TYPE_NCU);
+    if ( self->prv->ncu_tree_store  == NULL ) {
+        self->prv->ncu_tree_store = gtk_tree_store_new ( 1, NWAMUI_TYPE_NCU);
 
-        g_signal_connect(self->prv->ncu_list_store, "row_deleted", G_CALLBACK(row_deleted_cb), self );
-        g_signal_connect(self->prv->ncu_list_store, "row_inserted", G_CALLBACK(row_inserted_cb), self );
-        g_signal_connect(self->prv->ncu_list_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), self );
+        g_signal_connect(self->prv->ncu_tree_store, "row_deleted", G_CALLBACK(row_deleted_cb), self );
+        g_signal_connect(self->prv->ncu_tree_store, "row_inserted", G_CALLBACK(row_inserted_cb), self );
+        g_signal_connect(self->prv->ncu_tree_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), self );
     }
 
     nwam_ncp_walk_ncus( self->prv->nwam_ncp, nwam_ncu_walker_cb, (void*)self,
@@ -720,8 +720,8 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
     nwamui_ncp_selection_mode_t  selection_mode = NWAMUI_NCP_SELECTION_MODE_AUTOMATIC;
     gint                num_wireless = 0; /* Count wireless i/fs */
 
-    if ( self->prv->ncu_list_store  == NULL ) {
-        self->prv->ncu_list_store = gtk_list_store_new ( 1, NWAMUI_TYPE_NCU);
+    if ( self->prv->ncu_tree_store  == NULL ) {
+        self->prv->ncu_tree_store = gtk_tree_store_new ( 1, NWAMUI_TYPE_NCU);
     }
     
     /* Generate proper list of NCUs */
@@ -806,8 +806,8 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
                                         NULL );
 
 
-                gtk_list_store_append( self->prv->ncu_list_store, &iter );
-                gtk_list_store_set(self->prv->ncu_list_store, &iter, 0, ncu, -1 );
+                gtk_tree_store_append( self->prv->ncu_tree_store, &iter );
+                gtk_tree_store_set(self->prv->ncu_tree_store, &iter, 0, ncu, -1 );
                 g_signal_connect(G_OBJECT(ncu), "notify",
                   (GCallback)ncu_notify_cb, (gpointer)self);
             } else {
@@ -845,7 +845,7 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
     libnwam_free_llp_list(origllp);
     
 
-    g_object_notify(G_OBJECT(self), "ncu_list_store" );
+    g_object_notify(G_OBJECT(self), "ncu_tree_store" );
 
     if ( self->prv->selection_mode != selection_mode ) {
         g_object_set (G_OBJECT (self),
@@ -946,21 +946,21 @@ ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     GtkTreeIter     iter;
     gboolean        valid_iter = FALSE;
 
-    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter);
+    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter);
          valid_iter;
-         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter)) {
+         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter)) {
         NwamuiNcu      *ncu;
 
-        gtk_tree_model_get( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter, 0, &ncu, -1);
+        gtk_tree_model_get( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter, 0, &ncu, -1);
 
         if ( (gpointer)ncu == (gpointer)gobject ) {
             GtkTreePath *path;
 
             valid_iter = FALSE;
 
-            path = gtk_tree_model_get_path(GTK_TREE_MODEL(self->prv->ncu_list_store),
+            path = gtk_tree_model_get_path(GTK_TREE_MODEL(self->prv->ncu_tree_store),
               &iter);
-            gtk_tree_model_row_changed(GTK_TREE_MODEL(self->prv->ncu_list_store),
+            gtk_tree_model_row_changed(GTK_TREE_MODEL(self->prv->ncu_tree_store),
               path,
               &iter);
             gtk_tree_path_free(path);

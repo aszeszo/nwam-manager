@@ -316,7 +316,7 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
         return NULL;
     }
 
-    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(self->prv->ncp));
+    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store(self->prv->ncp));
         
     g_assert( GTK_IS_LIST_STORE( model ) );
     gtk_tree_view_set_model(GTK_TREE_VIEW(view), model);
@@ -423,7 +423,7 @@ nwam_compose_rules_tree_view (NwamNetConfPanel *self, GtkTreeView* view )
     if ( self->prv->ncp == NULL ) {
         return;
     }
-    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(self->prv->ncp));
+    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store(self->prv->ncp));
         
     /* Create a filter model */
     model = gtk_tree_model_filter_new(model, NULL ); 
@@ -587,7 +587,7 @@ nwam_net_conf_panel_refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean f
     
     if ( self->prv->ncp != NULL ) {
 /*
-        gtk_list_store_clear( GTK_LIST_STORE( self->prv->model ) );
+        gtk_tree_store_clear( GTK_TREE_STORE( self->prv->model ) );
 
         nwamui_ncp_foreach_ncu( self->prv->ncp, add_ncu_element, (gpointer)self );
 */
@@ -615,8 +615,8 @@ static void
 nwam_net_conf_add (NwamNetConfPanel *self, NwamuiNcu* connection)
 {
 	GtkTreeIter iter;
-	gtk_list_store_append (GTK_LIST_STORE(self->prv->model), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(self->prv->model), &iter,
+	gtk_tree_store_append (GTK_TREE_STORE(self->prv->model), &iter, NULL);
+	gtk_tree_store_set (GTK_TREE_STORE(self->prv->model), &iter,
 			    0, connection,
 			    -1);
 }
@@ -624,7 +624,7 @@ nwam_net_conf_add (NwamNetConfPanel *self, NwamuiNcu* connection)
 void
 nwam_net_conf_clear (NwamNetConfPanel *self)
 {
-	gtk_list_store_clear (GTK_LIST_STORE(self->prv->model));
+	gtk_tree_store_clear (GTK_TREE_STORE(self->prv->model));
 }
 
 static void
@@ -1114,7 +1114,7 @@ connection_move_up_btn_cb( GtkButton* button, gpointer user_data )
         if ( gtk_tree_path_prev(path) ) { /* See if we have somewhere to move up to... */
             GtkTreeIter prev_iter;
             if ( gtk_tree_model_get_iter(model, &prev_iter, path) ) {
-                gtk_list_store_move_before(GTK_LIST_STORE(model), &iter, &prev_iter );
+                gtk_tree_store_move_before(GTK_TREE_STORE(model), &iter, &prev_iter );
             }
         }
         gtk_tree_path_free(path);
@@ -1134,7 +1134,7 @@ connection_move_down_btn_cb( GtkButton* button, gpointer user_data )
         GtkTreeIter *next_iter = gtk_tree_iter_copy(&iter);
         
         if ( gtk_tree_model_iter_next(GTK_TREE_MODEL(model), next_iter) ) { /* See if we have somewhere to move down to... */
-            gtk_list_store_move_after(GTK_LIST_STORE(model), &iter, next_iter );
+            gtk_tree_store_move_after(GTK_TREE_STORE(model), &iter, next_iter );
         }
         
         gtk_tree_iter_free(next_iter);

@@ -449,6 +449,18 @@ nwamui_daemon_init (NwamuiDaemon *self)
         }
     }
     
+    /* FIXME: Assume first NCP is the active until we can determine otherwise
+     * using the API */
+    if ( self->prv->active_ncp == NULL && self->prv->ncp_list  != NULL ) {
+        GList* first_element = g_list_first( self->prv->ncp_list );
+
+
+        if ( first_element != NULL && first_element->data != NULL )  {
+            self->prv->active_ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(first_element->data)));
+        }
+        
+    }
+
     self->prv->env_list = NULL;
     {
         nwam_error_t nerr;
@@ -519,7 +531,7 @@ nwamui_daemon_set_property ( GObject         *object,
 
                 /* TODO - I presume that keep the prev active ncp if failded */
                 /* FIXME: For demo, always set active_ncp! */
-                if (nwamui_ncp_activate (ncp) || 1) {
+                if (1 || nwamui_ncp_activate (ncp) ) {
                     self->prv->active_ncp = ncp;
                     
                     g_signal_emit (self,

@@ -83,7 +83,7 @@ extern gboolean                 nwamui_ncp_is_modifiable( NwamuiNcp *self);
 
 extern void                     nwamui_ncp_set_modifiable( NwamuiNcp *self, gboolean modifiable );
 
-extern	GtkListStore*           nwamui_ncp_get_ncu_list_store ( NwamuiNcp *self );
+extern	GtkTreeStore*           nwamui_ncp_get_ncu_tree_store ( NwamuiNcp *self );
 
 extern  NwamuiNcu*              nwamui_ncp_get_active_ncu( NwamuiNcp *self );
 
