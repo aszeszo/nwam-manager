@@ -514,9 +514,9 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     self->prv->active_profile_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(ACTIVE_PROFILE_CBOX));
     g_signal_connect(self->prv->active_profile_combo, "changed", G_CALLBACK(active_profile_changed),(gpointer)self);
     /* FIXME: How about zero ncp? */
-    daemon_compose_ncp_combo(GTK_COMBO_BOX(self->prv->active_profile_combo),
-      daemon,
+    capplet_compose_nwamui_obj_combo(GTK_COMBO_BOX(self->prv->active_profile_combo),
       NWAM_PREF_IFACE(self));
+    capplet_update_nwamui_obj_combo(GTK_COMBO_BOX(self->prv->active_profile_combo), daemon, NWAMUI_TYPE_NCP);
     gtk_combo_box_set_active(GTK_COMBO_BOX(self->prv->active_profile_combo), 1);
 
     self->prv->conditions_connected_cbox = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(CONDITIONS_CONNECTED_CBOX));

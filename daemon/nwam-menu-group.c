@@ -71,6 +71,8 @@ nwam_menu_group_class_init (NwamMenuGroupClass *klass)
 	gobject_class->finalize = (void (*)(GObject*)) nwam_menu_group_finalize;
 	gobject_class->set_property = nwam_menu_group_set_property;
 	gobject_class->get_property = nwam_menu_group_get_property;
+
+    g_type_class_add_private(klass, sizeof(NwamMenuGroupPrivate));
 }
 
 static GObject*

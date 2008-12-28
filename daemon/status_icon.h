@@ -30,28 +30,45 @@
 
 G_BEGIN_DECLS
 
+#define NWAM_TYPE_STATUS_ICON            (nwam_status_icon_get_type ())
+#define NWAM_STATUS_ICON(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NWAM_TYPE_STATUS_ICON, NwamStatusIcon))
+#define NWAM_STATUS_ICON_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NWAM_TYPE_STATUS_ICON, NwamStatusIconClass))
+#define NWAM_IS_STATUS_ICON(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NWAM_TYPE_STATUS_ICON))
+#define NWAM_IS_STATUS_ICON_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NWAM_TYPE_STATUS_ICON))
+#define NWAM_STATUS_ICON_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj), NWAM_TYPE_STATUS_ICON, NwamStatusIconClass))
+
+typedef struct _NwamStatusIcon        NwamStatusIcon;
+typedef struct _NwamStatusIconPrivate NwamStatusIconPrivate;
+typedef struct _NwamStatusIconClass   NwamStatusIconClass;
+
+struct _NwamStatusIcon
+{
+	GtkStatusIcon parent;
+	
+	/*< private >*/
+	NwamStatusIconPrivate *prv;
+};
+
+struct _NwamStatusIconClass {
+	GtkStatusIconClass parent_class;	
+};
+
+GType nwam_status_icon_get_type(void) G_GNUC_CONST;
+
+extern NwamStatusIcon* get_nwam_status_icon_instance ();
+extern GtkWidget* get_status_icon_status_icon( gint index );
+extern void nwam_exec (const gchar *nwam_arg);
+
 typedef     void (*StatusIconCallback)(GObject *user_data);
 
-gint nwam_status_icon_create( void );
+NwamStatusIcon* nwam_status_icon_new( void );
 
-GtkStatusIcon* nwam_status_icon_get_widget( gint index );
+void nwam_status_icon_set_activate_callback(NwamStatusIcon *self,
+  const char* message, 
+  StatusIconCallback activate_cb,
+  GObject* user_data);
 
-void nwam_status_icon_set_activate_callback( gint index, const char* message, 
-                                             StatusIconCallback activate_cb, GObject* user_data );
-
-void nwam_status_icon_set_status(gint index, gint env_status, const gchar* reason );
-
-void nwam_status_icon_set_visible(gint index, gboolean visible);
-
-gboolean nwam_status_icon_get_visible(gint index);
-
-void nwam_status_icon_hide( gint index );
-
-void nwam_status_icon_blink( gint index );
-
-void nwam_status_icon_no_blink( gint index );
-
-void nwam_status_icon_set_tooltip (gint index, const gchar *str);
+void nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, const gchar* reason );
 
 void nwam_status_icon_show_menu( gint index, guint button, guint activate_time );
 

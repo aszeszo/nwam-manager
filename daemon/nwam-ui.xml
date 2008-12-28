@@ -1,17 +1,21 @@
 <ui>
-	<popup name="StatusIconMenu">
-		<menuitem action="0_location_pref"/>
-		<separator name="section_fav_ap_begin"/>
-		<separator name="section_fav_ap_end"/>
-		<menuitem action="1_join_wireless"/>
-		<separator/>
-		<menuitem action="2_network_pref"/>
-		<menu action="switch_location"/>
-		<menu action="vpn">
-			<separator name="section_vpn_end"/>
-			<menuitem action="3_vpn_pref"/>
-		</menu>
-		<separator/>
-		<menuitem action="4_help"/>
-	</popup>
+  <popup name="StatusIconMenu">
+    <menu action="location">
+      <separator name="section_location_end"/>
+      <menuitem action="0_location_pref"/>
+    </menu>
+    <separator name="section_fav_ap_begin"/>
+    <separator name="section_fav_ap_end"/>
+    <separator/>
+    <menu action="5_refresh_wireless"/>
+    <menuitem action="1_join_wireless"/>
+    <separator/>
+    <menu action="vpn">
+      <separator name="section_vpn_end"/>
+      <menuitem action="3_vpn_pref"/>
+    </menu>
+    <separator/>
+    <menuitem action="2_network_pref"/>
+    <menuitem action="4_help"/>
+  </popup>
 </ui>

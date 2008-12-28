@@ -62,6 +62,8 @@ nwam_wifi_group_class_init(NwamWifiGroupClass *klass)
 	gobject_class->finalize = (void (*)(GObject*)) nwam_wifi_group_finalize;
 
     menu_group_class = NWAM_MENU_GROUP_CLASS(klass);
+
+    g_type_class_add_private(klass, sizeof(NwamWifiGroupPrivate));
 }
 
 static void
@@ -82,8 +84,8 @@ NwamWifiGroup*
 nwam_wifi_group_new(GtkUIManager *ui_manager,
   const gchar *place_holder)
 {
-    GtkAction *action;
     NwamWifiGroup *self;
+    GtkAction *action;
 
     self = g_object_new(NWAM_TYPE_WIFI_GROUP,
       "ui-manager", ui_manager,
@@ -103,7 +105,7 @@ nwam_wifi_group_new(GtkUIManager *ui_manager,
         gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), TRUE);
 
         nwam_menu_group_add_item(NWAM_MENU_GROUP(self),
-          action,
+          G_OBJECT(action),
           TRUE);
 
         g_object_unref (action);

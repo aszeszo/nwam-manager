@@ -103,7 +103,7 @@ nwam_pref_refresh (NwamPrefIFace *self, gpointer data, gboolean force)
  * @self: a #NwamPrefIFace instance.
  * @data: User data
  * 
- * Apply each @self.
+ * Apply @self.
  * Invork by nwam_pref_dialog, willcheck the application is successfully or not.
  * If all are successfully, nwam_pref_dialog will hide itself, else maybe popup
  * a error dialog(?) and keep living.
@@ -119,6 +119,29 @@ nwam_pref_apply (NwamPrefIFace *self, gpointer data)
     g_return_val_if_fail( iface->apply, FALSE );
 
     return (iface)->apply(self, data);
+}
+
+/**
+ * nwam_pref_cancel:
+ * @self: a #NwamPrefIFace instance.
+ * @data: User data
+ * 
+ * Cancel @self.
+ * Invork by nwam_pref_dialog, will check the application is successfully or not.
+ * If all are successfully, nwam_pref_dialog will hide itself, else maybe popup
+ * a error dialog(?) and keep living.
+ *
+ * Returns: TRUE, if cancel @self successfully. Default FALSE.
+ **/
+gboolean
+nwam_pref_cancel (NwamPrefIFace *self, gpointer data)
+{
+	NwamPrefInterface *iface = NWAM_GET_PREF_INTERFACE (self);
+
+    g_return_val_if_fail( self != NULL, FALSE );
+    g_return_val_if_fail( iface->cancel, FALSE );
+
+    return (iface)->cancel(self, data);
 }
 
 /**

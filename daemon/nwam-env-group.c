@@ -80,37 +80,16 @@ nwam_env_group_class_init(NwamEnvGroupClass *klass)
 /*     menu_group_class->remove_item = nwam_env_group_remove_item; */
     menu_group_class->get_item_by_name = nwam_env_group_get_item_by_name;
     menu_group_class->get_item_by_proxy = nwam_env_group_get_item_by_proxy;
+
+    g_type_class_add_private(klass, sizeof(NwamEnvGroupPrivate));
 }
 
 static void
 nwam_env_group_init(NwamEnvGroup *self)
 {
     NwamEnvGroupPrivate *prv = NWAM_ENV_GROUP_GET_PRIVATE(self);
-	GList *idx = NULL;
-	GtkAction* action = NULL;
-
-    prv->automatic = gtk_radio_action_new("automatic",
-      _("Automatic"),
-      NULL,
-      NULL,
-      0);
-
-    nwam_menu_group_add_item(NWAM_MENU_GROUP(self),
-      prv->automatic,
-      TRUE);
 
     prv->daemon = nwamui_daemon_get_instance();
-
-	for (idx = nwamui_daemon_get_env_list(prv->daemon); idx; idx = g_list_next(idx)) {
-		action = GTK_ACTION(nwam_env_action_new(NWAMUI_ENV(idx->data)));
-
-        nwam_menu_group_add_item(NWAM_MENU_GROUP(self),
-          action,
-          TRUE);
-
-        //nwam_menuitem_proxy_new(action, env_group);
-		g_object_unref(action);
-	}
 }
 
 static void
@@ -147,13 +126,13 @@ nwam_env_group_get_item_by_proxy(NwamEnvGroup *self, GObject* proxy)
 static void
 nwam_env_group_add_item(NwamEnvGroup *self, GtkAction *action, gboolean top)
 {
-    NWAM_MENU_GROUP_CLASS(nwam_env_group_parent_class)->add_item(NWAM_MENU_GROUP(self), action, top);
+    NWAM_MENU_GROUP_CLASS(nwam_env_group_parent_class)->add_item(NWAM_MENU_GROUP(self), G_OBJECT(action), top);
 }
 
 static void
 nwam_env_group_remove_item(NwamEnvGroup *self, GtkAction *action)
 {
-    NWAM_MENU_GROUP_CLASS(nwam_env_group_parent_class)->remove_item(NWAM_MENU_GROUP(self), action);
+    NWAM_MENU_GROUP_CLASS(nwam_env_group_parent_class)->remove_item(NWAM_MENU_GROUP(self), G_OBJECT(action));
 }
 
 static void
@@ -173,11 +152,38 @@ nwam_env_group_new(GtkUIManager *ui_manager,
   const gchar *place_holder)
 {
     NwamEnvGroup *self;
+    NwamEnvGroupPrivate *prv;
+	GList *idx = NULL;
+	GtkAction* action = NULL;
+
 
     self = g_object_new(NWAM_TYPE_ENV_GROUP,
       "ui-manager", ui_manager,
       "ui-placeholder", place_holder,
       NULL);
+    prv = NWAM_ENV_GROUP_GET_PRIVATE(self);
+
+    prv->automatic = gtk_radio_action_new("automatic",
+      _("Automatic"),
+      NULL,
+      NULL,
+      0);
+
+    nwam_menu_group_add_item(NWAM_MENU_GROUP(self),
+      prv->automatic,
+      TRUE);
+
+
+	for (idx = nwamui_daemon_get_env_list(prv->daemon); idx; idx = g_list_next(idx)) {
+		action = GTK_ACTION(nwam_env_action_new(NWAMUI_ENV(idx->data)));
+
+        nwam_menu_group_add_item(NWAM_MENU_GROUP(self),
+          G_OBJECT(action),
+          TRUE);
+
+        //nwam_menuitem_proxy_new(action, env_group);
+		g_object_unref(action);
+	}
 
     return self;
 }

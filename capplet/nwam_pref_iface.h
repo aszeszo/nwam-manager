@@ -51,6 +51,7 @@ struct _NwamPrefInterface {
 
 	gboolean (*refresh) (NwamPrefIFace *self, gpointer, gboolean);
 	gboolean (*apply) (NwamPrefIFace *self, gpointer);
+	gboolean (*cancel) (NwamPrefIFace *self, gpointer);
 	gboolean (*help) (NwamPrefIFace *self, gpointer);
 };
 
@@ -60,6 +61,7 @@ extern GType nwam_pref_iface_get_type (void) G_GNUC_CONST;
 
 extern gboolean         nwam_pref_refresh (NwamPrefIFace *self, gpointer data, gboolean force);
 extern gboolean         nwam_pref_apply (NwamPrefIFace *self, gpointer data);
+extern gboolean         nwam_pref_cancel (NwamPrefIFace *self, gpointer data);
 extern gboolean         nwam_pref_help (NwamPrefIFace *self, gpointer data);
 
 G_END_DECLS

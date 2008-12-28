@@ -49,19 +49,15 @@
 #define	NONCU	"No network interfaces detected"
 #define FALSENCU	"automatic"
 
-static NwamMenu *instance = NULL;
-
 #define NWAMUI_ACTION_ROOT	"StatusIconMenuActions"
 #define NWAMUI_ROOT "StatusIconMenu"
 #define NWAMUI_PROOT "/"NWAMUI_ROOT
-#define MENUITEM_SECTION_FAV_AP_BEGIN	NWAMUI_PROOT"/section_fav_ap_begin"
-#define MENUITEM_SECTION_FAV_AP_END	NWAMUI_PROOT"/section_fav_ap_end"
-#define MENUITEM_SECTION_VPN_END	NWAMUI_PROOT"/vpn/section_vpn_end"
 #define MENUITEM_NAME_ENV_PREF "0_location_pref"
 #define MENUITEM_NAME_JOIN_WIRELESS "1_join_wireless"
 #define MENUITEM_NAME_NET_PREF "2_network_pref"
 #define MENUITEM_NAME_VPN_PREF "3_vpn_pref"
 #define MENUITEM_NAME_HELP "4_help"
+#define MENUTIEM_NAME_REFRESH_WIRELESS "5_refresh_wireless"
 
 enum {
 	ID_GLOBAL = 0,
@@ -74,14 +70,10 @@ enum {
 
 static const gchar * dynamic_menuitem_inserting_path[N_ID] = {
     NULL,			/* ID_GLOBAL, shouldn't be used */
-    MENUITEM_SECTION_FAV_AP_END,			/* ID_WIFI */
+    NWAMUI_PROOT"/section_fav_ap_end",			/* ID_WIFI */
 	NWAMUI_PROOT"/addfavor",	/* ID_FAV_WIFI */
-};
-
-static const gchar * dynamic_menuitem_path[N_ID] = {
-    NWAMUI_ROOT,			/* ID_GLOBAL */
-    NWAMUI_ROOT,			/* ID_WIFI */
-	NWAMUI_ROOT"/addfavor",	/* ID_FAV_WIFI */
+    NWAMUI_PROOT"/section_location_end", /* ID_ENV */
+    NWAMUI_PROOT"/vpn/section_vpn_end",  /* ID_VPN */
 };
 
 struct _NwamMenuPrivate {
@@ -117,10 +109,6 @@ static void notification_listwireless_cb (NotifyNotification *n, gchar *action, 
 
 /* utils */
 static void menus_set_automatic_label(NwamMenu *self, NwamuiNcu *ncu);
-
-static GtkWidget* menus_get_menuitem(NwamMenu *self,
-  int path_id,
-  const gchar *menu_name);
 
 static void menus_set_action_visible(NwamMenu *self,
   gint group_id,
@@ -164,7 +152,7 @@ G_DEFINE_TYPE (NwamMenu, nwam_menu, G_TYPE_OBJECT)
 
 static GtkActionEntry entries[] = {
     { MENUITEM_NAME_ENV_PREF,
-      NULL, N_("Location Preferences"), 
+      NULL, N_("Location Preferences..."), 
       NULL, NULL,
       G_CALLBACK(on_activate_static_menuitems) },
     { MENUITEM_NAME_JOIN_WIRELESS,
@@ -172,20 +160,27 @@ static GtkActionEntry entries[] = {
       NULL, NULL,
       G_CALLBACK(on_activate_static_menuitems) },
     { MENUITEM_NAME_NET_PREF,
-      NULL, N_("Network Preferences"),
+      NULL, N_("Network Preferences..."),
       NULL, NULL,
       G_CALLBACK(on_activate_static_menuitems) },
     { MENUITEM_NAME_VPN_PREF,
       NULL, N_("VPN Preferences"),
       NULL, NULL,
       G_CALLBACK(on_activate_static_menuitems) },
+    { MENUTIEM_NAME_REFRESH_WIRELESS,
+      NULL, N_("Refresh Wireless Network"),
+      NULL, NULL,
+      G_CALLBACK(on_activate_static_menuitems) },
     { "swtchenv",
       NULL, N_("Switch Location"),
       NULL, NULL, NULL },
     { "vpn",
-      NULL, N_("VPN"),
+      NULL, N_("VPN Applications"),
       NULL, NULL, NULL },
-    { "help",
+    { "location",
+      NULL, N_("Location"),
+      NULL, NULL, NULL },
+    { MENUITEM_NAME_HELP,
       GTK_STOCK_HELP, N_("Help"),
       NULL, NULL,
       G_CALLBACK(on_activate_static_menuitems) }
@@ -216,8 +211,7 @@ nwam_menu_init (NwamMenu *self)
 	self->prv->group[ID_GLOBAL] = gtk_action_group_new (NWAMUI_ACTION_ROOT);
 	gtk_action_group_set_translation_domain (self->prv->group[ID_GLOBAL], NULL);
 
-    connect_daemon_signals(G_OBJECT(self), self->prv->daemon);
-
+#if PHASE_1_0
     {
         NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
 
@@ -225,6 +219,7 @@ nwam_menu_init (NwamMenu *self)
 
         g_object_unref(ncp);
     }
+#endif
 
 	self->prv->ui_manager = gtk_ui_manager_new ();
 
@@ -240,7 +235,9 @@ nwam_menu_init (NwamMenu *self)
     event_daemon_status_changed(self->prv->daemon,
       NWAMUI_DAEMON_STATUS_ACTIVE,
       (gpointer) self);
+#if PHASE_1_0
     nwam_menu_connect (self);
+#endif
 }
 
 static void
@@ -248,6 +245,8 @@ nwam_menu_finalize (NwamMenu *self)
 {
 	g_object_unref (G_OBJECT(self->prv->ui_manager));
 	g_object_unref (G_OBJECT(self->prv->daemon));
+
+#if PHASE_1_0
     {
         NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
 
@@ -255,6 +254,7 @@ nwam_menu_finalize (NwamMenu *self)
 
         g_object_unref(ncp);
     }
+#endif
 
 	/* TODO, release all the resources */
 
@@ -310,20 +310,6 @@ menus_set_automatic_label(NwamMenu *self, NwamuiNcu *ncu)
     }
 #endif
     g_free(automatic_label);
-}
-
-static GtkWidget*
-menus_get_menuitem(NwamMenu *self, int path_id, const gchar *menu_name)
-{
-    gchar *path = NULL;
-    GtkWidget *menuitem = NULL;
-
-    path = g_build_path("/", "/", dynamic_menuitem_path[path_id], menu_name, NULL);
-
-    menuitem = gtk_ui_manager_get_widget(self->prv->ui_manager, path);
-
-    g_free (path);
-    return menuitem;
 }
 
 static void
@@ -389,8 +375,10 @@ static void
 nwam_menu_delete_wifi_menuitems(NwamMenu *self)
 {
 	self->prv->has_wifi = FALSE;
-    g_object_unref (G_OBJECT(self->prv->group[ID_WIFI]));
-    self->prv->group[ID_WIFI] = NULL;
+    if (self->prv->group[ID_WIFI]) {
+        g_object_unref(G_OBJECT(self->prv->group[ID_WIFI]));
+        self->prv->group[ID_WIFI] = NULL;
+    }
 }
 
 static void
@@ -465,7 +453,7 @@ nwam_menu_recreate_ncu_menuitems (NwamMenu *self)
                           G_CALLBACK(on_nwam_ncu_toggled), (gpointer)self);
     }
 
-    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store (active_ncp));
+    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store (active_ncp));
 
     if (gtk_tree_model_get_iter_first (model, &iter)) {
         gboolean has_wireless_inf = FALSE;
@@ -559,7 +547,7 @@ static void
 nwam_menu_connect (NwamMenu *self)
 {
     NwamuiNcp* active_ncp = nwamui_daemon_get_active_ncp (self->prv->daemon);
-    GtkTreeModel *model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store (active_ncp));
+    GtkTreeModel *model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store (active_ncp));
     NwamuiNcu *ncu;
     GtkTreeIter iter;
 
@@ -637,7 +625,7 @@ on_activate_static_menuitems (GtkAction *action, gpointer data)
 
     if (first_char == *MENUITEM_NAME_JOIN_WIRELESS) {
 #if 0
-        NwamMenu *self = NWAM_MENU (data);
+        NwamMenu *self = NWAM_MENU(data);
         if (data) {
             gchar *argv = NULL;
             gchar *name = NULL;
@@ -654,6 +642,8 @@ on_activate_static_menuitems (GtkAction *action, gpointer data)
         }
 #endif
         join_wireless(NULL);
+    } else if (first_char == *MENUTIEM_NAME_REFRESH_WIRELESS) {
+        nwam_menu_recreate_wifi_menuitems(NWAM_MENU(data));
     } else if (first_char == *MENUITEM_NAME_ENV_PREF) {
 		argv = "-e";
     } else if (first_char == *MENUITEM_NAME_NET_PREF) {
@@ -1124,21 +1114,15 @@ nwam_menu_create_vpn_menuitems(NwamMenu *self)
       dynamic_menuitem_inserting_path[ID_VPN]);
 }
 
-/* FIXME, should be singleton. for mutiple status icons should sustain an
- * internal vector which record <icon, menu> pairs.
- * This function should be invoked/destroyed in the main function.
- */
 NwamMenu *
-get_nwam_menu_instance ()
+nwam_menu_new ()
 {
-	if (instance)
-		return NWAM_MENU(g_object_ref (G_OBJECT(instance)));
-	return NWAM_MENU(instance = g_object_new (NWAM_TYPE_MENU, NULL));
+	return NWAM_MENU(g_object_new (NWAM_TYPE_MENU, NULL));
 }
 
 /* FIXME, need re-create menu magic */
-static GtkWidget *
-nwam_menu_get_statusicon_menu (NwamMenu *self/*, icon index*/)
+GtkWidget *
+nwam_menu_get_statusicon_menu (NwamMenu *self)
 {
 	/* icon index => menu root */
 	gtk_ui_manager_ensure_update (self->prv->ui_manager);
@@ -1150,13 +1134,4 @@ nwam_menu_get_statusicon_menu (NwamMenu *self/*, icon index*/)
 	}
 #endif
 	return gtk_ui_manager_get_widget(self->prv->ui_manager, NWAMUI_PROOT);
-}
-
-/*
- * Be sure call after get_nwam_menu_instance ()
- */
-GtkWidget *
-get_status_icon_menu( gint index )
-{
-	return nwam_menu_get_statusicon_menu (instance);
 }

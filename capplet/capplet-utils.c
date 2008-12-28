@@ -9,7 +9,7 @@ static void ncu_panel_mixed_combo_cell_cb (GtkCellLayout *cell_layout,
     GtkTreeIter       *iter,
     gpointer           data);
 
-static void ncp_combo_cell_cb (GtkCellLayout *cell_layout,
+static void nwamui_obj_combo_cell_cb (GtkCellLayout *cell_layout,
     GtkCellRenderer   *renderer,
     GtkTreeModel      *model,
     GtkTreeIter       *iter,
@@ -69,8 +69,7 @@ ncu_panel_mixed_combo_separator_cb(GtkTreeModel *model,
 }
 
 void
-daemon_compose_ncp_combo(GtkComboBox *combo, NwamuiDaemon *daemon,
-    NwamPrefIFace *iface)
+capplet_compose_nwamui_obj_combo(GtkComboBox *combo, NwamPrefIFace *iface)
 {
 	GtkCellRenderer *renderer;
 	GtkTreeModel      *model;
@@ -85,7 +84,7 @@ daemon_compose_ncp_combo(GtkComboBox *combo, NwamuiDaemon *daemon,
 	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combo), renderer, TRUE);
 	gtk_cell_layout_set_cell_data_func(GTK_CELL_LAYOUT(combo),
 	    renderer,
-	    ncp_combo_cell_cb,
+	    nwamui_obj_combo_cell_cb,
 	    NULL,
 	    NULL);
 	g_signal_connect(G_OBJECT(combo), "changed",
@@ -93,16 +92,40 @@ daemon_compose_ncp_combo(GtkComboBox *combo, NwamuiDaemon *daemon,
 }
 
 void
-daemon_update_ncp_combo(GtkComboBox *combo, NwamuiDaemon *daemon)
+capplet_update_nwamui_obj_combo(GtkComboBox *combo, NwamuiDaemon *daemon, GType type)
 {
 	GtkTreeModel      *model;
-        
-	model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo));
+	GList           *obj_list;
+	GList           *idx;
+	GtkTreeIter   iter;
 
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo));
+	/* TODO clean all */
+	gtk_list_store_clear(GTK_LIST_STORE(model));
+
+	if (type == NWAMUI_TYPE_NCP) {
+		obj_list = nwamui_daemon_get_ncp_list(daemon);
+	/* } else if (type == NWAMUI_TYPE_NCU) { */
+	} else if (type == NWAMUI_TYPE_ENV) {
+		obj_list = nwamui_daemon_get_env_list(daemon);
+	} else if (type == NWAMUI_TYPE_ENM) {
+		obj_list = nwamui_daemon_get_enm_list(daemon);
+	} else {
+		g_error("unknow supported get nwamui obj list");
+	}
+
+	for (idx = obj_list; idx; idx = g_list_next(idx)) {
+		gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+		gtk_list_store_set (GTK_LIST_STORE(model), &iter,
+		    0, idx->data,
+                    -1);
+		g_object_unref(idx->data);
+	}
+	g_list_free(obj_list);
 }
 
 static void
-ncp_combo_cell_cb (GtkCellLayout *cell_layout,
+nwamui_obj_combo_cell_cb (GtkCellLayout *cell_layout,
     GtkCellRenderer   *renderer,
     GtkTreeModel      *model,
     GtkTreeIter       *iter,
@@ -113,10 +136,10 @@ ncp_combo_cell_cb (GtkCellLayout *cell_layout,
 	
 	gtk_tree_model_get(model, iter, 0, &row_data, -1);
 	
-	g_assert (row_data);
-	g_assert (NWAMUI_IS_NCP (row_data));
+	g_assert(row_data);
+	g_assert(G_IS_OBJECT (row_data));
 	
-	text = nwamui_ncp_get_name(NWAMUI_NCP(row_data));
+	text = nwamui_obj_get_display_name(G_OBJECT(row_data));
 	g_object_set (G_OBJECT(renderer), "text", text, NULL);
 	g_free (text);
 }
@@ -145,11 +168,12 @@ nwamui_obj_get_display_name(GObject *obj)
 		name = nwamui_ncp_get_name(NWAMUI_NCP(obj));
 	} else if (type == NWAMUI_TYPE_NCU) {
 		name = nwamui_ncu_get_vanity_name(NWAMUI_NCP(obj));
+	} else if (type == NWAMUI_TYPE_ENV) {
+		name = nwamui_env_get_name(NWAMUI_ENV(obj));
 	} else if (type == NWAMUI_TYPE_ENM) {
 		name = nwamui_enm_get_name(NWAMUI_ENM(obj));
 	} else {
-		g_assert_not_reached();
-		name = g_strdup("unknow display name");
+		g_error("unknow get display name");
 	}
 	return name;
 }

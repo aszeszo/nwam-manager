@@ -1,3 +1,66 @@
+2008-12-28  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c: (capplet_compose_nwamui_obj_combo),
+	(capplet_update_nwamui_obj_combo), (nwamui_obj_combo_cell_cb),
+	(nwamui_obj_get_display_name):
+	* capplet/capplet-utils.h:
+	* capplet/nwam_condition_vbox.c: (apply), (nwam_pref_init):
+	* capplet/nwam_env_pref_dialog.c: (nwam_pref_init),
+	(nwam_env_pref_dialog_init), (nwam_env_pref_dialog_finalize),
+	(populate_panels_from_env), (default_netservices_vfunc),
+	(additional_netservices_vfunc), (refresh):
+	* capplet/nwam_net_conf_panel.c: (nwam_net_conf_panel_init):
+	* capplet/nwam_pref_dialog.c: (apply), (help):
+	* capplet/nwam_pref_iface.c: (nwam_pref_cancel):
+	* capplet/nwam_pref_iface.h:
+	New interface for panel/dialog objects.
+	* common/libnwamui.c: (nwamui_util_encode_menu_label),
+	(notification_area_ready):
+	* daemon/main.c: (update_tooltip), (init_wait_for_embedding),
+	(main):
+	* daemon/nwam-enm-group.c: (nwam_enm_group_class_init),
+	(nwam_enm_group_init), (nwam_enm_group_add_item),
+	(nwam_enm_group_remove_item):
+	* daemon/nwam-env-group.c: (nwam_env_group_class_init),
+	(nwam_env_group_init), (nwam_env_group_add_item),
+	(nwam_env_group_remove_item), (nwam_env_group_new):
+	* daemon/nwam-menu-action-group.c:
+	(nwam_menu_action_group_class_init),
+	(nwam_menu_action_group_set_property),
+	(nwam_menu_action_group_get_property),
+	(nwam_menu_action_group_finalize),
+	(nwam_menu_action_group_add_item),
+	(nwam_menu_action_group_remove_item),
+	(nwam_menu_action_group_attach), (nwam_menu_action_group_detach):
+	* daemon/nwam-menu-group.c: (nwam_menu_group_class_init):
+	* daemon/nwam-menu-radio-action-group.c:
+	(nwam_menu_radio_action_group_class_init),
+	(nwam_menu_radio_action_group_add_item):
+	* daemon/nwam-menu.c: (nwam_menu_init), (nwam_menu_finalize),
+	(nwam_menu_delete_wifi_menuitems), (on_activate_static_menuitems),
+	(nwam_menu_new), (nwam_menu_get_statusicon_menu):
+	* daemon/nwam-menu.h:
+	* daemon/nwam-ui.xml:
+	* daemon/nwam-wifi-group.c: (nwam_wifi_group_class_init),
+	(nwam_wifi_group_new):
+	* daemon/status_icon.c: (on_status_activate_wifi_key_needed),
+	(ncu_is_higher_priority_than_active_ncu),
+	(event_daemon_status_changed), (event_daemon_info),
+	(event_wifi_key_needed), (event_wifi_selection_needed),
+	(event_ncu_up), (event_ncu_down), (connect_nwam_obj_signals),
+	(disconnect_nwam_obj_signals), (animation_panel_icon_timeout),
+	(trigger_animation_panel_icon), (nwam_status_icon_new),
+	(nwam_status_icon_set_activate_callback),
+	(nwam_status_icon_set_status), (nwam_status_icon_refresh_tooltip),
+	(nwam_status_icon_show_menu), (status_icon_popup_cb),
+	(status_icon_activate_cb), (status_icon_size_changed_cb),
+	(ncp_activate_ncu), (ncp_deactivate_ncu), (on_ncp_notify_cb),
+	(on_notifyaction_wifi_key_need), (on_notifyaction_popup_menus),
+	(get_status_icon), (nwam_status_icon_class_init),
+	(nwam_status_icon_init), (nwam_status_icon_finalize):
+	* daemon/status_icon.h:
+	Fixed panel menu and menu group objects. Status icon becomes an object.
+
 2008-12-24  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/main.c: (main):

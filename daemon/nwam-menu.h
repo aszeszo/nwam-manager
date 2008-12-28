@@ -54,9 +54,9 @@ struct _NwamMenuClass {
 	GObjectClass parent_class;	
 };
 
-extern NwamMenu * get_nwam_menu_instance ();
-extern GtkWidget* get_status_icon_menu( gint index );
+extern NwamMenu * nwam_menu_new();
 extern void nwam_exec (const gchar *nwam_arg);
+GtkWidget *nwam_menu_get_statusicon_menu (NwamMenu *self);
 
 G_END_DECLS
 

@@ -78,6 +78,8 @@ nwam_enm_group_class_init(NwamEnmGroupClass *klass)
 /*     menu_group_class->remove_item = nwam_enm_group_remove_item; */
     menu_group_class->get_item_by_name = nwam_enm_group_get_item_by_name;
     menu_group_class->get_item_by_proxy = nwam_enm_group_get_item_by_proxy;
+
+    g_type_class_add_private(klass, sizeof(NwamEnmGroupPrivate));
 }
 
 static void
@@ -93,7 +95,7 @@ nwam_enm_group_init(NwamEnmGroup *self)
 		action = GTK_ACTION(nwam_enm_action_new(NWAMUI_ENM(idx->data)));
         //nwam_menuitem_proxy_new(action, vpn_group);
         nwam_menu_group_add_item(NWAM_MENU_GROUP(self),
-          action,
+          G_OBJECT(action),
           TRUE);
 
 		g_object_unref(action);
@@ -133,13 +135,13 @@ nwam_enm_group_get_item_by_proxy(NwamEnmGroup *self, GObject* proxy)
 static void
 nwam_enm_group_add_item(NwamEnmGroup *self, GtkAction *action, gboolean top)
 {
-    NWAM_MENU_GROUP_CLASS(nwam_enm_group_parent_class)->add_item(NWAM_MENU_GROUP(self), action, top);
+    NWAM_MENU_GROUP_CLASS(nwam_enm_group_parent_class)->add_item(NWAM_MENU_GROUP(self), G_OBJECT(action), top);
 }
 
 static void
 nwam_enm_group_remove_item(NwamEnmGroup *self, GtkAction *action)
 {
-    NWAM_MENU_GROUP_CLASS(nwam_enm_group_parent_class)->remove_item(NWAM_MENU_GROUP(self), action);
+    NWAM_MENU_GROUP_CLASS(nwam_enm_group_parent_class)->remove_item(NWAM_MENU_GROUP(self), G_OBJECT(action));
 }
 
 static void

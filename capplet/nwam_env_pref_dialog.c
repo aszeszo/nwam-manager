@@ -79,6 +79,20 @@
 #define     ONLY_ALLOW_LABEL               "only_allow_lbl"
 #define     CONDITIONS_SCROLLWIN           "conditions_scrolledwindow"
 
+#define     IPPOOL_CB                      "ippool_cb"
+#define     IPNAT_CB                       "ipnat_cb"
+#define     IPFILTER_V6_CB                 "ipfilter_v6_cb"
+#define     IPFILTER_CB                    "ipfilter_cb"
+#define     IPPOOL_FILE_CHOOSER            "ippool_file_chooser"
+#define     IPNAT_FILE_CHOOSER             "ipnat_file_chooser"
+#define     IPFILTER_V6_FILE_CHOOSER       "ipfilter_v6_file_chooser"
+#define     IPFILTER_FILE_CHOOSER          "ipfilter_file_chooser"
+
+#define     NAMESERVICES_CONFIG_COMBO      "nameservices_config_combo"
+#define     NAMESERVICES_ADD_BTN           "nameservices_add_btn"
+#define     NAMESERVICES_DELETE_BTN        "nameservices_delete_btn"
+#define     NSSWITCH_FILE_BTN              "nsswitch_file_btn"
+
 enum {
     PROXY_MANUAL_PAGE = 0, 
     PROXY_PAC_PAGE 
@@ -136,6 +150,20 @@ struct _NwamEnvPrefDialogPrivate {
     GtkButton*                  delete_netservice_btn;
     GtkBox*                     conditions_vbox;
 
+    GtkCheckButton*             ippool_cb;
+    GtkCheckButton*             ipnat_cb;
+    GtkCheckButton*             ipfilter_cb;
+    GtkCheckButton*             ipfilter_v6_cb;
+    GtkFileChooserButton*       ippool_file_chooser;
+    GtkFileChooserButton*       ipnat_file_chooser;
+    GtkFileChooserButton*       ipfilter_file_chooser;
+    GtkFileChooserButton*       ipfilter_v6_file_chooser;
+
+    GtkComboBox*                nameservices_config_combo;
+    GtkButton*                  nameservices_add_btn;
+    GtkButton*                  nameservices_delete_btn;
+    GtkFileChooserButton*       nsswitch_file_btn;
+
     /* Other Data */
     NwamuiDaemon*               daemon;
     NwamuiEnv*                  selected_env;
@@ -152,6 +180,7 @@ static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_prox
 
 static void nwam_compose_tree_view (NwamEnvPrefDialog *self);
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
+static gboolean refresh (NwamEnvPrefDialog *self, gpointer data, gboolean force);
 static gboolean apply (NwamPrefIFace *self, gpointer data);
 static gboolean help (NwamPrefIFace *self, gpointer data);
 
@@ -209,7 +238,7 @@ static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
-	iface->refresh = NULL;
+	iface->refresh = refresh;
 	iface->apply = apply;
     iface->help = help;
 }
@@ -274,6 +303,28 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     prv->add_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_NETSERVICE_BTN ));
     prv->delete_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_NETSERVICE_BTN ));
     prv->only_allow_label = GTK_LABEL(nwamui_util_glade_get_widget( ONLY_ALLOW_LABEL ));     
+
+    prv->ippool_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPPOOL_CB ));
+    prv->ipnat_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPNAT_CB ));
+    prv->ipfilter_v6_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPFILTER_V6_CB ));
+    prv->ipfilter_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPFILTER_CB ));
+    prv->ippool_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( IPPOOL_FILE_CHOOSER ));
+    prv->ipnat_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( IPNAT_FILE_CHOOSER ));
+    prv->ipfilter_v6_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( IPFILTER_V6_FILE_CHOOSER ));
+    prv->ipfilter_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( IPFILTER_FILE_CHOOSER ));
+
+    prv->nameservices_config_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(NAMESERVICES_CONFIG_COMBO));
+    prv->nameservices_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICES_ADD_BTN));
+    prv->nameservices_delete_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICES_DELETE_BTN));
+    prv->nsswitch_file_btn = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_FILE_BTN));
+    {
+        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+        capplet_compose_nwamui_obj_combo(GTK_COMBO_BOX(prv->nameservices_config_combo), NWAM_PREF_IFACE(self));
+        capplet_update_nwamui_obj_combo(GTK_COMBO_BOX(prv->nameservices_config_combo), daemon, NWAMUI_TYPE_ENV);
+        gtk_combo_box_set_active(GTK_COMBO_BOX(prv->nameservices_config_combo), 1);
+        g_object_unref(daemon);
+    }
+
     conditions_scrollwin = nwamui_util_glade_get_widget(CONDITIONS_SCROLLWIN);
     prv->conditions_vbox = GTK_BOX(nwam_condition_vbox_new());
     gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW(conditions_scrollwin),
@@ -365,6 +416,21 @@ nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
     g_object_unref(G_OBJECT(self->prv->delete_netservice_btn));
     g_object_unref(G_OBJECT(self->prv->only_allow_label));
     g_object_unref(G_OBJECT(self->prv->conditions_vbox));
+
+    g_object_unref(G_OBJECT(self->prv->ippool_cb));
+    g_object_unref(G_OBJECT(self->prv->ipnat_cb));
+    g_object_unref(G_OBJECT(self->prv->ipfilter_v6_cb));
+    g_object_unref(G_OBJECT(self->prv->ipfilter_cb));
+    g_object_unref(G_OBJECT(self->prv->ippool_file_chooser));
+    g_object_unref(G_OBJECT(self->prv->ipnat_file_chooser));
+    g_object_unref(G_OBJECT(self->prv->ipfilter_v6_file_chooser));
+    g_object_unref(G_OBJECT(self->prv->ipfilter_file_chooser));
+
+    g_object_unref(G_OBJECT(self->prv->nameservices_config_combo));
+    g_object_unref(G_OBJECT(self->prv->nameservices_add_btn));
+    g_object_unref(G_OBJECT(self->prv->nameservices_delete_btn));
+    g_object_unref(G_OBJECT(self->prv->nsswitch_file_btn));
+
     g_object_unref(G_OBJECT(self->prv->daemon));
     G_OBJECT_CLASS(nwam_env_pref_dialog_parent_class)->finalize(G_OBJECT(self));
 }
@@ -678,12 +744,10 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     /*
      * SVC Tab
      */
+#if 0
     GtkTreeModel *model;
     GtkTreeModelFilter *filter;
     
-    /* Not used for Phase 1 any more, but will keep around until needed.
-     */
-#if 0
     model = nwamui_env_get_svcs (current_env);
 
     /* default view */
@@ -710,7 +774,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     gtk_tree_model_filter_refilter (filter);
     g_object_unref (filter);
     g_object_unref (model);
-#endif /* 0 */
+#endif
 }
 
 static void
@@ -1248,12 +1312,12 @@ additional_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
     }
 }
 
-#if 0
 static gboolean
 default_netservices_vfunc (GtkTreeModel *model,
                            GtkTreeIter *iter,
                            gpointer data)
 {
+#if 0
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
     NwamuiSvc *svc;
     gboolean ret;
@@ -1264,13 +1328,16 @@ default_netservices_vfunc (GtkTreeModel *model,
     g_object_unref (svc);
     
     return ret;
+#endif
 }
+
 
 static gboolean
 additional_netservices_vfunc (GtkTreeModel *model,
                               GtkTreeIter *iter,
                               gpointer data)
 {
+#if 0
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
     NwamuiSvc *svc;
     gboolean ret;
@@ -1281,8 +1348,8 @@ additional_netservices_vfunc (GtkTreeModel *model,
     g_object_unref (svc);
 
     return !ret;
-}
 #endif /* 0 */
+}
 
 static void
 response_cb( GtkWidget* widget, gint responseid, gpointer data )
@@ -1318,6 +1385,12 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
     if ( stop_emission ) {
         g_signal_stop_emission_by_name(widget, "response" );
     }
+}
+
+static gboolean
+refresh (NwamEnvPrefDialog *self, gpointer data, gboolean force)
+{
+    /* TODO nameservices_config_combo need it */
 }
 
 static gboolean

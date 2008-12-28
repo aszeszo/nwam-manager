@@ -30,10 +30,12 @@
  */
 
 #include <gtk/gtk.h>
+#include <gdk/gdkx.h>
 #include <glib/gi18n.h>
 #include <libnwamui.h>
 #include <glade/glade.h>
 #include <libgnome/libgnome.h>
+#include <string.h>
 
 #define NWAM_MANAGER_PROPERTIES_GLADE_FILE  "nwam-manager-properties.glade"
 
@@ -584,6 +586,104 @@ nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gc
     g_signal_connect_swapped (message_dialog, "response", G_CALLBACK (gtk_widget_destroy), message_dialog);
     
    (void)gtk_dialog_run(GTK_DIALOG(message_dialog));
+}
+
+/* If there is any underscores we need to replace them with two since
+ * otherwise it's interpreted as a mnemonic
+ *
+ * Will modify the label, possibly reallocating memory.
+ *
+ * Returns the modified pointer.
+ */
+extern gchar*
+nwamui_util_encode_menu_label( gchar **modified_label )
+{
+    if ( modified_label == NULL ) {
+        return NULL;
+    }
+
+    if ( *modified_label != NULL && strchr( *modified_label, '_' ) != NULL ) {
+        /* Allocate a GString, with space for 2 extra underscores to
+         * miminize need to reallocate, several times, but using GString
+         * provides to possibility that it may grow.
+         */
+        GString *gstr = g_string_sized_new( strlen(*modified_label + 2 ) );
+        for ( gchar *c = *modified_label; c != NULL && *c != '\0'; c++ ) {
+            if ( *c == '_' ) {
+                /* add extra underscore */
+                g_string_append_c( gstr, '_' );
+            }
+            g_string_append_c( gstr, *c );
+        }
+        g_free(*modified_label);
+        *modified_label = g_string_free(gstr, FALSE);
+    }
+
+    return( *modified_label );
+}
+
+#define MAX_NOTIFICATION_FAILURES   (20)
+
+extern gboolean
+notification_area_ready ( GtkStatusIcon* status_icon )
+{
+    static gint count_attempts = 0;
+
+    GdkAtom selection_atom;
+    GdkDisplay *display;
+    Display* xdisplay;
+    Window *manager_window;
+    gboolean retval = FALSE;
+    int i, screen_count;
+    char buffer[256];
+    display = gdk_display_get_default();
+    xdisplay = GDK_DISPLAY_XDISPLAY( display );
+
+    /* Only allow this to fail a max number of times otherwise we will never
+     * show messages */
+    if ( (count_attempts++) > MAX_NOTIFICATION_FAILURES ) {
+        g_debug("notification_area_ready() returning TRUE (max failues reached)");
+        return TRUE;
+    }
+
+    screen_count = gdk_display_get_n_screens (display);
+
+    gdk_x11_grab_server();
+
+    for (i=0; i<screen_count; i++) {
+        g_snprintf (buffer, sizeof (buffer),
+                    "_NET_SYSTEM_TRAY_S%d", i);
+                    
+        selection_atom = gdk_atom_intern(buffer, FALSE);
+  
+        manager_window = XGetSelectionOwner( xdisplay, gdk_x11_atom_to_xatom(selection_atom) );
+
+        if ( manager_window != NULL ) {
+            break;
+        }
+  
+    }
+
+    gdk_x11_ungrab_server();
+
+    gdk_flush();
+
+    if (manager_window != NULL ) {
+        /* We need to process all events to get status of embedding
+         * correctly, otherwise is always FALSE */
+        while (gtk_events_pending ())
+          gtk_main_iteration ();
+
+        if ( status_icon != NULL && gtk_status_icon_is_embedded( status_icon ) ) {
+            retval = TRUE;
+            /* Make it always return TRUE from now on */
+            count_attempts = MAX_NOTIFICATION_FAILURES + 1;
+        }
+    }
+
+    g_debug("notification_area_ready() returning %s (attempts = %d)", retval?"TRUE":"FALSE", count_attempts);
+    
+    return retval;
 }
 
 /* VOID:INT,POINTER */

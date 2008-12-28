@@ -80,12 +80,17 @@ refresh (NwamConditionVBox *self, gpointer data, gboolean force)
 	return TRUE;
 }
 
+static gboolean
+apply(NwamConditionVBox *self, gpointer data)
+{
+}
+
 static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
-	iface->apply = NULL;
+	iface->apply = apply;
 	iface->help = NULL;
 }
 
@@ -349,67 +354,67 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
 	if (prv->table_box_cache) {
 		box = GTK_BOX(prv->table_box_cache->data);
 		prv->table_box_cache = g_list_delete_link(prv->table_box_cache, prv->table_box_cache);
-        combo1 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO1));
-        combo2 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO2));
-        entry = GTK_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENTRY));
-        add = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_ADD));
-        remove = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_REMOVE));
+		combo1 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO1));
+		combo2 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO2));
+		entry = GTK_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENTRY));
+		add = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_ADD));
+		remove = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_REMOVE));
 	} else {
 		box = GTK_BOX(gtk_hbox_new (FALSE, 2));
 		combo1 = GTK_COMBO_BOX(_cu_cond_combo_new (nwamui_env_get_condition_subject()));
 		combo2 = GTK_COMBO_BOX(_cu_cond_combo_new (nwamui_env_get_condition_predicate()));
 
-        entry = GTK_ENTRY(gtk_entry_new ());
+		entry = GTK_ENTRY(gtk_entry_new ());
 
-        g_signal_connect(combo1, "changed",
-                         G_CALLBACK(condition_field_op_changed_cb),
-                         (gpointer)box);
+		g_signal_connect(combo1, "changed",
+		    G_CALLBACK(condition_field_op_changed_cb),
+		    (gpointer)box);
 
-        g_signal_connect(combo2, "changed",
-                         G_CALLBACK(condition_field_op_changed_cb),
-                         (gpointer)box);
+		g_signal_connect(combo2, "changed",
+		    G_CALLBACK(condition_field_op_changed_cb),
+		    (gpointer)box);
 
-        g_signal_connect(entry, "changed",
-                         G_CALLBACK(condition_value_changed_cb),
-                         (gpointer)box);
+		g_signal_connect(entry, "changed",
+		    G_CALLBACK(condition_value_changed_cb),
+		    (gpointer)box);
 
 		add = GTK_BUTTON(gtk_button_new());
 		remove = GTK_BUTTON(gtk_button_new ());
-        gtk_button_set_image (add, gtk_image_new_from_stock(GTK_STOCK_ADD, GTK_ICON_SIZE_BUTTON));
-        gtk_button_set_image (remove, gtk_image_new_from_stock(GTK_STOCK_REMOVE, GTK_ICON_SIZE_BUTTON));
+		gtk_button_set_image (add, gtk_image_new_from_stock(GTK_STOCK_ADD, GTK_ICON_SIZE_BUTTON));
+		gtk_button_set_image (remove, gtk_image_new_from_stock(GTK_STOCK_REMOVE, GTK_ICON_SIZE_BUTTON));
 		g_signal_connect(add, "clicked",
-                         G_CALLBACK(table_add_condition_cb),
-                         (gpointer)self);
+		    G_CALLBACK(table_add_condition_cb),
+		    (gpointer)self);
 		g_signal_connect(remove, "clicked",
-                         G_CALLBACK(table_delete_condition_cb),
-                         (gpointer)self);
+		    G_CALLBACK(table_delete_condition_cb),
+		    (gpointer)self);
 		gtk_box_pack_start (box, GTK_WIDGET(combo1), TRUE, TRUE, 0);
 		gtk_box_pack_start (box, GTK_WIDGET(combo2), TRUE, TRUE, 0);
 		gtk_box_pack_start (box, GTK_WIDGET(entry), TRUE, TRUE, 0);
 		gtk_box_pack_start (box, GTK_WIDGET(add), FALSE, FALSE, 0);
 		gtk_box_pack_start (box, GTK_WIDGET(remove), FALSE, FALSE, 0);
-        g_object_set_data (G_OBJECT(box), TABLE_ROW_COMBO1, (gpointer)combo1);
-        g_object_set_data (G_OBJECT(box), TABLE_ROW_COMBO2, (gpointer)combo2);
-        g_object_set_data (G_OBJECT(box), TABLE_ROW_ENTRY, (gpointer)entry);
-        g_object_set_data (G_OBJECT(box), TABLE_ROW_ADD, (gpointer)add);
-        g_object_set_data (G_OBJECT(box), TABLE_ROW_REMOVE, (gpointer)remove);
+		g_object_set_data (G_OBJECT(box), TABLE_ROW_COMBO1, (gpointer)combo1);
+		g_object_set_data (G_OBJECT(box), TABLE_ROW_COMBO2, (gpointer)combo2);
+		g_object_set_data (G_OBJECT(box), TABLE_ROW_ENTRY, (gpointer)entry);
+		g_object_set_data (G_OBJECT(box), TABLE_ROW_ADD, (gpointer)add);
+		g_object_set_data (G_OBJECT(box), TABLE_ROW_REMOVE, (gpointer)remove);
 	}
-    g_object_set_data (G_OBJECT(box), TABLE_ROW_CDATA, cond);
-
-    if (cond && NWAMUI_IS_COND( cond )) {
-        // Initialize box according to data
-        nwamui_cond_field_t field = nwamui_cond_get_field( cond );
-        nwamui_cond_op_t    oper  = nwamui_cond_get_oper( cond );
-        gchar*              value = nwamui_cond_get_value( cond );
-        gtk_combo_box_set_active (GTK_COMBO_BOX(combo1), (gint)field); 
-        gtk_combo_box_set_active (GTK_COMBO_BOX(combo2), (gint)oper);
-        gtk_entry_set_text (GTK_ENTRY(entry), value?value:"" );
-    } else {
-        // default initialize box
-        _cu_cond_combo_filter_value (GTK_COMBO_BOX(combo1),
-          NWAMUI_COND_FIELD_LAST);
-        gtk_entry_set_text (GTK_ENTRY(entry), "");
-    }
+	g_object_set_data (G_OBJECT(box), TABLE_ROW_CDATA, cond);
+	
+	if (cond && NWAMUI_IS_COND( cond )) {
+		// Initialize box according to data
+		nwamui_cond_field_t field = nwamui_cond_get_field( cond );
+		nwamui_cond_op_t    oper  = nwamui_cond_get_oper( cond );
+		gchar*              value = nwamui_cond_get_value( cond );
+		gtk_combo_box_set_active (GTK_COMBO_BOX(combo1), (gint)field); 
+		gtk_combo_box_set_active (GTK_COMBO_BOX(combo2), (gint)oper);
+		gtk_entry_set_text (GTK_ENTRY(entry), value?value:"" );
+	} else {
+		// default initialize box
+		_cu_cond_combo_filter_value (GTK_COMBO_BOX(combo1),
+		    NWAMUI_COND_FIELD_LAST);
+		gtk_entry_set_text (GTK_ENTRY(entry), "");
+	}
 	return GTK_WIDGET(box);
 }
 
