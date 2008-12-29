@@ -145,7 +145,7 @@ static int nwam_loc_walker_cb (nwam_loc_handle_t env, void *data);
 static int nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data);
 static int nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data);
 
-G_DEFINE_TYPE (NwamuiDaemon, nwamui_daemon, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NwamuiDaemon, nwamui_daemon, NWAMUI_TYPE_OBJECT)
 
 static void
 nwamui_daemon_class_init (NwamuiDaemonClass *klass)

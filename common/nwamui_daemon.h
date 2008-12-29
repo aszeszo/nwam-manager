@@ -92,7 +92,7 @@ typedef enum {
 
 struct _NwamuiDaemon
 {
-	GObject                      object;
+	NwamuiObject                      object;
 
 	/*< private >*/
 	NwamuiDaemonPrivate    *prv;
@@ -100,7 +100,7 @@ struct _NwamuiDaemon
 
 struct _NwamuiDaemonClass
 {
-	GObjectClass                parent_class;
+	NwamuiObjectClass                parent_class;
         
 	void (*daemon_info)             (NwamuiDaemon *self, gint info, GObject *obj, gpointer data, gpointer user_data);
 	void (*ncu_create)              (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);

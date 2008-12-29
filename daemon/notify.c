@@ -30,7 +30,7 @@
 
 static NotifyNotification*   notification           = NULL;
 static GtkStatusIcon*        parent_status_icon     = NULL;
-static gchararray            default_icon           = "network-location";
+static gchararray            default_icon           = NWAM_ICON_NETWORK_LOCATION;
 static GQueue                msg_q                  = G_QUEUE_INIT;
 static gchar                *last_message           = NULL;
 

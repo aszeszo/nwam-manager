@@ -360,10 +360,10 @@ nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type, gboolean
 
     /* TODO - get REAL icons for drop-downlist, these are borrowed */
     if ( secured_icon == NULL ) {
-        secured_icon = get_pixbuf("network-secure", small);
+        secured_icon = get_pixbuf(NWAM_ICON_NETWORK_SECURE, small);
     }
     if ( open_icon == NULL ) {
-        open_icon = get_pixbuf("network-insecure", small);
+        open_icon = get_pixbuf(NWAM_ICON_NETWORK_INSECURE, small);
     }
 
     switch (sec_type) {
@@ -444,8 +444,9 @@ nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_str
                                     get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_FAIR, small );
 
         enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_GOOD][icon_size]= 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT][icon_size]= 
                                     g_object_ref(get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_GOOD, small ));
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT][icon_size]= 
+                                    g_object_ref(get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT, small ));
 
     }
     

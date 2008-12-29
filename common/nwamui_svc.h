@@ -54,7 +54,7 @@ typedef struct _NwamuiSvcPrivate	NwamuiSvcPrivate;
 
 struct _NwamuiSvc
 {
-	GObject					object;
+	NwamuiObject					object;
 
 	/*< private >*/
 	NwamuiSvcPrivate		*prv;
@@ -62,7 +62,7 @@ struct _NwamuiSvc
 
 struct _NwamuiSvcClass
 {
-	GObjectClass			parent_class;
+	NwamuiObjectClass			parent_class;
 };
 
 /* Temporary typedef until we figure out what is meant to happen with svc type */

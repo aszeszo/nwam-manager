@@ -139,7 +139,7 @@ static void ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath
 static void ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
 
 
-G_DEFINE_TYPE (NwamuiNcu, nwamui_ncu, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NwamuiNcu, nwamui_ncu, NWAMUI_TYPE_OBJECT)
 
 static void
 nwamui_ncu_class_init (NwamuiNcuClass *klass)

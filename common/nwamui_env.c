@@ -127,7 +127,7 @@ static int nwam_loc_svc_walker_cb (nwam_loc_prop_template_t svc, void *data);
 static int nwam_loc_sys_svc_walker_cb (nwam_loc_handle_t env, nwam_loc_prop_template_t svc, void *data);
 #endif /* 0 */
 
-G_DEFINE_TYPE (NwamuiEnv, nwamui_env, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NwamuiEnv, nwamui_env, NWAMUI_TYPE_OBJECT)
 
 static void
 nwamui_env_class_init (NwamuiEnvClass *klass)

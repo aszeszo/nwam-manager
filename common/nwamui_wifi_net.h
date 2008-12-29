@@ -54,7 +54,7 @@ typedef struct _NwamuiWifiNetPrivate	NwamuiWifiNetPrivate;
 
 struct _NwamuiWifiNet
 {
-	GObject                     object;
+	NwamuiObject                     object;
 
 	/*< private >*/
 	NwamuiWifiNetPrivate       *prv;
@@ -62,7 +62,7 @@ struct _NwamuiWifiNet
 
 struct _NwamuiWifiNetClass
 {
-	GObjectClass                parent_class;
+	NwamuiObjectClass                parent_class;
 };
 
 /* Enumerations */

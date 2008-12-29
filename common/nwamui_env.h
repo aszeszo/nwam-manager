@@ -52,7 +52,7 @@ typedef struct _NwamuiEnvPrivate	  NwamuiEnvPrivate;
 
 struct _NwamuiEnv
 {
-	GObject                      object;
+	NwamuiObject                      object;
 
 	/*< private >*/
 	NwamuiEnvPrivate    *prv;
@@ -60,7 +60,7 @@ struct _NwamuiEnv
 
 struct _NwamuiEnvClass
 {
-	GObjectClass                parent_class;
+	NwamuiObjectClass                parent_class;
 };
 
 extern  GType                   nwamui_env_get_type (void) G_GNUC_CONST;

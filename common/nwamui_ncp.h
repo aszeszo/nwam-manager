@@ -50,7 +50,7 @@ typedef struct _NwamuiNcpPrivate      NwamuiNcpPrivate;
 
 struct _NwamuiNcp
 {
-	GObject                      object;
+	NwamuiObject                      object;
 
 	/*< private >*/
 	NwamuiNcpPrivate            *prv;
@@ -58,7 +58,7 @@ struct _NwamuiNcp
 
 struct _NwamuiNcpClass
 {
-	GObjectClass                parent_class;
+	NwamuiObjectClass                parent_class;
     void (*activate_ncu) (NwamuiNcp *self, NwamuiNcu *ncu, gpointer user_data);
     void (*deactivate_ncu) (NwamuiNcp *self, NwamuiNcu *ncu, gpointer user_data);
 };

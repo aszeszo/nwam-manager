@@ -71,7 +71,7 @@ enum {
 	PROP_DEFAULT,
 };
 
-G_DEFINE_TYPE (NwamuiSvc, nwamui_svc, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NwamuiSvc, nwamui_svc, NWAMUI_TYPE_OBJECT)
 
 static void
 nwamui_svc_class_init (NwamuiSvcClass *klass)

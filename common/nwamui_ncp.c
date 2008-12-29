@@ -91,7 +91,7 @@ static void row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointe
 static void row_inserted_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data);
 static void rows_reordered_cb(GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer arg3, gpointer user_data);
 
-G_DEFINE_TYPE (NwamuiNcp, nwamui_ncp, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NwamuiNcp, nwamui_ncp, NWAMUI_TYPE_OBJECT)
 
 static void
 nwamui_ncp_class_init (NwamuiNcpClass *klass)

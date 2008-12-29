@@ -75,7 +75,7 @@ enum {
     PROP_IS_STATIC
 };
 
-G_DEFINE_TYPE (NwamuiIp, nwamui_ip, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NwamuiIp, nwamui_ip, NWAMUI_TYPE_OBJECT)
 
 static void
 nwamui_ip_class_init (NwamuiIpClass *klass)

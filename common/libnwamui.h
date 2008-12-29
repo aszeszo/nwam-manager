@@ -51,6 +51,10 @@ typedef guint64 libnwam_diag_cause_t;
 #include <gdk/gdkpixbuf.h>
 #endif /* __GDK_PIXBUF_H__ */
         
+#ifndef _NWAMUI_OBJECT_H
+#include "nwamui_object.h"
+#endif /*_NWAMUI_OBJECT_H */
+
 #ifndef _NWAMUI_PROF_H
 #include "nwamui_prof.h"
 #endif /*_NWAMUI_PROF_H */
@@ -91,16 +95,29 @@ typedef guint64 libnwam_diag_cause_t;
 #include "nwamui_daemon.h"
 #endif /* _NWAMUI_DAEMON_H */
 
+#define  NWAM_ICON_NETWORK_WIRELESS         "network-wireless"
+#define  NWAM_ICON_NETWORK_LOCATION         "network-location"
+
+/* Status icons */
 #define  NWAM_ICON_EARTH_ERROR              "network-location-error"
 #define  NWAM_ICON_EARTH_WARNING            "network-location-warning"
 #define  NWAM_ICON_EARTH_CONNECTED          "network-location-connected"
 #define  NWAM_ICON_NETWORK_IDLE             "network-wired-connected"
+#define  NWAM_ICON_NETWORK_WORNING          "network-wired-worning"
 #define  NWAM_ICON_NETWORK_OFFLINE          "network-wired-error"
-#define  NWAM_ICON_NETWORK_WIRELESS         "network-wireless"
-#define  NWAM_ICON_WIRELESS_STRENGTH_NONE   "network-wireless-signal-none"
-#define  NWAM_ICON_WIRELESS_STRENGTH_POOR   "network-wireless-signal-poor"
-#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "network-wireless-signal-fair"
-#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "network-wireless-signal-good"
+#define  NWAM_ICON_WIRELESS_CONNECTED       "wireless-wireless-connected"
+#define  NWAM_ICON_WIRELESS_WORNING         "wireless-wireless-worning"
+#define  NWAM_ICON_WIRELESS_ERROR           "wireless-wireless-error"
+
+/* Wireless strength icons */
+#define  NWAM_ICON_WIRELESS_STRENGTH_NONE   "wireless-fragile"
+#define  NWAM_ICON_WIRELESS_STRENGTH_POOR   "wireless-strength-0-24"
+#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "wireless-strength-25-49"
+#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "wireless-strength-50-74"
+#define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT   "wireless-strength-75-100"
+
+#define  NWAM_ICON_NETWORK_SECURE           "network-secure"
+#define  NWAM_ICON_NETWORK_INSECURE         "network-insecure"
 
 /* TODO test icons */
 #define  NWAM_ICON_NCU_STATUS_ENABLED       GTK_STOCK_YES

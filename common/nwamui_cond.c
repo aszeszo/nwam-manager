@@ -65,7 +65,7 @@ static void nwamui_cond_finalize (     NwamuiCond *self);
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
-G_DEFINE_TYPE (NwamuiCond, nwamui_cond, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NwamuiCond, nwamui_cond, NWAMUI_TYPE_OBJECT)
 
 static void
 nwamui_cond_class_init (NwamuiCondClass *klass)

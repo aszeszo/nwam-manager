@@ -1,3 +1,43 @@
+2008-12-29  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am:
+	* capplet/capplet-utils.c:
+	* capplet/nwam_pref_iface.c:
+	* capplet/nwam_pref_iface.h:
+	* capplet/nwam_tree_view.h, capplet/nwam_tree_view.c:
+	Customized new tree view object for NWAM, does not finish.
+	* common/Makefile.am:
+	* common/libnwamui.c: (nwamui_util_get_network_security_icon),
+	(nwamui_util_get_wireless_strength_icon):
+	Cleaned Macros for icons.
+	* common/libnwamui.h:
+	* common/nwam_pref_iface.h:
+	Pref iface moved to common.
+	* common/nwamui_cond.c:
+	* common/nwamui_cond.h:
+	* common/nwamui_daemon.c:
+	* common/nwamui_daemon.h:
+	* common/nwamui_enm.h:
+	* common/nwamui_env.c:
+	* common/nwamui_env.h:
+	* common/nwamui_ip.c:
+	* common/nwamui_ip.h:
+	* common/nwamui_ncp.c:
+	* common/nwamui_ncp.h:
+	* common/nwamui_ncu.c:
+	* common/nwamui_ncu.h:
+	* common/nwamui_prof.c: (nwamui_prof_class_init),
+	(gconf_notify_cb):
+	* common/nwamui_prof.h:
+	* common/nwamui_svc.c:
+	* common/nwamui_svc.h:
+	* common/nwamui_wifi_net.c:
+	* common/nwamui_wifi_net.h:
+	Added new NwamuiObject, all other Nwamui objects inherit it.
+	* daemon/notify.c:
+	* daemon/nwam-menu.c: (nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_connect):
+
 2008-12-28  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c: (capplet_compose_nwamui_obj_combo),

@@ -50,7 +50,7 @@ typedef struct _NwamuiEnmPrivate      NwamuiEnmPrivate;
 
 struct _NwamuiEnm
 {
-	GObject                      object;
+	NwamuiObject                      object;
 
 	/*< private >*/
 	NwamuiEnmPrivate            *prv;
@@ -58,7 +58,7 @@ struct _NwamuiEnm
 
 struct _NwamuiEnmClass
 {
-	GObjectClass                parent_class;
+	NwamuiObjectClass                parent_class;
 };
 
 

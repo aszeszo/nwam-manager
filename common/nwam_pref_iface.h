@@ -41,8 +41,6 @@ G_BEGIN_DECLS
 #define NWAM_IS_PREF_IFACE(obj) (G_TYPE_CHECK_INSTANCE_TYPE((obj), NWAM_TYPE_PREF_IFACE))
 #define NWAM_GET_PREF_INTERFACE(obj) (G_TYPE_INSTANCE_GET_INTERFACE((obj), NWAM_TYPE_PREF_IFACE, NwamPrefInterface))
 
-struct _Log;
-
 typedef struct _NwamPrefIFace NwamPrefIFace; /* dummy object */
 typedef struct _NwamPrefInterface NwamPrefInterface;
 

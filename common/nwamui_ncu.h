@@ -50,7 +50,7 @@ typedef struct _NwamuiNcuPrivate	  NwamuiNcuPrivate;
 
 struct _NwamuiNcu
 {
-	GObject                      object;
+	NwamuiObject                      object;
 
 	/*< private >*/
 	NwamuiNcuPrivate    *prv;
@@ -58,7 +58,7 @@ struct _NwamuiNcu
 
 struct _NwamuiNcuClass
 {
-	GObjectClass                parent_class;
+	NwamuiObjectClass                parent_class;
 };
 
 extern  GType                   nwamui_ncu_get_type (void) G_GNUC_CONST;

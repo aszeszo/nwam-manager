@@ -177,3 +177,4 @@ nwamui_obj_get_display_name(GObject *obj)
 	}
 	return name;
 }
+

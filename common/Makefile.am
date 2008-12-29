@@ -43,6 +43,7 @@ noinst_LTLIBRARIES = libnwamui.la
 
 libnwamui_la_SOURCES =		\
 	libnwamui.c		\
+	nwamui_object.c \
 	nwamui_ip.c \
 	nwamui_svc.c \
 	nwamui_wifi_net.c \
@@ -53,6 +54,7 @@ libnwamui_la_SOURCES =		\
 	nwamui_env.c \
 	nwamui_cond.c \
 	nwamui_prof.c \
+	nwam_pref_iface.c	\
 	$(NULL)
 
 libnwamui_la_CPPFLAGS = \
@@ -70,6 +72,7 @@ gladedir   = $(datadir)/nwam-manager
 
 EXTRA_DIST = 		\
 	libnwamui.h		\
+	nwamui_object.h \
 	nwamui_ip.h \
 	nwamui_svc.h \
 	nwamui_wifi_net.h \
@@ -79,5 +82,6 @@ EXTRA_DIST = 		\
 	nwamui_ncu.h \
 	nwamui_cond.h \
 	nwamui_prof.h \
+	nwam_pref_iface.h	\
 	$(NULL)
 

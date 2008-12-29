@@ -54,7 +54,7 @@ enum {
     PROP_NOTIFICATION_DEFAULT_TIMEOUT,
 };
 
-static guint nwamui_daemon_signals [LAST_SIGNAL] = { 0 };
+static guint nwamui_prof_signals [LAST_SIGNAL] = { 0 };
 
 #define PROF_GCONF_ROOT "/apps/nwam-manager"
 #define PROF_BOOL_JOIN_WIFI_NOT_IN_FAV PROF_GCONF_ROOT \
@@ -104,7 +104,7 @@ static void object_notify_cb (GObject *gobject, GParamSpec *arg1, gpointer data)
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAMUI_TYPE_PROF, NwamuiProfPrivate)) 
 
-G_DEFINE_TYPE (NwamuiProf, nwamui_prof, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NwamuiProf, nwamui_prof, NWAMUI_TYPE_OBJECT)
 
 static void
 nwamui_prof_class_init (NwamuiProfClass *klass)
@@ -172,7 +172,7 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         G_PARAM_READWRITE));
 
     /* Create some signals */
-    nwamui_daemon_signals[S_JOIN_WIFI_NOT_IN_FAV] =   
+    nwamui_prof_signals[S_JOIN_WIFI_NOT_IN_FAV] =   
       g_signal_new ("join_wifi_not_in_fav",
         G_TYPE_FROM_CLASS (klass),
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
@@ -183,7 +183,7 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         1,                            /* Number of Args */
         G_TYPE_BOOLEAN);              /* Types of Args */
     
-    nwamui_daemon_signals[S_JOIN_ANY_FAV_WIFI] =   
+    nwamui_prof_signals[S_JOIN_ANY_FAV_WIFI] =   
       g_signal_new ("join_any_fav_wifi",
         G_TYPE_FROM_CLASS (klass),
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
@@ -194,7 +194,7 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         1,                            /* Number of Args */
         G_TYPE_BOOLEAN);              /* Types of Args */
 
-    nwamui_daemon_signals[S_ADD_ANY_NEW_WIFI_TO_FAV] =   
+    nwamui_prof_signals[S_ADD_ANY_NEW_WIFI_TO_FAV] =   
       g_signal_new ("add_any_new_wifi_to_fav",
         G_TYPE_FROM_CLASS (klass),
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
@@ -205,7 +205,7 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         1,                            /* Number of Args */
         G_TYPE_BOOLEAN);              /* Types of Args */
 
-    nwamui_daemon_signals[S_ACTION_ON_NO_FAV_NETWORKS] =   
+    nwamui_prof_signals[S_ACTION_ON_NO_FAV_NETWORKS] =   
       g_signal_new ("action_on_no_fav_networks",
         G_TYPE_FROM_CLASS (klass),
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
@@ -216,7 +216,7 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         1,                            /* Number of Args */
         G_TYPE_INT);              /* Types of Args */
     
-    nwamui_daemon_signals[S_ACTIVE_INTERFACE] =   
+    nwamui_prof_signals[S_ACTIVE_INTERFACE] =   
       g_signal_new ("active_interface",
         G_TYPE_FROM_CLASS (klass),
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
@@ -227,7 +227,7 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         1,                            /* Number of Args */
         G_TYPE_STRING);              /* Types of Args */
 
-    nwamui_daemon_signals[S_NOTIFICATION_DEFAULT_TIMEOUT] =   
+    nwamui_prof_signals[S_NOTIFICATION_DEFAULT_TIMEOUT] =   
       g_signal_new ("notification_default_timeout",
         G_TYPE_FROM_CLASS (klass),
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
@@ -438,32 +438,32 @@ static void gconf_notify_cb (GConfClient *client,
     
     if (g_ascii_strcasecmp (key, PROF_BOOL_JOIN_WIFI_NOT_IN_FAV) == 0) {
         g_signal_emit (self,
-          nwamui_daemon_signals[S_JOIN_WIFI_NOT_IN_FAV],
+          nwamui_prof_signals[S_JOIN_WIFI_NOT_IN_FAV],
           0, /* details */
           gconf_value_get_bool (value));
     } else if (g_ascii_strcasecmp (key, PROF_BOOL_JOIN_ANY_FAV_WIFI) == 0) {
         g_signal_emit (self,
-          nwamui_daemon_signals[S_JOIN_ANY_FAV_WIFI],
+          nwamui_prof_signals[S_JOIN_ANY_FAV_WIFI],
           0, /* details */
           gconf_value_get_bool (value));
     } else if (g_ascii_strcasecmp (key, PROF_BOOL_ADD_ANY_NEW_WIFI_TO_FAV) == 0) {
         g_signal_emit (self,
-          nwamui_daemon_signals[S_ADD_ANY_NEW_WIFI_TO_FAV],
+          nwamui_prof_signals[S_ADD_ANY_NEW_WIFI_TO_FAV],
           0, /* details */
           gconf_value_get_bool (value));
     } else if (g_ascii_strcasecmp (key, PROF_STRING_ACTION_ON_NO_FAV_NETWORKS) == 0) {
         g_signal_emit (self,
-          nwamui_daemon_signals[S_ACTION_ON_NO_FAV_NETWORKS],
+          nwamui_prof_signals[S_ACTION_ON_NO_FAV_NETWORKS],
           0, /* details */
           gconf_value_get_int (value));
     } else if (g_ascii_strcasecmp (key, PROF_STRING_ACTIVE_INTERFACE ) == 0) {
         g_signal_emit (self,
-          nwamui_daemon_signals[S_ACTIVE_INTERFACE],
+          nwamui_prof_signals[S_ACTIVE_INTERFACE],
           0, /* details */
           gconf_value_get_string (value));
     } else if (g_ascii_strcasecmp (key, PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT ) == 0) {
         g_signal_emit (self,
-          nwamui_daemon_signals[S_NOTIFICATION_DEFAULT_TIMEOUT],
+          nwamui_prof_signals[S_NOTIFICATION_DEFAULT_TIMEOUT],
           0, /* details */
           gconf_value_get_int (value));
     } else {

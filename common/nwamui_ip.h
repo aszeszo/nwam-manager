@@ -53,7 +53,7 @@ typedef struct _NwamuiIpPrivate	NwamuiIpPrivate;
 
 struct _NwamuiIp
 {
-	GObject                 object;
+	NwamuiObject                 object;
 
 	/*< private >*/
 	NwamuiIpPrivate        *prv;
@@ -61,7 +61,7 @@ struct _NwamuiIp
 
 struct _NwamuiIpClass
 {
-	GObjectClass            parent_class;
+	NwamuiObjectClass            parent_class;
 };
 
 extern  GType               nwamui_ip_get_type (void) G_GNUC_CONST;

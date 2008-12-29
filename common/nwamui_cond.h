@@ -48,7 +48,7 @@ typedef struct _NwamuiCondPrivate	NwamuiCondPrivate;
 
 struct _NwamuiCond
 {
-	GObject                      object;
+	NwamuiObject                      object;
 
 	/*< private >*/
 	NwamuiCondPrivate    *prv;
@@ -56,7 +56,7 @@ struct _NwamuiCond
 
 struct _NwamuiCondClass
 {
-	GObjectClass                parent_class;
+	NwamuiObjectClass                parent_class;
 };
 
 extern  GType                   nwamui_cond_get_type (void) G_GNUC_CONST;

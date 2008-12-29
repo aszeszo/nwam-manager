@@ -90,7 +90,7 @@ enum {
         PROP_WPA_CERT_FILE
 };
 
-G_DEFINE_TYPE (NwamuiWifiNet, nwamui_wifi_net, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NwamuiWifiNet, nwamui_wifi_net, NWAMUI_TYPE_OBJECT)
 
 static void
 nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)

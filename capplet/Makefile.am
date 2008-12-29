@@ -45,7 +45,6 @@ bin_PROGRAMS = nwam-manager-properties
 
 nwam_manager_properties_SOURCES =		\
 	main.c			\
-	nwam_pref_iface.c	\
 	nwam_wireless_dialog.c	\
 	nwam_pref_dialog.c	\
 	nwam_net_conf_panel.c	\
@@ -57,6 +56,7 @@ nwam_manager_properties_SOURCES =		\
 	nwam_env_svc.c	\
 	nwam_wireless_chooser.c	\
 	nwam_condition_vbox.c	\
+	nwam_tree_view.c	\
 	capplet-utils.c	\
 	$(NULL)
 
@@ -92,7 +92,6 @@ gladedir   = $(pkgdatadir)
 glade_DATA = nwam-manager-properties.glade
 
 EXTRA_DIST = 		\
-	nwam_pref_iface.h	\
 	nwam_wireless_dialog.h	\
 	nwam_pref_dialog.h	\
 	nwam_net_conf_panel.h	\
@@ -104,6 +103,7 @@ EXTRA_DIST = 		\
 	nwam_proxy_password_dialog.h	\
 	nwam_wireless_chooser.h	\
 	nwam_condition_vbox.h	\
+	nwam_tree_view.h	\
 	capplet-utils.h	\
 	$(glade_DATA)	\
 	$(NULL)
