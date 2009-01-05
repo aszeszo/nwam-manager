@@ -114,6 +114,20 @@ AC_CHECK_LIB(nwam, nwam_ncp_walk_ncus,
 AC_SUBST(NWAM_LIBS)
 
 dnl
+dnl DLADM checks 
+dnl
+AC_CHECK_FILE(/lib/libdladm.so.1,
+	[DLADM_LIBS="/lib/libdladm.so.1 -lsocket -lnsl"
+	AC_DEFINE(HAVE_DLADM, 1, [Define to 1 if the libdladm library is present.])],
+        [AC_MSG_ERROR(
+***
+*** /lib/libdladm.so.1 was not found. 
+***
+	)])
+
+AC_SUBST(DLADM_LIBS)
+
+dnl
 dnl SECDB checks 
 dnl
 AC_CHECK_LIB(secdb, chkauthattr,

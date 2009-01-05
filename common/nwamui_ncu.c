@@ -37,6 +37,13 @@
 #include "libnwamui.h"
 #include "nwamui_ncu.h"
 
+#include <errno.h>
+#include <inetcfg.h>
+#include <limits.h>
+#include <sys/dlpi.h>
+#include <libdllink.h>
+#include <libdlwlan.h>
+
 static GObjectClass *parent_class = NULL;
 
 struct _NwamuiNcuPrivate {
@@ -90,6 +97,7 @@ enum {
         PROP_NCU_TYPE,
         PROP_ACTIVE,
         PROP_SPEED,
+        PROP_MTU,
         PROP_IPV4_AUTO_CONF,
         PROP_IPV4_ADDRESS,
         PROP_IPV4_SUBNET,
@@ -218,6 +226,16 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                      g_param_spec_uint ("speed",
                                                        _("speed"),
                                                        _("speed"),
+                                                       0,
+                                                       G_MAXUINT,
+                                                       0,
+                                                       G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_MTU,
+                                     g_param_spec_uint ("mtu",
+                                                       _("mtu"),
+                                                       _("mtu"),
                                                        0,
                                                        G_MAXUINT,
                                                        0,
@@ -447,6 +465,10 @@ nwamui_ncu_set_property ( GObject         *object,
                 self->prv->speed = g_value_get_uint( value );
             }
             break;
+        case PROP_MTU: {
+                self->prv->mtu = g_value_get_uint( value );
+            }
+            break;
         case PROP_IPV4_AUTO_CONF: {
                 gboolean auto_conf = g_value_get_boolean( value );
 
@@ -666,6 +688,10 @@ nwamui_ncu_get_property (GObject         *object,
                 g_value_set_uint( value, self->prv->speed );
             }
             break;
+        case PROP_MTU: {
+                g_value_set_uint( value, self->prv->mtu );
+            }
+            break;
         case PROP_IPV4_AUTO_CONF: {
                 gboolean auto_conf = FALSE;
                 
@@ -804,11 +830,59 @@ map_condition_strings_to_object_list( char** conditions )
     return( new_list );
 }
 
+static nwamui_ncu_type_t
+get_if_type( const gchar* device )
+{
+#ifdef POST_105
+    dladm_handle_t      handle;
+#endif
+    nwamui_ncu_type_t   type;
+    uint32_t            media;
+    
+    type = NWAMUI_NCU_TYPE_WIRED;
+
+    if ( device == NULL ) {
+        g_warning("Unable to get i/f type for a NULL device name, returning WIRED");
+        return( type );
+    }
+
+#ifdef POST_105
+    if ( dladm_open( &handle ) != DLADM_STATUS_OK ) {
+        g_warning("Error creating dladm handle" );
+        return( type );
+    }
+    if ( dladm_name2info( handle, device, NULL, NULL, NULL, &media ) != DLADM_STATUS_OK ) {
+#endif
+    if ( dladm_name2info( device, NULL, NULL, NULL, &media ) != DLADM_STATUS_OK ) {
+        if (strncmp(device, "ip.tun", 6) == 0 ||
+            strncmp(device, "ip6.tun", 7) == 0 ||
+            strncmp(device, "ip.6to4tun", 10) == 0)
+            /*
+             * TODO
+             *
+             * We'll need to update our tunnel detection once
+             * the clearview/tun project is integrated; tunnel
+             * names won't necessarily be ip.tunN.
+             */
+            type = NWAMUI_NCU_TYPE_TUNNEL;
+    }
+    else if ( media == DL_WIFI ) {
+        type = NWAMUI_NCU_TYPE_WIRELESS;
+    }
+
+#ifdef POST_105
+    dladm_close( handle );
+#endif
+
+    return( type );
+}
+
 static void
 populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 {
     char*               name = NULL;
     nwam_error_t        nerr;
+    nwamui_ncu_type_t   ncu_type;
     gchar**             condition_str;
     GList*              conditions = NULL;
     gboolean            enabled;
@@ -822,10 +896,13 @@ populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
         g_debug ("Failed to get name for ncu, error: %s", nwam_strerror (nerr));
     }
 
+    ncu_type = get_if_type( name );
+
     /* TODO: Set vanity name as Wired/Wireless(dev0) */
     g_object_set( ncu,
                   "device_name", name,
                   "vanity_name", name,
+                  "ncu_type", ncu_type,
                   NULL);
 
     activation_mode = (nwamui_cond_activation_mode_t)
@@ -1428,6 +1505,44 @@ nwamui_ncu_get_speed (NwamuiNcu *self)
                   NULL);
 
     return( speed );
+}
+
+/** 
+ * nwamui_ncu_set_mtu:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @mtu: Value to set mtu to.
+ * 
+ **/ 
+extern void
+nwamui_ncu_set_mtu (   NwamuiNcu *self,
+                              guint        mtu )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+    g_assert (mtu >= 0 && mtu <= G_MAXUINT );
+
+    g_object_set (G_OBJECT (self),
+                  "mtu", mtu,
+                  NULL);
+}
+
+/**
+ * nwamui_ncu_get_mtu:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @returns: the mtu.
+ *
+ **/
+extern guint
+nwamui_ncu_get_mtu (NwamuiNcu *self)
+{
+    guint  mtu = 0; 
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), mtu);
+
+    g_object_get (G_OBJECT (self),
+                  "mtu", &mtu,
+                  NULL);
+
+    return( mtu );
 }
 
 /** 
@@ -2325,6 +2440,190 @@ get_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name , g
     return( retval );
 }
 
+/*
+ * NCU Status Messages - read directly from system, not from NWAM 
+ */
+
+/* Get signal percent from system */
+extern const gchar*
+nwamui_ncu_get_signal_strength_string( NwamuiNcu* self )
+{
+#ifdef POST_105
+    dladm_handle_t          handle;
+#endif
+    datalink_id_t           linkid;
+    dladm_wlan_linkattr_t	attr;
+    const gchar*            signal_str = _("None");
+    
+    g_return_val_if_fail( NWAMUI_IS_NCU( self ), signal_str );
+
+    if ( self->prv->ncu_type != NWAMUI_NCU_TYPE_WIRELESS ) {
+        return( signal_str );
+    }
+
+#ifdef POST_105
+    if ( dladm_open( &handle ) != DLADM_STATUS_OK ) {
+        g_warning("Error creating dladm handle" );
+        return( signal_str );
+    }
+    if ( dladm_name2info( handle, self->prv->device_name, &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
+#endif
+    if ( dladm_name2info( self->prv->device_name, &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
+        g_error("Unable to map device to linkid");
+    }
+    else {
+        dladm_status_t status = dladm_wlan_get_linkattr(linkid, &attr);
+        if (status != DLADM_STATUS_OK ) {
+            g_error("cannot get link attributes for %s", self->prv->device_name );
+        }
+        else {
+            if ( attr.la_valid |= DLADM_WLAN_LINKATTR_WLAN &&
+                 attr.la_wlan_attr.wa_valid & DLADM_WLAN_ATTR_STRENGTH ) {
+                switch ( attr.la_wlan_attr.wa_strength ) {
+                    case DLADM_WLAN_STRENGTH_VERY_WEAK:
+                        signal_str = _("Very Weak");
+                        break;
+                    case DLADM_WLAN_STRENGTH_WEAK:
+                        signal_str = _("Weak");
+                        break;
+                    case DLADM_WLAN_STRENGTH_GOOD:
+                        signal_str = _("Good");
+                        break;
+                    case DLADM_WLAN_STRENGTH_VERY_GOOD:
+                        signal_str = _("Very Good");
+                        break;
+                    case DLADM_WLAN_STRENGTH_EXCELLENT:
+                        signal_str = _("Excellent");
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+    }
+
+#ifdef POST_105
+    dladm_close( handle );
+#endif
+    
+    return( signal_str );
+}
+
+static const gchar* status_string_fmt[NWAMUI_STATE_LAST] = {
+    "Unknown",
+    "Not Connected",
+    "Connecting",
+    "Connected",
+    "Connecting to %s",     /* %s = ESSID */
+    "Connected to %s",      /* %s = ESSID */
+    "Network unavailable",
+    "Cable unplugged"
+};
+
+extern nwamui_connection_state_t
+nwamui_ncu_get_connection_state( NwamuiNcu* self ) 
+{
+    nwamui_connection_state_t   state = NWAMUI_STATE_UNKNOWN;
+
+    g_return_val_if_fail( NWAMUI_IS_NCU( self ), state );
+
+    /* TODO: Determine state */
+
+    if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+        /* Change connected/connecting to be wireless equivalent */
+        switch( state ) {
+            case NWAMUI_STATE_CONNECTING:
+                state = NWAMUI_STATE_CONNECTING_ESSID;
+                break;
+            case NWAMUI_STATE_CONNECTED:
+                state = NWAMUI_STATE_CONNECTED_ESSID;
+                break;
+            default:
+                break;
+        }
+    }
+
+    return( state );
+}
+
+/*
+ * Get a string that describes the status of the system, should be freed by
+ * caller using gfree().
+ */
+extern gchar*
+nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
+{
+    nwamui_connection_state_t   state = NWAMUI_STATE_NOT_CONNECTED;
+    gchar*                      status_string = NULL;
+    gchar*                      essid = NULL;
+
+    g_return_val_if_fail( NWAMUI_IS_NCU( self ), NULL );
+
+    state = nwamui_ncu_get_connection_state( self );
+
+    switch( state ) {
+        case NWAMUI_STATE_UNKNOWN:
+        case NWAMUI_STATE_NOT_CONNECTED:
+        case NWAMUI_STATE_CONNECTING:
+        case NWAMUI_STATE_CONNECTED:
+        case NWAMUI_STATE_NETWORK_UNAVAILABLE:
+        case NWAMUI_STATE_CABLE_UNPLUGGED:
+            status_string = g_strdup( _(status_string_fmt[state]) );
+            break;
+
+        case NWAMUI_STATE_CONNECTING_ESSID:
+        case NWAMUI_STATE_CONNECTED_ESSID:
+            /* TODO: Get ESSID */
+            status_string = g_strdup_printf( _(status_string_fmt[state]), essid?essid:"UNKNOWN" );
+            break;
+
+        default:
+            g_error("Unexpected value for connection state %d", (int)state );
+            break;
+    }
+
+    return( status_string );
+}
+
+/*
+ * Get a string that provides most information about the current state of the
+ * ncu, should be freed by caller using gfree().
+ */
+extern gchar*
+nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self )
+{
+    nwamui_connection_state_t   state = NWAMUI_STATE_NOT_CONNECTED;
+    gchar*                      status_string = NULL;
+    gchar*                      addr_part = NULL;
+    gchar*                      signal_part = NULL;
+    gchar*                      speed_part = NULL;
+
+    g_return_val_if_fail( NWAMUI_IS_NCU( self ), NULL );
+
+    state = nwamui_ncu_get_connection_state( self );
+
+    switch( state ) {
+        case NWAMUI_STATE_CONNECTED:
+        case NWAMUI_STATE_CONNECTED_ESSID:
+            addr_part = g_strdup_printf( _("XXXX") );
+            if ( state == NWAMUI_STATE_CONNECTED_ESSID ) {
+                signal_part = g_strdup_printf( _("Signal: %s"), nwamui_ncu_get_signal_strength_string( self ));
+            }
+            speed_part = g_strdup_printf( _("Speed: %d Mb/s"), nwamui_ncu_get_speed( self ));
+
+            if ( signal_part == NULL ) {
+                status_string = g_strdup_printf( _("%s %s"), addr_part, speed_part );
+            }
+            else {
+                status_string = g_strdup_printf( _("%s %s %s"), addr_part, signal_part, speed_part );
+            }
+            break;
+        default:
+            status_string = _("Not connected");
+    }
+
+    return( status_string );
+}
 
 /* Callbacks */
 

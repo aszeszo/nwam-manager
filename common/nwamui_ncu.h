@@ -66,8 +66,22 @@ extern  GType                   nwamui_ncu_get_type (void) G_GNUC_CONST;
 typedef enum {
     NWAMUI_NCU_TYPE_WIRED = 1,
     NWAMUI_NCU_TYPE_WIRELESS,
+    NWAMUI_NCU_TYPE_TUNNEL,
     NWAMUI_NCU_TYPE_LAST /* Not to be used directly */
 } nwamui_ncu_type_t;
+
+/* NOTE: If updated please change status_string_fmt */
+typedef enum {
+    NWAMUI_STATE_UNKNOWN,
+    NWAMUI_STATE_NOT_CONNECTED,
+    NWAMUI_STATE_CONNECTING,
+    NWAMUI_STATE_CONNECTED,
+    NWAMUI_STATE_CONNECTING_ESSID,
+    NWAMUI_STATE_CONNECTED_ESSID,
+    NWAMUI_STATE_NETWORK_UNAVAILABLE,
+    NWAMUI_STATE_CABLE_UNPLUGGED,
+    NWAMUI_STATE_LAST   /* Not be used directly */
+} nwamui_connection_state_t;
 
 extern struct _NwamuiNcp;
 
@@ -172,6 +186,15 @@ extern void                 nwamui_ncu_selection_conditions_remove( NwamuiNcu*  
 
 extern gboolean             nwamui_ncu_selection_conditions_contains( NwamuiNcu*  self,
                                                                      NwamuiCond*  cond_to_find );
+
+extern const gchar*         nwamui_ncu_get_signal_strength_string( NwamuiNcu* self );
+
+extern nwamui_connection_state_t
+                            nwamui_ncu_get_connection_state( NwamuiNcu* self );
+
+extern gchar*               nwamui_ncu_get_connection_state_string( NwamuiNcu* self );
+
+extern gchar*               nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* ncu );
 
 G_END_DECLS
 

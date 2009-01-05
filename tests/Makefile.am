@@ -39,6 +39,7 @@ AM_LDFLAGS = \
 	$(PACKAGE_LIBS)		\
 	$(INTLLIBS)		\
 	$(NWAM_LIBS)		\
+	$(DLADM_LIBS)		\
 	$(SECDB_LIBS)		\
 	$(SCF_LIBS)		\
 	$(KSTAT_LIBS)		\

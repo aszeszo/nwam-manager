@@ -2,9 +2,8 @@
  * CDDL HEADER START
  *
  * The contents of this file are subject to the terms of the
- * Common Development and Distribution License, Version 1.0 only
- * (the "License").  You may not use this file except in compliance
- * with the License.
+ * Common Development and Distribution License (the "License").
+ * You may not use this file except in compliance with the License.
  *
  * You can obtain a copy of the license at usr/src/OPENSOLARIS.LICENSE
  * or http://www.opensolaris.org/os/licensing.
@@ -20,14 +19,12 @@
  * CDDL HEADER END
  */
 /*
- * Copyright 2002 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  */
 
 #ifndef	_INETCFG_H
 #define	_INETCFG_H
-
-#pragma ident	"%Z%%M%	%I%	%E% SMI"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -38,16 +35,29 @@ extern "C" {
 #endif
 
 /* error codes */
-#define	ICFG_SUCCESS	0	/* API was successful */
-#define	ICFG_FAILURE	1	/* Generic failure */
-#define	ICFG_NOT_TUNNEL	2	/* Tunnel operation attempted on non-tunnel */
-#define	ICFG_NOT_SET	3	/* Could not return non-existent value */
-#define	ICFG_BAD_ADDR	4	/* Invalid address */
-#define	ICFG_BAD_PROT	5	/* Wrong protocol family for operation */
-#define	ICFG_DAD_FAILED	6	/* Duplicate address detection failure */
-#define	ICFG_DAD_FOUND	7	/* Duplicate address detected */
-
-#define	ICFG_NERR	(ICFG_DAD_FOUND + 1)
+typedef enum {
+	ICFG_SUCCESS,		/* No error occurred */
+	ICFG_FAILURE,		/* Generic failure */
+	ICFG_NO_MEMORY,		/* Insufficient memory */
+	ICFG_NOT_TUNNEL,	/* Tunnel operation attempted on non-tunnel */
+	ICFG_NOT_SET,		/* Could not return non-existent value */
+	ICFG_BAD_ADDR,		/* Invalid address */
+	ICFG_BAD_PROTOCOL,	/* Wrong protocol family for operation */
+	ICFG_DAD_FAILED,	/* Duplicate address detection failure */
+	ICFG_DAD_FOUND,		/* Duplicate address detected */
+	ICFG_IF_UP,		/* Interface is up */
+	ICFG_EXISTS,		/* Interface already exists */
+	ICFG_NO_EXIST,		/* Interface does not exist */
+	ICFG_INVALID_ARG,	/* Invalid argument */
+	ICFG_INVALID_NAME,	/* Invalid name */
+	ICFG_DLPI_INVALID_LINK, /* Invalid DLPI link */
+	ICFG_DLPI_FAILURE,	/* Generic DLPI failure */
+	ICFG_NO_PLUMB_IP,	/* Could not plumb IP stream */
+	ICFG_NO_PLUMB_ARP,	/* Could not plumb ARP stream */
+	ICFG_NO_UNPLUMB_IP,	/* Could not unplumb IP stream */
+	ICFG_NO_UNPLUMB_ARP,	/* Could not unplumb ARP stream */
+	ICFG_NO_IP_MUX		/* No IP mux set on the interface */
+} icfg_error_t;
 
 /* valid types for icfg_get_if_list() */
 #define	ICFG_PLUMBED	0
@@ -64,9 +74,20 @@ typedef struct icfg_handle {
 	struct iftun_req *ifh_tunnel_params;	/* tunnel parameters */
 } *icfg_handle_t;
 
+/* retrieve error string */
 extern const char *icfg_errmsg(int);
+
+/* handle functions */
 extern int icfg_open(icfg_handle_t *, const icfg_if_t *);
 extern void icfg_close(icfg_handle_t);
+extern boolean_t icfg_is_logical(icfg_handle_t);
+extern boolean_t icfg_is_loopback(icfg_handle_t);
+
+/* get interface name and protocol */
+extern const char *icfg_if_name(icfg_handle_t);
+extern int icfg_if_protocol(icfg_handle_t);
+
+/* set tunnel parameters */
 extern int icfg_refresh_tunnel_cache(icfg_handle_t);
 extern int icfg_set_tunnel_dest(icfg_handle_t, const struct sockaddr *,
     socklen_t);
@@ -74,12 +95,16 @@ extern int icfg_set_tunnel_src(icfg_handle_t, const struct sockaddr *,
     socklen_t);
 extern int icfg_set_tunnel_hoplimit(icfg_handle_t, uint8_t);
 extern int icfg_set_tunnel_encaplimit(icfg_handle_t, int16_t);
+
+/* get tunnel parameters */
 extern int icfg_get_tunnel_dest(icfg_handle_t, struct sockaddr *, socklen_t *);
 extern int icfg_get_tunnel_src(icfg_handle_t, struct sockaddr *, socklen_t *);
 extern int icfg_get_tunnel_hoplimit(icfg_handle_t, uint8_t *);
 extern int icfg_get_tunnel_encaplimit(icfg_handle_t, int16_t *);
 extern int icfg_get_tunnel_lower(icfg_handle_t, int *);
 extern int icfg_get_tunnel_upper(icfg_handle_t, int *);
+
+/* set interface properties */
 extern int icfg_set_flags(icfg_handle_t, uint64_t);
 extern int icfg_set_metric(icfg_handle_t, int);
 extern int icfg_set_mtu(icfg_handle_t, uint_t);
@@ -93,6 +118,8 @@ extern int icfg_set_subnet(icfg_handle_t, const struct sockaddr *, socklen_t,
     int);
 extern int icfg_set_dest_addr(icfg_handle_t, const struct sockaddr *,
     socklen_t);
+
+/* get interface properties */
 extern int icfg_get_addr(icfg_handle_t, struct sockaddr *, socklen_t *, int *,
     boolean_t);
 extern int icfg_get_token(icfg_handle_t, struct sockaddr_in6 *, int *,
@@ -107,15 +134,26 @@ extern int icfg_get_flags(icfg_handle_t, uint64_t *);
 extern int icfg_get_metric(icfg_handle_t, int *);
 extern int icfg_get_mtu(icfg_handle_t, uint_t *);
 extern int icfg_get_index(icfg_handle_t, int *);
+
+/* retrieve interface list or iterate over all interface lists */
 extern int icfg_get_if_list(icfg_if_t **, int *, int, int);
 extern void icfg_free_if_list(icfg_if_t *);
 extern int icfg_iterate_if(int, int, void *, int (*)(icfg_if_t *, void *));
-extern boolean_t icfg_is_logical(icfg_handle_t);
+
 extern int icfg_get_linkinfo(icfg_handle_t, lif_ifinfo_req_t *);
 extern int icfg_sockaddr_to_str(sa_family_t, const struct sockaddr *,
     char *, size_t);
 extern int icfg_str_to_sockaddr(sa_family_t, const char *, struct sockaddr *,
     socklen_t *);
+
+/* plumb or unplumb interfaces, add or remove IP */
+extern int icfg_add_ipaddr(icfg_handle_t, icfg_handle_t *,
+    const struct sockaddr *, socklen_t);
+extern int icfg_remove_ipaddr(icfg_handle_t, const struct sockaddr *,
+    socklen_t);
+
+extern int icfg_plumb(icfg_handle_t);
+extern int icfg_unplumb(icfg_handle_t);
 
 #ifdef	__cplusplus
 }

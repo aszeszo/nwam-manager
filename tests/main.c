@@ -32,9 +32,14 @@
 
 #include <libnwamui.h>
 
+static int indent = 0;
+
 static void test_ncp_gobject( void );
 static void test_env_gobject( void );
 static void test_enm_gobject( void );
+
+/* Command-line options */
+static gboolean debug = FALSE;
 
 GOptionEntry application_options[] = {
     /*
@@ -45,8 +50,25 @@ GOptionEntry application_options[] = {
         { "vpn-pref-dialog", 'n', 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, "Show 'VPN Preferences' Dialog only", NULL  },
         { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, "Show 'Wireless Network Chooser' Dialog only", NULL  },
         */
+        {"debug", 0, 0, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
         { NULL }
 };
+
+static void
+default_log_handler( const gchar    *log_domain,
+                     GLogLevelFlags  log_level,
+                     const gchar    *message,
+                     gpointer        unused_data)
+{
+    /* If "debug" not set then filter out debug messages. */
+    if ((log_level & G_LOG_LEVEL_MASK) == G_LOG_LEVEL_DEBUG && !debug) {
+        /* Do nothing */
+        return;
+    }
+
+    /* Otherwise just log as usual */
+    g_log_default_handler (log_domain, log_level, message, unused_data);
+}
 
 /*
  * 
@@ -54,6 +76,7 @@ GOptionEntry application_options[] = {
 int
 main(int argc, char** argv) 
 {
+    GnomeProgram *program;
     GOptionContext*	option_context = NULL;
     GError*         err = NULL;
     NwamuiDaemon*   daemon = NULL;
@@ -66,9 +89,17 @@ main(int argc, char** argv)
     /* Initialize i18n support */
     gtk_set_locale ();
     
-    option_context = g_option_context_new("nwam-manager-properties");
+    /* Setup log handler to trap debug messages */
+    g_log_set_default_handler( default_log_handler, NULL );
+
+    option_context = g_option_context_new("test-nwam");
     g_option_context_add_main_entries(option_context, application_options, NULL);
     
+    program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,
+                                  argc, argv,
+                                  GNOME_PARAM_APP_DATADIR, NWAM_MANAGER_DATADIR,
+                                  GNOME_PARAM_GOPTION_CONTEXT, option_context,
+                                  GNOME_PARAM_NONE);
 
     daemon = nwamui_daemon_get_instance();
     nwamui_daemon_wifi_start_scan(daemon);
@@ -77,6 +108,8 @@ main(int argc, char** argv)
     test_env_gobject();
     test_enm_gobject();
         
+    g_object_unref (G_OBJECT (program));
+
     return (EXIT_SUCCESS);
 }
 
@@ -87,6 +120,8 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     gchar               *vname, *dname;
     nwamui_ncu_type_t   type;
     gchar*              typestr;
+    gchar*              statestr;
+    gchar*              state_detailstr;
     gboolean            active;
     gboolean            ipv4_auto_conf;
     gchar*              ipv4_address;
@@ -97,7 +132,7 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     gchar*              ipv6_address;
     gchar*              ipv6_prefix;
 
-    fprintf(stderr,"*************************************************************\n");
+    printf("%-*s*************************************************************\n", indent, "");
 
     gtk_tree_model_get(model, iter, 0, &ncu, -1);
     
@@ -105,6 +140,8 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     dname = nwamui_ncu_get_device_name( ncu );
     type = nwamui_ncu_get_ncu_type( ncu );
     active = nwamui_ncu_get_active( ncu );
+    statestr = nwamui_ncu_get_connection_state_string( ncu );
+    state_detailstr = nwamui_ncu_get_connection_state_detail_string( ncu );
     ipv4_auto_conf = nwamui_ncu_get_ipv4_auto_conf( ncu );
     ipv4_address = nwamui_ncu_get_ipv4_address( ncu );
     ipv4_subnet = nwamui_ncu_get_ipv4_subnet( ncu );
@@ -114,7 +151,9 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     ipv6_address = nwamui_ncu_get_ipv6_address( ncu );
     ipv6_prefix = nwamui_ncu_get_ipv6_prefix( ncu );
 
-    g_debug("Ncu Name = %s (%s)", vname, dname );
+    indent += 4;
+
+    printf("%-*sNcu Name = %s (%s)\n", indent, "", vname, dname );
     switch( type ) {
         case NWAMUI_NCU_TYPE_WIRED:
             typestr = "WIRED";
@@ -122,21 +161,28 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
         case NWAMUI_NCU_TYPE_WIRELESS:
             typestr = "WIRELESS";
             break;
+        case NWAMUI_NCU_TYPE_TUNNEL:
+            typestr = "TUNNEL";
+            break;
         default:
             typestr = "**** UNKNOWN *****";
             break;
     }
     
-    g_debug("Ncu Type = %s", typestr );
-    g_debug("Ncu active = %s\n", active?"True":"False" );
-    g_debug("Ncu ipv4_auto_conf = %s", ipv4_auto_conf?"True":"False" );
-    g_debug("Ncu ipv4_address = %s", ipv4_address?ipv4_address:"NULL" );
-    g_debug("Ncu ipv4_subnet = %s", ipv4_subnet?ipv4_subnet:"NULL" );
-    g_debug("Ncu ipv4_gateway = %s\n", ipv4_gateway?ipv4_gateway:"NULL" );
-    g_debug("Ncu ipv6_active = %s", ipv6_active?"True":"False" );
-    g_debug("Ncu ipv6_auto_conf = %s", ipv6_auto_conf?"True":"False" );
-    g_debug("Ncu ipv6_address = %s", ipv6_address?ipv6_address:"NULL" );
-    g_debug("Ncu ipv6_prefix = %s", ipv6_prefix?ipv6_prefix:"NULL" );
+    printf("%-*sNcu Type = %s\n", indent, "", typestr );
+    printf("%-*sNcu Connection State = %s\n", indent, "", statestr );
+    printf("%-*sNcu Connection State Detail = %s\n", indent, "", state_detailstr?state_detailstr:"NULL" );
+    printf("%-*sNcu active = %s\n\n", indent, "", active?"True":"False" );
+    printf("%-*sNcu ipv4_auto_conf = %s\n", indent, "", ipv4_auto_conf?"True":"False" );
+    printf("%-*sNcu ipv4_address = %s\n", indent, "", ipv4_address?ipv4_address:"NULL" );
+    printf("%-*sNcu ipv4_subnet = %s\n", indent, "", ipv4_subnet?ipv4_subnet:"NULL" );
+    printf("%-*sNcu ipv4_gateway = %s\n\n", indent, "", ipv4_gateway?ipv4_gateway:"NULL" );
+    printf("%-*sNcu ipv6_active = %s\n", indent, "", ipv6_active?"True":"False" );
+    printf("%-*sNcu ipv6_auto_conf = %s\n", indent, "", ipv6_auto_conf?"True":"False" );
+    printf("%-*sNcu ipv6_address = %s\n", indent, "", ipv6_address?ipv6_address:"NULL" );
+    printf("%-*sNcu ipv6_prefix = %s\n", indent, "", ipv6_prefix?ipv6_prefix:"NULL" );
+
+    indent -= 4;
 
     if ( vname != NULL )
         g_free(vname);
@@ -153,7 +199,7 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     if ( ipv6_prefix != NULL ) 
         g_free( ipv6_prefix );
 
-    fprintf(stderr,"*************************************************************\n");
+    printf("%-*s*************************************************************\n", indent, "");
 
     return(FALSE);
 }
@@ -164,20 +210,22 @@ process_ncp( gpointer data, gpointer user_data )
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     NwamuiNcp       *ncp = NWAMUI_NCP(data);
     
-    fprintf(stderr,"=============================================================\n");
     if ( ncp != NULL ) {
         gchar * name = nwamui_ncp_get_name( ncp );
 
-        g_debug("Processing ncp : %s", name );
+        printf("%-*s-------------------------------------------------------------\n", indent, "");
+        printf("%-*sProcessing ncp : %s\n", indent, "", name );
+        printf("%-*s-------------------------------------------------------------\n", indent, "");
 
+        indent +=4;
         nwamui_ncp_foreach_ncu(ncp, (GtkTreeModelForeachFunc)process_ncu, NULL );
+        indent -=4;
 
         g_free(name);
         g_object_unref(G_OBJECT(ncp));
     }
 
     g_object_unref(G_OBJECT(daemon));
-    fprintf(stderr,"=============================================================\n");
     
 }
 
@@ -188,7 +236,13 @@ test_ncp_gobject( void )
     
     GList           *ncp_list = nwamui_daemon_get_ncp_list(daemon);
     
+    printf("%-*s=============================================================\n", indent, "");
+    printf("%-*s NCPs \n", indent, "");
+    printf("%-*s=============================================================\n", indent, "");
+
+    indent += 4;
     g_list_foreach(ncp_list, process_ncp, NULL );
+    indent -= 4;
     
     g_list_foreach(ncp_list, nwamui_util_obj_unref, NULL );
     g_list_free( ncp_list );
@@ -234,15 +288,19 @@ process_env( gpointer data, gpointer user_data )
             proxy_type_str="**** UNKNOWN *****";
             break;
     }
-    g_debug("Env name = %s", name?name:"NULL" );
-    g_debug("Env proxy_type = %s", proxy_type_str);
-    g_debug("Env proxy_pac_file = %s", proxy_pac_file?proxy_pac_file:"NULL" );
-    g_debug("Env proxy_http_server = %s", proxy_http_server?proxy_http_server:"NULL" );
-    g_debug("Env proxy_https_server = %s", proxy_https_server?proxy_https_server:"NULL" );
-    g_debug("Env proxy_ftp_server = %s", proxy_ftp_server?proxy_ftp_server:"NULL" );
-    g_debug("Env proxy_gopher = %s", proxy_gopher?proxy_gopher:"NULL" );
-    g_debug("Env proxy_socks = %s", proxy_socks?proxy_socks:"NULL" );
-    g_debug("Env proxy_bypass_list = %s", proxy_bypass_list?proxy_bypass_list:"NULL" );
+    printf("%-*s*************************************************************\n", indent, "");
+    indent += 4;
+    printf("%-*sEnv name = %s\n", indent, "", name?name:"NULL" );
+    printf("%-*sEnv proxy_type = %s\n", indent, "", proxy_type_str);
+    printf("%-*sEnv proxy_pac_file = %s\n", indent, "", proxy_pac_file?proxy_pac_file:"NULL" );
+    printf("%-*sEnv proxy_http_server = %s\n", indent, "", proxy_http_server?proxy_http_server:"NULL" );
+    printf("%-*sEnv proxy_https_server = %s\n", indent, "", proxy_https_server?proxy_https_server:"NULL" );
+    printf("%-*sEnv proxy_ftp_server = %s\n", indent, "", proxy_ftp_server?proxy_ftp_server:"NULL" );
+    printf("%-*sEnv proxy_gopher = %s\n", indent, "", proxy_gopher?proxy_gopher:"NULL" );
+    printf("%-*sEnv proxy_socks = %s\n", indent, "", proxy_socks?proxy_socks:"NULL" );
+    printf("%-*sEnv proxy_bypass_list = %s\n", indent, "", proxy_bypass_list?proxy_bypass_list:"NULL" );
+    indent -= 4;
+    printf("%-*s*************************************************************\n", indent, "");
 
     if ( name != NULL ) g_free( name );
     if ( proxy_pac_file != NULL ) g_free( proxy_pac_file );
@@ -260,7 +318,12 @@ test_env_gobject( void )
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     GList           *env_list = nwamui_daemon_get_env_list(daemon);
     
+    printf("%-*s=============================================================\n", indent, "");
+    printf("%-*s Locations (ENVs) \n", indent, "");
+    printf("%-*s=============================================================\n", indent, "");
+    indent += 4;
     g_list_foreach(env_list, process_env, NULL );
+    indent -= 4;
     
     g_list_foreach(env_list, nwamui_util_obj_unref, NULL );
     g_list_free( env_list );
@@ -278,24 +341,32 @@ process_enm( gpointer data, gpointer user_data )
     gchar*               stop_command;
     gchar*               smf_frmi;
 
+    printf("%-*s*************************************************************\n", indent, "");
+
+    indent += 4;
+
     name = nwamui_enm_get_name ( NWAMUI_ENM(enm) );
-    g_debug("NwamuiEnm : name = %s", name?name:"NULL" );
+    printf("%-*sNwamuiEnm : name = %s\n", indent, "", name?name:"NULL" );
 
 
     active = nwamui_enm_get_active ( NWAMUI_ENM(enm) );
-    g_debug("NwamuiEnm : active = %s", active?"True":"False" );
+    printf("%-*sNwamuiEnm : active = %s\n", indent, "", active?"True":"False" );
 
 
     start_command = nwamui_enm_get_start_command ( NWAMUI_ENM(enm) );
-    g_debug("NwamuiEnm : start_command = %s", start_command?start_command:"NULL" );
+    printf("%-*sNwamuiEnm : start_command = %s\n", indent, "", start_command?start_command:"NULL" );
 
 
     stop_command = nwamui_enm_get_stop_command ( NWAMUI_ENM(enm) );
-    g_debug("NwamuiEnm : stop_command = %s", stop_command?stop_command:"NULL" );
+    printf("%-*sNwamuiEnm : stop_command = %s\n", indent, "", stop_command?stop_command:"NULL" );
 
 
     smf_frmi = nwamui_enm_get_smf_fmri ( NWAMUI_ENM(enm) );
-    g_debug("NwamuiEnm : smf_frmi = %s", smf_frmi?smf_frmi:"NULL" );
+    printf("%-*sNwamuiEnm : smf_frmi = %s\n", indent, "", smf_frmi?smf_frmi:"NULL" );
+
+    indent -= 4;
+
+    printf("%-*s*************************************************************\n", indent, "");
 
     if (name != NULL ) {
         g_free( name );
@@ -321,7 +392,12 @@ test_enm_gobject( void )
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     GList           *enm_list = nwamui_daemon_get_enm_list(daemon);
     
+    printf("%-*s=============================================================\n", indent, "");
+    printf("%-*s ENMs \n", indent, "");
+    printf("%-*s=============================================================\n", indent, "");
+    indent += 4;
     g_list_foreach(enm_list, process_enm, NULL );
+    indent -= 4;
     
     g_list_foreach(enm_list, nwamui_util_obj_unref, NULL );
     g_list_free( enm_list );

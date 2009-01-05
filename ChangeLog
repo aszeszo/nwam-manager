@@ -1,3 +1,35 @@
+2009-01-05  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in, daemon/Makefile.am, capplet/Makefile.am, tests/Makefile.am:
+	  Add ability to link libdladm.
+	* common/libdladm.h:
+	  Remove since it's in nwam_core directory.
+	* nwam_core/copy_onnv_headers.sh, nwam_core/usr/include/inetcfg.h,
+	  nwam_core/usr/include/libdladm_impl.h,
+	  nwam_core/usr/include/sys/dl.h, nwam_core/usr/include/sys/dld.h,
+	  nwam_core/usr/include/sys/dld_ioc.h,
+	  nwam_core/usr/include/sys/dlpi.h,
+	  nwam_core/usr/include/sys/dls_mgmt.h:
+	  Update to latest version from NWAM Phase 1 Clone,  and add script to
+	  do this easily.
+	* nwam_core/usr/lib/libinetcfg.so.1, nwam_core/usr/lib/libnwam.so,
+	  nwam_core/usr/lib/libnwam.so.1, nwam_core/usr/sbin/nwamadm,
+	  nwam_core/usr/sbin/nwamcfg:
+	  Remove binaries since we should be using BFUs and these don't work
+	  here.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Add MTU property. Add ability to get strings that provide the
+	  current status and secondary status text for the status panel. 
+	  Added a "get current state" function, which still needs
+	  implementation.
+	  Added code to determine whether a link type (wired/wireless) based
+	  on information via libdladm.
+	* tests/main.c: 
+	  Add --debug option to enable/disable debug log messages. Add some
+	  indentation to make it more easily read, and use printf() rather
+	  than g_debug for normal text. Add output for the status text
+	  fields.
+
 2008-12-29  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/Makefile.am:
