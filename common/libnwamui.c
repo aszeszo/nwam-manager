@@ -790,3 +790,36 @@ marshal_VOID__INT_OBJECT_POINTER (GClosure     *closure,
       g_value_get_pointer (param_values + 3),
       data2);
 }
+
+/* OBJECT:VOID */
+void
+marshal_OBJECT__VOID(GClosure     *closure,
+  GValue       *return_value,
+  guint         n_param_values,
+  const GValue *param_values,
+  gpointer      invocation_hint G_GNUC_UNUSED,
+  gpointer      marshal_data)
+{
+    typedef GObject* (*GMarshalFunc_OBJECT__VOID) (gpointer     data1,
+      gpointer     data2);
+    register GMarshalFunc_OBJECT__VOID callback;
+    register GCClosure *cc = (GCClosure*) closure;
+    register gpointer data1, data2;
+    register GObject* obj;
+ 
+    g_return_if_fail (n_param_values == 1);
+ 
+    if (G_CCLOSURE_SWAP_DATA (closure)) {
+        data1 = closure->data;
+        data2 = g_value_peek_pointer (param_values + 0);
+    } else {
+        data1 = g_value_peek_pointer (param_values + 0);
+        data2 = closure->data;
+    }
+    callback = (GMarshalFunc_OBJECT__VOID) (marshal_data ? marshal_data : cc->callback);
+ 
+    obj = callback (data1,
+      data2);
+
+    g_value_take_object(return_value, obj);
+}

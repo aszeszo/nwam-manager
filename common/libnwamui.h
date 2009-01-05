@@ -148,6 +148,13 @@ void marshal_VOID__INT_OBJECT_POINTER (GClosure     *closure,
   gpointer      invocation_hint G_GNUC_UNUSED,
   gpointer      marshal_data);
 
+void marshal_OBJECT__VOID(GClosure     *closure,
+  GValue       *return_value,
+  guint         n_param_values,
+  const GValue *param_values,
+  gpointer      invocation_hint G_GNUC_UNUSED,
+  gpointer      marshal_data);
+
 /* Utility Functions */
 extern GtkWidget*               nwamui_util_glade_get_widget( const gchar* widget_name );
 
