@@ -407,7 +407,6 @@ get_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name )
 
     if ( value != NULL ) {
         retval  = g_strdup ( value );
-        free (value);
     }
 
     nwam_value_free(nwam_data);
@@ -455,7 +454,6 @@ extern  NwamuiEnm*
 nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
 {
     NwamuiEnm*      self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM,
-                                   "nwam_enm", enm,
                                    NULL));
     char*           name = NULL;
     gboolean        enabled = FALSE;
@@ -463,9 +461,14 @@ nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
     gchar*          start_command = NULL;
     gchar*          stop_command = NULL;
     nwam_error_t    nerr;
+    nwam_enm_handle_t nwam_enm;
     
     if ( (nerr = nwam_enm_get_name (enm, &name)) != NWAM_SUCCESS ) {
         g_debug ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
+    }
+
+    if ( ( nerr = nwam_enm_read (name, 0, &nwam_enm) ) != NWAM_SUCCESS ) {
+        g_debug ("Failed to create private handle for enm, error: %s", nwam_strerror (nerr));
     }
 
     smf_fmri = get_nwam_enm_string_prop( enm, NWAM_ENM_PROP_FMRI );
@@ -475,6 +478,8 @@ nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
     start_command = get_nwam_enm_string_prop( enm, NWAM_ENM_PROP_START );
 
     stop_command = get_nwam_enm_string_prop( enm, NWAM_ENM_PROP_STOP );
+
+    self->prv->nwam_enm = nwam_enm;
 
     self->prv->name = name;
     self->prv->active = enabled;

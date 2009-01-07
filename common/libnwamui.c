@@ -589,6 +589,61 @@ nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gc
    (void)gtk_dialog_run(GTK_DIALOG(message_dialog));
 }
 
+extern GList*
+nwamui_util_map_condition_strings_to_object_list( char** conditions )
+{
+    GList*  new_list = NULL;
+
+    if ( conditions == NULL ) {
+        return( NULL );
+    }
+
+    for ( int i = 0; conditions[i] != NULL; i++ ) {
+        NwamuiCond* cond = nwamui_cond_new_from_str( conditions[i] );
+        if ( cond != NULL ) {
+            new_list = g_list_append( new_list, cond);
+        }
+    }
+
+    return( new_list );
+}
+
+extern GList*
+nwamui_util_strv_to_glist( gchar **strv ) 
+{
+    GList   *new_list = NULL;
+
+    for ( char** strp = strv; strp != NULL && *strp != NULL; strp++ ) {
+        new_list = g_list_append( new_list, g_strdup( *strp ) );
+    }
+
+    return ( new_list );
+}
+
+extern gchar**
+nwamui_util_glist_to_strv( GList *list ) 
+{
+    gchar** new_strv = NULL;
+
+    if ( list != NULL ) {
+        int     list_len = g_list_length( list );
+        int     i = 0;
+
+        new_strv = (gchar**)g_malloc0( sizeof(gchar*) * (list_len+1) );
+
+        i = 0;
+        for ( GList *element  = g_list_first( list );
+              element != NULL && element->data != NULL;
+              element = g_list_next( element ) ) {
+            new_strv[i]  = g_strdup ( element->data );
+            i++;
+        }
+        new_strv[list_len]=NULL;
+    }
+
+    return ( new_strv );
+}
+
 /* If there is any underscores we need to replace them with two since
  * otherwise it's interpreted as a mnemonic
  *

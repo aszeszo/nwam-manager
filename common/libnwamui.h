@@ -192,6 +192,12 @@ extern gboolean                 nwamui_util_ask_yes_no(GtkWindow* parent_window,
 
 extern void                     nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gchar* title, const gchar* message);
 
+extern GList*                   nwamui_util_map_condition_strings_to_object_list( char** conditions );
+
+extern GList*                   nwamui_util_strv_to_glist( gchar **strv );
+
+extern gchar**                  wamui_util_glist_to_strv( GList *list );
+
 G_END_DECLS
 
 #endif	/* _libnwamui_H */

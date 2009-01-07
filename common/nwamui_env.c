@@ -45,6 +45,32 @@ enum {
 struct _NwamuiEnvPrivate {
     gchar*                      name;
     gboolean                    modifiable;
+    nwamui_cond_activation_mode_t
+                                activation_mode;
+    GList*                      conditions;
+    nwam_loc_handle_t			nwam_env;
+    gboolean                    enabled;
+    gboolean                    nameservice_discover;
+    GList*                      nameservices;
+    gchar*                      nameservices_config_file;
+    gchar*                      domainname;
+    GList*                      dns_nameservice_servers;
+    gchar*                      dns_nameservice_search;
+    GList*                      nis_nameservice_servers;
+    GList*                      nisplus_nameservice_servers;
+    GList*                      ldap_nameservice_servers;
+    gchar*                      hosts_file;
+    gchar*                      nfsv4_domain;
+    gchar*                      ipfilter_config_file;
+    gchar*                      ipfilter_v6_config_file;
+    gchar*                      ipnat_config_file;
+    gchar*                      ippool_config_file;
+    gchar*                      ike_config_file;
+    gchar*                      ipseckey_config_file;
+    gchar*                      ipsecpolicy_config_file;
+    GList*                      svcs_enable;
+    GList*                      svcs_disable;
+
     nwamui_env_proxy_type_t     proxy_type;
     gboolean                    use_http_proxy_for_all;
     gchar*                      proxy_pac_file;
@@ -61,18 +87,38 @@ struct _NwamuiEnvPrivate {
     gint                        proxy_socks_port;
     gchar*                      proxy_username;
     gchar*                      proxy_password;
-    nwamui_cond_activation_mode_t
-                                condition_match;
-    GList*                      conditions;
     GtkListStore*               svcs_model;
     GtkListStore*               sys_svcs_model;
 
-    nwam_loc_handle_t			nwam_env;
 };
 
 enum {
     PROP_NAME=1,
     PROP_MODIFIABLE,
+    PROP_ENABLED,
+    PROP_NAMESERVICE_DISCOVER,
+    PROP_NAMESERVICES,
+    PROP_NAMESERVICES_CONFIG_FILE,
+    PROP_DOMAINNAME,
+    PROP_DNS_NAMESERVICE_SERVERS,
+    PROP_DNS_NAMESERVICE_SEARCH,
+    PROP_NIS_NAMESERVICE_SERVERS,
+    PROP_NISPLUS_NAMESERVICE_SERVERS,
+    PROP_LDAP_NAMESERVICE_SERVERS,
+    PROP_HOSTS_FILE,
+    PROP_NFSV4_DOMAIN,
+    PROP_IPFILTER_CONFIG_FILE,
+    PROP_IPFILTER_V6_CONFIG_FILE,
+    PROP_IPNAT_CONFIG_FILE,
+    PROP_IPPOOL_CONFIG_FILE,
+    PROP_IKE_CONFIG_FILE,
+    PROP_IPSECKEY_CONFIG_FILE,
+    PROP_IPSECPOLICY_CONFIG_FILE,
+    PROP_SVCS_ENABLE,
+    PROP_SVCS_DISABLE,
+    PROP_CONDITIONS,
+    PROP_ACTIVATION_MODE,
+    PROP_NWAM_ENV,
     PROP_PROXY_TYPE,
     PROP_PROXY_PAC_FILE,
     PROP_USE_HTTP_PROXY_FOR_ALL,
@@ -89,10 +135,7 @@ enum {
     PROP_PROXY_SOCKS_PORT,
     PROP_PROXY_USERNAME,
     PROP_PROXY_PASSWORD,
-    PROP_SVCS,
-    PROP_CONDITIONS,
-    PROP_CONDITION_MATCH,
-    PROP_NWAM_ENV,
+    PROP_SVCS
 };
 
 static void nwamui_env_set_property ( GObject         *object,
@@ -106,6 +149,9 @@ static void nwamui_env_get_property ( GObject         *object,
                                       GParamSpec      *pspec);
 
 static void nwamui_env_finalize (     NwamuiEnv *self);
+
+static void populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t nwam_loc );
+
 #if 0
 /* These are not needed right now since we don't support property templates,
  * but would like to keep around for when we do.
@@ -159,6 +205,192 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           _("modifiable"),
                                                           TRUE,
                                                           G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_ACTIVATION_MODE,
+                                     g_param_spec_int ("activation_mode",
+                                                       _("activation_mode"),
+                                                       _("activation_mode"),
+                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
+                                                       NWAMUI_COND_ACTIVATION_MODE_LAST-1,
+                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
+                                                       G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_ENABLED,
+                                     g_param_spec_boolean ("enabled",
+                                                          _("enabled"),
+                                                          _("enabled"),
+                                                          FALSE,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_NAMESERVICE_DISCOVER,
+                                     g_param_spec_boolean ("nameservice_discover",
+                                                          _("nameservice_discover"),
+                                                          _("nameservice_discover"),
+                                                          FALSE,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_NAMESERVICES,
+                                     g_param_spec_pointer ("nameservices",
+                                                          _("nameservices"),
+                                                          _("nameservices"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_NAMESERVICES_CONFIG_FILE,
+                                     g_param_spec_string ("nameservices_config_file",
+                                                          _("nameservices_config_file"),
+                                                          _("nameservices_config_file"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_DOMAINNAME,
+                                     g_param_spec_string ("domainname",
+                                                          _("domainname"),
+                                                          _("domainname"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_DNS_NAMESERVICE_SERVERS,
+                                     g_param_spec_pointer ("dns_nameservice_servers",
+                                                          _("dns_nameservice_servers"),
+                                                          _("dns_nameservice_servers"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_DNS_NAMESERVICE_SEARCH,
+                                     g_param_spec_string ("dns_nameservice_search",
+                                                          _("dns_nameservice_search"),
+                                                          _("dns_nameservice_search"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_NIS_NAMESERVICE_SERVERS,
+                                     g_param_spec_pointer ("nis_nameservice_servers",
+                                                          _("nis_nameservice_servers"),
+                                                          _("nis_nameservice_servers"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_NISPLUS_NAMESERVICE_SERVERS,
+                                     g_param_spec_pointer ("nisplus_nameservice_servers",
+                                                          _("nisplus_nameservice_servers"),
+                                                          _("nisplus_nameservice_servers"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_LDAP_NAMESERVICE_SERVERS,
+                                     g_param_spec_pointer ("ldap_nameservice_servers",
+                                                          _("ldap_nameservice_servers"),
+                                                          _("ldap_nameservice_servers"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_HOSTS_FILE,
+                                     g_param_spec_string ("hosts_file",
+                                                          _("hosts_file"),
+                                                          _("hosts_file"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_NFSV4_DOMAIN,
+                                     g_param_spec_string ("nfsv4_domain",
+                                                          _("nfsv4_domain"),
+                                                          _("nfsv4_domain"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IPFILTER_CONFIG_FILE,
+                                     g_param_spec_string ("ipfilter_config_file",
+                                                          _("ipfilter_config_file"),
+                                                          _("ipfilter_config_file"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IPFILTER_V6_CONFIG_FILE,
+                                     g_param_spec_string ("ipfilter_v6_config_file",
+                                                          _("ipfilter_v6_config_file"),
+                                                          _("ipfilter_v6_config_file"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IPNAT_CONFIG_FILE,
+                                     g_param_spec_string ("ipnat_config_file",
+                                                          _("ipnat_config_file"),
+                                                          _("ipnat_config_file"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IPPOOL_CONFIG_FILE,
+                                     g_param_spec_string ("ippool_config_file",
+                                                          _("ippool_config_file"),
+                                                          _("ippool_config_file"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IKE_CONFIG_FILE,
+                                     g_param_spec_string ("ike_config_file",
+                                                          _("ike_config_file"),
+                                                          _("ike_config_file"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IPSECKEY_CONFIG_FILE,
+                                     g_param_spec_string ("ipseckey_config_file",
+                                                          _("ipseckey_config_file"),
+                                                          _("ipseckey_config_file"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IPSECPOLICY_CONFIG_FILE,
+                                     g_param_spec_string ("ipsecpolicy_config_file",
+                                                          _("ipsecpolicy_config_file"),
+                                                          _("ipsecpolicy_config_file"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_SVCS_ENABLE,
+                                     g_param_spec_pointer ("svcs_enable",
+                                                          _("svcs_enable"),
+                                                          _("svcs_enable"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_SVCS_DISABLE,
+                                     g_param_spec_pointer ("svcs_disable",
+                                                          _("svcs_disable"),
+                                                          _("svcs_disable"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_CONDITIONS,
+                                     g_param_spec_pointer ("conditions",
+                                                          _("conditions"),
+                                                          _("conditions"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_NWAM_ENV,
+                                     g_param_spec_pointer ("nwam_env",
+                                                          _("Nwam Env handle"),
+                                                          _("Nwam Env handle"),
+                                                          G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
+
 
     g_object_class_install_property (gobject_class,
                                      PROP_PROXY_TYPE,
@@ -308,30 +540,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           GTK_TYPE_TREE_MODEL,
                                                           G_PARAM_READABLE));
     
-    g_object_class_install_property (gobject_class,
-                                     PROP_CONDITION_MATCH,
-                                     g_param_spec_int ("condition_match",
-                                                       _("condition_match"),
-                                                       _("condition_match"),
-                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
-                                                       NWAMUI_COND_ACTIVATION_MODE_LAST-1,
-                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
-                                                       G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_CONDITIONS,
-                                     g_param_spec_pointer ("conditions",
-                                                          _("conditions"),
-                                                          _("conditions"),
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
-      PROP_NWAM_ENV,
-      g_param_spec_pointer ("nwam_env",
-        _("Nwam Env handle"),
-        _("Nwam Env handle"),
-        G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
-
 }
 
 
@@ -342,6 +550,30 @@ nwamui_env_init (NwamuiEnv *self)
     
     self->prv->name = NULL;
     self->prv->modifiable = TRUE;
+    self->prv->activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
+    self->prv->conditions = NULL;
+    self->prv->enabled = FALSE;
+    self->prv->nameservice_discover = FALSE;
+    self->prv->nameservices = NULL;
+    self->prv->nameservices_config_file = NULL;
+    self->prv->domainname = NULL;
+    self->prv->dns_nameservice_servers = NULL;
+    self->prv->dns_nameservice_search = NULL;
+    self->prv->nis_nameservice_servers = NULL;
+    self->prv->nisplus_nameservice_servers = NULL;
+    self->prv->ldap_nameservice_servers = NULL;
+    self->prv->hosts_file = NULL;
+    self->prv->nfsv4_domain = NULL;
+    self->prv->ipfilter_config_file = NULL;
+    self->prv->ipfilter_v6_config_file = NULL;
+    self->prv->ipnat_config_file = NULL;
+    self->prv->ippool_config_file = NULL;
+    self->prv->ike_config_file = NULL;
+    self->prv->ipseckey_config_file = NULL;
+    self->prv->ipsecpolicy_config_file = NULL;
+    self->prv->svcs_enable = NULL;
+    self->prv->svcs_disable = NULL;
+
     self->prv->proxy_type = NWAMUI_ENV_PROXY_TYPE_DIRECT;
     self->prv->use_http_proxy_for_all = FALSE;
     self->prv->proxy_pac_file = NULL;
@@ -358,8 +590,6 @@ nwamui_env_init (NwamuiEnv *self)
     self->prv->proxy_socks_port = 1080;
     self->prv->proxy_username = NULL;
     self->prv->proxy_password = NULL;
-    self->prv->condition_match = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
-    self->prv->conditions = NULL;
     self->prv->svcs_model = gtk_list_store_new(SVC_N_COL, G_TYPE_OBJECT);
 
 
@@ -411,6 +641,187 @@ nwamui_env_set_property (   GObject         *object,
 
         case PROP_MODIFIABLE: {
                 self->prv->modifiable = g_value_get_boolean( value );
+            }
+            break;
+
+        case PROP_ACTIVATION_MODE: {
+                self->prv->activation_mode = (nwamui_cond_activation_mode_t)g_value_get_int( value );
+            }
+            break;
+
+        case PROP_CONDITIONS: {
+                if ( self->prv->conditions != NULL ) {
+                        nwamui_util_free_obj_list( self->prv->conditions );
+                }
+                self->prv->conditions = nwamui_util_copy_obj_list((GList*)g_value_get_pointer( value ));
+            }
+            break;
+
+        case PROP_NWAM_ENV: {
+            g_assert (prv->nwam_env == NULL);
+            prv->nwam_env = g_value_get_pointer (value);
+            }
+            break;
+
+        case PROP_ENABLED: {
+                self->prv->enabled = g_value_get_boolean( value );
+            }
+            break;
+
+        case PROP_NAMESERVICE_DISCOVER: {
+                self->prv->nameservice_discover = g_value_get_boolean( value );
+            }
+            break;
+
+        case PROP_NAMESERVICES: {
+                if ( self->prv->nameservices != NULL ) {
+                        g_free( self->prv->nameservices );
+                }
+                self->prv->nameservices = g_value_get_pointer( value );
+            }
+            break;
+
+        case PROP_NAMESERVICES_CONFIG_FILE: {
+                if ( self->prv->nameservices_config_file != NULL ) {
+                        g_free( self->prv->nameservices_config_file );
+                }
+                self->prv->nameservices_config_file = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_DOMAINNAME: {
+                if ( self->prv->domainname != NULL ) {
+                        g_free( self->prv->domainname );
+                }
+                self->prv->domainname = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_DNS_NAMESERVICE_SERVERS: {
+                if ( self->prv->dns_nameservice_servers != NULL ) {
+                        g_free( self->prv->dns_nameservice_servers );
+                }
+                self->prv->dns_nameservice_servers = g_value_get_pointer( value );
+            }
+            break;
+
+        case PROP_DNS_NAMESERVICE_SEARCH: {
+                if ( self->prv->dns_nameservice_search != NULL ) {
+                        g_free( self->prv->dns_nameservice_search );
+                }
+                self->prv->dns_nameservice_search = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_NIS_NAMESERVICE_SERVERS: {
+                if ( self->prv->nis_nameservice_servers != NULL ) {
+                        g_free( self->prv->nis_nameservice_servers );
+                }
+                self->prv->nis_nameservice_servers = g_value_get_pointer( value );
+            }
+            break;
+
+        case PROP_NISPLUS_NAMESERVICE_SERVERS: {
+                if ( self->prv->nisplus_nameservice_servers != NULL ) {
+                        g_free( self->prv->nisplus_nameservice_servers );
+                }
+                self->prv->nisplus_nameservice_servers = g_value_get_pointer( value );
+            }
+            break;
+
+        case PROP_LDAP_NAMESERVICE_SERVERS: {
+                if ( self->prv->ldap_nameservice_servers != NULL ) {
+                        g_free( self->prv->ldap_nameservice_servers );
+                }
+                self->prv->ldap_nameservice_servers = g_value_get_pointer( value );
+            }
+            break;
+
+        case PROP_HOSTS_FILE: {
+                if ( self->prv->hosts_file != NULL ) {
+                        g_free( self->prv->hosts_file );
+                }
+                self->prv->hosts_file = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_NFSV4_DOMAIN: {
+                if ( self->prv->nfsv4_domain != NULL ) {
+                        g_free( self->prv->nfsv4_domain );
+                }
+                self->prv->nfsv4_domain = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_IPFILTER_CONFIG_FILE: {
+                if ( self->prv->ipfilter_config_file != NULL ) {
+                        g_free( self->prv->ipfilter_config_file );
+                }
+                self->prv->ipfilter_config_file = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_IPFILTER_V6_CONFIG_FILE: {
+                if ( self->prv->ipfilter_v6_config_file != NULL ) {
+                        g_free( self->prv->ipfilter_v6_config_file );
+                }
+                self->prv->ipfilter_v6_config_file = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_IPNAT_CONFIG_FILE: {
+                if ( self->prv->ipnat_config_file != NULL ) {
+                        g_free( self->prv->ipnat_config_file );
+                }
+                self->prv->ipnat_config_file = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_IPPOOL_CONFIG_FILE: {
+                if ( self->prv->ippool_config_file != NULL ) {
+                        g_free( self->prv->ippool_config_file );
+                }
+                self->prv->ippool_config_file = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_IKE_CONFIG_FILE: {
+                if ( self->prv->ike_config_file != NULL ) {
+                        g_free( self->prv->ike_config_file );
+                }
+                self->prv->ike_config_file = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_IPSECKEY_CONFIG_FILE: {
+                if ( self->prv->ipseckey_config_file != NULL ) {
+                        g_free( self->prv->ipseckey_config_file );
+                }
+                self->prv->ipseckey_config_file = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_IPSECPOLICY_CONFIG_FILE: {
+                if ( self->prv->ipsecpolicy_config_file != NULL ) {
+                        g_free( self->prv->ipsecpolicy_config_file );
+                }
+                self->prv->ipsecpolicy_config_file = g_strdup( g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_SVCS_ENABLE: {
+                if ( self->prv->svcs_enable != NULL ) {
+                        g_free( self->prv->svcs_enable );
+                }
+                self->prv->svcs_enable = g_value_get_pointer( value );
+            }
+            break;
+
+        case PROP_SVCS_DISABLE: {
+                if ( self->prv->svcs_disable != NULL ) {
+                        g_free( self->prv->svcs_disable );
+                }
+                self->prv->svcs_disable = g_value_get_pointer( value );
             }
             break;
 
@@ -522,25 +933,6 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
-        case PROP_CONDITION_MATCH: {
-                self->prv->condition_match = (nwamui_cond_activation_mode_t)g_value_get_int( value );
-            }
-            break;
-
-        case PROP_CONDITIONS: {
-                if ( self->prv->conditions != NULL ) {
-                        nwamui_util_free_obj_list( self->prv->conditions );
-                }
-                self->prv->conditions = nwamui_util_copy_obj_list((GList*)g_value_get_pointer( value ));
-            }
-            break;
-
-        case PROP_NWAM_ENV: {
-            g_assert (prv->nwam_env == NULL);
-            prv->nwam_env = g_value_get_pointer (value);
-            }
-            break;
-
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -577,6 +969,121 @@ nwamui_env_get_property (GObject         *object,
 
         case PROP_MODIFIABLE: {
                 g_value_set_boolean( value, self->prv->modifiable );
+            }
+            break;
+
+        case PROP_ACTIVATION_MODE: {
+                g_value_set_int( value, (gint)self->prv->activation_mode );
+            }
+            break;
+            
+        case PROP_CONDITIONS: {
+                g_value_set_pointer( value, self->prv->conditions );
+            }
+            break;
+
+        case PROP_ENABLED: {
+                g_value_set_boolean( value, self->prv->enabled );
+            }
+            break;
+
+        case PROP_NAMESERVICE_DISCOVER: {
+                g_value_set_boolean( value, self->prv->nameservice_discover );
+            }
+            break;
+
+        case PROP_NAMESERVICES: {
+                g_value_set_pointer( value, self->prv->nameservices );
+            }
+            break;
+
+        case PROP_NAMESERVICES_CONFIG_FILE: {
+                g_value_set_string( value, self->prv->nameservices_config_file );
+            }
+            break;
+
+        case PROP_DOMAINNAME: {
+                g_value_set_string( value, self->prv->domainname );
+            }
+            break;
+
+        case PROP_DNS_NAMESERVICE_SERVERS: {
+                g_value_set_pointer( value, self->prv->dns_nameservice_servers );
+            }
+            break;
+
+        case PROP_DNS_NAMESERVICE_SEARCH: {
+                g_value_set_string( value, self->prv->dns_nameservice_search );
+            }
+            break;
+
+        case PROP_NIS_NAMESERVICE_SERVERS: {
+                g_value_set_pointer( value, self->prv->nis_nameservice_servers );
+            }
+            break;
+
+        case PROP_NISPLUS_NAMESERVICE_SERVERS: {
+                g_value_set_pointer( value, self->prv->nisplus_nameservice_servers );
+            }
+            break;
+
+        case PROP_LDAP_NAMESERVICE_SERVERS: {
+                g_value_set_pointer( value, self->prv->ldap_nameservice_servers );
+            }
+            break;
+
+        case PROP_HOSTS_FILE: {
+                g_value_set_string( value, self->prv->hosts_file );
+            }
+            break;
+
+        case PROP_NFSV4_DOMAIN: {
+                g_value_set_string( value, self->prv->nfsv4_domain );
+            }
+            break;
+
+        case PROP_IPFILTER_CONFIG_FILE: {
+                g_value_set_string( value, self->prv->ipfilter_config_file );
+            }
+            break;
+
+        case PROP_IPFILTER_V6_CONFIG_FILE: {
+                g_value_set_string( value, self->prv->ipfilter_v6_config_file );
+            }
+            break;
+
+        case PROP_IPNAT_CONFIG_FILE: {
+                g_value_set_string( value, self->prv->ipnat_config_file );
+            }
+            break;
+
+        case PROP_IPPOOL_CONFIG_FILE: {
+                g_value_set_string( value, self->prv->ippool_config_file );
+            }
+            break;
+
+        case PROP_IKE_CONFIG_FILE: {
+                g_value_set_string( value, self->prv->ike_config_file );
+            }
+            break;
+
+        case PROP_IPSECKEY_CONFIG_FILE: {
+                g_value_set_string( value, self->prv->ipseckey_config_file );
+            }
+            break;
+
+        case PROP_IPSECPOLICY_CONFIG_FILE: {
+                g_value_set_string( value, self->prv->ipsecpolicy_config_file );
+            }
+            break;
+
+        case PROP_SVCS_ENABLE: {
+                g_value_set_pointer( value, self->prv->svcs_enable );
+            }
+            break;
+
+        case PROP_SVCS_DISABLE: {
+                g_value_set_pointer( value, self->prv->svcs_disable );
             }
             break;
 
@@ -665,16 +1172,6 @@ nwamui_env_get_property (GObject         *object,
             }
             break;
             
-        case PROP_CONDITION_MATCH: {
-                g_value_set_int( value, (gint)self->prv->condition_match );
-            }
-            break;
-            
-        case PROP_CONDITIONS: {
-                g_value_set_pointer( value, self->prv->conditions );
-            }
-            break;
-
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -708,12 +1205,11 @@ nwamui_env_new ( gchar* name )
 NwamuiEnv*
 nwamui_env_new_with_handle (nwam_loc_handle_t envh)
 {
-    NwamuiEnv   *env = NWAMUI_ENV(g_object_new (NWAMUI_TYPE_ENV,
-                                    "nwam_env", envh,
+    NwamuiEnv          *env = NWAMUI_ENV(g_object_new (NWAMUI_TYPE_ENV,
                                     NULL));
-    char *name;
-    
-    /* TODO, test data */
+    char               *name;
+    NwamuiEnvPrivate   *prv = env->prv;
+
     {
         nwam_error_t nerr;
         int          rval;
@@ -722,13 +1218,22 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
         if (nerr != NWAM_SUCCESS) {
             g_assert_not_reached ();
         }
-        g_object_set (G_OBJECT (env),
-          "name", name,
-          NULL);
+
+        prv->name = g_strdup( name );
+
+        nerr = nwam_loc_read (prv->name, 0, &prv->nwam_env);
+        if (nerr != NWAM_SUCCESS) {
+            g_error ("nwamui_env_new_with_handle failed to read nwam_loc_handle %s", prv->name);
+            g_object_unref(env);
+            return (NULL);
+        }
+    
+        populate_env_with_handle( env, prv->nwam_env );
+
+        g_debug ("loading nwamui_env_new_with_handle %s", name);
 
         free (name);
 
-        g_debug ("loading nwamui_env_new_with_handle %s", name);
 #if 0
 /* These are not needed right now since we don't support property templates,
  * but would like to keep around for when we do.
@@ -789,6 +1294,293 @@ nwamui_env_clone( NwamuiEnv* self )
     
     return( new_env );
 }
+
+static gchar*
+get_nwam_loc_string_prop( nwam_loc_handle_t loc, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gchar*              retval = NULL;
+    char*               value = NULL;
+
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for loc property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_loc_get_prop_value (loc, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_get_string(nwam_data, &value )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get string value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( value != NULL ) {
+        retval  = g_strdup ( value );
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static gchar**
+get_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gchar**             retval = NULL;
+    char**              value = NULL;
+    uint_t              num = 0;
+
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for loc property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_loc_get_prop_value (loc, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_get_string_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get string value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( value != NULL && num > 0 ) {
+        /* Create a NULL terminated list of stirngs, allocate 1 extra place
+         * for NULL termination. */
+        retval = (gchar**)g_malloc0( sizeof(gchar*) * (num+1) );
+
+        for (int i = 0; i < num; i++ ) {
+            retval[i]  = g_strdup ( value[i] );
+        }
+        retval[num]=NULL;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static gboolean
+get_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    boolean_t           value = FALSE;
+
+    g_return_val_if_fail( prop_name != NULL, value );
+
+    if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
+        g_warning("Unexpected type for loc property %s\n", prop_name );
+        return value;
+    }
+
+    if ( (nerr = nwam_loc_get_prop_value (loc, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    if ( (nerr = nwam_value_get_boolean(nwam_data, &value )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get boolean value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    nwam_value_free(nwam_data);
+
+    return( (gboolean)value );
+}
+
+static guint64
+get_nwam_loc_uint64_prop( nwam_loc_handle_t loc, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    uint64_t            value = 0;
+
+    g_return_val_if_fail( prop_name != NULL, value );
+
+    if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for loc property %s\n", prop_name );
+        return value;
+    }
+
+    if ( (nerr = nwam_loc_get_prop_value (loc, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    if ( (nerr = nwam_value_get_uint64(nwam_data, &value )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get uint64 value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    nwam_value_free(nwam_data);
+
+    return( (guint64)value );
+}
+
+static guint64* 
+get_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , guint *out_num )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    uint64_t           *value = NULL;
+    uint_t              num = 0;
+    guint64            *retval = NULL;
+
+    g_return_val_if_fail( prop_name != NULL && out_num != NULL, retval );
+
+    if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for loc property %s\n", prop_name );
+        return value;
+    }
+
+    if ( (nerr = nwam_loc_get_prop_value (loc, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    if ( (nerr = nwam_value_get_uint64_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get uint64 value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    retval = (guint64*)g_malloc( sizeof(guint64) * num );
+    for ( int i = 0; i < num; i++ ) {
+        retval[i] = (guint64)value[i];
+    }
+
+    nwam_value_free(nwam_data);
+
+    *out_num = num;
+
+    return( retval );
+}
+
+static GList*
+convert_name_services_array_to_glist( nwam_nameservices_t* ns_list, guint count )
+{
+    GList*  new_list = NULL;
+
+    if ( ns_list != NULL ) {
+        for ( int i = 0; i < count; i++ ) {
+            /* Right now there is a 1-1 mapping between enums, so no real
+             * conversion needed, just store the value */
+            new_list = g_list_append( new_list, (gpointer)ns_list[i] );
+        }
+    }
+
+    return( new_list );
+}
+
+static nwam_nameservices_t*
+convert_name_services_glist_to_array( GList* ns_glist, guint *count )
+{
+    nwam_nameservices_t*    ns_list = NULL;
+
+    if ( ns_glist != NULL && count != NULL ) {
+        int     list_len = g_list_length( ns_glist );
+        int     i = 0;
+
+        ns_list = (nwam_nameservices_t*)g_malloc0( sizeof(nwam_nameservices_t*) * (list_len) );
+
+        i = 0;
+        for ( GList *element  = g_list_first( ns_glist );
+              element != NULL && element->data != NULL;
+              element = g_list_next( element ) ) {
+            nwam_nameservices_t ns = (nwam_nameservices_t) element->data;
+            /* Make sure it's a valid value */
+            if ( ns >= NWAM_NAMESERVICES_DNS && ns <= NWAM_NAMESERVICES_LDAP ) {
+                ns_list[i]  = (nwam_nameservices_t)ns;
+                i++;
+            }
+            else {
+                g_error("Got unexpected nameservice value %d", ns );
+            }
+        }
+        *count = list_len;
+    }
+
+    return( ns_list );
+}
+
+static void 
+populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t nwam_loc )
+{
+    NwamuiEnvPrivate   *prv = env->prv;
+    gchar             **condition_str = NULL;
+    guint               num_nameservices = 0;
+    nwam_nameservices_t *nameservices = NULL;
+
+    prv->modifiable = !get_nwam_loc_boolean_prop( nwam_loc, NWAM_LOC_PROP_READ_ONLY );
+    prv->activation_mode = (nwamui_cond_activation_mode_t)get_nwam_loc_uint64_prop( nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
+    condition_str = get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_CONDITION );
+    prv->conditions = nwamui_util_map_condition_strings_to_object_list( condition_str);
+    g_strfreev( condition_str );
+
+    prv->enabled = get_nwam_loc_boolean_prop( nwam_loc, NWAM_LOC_PROP_ENABLED );
+
+    /* Nameservice location properties */
+    prv->nameservice_discover = get_nwam_loc_boolean_prop( nwam_loc, NWAM_LOC_PROP_NAMESERVICE_DISCOVER );
+    nameservices = (nwam_nameservices_t*)get_nwam_loc_uint64_array_prop(
+                                           nwam_loc, NWAM_LOC_PROP_NAMESERVICES, &num_nameservices );
+    prv->nameservices = convert_name_services_array_to_glist( nameservices, num_nameservices );
+    prv->nameservices_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_NAMESERVICES_CONFIG_FILE );
+    prv->domainname = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_DOMAINNAME );
+    prv->dns_nameservice_servers = nwamui_util_strv_to_glist(
+            get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS ) );
+    prv->dns_nameservice_search = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH );
+    prv->nis_nameservice_servers = nwamui_util_strv_to_glist(
+        get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_NIS_NAMESERVICE_SERVERS ) );
+    prv->nisplus_nameservice_servers = nwamui_util_strv_to_glist(
+        get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_NISPLUS_NAMESERVICE_SERVERS ) );
+    prv->ldap_nameservice_servers = nwamui_util_strv_to_glist(
+        get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_LDAP_NAMESERVICE_SERVERS ) );
+
+    /* Path to hosts/ipnodes database */
+    prv->hosts_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_HOSTS_FILE );
+
+    /* NFSv4 domain */
+    prv->nfsv4_domain = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_NFSV4_DOMAIN );
+
+    /* IPfilter configuration */
+    prv->ipfilter_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPFILTER_CONFIG_FILE );
+    prv->ipfilter_v6_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPFILTER_V6_CONFIG_FILE );
+    prv->ipnat_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPNAT_CONFIG_FILE );
+    prv->ippool_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPPOOL_CONFIG_FILE );
+
+    /* IPsec configuration */
+    prv->ike_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IKE_CONFIG_FILE );
+    prv->ipseckey_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPSECKEY_CONFIG_FILE );
+    prv->ipsecpolicy_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPSECPOLICY_CONFIG_FILE );
+
+    /* List of SMF services to enable/disable */
+    prv->svcs_enable = nwamui_util_strv_to_glist(
+            get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_SVCS_ENABLE ) );
+    prv->svcs_disable = nwamui_util_strv_to_glist(
+        get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_SVCS_DISABLE ) );
+}
+
     
 /** 
  * nwamui_env_set_name:
@@ -867,6 +1659,840 @@ nwamui_env_is_modifiable (NwamuiEnv *self)
                   NULL);
 
     return( modifiable );
+}
+
+/** 
+ * nwamui_env_set_enabled:
+ * @nwamui_env: a #NwamuiEnv.
+ * @enabled: Value to set enabled to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_enabled (   NwamuiEnv *self,
+                              gboolean        enabled )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+
+    g_object_set (G_OBJECT (self),
+                  "enabled", enabled,
+                  NULL);
+}
+
+/**
+ * nwamui_env_get_enabled:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the enabled.
+ *
+ **/
+extern gboolean
+nwamui_env_get_enabled (NwamuiEnv *self)
+{
+    gboolean  enabled = FALSE; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), enabled);
+
+    g_object_get (G_OBJECT (self),
+                  "enabled", &enabled,
+                  NULL);
+
+    return( enabled );
+}
+
+/** 
+ * nwamui_env_set_nameservice_discover:
+ * @nwamui_env: a #NwamuiEnv.
+ * @nameservice_discover: Value to set nameservice_discover to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_nameservice_discover (   NwamuiEnv *self,
+                              gboolean        nameservice_discover )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+
+    g_object_set (G_OBJECT (self),
+                  "nameservice_discover", nameservice_discover,
+                  NULL);
+}
+
+/**
+ * nwamui_env_get_nameservice_discover:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the nameservice_discover.
+ *
+ **/
+extern gboolean
+nwamui_env_get_nameservice_discover (NwamuiEnv *self)
+{
+    gboolean  nameservice_discover = FALSE; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), nameservice_discover);
+
+    g_object_get (G_OBJECT (self),
+                  "nameservice_discover", &nameservice_discover,
+                  NULL);
+
+    return( nameservice_discover );
+}
+
+/** 
+ * nwamui_env_set_nameservices:
+ * @nwamui_env: a #NwamuiEnv.
+ * @nameservices: should be a GList of nwamui_env_nameservices_t nameservices.
+ * 
+ **/ 
+extern void
+nwamui_env_set_nameservices (   NwamuiEnv *self,
+                              const GList*    nameservices )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (nameservices != NULL );
+
+    if ( nameservices != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "nameservices", nameservices,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_nameservices:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: a GList of nwamui_env_nameservices_t nameservices.
+ *
+ **/
+extern GList*  
+nwamui_env_get_nameservices (NwamuiEnv *self)
+{
+    GList*    nameservices = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), nameservices);
+
+    g_object_get (G_OBJECT (self),
+                  "nameservices", &nameservices,
+                  NULL);
+
+    return( nameservices );
+}
+
+/** 
+ * nwamui_env_set_nameservices_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @nameservices_config_file: Value to set nameservices_config_file to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_nameservices_config_file (   NwamuiEnv *self,
+                              const gchar*  nameservices_config_file )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (nameservices_config_file != NULL );
+
+    if ( nameservices_config_file != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "nameservices_config_file", nameservices_config_file,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_nameservices_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the nameservices_config_file.
+ *
+ **/
+extern gchar*
+nwamui_env_get_nameservices_config_file (NwamuiEnv *self)
+{
+    gchar*  nameservices_config_file = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), nameservices_config_file);
+
+    g_object_get (G_OBJECT (self),
+                  "nameservices_config_file", &nameservices_config_file,
+                  NULL);
+
+    return( nameservices_config_file );
+}
+
+/** 
+ * nwamui_env_set_domainname:
+ * @nwamui_env: a #NwamuiEnv.
+ * @domainname: Value to set domainname to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_domainname (   NwamuiEnv *self,
+                              const gchar*  domainname )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (domainname != NULL );
+
+    if ( domainname != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "domainname", domainname,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_domainname:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the domainname.
+ *
+ **/
+extern gchar*
+nwamui_env_get_domainname (NwamuiEnv *self)
+{
+    gchar*  domainname = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), domainname);
+
+    g_object_get (G_OBJECT (self),
+                  "domainname", &domainname,
+                  NULL);
+
+    return( domainname );
+}
+
+/** 
+ * nwamui_env_set_dns_nameservice_servers:
+ * @nwamui_env: a #NwamuiEnv.
+ * @dns_nameservice_servers: Value to set dns_nameservice_servers to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_dns_nameservice_servers (   NwamuiEnv *self,
+                              const GList*    dns_nameservice_servers )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (dns_nameservice_servers != NULL );
+
+    if ( dns_nameservice_servers != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "dns_nameservice_servers", dns_nameservice_servers,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_dns_nameservice_servers:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the dns_nameservice_servers.
+ *
+ **/
+extern GList*  
+nwamui_env_get_dns_nameservice_servers (NwamuiEnv *self)
+{
+    GList*    dns_nameservice_servers = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), dns_nameservice_servers);
+
+    g_object_get (G_OBJECT (self),
+                  "dns_nameservice_servers", &dns_nameservice_servers,
+                  NULL);
+
+    return( dns_nameservice_servers );
+}
+
+/** 
+ * nwamui_env_set_dns_nameservice_search:
+ * @nwamui_env: a #NwamuiEnv.
+ * @dns_nameservice_search: Value to set dns_nameservice_search to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_dns_nameservice_search (   NwamuiEnv *self,
+                              const gchar*  dns_nameservice_search )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (dns_nameservice_search != NULL );
+
+    if ( dns_nameservice_search != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "dns_nameservice_search", dns_nameservice_search,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_dns_nameservice_search:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the dns_nameservice_search.
+ *
+ **/
+extern gchar*
+nwamui_env_get_dns_nameservice_search (NwamuiEnv *self)
+{
+    gchar*  dns_nameservice_search = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), dns_nameservice_search);
+
+    g_object_get (G_OBJECT (self),
+                  "dns_nameservice_search", &dns_nameservice_search,
+                  NULL);
+
+    return( dns_nameservice_search );
+}
+
+/** 
+ * nwamui_env_set_nis_nameservice_servers:
+ * @nwamui_env: a #NwamuiEnv.
+ * @nis_nameservice_servers: Value to set nis_nameservice_servers to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_nis_nameservice_servers (   NwamuiEnv *self,
+                              const GList*    nis_nameservice_servers )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (nis_nameservice_servers != NULL );
+
+    if ( nis_nameservice_servers != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "nis_nameservice_servers", nis_nameservice_servers,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_nis_nameservice_servers:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the nis_nameservice_servers.
+ *
+ **/
+extern GList*  
+nwamui_env_get_nis_nameservice_servers (NwamuiEnv *self)
+{
+    GList*    nis_nameservice_servers = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), nis_nameservice_servers);
+
+    g_object_get (G_OBJECT (self),
+                  "nis_nameservice_servers", &nis_nameservice_servers,
+                  NULL);
+
+    return( nis_nameservice_servers );
+}
+
+/** 
+ * nwamui_env_set_nisplus_nameservice_servers:
+ * @nwamui_env: a #NwamuiEnv.
+ * @nisplus_nameservice_servers: Value to set nisplus_nameservice_servers to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_nisplus_nameservice_servers (   NwamuiEnv *self,
+                              const GList*    nisplus_nameservice_servers )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (nisplus_nameservice_servers != NULL );
+
+    if ( nisplus_nameservice_servers != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "nisplus_nameservice_servers", nisplus_nameservice_servers,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_nisplus_nameservice_servers:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the nisplus_nameservice_servers.
+ *
+ **/
+extern GList*  
+nwamui_env_get_nisplus_nameservice_servers (NwamuiEnv *self)
+{
+    GList*    nisplus_nameservice_servers = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), nisplus_nameservice_servers);
+
+    g_object_get (G_OBJECT (self),
+                  "nisplus_nameservice_servers", &nisplus_nameservice_servers,
+                  NULL);
+
+    return( nisplus_nameservice_servers );
+}
+
+/** 
+ * nwamui_env_set_ldap_nameservice_servers:
+ * @nwamui_env: a #NwamuiEnv.
+ * @ldap_nameservice_servers: Value to set ldap_nameservice_servers to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_ldap_nameservice_servers (   NwamuiEnv *self,
+                              const GList*    ldap_nameservice_servers )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (ldap_nameservice_servers != NULL );
+
+    if ( ldap_nameservice_servers != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "ldap_nameservice_servers", ldap_nameservice_servers,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_ldap_nameservice_servers:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the ldap_nameservice_servers.
+ *
+ **/
+extern GList*  
+nwamui_env_get_ldap_nameservice_servers (NwamuiEnv *self)
+{
+    GList*    ldap_nameservice_servers = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), ldap_nameservice_servers);
+
+    g_object_get (G_OBJECT (self),
+                  "ldap_nameservice_servers", &ldap_nameservice_servers,
+                  NULL);
+
+    return( ldap_nameservice_servers );
+}
+
+/** 
+ * nwamui_env_set_hosts_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @hosts_file: Value to set hosts_file to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_hosts_file (   NwamuiEnv *self,
+                              const gchar*  hosts_file )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (hosts_file != NULL );
+
+    if ( hosts_file != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "hosts_file", hosts_file,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_hosts_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the hosts_file.
+ *
+ **/
+extern gchar*
+nwamui_env_get_hosts_file (NwamuiEnv *self)
+{
+    gchar*  hosts_file = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), hosts_file);
+
+    g_object_get (G_OBJECT (self),
+                  "hosts_file", &hosts_file,
+                  NULL);
+
+    return( hosts_file );
+}
+
+/** 
+ * nwamui_env_set_nfsv4_domain:
+ * @nwamui_env: a #NwamuiEnv.
+ * @nfsv4_domain: Value to set nfsv4_domain to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_nfsv4_domain (   NwamuiEnv *self,
+                              const gchar*  nfsv4_domain )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (nfsv4_domain != NULL );
+
+    if ( nfsv4_domain != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "nfsv4_domain", nfsv4_domain,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_nfsv4_domain:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the nfsv4_domain.
+ *
+ **/
+extern gchar*
+nwamui_env_get_nfsv4_domain (NwamuiEnv *self)
+{
+    gchar*  nfsv4_domain = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), nfsv4_domain);
+
+    g_object_get (G_OBJECT (self),
+                  "nfsv4_domain", &nfsv4_domain,
+                  NULL);
+
+    return( nfsv4_domain );
+}
+
+/** 
+ * nwamui_env_set_ipfilter_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @ipfilter_config_file: Value to set ipfilter_config_file to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_ipfilter_config_file (   NwamuiEnv *self,
+                              const gchar*  ipfilter_config_file )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (ipfilter_config_file != NULL );
+
+    if ( ipfilter_config_file != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "ipfilter_config_file", ipfilter_config_file,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_ipfilter_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the ipfilter_config_file.
+ *
+ **/
+extern gchar*
+nwamui_env_get_ipfilter_config_file (NwamuiEnv *self)
+{
+    gchar*  ipfilter_config_file = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), ipfilter_config_file);
+
+    g_object_get (G_OBJECT (self),
+                  "ipfilter_config_file", &ipfilter_config_file,
+                  NULL);
+
+    return( ipfilter_config_file );
+}
+
+/** 
+ * nwamui_env_set_ipfilter_v6_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @ipfilter_v6_config_file: Value to set ipfilter_v6_config_file to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_ipfilter_v6_config_file (   NwamuiEnv *self,
+                              const gchar*  ipfilter_v6_config_file )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (ipfilter_v6_config_file != NULL );
+
+    if ( ipfilter_v6_config_file != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "ipfilter_v6_config_file", ipfilter_v6_config_file,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_ipfilter_v6_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the ipfilter_v6_config_file.
+ *
+ **/
+extern gchar*
+nwamui_env_get_ipfilter_v6_config_file (NwamuiEnv *self)
+{
+    gchar*  ipfilter_v6_config_file = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), ipfilter_v6_config_file);
+
+    g_object_get (G_OBJECT (self),
+                  "ipfilter_v6_config_file", &ipfilter_v6_config_file,
+                  NULL);
+
+    return( ipfilter_v6_config_file );
+}
+
+/** 
+ * nwamui_env_set_ipnat_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @ipnat_config_file: Value to set ipnat_config_file to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_ipnat_config_file (   NwamuiEnv *self,
+                              const gchar*  ipnat_config_file )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (ipnat_config_file != NULL );
+
+    if ( ipnat_config_file != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "ipnat_config_file", ipnat_config_file,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_ipnat_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the ipnat_config_file.
+ *
+ **/
+extern gchar*
+nwamui_env_get_ipnat_config_file (NwamuiEnv *self)
+{
+    gchar*  ipnat_config_file = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), ipnat_config_file);
+
+    g_object_get (G_OBJECT (self),
+                  "ipnat_config_file", &ipnat_config_file,
+                  NULL);
+
+    return( ipnat_config_file );
+}
+
+/** 
+ * nwamui_env_set_ippool_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @ippool_config_file: Value to set ippool_config_file to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_ippool_config_file (   NwamuiEnv *self,
+                              const gchar*  ippool_config_file )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (ippool_config_file != NULL );
+
+    if ( ippool_config_file != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "ippool_config_file", ippool_config_file,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_ippool_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the ippool_config_file.
+ *
+ **/
+extern gchar*
+nwamui_env_get_ippool_config_file (NwamuiEnv *self)
+{
+    gchar*  ippool_config_file = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), ippool_config_file);
+
+    g_object_get (G_OBJECT (self),
+                  "ippool_config_file", &ippool_config_file,
+                  NULL);
+
+    return( ippool_config_file );
+}
+
+/** 
+ * nwamui_env_set_ike_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @ike_config_file: Value to set ike_config_file to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_ike_config_file (   NwamuiEnv *self,
+                              const gchar*  ike_config_file )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (ike_config_file != NULL );
+
+    if ( ike_config_file != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "ike_config_file", ike_config_file,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_ike_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the ike_config_file.
+ *
+ **/
+extern gchar*
+nwamui_env_get_ike_config_file (NwamuiEnv *self)
+{
+    gchar*  ike_config_file = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), ike_config_file);
+
+    g_object_get (G_OBJECT (self),
+                  "ike_config_file", &ike_config_file,
+                  NULL);
+
+    return( ike_config_file );
+}
+
+/** 
+ * nwamui_env_set_ipseckey_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @ipseckey_config_file: Value to set ipseckey_config_file to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_ipseckey_config_file (   NwamuiEnv *self,
+                              const gchar*  ipseckey_config_file )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (ipseckey_config_file != NULL );
+
+    if ( ipseckey_config_file != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "ipseckey_config_file", ipseckey_config_file,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_ipseckey_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the ipseckey_config_file.
+ *
+ **/
+extern gchar*
+nwamui_env_get_ipseckey_config_file (NwamuiEnv *self)
+{
+    gchar*  ipseckey_config_file = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), ipseckey_config_file);
+
+    g_object_get (G_OBJECT (self),
+                  "ipseckey_config_file", &ipseckey_config_file,
+                  NULL);
+
+    return( ipseckey_config_file );
+}
+
+/** 
+ * nwamui_env_set_ipsecpolicy_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @ipsecpolicy_config_file: Value to set ipsecpolicy_config_file to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_ipsecpolicy_config_file (   NwamuiEnv *self,
+                              const gchar*  ipsecpolicy_config_file )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (ipsecpolicy_config_file != NULL );
+
+    if ( ipsecpolicy_config_file != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "ipsecpolicy_config_file", ipsecpolicy_config_file,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_ipsecpolicy_config_file:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the ipsecpolicy_config_file.
+ *
+ **/
+extern gchar*
+nwamui_env_get_ipsecpolicy_config_file (NwamuiEnv *self)
+{
+    gchar*  ipsecpolicy_config_file = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), ipsecpolicy_config_file);
+
+    g_object_get (G_OBJECT (self),
+                  "ipsecpolicy_config_file", &ipsecpolicy_config_file,
+                  NULL);
+
+    return( ipsecpolicy_config_file );
+}
+
+/** 
+ * nwamui_env_set_svcs_enable:
+ * @nwamui_env: a #NwamuiEnv.
+ * @svcs_enable: Value to set svcs_enable to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_svcs_enable (   NwamuiEnv *self,
+                              const GList*    svcs_enable )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (svcs_enable != NULL );
+
+    if ( svcs_enable != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "svcs_enable", svcs_enable,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_svcs_enable:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the svcs_enable.
+ *
+ **/
+extern GList*  
+nwamui_env_get_svcs_enable (NwamuiEnv *self)
+{
+    GList*    svcs_enable = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), svcs_enable);
+
+    g_object_get (G_OBJECT (self),
+                  "svcs_enable", &svcs_enable,
+                  NULL);
+
+    return( svcs_enable );
+}
+
+/** 
+ * nwamui_env_set_svcs_disable:
+ * @nwamui_env: a #NwamuiEnv.
+ * @svcs_disable: Value to set svcs_disable to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_svcs_disable (   NwamuiEnv *self,
+                              const GList*    svcs_disable )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (svcs_disable != NULL );
+
+    if ( svcs_disable != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "svcs_disable", svcs_disable,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_svcs_disable:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the svcs_disable.
+ *
+ **/
+extern GList*  
+nwamui_env_get_svcs_disable (NwamuiEnv *self)
+{
+    GList*    svcs_disable = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), svcs_disable);
+
+    g_object_get (G_OBJECT (self),
+                  "svcs_disable", &svcs_disable,
+                  NULL);
+
+    return( svcs_disable );
 }
 
 /** 
@@ -1495,41 +3121,41 @@ nwamui_env_get_proxy_socks_port (NwamuiEnv *self)
 }
 
 /** 
- * nwamui_env_set_condition_match:
+ * nwamui_env_set_activation_mode:
  * @nwamui_env: a #NwamuiEnv.
- * @condition_match: Value to set condition_match to.
+ * @activation_mode: Value to set activation_mode to.
  * 
  **/ 
 extern void
-nwamui_env_set_condition_match (   NwamuiEnv *self,
-                                  nwamui_cond_activation_mode_t        condition_match )
+nwamui_env_set_activation_mode (   NwamuiEnv *self,
+                                  nwamui_cond_activation_mode_t        activation_mode )
 {
     g_return_if_fail (NWAMUI_IS_ENV(self));
-    g_assert (condition_match >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && condition_match <= NWAMUI_COND_ACTIVATION_MODE_LAST );
+    g_assert (activation_mode >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && activation_mode <= NWAMUI_COND_ACTIVATION_MODE_LAST );
 
     g_object_set (G_OBJECT (self),
-                  "condition_match", (gint)condition_match,
+                  "activation_mode", (gint)activation_mode,
                   NULL);
 }
 
 /**
- * nwamui_env_get_condition_match:
+ * nwamui_env_get_activation_mode:
  * @nwamui_env: a #NwamuiEnv.
- * @returns: the condition_match.
+ * @returns: the activation_mode.
  *
  **/
 extern nwamui_cond_activation_mode_t
-nwamui_env_get_condition_match (NwamuiEnv *self)
+nwamui_env_get_activation_mode (NwamuiEnv *self)
 {
-    gint  condition_match = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
+    gint  activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
 
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), condition_match);
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), activation_mode);
 
     g_object_get (G_OBJECT (self),
-                  "condition_match", &condition_match,
+                  "activation_mode", &activation_mode,
                   NULL);
 
-    return( (nwamui_cond_activation_mode_t)condition_match );
+    return( (nwamui_cond_activation_mode_t)activation_mode );
 }
 
 /** 
@@ -1822,6 +3448,92 @@ nwamui_env_finalize (NwamuiEnv *self)
         g_free( self->prv->name );
     }
 
+    if (self->prv->nwam_env != NULL) {
+        nwam_loc_free (self->prv->nwam_env);
+    }
+    
+    if (self->prv->nameservices != NULL ) {
+        g_list_free( self->prv->nameservices );
+    }
+
+    if (self->prv->nameservices_config_file != NULL ) {
+        g_free( self->prv->nameservices_config_file );
+    }
+
+    if (self->prv->domainname != NULL ) {
+        g_free( self->prv->domainname );
+    }
+
+    if (self->prv->dns_nameservice_servers != NULL ) {
+        g_list_foreach( self->prv->dns_nameservice_servers , (GFunc)g_free, NULL );
+        g_list_free( self->prv->dns_nameservice_servers );
+    }
+
+    if (self->prv->dns_nameservice_search != NULL ) {
+        g_free( self->prv->dns_nameservice_search );
+    }
+
+    if (self->prv->nis_nameservice_servers != NULL ) {
+        g_list_foreach( self->prv->nis_nameservice_servers , (GFunc)g_free, NULL );
+        g_list_free( self->prv->nis_nameservice_servers );
+    }
+
+    if (self->prv->nisplus_nameservice_servers != NULL ) {
+        g_list_foreach( self->prv->nisplus_nameservice_servers , (GFunc)g_free, NULL );
+        g_list_free( self->prv->nisplus_nameservice_servers );
+    }
+
+    if (self->prv->ldap_nameservice_servers != NULL ) {
+        g_list_foreach( self->prv->ldap_nameservice_servers , (GFunc)g_free, NULL );
+        g_list_free( self->prv->ldap_nameservice_servers );
+    }
+
+    if (self->prv->hosts_file != NULL ) {
+        g_free( self->prv->hosts_file );
+    }
+
+    if (self->prv->nfsv4_domain != NULL ) {
+        g_free( self->prv->nfsv4_domain );
+    }
+
+    if (self->prv->ipfilter_config_file != NULL ) {
+        g_free( self->prv->ipfilter_config_file );
+    }
+
+    if (self->prv->ipfilter_v6_config_file != NULL ) {
+        g_free( self->prv->ipfilter_v6_config_file );
+    }
+
+    if (self->prv->ipnat_config_file != NULL ) {
+        g_free( self->prv->ipnat_config_file );
+    }
+
+    if (self->prv->ippool_config_file != NULL ) {
+        g_free( self->prv->ippool_config_file );
+    }
+
+    if (self->prv->ike_config_file != NULL ) {
+        g_free( self->prv->ike_config_file );
+    }
+
+    if (self->prv->ipseckey_config_file != NULL ) {
+        g_free( self->prv->ipseckey_config_file );
+    }
+
+    if (self->prv->ipsecpolicy_config_file != NULL ) {
+        g_free( self->prv->ipsecpolicy_config_file );
+    }
+
+    if (self->prv->svcs_enable != NULL ) {
+        g_list_foreach( self->prv->svcs_enable , (GFunc)g_free, NULL );
+        g_list_free( self->prv->svcs_enable );
+    }
+
+    if (self->prv->svcs_disable != NULL ) {
+        g_list_foreach( self->prv->svcs_disable , (GFunc)g_free, NULL );
+        g_list_free( self->prv->svcs_disable );
+    }
+
     if (self->prv->proxy_pac_file != NULL ) {
         g_free( self->prv->proxy_pac_file );
     }
@@ -1862,10 +3574,6 @@ nwamui_env_finalize (NwamuiEnv *self)
         g_free( self->prv->proxy_password );
     }
 
-    if (self->prv->nwam_env != NULL) {
-        nwam_loc_free (self->prv->nwam_env);
-    }
-    
     g_free (self->prv); 
     self->prv = NULL;
 

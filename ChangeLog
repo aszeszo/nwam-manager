@@ -1,3 +1,70 @@
+2009-01-07  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/libnwamui.h, common/libnwamui.c:
+	  (nwamui_util_map_condition_strings_to_object_list),
+	  (nwamui_util_strv_to_glist), (nwamui_util_glist_to_strv):
+	  Move some useful utility functions into common location.
+	* common/nwamui_ncp.h, common/nwamui_ncp.c: 
+	  Add function to get the nwam_ncp_handle_t from an NwamuiNcp. Also
+	  update new_with_handle to create it's own private handle since the
+	  one passed is likely to be freed making it invalid.
+	* common/nwamui_ncu.c:
+	  Update new_with_handle to create it's own private handles since the
+	  ones passed are likely to be freed making it invalid.
+	* common/nwamui_enm.c: 
+	  Remove incorrect free of value, and update new_with_handle to create
+	  it's own private handle since the one passed is likely to be freed
+	  making it invalid.
+	* common/nwamui_env.h, common/nwamui_env.c: 
+	  (nwamui_env_class_init), (nwamui_env_init),
+	  (nwamui_env_set_property), (nwamui_env_get_property),
+	  (nwamui_env_new), (nwamui_env_new_with_handle), (nwamui_env_clone),
+	  (get_nwam_loc_string_prop), (get_nwam_loc_string_array_prop),
+	  (get_nwam_loc_boolean_prop), (get_nwam_loc_uint64_prop),
+	  (get_nwam_loc_uint64_array_prop),
+	  (convert_name_services_array_to_glist),
+	  (convert_name_services_glist_to_array), (populate_env_with_handle),
+	  (nwamui_env_set_name), (nwamui_env_get_name),
+	  (nwamui_env_set_modifiable), (nwamui_env_is_modifiable),
+	  (nwamui_env_set_enabled), (nwamui_env_get_enabled),
+	  (nwamui_env_set_nameservice_discover),
+	  (nwamui_env_get_nameservice_discover),
+	  (nwamui_env_set_nameservices), (nwamui_env_get_nameservices),
+	  (nwamui_env_set_nameservices_config_file),
+	  (nwamui_env_get_nameservices_config_file),
+	  (nwamui_env_set_domainname), (nwamui_env_get_domainname),
+	  (nwamui_env_set_dns_nameservice_servers),
+	  (nwamui_env_get_dns_nameservice_servers),
+	  (nwamui_env_set_dns_nameservice_search),
+	  (nwamui_env_get_dns_nameservice_search),
+	  (nwamui_env_set_nis_nameservice_servers),
+	  (nwamui_env_get_nis_nameservice_servers),
+	  (nwamui_env_set_nisplus_nameservice_servers),
+	  (nwamui_env_get_nisplus_nameservice_servers),
+	  (nwamui_env_set_ldap_nameservice_servers),
+	  (nwamui_env_get_ldap_nameservice_servers),
+	  (nwamui_env_set_hosts_file), (nwamui_env_get_hosts_file),
+	  (nwamui_env_set_nfsv4_domain), (nwamui_env_get_nfsv4_domain),
+	  (nwamui_env_set_ipfilter_config_file),
+	  (nwamui_env_get_ipfilter_config_file),
+	  (nwamui_env_set_ipfilter_v6_config_file),
+	  (nwamui_env_get_ipfilter_v6_config_file),
+	  (nwamui_env_set_ipnat_config_file),
+	  (nwamui_env_get_ipnat_config_file),
+	  (nwamui_env_set_ippool_config_file),
+	  (nwamui_env_get_ippool_config_file),
+	  (nwamui_env_set_ike_config_file), (nwamui_env_get_ike_config_file),
+	  (nwamui_env_set_ipseckey_config_file),
+	  (nwamui_env_get_ipseckey_config_file),
+	  (nwamui_env_set_ipsecpolicy_config_file),
+	  (nwamui_env_get_ipsecpolicy_config_file),
+	  (nwamui_env_set_svcs_enable), (nwamui_env_get_svcs_enable),
+	  (nwamui_env_set_svcs_disable), (nwamui_env_get_svcs_disable),
+	  (nwamui_env_set_activation_mode), (nwamui_env_get_activation_mode),
+	  (nwamui_env_finalize):
+	  Add a lot of new accessors to get & set the above properties stored
+	  in a location.
+
 2009-01-05  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in, daemon/Makefile.am, capplet/Makefile.am, tests/Makefile.am:

@@ -79,6 +79,14 @@ typedef enum {
     NWAMUI_ENV_STATUS_LAST /* Not to be used directly */
 } nwamui_env_status_t; /* TODO - provide means to get status in env */
 
+typedef enum {
+	NWAMUI_ENV_NAMESERVICES_DNS,
+	NWAMUI_ENV_NAMESERVICES_FILES,
+	NWAMUI_ENV_NAMESERVICES_NIS,
+	NWAMUI_ENV_NAMESERVICES_NISPLUS,
+	NWAMUI_ENV_NAMESERVICES_LDAP,
+	NWAMUI_ENV_NAMESERVICES_LAST /* Not to be used directly */
+} nwamui_env_nameservices_t;
 
 
 extern  NwamuiEnv*          nwamui_env_new ( gchar* name );
@@ -92,6 +100,104 @@ extern gchar*               nwamui_env_get_name ( NwamuiEnv *self );
 
 extern void                 nwamui_env_set_modifiable ( NwamuiEnv *self, gboolean modifiable );
 extern gboolean             nwamui_env_is_modifiable ( NwamuiEnv *self );
+
+extern GtkTreeModel *       nwamui_env_get_condition_predicate ();
+extern GtkTreeModel *       nwamui_env_get_condition_subject ();
+
+extern void                 nwamui_env_set_activation_mode ( NwamuiEnv *self, 
+                                                             nwamui_cond_activation_mode_t activation_mode );
+extern nwamui_cond_activation_mode_t 
+                            nwamui_env_get_activation_mode ( NwamuiEnv *self );
+
+extern void                 nwamui_env_set_conditions ( NwamuiEnv *self, const GList* conditions );
+extern GList*               nwamui_env_get_conditions ( NwamuiEnv *self );
+
+extern void                 nwamui_env_condition_add (NwamuiEnv *self, NwamuiCond* cond);
+extern void                 nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond* cond);
+extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GFunc func, gpointer data);
+
+extern void                 nwamui_env_set_enabled ( NwamuiEnv *self, gboolean enabled );
+extern gboolean             nwamui_env_get_enabled ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_nameservice_discover ( NwamuiEnv *self, gboolean nameservice_discover );
+extern gboolean             nwamui_env_get_nameservice_discover ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_nameservices ( NwamuiEnv *self, const GList*   nameservices );
+extern GList*               nwamui_env_get_nameservices ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_nameservices_config_file ( NwamuiEnv *self, const gchar* nameservices_config_file );
+extern gchar*               nwamui_env_get_nameservices_config_file ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_domainname ( NwamuiEnv *self, const gchar* domainname );
+extern gchar*               nwamui_env_get_domainname ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_dns_nameservice_servers ( NwamuiEnv *self, const GList*   dns_nameservice_servers );
+extern GList*               nwamui_env_get_dns_nameservice_servers ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_dns_nameservice_search ( NwamuiEnv *self, const gchar* dns_nameservice_search );
+extern gchar*               nwamui_env_get_dns_nameservice_search ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_nis_nameservice_servers ( NwamuiEnv *self, const GList*   nis_nameservice_servers );
+extern GList*               nwamui_env_get_nis_nameservice_servers ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_nisplus_nameservice_servers ( NwamuiEnv *self, const GList*   nisplus_nameservice_servers );
+extern GList*               nwamui_env_get_nisplus_nameservice_servers ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_ldap_nameservice_servers ( NwamuiEnv *self, const GList*   ldap_nameservice_servers );
+extern GList*               nwamui_env_get_ldap_nameservice_servers ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_hosts_file ( NwamuiEnv *self, const gchar* hosts_file );
+extern gchar*               nwamui_env_get_hosts_file ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_nfsv4_domain ( NwamuiEnv *self, const gchar* nfsv4_domain );
+extern gchar*               nwamui_env_get_nfsv4_domain ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_ipfilter_config_file ( NwamuiEnv *self, const gchar* ipfilter_config_file );
+extern gchar*               nwamui_env_get_ipfilter_config_file ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_ipfilter_v6_config_file ( NwamuiEnv *self, const gchar* ipfilter_v6_config_file );
+extern gchar*               nwamui_env_get_ipfilter_v6_config_file ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_ipnat_config_file ( NwamuiEnv *self, const gchar* ipnat_config_file );
+extern gchar*               nwamui_env_get_ipnat_config_file ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_ippool_config_file ( NwamuiEnv *self, const gchar* ippool_config_file );
+extern gchar*               nwamui_env_get_ippool_config_file ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_ike_config_file ( NwamuiEnv *self, const gchar* ike_config_file );
+extern gchar*               nwamui_env_get_ike_config_file ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_ipseckey_config_file ( NwamuiEnv *self, const gchar* ipseckey_config_file );
+extern gchar*               nwamui_env_get_ipseckey_config_file ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_ipsecpolicy_config_file ( NwamuiEnv *self, const gchar* ipsecpolicy_config_file );
+extern gchar*               nwamui_env_get_ipsecpolicy_config_file ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_svcs_enable ( NwamuiEnv *self, const GList*   svcs_enable );
+extern GList*               nwamui_env_get_svcs_enable ( NwamuiEnv *self );
+
+
+extern void                 nwamui_env_set_svcs_disable ( NwamuiEnv *self, const GList*   svcs_disable );
+extern GList*               nwamui_env_get_svcs_disable ( NwamuiEnv *self );
 
 extern void                     nwamui_env_set_proxy_type ( NwamuiEnv *self, nwamui_env_proxy_type_t proxy_type );
 extern nwamui_env_proxy_type_t  nwamui_env_get_proxy_type ( NwamuiEnv *self );
@@ -147,21 +253,6 @@ extern gchar*               nwamui_env_get_proxy_username ( NwamuiEnv *self );
 
 extern void                 nwamui_env_set_proxy_password ( NwamuiEnv *self, const gchar* proxy_password );
 extern gchar*               nwamui_env_get_proxy_password ( NwamuiEnv *self );
-
-extern GtkTreeModel *       nwamui_env_get_condition_predicate ();
-extern GtkTreeModel *       nwamui_env_get_condition_subject ();
-
-extern void                 nwamui_env_set_condition_match ( NwamuiEnv *self, 
-                                                             nwamui_cond_activation_mode_t condition_match );
-extern nwamui_cond_activation_mode_t 
-                            nwamui_env_get_condition_match ( NwamuiEnv *self );
-
-extern void                 nwamui_env_set_conditions ( NwamuiEnv *self, const GList* conditions );
-extern GList*               nwamui_env_get_conditions ( NwamuiEnv *self );
-
-extern void                 nwamui_env_condition_add (NwamuiEnv *self, NwamuiCond* cond);
-extern void                 nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond* cond);
-extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GFunc func, gpointer data);
 
 #if 0
 extern GtkTreeModel *       nwamui_env_get_svcs (NwamuiEnv *self);

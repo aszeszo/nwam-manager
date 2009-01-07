@@ -811,25 +811,6 @@ nwamui_ncu_get_property (GObject         *object,
     }
 }
 
-static GList*
-map_condition_strings_to_object_list( char** conditions )
-{
-    GList*  new_list = NULL;
-
-    if ( conditions == NULL ) {
-        return( NULL );
-    }
-
-    for ( int i = 0; conditions[i] != NULL; i++ ) {
-        NwamuiCond* cond = nwamui_cond_new_from_str( conditions[i] );
-        if ( cond != NULL ) {
-            new_list = g_list_append( new_list, cond);
-        }
-    }
-
-    return( new_list );
-}
-
 static nwamui_ncu_type_t
 get_if_type( const gchar* device )
 {
@@ -917,7 +898,7 @@ populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 
     condition_str = get_nwam_ncu_string_array_prop( nwam_ncu, NWAM_NCU_PROP_CONDITION );
 
-    conditions = map_condition_strings_to_object_list( condition_str);
+    conditions = nwamui_util_map_condition_strings_to_object_list( condition_str);
 
     g_object_set( ncu,
                   "activation_mode", activation_mode,
@@ -930,42 +911,6 @@ populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     g_strfreev( condition_str );
 }
 
-static GList*
-strv_to_glist( gchar **strv ) 
-{
-    GList   *new_list = NULL;
-
-    for ( char** strp = strv; strp != NULL && *strp != NULL; strp++ ) {
-        new_list = g_list_append( new_list, g_strdup( *strp ) );
-    }
-
-    return ( new_list );
-}
-
-static gchar**
-glist_to_strv( GList *list ) 
-{
-    gchar** new_strv = NULL;
-
-    if ( list != NULL ) {
-        int     list_len = g_list_length( list );
-        int     i = 0;
-
-        new_strv = (gchar**)g_malloc0( sizeof(gchar*) * (list_len+1) );
-
-        i = 0;
-        for ( GList *element  = g_list_first( list );
-              element != NULL && element->data != NULL;
-              element = g_list_next( element ) ) {
-            new_strv[i]  = g_strdup ( element->data );
-            i++;
-        }
-        new_strv[list_len]=NULL;
-    }
-
-    return ( new_strv );
-}
-
 static void
 populate_link_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 {
@@ -975,7 +920,7 @@ populate_link_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     GList*      autopush_list;
 
     if ( autopush != NULL ) {
-        autopush_list = strv_to_glist( autopush );
+        autopush_list = nwamui_util_strv_to_glist( autopush );
     }
 
     g_object_set( ncu,
@@ -1160,6 +1105,35 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
     g_object_thaw_notify( G_OBJECT(self) );
 }
 
+/* 
+ * A nwam_ncu_handle_t is actually a set of nvpairs we need to get our
+ * own handle (i.e. snapshot) since the handle we are passed may be freed by
+ * the owner of it (e.g. walkprop does this).
+ */
+static nwam_ncu_handle_t
+get_nwam_ncu_handle( NwamuiNcu* self, nwam_ncu_type_t ncu_type )
+{
+    nwam_ncu_handle_t ncu_handle = NULL;
+
+    if (self != NULL && self->prv != NULL && \
+        self->prv->ncp != NULL && self->prv->device_name != NULL ) {
+
+        nwam_ncp_handle_t ncp_handle;
+        nwam_error_t      nerr;
+
+        ncp_handle = nwamui_ncp_get_nwam_handle( self->prv->ncp );
+
+        if ( (nerr = nwam_ncu_read( ncp_handle, self->prv->device_name, ncu_type, 0,
+                                    &ncu_handle ) ) != NWAM_SUCCESS  ) {
+            g_error("Failed to read ncu information for %s", self->prv->device_name );
+            return ( NULL );
+        }
+    }
+
+    return( ncu_handle );
+}
+
+
 extern  NwamuiNcu*
 nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
 {
@@ -1179,18 +1153,27 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
     switch ( ncu_class ) {
         case NWAM_NCU_CLASS_PHYS: {
                 /* CLASS PHYS is of type LINK, so has LINK props */
-                self->prv->nwam_ncu_phys =ncu;
-                populate_link_ncu_data( self, ncu );
+                nwam_ncu_handle_t   ncu_handle;
+                ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_LINK );
+
+                self->prv->nwam_ncu_phys = ncu_handle;
+                populate_link_ncu_data( self, ncu_handle );
             }
             break;
         case NWAM_NCU_CLASS_IPTUN: {
-                self->prv->nwam_ncu_iptun =ncu;
-                populate_iptun_ncu_data( self, ncu );
+                nwam_ncu_handle_t   ncu_handle;
+                ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_IP );
+
+                self->prv->nwam_ncu_iptun = ncu_handle;
+                populate_iptun_ncu_data( self, ncu_handle );
             }
             break;
         case NWAM_NCU_CLASS_IP: {
-                self->prv->nwam_ncu_ip =ncu;
-                populate_ip_ncu_data( self, ncu );
+                nwam_ncu_handle_t   ncu_handle;
+                ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_IP );
+
+                self->prv->nwam_ncu_ip = ncu_handle;
+                populate_ip_ncu_data( self, ncu_handle );
             }
             break;
         default:
@@ -2286,7 +2269,6 @@ get_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 
     if ( value != NULL ) {
         retval  = g_strdup ( value );
-        free (value);
     }
 
     nwam_value_free(nwam_data);

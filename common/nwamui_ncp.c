@@ -384,20 +384,32 @@ extern NwamuiNcp*
 nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp)
 {
     NwamuiNcp*      self = NWAMUI_NCP(g_object_new (NWAMUI_TYPE_NCP,
-                                   "nwam_ncp", ncp,
                                    NULL));
     char*           name = NULL;
     nwam_error_t    nerr;
+    nwam_ncp_handle_t nwam_ncp;
     
     if ( (nerr = nwam_ncp_get_name (ncp, &name)) != NWAM_SUCCESS ) {
         g_debug ("Failed to get name for ncp, error: %s", nwam_strerror (nerr));
     }
+
+    if ( ( nerr = nwam_ncp_read (name, 0, &nwam_ncp) ) != NWAM_SUCCESS ) {
+        g_debug ("Failed to create private handle for ncp, error: %s", nwam_strerror (nerr));
+    }
+
+    self->prv->nwam_ncp = nwam_ncp;
 
     self->prv->name = name;
 
     nwamui_ncp_populate_ncu_list( self, NULL );
 
     return( self );
+}
+
+extern nwam_ncp_handle_t
+nwamui_ncp_get_nwam_handle( NwamuiNcp* self )
+{
+    return (self->prv->nwam_ncp);
 }
 
 extern  gboolean
