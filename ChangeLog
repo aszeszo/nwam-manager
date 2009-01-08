@@ -1,3 +1,27 @@
+2009-01-08  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in, daemon/Makefile.am, capplet/Makefile.am,
+	  tests/Makefile.am:
+	  Add tests for libinetcfg and libkstat.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Added code to determine current status of an interface. Made speed a
+	  read-only property, obtained directly from the system.  Get current
+	  IP address (icfg) and speed (kstat) to show valid status line. 
+	* nwam_core/usr/include/libdladm.h,
+	  nwam_core/usr/include/libdladm_impl.h,
+	  nwam_core/usr/include/libdlaggr.h,
+	  nwam_core/usr/include/libdlflow.h,
+	  nwam_core/usr/include/libdlflow_impl.h,
+	  nwam_core/usr/include/libdllink.h,
+	  nwam_core/usr/include/libdlmgmt.h,
+	  nwam_core/usr/include/libdlstat.h,
+	  nwam_core/usr/include/libdlvlan.h,
+	  nwam_core/usr/include/libdlvnic.h,
+	  nwam_core/usr/include/libdlwlan.h,
+	  nwam_core/usr/include/libdlwlan_impl.h:
+	  Update to latest NWAM Phase 1 versions, main change is with libdladm
+	  which now requires the passing of a handle to it's functions.
+
 2009-01-08  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c: (nwamui_obj_combo_cell_cb):

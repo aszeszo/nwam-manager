@@ -33,6 +33,7 @@
 #include <strings.h>
 #include <string.h>
 #include <stdlib.h>
+#include <kstat.h>
 
 #include "libnwamui.h"
 #include "nwamui_ncu.h"
@@ -139,6 +140,12 @@ static guint64      get_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char*
 
 static guint64*     get_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name , guint* out_num );
 
+static gboolean     get_kstat_uint64 (const gchar *device, const gchar* stat_name, uint64_t *rval );
+
+static gboolean     interface_has_addresses(const char *ifname, sa_family_t family);
+
+static gchar*       get_interface_address_str(const char *ifname, sa_family_t family);
+
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -229,7 +236,7 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                        0,
                                                        G_MAXUINT,
                                                        0,
-                                                       G_PARAM_READWRITE));
+                                                       G_PARAM_READABLE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_MTU,
@@ -461,10 +468,6 @@ nwamui_ncu_set_property ( GObject         *object,
                 self->prv->active = g_value_get_boolean( value );
             }
             break;
-        case PROP_SPEED: {
-                self->prv->speed = g_value_get_uint( value );
-            }
-            break;
         case PROP_MTU: {
                 self->prv->mtu = g_value_get_uint( value );
             }
@@ -685,7 +688,14 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
         case PROP_SPEED: {
-                g_value_set_uint( value, self->prv->speed );
+                uint64_t speed;
+                if ( get_kstat_uint64 ( self->prv->device_name, "ifspeed", &speed ) ) {
+                    guint mbs = (guint) (speed / 1000000ull);
+                    g_value_set_uint( value, mbs );
+                }
+                else {
+                    g_value_set_uint( value, 0 );
+                }
             }
             break;
         case PROP_MTU: {
@@ -814,9 +824,7 @@ nwamui_ncu_get_property (GObject         *object,
 static nwamui_ncu_type_t
 get_if_type( const gchar* device )
 {
-#ifdef POST_105
     dladm_handle_t      handle;
-#endif
     nwamui_ncu_type_t   type;
     uint32_t            media;
     
@@ -827,14 +835,12 @@ get_if_type( const gchar* device )
         return( type );
     }
 
-#ifdef POST_105
     if ( dladm_open( &handle ) != DLADM_STATUS_OK ) {
         g_warning("Error creating dladm handle" );
         return( type );
     }
+
     if ( dladm_name2info( handle, device, NULL, NULL, NULL, &media ) != DLADM_STATUS_OK ) {
-#endif
-    if ( dladm_name2info( device, NULL, NULL, NULL, &media ) != DLADM_STATUS_OK ) {
         if (strncmp(device, "ip.tun", 6) == 0 ||
             strncmp(device, "ip6.tun", 7) == 0 ||
             strncmp(device, "ip.6to4tun", 10) == 0)
@@ -851,9 +857,7 @@ get_if_type( const gchar* device )
         type = NWAMUI_NCU_TYPE_WIRELESS;
     }
 
-#ifdef POST_105
     dladm_close( handle );
-#endif
 
     return( type );
 }
@@ -1125,7 +1129,7 @@ get_nwam_ncu_handle( NwamuiNcu* self, nwam_ncu_type_t ncu_type )
 
         if ( (nerr = nwam_ncu_read( ncp_handle, self->prv->device_name, ncu_type, 0,
                                     &ncu_handle ) ) != NWAM_SUCCESS  ) {
-            g_error("Failed to read ncu information for %s", self->prv->device_name );
+            g_warning("Failed to read ncu information for %s", self->prv->device_name );
             return ( NULL );
         }
     }
@@ -1216,7 +1220,6 @@ nwamui_ncu_new (    const gchar*        vanity_name,
                     "phy_address", phy_address,
                     "ncu_type", ncu_type,
                     "active", active,
-                    "speed", speed,
                     "ipv4_auto_conf", ipv4_auto_conf,
                     "ipv4_address", ipv4_address,
                     "ipv4_subnet", ipv4_subnet,
@@ -1449,24 +1452,6 @@ nwamui_ncu_set_active (   NwamuiNcu *self,
 
     g_object_set (G_OBJECT (self),
                   "active", active,
-                  NULL);
-}
-
-/** 
- * nwamui_ncu_set_speed:
- * @nwamui_ncu: a #NwamuiNcu.
- * @speed: Value to set speed to.
- * 
- **/ 
-extern void
-nwamui_ncu_set_speed (   NwamuiNcu *self,
-                              guint        speed )
-{
-    g_return_if_fail (NWAMUI_IS_NCU (self));
-    g_assert (speed >= 0 && speed <= G_MAXUINT );
-
-    g_object_set (G_OBJECT (self),
-                  "speed", speed,
                   NULL);
 }
 
@@ -2430,9 +2415,7 @@ get_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name , g
 extern const gchar*
 nwamui_ncu_get_signal_strength_string( NwamuiNcu* self )
 {
-#ifdef POST_105
     dladm_handle_t          handle;
-#endif
     datalink_id_t           linkid;
     dladm_wlan_linkattr_t	attr;
     const gchar*            signal_str = _("None");
@@ -2443,18 +2426,17 @@ nwamui_ncu_get_signal_strength_string( NwamuiNcu* self )
         return( signal_str );
     }
 
-#ifdef POST_105
     if ( dladm_open( &handle ) != DLADM_STATUS_OK ) {
         g_warning("Error creating dladm handle" );
         return( signal_str );
     }
     if ( dladm_name2info( handle, self->prv->device_name, &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
-#endif
-    if ( dladm_name2info( self->prv->device_name, &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
-        g_error("Unable to map device to linkid");
+        dladm_close( handle );
+        g_warning("Unable to map device to linkid");
+        return( signal_str );
     }
     else {
-        dladm_status_t status = dladm_wlan_get_linkattr(linkid, &attr);
+        dladm_status_t status = dladm_wlan_get_linkattr(handle, linkid, &attr);
         if (status != DLADM_STATUS_OK ) {
             g_error("cannot get link attributes for %s", self->prv->device_name );
         }
@@ -2484,11 +2466,105 @@ nwamui_ncu_get_signal_strength_string( NwamuiNcu* self )
         }
     }
 
-#ifdef POST_105
     dladm_close( handle );
-#endif
     
     return( signal_str );
+}
+
+static guint64
+get_ifflags(const char *name, sa_family_t family)
+{
+	icfg_if_t intf;
+	icfg_handle_t h;
+	uint64_t flags = 0;
+
+	(void) strlcpy(intf.if_name, name, sizeof (intf.if_name));
+	intf.if_protocol = family;
+
+	if (icfg_open(&h, &intf) != ICFG_SUCCESS)
+		return (0);
+
+	if (icfg_get_flags(h, &flags) != ICFG_SUCCESS) {
+		/*
+		 * Interfaces can be ripped out from underneath us (for example
+		 * by DHCP).  We don't want to spam the console for those.
+		 */
+		if (errno == ENOENT)
+			g_debug("get_ifflags: icfg_get_flags failed for '%s'", name);
+		else
+			g_debug("get_ifflags: icfg_get_flags %s af %d: %m", name, family);
+
+		flags = 0;
+	}
+	icfg_close(h);
+
+	return (flags);
+}
+
+static gboolean
+interface_has_addresses(const char *ifname, sa_family_t family)
+{
+	char msg[128];
+	icfg_if_t intf;
+	icfg_handle_t h;
+	struct sockaddr_in sin;
+	socklen_t addrlen = sizeof (struct sockaddr_in);
+	int prefixlen = 0;
+
+	(void) strlcpy(intf.if_name, ifname, sizeof (intf.if_name));
+	intf.if_protocol = family;
+	if (icfg_open(&h, &intf) != ICFG_SUCCESS) {
+		g_debug( "icfg_open failed on interface %s", ifname);
+		return( FALSE );
+	}
+	if (icfg_get_addr(h, (struct sockaddr *)&sin, &addrlen, &prefixlen,
+	    B_TRUE) != ICFG_SUCCESS) {
+		g_debug( "icfg_get_addr failed on interface %s", ifname);
+		icfg_close(h);
+		return( FALSE );
+	}
+	icfg_close(h);
+
+    return( TRUE );
+}
+
+static gchar*
+get_interface_address_str(const char *ifname, sa_family_t family)
+{
+	gchar *string = NULL;
+	icfg_if_t intf;
+	icfg_handle_t h;
+	struct sockaddr_in sin;
+	socklen_t addrlen = sizeof (struct sockaddr_in);
+	int prefixlen = 0;
+
+	(void) strlcpy(intf.if_name, ifname, sizeof (intf.if_name));
+	intf.if_protocol = family;
+	if (icfg_open(&h, &intf) != ICFG_SUCCESS) {
+		g_debug( "icfg_open failed on interface %s", ifname);
+		return( NULL );
+	}
+	if (icfg_get_addr(h, (struct sockaddr *)&sin, &addrlen, &prefixlen,
+	    B_TRUE) != ICFG_SUCCESS) {
+		g_debug( "icfg_get_addr failed on interface %s", ifname);
+		icfg_close(h);
+		return( NULL );
+	}
+
+    switch ( family ) {
+        case AF_INET:
+            string = g_strdup_printf( _("Address: %s/%d"), inet_ntoa(sin.sin_addr), prefixlen);
+            break;
+        case AF_INET6:
+            string = g_strdup_printf( _("Address(v6): %s/%d"), inet_ntoa(sin.sin_addr), prefixlen);
+            break;
+        default:
+            break;
+    }
+
+	icfg_close(h);
+
+    return( string );
 }
 
 static const gchar* status_string_fmt[NWAMUI_STATE_LAST] = {
@@ -2505,13 +2581,88 @@ static const gchar* status_string_fmt[NWAMUI_STATE_LAST] = {
 extern nwamui_connection_state_t
 nwamui_ncu_get_connection_state( NwamuiNcu* self ) 
 {
+    dladm_handle_t              handle;
+    datalink_id_t               linkid;
+    dladm_wlan_linkattr_t	    attr;
     nwamui_connection_state_t   state = NWAMUI_STATE_UNKNOWN;
+    gchar                      *essid = NULL;
+    gboolean                    if_running = FALSE;
+    gboolean                    has_addresses = FALSE;
 
     g_return_val_if_fail( NWAMUI_IS_NCU( self ), state );
 
-    /* TODO: Determine state */
+    if ( dladm_open( &handle ) != DLADM_STATUS_OK ) {
+        g_warning("Error creating dladm handle" );
+        return ( NWAMUI_STATE_UNKNOWN );
+    }
 
-    if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+    if ( dladm_name2info( handle, self->prv->device_name, &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
+        dladm_close( handle );
+        g_warning("Unable to map device to linkid");
+        return ( NWAMUI_STATE_UNKNOWN );
+    }
+
+    if ( get_ifflags(self->prv->device_name, AF_INET) & IFF_RUNNING ) {
+        if_running = TRUE;
+    }
+    else if ( get_ifflags(self->prv->device_name, AF_INET6) & IFF_RUNNING ) {
+        /* Attempt v6 too, if v4 failed, we only care if one of them is marked running  */
+        if_running = TRUE;
+    }
+
+    if ( if_running ) {
+        gboolean is_dhcp = FALSE;
+
+        if ( interface_has_addresses( self->prv->device_name, AF_INET ) ) {
+            has_addresses = TRUE;
+        }
+        else if ( interface_has_addresses( self->prv->device_name, AF_INET6 ) ) {
+            /* Attempt v6 too, if v4 failed, we only care if one of them has addresses*/
+            has_addresses = TRUE;
+        }
+
+        if ( self->prv->ipv4_primary_ip 
+             && nwamui_ip_is_dhcp(self->prv->ipv4_primary_ip ) ) {
+            is_dhcp = TRUE;
+        }
+        else if ( self->prv->ipv6_primary_ip 
+                  && nwamui_ip_is_dhcp(self->prv->ipv6_primary_ip ) ) {
+            is_dhcp = TRUE;
+        }
+
+        if ( has_addresses ) {
+            state = NWAMUI_STATE_CONNECTED;
+        }
+        else if ( is_dhcp ) {
+            state = NWAMUI_STATE_CONNECTING;
+        }
+        else {
+            state = NWAMUI_STATE_NOT_CONNECTED;
+        }
+    }
+    else if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRED ) {
+        state = NWAMUI_STATE_CABLE_UNPLUGGED;
+    }
+    else {
+        state = NWAMUI_STATE_NOT_CONNECTED;
+    }
+
+    if ( if_running && self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+        dladm_status_t status = dladm_wlan_get_linkattr(handle, linkid, &attr);
+        if (status != DLADM_STATUS_OK ) {
+            g_warning("cannot get link attributes for %s", self->prv->device_name );
+            dladm_close(handle);
+            return( state );
+        }
+        else if ( attr.la_status == DLADM_WLAN_LINK_CONNECTED ) {
+            if ( attr.la_valid |= DLADM_WLAN_LINKATTR_WLAN &&
+                 attr.la_wlan_attr.wa_valid & DLADM_WLAN_ATTR_ESSID ) {
+                char cur_essid[DLADM_STRSIZE];
+                dladm_wlan_essid2str( &attr.la_wlan_attr.wa_essid, cur_essid );
+                essid =  g_strdup( cur_essid );
+            }
+        }
+
         /* Change connected/connecting to be wireless equivalent */
         switch( state ) {
             case NWAMUI_STATE_CONNECTING:
@@ -2524,6 +2675,12 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
                 break;
         }
     }
+
+    if ( essid != NULL ) {
+        g_free( essid );
+    }
+
+    dladm_close(handle);
 
     return( state );
 }
@@ -2586,8 +2743,31 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self )
 
     switch( state ) {
         case NWAMUI_STATE_CONNECTED:
-        case NWAMUI_STATE_CONNECTED_ESSID:
-            addr_part = g_strdup_printf( _("XXXX") );
+        case NWAMUI_STATE_CONNECTED_ESSID: {
+            gchar *v4addr = get_interface_address_str( self->prv->device_name, AF_INET );
+            gchar *v6addr = get_interface_address_str( self->prv->device_name, AF_INET6 );
+
+            if ( v4addr != NULL ) {
+                addr_part = v4addr;
+                v4addr = NULL;
+            }
+            
+            if ( v6addr != NULL ) {
+                if ( addr_part != NULL ) {
+                    gchar* tmp = addr_part;
+                    addr_part = g_strdup_printf( _("%s, %s"), addr_part, v6addr );
+                    g_free ( tmp );
+                }
+                else {
+                    addr_part = v6addr;
+                    v6addr = NULL;
+                }
+            }
+
+            if ( addr_part == NULL ) {
+                addr_part = g_strdup( _("Address: unassigned") );
+            }
+
             if ( state == NWAMUI_STATE_CONNECTED_ESSID ) {
                 signal_part = g_strdup_printf( _("Signal: %s"), nwamui_ncu_get_signal_strength_string( self ));
             }
@@ -2599,12 +2779,51 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self )
             else {
                 status_string = g_strdup_printf( _("%s %s %s"), addr_part, signal_part, speed_part );
             }
+            }
             break;
         default:
             status_string = _("Not connected");
     }
 
     return( status_string );
+}
+
+static gboolean
+get_kstat_uint64 (const gchar *device, const gchar* stat_name, uint64_t *rval )
+{
+    kstat_ctl_t      *kc = NULL;
+    kstat_t          *ksp;
+    kstat_named_t    *kn;
+
+    if ( device == NULL || stat_name == NULL || rval == NULL ) {
+        return( FALSE );
+    }
+
+    if ((kc = kstat_open ()) == NULL) {
+        g_warning ("Cannot open /dev/kstat: %s", g_strerror (errno));
+        return( FALSE );
+    }
+
+    if ((ksp = kstat_lookup (kc, "link", 0, device)) == NULL) {
+        kstat_close (kc);
+        g_warning("Cannot find information on interface '%s'", device);
+        return( FALSE );
+    }
+
+    if (kstat_read (kc, ksp, NULL) < 0) {
+        kstat_close (kc);
+        g_warning("Cannot read kstat");
+        return( FALSE );
+    }
+
+    if ((kn = kstat_data_lookup (ksp, stat_name )) != NULL) {
+        *rval = kn->value.ui64;
+        return( TRUE );
+    }
+
+    kstat_close (kc);
+
+    return( FALSE );
 }
 
 /* Callbacks */

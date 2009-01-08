@@ -107,9 +107,7 @@ extern void                 nwamui_ncu_set_active ( NwamuiNcu *self, gboolean ac
 extern gboolean             nwamui_ncu_get_active ( NwamuiNcu *self );
 
 
-extern void                 nwamui_ncu_set_speed ( NwamuiNcu *self, guint speed );
 extern guint                nwamui_ncu_get_speed ( NwamuiNcu *self );
-
 
 extern void                 nwamui_ncu_set_ipv4_auto_conf ( NwamuiNcu *self, gboolean ipv4_auto_conf );
 extern gboolean             nwamui_ncu_get_ipv4_auto_conf ( NwamuiNcu *self );
