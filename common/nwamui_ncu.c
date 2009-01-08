@@ -912,6 +912,7 @@ populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                   "conditions", conditions,
                   NULL);
 
+    free(name);
     g_strfreev( condition_str );
 }
 
@@ -1362,24 +1363,28 @@ nwamui_ncu_set_device_name ( NwamuiNcu *self, const gchar* name )
 extern gchar*               
 nwamui_ncu_get_display_name ( NwamuiNcu *self )
 {
-    gchar*  dname = NULL;
-    gchar*  vname = NULL;
-    gchar*  disp_name = NULL;
+    gchar*  display_name = NULL;
     
-    g_return_val_if_fail (NWAMUI_IS_NCU(self), dname); 
+    g_return_val_if_fail (NWAMUI_IS_NCU(self), display_name); 
     
-    g_object_get (G_OBJECT (self),
-                  "vanity_name", &vname,
-                  "device_name", &dname,
-                  NULL);
-
-    if ( vname != NULL & dname != NULL ) {
-        disp_name = g_strdup_printf(_("%s (%s)"), vname, dname );
+    if ( self->prv->vanity_name != NULL ) {
+        switch( self->prv->ncu_type ) {
+            case NWAMUI_NCU_TYPE_WIRED:
+                display_name = g_strdup_printf( _("Wired(%s)"), self->prv->vanity_name );
+                break;
+            case NWAMUI_NCU_TYPE_WIRELESS:
+                display_name = g_strdup_printf( _("Wireless(%s)"), self->prv->vanity_name );
+                break;
+            case NWAMUI_NCU_TYPE_TUNNEL:
+                display_name = g_strdup_printf( _("Tunnel(%s)"), self->prv->vanity_name );
+                break;
+            default:
+                display_name = g_strdup( self->prv->vanity_name );
+                break;
+        }
     }
-    g_free( vname );
-    g_free( dname );
     
-    return( disp_name );
+    return( display_name );
 }
 
 /** 
@@ -2595,9 +2600,7 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
 {
     dladm_handle_t              handle;
     datalink_id_t               linkid;
-    dladm_wlan_linkattr_t	    attr;
     nwamui_connection_state_t   state = NWAMUI_STATE_UNKNOWN;
-    gchar                      *essid = NULL;
     gboolean                    if_running = FALSE;
     gboolean                    has_addresses = FALSE;
     guint64                     iff_flags = 0;
@@ -2652,21 +2655,6 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
     }
 
     if ( if_running && self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-        dladm_status_t status = dladm_wlan_get_linkattr(handle, linkid, &attr);
-        if (status != DLADM_STATUS_OK ) {
-            g_warning("cannot get link attributes for %s", self->prv->device_name );
-            dladm_close(handle);
-            return( state );
-        }
-        else if ( attr.la_status == DLADM_WLAN_LINK_CONNECTED ) {
-            if ( attr.la_valid |= DLADM_WLAN_LINKATTR_WLAN &&
-                 attr.la_wlan_attr.wa_valid & DLADM_WLAN_ATTR_ESSID ) {
-                char cur_essid[DLADM_STRSIZE];
-                dladm_wlan_essid2str( &attr.la_wlan_attr.wa_essid, cur_essid );
-                essid =  g_strdup( cur_essid );
-            }
-        }
-
         /* Change connected/connecting to be wireless equivalent */
         switch( state ) {
             case NWAMUI_STATE_CONNECTING:
@@ -2678,10 +2666,6 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             default:
                 break;
         }
-    }
-
-    if ( essid != NULL ) {
-        g_free( essid );
     }
 
     dladm_close(handle);
@@ -2715,14 +2699,45 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
             break;
 
         case NWAMUI_STATE_CONNECTING_ESSID:
-        case NWAMUI_STATE_CONNECTED_ESSID:
-            /* TODO: Get ESSID */
-            status_string = g_strdup_printf( _(status_string_fmt[state]), essid?essid:"UNKNOWN" );
+        case NWAMUI_STATE_CONNECTED_ESSID: {
+                dladm_handle_t              handle;
+                datalink_id_t               linkid;
+                dladm_wlan_linkattr_t	    attr;
+
+                if ( dladm_open( &handle ) != DLADM_STATUS_OK ) {
+                    g_warning("Error creating dladm handle" );
+                }
+                else if ( dladm_name2info( handle, self->prv->device_name,
+                                           &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
+                    g_warning("Unable to map device to linkid");
+                    dladm_close(handle);
+                }
+                else if ( dladm_wlan_get_linkattr(handle, linkid, &attr) != DLADM_STATUS_OK ) {
+                    g_warning("cannot get link attributes for %s", self->prv->device_name );
+                    dladm_close(handle);
+                }
+                else if ( attr.la_status == DLADM_WLAN_LINK_CONNECTED ) {
+                    if ( (attr.la_valid | DLADM_WLAN_LINKATTR_WLAN) &&
+                         (attr.la_wlan_attr.wa_valid & DLADM_WLAN_ATTR_ESSID) ) {
+                        char cur_essid[DLADM_STRSIZE];
+                        dladm_wlan_essid2str( &attr.la_wlan_attr.wa_essid, cur_essid );
+                        essid =  g_strdup( cur_essid );
+                    }
+                    dladm_close(handle);
+                }
+
+                status_string = g_strdup_printf( _(status_string_fmt[state]), essid?essid:"UNKNOWN" );
+
+            }
             break;
 
         default:
             g_error("Unexpected value for connection state %d", (int)state );
             break;
+    }
+
+    if ( essid != NULL ) {
+        g_free( essid );
     }
 
     return( status_string );

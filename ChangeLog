@@ -1,5 +1,13 @@
 2009-01-08  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_ncu.c:
+	  Move code to get essid to correct function. Getting the display name
+	  for an ncu will return text in the format Wired/Wireless/Tunnel (dev).
+	* tests/main.c:
+	  Add test for display_name.
+
+2009-01-08  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_ncu.c: 
 	  Use IFF_DHCPRUNNING to get current DHCP state for an interface.
 

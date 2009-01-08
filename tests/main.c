@@ -117,7 +117,7 @@ static gboolean
 process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
 {
     NwamuiNcu           *ncu = NULL;
-    gchar               *vname, *dname;
+    gchar               *vname, *dname, *display_name;
     nwamui_ncu_type_t   type;
     gchar*              typestr;
     gchar*              statestr;
@@ -138,6 +138,7 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     
     vname = nwamui_ncu_get_vanity_name( ncu );
     dname = nwamui_ncu_get_device_name( ncu );
+    display_name = nwamui_ncu_get_display_name( ncu );
     type = nwamui_ncu_get_ncu_type( ncu );
     active = nwamui_ncu_get_active( ncu );
     statestr = nwamui_ncu_get_connection_state_string( ncu );
@@ -154,6 +155,7 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     indent += 4;
 
     printf("%-*sNcu Name = %s (%s)\n", indent, "", vname, dname );
+    printf("%-*sNcu Display Name = %s\n", indent, "", display_name );
     switch( type ) {
         case NWAMUI_NCU_TYPE_WIRED:
             typestr = "WIRED";
@@ -188,6 +190,8 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
         g_free(vname);
     if ( dname != NULL )
         g_free(dname);
+    if ( display_name != NULL )
+        g_free(display_name);
     if ( ipv4_address != NULL ) 
         g_free( ipv4_address );
     if ( ipv4_subnet != NULL ) 
