@@ -2531,12 +2531,14 @@ interface_has_addresses(const char *ifname, sa_family_t family)
 static gchar*
 get_interface_address_str(const char *ifname, sa_family_t family)
 {
-	gchar *string = NULL;
-	icfg_if_t intf;
-	icfg_handle_t h;
-	struct sockaddr_in sin;
-	socklen_t addrlen = sizeof (struct sockaddr_in);
-	int prefixlen = 0;
+	gchar              *string = NULL;
+	icfg_if_t           intf;
+	icfg_handle_t       h;
+	struct sockaddr_in  sin;
+	socklen_t           addrlen = sizeof (struct sockaddr_in);
+	int                 prefixlen = 0;
+	uint64_t            flags = 0;
+    gchar*              dhcp_str;
 
 	(void) strlcpy(intf.if_name, ifname, sizeof (intf.if_name));
 	intf.if_protocol = family;
@@ -2551,12 +2553,22 @@ get_interface_address_str(const char *ifname, sa_family_t family)
 		return( NULL );
 	}
 
+	if (icfg_get_flags(h, &flags) != ICFG_SUCCESS) {
+		flags = 0;
+	}
+
+    if ( flags & IFF_DHCPRUNNING ) {
+        dhcp_str = _(" (DHCP)");
+    }
+    else {
+        dhcp_str = "";
+    }
     switch ( family ) {
         case AF_INET:
-            string = g_strdup_printf( _("Address: %s/%d"), inet_ntoa(sin.sin_addr), prefixlen);
+            string = g_strdup_printf( _("Address: %s/%d%s"), inet_ntoa(sin.sin_addr), prefixlen, dhcp_str);
             break;
         case AF_INET6:
-            string = g_strdup_printf( _("Address(v6): %s/%d"), inet_ntoa(sin.sin_addr), prefixlen);
+            string = g_strdup_printf( _("Address(v6): %s/%d%s"), inet_ntoa(sin.sin_addr), prefixlen, dhcp_str);
             break;
         default:
             break;
@@ -2588,6 +2600,7 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
     gchar                      *essid = NULL;
     gboolean                    if_running = FALSE;
     gboolean                    has_addresses = FALSE;
+    guint64                     iff_flags = 0;
 
     g_return_val_if_fail( NWAMUI_IS_NCU( self ), state );
 
@@ -2602,16 +2615,16 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
         return ( NWAMUI_STATE_UNKNOWN );
     }
 
-    if ( get_ifflags(self->prv->device_name, AF_INET) & IFF_RUNNING ) {
+    if ( ( iff_flags = get_ifflags(self->prv->device_name, AF_INET)) & IFF_RUNNING ) {
         if_running = TRUE;
     }
-    else if ( get_ifflags(self->prv->device_name, AF_INET6) & IFF_RUNNING ) {
+    else if ( ( iff_flags = get_ifflags(self->prv->device_name, AF_INET6)) & IFF_RUNNING ) {
         /* Attempt v6 too, if v4 failed, we only care if one of them is marked running  */
         if_running = TRUE;
     }
 
     if ( if_running ) {
-        gboolean is_dhcp = FALSE;
+        gboolean is_dhcp = (iff_flags & IFF_DHCPRUNNING)?TRUE:FALSE;
 
         if ( interface_has_addresses( self->prv->device_name, AF_INET ) ) {
             has_addresses = TRUE;
@@ -2619,15 +2632,6 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
         else if ( interface_has_addresses( self->prv->device_name, AF_INET6 ) ) {
             /* Attempt v6 too, if v4 failed, we only care if one of them has addresses*/
             has_addresses = TRUE;
-        }
-
-        if ( self->prv->ipv4_primary_ip 
-             && nwamui_ip_is_dhcp(self->prv->ipv4_primary_ip ) ) {
-            is_dhcp = TRUE;
-        }
-        else if ( self->prv->ipv6_primary_ip 
-                  && nwamui_ip_is_dhcp(self->prv->ipv6_primary_ip ) ) {
-            is_dhcp = TRUE;
         }
 
         if ( has_addresses ) {

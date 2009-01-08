@@ -1,5 +1,10 @@
 2009-01-08  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_ncu.c: 
+	  Use IFF_DHCPRUNNING to get current DHCP state for an interface.
+
+2009-01-08  Darren Kenny  <darren.kenny@sun.com>
+
 	* configure.in, daemon/Makefile.am, capplet/Makefile.am,
 	  tests/Makefile.am:
 	  Add tests for libinetcfg and libkstat.
