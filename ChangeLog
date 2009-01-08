@@ -1,3 +1,10 @@
+2009-01-08  Calum Benson <calum.benson@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Update glade file from the branch I was working on, to bring
+	up to date with the v1.7 of the UI spec. 
+
 2009-01-07  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/libnwamui.h, common/libnwamui.c:
