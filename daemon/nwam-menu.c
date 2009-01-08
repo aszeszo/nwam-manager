@@ -390,7 +390,7 @@ nwam_menu_recreate_wifi_menuitems (NwamMenu *self)
 
     DEBUG();	
     self->prv->group[ID_WIFI] = nwam_wifi_group_new(self->prv->ui_manager,
-      dynamic_menuitem_inserting_path[ID_WIFI]);
+        dynamic_menuitem_inserting_path[ID_WIFI]);
 
     /* set force rescan flag so that we can identify daemon scan wifi event */
     self->prv->force_wifi_rescan = TRUE;

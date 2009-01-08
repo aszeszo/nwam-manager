@@ -321,7 +321,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
         NwamuiDaemon *daemon = nwamui_daemon_get_instance();
         capplet_compose_nwamui_obj_combo(GTK_COMBO_BOX(prv->nameservices_config_combo), NWAM_PREF_IFACE(self));
         capplet_update_nwamui_obj_combo(GTK_COMBO_BOX(prv->nameservices_config_combo), daemon, NWAMUI_TYPE_ENV);
-        gtk_combo_box_set_active(GTK_COMBO_BOX(prv->nameservices_config_combo), 1);
+        gtk_combo_box_set_active(GTK_COMBO_BOX(prv->nameservices_config_combo), 0);
         g_object_unref(daemon);
     }
 

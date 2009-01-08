@@ -545,7 +545,7 @@ connect_nwam_obj_signals(GObject *self, GObject *obj)
           (gpointer)self);
 
     } else if (type == NWAMUI_TYPE_NCP) {
-        NwamuiNcp* ncp = NWAMUI_DAEMON(obj);
+        NwamuiNcp* ncp = NWAMUI_NCP(obj);
 
         g_signal_connect(ncp, "activate_ncu",
           G_CALLBACK(ncp_activate_ncu),

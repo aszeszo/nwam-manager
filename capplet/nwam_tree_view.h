@@ -48,21 +48,27 @@ struct _NwamTreeView {
 struct _NwamTreeViewClass {
 	GtkTreeViewClass parent_class;
 
-    NwamuiObject* (*new_object)(NwamTreeView *self, gpointer user_data);
-    void (*add)(NwamTreeView *self);
-    void (*remove)(NwamTreeView *self);
-    void (*up)(NwamTreeView *self, GObject *item, gboolean top);
-    void (*down)(NwamTreeView *self, GObject *item);
-    void (*rename)(NwamTreeView *self, GObject *item);
-    GObject *(*edit)(NwamTreeView *self, const gchar *name);
-    GObject *(*get_item_by_proxy)(NwamTreeView *self, GObject *proxy);
+    NwamuiObject* (*add_object)(NwamTreeView *self, gpointer user_data);
+    void (*remove_object)(NwamTreeView *self, NwamuiObject *object, gpointer user_data);
+    void (*widget_activate)(NwamTreeView *self, GtkWidget *widget, gpointer user_data);
+
+/*     void (*add)(NwamTreeView *self); */
+/*     void (*remove)(NwamTreeView *self); */
+/*     void (*up)(NwamTreeView *self, GObject *item, gboolean top); */
+/*     void (*down)(NwamTreeView *self, GObject *item); */
+/*     void (*rename)(NwamTreeView *self, GObject *item); */
+/*     GObject *(*edit)(NwamTreeView *self, const gchar *name); */
+/*     GObject *(*get_item_by_proxy)(NwamTreeView *self, GObject *proxy); */
 /*     void (*foreach)(NwamTreeView *self, GtkCallback callback, gpointer user_data); */
 };
 
 GType nwam_tree_view_get_type(void) G_GNUC_CONST;
 
+GtkWidget* nwam_tree_view_new();
 void nwam_tree_view_add(NwamTreeView *self);
-void nwam_tree_view_remove(NwamTreeView *self);
+void nwam_tree_view_remove(NwamTreeView *self,
+  GtkTreeSelectionForeachFunc func,
+  gpointer user_data);
 void nwam_tree_view_up(NwamTreeView *self, GObject *item, gboolean top);
 void nwam_tree_view_down(NwamTreeView *self, GObject *item);
 GObject* nwam_tree_view_edit(NwamTreeView *self, const gchar *name);

@@ -29,13 +29,15 @@
 #include <gtk/gtk.h>
 #include <glib/gi18n.h>
 #include <libgnomeui/libgnomeui.h>
+#include <glade/glade-xml.h>
 
+#include <libnwamui.h>
+#include "nwam_tree_view.h"
 #include "nwam_wireless_dialog.h"
 #include "nwam_env_pref_dialog.h"
 #include "nwam_vpn_pref_dialog.h"
 #include "nwam_wireless_chooser.h"
 #include "nwam_pref_dialog.h"
-#include <libnwamui.h>
 
 static gboolean     show_all_widgets = FALSE;
 //static gboolean     add_wireless_dialog = FALSE;
@@ -56,6 +58,23 @@ GOptionEntry application_options[] = {
         { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, "Show 'Wireless Network Chooser' Dialog only", NULL  },
         { NULL }
 };
+
+static GtkWidget*
+customwidgethandler(GladeXML *xml,
+  gchar *func_name,
+  gchar *name,
+  gchar *string1,
+  gchar *string2,
+  gint int1,
+  gint int2,
+  gpointer user_data)
+{
+    if (g_ascii_strcasecmp(name, "address_table") == 0 ||
+      g_ascii_strcasecmp(name, "network_profile_table") == 0) {
+        return nwam_tree_view_new();
+    }
+    return NULL;
+}
 
 /*
  * 
@@ -98,6 +117,8 @@ main(int argc, char** argv)
         exit(1);
     }
 #endif
+
+    glade_set_custom_handler(customwidgethandler, NULL);
 
     if ( add_wireless_dialog ) {
         NwamWirelessDialog *wireless_dialog = NWAM_WIRELESS_DIALOG(nwam_wireless_dialog_new());

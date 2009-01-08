@@ -1,3 +1,28 @@
+2009-01-08  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c: (nwamui_obj_combo_cell_cb):
+	* capplet/main.c: (customwidgethandler), (main):
+	* capplet/nwam-manager-properties.glade:
+	Test code for customized Nwam Tree View.
+	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_init):
+	* capplet/nwam_net_conf_panel.c: (nwam_net_conf_panel_init),
+	(nwam_treeview_btn_cb):
+	* capplet/nwam_tree_view.c: (nwam_tree_view_property_name),
+	(nwam_tree_view_class_init), (nwam_tree_view_set_property),
+	(nwam_tree_view_get_property), (nwam_tree_view_init),
+	(nwam_tree_view_new), (nwam_tree_view_add),
+	(nwam_tree_view_remove), (on_button_clicked),
+	(nwam_tree_view_key_release), (default_signal_handler_add_object),
+	(default_signal_handler_remove_object),
+	(default_signal_handler_widget_activate), (delete_selection_cb),
+	(nwam_tree_view_row_selected_cb),
+	(nwam_tree_view_selection_changed_cb):
+	* capplet/nwam_tree_view.h:
+	* common/libnwamui.c:
+	* common/libnwamui.h:
+	* daemon/status_icon.c: (connect_nwam_obj_signals):
+	Fixed a few nits.
+
 2009-01-08  Calum Benson <calum.benson@sun.com>
 
 	* capplet/nwam-manager-properties.glade:

@@ -776,7 +776,7 @@ marshal_VOID__INT_POINTER (GClosure     *closure,
       data2);
 }
 
-/* VOID:OBJECT,OBJECT */
+/* VOID:OBJECT, OBJECT */
 void
 marshal_VOID__OBJECT_OBJECT (GClosure     *closure,
   GValue       *return_value G_GNUC_UNUSED,

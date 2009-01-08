@@ -136,12 +136,13 @@ nwamui_obj_combo_cell_cb (GtkCellLayout *cell_layout,
 	
 	gtk_tree_model_get(model, iter, 0, &row_data, -1);
 	
-	g_assert(row_data);
-	g_assert(G_IS_OBJECT (row_data));
+	if (row_data) {
+		g_assert(G_IS_OBJECT (row_data));
 	
-	text = nwamui_obj_get_display_name(G_OBJECT(row_data));
-	g_object_set (G_OBJECT(renderer), "text", text, NULL);
-	g_free (text);
+		text = nwamui_obj_get_display_name(G_OBJECT(row_data));
+		g_object_set (G_OBJECT(renderer), "text", text, NULL);
+		g_free (text);
+	}
 }
 
 static void
