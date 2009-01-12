@@ -121,6 +121,9 @@ extern  NwamuiWifiNet*              nwamui_wifi_net_new(    struct _NwamuiNcu   
                                                             nwamui_wifi_bss_type_t           bss_type,
                                                             nwamui_wifi_wpa_config_t         wpa_config );
 
+extern  NwamuiWifiNet*              nwamui_wifi_net_new_from_handle(    struct _NwamuiNcu               *ncu,
+                                                                        nwam_known_wlan_handle_t         handle );
+
 extern void                         nwamui_wifi_net_connect ( NwamuiWifiNet *self );
 
 extern void                         nwamui_wifi_net_set_ncu ( NwamuiWifiNet *self, struct _NwamuiNcu* ncu );
@@ -181,6 +184,14 @@ extern gchar*                       nwamui_wifi_net_get_wpa_password (  NwamuiWi
 extern void                         nwamui_wifi_net_set_wpa_cert_file ( NwamuiWifiNet *self, const gchar *wpa_cert_file );
                       
 extern gchar*                       nwamui_wifi_net_get_wpa_cert_file ( NwamuiWifiNet *self );
+
+extern void                         nwamui_wifi_net_set_bssid_list ( NwamuiWifiNet *self, const GList*   bssid_list );
+extern GList*                       nwamui_wifi_net_get_bssid_list ( NwamuiWifiNet *self );
+                          
+                          
+extern void                         nwamui_wifi_net_set_priority ( NwamuiWifiNet *self, guint64 priority );
+extern guint64                      nwamui_wifi_net_get_priority ( NwamuiWifiNet *self );
+
 
 extern nwamui_wifi_security_t       nwamui_wifi_net_security_map ( uint32_t _sec_mode );
 

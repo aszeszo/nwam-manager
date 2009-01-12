@@ -203,9 +203,11 @@ extern void                     nwamui_util_show_message(GtkWindow* parent_windo
 
 extern GList*                   nwamui_util_map_condition_strings_to_object_list( char** conditions );
 
+extern char**                   nwamui_util_map_object_list_to_condition_strings( GList* conditions, guint *len );
+
 extern GList*                   nwamui_util_strv_to_glist( gchar **strv );
 
-extern gchar**                  wamui_util_glist_to_strv( GList *list );
+extern char**                   nwamui_util_glist_to_strv( GList *list );
 
 G_END_DECLS
 

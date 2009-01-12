@@ -124,7 +124,7 @@ extern const gchar*         nwamui_cond_op_to_str( nwamui_cond_op_t op );
 extern const gchar*         nwamui_cond_field_to_str( nwamui_cond_field_t field );
 
 /* Convert to string suitable for libnwam - uses libnwam */
-extern const gchar*         nwamui_cond_to_str( NwamuiCond* self );
+extern char*                nwamui_cond_to_string( NwamuiCond* self );
 
 G_END_DECLS
 

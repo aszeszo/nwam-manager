@@ -623,6 +623,41 @@ nwamui_util_map_condition_strings_to_object_list( char** conditions )
     return( new_list );
 }
 
+extern char**
+nwamui_util_map_object_list_to_condition_strings( GList* conditions, guint *len )
+{
+    gchar** cond_strs = NULL;
+    guint   count = 0;
+    GList*  elem = NULL;
+
+    if ( conditions == NULL || len == NULL ) {
+        return( NULL );
+    }
+
+    count = g_list_length( conditions ); 
+
+    if ( count == 0 ) {
+        return( NULL );
+    }
+
+    cond_strs = malloc( sizeof( gchar* ) * count );
+
+    *len = 0;
+    elem = g_list_first(conditions);
+    for ( int i = 0; elem != NULL && i < count; i++ ) {
+        if ( elem->data != NULL && NWAMUI_IS_COND( elem->data ) ) {
+            gchar* cond_str = nwamui_cond_to_string( NWAMUI_COND(elem->data) );
+            if ( cond_str != NULL ) {
+                cond_strs[*len] = strdup( cond_str );
+                *len = *len + 1;
+            }
+        }
+        elem = g_list_next( conditions );
+    }
+
+    return( cond_strs );
+}
+
 extern GList*
 nwamui_util_strv_to_glist( gchar **strv ) 
 {

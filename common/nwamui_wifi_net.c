@@ -55,6 +55,8 @@ struct _NwamuiWifiNetPrivate {
         gchar                          *wpa_password;
         gchar                          *wpa_cert_file;
         gint                            status;
+        GList                          *bssid_list;
+        gint                            priority;
 };
 
 static void nwamui_wifi_net_set_property (  GObject         *object,
@@ -68,6 +70,18 @@ static void nwamui_wifi_net_get_property (  GObject         *object,
                                             GParamSpec      *pspec);
 
 static void nwamui_wifi_net_finalize (      NwamuiWifiNet *self);
+
+static gchar*       get_nwam_known_wlan_string_prop( nwam_known_wlan_handle_t known_wlan, 
+                                                     const char* prop_name );
+
+static gchar**      get_nwam_known_wlan_string_array_prop(
+                                    nwam_known_wlan_handle_t known_wlan, const char* prop_name );
+
+static guint64      get_nwam_known_wlan_uint64_prop( nwam_known_wlan_handle_t known_wlan, 
+                                                     const char* prop_name );
+
+static guint64*     get_nwam_known_wlan_uint64_array_prop(
+                                    nwam_known_wlan_handle_t known_wlan, const char* prop_name , guint* out_num );
 
 
 /* Callbacks */
@@ -87,7 +101,9 @@ enum {
         PROP_WEP_PASSWORD,
         PROP_WPA_USERNAME,
         PROP_WPA_PASSWORD,
-        PROP_WPA_CERT_FILE
+        PROP_WPA_CERT_FILE,
+        PROP_BSSID_LIST,
+        PROP_PRIORITY
 };
 
 G_DEFINE_TYPE (NwamuiWifiNet, nwamui_wifi_net, NWAMUI_TYPE_OBJECT)
@@ -229,6 +245,23 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
                                                           _("Wifi WPA Certificate File Path"),
                                                           "",
                                                           G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_BSSID_LIST,
+                                     g_param_spec_pointer ("bssid_list",
+                                                          _("bssid_list"),
+                                                          _("bssid_list"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_PRIORITY,
+                                     g_param_spec_uint64 ("priority",
+                                                       _("priority"),
+                                                       _("priority"),
+                                                       0,
+                                                       G_MAXUINT64,
+                                                       0,
+                                                       G_PARAM_READWRITE));
 
 }
 
@@ -405,10 +438,25 @@ nwamui_wifi_net_set_property (  GObject         *object,
                 }
             }
             break;
+
         case PROP_STATUS: {
                 self->prv->status = g_value_get_int( value );
             }
             break;
+
+        case PROP_BSSID_LIST: {
+                if ( self->prv->bssid_list != NULL ) {
+                        g_free( self->prv->bssid_list );
+                }
+                self->prv->bssid_list = g_value_get_pointer( value );
+            }
+            break;
+
+        case PROP_PRIORITY: {
+                self->prv->priority = g_value_get_uint64( value );
+            }
+            break;
+
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -487,6 +535,14 @@ nwamui_wifi_net_get_property (GObject         *object,
                 g_value_set_int(value, self->prv->status);
             }
             break;
+        case PROP_BSSID_LIST: {
+                g_value_set_pointer( value, self->prv->bssid_list );
+            }
+            break;
+        case PROP_PRIORITY: {
+                g_value_set_uint64( value, self->prv->priority );
+            }
+            break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -508,6 +564,10 @@ nwamui_wifi_net_finalize (NwamuiWifiNet *self)
             g_free( self->prv->mode );
         }
         
+        if (self->prv->bssid_list != NULL ) {
+            g_list_foreach(self->prv->bssid_list, (GFunc)g_free, NULL );
+        }
+
         g_free (self->prv); 
     }
     self->prv = NULL;
@@ -558,6 +618,38 @@ nwamui_wifi_net_new(NwamuiNcu                       *ncu,
                     NULL);
     
     return( self );
+}
+
+extern  NwamuiWifiNet*
+nwamui_wifi_net_new_from_handle(    NwamuiNcu                       *ncu,
+                                    nwam_known_wlan_handle_t         handle )
+{
+    NwamuiWifiNet*  self = NULL;
+    gchar*          name = NULL;
+    guint64         prio = 0;
+    gchar**         bssid_strv = NULL;
+    GList*          bssid_list = NULL;
+    nwam_error_t    nerr;
+    
+    self = NWAMUI_WIFI_NET(g_object_new (NWAMUI_TYPE_WIFI_NET, NULL));
+
+    if ( (nerr = nwam_known_wlan_get_name(handle, &name)) != NWAM_SUCCESS) {
+        g_warning("Error getting name of known wlan: %s", nwam_strerror(nerr));
+        g_free( self );
+        return( NULL );
+    }
+    
+    self->prv->essid = g_strdup( name );
+    free(name);
+
+    self->prv->priority = get_nwam_known_wlan_uint64_prop( handle, NWAM_KNOWN_WLAN_PROP_PRIORITY );
+
+    bssid_strv = get_nwam_known_wlan_string_array_prop( handle, NWAM_KNOWN_WLAN_PROP_BSSIDS );
+    self->prv->bssid_list = nwamui_util_strv_to_glist( bssid_strv );
+    
+    g_strfreev( bssid_strv );
+
+    return(self);
 }
 
 /**
@@ -1038,6 +1130,84 @@ nwamui_wifi_net_get_wpa_cert_file (NwamuiWifiNet *self )
     return( ret_str );
 }
 
+/** 
+ * nwamui_wifi_net_set_bssid_list:
+ * @nwamui_wifi_net: a #NwamuiWifiNet.
+ * @bssid_list: Value to set bssid_list to.
+ * 
+ **/ 
+extern void
+nwamui_wifi_net_set_bssid_list (   NwamuiWifiNet *self,
+                              const GList*    bssid_list )
+{
+    g_return_if_fail (NWAMUI_IS_WIFI_NET (self));
+    g_assert (bssid_list != NULL );
+
+    if ( bssid_list != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "bssid_list", bssid_list,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_wifi_net_get_bssid_list:
+ * @nwamui_wifi_net: a #NwamuiWifiNet.
+ * @returns: the bssid_list.
+ *
+ **/
+extern GList*  
+nwamui_wifi_net_get_bssid_list (NwamuiWifiNet *self)
+{
+    GList*    bssid_list = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), bssid_list);
+
+    g_object_get (G_OBJECT (self),
+                  "bssid_list", &bssid_list,
+                  NULL);
+
+    return( bssid_list );
+}
+
+/** 
+ * nwamui_wifi_net_set_priority:
+ * @nwamui_wifi_net: a #NwamuiWifiNet.
+ * @priority: Value to set priority to.
+ * 
+ **/ 
+extern void
+nwamui_wifi_net_set_priority (   NwamuiWifiNet *self,
+                              guint64        priority )
+{
+    g_return_if_fail (NWAMUI_IS_WIFI_NET (self));
+
+    g_object_set (G_OBJECT (self),
+                  "priority", priority,
+                  NULL);
+}
+
+/**
+ * nwamui_wifi_net_get_priority:
+ * @nwamui_wifi_net: a #NwamuiWifiNet.
+ * @returns: the priority.
+ *
+ **/
+extern guint64
+nwamui_wifi_net_get_priority (NwamuiWifiNet *self)
+{
+    guint64  priority = 0; 
+
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), priority);
+
+    g_object_get (G_OBJECT (self),
+                  "priority", &priority,
+                  NULL);
+
+    return( priority );
+}
+
+
 extern nwamui_wifi_security_t
 nwamui_wifi_net_security_map ( uint32_t _sec_mode )
 {
@@ -1090,6 +1260,189 @@ nwamui_wifi_net_bss_type_map (const gchar *bss_type)
         return NWAMUI_WIFI_BSS_TYPE_AUTO;
     }
 }
+
+static gchar*
+get_nwam_known_wlan_string_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gchar*              retval = NULL;
+    char*               value = NULL;
+
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( (nerr = nwam_known_wlan_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for known_wlan property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_known_wlan_get_prop_value (known_wlan, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_get_string(nwam_data, &value )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get string value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( value != NULL ) {
+        retval  = g_strdup ( value );
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static gchar**
+get_nwam_known_wlan_string_array_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gchar**             retval = NULL;
+    char**              value = NULL;
+    uint_t              num = 0;
+
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( (nerr = nwam_known_wlan_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for known_wlan property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_known_wlan_get_prop_value (known_wlan, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_get_string_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get string value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( value != NULL && num > 0 ) {
+        /* Create a NULL terminated list of stirngs, allocate 1 extra place
+         * for NULL termination. */
+        retval = (gchar**)g_malloc0( sizeof(gchar*) * (num+1) );
+
+        for (int i = 0; i < num; i++ ) {
+            retval[i]  = g_strdup ( value[i] );
+        }
+        retval[num]=NULL;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static gboolean
+get_nwam_known_wlan_boolean_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    boolean_t           value = FALSE;
+
+    g_return_val_if_fail( prop_name != NULL, value );
+
+    if ( (nerr = nwam_known_wlan_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
+        g_warning("Unexpected type for known_wlan property %s\n", prop_name );
+        return value;
+    }
+
+    if ( (nerr = nwam_known_wlan_get_prop_value (known_wlan, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    if ( (nerr = nwam_value_get_boolean(nwam_data, &value )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get boolean value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    nwam_value_free(nwam_data);
+
+    return( (gboolean)value );
+}
+
+static guint64
+get_nwam_known_wlan_uint64_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    uint64_t            value = 0;
+
+    g_return_val_if_fail( prop_name != NULL, value );
+
+    if ( (nerr = nwam_known_wlan_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for known_wlan property %s\n", prop_name );
+        return value;
+    }
+
+    if ( (nerr = nwam_known_wlan_get_prop_value (known_wlan, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    if ( (nerr = nwam_value_get_uint64(nwam_data, &value )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get uint64 value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    nwam_value_free(nwam_data);
+
+    return( (guint64)value );
+}
+
+static guint64* 
+get_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name , guint *out_num )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    uint64_t           *value = NULL;
+    uint_t              num = 0;
+    guint64            *retval = NULL;
+
+    g_return_val_if_fail( prop_name != NULL && out_num != NULL, retval );
+
+    if ( (nerr = nwam_known_wlan_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for known_wlan property %s\n", prop_name );
+        return value;
+    }
+
+    if ( (nerr = nwam_known_wlan_get_prop_value (known_wlan, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    if ( (nerr = nwam_value_get_uint64_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get uint64 value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    retval = (guint64*)g_malloc( sizeof(guint64) * num );
+    for ( int i = 0; i < num; i++ ) {
+        retval[i] = (guint64)value[i];
+    }
+
+    nwam_value_free(nwam_data);
+
+    *out_num = num;
+
+    return( retval );
+}
+
 
 /* Callbacks */
 

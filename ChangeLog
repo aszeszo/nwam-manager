@@ -1,3 +1,23 @@
+2009-01-12  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/libnwamui.h, common/libnwamui.c:
+	  Add function to map a GList of NwamuiCond to a list of libnwam
+	  condition strings. Also correct a type in the name of the function
+	  nwamui_util_glist_to_strv().
+	* common/nwamui_cond.h, common/nwamui_cond.c: 
+	  Parse the condition string, and also provide function to convert
+	  condition to a libnwam condition string.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Add function to allow you to set properties in a nwam_ncu_handle_t.
+	  Start move from storing a copy of data in NwamuiNcu to using the
+	  handle itself to store the values - this will facilitate an easier
+	  revert/resync and commit mechanism using the libnwam handles.
+	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c: 
+	  Add two properties - priority and bssid_list - both for use in the
+	  favourites list.
+	* nwam_core/usr/include/libdlether.h:
+	  Add a missing header file from the libdladm collection.
+
 2009-01-12  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/Makefile.am:

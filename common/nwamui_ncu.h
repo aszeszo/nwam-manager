@@ -182,9 +182,6 @@ extern void                 nwamui_ncu_selection_conditions_add( NwamuiNcu*     
 extern void                 nwamui_ncu_selection_conditions_remove( NwamuiNcu*  self,
                                                                     NwamuiCond* condition_to_remove );
 
-extern gboolean             nwamui_ncu_selection_conditions_contains( NwamuiNcu*  self,
-                                                                     NwamuiCond*  cond_to_find );
-
 extern const gchar*         nwamui_ncu_get_signal_strength_string( NwamuiNcu* self );
 
 extern nwamui_connection_state_t

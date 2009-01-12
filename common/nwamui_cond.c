@@ -435,16 +435,39 @@ nwamui_cond_new_from_str( const gchar* condition_str )
     nwamui_cond_op_t    op = NWAMUI_COND_OP_IS;
     char*               value = "";
 
-    /* TODO - Parse string */
-    g_assert("String not being parsed yet");
+    populate_fields_from_string( self, condition_str );
 
-    g_object_set (G_OBJECT (self),
-                  "field", field,
-                  "op", op,
-                  "value", value,
-                  NULL);
-    
     return( self );
+}
+
+/**
+ * nwamui_cond_to_string:
+ * args: condition: a #NwamuiCond
+ * @returns: libnwam formatted condition string
+ *
+ **/
+extern char*
+nwamui_cond_to_string( NwamuiCond* self )         
+{
+    char*                        new_str = NULL;
+    nwam_error_t                 nerr;
+    nwam_condition_object_type_t condition_object;
+    nwam_condition_t             condition;
+    char *                       value;
+
+    condition_object = map_field_to_condition_obj( self->prv->field );
+    condition = map_op_to_condition( self->prv->op );
+    value = strdup( self->prv->value );
+
+    if ( (nerr = nwam_condition_to_condition_string( condition_object, 
+                                                     condition, value, &new_str )) != NWAM_SUCCESS ) {
+        g_warning("Failed to generate condition string");
+        return( NULL );
+    }
+
+    free(value);
+
+    return( new_str );
 }
 
 /** 
@@ -652,13 +675,6 @@ nwamui_cond_op_to_str( nwamui_cond_op_t op )
             return(NULL);
     }
 }
-
-extern const gchar*
-nwamui_cond_to_str( NwamuiCond* self )
-{
-    return(NULL);
-}
-
 
 /* Callbacks */
 

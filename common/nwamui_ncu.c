@@ -81,12 +81,6 @@ struct _NwamuiNcuPrivate {
         GtkListStore*                   v4addresses;
         GtkListStore*                   v6addresses;
         NwamuiWifiNet*                  wifi_info;
-        nwamui_cond_activation_mode_t   activation_mode;
-        gboolean                        enabled;
-        guint                           priority_group;
-        nwamui_cond_priority_group_mode_t    
-                                        priority_group_mode;
-        GList*                          conditions;
 };
 
 enum {
@@ -131,14 +125,20 @@ static void nwamui_ncu_get_property ( GObject         *object,
 static void nwamui_ncu_finalize (     NwamuiNcu *self);
 
 static gboolean     get_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name );
+static gboolean     set_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name, gboolean bool_value );
 
 static gchar*       get_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name );
+static gboolean     set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const char* str );
 
 static gchar**      get_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name );
+static gboolean     set_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, char** strs, guint len);
 
 static guint64      get_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name );
+static gboolean     set_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name, guint64 value );
 
 static guint64*     get_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name , guint* out_num );
+static gboolean     set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name , 
+                                                    const guint64* value, guint len );
 
 static gboolean     get_kstat_uint64 (const gchar *device, const gchar* stat_name, uint64_t *rval );
 
@@ -406,11 +406,6 @@ nwamui_ncu_init (NwamuiNcu *self)
     self->prv->v4addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
     self->prv->v6addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
     self->prv->wifi_info = NULL;
-    self->prv->activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
-    self->prv->enabled = FALSE;
-    self->prv->priority_group = 0;
-    self->prv->priority_group_mode = NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE;
-    self->prv->conditions = NULL;
     
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-deleted", (GCallback)ip_row_deleted_cb, (gpointer)self);
@@ -613,22 +608,29 @@ nwamui_ncu_set_property ( GObject         *object,
             break;
 
         case PROP_ACTIVATION_MODE: {
-                self->prv->activation_mode = (nwamui_cond_activation_mode_t)g_value_get_int( value );
+                nwamui_cond_activation_mode_t activation_mode = 
+                    (nwamui_cond_activation_mode_t)g_value_get_int( value );
+
+                set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
             }
             break;
 
         case PROP_ENABLED: {
-                self->prv->enabled = g_value_get_boolean( value );
+                gboolean enabled = g_value_get_boolean( value );
+                set_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED, enabled );
             }
             break;
 
         case PROP_PRIORITY_GROUP: {
-                self->prv->priority_group = g_value_get_uint( value );
+                guint64 priority_group = g_value_get_uint( value );
+
+                set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_PRIORITY_GROUP, priority_group );
             }
             break;
 
         case PROP_PRIORITY_GROUP_MODE: {
-                self->prv->priority_group_mode = (nwamui_cond_priority_group_mode_t)g_value_get_int( value );
+                guint64 priority_mode = g_value_get_int( value );
+                set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_PRIORITY_MODE, priority_mode );
             }
             break;
 
@@ -641,10 +643,12 @@ nwamui_ncu_set_property ( GObject         *object,
             }
 
         case PROP_CONDITIONS: {
-                if ( self->prv->conditions != NULL ) {
-                    nwamui_util_free_obj_list( self->prv->conditions  );
-                }
-                self->prv->conditions = g_value_get_pointer( value );
+                GList *conditions = g_value_get_pointer( value );
+                char  **condition_strs = NULL;
+                guint   len = 0;
+
+                condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
+                set_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_CONDITION, condition_strs, len );
             }
             break;
 
@@ -789,26 +793,44 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
         case PROP_ACTIVATION_MODE: {
-                g_value_set_int( value, (gint)self->prv->activation_mode );
+                nwamui_cond_activation_mode_t activation_mode;
+                activation_mode = (nwamui_cond_activation_mode_t)
+                                    get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE );
+
+                g_value_set_int( value, (gint)activation_mode );
+
             }
             break;
 
         case PROP_ENABLED: {
-                g_value_set_boolean( value, self->prv->enabled );
+                g_value_set_boolean( value, 
+                            get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED ) );
             }
             break;
 
         case PROP_PRIORITY_GROUP: {
-                g_value_set_uint( value, self->prv->priority_group );
+                g_value_set_uint( value, (guint)get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys,
+                                                      NWAM_NCU_PROP_PRIORITY_GROUP ) );
             }
             break;
 
         case PROP_PRIORITY_GROUP_MODE: {
-                g_value_set_int( value, (gint)self->prv->priority_group_mode );
+                nwamui_cond_priority_group_mode_t priority_group_mode = 
+                        (nwamui_cond_priority_group_mode_t)
+                        get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_PRIORITY_MODE );
+
+                g_value_set_int( value, (gint)priority_group_mode );
             }
             break;
         case PROP_CONDITIONS: {
-                g_value_set_pointer( value, self->prv->conditions );
+                gchar** condition_strs = get_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, 
+                                                                         NWAM_NCU_PROP_CONDITION );
+
+                GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
+
+                g_value_set_pointer( value, conditions );
+
+                g_strfreev( condition_strs );
             }
             break;
         case PROP_AUTO_PUSH: {
@@ -868,14 +890,6 @@ populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     char*               name = NULL;
     nwam_error_t        nerr;
     nwamui_ncu_type_t   ncu_type;
-    gchar**             condition_str;
-    GList*              conditions = NULL;
-    gboolean            enabled;
-    guint               priority_group;
-    nwamui_cond_activation_mode_t 
-                        activation_mode;
-    nwamui_cond_priority_group_mode_t
-                        priority_group_mode;
 
     if ( (nerr = nwam_ncu_get_name (nwam_ncu, &name)) != NWAM_SUCCESS ) {
         g_debug ("Failed to get name for ncu, error: %s", nwam_strerror (nerr));
@@ -883,37 +897,13 @@ populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 
     ncu_type = get_if_type( name );
 
-    /* TODO: Set vanity name as Wired/Wireless(dev0) */
     g_object_set( ncu,
                   "device_name", name,
                   "vanity_name", name,
                   "ncu_type", ncu_type,
                   NULL);
 
-    activation_mode = (nwamui_cond_activation_mode_t)
-        get_nwam_ncu_uint64_prop( nwam_ncu, NWAM_NCU_PROP_ACTIVATION_MODE );
-
-    enabled = get_nwam_ncu_boolean_prop( nwam_ncu, NWAM_NCU_PROP_ENABLED );
-
-    priority_group = (guint)get_nwam_ncu_uint64_prop( nwam_ncu,
-                                                      NWAM_NCU_PROP_PRIORITY_GROUP );
-    priority_group_mode = (nwamui_cond_priority_group_mode_t)
-        get_nwam_ncu_uint64_prop( nwam_ncu, NWAM_NCU_PROP_PRIORITY_MODE );
-
-    condition_str = get_nwam_ncu_string_array_prop( nwam_ncu, NWAM_NCU_PROP_CONDITION );
-
-    conditions = nwamui_util_map_condition_strings_to_object_list( condition_str);
-
-    g_object_set( ncu,
-                  "activation_mode", activation_mode,
-                  "enabled", enabled,
-                  "priority_group", priority_group,
-                  "priority_group_mode", priority_group_mode,
-                  "conditions", conditions,
-                  NULL);
-
     free(name);
-    g_strfreev( condition_str );
 }
 
 static void
@@ -2198,15 +2188,6 @@ nwamui_ncu_selection_conditions_remove( NwamuiNcu*   self,
     
 }
 
-extern gboolean
-nwamui_ncu_selection_conditions_contains( NwamuiNcu*  self,
-                                          NwamuiCond* cond_to_find )
-{
-    g_return_val_if_fail (NWAMUI_IS_NCU (self), FALSE );
-
-    return( g_list_find( self->prv->conditions, cond_to_find) != NULL );
-}
-
 static void
 nwamui_ncu_finalize (NwamuiNcu *self)
 {
@@ -2219,9 +2200,6 @@ nwamui_ncu_finalize (NwamuiNcu *self)
     }
     if (self->prv->autopush != NULL ) {
         nwamui_util_free_obj_list(self->prv->autopush);
-    }
-    if (self->prv->conditions != NULL ) {
-        nwamui_util_free_obj_list(self->prv->conditions);
     }
 
     g_free (self->prv); 
@@ -2259,6 +2237,43 @@ get_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 
     if ( value != NULL ) {
         retval  = g_strdup ( value );
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static gboolean
+set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const gchar* str )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+        g_error("Attempting to set a read-only ncu property %s", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_string( (char*)str, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a string value for string %s", str?str:"NULL");
+        return retval;
+    }
+
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
     }
 
     nwam_value_free(nwam_data);
@@ -2311,6 +2326,48 @@ get_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 }
 
 static gboolean
+set_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, char** strs, guint len )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( strs == NULL || len == 0 ) {
+        return retval;
+    }
+
+    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+        g_error("Attempting to set a read-only ncu property %s", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_string_array (strs, len, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a value for string array 0x%08X", strs);
+        return retval;
+    }
+
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static gboolean
 get_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 {
     nwam_error_t        nerr;
@@ -2341,6 +2398,44 @@ get_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name )
     return( (gboolean)value );
 }
 
+static gboolean
+set_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name, gboolean bool_value )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
+        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+        g_error("Attempting to set a read-only ncu property %s", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_boolean ((boolean_t)bool_value, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a boolean value" );
+        return retval;
+    }
+
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+
 static guint64
 get_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 {
@@ -2370,6 +2465,43 @@ get_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name )
     nwam_value_free(nwam_data);
 
     return( (guint64)value );
+}
+
+static gboolean
+set_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name, guint64 value )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+        g_error("Attempting to set a read-only ncu property %s", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_uint64 (value, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a uint64 value" );
+        return retval;
+    }
+
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
 }
 
 static guint64* 
@@ -2409,6 +2541,44 @@ get_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name , g
 
     *out_num = num;
 
+    return( retval );
+}
+
+static gboolean
+set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, 
+                                const guint64 *value_array, guint len )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+        g_error("Attempting to set a read-only ncu property %s", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_uint64_array ((uint64_t*)value_array, len, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a uint64 array value" );
+        return retval;
+    }
+
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
     return( retval );
 }
 
@@ -2532,6 +2702,8 @@ interface_has_addresses(const char *ifname, sa_family_t family)
 
     return( TRUE );
 }
+
+extern const char*inet_ntoa(struct in_addr addr);
 
 static gchar*
 get_interface_address_str(const char *ifname, sa_family_t family)
@@ -2823,7 +2995,7 @@ get_kstat_uint64 (const gchar *device, const gchar* stat_name, uint64_t *rval )
         return( FALSE );
     }
 
-    if ((ksp = kstat_lookup (kc, "link", 0, device)) == NULL) {
+    if ((ksp = kstat_lookup (kc, "link", 0, (char*)device)) == NULL) {
         kstat_close (kc);
         g_warning("Cannot find information on interface '%s'", device);
         return( FALSE );
@@ -2835,7 +3007,7 @@ get_kstat_uint64 (const gchar *device, const gchar* stat_name, uint64_t *rval )
         return( FALSE );
     }
 
-    if ((kn = kstat_data_lookup (ksp, stat_name )) != NULL) {
+    if ((kn = kstat_data_lookup (ksp, (char*)stat_name )) != NULL) {
         *rval = kn->value.ui64;
         return( TRUE );
     }
