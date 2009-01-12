@@ -58,10 +58,7 @@ struct _NwamuiNcuPrivate {
         gchar*                          device_name;
 
         /* Link Properties */
-        gchar*                          phy_address;
         GList*                          autopush;
-        guint64                         mtu;
-
 
         /* IPTun Properties */
         nwam_iptun_type_t               tun_type; 
@@ -449,10 +446,8 @@ nwamui_ncu_set_property ( GObject         *object,
             }
             break;
         case PROP_PHY_ADDRESS: {
-                if ( self->prv->phy_address != NULL ) {
-                        g_free( self->prv->phy_address );
-                }
-                self->prv->phy_address = g_strdup( g_value_get_string( value ) );
+                const gchar* mac_addr = g_strdup( g_value_get_string( value ) );
+                set_nwam_ncu_string_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_LINK_MAC_ADDR, mac_addr );
             }
             break;
         case PROP_NCU_TYPE: {
@@ -464,7 +459,8 @@ nwamui_ncu_set_property ( GObject         *object,
             }
             break;
         case PROP_MTU: {
-                self->prv->mtu = g_value_get_uint( value );
+                guint64 mtu = g_value_get_uint( value );
+                set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_LINK_MTU, mtu );
             }
             break;
         case PROP_IPV4_AUTO_CONF: {
@@ -635,11 +631,10 @@ nwamui_ncu_set_property ( GObject         *object,
             break;
 
         case PROP_AUTO_PUSH: {
-                if ( self->prv->autopush != NULL ) {
-                    g_list_foreach( self->prv->autopush, (GFunc)g_free, NULL );
-                    g_list_free( self->prv->autopush  );
-                }
-                self->prv->autopush = g_value_get_pointer( value );
+                GList*  autopush = g_value_get_pointer( value );
+                gchar** autopush_strs = nwamui_util_glist_to_strv( autopush );
+                set_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_LINK_AUTOPUSH, autopush_strs, 0 );
+                g_strfreev(autopush_strs);
             }
 
         case PROP_CONDITIONS: {
@@ -680,7 +675,9 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
         case PROP_PHY_ADDRESS: {
-                g_value_set_string(value, self->prv->phy_address);
+                gchar* mac_addr = get_nwam_ncu_string_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_LINK_MAC_ADDR );
+                g_value_set_string(value, mac_addr );
+                g_free(mac_addr);
             }
             break;
         case PROP_NCU_TYPE: {
@@ -703,7 +700,8 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
         case PROP_MTU: {
-                g_value_set_uint( value, self->prv->mtu );
+                guint64 mtu = get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_LINK_MTU);
+                g_value_set_uint( value, (guint)mtu );
             }
             break;
         case PROP_IPV4_AUTO_CONF: {
@@ -834,7 +832,10 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
         case PROP_AUTO_PUSH: {
-                g_value_set_pointer( value, self->prv->autopush );
+                gchar** autopush = get_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_LINK_AUTOPUSH );
+                GList*  autopush_list = nwamui_util_strv_to_glist( autopush );
+                g_value_set_pointer( value, autopush_list );
+                g_strfreev(autopush);
             }
             break;
         default:
@@ -907,28 +908,6 @@ populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 }
 
 static void
-populate_link_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
-{
-    gchar*      mac_addr = get_nwam_ncu_string_prop( nwam_ncu, NWAM_NCU_PROP_LINK_MAC_ADDR );
-    gchar**     autopush = get_nwam_ncu_string_array_prop( nwam_ncu, NWAM_NCU_PROP_LINK_AUTOPUSH );
-    guint64     mtu = get_nwam_ncu_uint64_prop( nwam_ncu, NWAM_NCU_PROP_LINK_MTU );
-    GList*      autopush_list;
-
-    if ( autopush != NULL ) {
-        autopush_list = nwamui_util_strv_to_glist( autopush );
-    }
-
-    g_object_set( ncu,
-                  "phy_address", mac_addr,
-                  "autopush", autopush,
-                  "mtu", mtu,
-                  NULL);
-
-    g_free( mac_addr );
-    g_strfreev( autopush );
-}
-
-static void
 populate_iptun_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 {
     nwam_iptun_type_t tun_type; 
@@ -937,9 +916,6 @@ populate_iptun_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     gchar* tun_encr;
     gchar* tun_encr_auth;
     gchar* tun_auth;
-
-    /* CLASS IPTUN is of type LINK, so has LINK props too */
-    populate_link_ncu_data( ncu, nwam_ncu );
 
     tun_type = get_nwam_ncu_uint64_prop( nwam_ncu, NWAM_NCU_PROP_IPTUN_TYPE );
     tun_tsrc = get_nwam_ncu_string_prop( nwam_ncu, NWAM_NCU_PROP_IPTUN_TSRC );
@@ -1080,7 +1056,6 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
         case NWAM_NCU_CLASS_PHYS: {
                 /* CLASS PHYS is of type LINK, so has LINK props */
                 self->prv->nwam_ncu_phys = ncu;
-                populate_link_ncu_data( self, ncu );
             }
             break;
         case NWAM_NCU_CLASS_IPTUN: {
@@ -1152,7 +1127,6 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_LINK );
 
                 self->prv->nwam_ncu_phys = ncu_handle;
-                populate_link_ncu_data( self, ncu_handle );
             }
             break;
         case NWAM_NCU_CLASS_IPTUN: {
@@ -2341,8 +2315,18 @@ set_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, ch
         return retval;
     }
 
-    if ( strs == NULL || len == 0 ) {
+    if ( strs == NULL ) {
         return retval;
+    }
+
+
+    if ( len == 0 ) { /* Assume a strv, i.e. NULL terminated list, otherwise strs would be NULL */
+        int i;
+
+        for( i = 0; strs != NULL && strs[i] != NULL; i++ ) {
+            /* Do Nothing, just count. */
+        }
+        len = i;
     }
 
     if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
@@ -2965,10 +2949,10 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self )
             speed_part = g_strdup_printf( _("Speed: %d Mb/s"), nwamui_ncu_get_speed( self ));
 
             if ( signal_part == NULL ) {
-                status_string = g_strdup_printf( _("%s %s"), addr_part, speed_part );
+                status_string = g_strdup_printf( _("%s, %s"), addr_part, speed_part );
             }
             else {
-                status_string = g_strdup_printf( _("%s %s %s"), addr_part, signal_part, speed_part );
+                status_string = g_strdup_printf( _("%s, %s, %s"), addr_part, signal_part, speed_part );
             }
             }
             break;

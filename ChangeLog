@@ -1,5 +1,11 @@
 2009-01-12  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_ncu.c:
+	  Use nwam handle for more data, and slightly change display string,
+	  and allow strv strings for set_ncu_string_array_prop.
+
+2009-01-12  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/libnwamui.h, common/libnwamui.c:
 	  Add function to map a GList of NwamuiCond to a list of libnwam
 	  condition strings. Also correct a type in the name of the function
