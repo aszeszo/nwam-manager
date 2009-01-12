@@ -32,20 +32,23 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 #include <glib/gi18n.h>
+#include <strings.h>
 
 #include <libnwamui.h>
 #include "nwam_pref_iface.h"
 #include "nwam_env_pref_dialog.h"
 #include "nwam_proxy_password_dialog.h"
-#include <strings.h>
+#include "capplet-utils.h"
 
 /* Names of Widgets in Glade file */
 #define     ENV_PREF_DIALOG_NAME           "nwam_environment"
+
 #define     ENVIRONMENT_NAME_COMBO         "environment_name_combo"
 #define     ADD_ENVIRONMENT_BTN            "add_environment_btn"
 #define     EDIT_ENVIRONMENT_BTN           "edit_environment_btn"
 #define     DUP_ENVIRONMENT_BTN            "dup_environment_btn"
 #define     DELETE_ENVIRONMENT_BTN         "delete_environment_btn"
+
 #define     ENVIRONMENT_NOTEBOOK           "environment_notebook"
 #define     PROXY_CONFIG_COMBO             "proxy_config_combo"
 #define     PROXY_NOTEBOOK                 "proxy_notebook"
@@ -92,6 +95,8 @@
 #define     NAMESERVICES_ADD_BTN           "nameservices_add_btn"
 #define     NAMESERVICES_DELETE_BTN        "nameservices_delete_btn"
 #define     NSSWITCH_FILE_BTN              "nsswitch_file_btn"
+
+#define TREEVIEW_COLUMN_NUM             "meta:column"
 
 enum {
     PROXY_MANUAL_PAGE = 0, 
@@ -499,45 +504,60 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
 		      NULL);
 	
 	// column enabled
-	cell = gtk_cell_renderer_toggle_new();
-	col = gtk_tree_view_column_new_with_attributes(NULL,
-      cell,
+	col = gtk_tree_view_column_new();
+	gtk_tree_view_append_column (view, col);
+
+    g_object_set(col,
+      "title", NULL,
       "resizable", FALSE,
       "clickable", FALSE,
       "sort-indicator", FALSE,
       "reorderable", FALSE,
       NULL);
+
+    /* First cell */
+	cell = gtk_cell_renderer_toggle_new();
+    gtk_tree_view_column_pack_start(col, cell, TRUE);
+
+	g_object_set (cell, "activatable", TRUE, NULL);
+    g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
+                       GINT_TO_POINTER (SVC_CHECK_BOX));
+
 	gtk_tree_view_column_set_cell_data_func (col,
                                              cell,
                                              default_svc_status_cb,
                                              (gpointer) self,
                                              NULL);
-    g_object_set_data (G_OBJECT (cell), "column",
-                       GINT_TO_POINTER (SVC_CHECK_BOX));
-	g_object_set (cell, "activatable", TRUE, NULL);
     g_signal_connect(G_OBJECT(cell), "toggled",
                      G_CALLBACK(default_svc_toggled_cb),
                      (gpointer)self);
-	gtk_tree_view_append_column (view, col);
+
 
 	// column name
-	cell = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new_with_attributes(NULL,
-      cell,
+	col = gtk_tree_view_column_new();
+	gtk_tree_view_append_column (view, col);
+
+    g_object_set(col,
+      "title", NULL,
       "expand", TRUE,
       "resizable", FALSE,
       "clickable", FALSE,
       "sort-indicator", FALSE,
       "reorderable", FALSE,
       NULL);
+
+    /* First cell */
+	cell = gtk_cell_renderer_text_new();
+    gtk_tree_view_column_pack_start(col, cell, TRUE);
+
+    g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
+                       GINT_TO_POINTER (SVC_INFO));
+
 	gtk_tree_view_column_set_cell_data_func (col,
                                              cell,
                                              default_svc_status_cb,
                                              (gpointer) self,
                                              NULL);
-    g_object_set_data (G_OBJECT (cell), "column",
-                       GINT_TO_POINTER (SVC_INFO));
-	gtk_tree_view_append_column (view, col);
         
     /*
      * compose view for additional netservices view
@@ -550,45 +570,59 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
 		      NULL);
 	
 	// column enabled
-	cell = gtk_cell_renderer_toggle_new();
-	col = gtk_tree_view_column_new_with_attributes(NULL,
-      cell,
+	col = gtk_tree_view_column_new();
+	gtk_tree_view_append_column (view, col);
+
+    g_object_set(col,
+      "title", NULL,
       "resizable", FALSE,
       "clickable", FALSE,
       "sort-indicator", FALSE,
       "reorderable", FALSE,
       NULL);
+
+    /* First cell */
+	cell = gtk_cell_renderer_toggle_new();
+    gtk_tree_view_column_pack_start(col, cell, TRUE);
+
+	g_object_set (cell, "activatable", TRUE, NULL);
+    g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
+                       GINT_TO_POINTER (SVC_CHECK_BOX));
+
 	gtk_tree_view_column_set_cell_data_func (col,
                                              cell,
                                              default_svc_status_cb,
                                              (gpointer) self,
                                              NULL);
-    g_object_set_data (G_OBJECT (cell), "column",
-                       GINT_TO_POINTER (SVC_CHECK_BOX));
-	g_object_set (cell, "activatable", TRUE, NULL);
     g_signal_connect(G_OBJECT(cell), "toggled",
                      G_CALLBACK(additional_svc_toggled_cb),
                      (gpointer)self);
-	gtk_tree_view_append_column (view, col);
 
 	// column name
-	cell = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new_with_attributes(NULL,
-      cell,
+	col = gtk_tree_view_column_new();
+	gtk_tree_view_append_column (view, col);
+
+    g_object_set(col,
+      "title", NULL,
       "expand", TRUE,
       "resizable", FALSE,
       "clickable", FALSE,
       "sort-indicator", FALSE,
       "reorderable", FALSE,
       NULL);
+
+    /* First cell */
+	cell = gtk_cell_renderer_text_new();
+    gtk_tree_view_column_pack_start(col, cell, TRUE);
+
+    g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
+                       GINT_TO_POINTER (SVC_INFO));
+
 	gtk_tree_view_column_set_cell_data_func (col,
                                              cell,
                                              default_svc_status_cb,
                                              (gpointer) self,
                                              NULL);
-    g_object_set_data (G_OBJECT (cell), "column",
-                       GINT_TO_POINTER (SVC_INFO));
-	gtk_tree_view_append_column (view, col);
 }
 
 static void
@@ -1217,7 +1251,7 @@ default_svc_status_cb (GtkTreeViewColumn *tree_column,
     gint col;
     GtkTreeIter piter;
     
-    col = GPOINTER_TO_INT(g_object_get_data (G_OBJECT (cell), "column"));
+    col = GPOINTER_TO_INT(g_object_get_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM));
     gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (tree_model),
       &piter,
       iter);

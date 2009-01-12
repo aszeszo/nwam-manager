@@ -60,6 +60,7 @@ nwam_manager_properties_SOURCES =		\
 	nwam_wireless_chooser.c	\
 	nwam_condition_vbox.c	\
 	nwam_tree_view.c	\
+	nwam_location_dialog.c	\
 	capplet-utils.c	\
 	$(NULL)
 
@@ -107,6 +108,7 @@ EXTRA_DIST = 		\
 	nwam_wireless_chooser.h	\
 	nwam_condition_vbox.h	\
 	nwam_tree_view.h	\
+	nwam_location_dialog.h	\
 	capplet-utils.h	\
 	$(glade_DATA)	\
 	$(NULL)

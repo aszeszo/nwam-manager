@@ -425,6 +425,21 @@ nwamui_util_get_network_status_icon( NwamuiNcu* ncu )
         }
 }
        
+extern const gchar*
+nwamui_util_get_ncu_group_icon( NwamuiNcu* ncu  )
+{
+    switch (nwamui_ncu_get_priority_group_mode(ncu)) {
+    case NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE:
+        return GTK_STOCK_YES;
+    case NWAMUI_COND_PRIORITY_GROUP_MODE_SHARED:
+        return GTK_STOCK_NO;
+    case NWAMUI_COND_PRIORITY_GROUP_MODE_ALL:
+        return GTK_STOCK_STOP;
+    default:
+        g_assert_not_reached();
+    }
+}
+
 extern GdkPixbuf*
 nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength, gboolean small )
 {

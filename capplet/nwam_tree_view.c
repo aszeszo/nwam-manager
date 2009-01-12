@@ -287,7 +287,6 @@ nwam_tree_view_init(NwamTreeView *self)
       "changed",
       (GCallback)nwam_tree_view_selection_changed_cb,
       (gpointer)self);
-    g_object_unref(selection);
 
 	g_signal_connect(GTK_TREE_VIEW(self),
       "cursor-changed",

@@ -431,9 +431,9 @@ extern  NwamuiCond*
 nwamui_cond_new_from_str( const gchar* condition_str )
 {
     NwamuiCond         *self = NWAMUI_COND(g_object_new (NWAMUI_TYPE_COND, NULL));
-    nwamui_cond_field_t field;
-    nwamui_cond_op_t    op;
-    char*               value;
+    nwamui_cond_field_t field = NWAMUI_COND_FIELD_NCU;
+    nwamui_cond_op_t    op = NWAMUI_COND_OP_IS;
+    char*               value = "";
 
     /* TODO - Parse string */
     g_assert("String not being parsed yet");

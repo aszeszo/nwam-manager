@@ -110,11 +110,11 @@ typedef guint64 libnwam_diag_cause_t;
 #define  NWAM_ICON_WIRELESS_ERROR           "wireless-wireless-error"
 
 /* Wireless strength icons */
-#define  NWAM_ICON_WIRELESS_STRENGTH_NONE   "wireless-fragile"
-#define  NWAM_ICON_WIRELESS_STRENGTH_POOR   "wireless-strength-0-24"
-#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "wireless-strength-25-49"
-#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "wireless-strength-50-74"
-#define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT   "wireless-strength-75-100"
+#define  NWAM_ICON_WIRELESS_STRENGTH_NONE   "network-wireless-signal-none"
+#define  NWAM_ICON_WIRELESS_STRENGTH_POOR   "network-wireless-signal-poor"
+#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "network-wireless-signal-fair"
+#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "network-wireless-signal-good"
+#define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT   "network-wireless-signal-good"
 
 #define  NWAM_ICON_NETWORK_SECURE           "network-secure"
 #define  NWAM_ICON_NETWORK_INSECURE         "network-insecure"
@@ -180,6 +180,8 @@ extern void                     nwamui_util_free_obj_list( GList* obj_list );
 extern GList*                   nwamui_util_copy_obj_list( GList* obj_list );
 
 extern GdkPixbuf*               nwamui_util_get_network_status_icon( NwamuiNcu* ncu  );
+
+extern const gchar*             nwamui_util_get_ncu_group_icon( NwamuiNcu* ncu  );
 
 extern GdkPixbuf*               nwamui_util_get_network_type_icon( nwamui_ncu_type_t ncu_type );
 

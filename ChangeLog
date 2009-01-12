@@ -1,3 +1,58 @@
+2009-01-12  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am:
+	* capplet/capplet-utils.c: (capplet_update_nwamui_obj_treeview):
+	* capplet/capplet-utils.h:
+	* capplet/main.c: (customwidgethandler), (main):
+	* capplet/nwam-manager-properties.glade:
+	* capplet/nwam_conn_stat_panel.c: (nwam_compose_tree_view),
+	(nwam_conn_status_panel_init), (nwam_conn_status_panel_refresh),
+	(nwam_conn_status_update_status_cell_cb), (on_nwam_enm_notify_cb):
+	* capplet/nwam_conn_stat_panel.h:
+	* capplet/nwam_env_pref_dialog.c: (nwam_compose_tree_view),
+	(default_svc_status_cb):
+	* capplet/nwam_env_svc.c: (nwam_compose_tree_view):
+	* capplet/nwam_location_dialog.c: (nwam_pref_init),
+	(nwam_location_dialog_class_init), (location_set_property),
+	(location_get_property), (row_deleted_cb), (row_inserted_cb),
+	(rows_reordered_cb), (nwam_compose_tree_view),
+	(nwam_location_dialog_init), (nwam_location_dialog_new),
+	(nwam_location_dialog_run), (nwam_location_dialog_refresh),
+	(nwam_location_dialog_finalize),
+	(nwam_location_connection_compare_cb),
+	(nwam_location_update_status_cell_cb),
+	(nwam_location_connection_enabled_toggled_cb),
+	(vanity_name_editing_started), (vanity_name_edited),
+	(nwam_location_connection_view_row_activated_cb),
+	(nwam_location_connection_view_row_selected_cb),
+	(nwam_treeview_btn_cb), (location_add_btn_cb),
+	(location_remove_btn_cb), (location_rename_btn_cb),
+	(active_profile_changed), (object_notify_cb),
+	(on_activate_static_menuitems), (location_activation_changed):
+	* capplet/nwam_location_dialog.h:
+	* capplet/nwam_net_conf_panel.c: (nwam_compose_tree_view),
+	(nwam_compose_rules_tree_view), (nwam_net_conf_panel_init),
+	(nwam_net_conf_panel_refresh),
+	(nwam_net_conf_rules_update_cell_cb),
+	(nwam_net_conf_update_status_cell_cb),
+	(nwam_net_pref_connection_enabled_toggled_cb),
+	(vanity_name_editing_started), (vanity_name_edited),
+	(nwam_net_pref_connection_view_row_activated_cb),
+	(update_rules_from_ncu), (ncu_notify_cb):
+	* capplet/nwam_tree_view.c: (nwam_tree_view_init):
+	* capplet/nwam_wireless_dialog.c: (nwam_wireless_dialog_init),
+	(nwam_wireless_dialog_set_property),
+	(nwam_wireless_dialog_finalize), (validate_information),
+	(show_password_cb), (security_selection_cb):
+	Fixed tree view column attributes. Replaced some tree view objects of 
+	glade file to customized tree view. Basically customized tree view
+	works, but need more work. Add new code for location dialog.
+	* common/libnwamui.c: (nwamui_util_get_ncu_group_icon):
+	* common/libnwamui.h:
+	New function for get icon for ncu group mode.
+	* common/nwamui_cond.c: (nwamui_cond_new_from_str):
+	Work around a compilor warning for debug gui.
+
 2009-01-08  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_ncu.c:

@@ -42,7 +42,6 @@
 #define WIRELESS_DIALOG_SEC_COMBO               "security_combo"
 #define WIRELESS_PASSWORD_NOTEBOOK              "password_notebook"
 #define WIRELESS_DIALOG_WEP_KEY_ENTRY           "wep_password_entry"
-#define WIRELESS_DIALOG_WEP_KEY_CONF_ENTRY      "wep_confirm_password_entry"
 #define WIRELESS_DIALOG_BSSID_ENTRY             "bssid_entry"
 #define WIRELESS_DIALOG_WPA_CONFIG_COMBO        "wpa_config_combo"
 #define WIRELESS_DIALOG_WPA_USERNAME_ENTRY      "wpa_username_entry"
@@ -83,7 +82,6 @@ struct _NwamWirelessDialogPrivate {
         GtkCheckButton*         show_password_cbutton;
         /* WEP Settings */
         GtkEntry*               key_entry;
-        GtkEntry*               key_conf_entry;
         GtkEntry*               bssid_entry;
         /* WPA Settings */
         GtkComboBox*            wpa_config_combo;
@@ -231,7 +229,6 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     self->prv->security_combo =         GTK_COMBO_BOX(nwamui_util_glade_get_widget(WIRELESS_DIALOG_SEC_COMBO));
     self->prv->password_notebook =      GTK_NOTEBOOK(nwamui_util_glade_get_widget(WIRELESS_PASSWORD_NOTEBOOK));
     self->prv->key_entry =              GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_ENTRY));
-    self->prv->key_conf_entry =         GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_CONF_ENTRY));
     self->prv->bssid_entry =            GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_BSSID_ENTRY));
     self->prv->wpa_config_combo =       GTK_COMBO_BOX(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_CONFIG_COMBO));
     self->prv->wpa_username_entry =     GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_USERNAME_ENTRY));
@@ -385,9 +382,8 @@ nwam_wireless_dialog_set_property ( GObject         *object,
         case PROP_WEP_KEY:
             tmpstr = (gchar *) g_value_get_string (value);
 
-            if (self->prv->key_entry != NULL && self->prv->key_conf_entry != NULL) {
+            if (self->prv->key_entry != NULL) {
                 gtk_entry_set_text(GTK_ENTRY(self->prv->key_entry), tmpstr?tmpstr:"");
-                gtk_entry_set_text(GTK_ENTRY(self->prv->key_conf_entry), tmpstr?tmpstr:"");
             }
             break;
 	case PROP_WPA_CONFIG_TYPE:
@@ -998,7 +994,6 @@ nwam_wireless_dialog_finalize (NwamWirelessDialog *self)
     gtk_widget_unref(GTK_WIDGET(self->prv->security_combo ));
     gtk_widget_unref(GTK_WIDGET(self->prv->password_notebook ));
     gtk_widget_unref(GTK_WIDGET(self->prv->key_entry ));
-    gtk_widget_unref(GTK_WIDGET(self->prv->key_conf_entry ));
     gtk_widget_unref(GTK_WIDGET(self->prv->bssid_entry ));
     gtk_widget_unref(GTK_WIDGET(self->prv->wpa_config_combo));
     gtk_widget_unref(GTK_WIDGET(self->prv->wpa_username_entry));
@@ -1025,17 +1020,8 @@ validate_information( NwamWirelessDialog* self )
         case NWAMUI_WIFI_SEC_WEP_ASCII:
             {
                 const gchar* key =        gtk_entry_get_text(GTK_ENTRY(self->prv->key_entry));
-                const gchar *key_conf =   gtk_entry_get_text(GTK_ENTRY(self->prv->key_conf_entry));
                 
-                if ( key == NULL && key_conf == NULL ) {    /* Same, so TRUE */
-                    return( TRUE );
-                }
-                else if( key == NULL || key_conf == NULL ) { /* Different, so FALSE */
-                    return( FALSE );
-                }
-                if ( g_ascii_strcasecmp( key, key_conf ) == 0 ) { /* Strings Match, so TRUE */
-                    return( TRUE );
-                }
+                return( TRUE );
             }
             break;
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:
@@ -1066,7 +1052,6 @@ show_password_cb( GtkToggleButton* widget, gpointer data )
     g_assert( self != NULL );
     
     gtk_entry_set_visibility(GTK_ENTRY(self->prv->key_entry), active );
-    gtk_entry_set_visibility(GTK_ENTRY(self->prv->key_conf_entry), active );
     gtk_entry_set_visibility(GTK_ENTRY(self->prv->wpa_password_entry), active );
 }
 
@@ -1081,19 +1066,16 @@ security_selection_cb( GtkWidget* widget, gpointer data )
         case NWAMUI_WIFI_SEC_NONE:
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WEP_PAGE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_entry), FALSE);
-            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_conf_entry), FALSE);
             break;
         case NWAMUI_WIFI_SEC_WEP_HEX:
         case NWAMUI_WIFI_SEC_WEP_ASCII:
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WEP_PAGE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_entry), TRUE);
-            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_conf_entry), TRUE);
             break;
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:
         case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WPA_PAGE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_entry), TRUE);
-            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_conf_entry), TRUE);
             break;
         default:
             break;

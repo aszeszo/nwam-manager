@@ -38,11 +38,13 @@
 #include "nwam_vpn_pref_dialog.h"
 #include "nwam_wireless_chooser.h"
 #include "nwam_pref_dialog.h"
+#include "nwam_location_dialog.h"
 
 static gboolean     show_all_widgets = FALSE;
 //static gboolean     add_wireless_dialog = FALSE;
 static gchar        *add_wireless_dialog = NULL;
 static gboolean     env_pref_dialog = FALSE;
+static gboolean     location_dialog = FALSE;
 static gboolean     vpn_pref_dialog = FALSE;
 static gboolean     nwam_pref_dialog = TRUE;
 static gboolean     wireless_chooser = FALSE;
@@ -53,6 +55,7 @@ GOptionEntry application_options[] = {
         { "show-all", 'a', 0, G_OPTION_ARG_NONE, &show_all_widgets, "Show all widgets", NULL  },
         { "add-wireless-dialog", 'w', 0, G_OPTION_ARG_STRING, &add_wireless_dialog, "Show 'Add Wireless' Dialog only", NULL  },
         { "env-pref-dialog", 'e', 0, G_OPTION_ARG_NONE, &env_pref_dialog, "Show 'Location Preferences' Dialog only", NULL  },
+        { "location-dialog", 'l', 0, G_OPTION_ARG_NONE, &location_dialog, "Show 'Location Dialog' Dialog only", NULL  },
         { "nwam-pref-dialog", 'p', 0, G_OPTION_ARG_NONE, &nwam_pref_dialog, "Show 'Network Preferences' Dialog only", NULL  },
         { "vpn-pref-dialog", 'n', 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, "Show 'VPN Preferences' Dialog only", NULL  },
         { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, "Show 'Wireless Network Chooser' Dialog only", NULL  },
@@ -70,7 +73,10 @@ customwidgethandler(GladeXML *xml,
   gpointer user_data)
 {
     if (g_ascii_strcasecmp(name, "address_table") == 0 ||
+      g_ascii_strcasecmp(name, "connection_status_table") == 0 ||
+      g_ascii_strcasecmp(name, "location_tree") == 0 ||
       g_ascii_strcasecmp(name, "network_profile_table") == 0) {
+        g_debug("CUSTOMIZED WIDGET %s", name);
         return nwam_tree_view_new();
     }
     return NULL;
@@ -134,6 +140,13 @@ main(int argc, char** argv)
         NwamEnvPrefDialog *env_pref_dialog = NWAM_ENV_PREF_DIALOG(nwam_env_pref_dialog_new());
         
         gint responseid = nwam_env_pref_dialog_run( (NWAM_ENV_PREF_DIALOG(env_pref_dialog)), NULL );
+        
+        debug_response_id( responseid );
+    }
+    else if( location_dialog ) {
+        NwamLocationDialog *location_dialog = NWAM_LOCATION_DIALOG(nwam_location_dialog_new());
+        
+        gint responseid = nwam_location_dialog_run( (NWAM_LOCATION_DIALOG(location_dialog)), NULL );
         
         debug_response_id( responseid );
     }

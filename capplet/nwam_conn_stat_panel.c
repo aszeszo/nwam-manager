@@ -58,7 +58,6 @@ struct _NwamConnStatusPanelPrivate {
 	GtkLabel*	env_name_lbl;
 	GtkButton*	vpn_btn;
 	GtkLabel*	vpn_name_lbl;
-    GtkTreeModel*   model;
 
 	/* Other Data */
     NwamCappletDialog*  pref_dialog;
@@ -99,7 +98,6 @@ static gboolean help (NwamConnStatusPanel *self, gpointer data);
 static gboolean apply (NwamPrefIFace *self, gpointer data);
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
-static void on_nwam_ncu_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnStatusPanel,
                         nwam_conn_status_panel,
@@ -127,111 +125,108 @@ nwam_conn_status_panel_class_init(NwamConnStatusPanelClass *klass)
 	g_type_class_add_private (klass, sizeof (NwamConnStatusPanelPrivate));
 }
 
-static GtkTreeModel*
+static void
 nwam_compose_tree_view (NwamConnStatusPanel *self)
 {
 	GtkTreeViewColumn *col;
 	GtkCellRenderer *cell;
 	GtkTreeView *view = self->prv->conn_status_treeview;
-	GtkTreeModel *model = NULL;
 
-    if ( self->prv->ncp == NULL ) {
-        return( NULL );
-    }
-
-    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store(self->prv->ncp));
-
-    g_assert( GTK_IS_TREE_STORE( model ) );
-    gtk_tree_view_set_model(GTK_TREE_VIEW(view), model);
-        
-	g_object_set (G_OBJECT(view),
-		      "headers-clickable", FALSE,
-		      NULL);
-	
-	// column icon
-    /* Add first "type" icon cell */
-	cell = gtk_cell_renderer_pixbuf_new();
-	col = gtk_tree_view_column_new_with_attributes(_("Connection Icon"),
-      cell,
-      "text", CONNVIEW_ICON,
-      "resizable", TRUE,
-      "clickable", TRUE,
-      "sort-indicator", TRUE,
-      "reorderable", TRUE,
+    g_debug("#############%s treeview 0x%p", __FILE__, view);
+	g_object_set (view,
+      "headers-clickable", TRUE,
+      "headers-visible", FALSE,
+      "rules-hint", TRUE,
+      "reorderable", FALSE,
+      "enable-search", TRUE,
+      "show-expanders", TRUE,
       NULL);
-	gtk_tree_view_column_set_cell_data_func (col,
-						 cell,
-						 nwam_conn_status_update_status_cell_cb,
-						 (gpointer) 0,
-						 NULL);
+
+    {
+        col = gtk_tree_view_column_new();
+        gtk_tree_view_append_column (view, col);
+
+        g_object_set(col,
+          "title", _("Connection Icon"),
+          "resizable", TRUE,
+          "clickable", TRUE,
+          "sort-indicator", TRUE,
+          "reorderable", TRUE,
+          NULL);
+        gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_ICON);	
+
+        /* Add first "type" icon cell */
+        cell = gtk_cell_renderer_pixbuf_new();
+        gtk_tree_view_column_pack_start(col, cell, TRUE);
+
+        gtk_tree_view_column_set_cell_data_func (col,
+          cell,
+          nwam_conn_status_update_status_cell_cb,
+          (gpointer) 0,
+          NULL);
         /* Add 2nd wireless strength icon */
-	cell = gtk_cell_renderer_pixbuf_new();
-	gtk_tree_view_column_pack_end(col, cell, FALSE);
-	gtk_tree_view_column_set_cell_data_func (col,
-						 cell,
-						 nwam_conn_status_update_status_cell_cb,
-						 (gpointer) 1, /* Important to know this is wireless cell in 1st col */
-						 NULL);
-	gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_ICON);	
-	gtk_tree_view_append_column (view, col);
+        cell = gtk_cell_renderer_pixbuf_new();
+        gtk_tree_view_column_pack_end(col, cell, FALSE);
 
-	// column info
-	cell = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new_with_attributes(_("Connection Information"),
-      cell,
-      "text", CONNVIEW_INFO,
-      "expand", TRUE,
-      "resizable", TRUE,
-      "clickable", TRUE,
-      "sort-indicator", TRUE,
-      "reorderable", TRUE,
-      NULL);
-	gtk_tree_view_column_set_cell_data_func (col,
-						 cell,
-						 nwam_conn_status_update_status_cell_cb,
-						 (gpointer) 0,
-						 NULL);
-	gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_INFO);	
-	gtk_tree_view_append_column (view, col);
+        gtk_tree_view_column_set_cell_data_func (col,
+          cell,
+          nwam_conn_status_update_status_cell_cb,
+          (gpointer) 1, /* Important to know this is wireless cell in 1st col */
+          NULL);
+    } /* column icon */
+    {
+        col = gtk_tree_view_column_new();
+        gtk_tree_view_append_column (view, col);
+
+        g_object_set(col,
+          "title", _("Connection Information"),
+          "expand", TRUE,
+          "resizable", TRUE,
+          "clickable", TRUE,
+          "sort-indicator", TRUE,
+          "reorderable", TRUE,
+          NULL);
+        gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_INFO);	
+
+        /* First cell */
+        cell = gtk_cell_renderer_text_new();
+        gtk_tree_view_column_pack_start(col, cell, TRUE);
+
+        gtk_tree_view_column_set_cell_data_func (col,
+          cell,
+          nwam_conn_status_update_status_cell_cb,
+          (gpointer) 0,
+          NULL);
+    } /* column info */
         
-    // column status
-	cell = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new_with_attributes(_("Connection Status"),
-      cell,
-      "text", CONNVIEW_STATUS,
-      "resizable", TRUE,
-      "clickable", TRUE,
-      "sort-indicator", TRUE,
-      "reorderable", TRUE,
-      NULL);
-	gtk_tree_view_column_pack_end(col, cell, FALSE);
-	gtk_tree_view_column_set_cell_data_func (col,
-						 cell,
-						 nwam_conn_status_update_status_cell_cb,
-						 (gpointer) 0,
-						 NULL);
-	g_object_set (cell,
-      "xalign", 1.0,
-      "weight", PANGO_WEIGHT_BOLD,
-      NULL );
-	gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_STATUS);	
-	gtk_tree_view_append_column (view, col);
-        
-    return( model );
-}
+    {
+        col = gtk_tree_view_column_new();
+        gtk_tree_view_append_column (view, col);
 
-extern void
-nwam_conn_status_panel_set_ncp(NwamConnStatusPanel *self, NwamuiNcp* ncp )
-{
-	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(self);
+        g_object_set(col,
+          "title", _("Connection Status"),
+          "resizable", TRUE,
+          "clickable", TRUE,
+          "sort-indicator", TRUE,
+          "reorderable", TRUE,
+          NULL);
+        gtk_tree_view_column_set_sort_column_id (col, CONNVIEW_STATUS);	
 
-    if ( ncp != NULL ) {
-        prv->ncp = NWAMUI_NCP(g_object_ref(ncp));
+        /* First cell */
+        cell = gtk_cell_renderer_text_new();
+        gtk_tree_view_column_pack_start(col, cell, TRUE);
 
-        prv->model = nwam_compose_tree_view (self);
-    }
+        g_object_set (cell,
+          "xalign", 1.0,
+          "weight", PANGO_WEIGHT_BOLD,
+          NULL );
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
+        gtk_tree_view_column_set_cell_data_func (col,
+          cell,
+          nwam_conn_status_update_status_cell_cb,
+          (gpointer) 0,
+          NULL);
+    } /* column status */
 }
 
 static void
@@ -251,16 +246,14 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
     btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_REPAIR_BUTTON));
 
     prv->daemon = nwamui_daemon_get_instance();
-    prv->pref_dialog = NULL;
-    prv->ncp = NULL;
-    prv->env_dialog = NULL;
-    prv->model = NULL;
         
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
 	g_signal_connect(GTK_BUTTON(prv->env_btn), "clicked", (GCallback)env_clicked_cb, (gpointer)self);
 	g_signal_connect(GTK_BUTTON(prv->vpn_btn), "clicked", (GCallback)vpn_clicked_cb, (gpointer)self);
 	g_signal_connect(GTK_BUTTON(btn), "clicked", (GCallback)repair_clicked_cb, (gpointer)self);
     g_signal_connect (prv->daemon, "notify::active_env", G_CALLBACK(on_nwam_env_notify_cb), (gpointer)self);
+
+    nwam_compose_tree_view(self);
 
 	g_signal_connect(GTK_TREE_VIEW(prv->conn_status_treeview),
                      "row-activated",
@@ -275,6 +268,15 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
           enm_elem = g_list_next( enm_elem ) ) {
         enm = NWAMUI_ENM(enm_elem->data);
 		g_signal_connect (enm_elem->data, "notify::active", G_CALLBACK(on_nwam_enm_notify_cb), (gpointer)self);
+    }
+
+    /* Initially refresh self */
+    {
+        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
+        if (ncp) {
+            nwam_pref_refresh(NWAM_PREF_IFACE(self), ncp, TRUE);
+            g_object_unref(ncp);
+        }
     }
 }
 
@@ -303,43 +305,33 @@ nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog)
 static gboolean
 nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force)
 {
-        GList*                  enm_elem;
-        gchar*                  text = NULL;
-        NwamConnStatusPanel*    self = NWAM_CONN_STATUS_PANEL( pref_iface );
+    GList*                  enm_elem;
+    gchar*                  text = NULL;
+    NwamConnStatusPanel*    self = NWAM_CONN_STATUS_PANEL( pref_iface );
 
-        g_assert(NWAM_IS_CONN_STATUS_PANEL(self));
+    g_assert(NWAM_IS_CONN_STATUS_PANEL(self));
         
-        if ( self->prv->ncp != NULL ) {
-            g_debug("NwamConnStatusPanel: Refresh Called");
-        }
-        
-        text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(self->prv->daemon));
-        if (text) {
-            gtk_label_set_text(self->prv->env_name_lbl, text);
-            g_free (text);
-        } else {
-            gtk_label_set_text(self->prv->env_name_lbl, _("Unknow env"));
-        }
-        on_nwam_enm_notify_cb (NULL, NULL, (gpointer)self);
-        return(TRUE);
-}
+	/* data could be null or ncp */
+    if (data != NULL) {
+        NwamuiNcp *ncp = NWAMUI_NCP(data);
+        GtkTreeModel *model;
+        model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store(ncp));
+        gtk_widget_hide(GTK_WIDGET(self->prv->conn_status_treeview));
+        gtk_tree_view_set_model(self->prv->conn_status_treeview, model);
+        gtk_widget_show(GTK_WIDGET(self->prv->conn_status_treeview));
+        g_object_unref(model);
+        g_debug("%s", __func__);
+    }
 
-/**
- * nwam_conn_status_add:
- * @self,
- * @connection: FIXME should be a specific type.
- * 
- * Add connections to tree view.
- */
-void
-nwam_conn_status_add (NwamConnStatusPanel *self, NwamuiNcu* connection)
-{
-	GtkTreeIter iter;
-	gtk_tree_store_append (GTK_TREE_STORE(self->prv->model), &iter, NULL);
-	gtk_tree_store_set (GTK_TREE_STORE(self->prv->model), &iter,
-			    0, connection,
-			    -1);
-    g_signal_connect (connection, "notify", G_CALLBACK(on_nwam_ncu_notify_cb), (gpointer)self);
+    text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(self->prv->daemon));
+    if (text) {
+        gtk_label_set_text(self->prv->env_name_lbl, text);
+        g_free (text);
+    } else {
+        gtk_label_set_text(self->prv->env_name_lbl, _("Unknow env"));
+    }
+    on_nwam_enm_notify_cb (NULL, NULL, (gpointer)self);
+    return(TRUE);
 }
 
 static void
@@ -367,48 +359,46 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 				 GtkTreeIter       *iter,
 				 gpointer           data)
 {
-        gint                    cell_num = (gint)data;  /* Number of cell in column */
-	gpointer                connection = NULL;
+    gint                    cell_num = (gint)data;  /* Number of cell in column */
 	gchar                  *stockid = NULL;
-        NwamuiNcu*              ncu = NULL;
-        nwamui_ncu_type_t       ncu_type;
-        gchar*                  ncu_text = NULL;
-        gchar*                  ncu_markup = NULL;
-        gboolean                ncu_status;
-        gboolean                ncu_is_dhcp;
-        gchar*                  ncu_ipv4_addr = NULL;
-        GdkPixbuf              *status_icon;
-        gchar*                  info_string = NULL;
+    NwamuiNcu*              ncu = NULL;
+    nwamui_ncu_type_t       ncu_type;
+    gchar*                  ncu_text = NULL;
+    gchar*                  ncu_markup = NULL;
+    gboolean                ncu_status;
+    gboolean                ncu_is_dhcp;
+    gchar*                  ncu_ipv4_addr = NULL;
+    GdkPixbuf              *status_icon;
+    gchar*                  info_string = NULL;
         
-	gtk_tree_model_get(model, iter, 0, &connection, -1);
+	gtk_tree_model_get(model, iter, 0, &ncu, -1);
 
-        ncu  = NWAMUI_NCU( connection );
-        ncu_type = nwamui_ncu_get_ncu_type(ncu);
-        ncu_status = nwamui_ncu_get_active(ncu);
+    ncu_type = nwamui_ncu_get_ncu_type(ncu);
+    ncu_status = nwamui_ncu_get_active(ncu);
         
 	switch (gtk_tree_view_column_get_sort_column_id (col)) {
 	case CONNVIEW_ICON:
-                if ( cell_num == 0 ) {
-                    status_icon = nwamui_util_get_network_status_icon( ncu );
-                    g_object_set (G_OBJECT(renderer),
-                            "pixbuf", status_icon,
-                            NULL);
-                    g_object_unref(G_OBJECT(status_icon));
-                }
-                else if( cell_num > 0 && ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-                    status_icon = nwamui_util_get_wireless_strength_icon( 
-                                            nwamui_ncu_get_wifi_signal_strength(ncu), FALSE );
-                    g_object_set (G_OBJECT(renderer),
-                            "pixbuf", status_icon,
-                            NULL);
-                    g_object_unref(G_OBJECT(status_icon));
-                }
-                else {
-                    g_object_set (G_OBJECT(renderer),
-                            "pixbuf", NULL,
-                            NULL);
+        if ( cell_num == 0 ) {
+            status_icon = nwamui_util_get_network_status_icon( ncu );
+            g_object_set (G_OBJECT(renderer),
+              "pixbuf", status_icon,
+              NULL);
+            g_object_unref(G_OBJECT(status_icon));
+        }
+        else if( cell_num > 0 && ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+            status_icon = nwamui_util_get_wireless_strength_icon( 
+                nwamui_ncu_get_wifi_signal_strength(ncu), FALSE );
+            g_object_set (G_OBJECT(renderer),
+              "pixbuf", status_icon,
+              NULL);
+            g_object_unref(G_OBJECT(status_icon));
+        }
+        else {
+            g_object_set (G_OBJECT(renderer),
+              "pixbuf", NULL,
+              NULL);
 
-                }
+        }
                     
 		break;
                 
@@ -619,27 +609,4 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
     gtk_label_set_text(prv->vpn_name_lbl, enm_str );
         
     g_free( enm_str );
-}
-
-static void
-on_nwam_ncu_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
-	GtkTreeIter iter;
-    GtkTreeSelection *selection;
-
-    /* FIXME, should filter some notify::signals out */
-    selection = gtk_tree_view_get_selection (prv->conn_status_treeview);
-	if (gtk_tree_selection_get_selected(selection,
-                                        NULL, &iter)) {
-        GtkTreePath* path;
-        path = gtk_tree_model_get_path (prv->model, &iter);
-        gtk_tree_model_row_changed (prv->model, path, &iter);
-        gtk_tree_path_free (path);
-    } else {
-/*
-        g_assert_not_reached();
-*/
-        g_debug("Unexpected notification received.");
-    }
 }

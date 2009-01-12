@@ -64,10 +64,6 @@ GType nwam_conn_status_panel_get_type (void) G_GNUC_CONST;
 
 NwamConnStatusPanel* nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog);
 
-extern void nwam_conn_status_panel_set_ncp(NwamConnStatusPanel *self, NwamuiNcp* ncp );
-
-void nwam_conn_status_add (NwamConnStatusPanel *self, NwamuiNcu* connection);
-
 G_END_DECLS
 
 #endif	/* _NWAM_CONN_STATUS_PANEL_H */

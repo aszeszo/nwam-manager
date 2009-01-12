@@ -179,3 +179,35 @@ nwamui_obj_get_display_name(GObject *obj)
 	return name;
 }
 
+void
+capplet_update_nwamui_obj_treeview(GtkTreeView *treeview, NwamuiDaemon *daemon, GType type)
+{
+	GtkTreeModel      *model;
+	GList           *obj_list;
+	GList           *idx;
+	GtkTreeIter   iter;
+
+	model = gtk_tree_view_get_model(treeview);
+	/* TODO clean all */
+	gtk_list_store_clear(GTK_LIST_STORE(model));
+
+	if (type == NWAMUI_TYPE_NCP) {
+		obj_list = nwamui_daemon_get_ncp_list(daemon);
+	/* } else if (type == NWAMUI_TYPE_NCU) { */
+	} else if (type == NWAMUI_TYPE_ENV) {
+		obj_list = nwamui_daemon_get_env_list(daemon);
+	} else if (type == NWAMUI_TYPE_ENM) {
+		obj_list = nwamui_daemon_get_enm_list(daemon);
+	} else {
+		g_error("unknow supported get nwamui obj list");
+	}
+
+	for (idx = obj_list; idx; idx = g_list_next(idx)) {
+		gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+		gtk_list_store_set (GTK_LIST_STORE(model), &iter,
+		    0, idx->data,
+                    -1);
+		g_object_unref(idx->data);
+	}
+	g_list_free(obj_list);
+}
