@@ -261,16 +261,61 @@ nwamui_util_copy_obj_list( GList*   obj_list )
     g_list_foreach(new_list, nwamui_util_obj_ref, NULL );    
 }
 
-static gint small_icon_size = -1;
-static gint normal_icon_size = -1;
+static GtkStatusIcon*   status_icon = NULL;
+static gint             small_icon_size = -1;
+static gint             normal_icon_size = -1;
+static gint             theme_changed_id = -1;
+static GtkIconTheme*    icon_theme = NULL;
+
+static void
+icon_theme_changed ( GtkIconTheme  *_icon_theme, gpointer data )
+{
+    g_debug("Theme Changed");
+    if ( theme_changed_id != -1 && _icon_theme != icon_theme ) {
+        g_signal_handler_disconnect( icon_theme, theme_changed_id );
+        theme_changed_id = -1;
+        g_object_unref(icon_theme);
+        icon_theme = NULL;
+
+        icon_theme = GTK_ICON_THEME(g_object_ref( _icon_theme ));
+        theme_changed_id = g_signal_connect (  icon_theme, "changed",
+                                               G_CALLBACK (icon_theme_changed), NULL);
+    }
+
+    /* Invalidate known sizes now */
+    small_icon_size = -1;
+    normal_icon_size = -1;
+}
+
+static GdkPixbuf*   
+get_pixbuf_with_size( const gchar* stock_id, gint size )
+{
+    GdkPixbuf*      pixbuf = NULL;
+    GError*         error = NULL;
+
+
+    if ( icon_theme == NULL ) {
+        icon_theme = GTK_ICON_THEME(g_object_ref(gtk_icon_theme_get_default()));
+        theme_changed_id = g_signal_connect (  icon_theme, "changed",
+                                               G_CALLBACK (icon_theme_changed), NULL);
+
+    }
+
+    pixbuf = gtk_icon_theme_load_icon( icon_theme, stock_id, 
+                                       (size > 0)?(size):(32), 0, &error );
+
+    if ( pixbuf == NULL ) {
+        g_debug("get_pixbuf_with_size: pixbuf = NULL");
+    }
+    else {
+        g_debug("get_pixbuf_with_size: pixbuf loaded");
+    }
+    return( pixbuf );
+}
 
 static GdkPixbuf*   
 get_pixbuf( const gchar* stock_id, gboolean small )
 {
-    GtkIconTheme*   icon_theme = gtk_icon_theme_get_default();
-    GdkPixbuf*      pixbuf = NULL;
-    GError*         error = NULL;
-
     g_debug("get_pixbuf: Seeking %s stock_id = %s", small?"small":"normal", stock_id );
 
     if ( small_icon_size == -1 ) {
@@ -284,36 +329,33 @@ get_pixbuf( const gchar* stock_id, gboolean small )
         g_debug("get_pixbuf: small_icon_size = %d", small_icon_size );
         g_debug("get_pixbuf: normal_icon_size = %d", normal_icon_size );
     }
-    
-    pixbuf = gtk_icon_theme_load_icon( icon_theme, stock_id, 
-                                       small?small_icon_size:normal_icon_size, 0, &error );
 
-    if ( pixbuf == NULL ) {
-        g_debug("get_pixbuf: pixbuf = NULL");
-    }
-    else {
-        g_debug("get_pixbuf: pixbuf loaded");
-    }
-    return( pixbuf );
+    return (get_pixbuf_with_size( stock_id, small?small_icon_size:normal_icon_size ));
 }
 
 /* 
  * Returns a GdkPixbuf that reflects the status of the environment
  */
 extern GdkPixbuf*
-nwamui_util_get_env_status_icon( nwamui_env_status_t env_status )
+nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status )
 {
     GdkPixbuf* icon = NULL;
-    
+    gint       size = -1;
+
+    if ( status_icon != NULL && 
+         gtk_status_icon_is_embedded(status_icon)) {
+        size = gtk_status_icon_get_size( status_icon );
+    }
+
     switch( env_status ) {
         case NWAMUI_ENV_STATUS_CONNECTED:
-            icon = get_pixbuf(NWAM_ICON_EARTH_CONNECTED, FALSE);
+            icon = get_pixbuf_with_size(NWAM_ICON_EARTH_CONNECTED, size);
             break;
         case NWAMUI_ENV_STATUS_WARNING:
-            icon = get_pixbuf(NWAM_ICON_EARTH_WARNING, FALSE);
+            icon = get_pixbuf_with_size(NWAM_ICON_EARTH_WARNING, size);
             break;
         case NWAMUI_ENV_STATUS_ERROR:
-            icon = get_pixbuf(NWAM_ICON_EARTH_ERROR, FALSE);
+            icon = get_pixbuf_with_size(NWAM_ICON_EARTH_ERROR, size);
             break;
         default:
             g_assert_not_reached();
@@ -449,7 +491,7 @@ nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_str
     if ( enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] == NULL ) {
         /* TODO - Get wireless icons to match the various strengths */
         enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] = 
-                                    get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_NONE, small );
+                                    g_object_ref(get_pixbuf( NWAM_ICON_WIRELESS_STRENGTH_NONE, small ));
 
         enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_WEAK][icon_size] = 
         enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_WEAK][icon_size] = 

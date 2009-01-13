@@ -2193,6 +2193,10 @@ get_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 
     g_return_val_if_fail( prop_name != NULL, retval );
 
+    if ( ncu == NULL ) {
+        return( retval );
+    }
+
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
         g_warning("Unexpected type for ncu property %s\n", prop_name );
@@ -2226,6 +2230,10 @@ set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const gc
     nwam_value_t        nwam_data;
     gboolean            retval = FALSE;
     g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( ncu == NULL ) {
+        return( retval );
+    }
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
@@ -2266,6 +2274,10 @@ get_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name )
     uint_t              num = 0;
 
     g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( ncu == NULL ) {
+        return( retval );
+    }
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
@@ -2308,6 +2320,10 @@ set_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, ch
     gboolean            retval = FALSE;
 
     g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( ncu == NULL ) {
+        return( retval );
+    }
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
@@ -2361,6 +2377,10 @@ get_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 
     g_return_val_if_fail( prop_name != NULL, value );
 
+    if ( ncu == NULL ) {
+        return( value );
+    }
+
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
         g_warning("Unexpected type for ncu property %s\n", prop_name );
@@ -2390,6 +2410,10 @@ set_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name, gboolea
     nwam_value_t        nwam_data;
     gboolean            retval = FALSE;
     g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( ncu == NULL ) {
+        return( retval );
+    }
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
@@ -2430,6 +2454,10 @@ get_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 
     g_return_val_if_fail( prop_name != NULL, value );
 
+    if ( ncu == NULL ) {
+        return( value );
+    }
+
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
         g_warning("Unexpected type for ncu property %s\n", prop_name );
@@ -2459,6 +2487,10 @@ set_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name, guint64 
     nwam_value_t        nwam_data;
     gboolean            retval = FALSE;
     g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( ncu == NULL ) {
+        return( retval );
+    }
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
@@ -2500,6 +2532,10 @@ get_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name , g
 
     g_return_val_if_fail( prop_name != NULL && out_num != NULL, retval );
 
+    if ( ncu == NULL ) {
+        return( retval );
+    }
+
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
         g_warning("Unexpected type for ncu property %s\n", prop_name );
@@ -2537,6 +2573,10 @@ set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name,
     nwam_value_t        nwam_data;
     gboolean            retval = FALSE;
     g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( ncu == NULL ) {
+        return( retval );
+    }
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {

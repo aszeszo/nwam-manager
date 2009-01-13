@@ -103,10 +103,10 @@ typedef guint64 libnwam_diag_cause_t;
 #define  NWAM_ICON_EARTH_WARNING            "network-location-warning"
 #define  NWAM_ICON_EARTH_CONNECTED          "network-location-connected"
 #define  NWAM_ICON_NETWORK_IDLE             "network-wired-connected"
-#define  NWAM_ICON_NETWORK_WORNING          "network-wired-worning"
+#define  NWAM_ICON_NETWORK_WARNING          "network-wired-warning"
 #define  NWAM_ICON_NETWORK_OFFLINE          "network-wired-error"
 #define  NWAM_ICON_WIRELESS_CONNECTED       "wireless-wireless-connected"
-#define  NWAM_ICON_WIRELESS_WORNING         "wireless-wireless-worning"
+#define  NWAM_ICON_WIRELESS_WARNING         "wireless-wireless-warning"
 #define  NWAM_ICON_WIRELESS_ERROR           "wireless-wireless-error"
 
 /* Wireless strength icons */
@@ -185,7 +185,7 @@ extern const gchar*             nwamui_util_get_ncu_group_icon( NwamuiNcu* ncu  
 
 extern GdkPixbuf*               nwamui_util_get_network_type_icon( nwamui_ncu_type_t ncu_type );
 
-extern GdkPixbuf*               nwamui_util_get_env_status_icon( nwamui_env_status_t env_status );
+extern GdkPixbuf*               nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status );
 
 extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength,
                                                                         gboolean small);

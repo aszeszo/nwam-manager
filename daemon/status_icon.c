@@ -594,7 +594,7 @@ animation_panel_icon_timeout (gpointer user_data)
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
 	gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
-		nwamui_util_get_env_status_icon(
+		nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self),
 		(nwamui_env_status_t)(++self->prv->icon_stock_index)%NWAMUI_ENV_STATUS_LAST));
 	return TRUE;
 }
@@ -623,7 +623,7 @@ trigger_animation_panel_icon (GConfClient *client,
 		self->prv->animation_icon_update_timeout_id = 0;
 		/* reset everything of animation_panel_icon here */
 		gtk_status_icon_set_from_pixbuf(status_icon, 
-          nwamui_util_get_env_status_icon(NWAMUI_ENV_STATUS_CONNECTED));
+          nwamui_util_get_env_status_icon(status_icon, NWAMUI_ENV_STATUS_CONNECTED));
 		self->prv->icon_stock_index = 0;
 	}
 }
@@ -660,7 +660,7 @@ nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, const gchar* 
     self->prv->current_status = env_status;
 
     gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
-      nwamui_util_get_env_status_icon(env_status));
+      nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status));
 
     if ( status_icon_reason_message != NULL ) {
         g_free( status_icon_reason_message );
@@ -794,7 +794,7 @@ status_icon_size_changed_cb(GtkStatusIcon *status_icon, gint size, gpointer user
     NwamStatusIcon *self = NWAM_STATUS_ICON(status_icon);
 
     gtk_status_icon_set_from_pixbuf(status_icon, 
-      nwamui_util_get_env_status_icon(self->prv->current_status ));
+      nwamui_util_get_env_status_icon(status_icon, self->prv->current_status ));
     return TRUE;
 }
 

@@ -531,8 +531,10 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     /* Initially refresh self */
     {
         NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
-        nwam_pref_refresh(NWAM_PREF_IFACE(self), ncp, TRUE);
-        g_object_unref(ncp);
+        if (ncp) {
+            nwam_pref_refresh(NWAM_PREF_IFACE(self), ncp, TRUE);
+            g_object_unref(ncp);
+        }
     }
 
     g_object_unref(daemon);

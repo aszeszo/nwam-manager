@@ -1,3 +1,19 @@
+2009-01-13  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	  Add nwam_core/usr/include to CFLAGS
+	* capplet/main.c:
+	  Add support for --debug option to enable/disable g_debug messages.
+	* capplet/nwam_net_conf_panel.c: 
+	  Handle null acitve_ncp better.
+	* common/libnwamui.c, common/libnwamui.h, daemon/status_icon.c: 
+	  Copy over code from phase 0.5 to handle resizing of icons better.
+	  Also rename _WORNING_ICON to WARNING_ICON
+	* common/nwamui_ncu.c: 
+	  Update nwam property i/f to handle null ncu_handle_t since it may be
+	  null if accessing a tunnel, which doesn't have a LINK NCU associated
+	  with it.
+
 2009-01-12  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_ncu.c:

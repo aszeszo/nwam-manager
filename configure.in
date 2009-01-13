@@ -39,6 +39,12 @@ AM_CFLAGS="$AM_CFLAGS $CFLAGS_WARNINGS"
 AM_CXXFLAGS="$AM_CXXFLAGS $CXXFLAGS_WARNINGS"
 
 dnl
+dnl nwam_core headers flags
+dnl
+CFLAGS_NWAM_CORE="-I\$(top_srcdir)/nwam_core/usr/include"
+AM_CFLAGS="$AM_CFLAGS $CFLAGS_NWAM_CORE"
+
+dnl
 dnl Enable debugging mode
 dnl
 AC_ARG_ENABLE(debug,

@@ -40,6 +40,9 @@
 #include "nwam_pref_dialog.h"
 #include "nwam_location_dialog.h"
 
+/* Command-line options */
+static gboolean debug = FALSE;
+
 static gboolean     show_all_widgets = FALSE;
 //static gboolean     add_wireless_dialog = FALSE;
 static gchar        *add_wireless_dialog = NULL;
@@ -52,6 +55,7 @@ static gboolean     wireless_chooser = FALSE;
 static void debug_response_id( gint responseid );
 
 GOptionEntry application_options[] = {
+        {"debug", 0, 0, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
         { "show-all", 'a', 0, G_OPTION_ARG_NONE, &show_all_widgets, "Show all widgets", NULL  },
         { "add-wireless-dialog", 'w', 0, G_OPTION_ARG_STRING, &add_wireless_dialog, "Show 'Add Wireless' Dialog only", NULL  },
         { "env-pref-dialog", 'e', 0, G_OPTION_ARG_NONE, &env_pref_dialog, "Show 'Location Preferences' Dialog only", NULL  },
@@ -61,6 +65,22 @@ GOptionEntry application_options[] = {
         { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, "Show 'Wireless Network Chooser' Dialog only", NULL  },
         { NULL }
 };
+
+static void
+default_log_handler( const gchar    *log_domain,
+                     GLogLevelFlags  log_level,
+                     const gchar    *message,
+                     gpointer        unused_data)
+{
+    /* If "debug" not set then filter out debug messages. */
+    if ((log_level & G_LOG_LEVEL_MASK) == G_LOG_LEVEL_DEBUG && !debug) {
+        /* Do nothing */
+        return;
+    }
+
+    /* Otherwise just log as usual */
+    g_log_default_handler (log_domain, log_level, message, unused_data);
+}
 
 static GtkWidget*
 customwidgethandler(GladeXML *xml,
@@ -98,6 +118,9 @@ main(int argc, char** argv)
     /* Initialize i18n support */
     gtk_set_locale ();
     
+    /* Setup log handler to trap debug messages */
+    g_log_set_default_handler( default_log_handler, NULL );
+
     option_context = g_option_context_new("nwam-manager-properties");
     g_option_context_add_main_entries(option_context, application_options, NULL);
     program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,
