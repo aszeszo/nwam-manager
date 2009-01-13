@@ -35,6 +35,7 @@
 #include "nwam_net_conf_panel.h"
 #include "nwam_pref_iface.h"
 #include "capplet-utils.h"
+#include "nwam_tree_view.h"
 
 /* Names of Widgets in Glade file */
 #define NET_CONF_TREEVIEW               "network_profile_table"
@@ -94,7 +95,7 @@ static void nwam_net_conf_rules_update_cell_cb (GtkTreeViewColumn *col,
 					     GtkTreeIter       *iter,
 					     gpointer           data);
 
-static gboolean nwam_net_conf_panel_refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force);
+static gboolean refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force);
 static void net_conf_set_property (GObject         *object,
   guint            prop_id,
   const GValue    *value,
@@ -135,7 +136,8 @@ static void nwam_net_pref_rule_ncu_enabled_toggled_cb(      GtkCellRendererToggl
                                                             gchar                 *path,
                                                             gpointer               user_data);
 
-static void nwam_treeview_btn_cb(GtkTreeView *treeview, GtkWidget *w, gpointer user_data );
+static void nwam_treeview_activate_btn_cb(GtkTreeView *treeview, GtkWidget *w, gpointer user_data );
+static void nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data);
 static void connection_move_up_btn_cb( GtkButton*, gpointer user_data );
 static void connection_move_down_btn_cb( GtkButton*, gpointer user_data );	
 static void connection_rename_btn_cb( GtkButton*, gpointer user_data );
@@ -197,7 +199,7 @@ static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
-	iface->refresh = nwam_net_conf_panel_refresh;
+	iface->refresh = refresh;
 	iface->apply = NULL;
 	iface->help = help;
 }
@@ -222,7 +224,8 @@ nwam_net_conf_panel_class_init(NwamNetConfPanelClass *klass)
         G_PARAM_READWRITE));
 }
 
-static void net_conf_set_property ( GObject         *object,
+static void
+net_conf_set_property ( GObject         *object,
   guint            prop_id,
   const GValue    *value,
   GParamSpec      *pspec)
@@ -252,7 +255,8 @@ static void net_conf_set_property ( GObject         *object,
     }
 }
 
-static void net_conf_get_property ( GObject         *object,
+static void
+net_conf_get_property ( GObject         *object,
   guint            prop_id,
   GValue          *value,
   GParamSpec      *pspec)
@@ -271,26 +275,6 @@ static void net_conf_get_property ( GObject         *object,
 }
 
 static void
-row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data) 
-{
-    g_debug("Row Deleted: %s", gtk_tree_path_to_string(path));
-}
-
-static void
-row_inserted_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data)
-{
-    g_debug("Row Inserted: %s", gtk_tree_path_to_string(path));
-}
-
-static void
-rows_reordered_cb(GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer arg3, gpointer user_data)   
-{
-    gchar*  path_str = gtk_tree_path_to_string(path);
-    g_debug("Rows Reordered: %s", path_str?path_str:"NULL");
-}
-
-
-static void
 nwam_compose_tree_view (NwamNetConfPanel *self)
 {
 	GtkTreeViewColumn *col;
@@ -305,7 +289,14 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
       "enable-search", TRUE,
       "show-expanders", TRUE,
       NULL);
-	
+
+    g_signal_connect(view, "activate-widget", G_CALLBACK(nwam_treeview_activate_btn_cb), (gpointer)self);
+/*     g_signal_connect(view, "update-widget", G_CALLBACK(nwam_treeview_update_widget_cb), (gpointer)self); */
+    g_signal_connect(gtk_tree_view_get_selection(view),
+      "changed",
+      G_CALLBACK(nwam_treeview_update_widget_cb),
+      (gpointer)self);
+
     {
         col = gtk_tree_view_column_new();
         gtk_tree_view_append_column (view, col);
@@ -492,12 +483,12 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
 /*     g_signal_connect(self->prv->connection_move_down_btn, "clicked", G_CALLBACK(connection_move_down_btn_cb), (gpointer)self);	 */
 /*     g_signal_connect(self->prv->connection_rename_btn, "clicked", G_CALLBACK(connection_rename_btn_cb), (gpointer)self);	 */
 
-    g_object_set(self->prv->net_conf_treeview,
-      "button_up", self->prv->connection_move_up_btn,
-      "button_down", self->prv->connection_move_down_btn,
-      "button_rename", self->prv->connection_rename_btn,
-      NULL);
-    g_signal_connect(self->prv->net_conf_treeview, "widget-activate", G_CALLBACK(nwam_treeview_btn_cb), (gpointer)self);
+    nwam_tree_view_add_widget(self->prv->net_conf_treeview,
+      self->prv->connection_move_up_btn);
+    nwam_tree_view_add_widget(self->prv->net_conf_treeview,
+      self->prv->connection_move_down_btn);
+    nwam_tree_view_add_widget(self->prv->net_conf_treeview,
+      self->prv->connection_rename_btn);
 
     /* FIXME: How about zero ncp? */
     self->prv->active_profile_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(ACTIVE_PROFILE_CBOX));
@@ -509,7 +500,7 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     self->prv->connection_activation_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CONNECTION_ACTIVATION_COMBO));
     g_signal_connect(self->prv->connection_activation_combo, "changed", G_CALLBACK(conditions_connected_changed),(gpointer)self);
 
-    nwam_compose_tree_view (self);
+    nwam_compose_tree_view(self);
 
     update_rules_from_ncu (self, NULL, NULL);
 
@@ -558,12 +549,12 @@ nwam_net_conf_panel_new(NwamCappletDialog *pref_dialog)
 }
 
 /**
- * nwam_net_conf_panel_refresh:
+ * refresh:
  *
  * Refresh #NwamNetConfPanel with the new connections.
  **/
 static gboolean
-nwam_net_conf_panel_refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force)
+refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force)
 {
     NwamNetConfPanel*    self = NWAM_NET_CONF_PANEL( pref_iface );
     
@@ -574,13 +565,19 @@ nwam_net_conf_panel_refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean f
         NwamuiNcp *ncp = NWAMUI_NCP(data);
         GtkTreeModel *model;
         model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store(ncp));
-        gtk_widget_hide(GTK_WIDGET(self->prv->net_conf_treeview));
-        gtk_tree_view_set_model(self->prv->net_conf_treeview, model);
-        gtk_widget_show(GTK_WIDGET(self->prv->net_conf_treeview));
+        if (gtk_tree_view_get_model(self->prv->net_conf_treeview) != model ||
+          force) {
+            gtk_widget_hide(GTK_WIDGET(self->prv->net_conf_treeview));
+            gtk_tree_view_set_model(self->prv->net_conf_treeview, model);
+            gtk_widget_show(GTK_WIDGET(self->prv->net_conf_treeview));
+        }
         g_object_unref(model);
-        g_debug("%s", __func__);
     }
     
+    if (force) {
+        nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(self->prv->net_conf_treeview),
+          (gpointer)self);
+    }
     return( TRUE );
 }
 
@@ -1036,7 +1033,7 @@ nwam_net_pref_rule_ncu_enabled_toggled_cb  (    GtkCellRendererToggle *cell_rend
 }
 
 static void
-nwam_treeview_btn_cb(GtkTreeView *treeview, GtkWidget *w, gpointer user_data)
+nwam_treeview_activate_btn_cb(GtkTreeView *treeview, GtkWidget *w, gpointer user_data)
 {
     NwamNetConfPanel*           self = NWAM_NET_CONF_PANEL(user_data);
     NwamNetConfPanelPrivate*    prv = self->prv;
@@ -1086,6 +1083,42 @@ nwam_treeview_btn_cb(GtkTreeView *treeview, GtkWidget *w, gpointer user_data)
             g_assert_not_reached();
         }
     }
+}
+
+static void
+nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
+{
+    NwamNetConfPanel*           self = NWAM_NET_CONF_PANEL(user_data);
+    NwamNetConfPanelPrivate*    prv = self->prv;
+    GtkTreeModel*               model = gtk_tree_view_get_model(prv->net_conf_treeview);
+    GtkTreeIter                 iter;
+    gint                        count_selected_rows;
+    gboolean                    sensitive;
+
+    count_selected_rows = gtk_tree_selection_count_selected_rows(selection);
+
+    gtk_widget_set_sensitive(prv->connection_move_up_btn, FALSE);
+    gtk_widget_set_sensitive(prv->connection_move_down_btn, FALSE);
+    gtk_widget_set_sensitive(prv->connection_rename_btn, FALSE);
+    if (count_selected_rows == 1) {
+        if (gtk_tree_model_get_iter_first(model, &iter)) {
+            gtk_widget_set_sensitive(prv->connection_move_up_btn, TRUE);
+            gtk_widget_set_sensitive(prv->connection_move_down_btn, TRUE);
+            gtk_widget_set_sensitive(prv->connection_rename_btn, TRUE);
+            if (gtk_tree_selection_iter_is_selected(selection, &iter)) {
+                gtk_widget_set_sensitive(prv->connection_move_up_btn, FALSE);
+            }
+            gtk_tree_model_iter_nth_child(model,
+              &iter,
+              NULL,
+              gtk_tree_model_iter_n_children(model, NULL) - 1);
+            if (gtk_tree_selection_iter_is_selected(selection, &iter)) {
+                gtk_widget_set_sensitive(prv->connection_move_down_btn, FALSE);
+            }
+        }
+    }
+/*     if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) { */
+/*     } */
 }
 
 static void

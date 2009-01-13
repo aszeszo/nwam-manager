@@ -20,24 +20,11 @@ static void nwam_pref_iface_combo_changed_cb(GtkComboBox* combo, gpointer user_d
 void
 daemon_compose_ncu_panel_mixed_combo(GtkComboBox *combo, NwamuiDaemon *daemon)
 {
-	GtkCellRenderer *renderer;
-	GtkTreeModel      *model;
-        
-	model = GTK_TREE_MODEL(gtk_tree_store_new(1, G_TYPE_OBJECT));
-	
-	gtk_combo_box_set_model(GTK_COMBO_BOX(combo), model);
-	g_object_unref(model);
-
-	gtk_cell_layout_clear(GTK_CELL_LAYOUT(combo));
-	renderer = gtk_cell_renderer_text_new();
-	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combo), renderer, TRUE);
-	gtk_cell_layout_set_cell_data_func(GTK_CELL_LAYOUT(combo),
-	    renderer,
+	capplet_compose_combo(combo,
+	    G_TYPE_OBJECT,
 	    ncu_panel_mixed_combo_cell_cb,
-	    NULL,
-	    NULL);
-	gtk_combo_box_set_row_separator_func (combo,
 	    ncu_panel_mixed_combo_separator_cb,
+	    NULL,
 	    NULL,
 	    NULL);
 }
@@ -71,24 +58,13 @@ ncu_panel_mixed_combo_separator_cb(GtkTreeModel *model,
 void
 capplet_compose_nwamui_obj_combo(GtkComboBox *combo, NwamPrefIFace *iface)
 {
-	GtkCellRenderer *renderer;
-	GtkTreeModel      *model;
-        
-	model = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_OBJECT));
-	
-	gtk_combo_box_set_model(GTK_COMBO_BOX(combo), model);
-	g_object_unref(model);
-
-	gtk_cell_layout_clear(GTK_CELL_LAYOUT(combo));
-	renderer = gtk_cell_renderer_text_new();
-	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combo), renderer, TRUE);
-	gtk_cell_layout_set_cell_data_func(GTK_CELL_LAYOUT(combo),
-	    renderer,
+	capplet_compose_combo(combo,
+	    G_TYPE_OBJECT,
 	    nwamui_obj_combo_cell_cb,
 	    NULL,
+	    nwam_pref_iface_combo_changed_cb,
+	    (gpointer)iface,
 	    NULL);
-	g_signal_connect(G_OBJECT(combo), "changed",
-	    (GCallback)nwam_pref_iface_combo_changed_cb, (gpointer)iface);
 }
 
 void
@@ -210,4 +186,46 @@ capplet_update_nwamui_obj_treeview(GtkTreeView *treeview, NwamuiDaemon *daemon, 
 		g_object_unref(idx->data);
 	}
 	g_list_free(obj_list);
+}
+
+void
+capplet_compose_combo(GtkComboBox *combo,
+    GType type,
+    GtkCellLayoutDataFunc layout_func,
+    GtkTreeViewRowSeparatorFunc separator_func,
+    GCallback changed_func,
+    gpointer user_data,
+    GDestroyNotify destroy)
+{
+	GtkCellRenderer *renderer;
+	GtkTreeModel      *model;
+        
+	if (type != G_TYPE_STRING) {
+		g_return_if_fail(layout_func);
+
+		model = GTK_TREE_MODEL(gtk_list_store_new(1, type));
+		gtk_combo_box_set_model(GTK_COMBO_BOX(combo), model);
+		g_object_unref(model);
+
+		gtk_cell_layout_clear(GTK_CELL_LAYOUT(combo));
+		renderer = gtk_cell_renderer_text_new();
+		gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combo), renderer, TRUE);
+		gtk_cell_layout_set_cell_data_func(GTK_CELL_LAYOUT(combo),
+		    renderer,
+		    layout_func,
+		    user_data,
+		    destroy);
+	}
+	if (separator_func) {
+		gtk_combo_box_set_row_separator_func (combo,
+		    separator_func,
+		    user_data,
+		    destroy);
+	}
+	if (changed_func) {
+		g_signal_connect(G_OBJECT(combo),
+		    "changed",
+		    changed_func,
+		    user_data);
+	}
 }

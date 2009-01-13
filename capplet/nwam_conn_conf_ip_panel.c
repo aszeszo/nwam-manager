@@ -558,8 +558,9 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
             
             gtk_list_store_set( GTK_LIST_STORE( model ), &iter, 0, wifi_net, -1 );
         }
-        
-        nwamui_util_free_obj_list( fav_list );
+        if (fav_list) {
+            nwamui_util_free_obj_list( fav_list );
+        }
 
         /* Populate WiFi conditions */
         {
@@ -864,7 +865,7 @@ multi_line_add_cb( GtkButton *button, gpointer data )
 	gtk_tree_selection_select_iter (gtk_tree_view_get_selection(view),
 		&iter);
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE); /* Refresh IP Data */
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
 }
 
 static void
@@ -896,7 +897,7 @@ multi_line_del_cb( GtkButton *button, gpointer data )
 	}
 	g_list_free (list);
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE); /* Refresh IP Data */
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
 }
 
 static void
@@ -910,7 +911,7 @@ ncu_changed_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     g_debug("NwamConnConfIPPanel: ncu_changed " );
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(data), NULL, TRUE); /* Refresh IP Data */
+    nwam_pref_refresh(NWAM_PREF_IFACE(data), NWAMUI_NCU(gobject), TRUE); /* Refresh IP Data */
 }
 
 static void
@@ -1132,7 +1133,7 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
                 new_wifi = nwam_wireless_dialog_get_wifi_net( self->prv->wifi_dialog );
                 nwamui_daemon_add_wifi_fav(self->prv->daemon, new_wifi);
                 nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, NULL ); 
-                nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE); /* Refresh IP Data */
+                nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
             break;
         default:
             break;
@@ -1172,7 +1173,7 @@ wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data )
 
                     nwamui_daemon_remove_wifi_fav(self->prv->daemon, wifi_net );
 
-                    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE); /* Refresh IP Data */
+                    nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
                 }
             
                 if (name)

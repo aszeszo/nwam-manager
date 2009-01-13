@@ -968,5 +968,5 @@ marshal_OBJECT__VOID(GClosure     *closure,
     obj = callback (data1,
       data2);
 
-    g_value_take_object(return_value, obj);
+    g_value_set_object(return_value, obj);
 }

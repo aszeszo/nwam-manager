@@ -1,3 +1,36 @@
+2009-01-13  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c: (daemon_compose_ncu_panel_mixed_combo),
+	(capplet_compose_nwamui_obj_combo), (capplet_compose_combo):
+	* capplet/capplet-utils.h:
+	* capplet/nwam_conn_conf_ip_panel.c: (populate_panel),
+	(multi_line_add_cb), (multi_line_del_cb), (ncu_changed_notify_cb),
+	(wireless_tab_add_button_clicked_cb),
+	(wireless_tab_remove_button_clicked_cb):
+	* capplet/nwam_location_dialog.c: (nwam_pref_init),
+	(location_set_property), (location_get_property),
+	(nwam_compose_tree_view), (nwam_location_dialog_init), (refresh),
+	(nwam_treeview_add_object_cb), (nwam_treeview_remove_object_cb),
+	(nwam_treeview_activate_btn_cb), (nwam_treeview_update_widget_cb),
+	(location_add_update_btn_cb), (on_button_clicked),
+	(location_activation_combo_cell_cb),
+	(location_activation_combo_changed_cb), (object_notify_cb):
+	* capplet/nwam_net_conf_panel.c: (nwam_pref_init),
+	(net_conf_set_property), (net_conf_get_property),
+	(nwam_compose_tree_view), (nwam_net_conf_panel_init), (refresh),
+	(nwam_treeview_activate_btn_cb), (nwam_treeview_update_widget_cb):
+	* capplet/nwam_tree_view.c: (nwam_tree_view_class_init),
+	(nwam_tree_view_finalize), (nwam_tree_view_get_property),
+	(nwam_tree_view_add_widget), (nwam_tree_view_remove_widget),
+	(on_button_clicked), (default_signal_handler_add_object),
+	(default_signal_handler_activate_widget),
+	(default_signal_handler_update_widget),
+	(nwam_tree_view_selection_changed_cb),
+	(nwam_tree_view_update_widget_cb):
+	* capplet/nwam_tree_view.h:
+	Continue work for location dialog, add-object signal has bug.
+	* common/libnwamui.c: (marshal_OBJECT__VOID): Hold obj ref count.
+
 2009-01-13  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in:
