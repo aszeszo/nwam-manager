@@ -1,3 +1,20 @@
+2009-01-14  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Don't cause assertion to fire if NCU is NULL.
+	* capplet/nwam_conn_stat_panel.c:
+	  Use nwamui_ncu functions to get string for current status rather
+	  than creating here.
+	* common/libnwamui.c: 
+	  Behave nicer if NULL is passed - just do nothing rather than cause
+	  assertion.
+	* common/nwamui_enm.c, common/nwamui_enm.h:
+	  Add conditions and activation_mode properties.
+	* common/nwamui_ncu.c:
+	  Add missing strdup for string being returned when not connected.
+	* tests/main.c: 
+	  Add functions to print conditions and test an ENM's condtions.
+
 2009-01-13  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c: (daemon_compose_ncu_panel_mixed_combo),

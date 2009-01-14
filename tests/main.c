@@ -113,6 +113,63 @@ main(int argc, char** argv)
     return (EXIT_SUCCESS);
 }
 
+static void
+print_conditions( NwamuiObject* obj )
+{
+    GList* cond_list = NULL;
+    nwamui_cond_activation_mode_t activation_mode;
+    const char*obj_name = NULL;
+
+    if ( NWAMUI_IS_ENM(obj) ) {
+        obj_name = "NwamuiEnm";
+        activation_mode = nwamui_enm_get_activation_mode( NWAMUI_ENM(obj) );
+        cond_list = nwamui_enm_get_selection_conditions( NWAMUI_ENM(obj) );
+    }
+
+    if (obj_name != NULL ) { 
+        const char* activation_str;
+        GList      *elem;
+
+        switch( activation_mode ) {
+            case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+                activation_str = "NWAMUI_COND_ACTIVATION_MODE_MANUAL";
+                break;
+            case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
+                activation_str = "NWAMUI_COND_ACTIVATION_MODE_SYSTEM";
+                break;
+            case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+                activation_str = "NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED";
+                break;
+            case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
+                activation_str = "NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY";
+                break;
+            default:
+                activation_str = "????";
+                break;
+        }
+        printf("%-*s%s : name = %s\n", indent, "", obj_name, activation_str );
+
+        printf("%-*s%s : conditions = \n", indent, "", obj_name );
+        if ( cond_list != NULL ) {
+            for ( elem = g_list_first( cond_list );
+                  elem != NULL;
+                  elem = g_list_next( elem ) ) {
+                if ( elem->data && NWAMUI_IS_COND(elem->data) ) {
+                    gchar* cond_str = nwamui_cond_to_string( NWAMUI_COND(elem->data) );
+                    printf("%-*s%s :     '%s'\n", indent, "", obj_name, cond_str?cond_str:"NULL" );
+                    g_free(cond_str);
+                }
+            }
+        }
+        else {
+            printf("%-*s%s :     NONE\n", indent, "", obj_name);
+        }
+        g_list_foreach( cond_list, nwamui_util_obj_unref, NULL );
+        g_list_free( cond_list );
+    }
+}
+
+
 static gboolean
 process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
 {
@@ -368,6 +425,8 @@ process_enm( gpointer data, gpointer user_data )
     smf_frmi = nwamui_enm_get_smf_fmri ( NWAMUI_ENM(enm) );
     printf("%-*sNwamuiEnm : smf_frmi = %s\n", indent, "", smf_frmi?smf_frmi:"NULL" );
 
+    print_conditions( enm );
+
     indent -= 4;
 
     printf("%-*s*************************************************************\n", indent, "");
@@ -408,3 +467,4 @@ test_enm_gobject( void )
     g_object_unref(G_OBJECT(daemon));
     
 }
+

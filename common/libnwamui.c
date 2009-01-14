@@ -236,7 +236,9 @@ nwamui_util_obj_unref( gpointer obj, gpointer user_data )
 extern void
 nwamui_util_free_obj_list( GList*   obj_list )
 {
-    g_return_if_fail( obj_list != NULL );
+    if ( obj_list == NULL ) {
+        return;
+    }
     
     g_list_foreach(obj_list, nwamui_util_obj_unref, NULL );
     

@@ -2997,7 +2997,7 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self )
             }
             break;
         default:
-            status_string = _("Not connected");
+            status_string = g_strdup(_("Not connected"));
     }
 
     return( status_string );

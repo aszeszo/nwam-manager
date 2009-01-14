@@ -406,22 +406,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
                 ncu_text = nwamui_ncu_get_display_name(ncu);
                 ncu_is_dhcp = nwamui_ncu_get_ipv4_auto_conf(ncu);
                 ncu_ipv4_addr = nwamui_ncu_get_ipv4_address(ncu);
-                if ( ! ncu_status ) {
-                    if ( ncu_is_dhcp ) {
-                        info_string = g_strdup_printf(_("DHCP"));
-                    }
-                    else {
-                        info_string = g_strdup_printf(_("Static: %s"), ncu_ipv4_addr?ncu_ipv4_addr:_("<i>No IP Address</i>") );
-                    }
-                }
-                else {
-                    if ( ncu_is_dhcp ) {
-                        info_string = g_strdup_printf(_("DHCP, %s"), ncu_ipv4_addr?ncu_ipv4_addr:_("<i>No IP Address</i>") );
-                    }
-                    else {
-                        info_string = g_strdup_printf(_("%s"), ncu_ipv4_addr?ncu_ipv4_addr:_("<i>No IP Address</i>") );
-                    }
-                }
+                info_string = nwamui_ncu_get_connection_state_detail_string( ncu );
 
                 ncu_markup= g_strdup_printf(_("<b>%s</b>\n<small>%s</small>"), ncu_text, info_string );
                 g_free (info_string);
@@ -438,9 +423,16 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 		break;
                 
         case CONNVIEW_STATUS:
+        ncu_text = nwamui_ncu_get_connection_state_string( ncu );
+		g_object_set (G_OBJECT(renderer),
+			"text", ncu_text,
+			NULL);
+        g_free(ncu_text);
+        /*
 		g_object_set (G_OBJECT(renderer),
 			"text", ncu_status?_("Enabled"):_("Disabled"),
 			NULL);
+            */
 		break;
 	default:
 		g_assert_not_reached ();

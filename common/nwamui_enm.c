@@ -54,6 +54,8 @@ enum {
     PROP_STOP_COMMAND,
     PROP_SMF_FMRI,
     PROP_NWAM_ENM,
+    PROP_ACTIVATION_MODE,
+    PROP_CONDITIONS,
 };
 
 
@@ -72,6 +74,12 @@ static void nwamui_enm_finalize (     NwamuiEnm *self);
 static gboolean get_nwam_enm_boolean_prop( nwam_enm_handle_t enm, const char* prop_name );
 
 static gchar* get_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name );
+
+static gchar**      get_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name );
+static gboolean     set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name, char** strs, guint len);
+
+static guint64      get_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name );
+static gboolean     set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 value );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -140,6 +148,24 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
         _("Nwam Enm handle"),
         _("Nwam Enm handle"),
         G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_ACTIVATION_MODE,
+                                     g_param_spec_int ("activation_mode",
+                                                       _("activation_mode"),
+                                                       _("activation_mode"),
+                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
+                                                       NWAMUI_COND_ACTIVATION_MODE_LAST,
+                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
+                                                       G_PARAM_READWRITE));
+
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_CONDITIONS,
+                                     g_param_spec_pointer ("conditions",
+                                                          _("conditions"),
+                                                          _("conditions"),
+                                                          G_PARAM_READWRITE));
 }
 
 
@@ -260,6 +286,24 @@ nwamui_enm_set_property (   GObject         *object,
             }
             break;
 
+        case PROP_ACTIVATION_MODE: {
+                nwamui_cond_activation_mode_t activation_mode = 
+                    (nwamui_cond_activation_mode_t)g_value_get_int( value );
+
+                set_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
+            }
+            break;
+
+        case PROP_CONDITIONS: {
+                GList *conditions = g_value_get_pointer( value );
+                char  **condition_strs = NULL;
+                guint   len = 0;
+
+                condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
+                set_nwam_enm_string_array_prop( self->prv->nwam_enm, NWAM_NCU_PROP_CONDITION, condition_strs, len );
+            }
+            break;
+
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -346,6 +390,28 @@ nwamui_enm_get_property (   GObject         *object,
             g_value_set_string( value, self->prv->smf_fmri );
         }
         break;
+
+        case PROP_ACTIVATION_MODE: {
+                nwamui_cond_activation_mode_t activation_mode;
+                activation_mode = (nwamui_cond_activation_mode_t)
+                                    get_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_NCU_PROP_ACTIVATION_MODE );
+
+                g_value_set_int( value, (gint)activation_mode );
+
+            }
+            break;
+
+        case PROP_CONDITIONS: {
+                gchar** condition_strs = get_nwam_enm_string_array_prop( self->prv->nwam_enm, 
+                                                                         NWAM_NCU_PROP_CONDITION );
+
+                GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
+
+                g_value_set_pointer( value, conditions );
+
+                g_strfreev( condition_strs );
+            }
+            break;
 
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -444,6 +510,187 @@ get_nwam_enm_boolean_prop( nwam_enm_handle_t enm, const char* prop_name )
 
     return( (gboolean)value );
 }
+
+static gchar**
+get_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gchar**             retval = NULL;
+    char**              value = NULL;
+    uint_t              num = 0;
+
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( enm == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for enm property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_enm_get_prop_value (enm, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_get_string_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get string value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( value != NULL && num > 0 ) {
+        /* Create a NULL terminated list of stirngs, allocate 1 extra place
+         * for NULL termination. */
+        retval = (gchar**)g_malloc0( sizeof(gchar*) * (num+1) );
+
+        for (int i = 0; i < num; i++ ) {
+            retval[i]  = g_strdup ( value[i] );
+        }
+        retval[num]=NULL;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static gboolean
+set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name, char** strs, guint len )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( enm == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for enm property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( strs == NULL ) {
+        return retval;
+    }
+
+
+    if ( len == 0 ) { /* Assume a strv, i.e. NULL terminated list, otherwise strs would be NULL */
+        int i;
+
+        for( i = 0; strs != NULL && strs[i] != NULL; i++ ) {
+            /* Do Nothing, just count. */
+        }
+        len = i;
+    }
+
+    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+        g_error("Attempting to set a read-only enm property %s", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_string_array (strs, len, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a value for string array 0x%08X", strs);
+        return retval;
+    }
+
+    if ( (nerr = nwam_enm_set_prop_value (enm, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static guint64
+get_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    uint64_t            value = 0;
+
+    g_return_val_if_fail( prop_name != NULL, value );
+
+    if ( enm == NULL ) {
+        return( value );
+    }
+
+    if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for enm property %s\n", prop_name );
+        return value;
+    }
+
+    if ( (nerr = nwam_enm_get_prop_value (enm, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    if ( (nerr = nwam_value_get_uint64(nwam_data, &value )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get uint64 value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    nwam_value_free(nwam_data);
+
+    return( (guint64)value );
+}
+
+static gboolean
+set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 value )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( enm == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for enm property %s\n", prop_name );
+        return retval;
+    }
+
+    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+        g_error("Attempting to set a read-only enm property %s", prop_name );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_uint64 (value, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a uint64 value" );
+        return retval;
+    }
+
+    if ( (nerr = nwam_enm_set_prop_value (enm, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
 
 /**
  * nwamui_enm_new_with_handle:
@@ -686,6 +933,58 @@ nwamui_enm_get_smf_fmri (NwamuiEnm *self)
 
     return( smf_fmri );
 }
+
+extern void
+nwamui_enm_set_activation_mode ( NwamuiEnm *self, 
+                                 nwamui_cond_activation_mode_t activation_mode )
+{
+    g_return_if_fail (NWAMUI_IS_ENM (self));
+
+    g_object_set (G_OBJECT (self),
+                  "activation_mode", activation_mode,
+                  NULL);
+}
+
+extern nwamui_cond_activation_mode_t 
+nwamui_enm_get_activation_mode ( NwamuiEnm *self )
+{
+    nwamui_cond_activation_mode_t activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
+
+    g_return_val_if_fail (NWAMUI_IS_ENM (self), activation_mode );
+
+    g_object_get (G_OBJECT (self),
+                  "activation_mode", &activation_mode,
+                  NULL);
+
+    return( activation_mode );
+}
+
+
+extern GList*
+nwamui_enm_get_selection_conditions( NwamuiEnm* self )
+{
+    GList*  conditions = NULL;
+
+    g_return_val_if_fail (NWAMUI_IS_ENM (self), conditions );
+
+    g_object_get (G_OBJECT (self),
+                  "conditions", &conditions,
+                  NULL);
+
+    return( conditions );
+}
+
+
+extern void
+nwamui_enm_set_selection_conditions( NwamuiEnm* self, GList* conditions )
+{
+    g_return_if_fail (NWAMUI_IS_ENM (self));
+
+    g_object_set (G_OBJECT (self),
+                  "conditions", conditions,
+                  NULL);
+}
+
 
 extern gboolean
 nwamui_enm_commit (NwamuiEnm *self)

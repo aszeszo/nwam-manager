@@ -671,7 +671,11 @@ refresh (NwamConnConfIPPanel *self, gpointer data, gboolean force)
     gboolean init_refresh = FALSE;
     NwamuiNcu* ncu = NWAMUI_NCU(data);
 
-    g_return_if_fail( NWAM_IS_CONN_CONF_IP_PANEL(self) && NWAMUI_IS_NCU(ncu) );
+    g_return_val_if_fail( NWAM_IS_CONN_CONF_IP_PANEL(self), init_refresh );
+    
+    if ( ! NWAMUI_IS_NCU(ncu) ) {
+        return( init_refresh );
+    }
     
     if (self->prv->ncu != ncu) {
         init_refresh = TRUE;
