@@ -112,10 +112,6 @@ extern nwamui_cond_activation_mode_t
 extern void                 nwamui_env_set_conditions ( NwamuiEnv *self, const GList* conditions );
 extern GList*               nwamui_env_get_conditions ( NwamuiEnv *self );
 
-extern void                 nwamui_env_condition_add (NwamuiEnv *self, NwamuiCond* cond);
-extern void                 nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond* cond);
-extern void                 nwamui_env_condition_foreach (NwamuiEnv *self, GFunc func, gpointer data);
-
 extern void                 nwamui_env_set_enabled ( NwamuiEnv *self, gboolean enabled );
 extern gboolean             nwamui_env_get_enabled ( NwamuiEnv *self );
 

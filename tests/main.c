@@ -114,13 +114,23 @@ main(int argc, char** argv)
 }
 
 static void
-print_conditions( NwamuiObject* obj )
+print_conditions( GObject* obj )
 {
     GList* cond_list = NULL;
     nwamui_cond_activation_mode_t activation_mode;
     const char*obj_name = NULL;
 
-    if ( NWAMUI_IS_ENM(obj) ) {
+    if ( NWAMUI_IS_NCU(obj) ) {
+        obj_name = "NwamuiNcu";
+        activation_mode = nwamui_ncu_get_activation_mode( NWAMUI_NCU(obj) );
+        cond_list = nwamui_ncu_get_selection_conditions( NWAMUI_NCU(obj) );
+    }
+    else if ( NWAMUI_IS_ENV(obj) ) {
+        obj_name = "NwamuiEnv";
+        activation_mode = nwamui_env_get_activation_mode( NWAMUI_ENV(obj) );
+        cond_list = nwamui_env_get_conditions( NWAMUI_ENV(obj) );
+    }
+    else if ( NWAMUI_IS_ENM(obj) ) {
         obj_name = "NwamuiEnm";
         activation_mode = nwamui_enm_get_activation_mode( NWAMUI_ENM(obj) );
         cond_list = nwamui_enm_get_selection_conditions( NWAMUI_ENM(obj) );
@@ -147,7 +157,7 @@ print_conditions( NwamuiObject* obj )
                 activation_str = "????";
                 break;
         }
-        printf("%-*s%s : name = %s\n", indent, "", obj_name, activation_str );
+        printf("%-*s%s : activation_mode = %s\n", indent, "", obj_name, activation_str );
 
         printf("%-*s%s : conditions = \n", indent, "", obj_name );
         if ( cond_list != NULL ) {
@@ -240,6 +250,8 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     printf("%-*sNcu ipv6_auto_conf = %s\n", indent, "", ipv6_auto_conf?"True":"False" );
     printf("%-*sNcu ipv6_address = %s\n", indent, "", ipv6_address?ipv6_address:"NULL" );
     printf("%-*sNcu ipv6_prefix = %s\n", indent, "", ipv6_prefix?ipv6_prefix:"NULL" );
+
+    print_conditions( G_OBJECT(ncu) );
 
     indent -= 4;
 
@@ -360,6 +372,9 @@ process_env( gpointer data, gpointer user_data )
     printf("%-*sEnv proxy_gopher = %s\n", indent, "", proxy_gopher?proxy_gopher:"NULL" );
     printf("%-*sEnv proxy_socks = %s\n", indent, "", proxy_socks?proxy_socks:"NULL" );
     printf("%-*sEnv proxy_bypass_list = %s\n", indent, "", proxy_bypass_list?proxy_bypass_list:"NULL" );
+
+    print_conditions( G_OBJECT(env) );
+
     indent -= 4;
     printf("%-*s*************************************************************\n", indent, "");
 
@@ -425,7 +440,7 @@ process_enm( gpointer data, gpointer user_data )
     smf_frmi = nwamui_enm_get_smf_fmri ( NWAMUI_ENM(enm) );
     printf("%-*sNwamuiEnm : smf_frmi = %s\n", indent, "", smf_frmi?smf_frmi:"NULL" );
 
-    print_conditions( enm );
+    print_conditions( G_OBJECT(enm) );
 
     indent -= 4;
 

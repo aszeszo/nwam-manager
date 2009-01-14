@@ -300,7 +300,7 @@ nwamui_enm_set_property (   GObject         *object,
                 guint   len = 0;
 
                 condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
-                set_nwam_enm_string_array_prop( self->prv->nwam_enm, NWAM_NCU_PROP_CONDITION, condition_strs, len );
+                set_nwam_enm_string_array_prop( self->prv->nwam_enm, NWAM_NCU_PROP_CONDITIONS, condition_strs, len );
             }
             break;
 
@@ -403,7 +403,7 @@ nwamui_enm_get_property (   GObject         *object,
 
         case PROP_CONDITIONS: {
                 gchar** condition_strs = get_nwam_enm_string_array_prop( self->prv->nwam_enm, 
-                                                                         NWAM_NCU_PROP_CONDITION );
+                                                                         NWAM_NCU_PROP_CONDITIONS );
 
                 GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
 
@@ -457,7 +457,7 @@ get_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name )
 
     if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
-        g_warning("Unexpected type for enm property %s\n", prop_name );
+        g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -492,7 +492,7 @@ get_nwam_enm_boolean_prop( nwam_enm_handle_t enm, const char* prop_name )
 
     if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
-        g_warning("Unexpected type for enm property %s\n", prop_name );
+        g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
         return value;
     }
 
@@ -529,7 +529,7 @@ get_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name )
 
     if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
-        g_warning("Unexpected type for enm property %s\n", prop_name );
+        g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -575,7 +575,7 @@ set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name, ch
 
     if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
-        g_warning("Unexpected type for enm property %s\n", prop_name );
+        g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -631,7 +631,7 @@ get_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name )
 
     if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
-        g_warning("Unexpected type for enm property %s\n", prop_name );
+        g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
         return value;
     }
 
@@ -665,7 +665,7 @@ set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 
 
     if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
-        g_warning("Unexpected type for enm property %s\n", prop_name );
+        g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 

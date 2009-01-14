@@ -19,7 +19,7 @@
  * CDDL HEADER END
  */
 /*
- * Copyright 2008 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2009 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  */
 
@@ -213,9 +213,13 @@ typedef enum {
 typedef enum {
 	NWAM_AUX_STATE_TO_DO
 } nwam_aux_state_t;
+
 /*
  * Location definitions.
  */
+
+#define	NWAM_LOC_NAME_AUTOMATIC		"Automatic"
+#define	NWAM_LOC_NAME_NO_NET		"NoNet"
 
 /* Forward definition */
 struct nwam_loc_handle;
@@ -333,7 +337,7 @@ typedef enum {
 
 #define	NWAM_LOC_PROP_READ_ONLY			"read-only"
 #define	NWAM_LOC_PROP_ACTIVATION_MODE		"activation-mode"
-#define	NWAM_LOC_PROP_CONDITION			"condition"
+#define	NWAM_LOC_PROP_CONDITIONS		"conditions"
 #define	NWAM_LOC_PROP_ENABLED			"enabled"
 
 /* Nameservice location properties */
@@ -362,7 +366,6 @@ typedef enum {
 
 /* IPsec configuration */
 #define	NWAM_LOC_PROP_IKE_CONFIG_FILE		"ike-config-file"
-#define	NWAM_LOC_PROP_IPSECKEY_CONFIG_FILE	"ipseckey-config-file"
 #define	NWAM_LOC_PROP_IPSECPOLICY_CONFIG_FILE	"ipsecpolicy-config-file"
 
 /* List of SMF services to enable/disable */
@@ -451,7 +454,7 @@ typedef enum {
 #define	NWAM_NCU_PROP_CLASS		"class"
 #define	NWAM_NCU_PROP_PARENT_NCP	"parent"
 #define	NWAM_NCU_PROP_ACTIVATION_MODE	"activation-mode"
-#define	NWAM_NCU_PROP_CONDITION		"condition"
+#define	NWAM_NCU_PROP_CONDITIONS	"conditions"
 #define	NWAM_NCU_PROP_ENABLED		"enabled"
 #define	NWAM_NCU_PROP_PRIORITY_GROUP	"priority-group"
 #define	NWAM_NCU_PROP_PRIORITY_MODE	"priority-mode"
@@ -491,7 +494,7 @@ typedef struct nwam_enm_handle *nwam_enm_handle_t;
 
 #define	NWAM_ENM_PROP_READ_ONLY		"read-only"
 #define	NWAM_ENM_PROP_ACTIVATION_MODE	"activation-mode"
-#define	NWAM_ENM_PROP_CONDITION		"condition"
+#define	NWAM_ENM_PROP_CONDITIONS	"conditions"
 #define	NWAM_ENM_PROP_ENABLED		"enabled"
 
 /* FMRI associated with ENM */
@@ -572,6 +575,9 @@ extern nwam_error_t nwam_loc_validate_prop(nwam_loc_handle_t, const char *,
 /* Retrieve data type */
 extern nwam_error_t nwam_loc_get_prop_type(const char *, nwam_value_type_t *);
 
+/* Get the read-only value from the handle */
+extern nwam_error_t nwam_loc_get_read_only(nwam_loc_handle_t, boolean_t *);
+
 /* get default loc props */
 extern nwam_error_t nwam_loc_get_default_proplist(const char ***, uint_t *);
 
@@ -585,6 +591,10 @@ extern nwam_error_t nwam_ncp_create(const char *, uint64_t,
 
 /* Read an ncp from persistent storage */
 extern nwam_error_t nwam_ncp_read(const char *, uint64_t, nwam_ncp_handle_t *);
+
+/* Make a copy of existing ncp */
+extern nwam_error_t nwam_ncp_copy(nwam_ncp_handle_t, const char *,
+	nwam_ncp_handle_t *);
 
 /* Walk ncps */
 extern nwam_error_t nwam_walk_ncps(int (*)(nwam_ncp_handle_t, void *),
@@ -614,7 +624,7 @@ extern void nwam_ncp_free(nwam_ncp_handle_t);
 
 /* Create an ncu or read it from persistent storage */
 extern nwam_error_t nwam_ncu_create(nwam_ncp_handle_t, const char *,
-	nwam_ncu_type_t, nwam_ncu_class_t, nwam_ncu_handle_t *);
+	nwam_ncu_type_t, nwam_ncu_class_t, uint64_t, nwam_ncu_handle_t *);
 extern nwam_error_t nwam_ncu_read(nwam_ncp_handle_t, const char *,
 	nwam_ncu_type_t, uint64_t, nwam_ncu_handle_t *);
 
@@ -648,17 +658,20 @@ extern nwam_error_t nwam_ncu_get_ncp(nwam_ncu_handle_t, nwam_ncp_handle_t *);
 
 /* delete/get/set/validate property from/in in-memory representation of ncu */
 extern nwam_error_t nwam_ncu_delete_prop(nwam_ncu_handle_t,
-	const char *);
+	const char *, uint64_t);
 extern nwam_error_t nwam_ncu_get_prop_value(nwam_ncu_handle_t,
 	const char *, nwam_value_t *);
 extern nwam_error_t nwam_ncu_set_prop_value(nwam_ncu_handle_t,
-	const char *, nwam_value_t);
+	const char *, nwam_value_t, uint64_t);
 
 extern nwam_error_t nwam_ncu_validate_prop(nwam_ncu_handle_t, const char *,
 	nwam_value_t);
 
 /* Retrieve data type */
 extern nwam_error_t nwam_ncu_get_prop_type(const char *, nwam_value_type_t *);
+
+/* Get the read-only value from the handle or parent NCP */
+extern nwam_error_t nwam_ncu_get_read_only(nwam_ncu_handle_t, boolean_t *);
 
 /* ENM functions */
 /*
@@ -737,6 +750,9 @@ extern nwam_error_t nwam_enm_walk_props(nwam_enm_handle_t,
 extern nwam_error_t nwam_enm_get_name(nwam_enm_handle_t, char **);
 extern nwam_error_t nwam_enm_set_name(nwam_enm_handle_t, const char *);
 
+/* Get the read-only value from the handle */
+extern nwam_error_t nwam_enm_get_read_only(nwam_enm_handle_t, boolean_t *);
+
 /*
  * Start/stop an enm.
  */
@@ -762,7 +778,7 @@ extern nwam_error_t nwam_known_wlan_read(const char *, uint64_t,
 extern nwam_error_t nwam_known_wlan_destroy(nwam_known_wlan_handle_t, uint64_t);
 extern void nwam_known_wlan_free(nwam_known_wlan_handle_t);
 
-/* make a copy of existing known W:AN */
+/* make a copy of existing known WLAN */
 extern nwam_error_t nwam_known_wlan_copy(nwam_known_wlan_handle_t, const char *,
     nwam_known_wlan_handle_t *);
 

@@ -643,7 +643,7 @@ nwamui_ncu_set_property ( GObject         *object,
                 guint   len = 0;
 
                 condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
-                set_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_CONDITION, condition_strs, len );
+                set_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_CONDITIONS, condition_strs, len );
             }
             break;
 
@@ -822,7 +822,7 @@ nwamui_ncu_get_property (GObject         *object,
             break;
         case PROP_CONDITIONS: {
                 gchar** condition_strs = get_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, 
-                                                                         NWAM_NCU_PROP_CONDITION );
+                                                                         NWAM_NCU_PROP_CONDITIONS );
 
                 GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
 
@@ -2109,58 +2109,25 @@ nwamui_ncu_set_selection_conditions( NwamuiNcu*                   self,
 }
 
 /** 
- * nwamui_ncu_set_selection_conditions:
+ * nwamui_ncu_get_selection_conditions:
  * @nwamui_ncu: a #NwamuiNcu.
- * @selected_ncus: A GList of NCUs that are to be checked.
+ * returns: A GList of conditions that are to be checked.
  * 
  **/ 
-extern void
-nwamui_ncu_selection_conditions_add( NwamuiNcu*  self,
-                                    NwamuiCond*  condition_to_add )
+extern GList*
+nwamui_ncu_get_selection_conditions( NwamuiNcu* self )
 {
-    GList*  selected_conds;
-    
-    g_return_if_fail (NWAMUI_IS_NCU (self));
+    GList*  conditions = NULL;
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), conditions );
 
     g_object_get (G_OBJECT (self),
-              "conditions", &selected_conds,
+              "conditions", &conditions,
               NULL);
     
-    if ( g_list_find( selected_conds, (gpointer)condition_to_add) == NULL ) {
-
-        selected_conds = g_list_insert(selected_conds, (gpointer)g_object_ref(condition_to_add), 0 );
-
-        g_object_set (G_OBJECT (self),
-                  "conditions", selected_conds,
-                  NULL);
-    }
+    return( conditions );
 }
 
-extern void
-nwamui_ncu_selection_conditions_remove( NwamuiNcu*   self,
-                                        NwamuiCond*  condition_to_remove )
-{
-    GList*  selected_conds = NULL;
-    GList*  node = NULL ;
-    
-    g_return_if_fail (NWAMUI_IS_NCU (self));
-
-    g_object_get (G_OBJECT (self),
-              "conditions", &selected_conds,
-              NULL);
-
-    if ( (node = g_list_find( selected_conds, (gpointer)condition_to_remove)) != NULL ) {
-
-        selected_conds = g_list_delete_link(selected_conds, node );
-
-        g_object_unref( condition_to_remove );
-
-        g_object_set (G_OBJECT (self),
-                  "conditions", selected_conds,
-                  NULL);
-    }
-    
-}
 
 static void
 nwamui_ncu_finalize (NwamuiNcu *self)
@@ -2199,7 +2166,7 @@ get_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
-        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -2237,7 +2204,7 @@ set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const gc
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
-        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -2251,7 +2218,7 @@ set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const gc
         return retval;
     }
 
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data, 0)) != NWAM_SUCCESS ) {
         g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
     }
     else {
@@ -2281,7 +2248,7 @@ get_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
-        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -2327,7 +2294,7 @@ set_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, ch
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
-        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -2355,7 +2322,7 @@ set_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, ch
         return retval;
     }
 
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data, 0)) != NWAM_SUCCESS ) {
         g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
     }
     else {
@@ -2383,7 +2350,7 @@ get_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
-        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return value;
     }
 
@@ -2417,7 +2384,7 @@ set_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name, gboolea
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
-        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -2431,7 +2398,7 @@ set_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name, gboolea
         return retval;
     }
 
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data, 0)) != NWAM_SUCCESS ) {
         g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
     }
     else {
@@ -2460,7 +2427,7 @@ get_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
-        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return value;
     }
 
@@ -2494,7 +2461,7 @@ set_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name, guint64 
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
-        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -2508,7 +2475,7 @@ set_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name, guint64 
         return retval;
     }
 
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data, 0)) != NWAM_SUCCESS ) {
         g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
     }
     else {
@@ -2538,7 +2505,7 @@ get_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name , g
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
-        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return value;
     }
 
@@ -2580,7 +2547,7 @@ set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name,
 
     if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
-        g_warning("Unexpected type for ncu property %s\n", prop_name );
+        g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -2594,7 +2561,7 @@ set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name,
         return retval;
     }
 
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data, 0)) != NWAM_SUCCESS ) {
         g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
     }
     else {

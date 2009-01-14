@@ -41,7 +41,7 @@
 #include "capplet-utils.h"
 
 /* Names of Widgets in Glade file */
-#define     ENV_PREF_DIALOG_NAME           "nwam_environment"
+#define     ENV_PREF_DIALOG_NAME           "nwam_location"
 
 #define     ENVIRONMENT_NAME_COMBO         "environment_name_combo"
 #define     ADD_ENVIRONMENT_BTN            "add_environment_btn"

@@ -8,7 +8,8 @@ echo_cp() {
 
 NWAM_PHASE1_REPO=/export/synchronized/NWAM/nwam-phase1-clone
 
-CLONE_HEADERS="usr/src/lib/libinetcfg/common/inetcfg.h
+CLONE_HEADERS="usr/src/lib/libnwam/common/libnwam.h
+usr/src/lib/libinetcfg/common/inetcfg.h
 usr/src/lib/libdladm/common/*.h"
 
 CLONE_SYS_HEADERS="usr/src/uts/common/sys/mac.h

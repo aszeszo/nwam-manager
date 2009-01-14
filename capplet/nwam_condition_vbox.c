@@ -312,10 +312,14 @@ table_lines_init (NwamConditionVBox *self, NwamuiEnv *env)
                            (gpointer)self);
 
     if ( env ) {
+        GList*  condition_list = nwamui_env_get_conditions( env );
+
         /* for each condition of NwamuiEnv; do */
-        nwamui_env_condition_foreach(env,
+        g_list_foreach( condition_list,
           table_condition_add_row, 
           (gpointer)self);
+
+        nwamui_util_free_obj_list( condition_list );
 
         /* If there are no rows inserted */
         if (prv->table_line_num == 0) {

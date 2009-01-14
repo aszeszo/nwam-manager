@@ -173,14 +173,9 @@ extern nwamui_cond_priority_group_mode_t
                             nwamui_ncu_get_priority_group_mode ( NwamuiNcu *self );
 
 
+extern GList*               nwamui_ncu_get_selection_conditions( NwamuiNcu* self );
 extern void                 nwamui_ncu_set_selection_conditions( NwamuiNcu*                   self,
                                                                  GList*                       conditions );
-
-extern void                 nwamui_ncu_selection_conditions_add( NwamuiNcu*     self,
-                                                                 NwamuiCond*    condition_to_add );
-
-extern void                 nwamui_ncu_selection_conditions_remove( NwamuiNcu*  self,
-                                                                    NwamuiCond* condition_to_remove );
 
 extern const gchar*         nwamui_ncu_get_signal_strength_string( NwamuiNcu* self );
 

@@ -1308,7 +1308,7 @@ get_nwam_loc_string_prop( nwam_loc_handle_t loc, const char* prop_name )
 
     if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
-        g_warning("Unexpected type for loc property %s\n", prop_name );
+        g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -1345,7 +1345,7 @@ get_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name )
 
     if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_STRING ) {
-        g_warning("Unexpected type for loc property %s\n", prop_name );
+        g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
         return retval;
     }
 
@@ -1387,7 +1387,7 @@ get_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name )
 
     if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
-        g_warning("Unexpected type for loc property %s\n", prop_name );
+        g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
         return value;
     }
 
@@ -1418,7 +1418,7 @@ get_nwam_loc_uint64_prop( nwam_loc_handle_t loc, const char* prop_name )
 
     if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
-        g_warning("Unexpected type for loc property %s\n", prop_name );
+        g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
         return value;
     }
 
@@ -1451,7 +1451,7 @@ get_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , g
 
     if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
-        g_warning("Unexpected type for loc property %s\n", prop_name );
+        g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
         return value;
     }
 
@@ -1534,7 +1534,7 @@ populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t nwam_loc )
 
     prv->modifiable = !get_nwam_loc_boolean_prop( nwam_loc, NWAM_LOC_PROP_READ_ONLY );
     prv->activation_mode = (nwamui_cond_activation_mode_t)get_nwam_loc_uint64_prop( nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
-    condition_str = get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_CONDITION );
+    condition_str = get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_CONDITIONS );
     prv->conditions = nwamui_util_map_condition_strings_to_object_list( condition_str);
     g_strfreev( condition_str );
 
@@ -1571,7 +1571,8 @@ populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t nwam_loc )
 
     /* IPsec configuration */
     prv->ike_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IKE_CONFIG_FILE );
-    prv->ipseckey_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPSECKEY_CONFIG_FILE );
+    /* prv->ipseckey_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPSECKEY_CONFIG_FILE ); */
+    prv->ipseckey_config_file = NULL;
     prv->ipsecpolicy_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPSECPOLICY_CONFIG_FILE );
 
     /* List of SMF services to enable/disable */
@@ -3197,32 +3198,6 @@ nwamui_env_get_conditions (NwamuiEnv *self)
 
     return( (GList*)conditions );
 }
-
-
-extern void
-nwamui_env_condition_add (NwamuiEnv *self, NwamuiCond* cond)
-{
-    g_return_if_fail( NWAMUI_IS_ENV( self ) && NWAMUI_IS_COND(cond));
-    
-    self->prv->conditions = g_list_append( self->prv->conditions, NWAMUI_COND(g_object_ref(cond)) );
-    
-}
-
-extern void
-nwamui_env_condition_remove (NwamuiEnv *self, NwamuiCond* cond)
-{
-    g_return_if_fail( NWAMUI_IS_ENV( self ) && NWAMUI_IS_COND(cond));
-    
-    self->prv->conditions = g_list_remove( self->prv->conditions, cond );
-    g_object_unref(cond);
-}
-
-extern void
-nwamui_env_condition_foreach (NwamuiEnv *self, GFunc func, gpointer data)
-{
-    g_list_foreach(self->prv->conditions, func, data );
-}
-
 
 extern GtkTreeModel *
 nwamui_env_get_condition_subject ()
