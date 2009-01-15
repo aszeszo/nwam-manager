@@ -1,4 +1,6 @@
+#include <gdk/gdkkeysyms.h>
 #include "capplet-utils.h"
+
 static gboolean ncu_panel_mixed_combo_separator_cb(GtkTreeModel *model,
     GtkTreeIter *iter,
     gpointer data);
@@ -228,4 +230,14 @@ capplet_compose_combo(GtkComboBox *combo,
 		    changed_func,
 		    user_data);
 	}
+}
+
+void
+capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class)
+{
+	GtkBindingSet *binding_set;
+
+	binding_set = gtk_binding_set_by_class(dialog_class);
+  
+	gtk_binding_entry_remove(binding_set, GDK_Escape, 0);
 }

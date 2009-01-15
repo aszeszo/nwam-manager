@@ -19,5 +19,7 @@ void capplet_compose_combo(GtkComboBox *combo,
     gpointer user_data,
     GDestroyNotify destroy);
 
+void capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class);
+
 
 #endif /* _CAPPLET_UTILS_H */

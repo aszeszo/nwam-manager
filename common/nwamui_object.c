@@ -87,6 +87,9 @@ nwamui_object_class_init(NwamuiObjectClass *klass)
 	gobject_class->set_property = nwamui_object_set_property;
 	gobject_class->get_property = nwamui_object_get_property;
 
+    klass->get_conditions = NULL;
+    klass->set_conditions = NULL;
+
 	g_type_class_add_private(klass, sizeof(NwamuiObjectPrivate));
 }
 
@@ -148,3 +151,34 @@ nwamui_object_finalize(NwamuiObject *self)
 	G_OBJECT_CLASS(nwamui_object_parent_class)->finalize(G_OBJECT (self));
 }
 
+/** 
+ * nwamui_env_set_conditions:
+ * @nwamui_env: a #NwamuiEnv.
+ * @conditions: Value to set conditions to.
+ * 
+ **/ 
+extern void
+nwamui_object_set_conditions (   NwamuiObject *self,
+                             const GList* conditions )
+{
+    g_return_if_fail (NWAMUI_IS_OBJECT (self));
+    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (self)->set_conditions);
+    g_assert (conditions != NULL );
+
+    NWAMUI_OBJECT_GET_CLASS (self)->set_conditions(self, conditions);
+}
+
+/**
+ * nwamui_object_get_conditions:
+ * @nwamui_object: a #NwamuiObject.
+ * @returns: the conditions.
+ *
+ **/
+extern GList*
+nwamui_object_get_conditions (NwamuiObject *self)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (self), NULL);
+    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (self)->get_conditions, NULL);
+
+    return NWAMUI_OBJECT_GET_CLASS (self)->get_conditions(self);
+}

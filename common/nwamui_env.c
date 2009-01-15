@@ -180,6 +180,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
 {
     /* Pointer to GObject Part of Class */
     GObjectClass *gobject_class = (GObjectClass*) klass;
+    NwamuiObjectClass *nwamuiobject_class = NWAMUI_OBJECT_CLASS(klass);
         
     /* Initialise Static Parent Class pointer */
     parent_class = g_type_class_peek_parent (klass);
@@ -188,6 +189,9 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     gobject_class->set_property = nwamui_env_set_property;
     gobject_class->get_property = nwamui_env_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_env_finalize;
+
+    nwamuiobject_class->get_conditions = nwamui_env_get_conditions;
+    nwamuiobject_class->set_conditions = nwamui_env_set_conditions;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,

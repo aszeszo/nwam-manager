@@ -1,3 +1,47 @@
+2009-01-15  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am:
+	* capplet/capplet-utils.c:
+	(capplet_remove_gtk_dialog_escape_binding):
+	* capplet/capplet-utils.h:
+	* capplet/main.c: (customwidgethandler):
+	* capplet/nwam-manager-properties.glade:
+	* capplet/nwam_condition_vbox.c: (refresh), (apply), (cancel),
+	(nwam_condition_vbox_class_init), (nwam_condition_vbox_finalize),
+	(_cu_cond_combo_cell_cb), (_cu_cond_combo_filter_visible_cb),
+	(_cu_cond_combo_new), (nwam_condition_vbox_new),
+	(table_lines_init), (table_add_condition_cb),
+	(table_delete_condition_cb),
+	(default_condition_add_signal_handler),
+	(default_condition_remove_signal_handler):
+	* capplet/nwam_location_dialog.c:
+	(nwam_location_dialog_class_init), (nwam_compose_tree_view),
+	(nwam_location_dialog_init), (nwam_treeview_add_object_cb),
+	(nwam_treeview_remove_object_cb), (nwam_treeview_activate_btn_cb),
+	(nwam_treeview_update_widget_cb), (on_button_clicked):
+	Uses rules dialog.
+	* capplet/nwam_rules_dialog.c: (refresh), (apply), (cancel),
+	(nwam_pref_init), (nwam_rules_dialog_class_init),
+	(nwam_rules_dialog_init), (nwam_rules_dialog_finalize),
+	(nwam_rules_dialog_new), (nwam_rules_dialog_run), (response_cb):
+	* capplet/nwam_rules_dialog.h:
+	Add Rules Dialog.
+	* capplet/nwam_tree_view.c: (nwam_tree_view_class_init),
+	(nwam_tree_view_init), (nwam_tree_view_set_object_func),
+	(on_button_clicked), (nwam_tree_view_key_press),
+	(nwam_tree_view_key_release), (default_set_object_func),
+	(nwam_tree_view_row_activated_cb),
+	(nwam_tree_view_locate_new_object):
+	* capplet/nwam_tree_view.h:
+	A few work for pressing escape on tree view.
+	* common/nwamui_enm.c: (nwamui_enm_class_init):
+	* common/nwamui_env.c: (nwamui_env_class_init):
+	* common/nwamui_ncu.c: (nwamui_ncu_class_init):
+	* common/nwamui_object.c: (nwamui_object_class_init),
+	(nwamui_object_set_conditions), (nwamui_object_get_conditions):
+	* common/nwamui_object.h:
+	Add virtual functions for get/set_conditions.
+
 2009-01-14  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_env_pref_dialog.c:

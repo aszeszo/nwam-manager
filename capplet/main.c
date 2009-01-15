@@ -39,6 +39,7 @@
 #include "nwam_wireless_chooser.h"
 #include "nwam_pref_dialog.h"
 #include "nwam_location_dialog.h"
+#include "nwam_condition_vbox.h"
 
 /* Command-line options */
 static gboolean debug = FALSE;
@@ -99,6 +100,7 @@ customwidgethandler(GladeXML *xml,
         g_debug("CUSTOMIZED WIDGET %s", name);
         return nwam_tree_view_new();
     }
+
     return NULL;
 }
 

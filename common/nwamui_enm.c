@@ -91,6 +91,7 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
 {
     /* Pointer to GObject Part of Class */
     GObjectClass *gobject_class = (GObjectClass*) klass;
+    NwamuiObjectClass *nwamuiobject_class = NWAMUI_OBJECT_CLASS(klass);
         
     /* Initialise Static Parent Class pointer */
     parent_class = g_type_class_peek_parent (klass);
@@ -99,6 +100,9 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
     gobject_class->set_property = nwamui_enm_set_property;
     gobject_class->get_property = nwamui_enm_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_enm_finalize;
+
+    nwamuiobject_class->get_conditions = nwamui_enm_get_selection_conditions;
+    nwamuiobject_class->set_conditions = nwamui_enm_set_selection_conditions;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,

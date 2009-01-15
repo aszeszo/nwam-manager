@@ -33,12 +33,16 @@ struct _NwamConditionVBoxPrivate {
     GList*                      table_box_cache;
     guint                       table_line_num;
 
-    NwamuiEnv*                  selected_env;
+    NwamuiObject*                  selected_object;
 };
 
 static void nwam_condition_vbox_finalize (NwamConditionVBox *self);
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
-static void table_lines_init (NwamConditionVBox *self, NwamuiEnv *env);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
+
+static void table_lines_init (NwamConditionVBox *self, NwamuiObject *object);
 static void table_lines_free (NwamConditionVBox *self);
 static GtkWidget *table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond);
 static GtkWidget* table_condition_insert (GtkWidget *clist, guint row, NwamuiCond* cond);
@@ -62,27 +66,46 @@ G_DEFINE_TYPE_EXTENDED (NwamConditionVBox,
     G_IMPLEMENT_INTERFACE (NWAM_TYPE_PREF_IFACE, nwam_pref_init))
 
 static gboolean
-refresh (NwamConditionVBox *self, gpointer data, gboolean force)
+refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
-	GType type = G_OBJECT_TYPE(data);
+	NwamConditionVBox *self = NWAM_CONDITION_VBOX(iface);
+	NwamConditionVBoxPrivate *prv = GET_PRIVATE(iface);
 
-	table_lines_free(self);
-	if (type == NWAMUI_TYPE_NCP) {
-		g_assert_not_reached();
-	} else if (type == NWAMUI_TYPE_ENV) {
-		table_lines_init (self, NWAMUI_ENV(data));
-/* 	} else if (type == NWAMUI_TYPE_NCU) { */
-/* 	} else if (type == NWAMUI_TYPE_ENM) { */
-	} else {
-		g_assert_not_reached();
+	if (prv->selected_object != user_data) {
+		if (prv->selected_object) {
+			g_object_unref(prv->selected_object);
+		}
+		if ((prv->selected_object = user_data) != NULL) {
+			g_object_ref(prv->selected_object);
+		}
+		force = TRUE;
+	}
+
+	if (force) {
+		table_lines_free(self);
+		if (prv->selected_object) {
+			table_lines_init (self, NWAMUI_OBJECT(user_data));
+		}
 	}
 
 	return TRUE;
 }
 
 static gboolean
-apply(NwamConditionVBox *self, gpointer data)
+apply(NwamPrefIFace *iface, gpointer user_data)
 {
+	NwamConditionVBoxPrivate *prv = GET_PRIVATE(iface);
+	nwamui_object_set_conditions(NWAMUI_OBJECT(prv->selected_object), NULL);
+}
+
+static gboolean
+cancel(NwamPrefIFace *iface, gpointer user_data)
+{
+	NwamConditionVBoxPrivate *prv = GET_PRIVATE(iface);
+	NwamConditionVBox *self = NWAM_CONDITION_VBOX(iface);
+
+/* 	nwamui_object_get_conditions(NWAMUI_OBJECT(prv->selected_object)); */
+	nwam_pref_refresh(NWAM_PREF_IFACE(self), user_data, TRUE);
 }
 
 static void
@@ -118,7 +141,7 @@ nwam_condition_vbox_class_init (NwamConditionVBoxClass *klass)
                   G_TYPE_POINTER);               /* Types of Args */
     
     cond_signals[S_CONDITION_REMOVE] =   
-            g_signal_new ("active_env_changed",
+            g_signal_new ("condition_remove",
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
                   G_STRUCT_OFFSET (NwamConditionVBoxClass, condition_remove),
@@ -140,8 +163,15 @@ nwam_condition_vbox_init (NwamConditionVBox *self)
 static void
 nwam_condition_vbox_finalize (NwamConditionVBox *self)
 {
-    table_lines_free (self);
-    G_OBJECT_CLASS(nwam_condition_vbox_parent_class)->finalize(G_OBJECT(self));
+	NwamConditionVBoxPrivate *prv = GET_PRIVATE(self);
+
+	table_lines_free (self);
+
+	if (prv->selected_object) {
+		g_object_unref(prv->selected_object);
+	}
+
+	G_OBJECT_CLASS(nwam_condition_vbox_parent_class)->finalize(G_OBJECT(self));
 }
 
 static void
@@ -165,7 +195,7 @@ _cu_cond_combo_cell_cb (GtkCellLayout *cell_layout,
     GtkTreeIter realiter;
     const gchar *str;
 
-	gint row_data = 0;
+    gint row_data = 0;
 
     filter = GTK_TREE_MODEL_FILTER(model);
     realmodel = gtk_tree_model_filter_get_model (filter);
@@ -173,7 +203,7 @@ _cu_cond_combo_cell_cb (GtkCellLayout *cell_layout,
       &realiter, iter);
 	gtk_tree_model_get(realmodel, &realiter, 0, &row_data, -1);
 
-    if (realmodel == nwamui_env_get_condition_subject ()) {
+	if (realmodel == (gpointer)nwamui_env_get_condition_subject ()) {
         if (row_data != NWAMUI_COND_FIELD_LAST) {
             str = nwamui_cond_field_to_str ((nwamui_cond_field_t)row_data);
         } else {
@@ -200,7 +230,7 @@ _cu_cond_combo_filter_visible_cb (GtkTreeModel *model,
 
     gtk_tree_model_get (model, iter, 0, &row_data, -1);
 
-    if (model == nwamui_env_get_condition_subject ()) {
+    if (model == (gpointer)nwamui_env_get_condition_subject ()) {
         if (value != NWAMUI_COND_FIELD_LAST) {
             return row_data != NWAMUI_COND_FIELD_LAST;
         } else {
@@ -228,14 +258,14 @@ static GtkWidget*
 _cu_cond_combo_new (GtkTreeModel *model)
 {
     GtkWidget *combo;
-	GtkTreeModel      *filter;
-	GtkCellRenderer *renderer;
+    GtkTreeModel      *filter;
+    GtkCellRenderer *renderer;
 
     combo = gtk_combo_box_new ();
 
     filter = gtk_tree_model_filter_new (model, NULL);
     gtk_combo_box_set_model (GTK_COMBO_BOX(combo), GTK_TREE_MODEL (filter));
-    gtk_tree_model_filter_set_visible_func (filter,
+    gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER(filter),
 	_cu_cond_combo_filter_visible_cb,
 	(gpointer)combo,
 	NULL);
@@ -263,7 +293,7 @@ nwam_condition_vbox_new (void)
 {
     return NWAM_CONDITION_VBOX(g_object_new(NWAM_TYPE_CONDITION_VBOX,
 	    "homogeneous", FALSE,
-	    "spacing", 2,
+	    "spacing", 8,
 	    NULL));
 }
 
@@ -300,7 +330,7 @@ table_one_line_state (GtkWidget *box)
 }
 
 static void
-table_lines_init (NwamConditionVBox *self, NwamuiEnv *env)
+table_lines_init (NwamConditionVBox *self, NwamuiObject *object)
 {
     NwamConditionVBoxPrivate *prv = GET_PRIVATE(self);
     GtkWidget *crow;
@@ -311,10 +341,10 @@ table_lines_init (NwamConditionVBox *self, NwamuiEnv *env)
                            (GtkCallback)table_line_cache_all_cb,
                            (gpointer)self);
 
-    if ( env ) {
-        GList*  condition_list = nwamui_env_get_conditions( env );
+    if ( object ) {
+        GList*  condition_list = nwamui_object_get_conditions( object );
 
-        /* for each condition of NwamuiEnv; do */
+        /* for each condition of NwamuiObject; do */
         g_list_foreach( condition_list,
           table_condition_add_row, 
           (gpointer)self);
@@ -476,7 +506,7 @@ table_add_condition_cb (GtkButton *button, gpointer data)
                              "position", &row,
                              NULL);
     if (prv->table_line_num == 1 && row == 0) {
-        /* emit add signal to add the condition from NwamuiEnv */
+        /* emit add signal to add the condition from NwamuiObject */
         cond = NWAMUI_COND(g_object_get_data (G_OBJECT(crow), TABLE_ROW_CDATA));
         /* FIXME - Should signal come from table_condition_insert/remove? */
         g_signal_emit (data,
@@ -491,7 +521,7 @@ table_add_condition_cb (GtkButton *button, gpointer data)
     }
     cond = nwamui_cond_new();
     crow = table_condition_insert (clist, row + 1, cond ); 
-    /* emit add signal to add the condition from NwamuiEnv */
+    /* emit add signal to add the condition from NwamuiObject */
     cond = g_object_get_data (G_OBJECT(crow), TABLE_ROW_CDATA);
     g_signal_emit (data,
                    cond_signals[S_CONDITION_ADD],
@@ -513,7 +543,7 @@ table_delete_condition_cb(GtkButton *button, gpointer data)
                              crow,
                              "position", &row,
                              NULL);
-    /* emit add signal to remove the condition from NwamuiEnv */
+    /* emit add signal to remove the condition from NwamuiObject */
     cond = NWAMUI_COND(g_object_get_data (G_OBJECT(crow), TABLE_ROW_CDATA));
     g_signal_emit (data,
          cond_signals[S_CONDITION_REMOVE],
@@ -580,8 +610,8 @@ default_condition_add_signal_handler (NwamConditionVBox *self, GObject* data, gp
 {
     g_debug("Condition Add : 0x%p", data);
     /* TODO - Move this from default sig handler to specific handler. */
-/*     if ( self->prv->selected_env != NULL && data != NULL ) { */
-/*         nwamui_env_condition_add(self->prv->selected_env, NWAMUI_COND(data) ); */
+/*     if ( self->prv->selected_object != NULL && data != NULL ) { */
+/*         nwamui_object_condition_add(self->prv->selected_object, NWAMUI_COND(data) ); */
 /*     } */
 }
 
@@ -590,8 +620,8 @@ default_condition_remove_signal_handler (NwamConditionVBox *self, GObject* data,
 {
     g_debug("Condition Remove : 0x%p", data);
     /* TODO - Move this from default sig handler to specific handler. */
-/*     if ( self->prv->selected_env != NULL && data != NULL ) { */
-/*         nwamui_env_condition_remove(self->prv->selected_env, NWAMUI_COND(data) ); */
+/*     if ( self->prv->selected_object != NULL && data != NULL ) { */
+/*         nwamui_object_condition_remove(self->prv->selected_object, NWAMUI_COND(data) ); */
 /*     } */
 }
 

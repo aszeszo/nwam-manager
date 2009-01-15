@@ -55,10 +55,15 @@ struct _NwamuiObject
 struct _NwamuiObjectClass
 {
 	GObjectClass                parent_class;
+
+    GList*               (*get_conditions)(NwamuiObject *obj);
+    void                 (*set_conditions)(NwamuiObject *obj, const GList* conditions);
 };
 
 extern  GType                       nwamui_object_get_type (void) G_GNUC_CONST;
 
+extern void                 nwamui_object_set_conditions ( NwamuiObject *self, const GList* conditions );
+extern GList*               nwamui_object_get_conditions ( NwamuiObject *self );
 
 G_END_DECLS
 
