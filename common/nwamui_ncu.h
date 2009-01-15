@@ -109,6 +109,9 @@ extern gboolean             nwamui_ncu_get_active ( NwamuiNcu *self );
 
 extern guint                nwamui_ncu_get_speed ( NwamuiNcu *self );
 
+extern void                 nwamui_ncu_set_ipv4_dhcp ( NwamuiNcu *self, gboolean ipv4_dhcp );
+extern gboolean             nwamui_ncu_get_ipv4_dhcp ( NwamuiNcu *self );
+
 extern void                 nwamui_ncu_set_ipv4_auto_conf ( NwamuiNcu *self, gboolean ipv4_auto_conf );
 extern gboolean             nwamui_ncu_get_ipv4_auto_conf ( NwamuiNcu *self );
 
@@ -121,13 +124,12 @@ extern void                 nwamui_ncu_set_ipv4_subnet ( NwamuiNcu *self, const 
 extern gchar*               nwamui_ncu_get_ipv4_subnet ( NwamuiNcu *self );
 
 
-extern void                 nwamui_ncu_set_ipv4_gateway ( NwamuiNcu *self, const gchar* ipv4_gateway );
-extern gchar*               nwamui_ncu_get_ipv4_gateway ( NwamuiNcu *self );
-
-
 extern void                 nwamui_ncu_set_ipv6_active ( NwamuiNcu *self, gboolean ipv6_active );
 extern gboolean             nwamui_ncu_get_ipv6_active ( NwamuiNcu *self );
 
+
+extern void                 nwamui_ncu_set_ipv6_dhcp ( NwamuiNcu *self, gboolean ipv6_dhcp );
+extern gboolean             nwamui_ncu_get_ipv6_dhcp ( NwamuiNcu *self );
 
 extern void                 nwamui_ncu_set_ipv6_auto_conf ( NwamuiNcu *self, gboolean ipv6_auto_conf );
 extern gboolean             nwamui_ncu_get_ipv6_auto_conf ( NwamuiNcu *self );

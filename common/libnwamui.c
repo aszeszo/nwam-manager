@@ -348,6 +348,9 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
          gtk_status_icon_is_embedded(status_icon)) {
         size = gtk_status_icon_get_size( status_icon );
     }
+    else {
+        return( NULL );
+    }
 
     switch( env_status ) {
         case NWAMUI_ENV_STATUS_CONNECTED:

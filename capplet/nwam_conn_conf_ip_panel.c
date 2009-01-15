@@ -511,7 +511,6 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     gboolean            ipv4_auto_conf;
     gchar*              ipv4_address;
     gchar*              ipv4_subnet;
-    gchar*              ipv4_gateway;
     gboolean            ipv6_active;
     gboolean            ipv6_auto_conf;
     gchar*              ipv6_address;
@@ -528,7 +527,6 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     ipv4_auto_conf = nwamui_ncu_get_ipv4_auto_conf( NWAMUI_NCU(prv->ncu) );
     ipv4_address = nwamui_ncu_get_ipv4_address( NWAMUI_NCU(prv->ncu) );
     ipv4_subnet = nwamui_ncu_get_ipv4_subnet( NWAMUI_NCU(prv->ncu) );
-    ipv4_gateway = nwamui_ncu_get_ipv4_gateway( NWAMUI_NCU(prv->ncu) );
     ipv6_active = nwamui_ncu_get_ipv6_active( NWAMUI_NCU(prv->ncu) );
     ipv6_auto_conf = nwamui_ncu_get_ipv6_auto_conf( NWAMUI_NCU(prv->ncu) );
     ipv6_address = nwamui_ncu_get_ipv6_address( NWAMUI_NCU(prv->ncu) );
@@ -634,7 +632,6 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
 */
     g_free (ipv4_address);
     g_free (ipv4_subnet);
-    g_free (ipv4_gateway);
     g_free (ipv6_address);
     g_free (ipv6_prefix);
 }

@@ -44,33 +44,9 @@ enum {
 
 struct _NwamuiEnvPrivate {
     gchar*                      name;
-    gboolean                    modifiable;
-    nwamui_cond_activation_mode_t
-                                activation_mode;
-    GList*                      conditions;
     nwam_loc_handle_t			nwam_env;
-    gboolean                    enabled;
-    gboolean                    nameservice_discover;
-    GList*                      nameservices;
-    gchar*                      nameservices_config_file;
-    gchar*                      domainname;
-    GList*                      dns_nameservice_servers;
-    gchar*                      dns_nameservice_search;
-    GList*                      nis_nameservice_servers;
-    GList*                      nisplus_nameservice_servers;
-    GList*                      ldap_nameservice_servers;
-    gchar*                      hosts_file;
-    gchar*                      nfsv4_domain;
-    gchar*                      ipfilter_config_file;
-    gchar*                      ipfilter_v6_config_file;
-    gchar*                      ipnat_config_file;
-    gchar*                      ippool_config_file;
-    gchar*                      ike_config_file;
-    gchar*                      ipseckey_config_file;
-    gchar*                      ipsecpolicy_config_file;
-    GList*                      svcs_enable;
-    GList*                      svcs_disable;
 
+    /* Not used for Phase 1 any more */
     nwamui_env_proxy_type_t     proxy_type;
     gboolean                    use_http_proxy_for_all;
     gchar*                      proxy_pac_file;
@@ -112,7 +88,6 @@ enum {
     PROP_IPNAT_CONFIG_FILE,
     PROP_IPPOOL_CONFIG_FILE,
     PROP_IKE_CONFIG_FILE,
-    PROP_IPSECKEY_CONFIG_FILE,
     PROP_IPSECPOLICY_CONFIG_FILE,
     PROP_SVCS_ENABLE,
     PROP_SVCS_DISABLE,
@@ -150,7 +125,24 @@ static void nwamui_env_get_property ( GObject         *object,
 
 static void nwamui_env_finalize (     NwamuiEnv *self);
 
-static void populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t nwam_loc );
+static guint64*     convert_name_services_glist_to_unint64_array( GList* ns_glist, guint *count );
+static GList*       convert_name_services_uint64_array_to_glist( guint64* ns_list, guint count );
+
+static gboolean     get_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name );
+static gboolean     set_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name, gboolean bool_value );
+
+static gchar*       get_nwam_loc_string_prop( nwam_loc_handle_t loc, const char* prop_name );
+static gboolean     set_nwam_loc_string_prop( nwam_loc_handle_t loc, const char* prop_name, const char* str );
+
+static gchar**      get_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name );
+static gboolean     set_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name, char** strs, guint len);
+
+static guint64      get_nwam_loc_uint64_prop( nwam_loc_handle_t loc, const char* prop_name );
+static gboolean     set_nwam_loc_uint64_prop( nwam_loc_handle_t loc, const char* prop_name, guint64 value );
+
+static guint64*     get_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , guint* out_num );
+static gboolean     set_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , 
+                                                    const guint64* value, guint len );
 
 #if 0
 /* These are not needed right now since we don't support property templates,
@@ -352,14 +344,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_IPSECKEY_CONFIG_FILE,
-                                     g_param_spec_string ("ipseckey_config_file",
-                                                          _("ipseckey_config_file"),
-                                                          _("ipseckey_config_file"),
-                                                          "",
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
                                      PROP_IPSECPOLICY_CONFIG_FILE,
                                      g_param_spec_string ("ipsecpolicy_config_file",
                                                           _("ipsecpolicy_config_file"),
@@ -553,30 +537,7 @@ nwamui_env_init (NwamuiEnv *self)
     self->prv = g_new0 (NwamuiEnvPrivate, 1);
     
     self->prv->name = NULL;
-    self->prv->modifiable = TRUE;
-    self->prv->activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
-    self->prv->conditions = NULL;
-    self->prv->enabled = FALSE;
-    self->prv->nameservice_discover = FALSE;
-    self->prv->nameservices = NULL;
-    self->prv->nameservices_config_file = NULL;
-    self->prv->domainname = NULL;
-    self->prv->dns_nameservice_servers = NULL;
-    self->prv->dns_nameservice_search = NULL;
-    self->prv->nis_nameservice_servers = NULL;
-    self->prv->nisplus_nameservice_servers = NULL;
-    self->prv->ldap_nameservice_servers = NULL;
-    self->prv->hosts_file = NULL;
-    self->prv->nfsv4_domain = NULL;
-    self->prv->ipfilter_config_file = NULL;
-    self->prv->ipfilter_v6_config_file = NULL;
-    self->prv->ipnat_config_file = NULL;
-    self->prv->ippool_config_file = NULL;
-    self->prv->ike_config_file = NULL;
-    self->prv->ipseckey_config_file = NULL;
-    self->prv->ipsecpolicy_config_file = NULL;
-    self->prv->svcs_enable = NULL;
-    self->prv->svcs_disable = NULL;
+    self->prv->nwam_env = NULL;
 
     self->prv->proxy_type = NWAMUI_ENV_PROXY_TYPE_DIRECT;
     self->prv->use_http_proxy_for_all = FALSE;
@@ -596,11 +557,12 @@ nwamui_env_init (NwamuiEnv *self)
     self->prv->proxy_password = NULL;
     self->prv->svcs_model = gtk_list_store_new(SVC_N_COL, G_TYPE_OBJECT);
 
-
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
+    /*
     g_signal_connect(G_OBJECT(self->prv->svcs_model), "row-deleted", (GCallback)svc_row_deleted_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->svcs_model), "row-changed", (GCallback)svc_row_inserted_or_changed_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->svcs_model), "row-inserted", (GCallback)svc_row_inserted_or_changed_cb, (gpointer)self);
+    */
 }
 
 static void
@@ -614,11 +576,15 @@ nwamui_env_set_property (   GObject         *object,
     gchar*      tmpstr = NULL;
     gint        tmpint = 0;
     nwam_error_t nerr;
+    gboolean     read_only = prv->nwam_env?get_nwam_loc_boolean_prop( prv->nwam_env, NWAM_LOC_PROP_READ_ONLY ):FALSE;
 
     /* TODO - Handle modifiable in a "copy on write" fashion" */
-    g_assert( self->prv->modifiable != FALSE );
+    g_assert( read_only != TRUE );
     
-    g_return_if_fail( self->prv->modifiable );
+    if ( read_only ) {
+        g_warning("Attempting to modify read-only loc %s", prv->name?prv->name:"NULL");
+        return;
+    }
     
     switch (prop_id) {
         case PROP_NAME: {
@@ -644,188 +610,163 @@ nwamui_env_set_property (   GObject         *object,
             break;
 
         case PROP_MODIFIABLE: {
-                self->prv->modifiable = g_value_get_boolean( value );
+                set_nwam_loc_boolean_prop( prv->nwam_env, NWAM_LOC_PROP_READ_ONLY, !g_value_get_boolean( value ));
             }
             break;
 
         case PROP_ACTIVATION_MODE: {
-                self->prv->activation_mode = (nwamui_cond_activation_mode_t)g_value_get_int( value );
+                set_nwam_loc_uint64_prop( prv->nwam_env, NWAM_LOC_PROP_ACTIVATION_MODE, g_value_get_int( value ) );
             }
             break;
 
         case PROP_CONDITIONS: {
-                if ( self->prv->conditions != NULL ) {
-                        nwamui_util_free_obj_list( self->prv->conditions );
-                }
-                self->prv->conditions = nwamui_util_copy_obj_list((GList*)g_value_get_pointer( value ));
+                GList *conditions = g_value_get_pointer( value );
+                char  **condition_strs = NULL;
+                guint   len = 0;
+
+                condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
+                set_nwam_loc_string_array_prop( self->prv->nwam_env, NWAM_NCU_PROP_CONDITIONS, condition_strs, len );
             }
             break;
 
         case PROP_NWAM_ENV: {
-            g_assert (prv->nwam_env == NULL);
-            prv->nwam_env = g_value_get_pointer (value);
+                g_assert (prv->nwam_env == NULL);
+                prv->nwam_env = g_value_get_pointer (value);
             }
             break;
 
         case PROP_ENABLED: {
-                self->prv->enabled = g_value_get_boolean( value );
+                set_nwam_loc_boolean_prop( prv->nwam_env, NWAM_LOC_PROP_ENABLED, g_value_get_boolean( value ) );
             }
             break;
 
         case PROP_NAMESERVICE_DISCOVER: {
-                self->prv->nameservice_discover = g_value_get_boolean( value );
+                set_nwam_loc_boolean_prop( prv->nwam_env, NWAM_LOC_PROP_NAMESERVICE_DISCOVER, g_value_get_boolean( value ) );
             }
             break;
 
         case PROP_NAMESERVICES: {
-                if ( self->prv->nameservices != NULL ) {
-                        g_free( self->prv->nameservices );
-                }
-                self->prv->nameservices = g_value_get_pointer( value );
+                GList*                  ns_list = (GList*)g_value_get_pointer( value );
+                guint64*                ns_array = NULL;
+                guint                   count = 0;
+
+                ns_array = convert_name_services_glist_to_unint64_array( ns_list, &count );
+                set_nwam_loc_uint64_array_prop( prv->nwam_env, NWAM_LOC_PROP_NAMESERVICES, 
+                                                ns_array, count );
             }
             break;
 
         case PROP_NAMESERVICES_CONFIG_FILE: {
-                if ( self->prv->nameservices_config_file != NULL ) {
-                        g_free( self->prv->nameservices_config_file );
-                }
-                self->prv->nameservices_config_file = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_NAMESERVICES_CONFIG_FILE, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_DOMAINNAME: {
-                if ( self->prv->domainname != NULL ) {
-                        g_free( self->prv->domainname );
-                }
-                self->prv->domainname = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_DOMAINNAME, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_DNS_NAMESERVICE_SERVERS: {
-                if ( self->prv->dns_nameservice_servers != NULL ) {
-                        g_free( self->prv->dns_nameservice_servers );
-                }
-                self->prv->dns_nameservice_servers = g_value_get_pointer( value );
+                GList*  ns_server = g_value_get_pointer( value );
+                gchar** ns_server_strs = nwamui_util_glist_to_strv( ns_server );
+                set_nwam_loc_string_array_prop( self->prv->nwam_env, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS, ns_server_strs, 0 );
+                g_strfreev(ns_server_strs);
             }
             break;
 
         case PROP_DNS_NAMESERVICE_SEARCH: {
-                if ( self->prv->dns_nameservice_search != NULL ) {
-                        g_free( self->prv->dns_nameservice_search );
-                }
-                self->prv->dns_nameservice_search = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_NIS_NAMESERVICE_SERVERS: {
-                if ( self->prv->nis_nameservice_servers != NULL ) {
-                        g_free( self->prv->nis_nameservice_servers );
-                }
-                self->prv->nis_nameservice_servers = g_value_get_pointer( value );
+                GList*  ns_server = g_value_get_pointer( value );
+                gchar** ns_server_strs = nwamui_util_glist_to_strv( ns_server );
+                set_nwam_loc_string_array_prop( self->prv->nwam_env, NWAM_LOC_PROP_NIS_NAMESERVICE_SERVERS, ns_server_strs, 0 );
+                g_strfreev(ns_server_strs);
             }
             break;
 
         case PROP_NISPLUS_NAMESERVICE_SERVERS: {
-                if ( self->prv->nisplus_nameservice_servers != NULL ) {
-                        g_free( self->prv->nisplus_nameservice_servers );
-                }
-                self->prv->nisplus_nameservice_servers = g_value_get_pointer( value );
+                GList*  ns_server = g_value_get_pointer( value );
+                gchar** ns_server_strs = nwamui_util_glist_to_strv( ns_server );
+                set_nwam_loc_string_array_prop( self->prv->nwam_env, NWAM_LOC_PROP_NISPLUS_NAMESERVICE_SERVERS, ns_server_strs, 0 );
+                g_strfreev(ns_server_strs);
             }
             break;
 
         case PROP_LDAP_NAMESERVICE_SERVERS: {
-                if ( self->prv->ldap_nameservice_servers != NULL ) {
-                        g_free( self->prv->ldap_nameservice_servers );
-                }
-                self->prv->ldap_nameservice_servers = g_value_get_pointer( value );
+                GList*  ns_server = g_value_get_pointer( value );
+                gchar** ns_server_strs = nwamui_util_glist_to_strv( ns_server );
+                set_nwam_loc_string_array_prop( self->prv->nwam_env, NWAM_LOC_PROP_LDAP_NAMESERVICE_SERVERS, ns_server_strs, 0 );
+                g_strfreev(ns_server_strs);
             }
             break;
 
         case PROP_HOSTS_FILE: {
-                if ( self->prv->hosts_file != NULL ) {
-                        g_free( self->prv->hosts_file );
-                }
-                self->prv->hosts_file = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_HOSTS_FILE, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_NFSV4_DOMAIN: {
-                if ( self->prv->nfsv4_domain != NULL ) {
-                        g_free( self->prv->nfsv4_domain );
-                }
-                self->prv->nfsv4_domain = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_NFSV4_DOMAIN, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_IPFILTER_CONFIG_FILE: {
-                if ( self->prv->ipfilter_config_file != NULL ) {
-                        g_free( self->prv->ipfilter_config_file );
-                }
-                self->prv->ipfilter_config_file = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPFILTER_CONFIG_FILE, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_IPFILTER_V6_CONFIG_FILE: {
-                if ( self->prv->ipfilter_v6_config_file != NULL ) {
-                        g_free( self->prv->ipfilter_v6_config_file );
-                }
-                self->prv->ipfilter_v6_config_file = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPFILTER_V6_CONFIG_FILE, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_IPNAT_CONFIG_FILE: {
-                if ( self->prv->ipnat_config_file != NULL ) {
-                        g_free( self->prv->ipnat_config_file );
-                }
-                self->prv->ipnat_config_file = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPNAT_CONFIG_FILE, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_IPPOOL_CONFIG_FILE: {
-                if ( self->prv->ippool_config_file != NULL ) {
-                        g_free( self->prv->ippool_config_file );
-                }
-                self->prv->ippool_config_file = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPPOOL_CONFIG_FILE, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_IKE_CONFIG_FILE: {
-                if ( self->prv->ike_config_file != NULL ) {
-                        g_free( self->prv->ike_config_file );
-                }
-                self->prv->ike_config_file = g_strdup( g_value_get_string( value ) );
-            }
-            break;
-
-        case PROP_IPSECKEY_CONFIG_FILE: {
-                if ( self->prv->ipseckey_config_file != NULL ) {
-                        g_free( self->prv->ipseckey_config_file );
-                }
-                self->prv->ipseckey_config_file = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IKE_CONFIG_FILE, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_IPSECPOLICY_CONFIG_FILE: {
-                if ( self->prv->ipsecpolicy_config_file != NULL ) {
-                        g_free( self->prv->ipsecpolicy_config_file );
-                }
-                self->prv->ipsecpolicy_config_file = g_strdup( g_value_get_string( value ) );
+                set_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPSECPOLICY_CONFIG_FILE, 
+                                          g_value_get_string( value ) );
             }
             break;
 
         case PROP_SVCS_ENABLE: {
-                if ( self->prv->svcs_enable != NULL ) {
-                        g_free( self->prv->svcs_enable );
-                }
-                self->prv->svcs_enable = g_value_get_pointer( value );
+                GList*  fmri = g_value_get_pointer( value );
+                gchar** fmri_strs = nwamui_util_glist_to_strv( fmri );
+                set_nwam_loc_string_array_prop( self->prv->nwam_env, NWAM_LOC_PROP_SVCS_ENABLE, fmri_strs, 0 );
+                g_strfreev(fmri_strs);
             }
             break;
 
         case PROP_SVCS_DISABLE: {
-                if ( self->prv->svcs_disable != NULL ) {
-                        g_free( self->prv->svcs_disable );
-                }
-                self->prv->svcs_disable = g_value_get_pointer( value );
+                GList*  fmri = g_value_get_pointer( value );
+                gchar** fmri_strs = nwamui_util_glist_to_strv( fmri );
+                set_nwam_loc_string_array_prop( self->prv->nwam_env, NWAM_LOC_PROP_SVCS_DISABLE, fmri_strs, 0 );
+                g_strfreev(fmri_strs);
             }
             break;
 
@@ -950,6 +891,7 @@ nwamui_env_get_property (GObject         *object,
                                   GParamSpec      *pspec)
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
+    NwamuiEnvPrivate *prv = NWAMUI_ENV(object)->prv;
     nwam_error_t nerr;
     int num;
     nwam_value_t **nwamdata;
@@ -972,122 +914,166 @@ nwamui_env_get_property (GObject         *object,
             break;
 
         case PROP_MODIFIABLE: {
-                g_value_set_boolean( value, self->prv->modifiable );
+                g_value_set_boolean( value, 
+                        !get_nwam_loc_boolean_prop( prv->nwam_env, NWAM_LOC_PROP_READ_ONLY ) );
             }
             break;
 
         case PROP_ACTIVATION_MODE: {
-                g_value_set_int( value, (gint)self->prv->activation_mode );
+                g_value_set_int( value, 
+                        (gint)get_nwam_loc_uint64_prop( prv->nwam_env, NWAM_LOC_PROP_ACTIVATION_MODE ) );
             }
             break;
             
         case PROP_CONDITIONS: {
-                g_value_set_pointer( value, self->prv->conditions );
+                gchar** condition_strs = get_nwam_loc_string_array_prop( self->prv->nwam_env, 
+                                                                         NWAM_NCU_PROP_CONDITIONS );
+
+                GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
+
+                g_value_set_pointer( value, conditions );
+
+                g_strfreev( condition_strs );
             }
             break;
 
         case PROP_ENABLED: {
-                g_value_set_boolean( value, self->prv->enabled );
+                g_value_set_boolean( value, 
+                        get_nwam_loc_boolean_prop( prv->nwam_env, NWAM_LOC_PROP_ENABLED ) );
             }
             break;
 
         case PROP_NAMESERVICE_DISCOVER: {
-                g_value_set_boolean( value, self->prv->nameservice_discover );
+                g_value_set_boolean( value, 
+                        get_nwam_loc_boolean_prop( prv->nwam_env, NWAM_LOC_PROP_NAMESERVICE_DISCOVER ) );
             }
             break;
 
         case PROP_NAMESERVICES: {
-                g_value_set_pointer( value, self->prv->nameservices );
+                guint       num_nameservices = 0;
+                guint64*    ns_64 = (guint64*)get_nwam_loc_uint64_array_prop(
+                                           prv->nwam_env, NWAM_LOC_PROP_NAMESERVICES, &num_nameservices );
+                GList*      ns_list = convert_name_services_uint64_array_to_glist( ns_64, num_nameservices );
+                g_value_set_pointer( value, ns_list );
             }
             break;
 
         case PROP_NAMESERVICES_CONFIG_FILE: {
-                g_value_set_string( value, self->prv->nameservices_config_file );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_NAMESERVICES_CONFIG_FILE );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_DOMAINNAME: {
-                g_value_set_string( value, self->prv->domainname );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_DOMAINNAME );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_DNS_NAMESERVICE_SERVERS: {
-                g_value_set_pointer( value, self->prv->dns_nameservice_servers );
+                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS );
+                g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
+                g_strfreev( strv );
             }
             break;
 
         case PROP_DNS_NAMESERVICE_SEARCH: {
-                g_value_set_string( value, self->prv->dns_nameservice_search );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_NIS_NAMESERVICE_SERVERS: {
-                g_value_set_pointer( value, self->prv->nis_nameservice_servers );
+                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_NIS_NAMESERVICE_SERVERS );
+                g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
+                g_strfreev( strv );
             }
             break;
 
         case PROP_NISPLUS_NAMESERVICE_SERVERS: {
-                g_value_set_pointer( value, self->prv->nisplus_nameservice_servers );
+                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_NISPLUS_NAMESERVICE_SERVERS );
+                g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
+                g_strfreev( strv );
             }
             break;
 
         case PROP_LDAP_NAMESERVICE_SERVERS: {
-                g_value_set_pointer( value, self->prv->ldap_nameservice_servers );
+                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_LDAP_NAMESERVICE_SERVERS );
+                g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
+                g_strfreev( strv );
             }
             break;
 
         case PROP_HOSTS_FILE: {
-                g_value_set_string( value, self->prv->hosts_file );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_HOSTS_FILE );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_NFSV4_DOMAIN: {
-                g_value_set_string( value, self->prv->nfsv4_domain );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_NFSV4_DOMAIN );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_IPFILTER_CONFIG_FILE: {
-                g_value_set_string( value, self->prv->ipfilter_config_file );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPFILTER_CONFIG_FILE );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_IPFILTER_V6_CONFIG_FILE: {
-                g_value_set_string( value, self->prv->ipfilter_v6_config_file );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPFILTER_V6_CONFIG_FILE );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_IPNAT_CONFIG_FILE: {
-                g_value_set_string( value, self->prv->ipnat_config_file );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPNAT_CONFIG_FILE );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_IPPOOL_CONFIG_FILE: {
-                g_value_set_string( value, self->prv->ippool_config_file );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPPOOL_CONFIG_FILE );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_IKE_CONFIG_FILE: {
-                g_value_set_string( value, self->prv->ike_config_file );
-            }
-            break;
-
-        case PROP_IPSECKEY_CONFIG_FILE: {
-                g_value_set_string( value, self->prv->ipseckey_config_file );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IKE_CONFIG_FILE );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_IPSECPOLICY_CONFIG_FILE: {
-                g_value_set_string( value, self->prv->ipsecpolicy_config_file );
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPSECPOLICY_CONFIG_FILE );
+                g_value_set_string( value, str );
+                g_free(str);
             }
             break;
 
         case PROP_SVCS_ENABLE: {
-                g_value_set_pointer( value, self->prv->svcs_enable );
+                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS );
+                g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
+                g_strfreev( strv );
             }
             break;
 
         case PROP_SVCS_DISABLE: {
-                g_value_set_pointer( value, self->prv->svcs_disable );
+                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS );
+                g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
+                g_strfreev( strv );
             }
             break;
 
@@ -1232,8 +1218,6 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
             return (NULL);
         }
     
-        populate_env_with_handle( env, prv->nwam_env );
-
         g_debug ("loading nwamui_env_new_with_handle %s", name);
 
         free (name);
@@ -1335,6 +1319,43 @@ get_nwam_loc_string_prop( nwam_loc_handle_t loc, const char* prop_name )
     return( retval );
 }
 
+static gboolean
+set_nwam_loc_string_prop( nwam_loc_handle_t loc, const char* prop_name, const gchar* str )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( loc == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_string( (char*)str, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a string value for string %s", str?str:"NULL");
+        return retval;
+    }
+
+    if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+
 static gchar**
 get_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name )
 {
@@ -1380,6 +1401,57 @@ get_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name )
 }
 
 static gboolean
+set_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name, char** strs, guint len )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( loc == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( strs == NULL ) {
+        return retval;
+    }
+
+
+    if ( len == 0 ) { /* Assume a strv, i.e. NULL terminated list, otherwise strs would be NULL */
+        int i;
+
+        for( i = 0; strs != NULL && strs[i] != NULL; i++ ) {
+            /* Do Nothing, just count. */
+        }
+        len = i;
+    }
+
+    if ( (nerr = nwam_value_create_string_array (strs, len, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a value for string array 0x%08X", strs);
+        return retval;
+    }
+
+    if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static gboolean
 get_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name )
 {
     nwam_error_t        nerr;
@@ -1408,6 +1480,42 @@ get_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name )
     nwam_value_free(nwam_data);
 
     return( (gboolean)value );
+}
+
+static gboolean
+set_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name, gboolean bool_value )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( loc == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
+        g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_boolean ((boolean_t)bool_value, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a boolean value" );
+        return retval;
+    }
+
+    if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
 }
 
 static guint64
@@ -1439,6 +1547,42 @@ get_nwam_loc_uint64_prop( nwam_loc_handle_t loc, const char* prop_name )
     nwam_value_free(nwam_data);
 
     return( (guint64)value );
+}
+
+static gboolean
+set_nwam_loc_uint64_prop( nwam_loc_handle_t loc, const char* prop_name, guint64 value )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( loc == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_uint64 (value, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a uint64 value" );
+        return retval;
+    }
+
+    if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
 }
 
 static guint64* 
@@ -1481,8 +1625,46 @@ get_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , g
     return( retval );
 }
 
+static gboolean
+set_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name, 
+                                const guint64 *value_array, guint len )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( loc == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_uint64_array ((uint64_t*)value_array, len, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a uint64 array value" );
+        return retval;
+    }
+
+    if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+
 static GList*
-convert_name_services_array_to_glist( nwam_nameservices_t* ns_list, guint count )
+convert_name_services_uint64_array_to_glist( guint64* ns_list, guint count )
 {
     GList*  new_list = NULL;
 
@@ -1497,29 +1679,29 @@ convert_name_services_array_to_glist( nwam_nameservices_t* ns_list, guint count 
     return( new_list );
 }
 
-static nwam_nameservices_t*
-convert_name_services_glist_to_array( GList* ns_glist, guint *count )
+static guint64*
+convert_name_services_glist_to_unint64_array( GList* ns_glist, guint *count )
 {
-    nwam_nameservices_t*    ns_list = NULL;
+    guint64*    ns_list = NULL;
 
     if ( ns_glist != NULL && count != NULL ) {
         int     list_len = g_list_length( ns_glist );
         int     i = 0;
 
-        ns_list = (nwam_nameservices_t*)g_malloc0( sizeof(nwam_nameservices_t*) * (list_len) );
+        ns_list = (guint64*)g_malloc0( sizeof(guint64) * (list_len) );
 
         i = 0;
         for ( GList *element  = g_list_first( ns_glist );
               element != NULL && element->data != NULL;
               element = g_list_next( element ) ) {
-            nwam_nameservices_t ns = (nwam_nameservices_t) element->data;
+            guint64 ns = (guint64) element->data;
             /* Make sure it's a valid value */
             if ( ns >= NWAM_NAMESERVICES_DNS && ns <= NWAM_NAMESERVICES_LDAP ) {
-                ns_list[i]  = (nwam_nameservices_t)ns;
+                ns_list[i]  = (guint64)ns;
                 i++;
             }
             else {
-                g_error("Got unexpected nameservice value %d", ns );
+                g_error("Got unexpected nameservice value %ul", ns );
             }
         }
         *count = list_len;
@@ -1528,63 +1710,63 @@ convert_name_services_glist_to_array( GList* ns_glist, guint *count )
     return( ns_list );
 }
 
+#if 0
 static void 
-populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t nwam_loc )
+populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t prv->nwam_env )
 {
     NwamuiEnvPrivate   *prv = env->prv;
     gchar             **condition_str = NULL;
     guint               num_nameservices = 0;
     nwam_nameservices_t *nameservices = NULL;
 
-    prv->modifiable = !get_nwam_loc_boolean_prop( nwam_loc, NWAM_LOC_PROP_READ_ONLY );
-    prv->activation_mode = (nwamui_cond_activation_mode_t)get_nwam_loc_uint64_prop( nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
-    condition_str = get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_CONDITIONS );
+    prv->modifiable = !get_nwam_loc_boolean_prop( prv->nwam_env, NWAM_LOC_PROP_READ_ONLY );
+    prv->activation_mode = (nwamui_cond_activation_mode_t)get_nwam_loc_uint64_prop( prv->nwam_env, NWAM_LOC_PROP_ACTIVATION_MODE );
+    condition_str = get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_CONDITIONS );
     prv->conditions = nwamui_util_map_condition_strings_to_object_list( condition_str);
     g_strfreev( condition_str );
 
-    prv->enabled = get_nwam_loc_boolean_prop( nwam_loc, NWAM_LOC_PROP_ENABLED );
+    prv->enabled = get_nwam_loc_boolean_prop( prv->nwam_env, NWAM_LOC_PROP_ENABLED );
 
     /* Nameservice location properties */
-    prv->nameservice_discover = get_nwam_loc_boolean_prop( nwam_loc, NWAM_LOC_PROP_NAMESERVICE_DISCOVER );
+    prv->nameservice_discover = get_nwam_loc_boolean_prop( prv->nwam_env, NWAM_LOC_PROP_NAMESERVICE_DISCOVER );
     nameservices = (nwam_nameservices_t*)get_nwam_loc_uint64_array_prop(
-                                           nwam_loc, NWAM_LOC_PROP_NAMESERVICES, &num_nameservices );
+                                           prv->nwam_env, NWAM_LOC_PROP_NAMESERVICES, &num_nameservices );
     prv->nameservices = convert_name_services_array_to_glist( nameservices, num_nameservices );
-    prv->nameservices_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_NAMESERVICES_CONFIG_FILE );
-    prv->domainname = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_DOMAINNAME );
+    prv->nameservices_config_file = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_NAMESERVICES_CONFIG_FILE );
+    prv->domainname = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_DOMAINNAME );
     prv->dns_nameservice_servers = nwamui_util_strv_to_glist(
-            get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS ) );
-    prv->dns_nameservice_search = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH );
+            get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS ) );
+    prv->dns_nameservice_search = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH );
     prv->nis_nameservice_servers = nwamui_util_strv_to_glist(
-        get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_NIS_NAMESERVICE_SERVERS ) );
+        get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_NIS_NAMESERVICE_SERVERS ) );
     prv->nisplus_nameservice_servers = nwamui_util_strv_to_glist(
-        get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_NISPLUS_NAMESERVICE_SERVERS ) );
+        get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_NISPLUS_NAMESERVICE_SERVERS ) );
     prv->ldap_nameservice_servers = nwamui_util_strv_to_glist(
-        get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_LDAP_NAMESERVICE_SERVERS ) );
+        get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_LDAP_NAMESERVICE_SERVERS ) );
 
     /* Path to hosts/ipnodes database */
-    prv->hosts_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_HOSTS_FILE );
+    prv->hosts_file = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_HOSTS_FILE );
 
     /* NFSv4 domain */
-    prv->nfsv4_domain = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_NFSV4_DOMAIN );
+    prv->nfsv4_domain = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_NFSV4_DOMAIN );
 
     /* IPfilter configuration */
-    prv->ipfilter_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPFILTER_CONFIG_FILE );
-    prv->ipfilter_v6_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPFILTER_V6_CONFIG_FILE );
-    prv->ipnat_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPNAT_CONFIG_FILE );
-    prv->ippool_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPPOOL_CONFIG_FILE );
+    prv->ipfilter_config_file = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPFILTER_CONFIG_FILE );
+    prv->ipfilter_v6_config_file = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPFILTER_V6_CONFIG_FILE );
+    prv->ipnat_config_file = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPNAT_CONFIG_FILE );
+    prv->ippool_config_file = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPPOOL_CONFIG_FILE );
 
     /* IPsec configuration */
-    prv->ike_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IKE_CONFIG_FILE );
-    /* prv->ipseckey_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPSECKEY_CONFIG_FILE ); */
-    prv->ipseckey_config_file = NULL;
-    prv->ipsecpolicy_config_file = get_nwam_loc_string_prop( nwam_loc, NWAM_LOC_PROP_IPSECPOLICY_CONFIG_FILE );
+    prv->ike_config_file = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IKE_CONFIG_FILE );
+    prv->ipsecpolicy_config_file = get_nwam_loc_string_prop( prv->nwam_env, NWAM_LOC_PROP_IPSECPOLICY_CONFIG_FILE );
 
     /* List of SMF services to enable/disable */
     prv->svcs_enable = nwamui_util_strv_to_glist(
-            get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_SVCS_ENABLE ) );
+            get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_SVCS_ENABLE ) );
     prv->svcs_disable = nwamui_util_strv_to_glist(
-        get_nwam_loc_string_array_prop( nwam_loc, NWAM_LOC_PROP_SVCS_DISABLE ) );
+        get_nwam_loc_string_array_prop( prv->nwam_env, NWAM_LOC_PROP_SVCS_DISABLE ) );
 }
+#endif /* 0 */
 
     
 /** 
@@ -1748,7 +1930,7 @@ nwamui_env_get_nameservice_discover (NwamuiEnv *self)
  **/ 
 extern void
 nwamui_env_set_nameservices (   NwamuiEnv *self,
-                              const GList*    nameservices )
+                                const GList*    nameservices )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
     g_assert (nameservices != NULL );
@@ -2338,46 +2520,6 @@ nwamui_env_get_ike_config_file (NwamuiEnv *self)
                   NULL);
 
     return( ike_config_file );
-}
-
-/** 
- * nwamui_env_set_ipseckey_config_file:
- * @nwamui_env: a #NwamuiEnv.
- * @ipseckey_config_file: Value to set ipseckey_config_file to.
- * 
- **/ 
-extern void
-nwamui_env_set_ipseckey_config_file (   NwamuiEnv *self,
-                              const gchar*  ipseckey_config_file )
-{
-    g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (ipseckey_config_file != NULL );
-
-    if ( ipseckey_config_file != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "ipseckey_config_file", ipseckey_config_file,
-                      NULL);
-    }
-}
-
-/**
- * nwamui_env_get_ipseckey_config_file:
- * @nwamui_env: a #NwamuiEnv.
- * @returns: the ipseckey_config_file.
- *
- **/
-extern gchar*
-nwamui_env_get_ipseckey_config_file (NwamuiEnv *self)
-{
-    gchar*  ipseckey_config_file = NULL; 
-
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), ipseckey_config_file);
-
-    g_object_get (G_OBJECT (self),
-                  "ipseckey_config_file", &ipseckey_config_file,
-                  NULL);
-
-    return( ipseckey_config_file );
 }
 
 /** 
@@ -3431,88 +3573,6 @@ nwamui_env_finalize (NwamuiEnv *self)
         nwam_loc_free (self->prv->nwam_env);
     }
     
-    if (self->prv->nameservices != NULL ) {
-        g_list_free( self->prv->nameservices );
-    }
-
-    if (self->prv->nameservices_config_file != NULL ) {
-        g_free( self->prv->nameservices_config_file );
-    }
-
-    if (self->prv->domainname != NULL ) {
-        g_free( self->prv->domainname );
-    }
-
-    if (self->prv->dns_nameservice_servers != NULL ) {
-        g_list_foreach( self->prv->dns_nameservice_servers , (GFunc)g_free, NULL );
-        g_list_free( self->prv->dns_nameservice_servers );
-    }
-
-    if (self->prv->dns_nameservice_search != NULL ) {
-        g_free( self->prv->dns_nameservice_search );
-    }
-
-    if (self->prv->nis_nameservice_servers != NULL ) {
-        g_list_foreach( self->prv->nis_nameservice_servers , (GFunc)g_free, NULL );
-        g_list_free( self->prv->nis_nameservice_servers );
-    }
-
-    if (self->prv->nisplus_nameservice_servers != NULL ) {
-        g_list_foreach( self->prv->nisplus_nameservice_servers , (GFunc)g_free, NULL );
-        g_list_free( self->prv->nisplus_nameservice_servers );
-    }
-
-    if (self->prv->ldap_nameservice_servers != NULL ) {
-        g_list_foreach( self->prv->ldap_nameservice_servers , (GFunc)g_free, NULL );
-        g_list_free( self->prv->ldap_nameservice_servers );
-    }
-
-    if (self->prv->hosts_file != NULL ) {
-        g_free( self->prv->hosts_file );
-    }
-
-    if (self->prv->nfsv4_domain != NULL ) {
-        g_free( self->prv->nfsv4_domain );
-    }
-
-    if (self->prv->ipfilter_config_file != NULL ) {
-        g_free( self->prv->ipfilter_config_file );
-    }
-
-    if (self->prv->ipfilter_v6_config_file != NULL ) {
-        g_free( self->prv->ipfilter_v6_config_file );
-    }
-
-    if (self->prv->ipnat_config_file != NULL ) {
-        g_free( self->prv->ipnat_config_file );
-    }
-
-    if (self->prv->ippool_config_file != NULL ) {
-        g_free( self->prv->ippool_config_file );
-    }
-
-    if (self->prv->ike_config_file != NULL ) {
-        g_free( self->prv->ike_config_file );
-    }
-
-    if (self->prv->ipseckey_config_file != NULL ) {
-        g_free( self->prv->ipseckey_config_file );
-    }
-
-    if (self->prv->ipsecpolicy_config_file != NULL ) {
-        g_free( self->prv->ipsecpolicy_config_file );
-    }
-
-    if (self->prv->svcs_enable != NULL ) {
-        g_list_foreach( self->prv->svcs_enable , (GFunc)g_free, NULL );
-        g_list_free( self->prv->svcs_enable );
-    }
-
-    if (self->prv->svcs_disable != NULL ) {
-        g_list_foreach( self->prv->svcs_disable , (GFunc)g_free, NULL );
-        g_list_free( self->prv->svcs_disable );
-    }
-
     if (self->prv->proxy_pac_file != NULL ) {
         g_free( self->prv->proxy_pac_file );
     }

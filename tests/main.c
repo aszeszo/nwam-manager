@@ -114,6 +114,70 @@ main(int argc, char** argv)
 }
 
 static void
+print_ns_list_and_free( gchar* obj_name, gchar *property, GList* ns_list )
+{
+    GList* elem = NULL;
+    printf("%-*s%s : %s = \n", indent, "", obj_name, property );
+    if ( ns_list != NULL ) {
+        for ( elem = g_list_first( ns_list );
+              elem != NULL;
+              elem = g_list_next( elem ) ) {
+            if ( elem->data ) {
+                nwam_nameservices_t svc = (nwam_nameservices_t)elem->data;
+                const gchar*        str = NULL;
+                switch ( svc ) {
+                    case NWAM_NAMESERVICES_DNS:
+                        str = "NWAM_NAMESERVICES_DNS";
+                        break;
+                    case NWAM_NAMESERVICES_FILES:
+                        str = "NWAM_NAMESERVICES_FILES";
+                        break;
+                    case NWAM_NAMESERVICES_NIS:
+                        str = "NWAM_NAMESERVICES_NIS";
+                        break;
+                    case NWAM_NAMESERVICES_NISPLUS:
+                        str = "NWAM_NAMESERVICES_NISPLUS";
+                        break;
+                    case NWAM_NAMESERVICES_LDAP:
+                        str = "NWAM_NAMESERVICES_LDAP";
+                        break;
+                    default:
+                        str = "**** UNKNOWN Nameservice Type ****";
+                        break;
+                }
+                printf("%-*s%s :     '%s'\n", indent, "", obj_name, str );
+            }
+        }
+    }
+    else {
+        printf("%-*s%s :     NONE\n", indent, "", obj_name);
+    }
+    g_list_free( ns_list );
+}
+
+static void
+print_string_list_and_free( gchar* obj_name, gchar *property, GList* str_list )
+{
+    GList* elem = NULL;
+    printf("%-*s%s : %s = \n", indent, "", obj_name, property );
+    if ( str_list != NULL ) {
+        for ( elem = g_list_first( str_list );
+              elem != NULL;
+              elem = g_list_next( elem ) ) {
+            if ( elem->data ) {
+                gchar* str = (gchar*)elem->data;
+                printf("%-*s%s :     '%s'\n", indent, "", obj_name, str?str:"NULL" );
+            }
+        }
+    }
+    else {
+        printf("%-*s%s :     NONE\n", indent, "", obj_name);
+    }
+    g_list_foreach( str_list, (GFunc)g_free, NULL );
+    g_list_free( str_list );
+}
+
+static void
 print_conditions( GObject* obj )
 {
     GList* cond_list = NULL;
@@ -190,11 +254,13 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     gchar*              statestr;
     gchar*              state_detailstr;
     gboolean            active;
+    gboolean            enabled;
+    gboolean            ipv4_dhcp;
     gboolean            ipv4_auto_conf;
     gchar*              ipv4_address;
     gchar*              ipv4_subnet;
-    gchar*              ipv4_gateway;
     gboolean            ipv6_active;
+    gboolean            ipv6_dhcp;
     gboolean            ipv6_auto_conf;
     gchar*              ipv6_address;
     gchar*              ipv6_prefix;
@@ -208,13 +274,15 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     display_name = nwamui_ncu_get_display_name( ncu );
     type = nwamui_ncu_get_ncu_type( ncu );
     active = nwamui_ncu_get_active( ncu );
+    enabled = nwamui_ncu_get_enabled( ncu );
     statestr = nwamui_ncu_get_connection_state_string( ncu );
     state_detailstr = nwamui_ncu_get_connection_state_detail_string( ncu );
+    ipv4_dhcp = nwamui_ncu_get_ipv4_dhcp( ncu );
     ipv4_auto_conf = nwamui_ncu_get_ipv4_auto_conf( ncu );
     ipv4_address = nwamui_ncu_get_ipv4_address( ncu );
     ipv4_subnet = nwamui_ncu_get_ipv4_subnet( ncu );
-    ipv4_gateway = nwamui_ncu_get_ipv4_gateway( ncu );
     ipv6_active = nwamui_ncu_get_ipv6_active( ncu );
+    ipv6_dhcp = nwamui_ncu_get_ipv6_dhcp( ncu );
     ipv6_auto_conf = nwamui_ncu_get_ipv6_auto_conf( ncu );
     ipv6_address = nwamui_ncu_get_ipv6_address( ncu );
     ipv6_prefix = nwamui_ncu_get_ipv6_prefix( ncu );
@@ -241,12 +309,14 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     printf("%-*sNcu Type = %s\n", indent, "", typestr );
     printf("%-*sNcu Connection State = %s\n", indent, "", statestr );
     printf("%-*sNcu Connection State Detail = %s\n", indent, "", state_detailstr?state_detailstr:"NULL" );
-    printf("%-*sNcu active = %s\n\n", indent, "", active?"True":"False" );
+    printf("%-*sNcu active = %s\n", indent, "", active?"True":"False" );
+    printf("%-*sNcu enabled = %s\n", indent, "", enabled?"True":"False" );
+    printf("%-*sNcu ipv4_dhcp = %s\n", indent, "", ipv4_dhcp?"True":"False" );
     printf("%-*sNcu ipv4_auto_conf = %s\n", indent, "", ipv4_auto_conf?"True":"False" );
     printf("%-*sNcu ipv4_address = %s\n", indent, "", ipv4_address?ipv4_address:"NULL" );
     printf("%-*sNcu ipv4_subnet = %s\n", indent, "", ipv4_subnet?ipv4_subnet:"NULL" );
-    printf("%-*sNcu ipv4_gateway = %s\n\n", indent, "", ipv4_gateway?ipv4_gateway:"NULL" );
     printf("%-*sNcu ipv6_active = %s\n", indent, "", ipv6_active?"True":"False" );
+    printf("%-*sNcu ipv6_dhcp = %s\n", indent, "", ipv6_dhcp?"True":"False" );
     printf("%-*sNcu ipv6_auto_conf = %s\n", indent, "", ipv6_auto_conf?"True":"False" );
     printf("%-*sNcu ipv6_address = %s\n", indent, "", ipv6_address?ipv6_address:"NULL" );
     printf("%-*sNcu ipv6_prefix = %s\n", indent, "", ipv6_prefix?ipv6_prefix:"NULL" );
@@ -265,8 +335,6 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
         g_free( ipv4_address );
     if ( ipv4_subnet != NULL ) 
         g_free( ipv4_subnet );
-    if ( ipv4_gateway != NULL ) 
-        g_free( ipv4_gateway );
     if ( ipv6_address != NULL ) 
         g_free( ipv6_address );
     if ( ipv6_prefix != NULL ) 
@@ -325,53 +393,59 @@ test_ncp_gobject( void )
 static void
 process_env( gpointer data, gpointer user_data ) 
 {
-    NwamuiEnv                  *env = NWAMUI_ENV( data );
-    gchar*                      name;
-    nwamui_env_proxy_type_t     proxy_type;
-    gchar*                      proxy_type_str;
-    gchar*                      proxy_pac_file;
-    gchar*                      proxy_http_server;
-    gchar*                      proxy_https_server;
-    gchar*                      proxy_ftp_server;
-    gchar*                      proxy_gopher;
-    gchar*                      proxy_socks;
-    gchar*                      proxy_bypass_list;
+    NwamuiEnv  *env = NWAMUI_ENV( data );
+    gchar*      name;
+    gboolean    modifiable  =  nwamui_env_is_modifiable ( env );
+    nwamui_cond_activation_mode_t
+                activation_mode  =  nwamui_env_get_activation_mode ( env );
+    GList*      conditions  =  nwamui_env_get_conditions ( env );
+    gboolean    enabled  =  nwamui_env_get_enabled ( env );
+    gboolean    nameservice_discover  =  nwamui_env_get_nameservice_discover ( env );
+    GList*      nameservices  =  nwamui_env_get_nameservices ( env );
+    gchar*      nameservices_config_file  =  nwamui_env_get_nameservices_config_file ( env );
+    gchar*      domainname  =  nwamui_env_get_domainname ( env );
+    GList*      dns_nameservice_servers  =  nwamui_env_get_dns_nameservice_servers ( env );
+    gchar*      dns_nameservice_search  =  nwamui_env_get_dns_nameservice_search ( env );
+    GList*      nameservice_servers  =  nwamui_env_get_nis_nameservice_servers ( env );
+    GList*      nis_nameservice_servers  =  nwamui_env_get_nis_nameservice_servers ( env );
+    GList*      nisplus_nameservice_servers  =  nwamui_env_get_nisplus_nameservice_servers ( env );
+    GList*      ldap_nameservice_servers  =  nwamui_env_get_ldap_nameservice_servers ( env );
+    gchar*      hosts_file  =  nwamui_env_get_hosts_file ( env );
+    gchar*      nfsv4_domain  =  nwamui_env_get_nfsv4_domain ( env );
+    gchar*      ipfilter_config_file  =  nwamui_env_get_ipfilter_config_file ( env );
+    gchar*      ipfilter_v6_config_file  =  nwamui_env_get_ipfilter_v6_config_file ( env );
+    gchar*      ipnat_config_file  =  nwamui_env_get_ipnat_config_file ( env );
+    gchar*      ippool_config_file  =  nwamui_env_get_ippool_config_file ( env );
+    gchar*      ike_config_file  =  nwamui_env_get_ike_config_file ( env );
+    gchar*      ipsecpolicy_config_file  =  nwamui_env_get_ipsecpolicy_config_file ( env );
+    GList*      svcs_enable  =  nwamui_env_get_svcs_enable ( env );
+    GList*      svcs_disable  =  nwamui_env_get_svcs_disable ( env );
     
     name = nwamui_env_get_name( env );
-    proxy_type = nwamui_env_get_proxy_type( env );
-    proxy_pac_file = nwamui_env_get_proxy_pac_file( env );
-    proxy_http_server = nwamui_env_get_proxy_http_server( env );
-    proxy_https_server = nwamui_env_get_proxy_https_server( env );
-    proxy_ftp_server = nwamui_env_get_proxy_ftp_server( env );
-    proxy_gopher = nwamui_env_get_proxy_gopher_server( env );
-    proxy_socks = nwamui_env_get_proxy_socks_server( env );
-    proxy_bypass_list = nwamui_env_get_proxy_bypass_list( env );
-
-    switch( proxy_type ) {
-        case NWAMUI_ENV_PROXY_TYPE_DIRECT:
-            proxy_type_str="Direct";
-            break;
-        case NWAMUI_ENV_PROXY_TYPE_MANUAL:
-            proxy_type_str="Manual";
-            break;
-        case NWAMUI_ENV_PROXY_TYPE_PAC_FILE:
-            proxy_type_str="PAC File";
-            break;
-        default:
-            proxy_type_str="**** UNKNOWN *****";
-            break;
-    }
     printf("%-*s*************************************************************\n", indent, "");
     indent += 4;
     printf("%-*sEnv name = %s\n", indent, "", name?name:"NULL" );
-    printf("%-*sEnv proxy_type = %s\n", indent, "", proxy_type_str);
-    printf("%-*sEnv proxy_pac_file = %s\n", indent, "", proxy_pac_file?proxy_pac_file:"NULL" );
-    printf("%-*sEnv proxy_http_server = %s\n", indent, "", proxy_http_server?proxy_http_server:"NULL" );
-    printf("%-*sEnv proxy_https_server = %s\n", indent, "", proxy_https_server?proxy_https_server:"NULL" );
-    printf("%-*sEnv proxy_ftp_server = %s\n", indent, "", proxy_ftp_server?proxy_ftp_server:"NULL" );
-    printf("%-*sEnv proxy_gopher = %s\n", indent, "", proxy_gopher?proxy_gopher:"NULL" );
-    printf("%-*sEnv proxy_socks = %s\n", indent, "", proxy_socks?proxy_socks:"NULL" );
-    printf("%-*sEnv proxy_bypass_list = %s\n", indent, "", proxy_bypass_list?proxy_bypass_list:"NULL" );
+    printf("%-*sEnv modifiable  = %s\n", indent, "", modifiable ?"TRUE":"FALSE" );
+    printf("%-*sEnv enabled  = %s\n", indent, "", enabled ?"TRUE":"FALSE" );
+    printf("%-*sEnv nameservice_discover  = %s\n", indent, "", nameservice_discover ?"TRUE":"FALSE" );
+    print_ns_list_and_free( "Env", "nameservices", nameservices );
+    printf("%-*sEnv nameservices_config_file  = %s\n", indent, "", nameservices_config_file ?nameservices_config_file :"NULL" );
+    printf("%-*sEnv domainname  = %s\n", indent, "", domainname ?domainname :"NULL" );
+    print_string_list_and_free( "Env", "dns_nameservice_servers", dns_nameservice_servers );
+    printf("%-*sEnv dns_nameservice_search  = %s\n", indent, "", dns_nameservice_search ?dns_nameservice_search :"NULL" );
+    print_string_list_and_free( "Env", "nis_nameservice_servers", nis_nameservice_servers );
+    print_string_list_and_free( "Env", "nisplus_nameservice_servers", nisplus_nameservice_servers );
+    print_string_list_and_free( "Env", "ldap_nameservice_servers", ldap_nameservice_servers );
+    printf("%-*sEnv hosts_file  = %s\n", indent, "", hosts_file ?hosts_file :"NULL" );
+    printf("%-*sEnv nfsv4_domain  = %s\n", indent, "", nfsv4_domain ?nfsv4_domain :"NULL" );
+    printf("%-*sEnv ipfilter_config_file  = %s\n", indent, "", ipfilter_config_file ?ipfilter_config_file :"NULL" );
+    printf("%-*sEnv ipfilter_v6_config_file  = %s\n", indent, "", ipfilter_v6_config_file ?ipfilter_v6_config_file :"NULL" );
+    printf("%-*sEnv ipnat_config_file  = %s\n", indent, "", ipnat_config_file ?ipnat_config_file :"NULL" );
+    printf("%-*sEnv ippool_config_file  = %s\n", indent, "", ippool_config_file ?ippool_config_file :"NULL" );
+    printf("%-*sEnv ike_config_file  = %s\n", indent, "", ike_config_file ?ike_config_file :"NULL" );
+    printf("%-*sEnv ipsecpolicy_config_file  = %s\n", indent, "", ipsecpolicy_config_file ?ipsecpolicy_config_file :"NULL" );
+    print_string_list_and_free( "Env", "svcs_enable", svcs_enable );
+    print_string_list_and_free( "Env", "svcs_disable", svcs_disable );
 
     print_conditions( G_OBJECT(env) );
 
@@ -379,13 +453,6 @@ process_env( gpointer data, gpointer user_data )
     printf("%-*s*************************************************************\n", indent, "");
 
     if ( name != NULL ) g_free( name );
-    if ( proxy_pac_file != NULL ) g_free( proxy_pac_file );
-    if ( proxy_http_server != NULL ) g_free( proxy_http_server );
-    if ( proxy_https_server != NULL ) g_free( proxy_https_server );
-    if ( proxy_ftp_server != NULL ) g_free( proxy_ftp_server );
-    if ( proxy_gopher != NULL ) g_free( proxy_gopher );
-    if ( proxy_socks != NULL ) g_free( proxy_socks );
-    if ( proxy_bypass_list != NULL ) g_free( proxy_bypass_list );
 }
 
 static void 

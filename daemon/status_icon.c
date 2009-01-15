@@ -659,8 +659,10 @@ nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, const gchar* 
 {
     self->prv->current_status = env_status;
 
-    gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
-      nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status));
+    if ( !gtk_status_icon_is_embedded(GTK_STATUS_ICON(self))) {
+        gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
+          nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status));
+    }
 
     if ( status_icon_reason_message != NULL ) {
         g_free( status_icon_reason_message );

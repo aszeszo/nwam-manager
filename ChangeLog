@@ -1,3 +1,32 @@
+2009-01-15  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Add _dhcp functions for DHCP configuration, auto_conf is something
+	  else and so should have it's own separate property.
+	  Remove gateway property since it's no possible to get/set.
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Update to remove use of gateway.
+	* common/libnwamui.c: 
+	  Return NULL if the status icon is not embedded when we try to get a
+	  suitable icon.
+	* common/nwamui_env.c, common/nwamui_env.h:
+	  Make Env object use the nwam_loc_handle_t to store settings rather
+	  than having own copy.
+	  Also remove ipseckey_config_file related functions.
+	* common/nwamui_ip.c: 
+	  Fix bug where we weren't setting addr_src correctly.
+	* common/nwamui_ncp.c:
+	  Update to count number of wireless NCUs, so that "has_many_wireless"
+	  property will be useful.
+	* tests/main.c: 
+	  Update for all Env properties and also add functions to pretty print
+	  strv and nameservices_t GLists.
+	* daemon/nwam-env-action.c: 
+	  Handle NULL arg1 in notify callback.
+	* daemon/status_icon.c: 
+	  Check to see if status_icon is embedded before we try to set it's
+	  icon.
+
 2009-01-15  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/Makefile.am:

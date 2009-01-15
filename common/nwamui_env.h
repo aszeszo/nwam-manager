@@ -180,10 +180,6 @@ extern void                 nwamui_env_set_ike_config_file ( NwamuiEnv *self, co
 extern gchar*               nwamui_env_get_ike_config_file ( NwamuiEnv *self );
 
 
-extern void                 nwamui_env_set_ipseckey_config_file ( NwamuiEnv *self, const gchar* ipseckey_config_file );
-extern gchar*               nwamui_env_get_ipseckey_config_file ( NwamuiEnv *self );
-
-
 extern void                 nwamui_env_set_ipsecpolicy_config_file ( NwamuiEnv *self, const gchar* ipsecpolicy_config_file );
 extern gchar*               nwamui_env_get_ipsecpolicy_config_file ( NwamuiEnv *self );
 

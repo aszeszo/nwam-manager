@@ -278,7 +278,7 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 	NwamEnvAction *self = NWAM_ENV_ACTION (data);
     NwamEnvActionPrivate *prv = GET_PRIVATE(self);
 
-    g_debug("menuitem get env notify %s changed\n", arg1->name);
+    g_debug("menuitem get env notify %s changed\n", (arg1 && arg1->name)?arg1->name:"NULL");
 }
 
 static void

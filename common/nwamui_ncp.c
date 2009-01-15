@@ -666,6 +666,7 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
     GtkTreeIter         iter;
     NwamuiNcp*          ncp = NWAMUI_NCP(data);
     NwamuiNcpPrivate*   prv = ncp->prv;
+    gint                num_wireless = 0; /* Count wireless i/fs */
 
     g_debug ("nwam_ncu_walker_cb 0x%p", ncu);
 
@@ -687,9 +688,14 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
 
         g_debug("Creating a new ncu for %s from handle 0x%08X", name, ncu );
         new_ncu = nwamui_ncu_new_with_handle( NWAMUI_NCP(data), ncu);
+
     }
 
     if ( new_ncu != NULL ) {
+        if ( new_ncu && nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
+            num_wireless++;
+        }
+
         gtk_tree_store_append( prv->ncu_tree_store, &iter, NULL );
         gtk_tree_store_set( prv->ncu_tree_store, &iter, 0, new_ncu, -1 );
 
@@ -697,6 +703,11 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
                          (GCallback)ncu_notify_cb, (gpointer)ncp);
 
         return(0);
+    }
+
+    if ( ncp->prv->num_wireless != num_wireless ) {
+        ncp->prv->num_wireless = num_wireless;
+        g_object_notify(G_OBJECT (ncp), "many_wireless" );
     }
 
     g_warning("Failed to create a new NCU");

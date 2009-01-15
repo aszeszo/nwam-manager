@@ -198,7 +198,7 @@ nwamui_ip_set_property (    GObject         *object,
         case PROP_IS_DHCP: {
                 /* TODO: Determine if can have more than one of these set */
                 if ( g_value_get_boolean( value ) ) {
-                    self->prv->addr_src = ADDRSRC_DHCP; 
+                    self->prv->addr_src |= ADDRSRC_DHCP; 
                 }
                 else {
                     self->prv->addr_src &= ~ADDRSRC_DHCP; 
@@ -209,7 +209,7 @@ nwamui_ip_set_property (    GObject         *object,
         case PROP_IS_AUTOCONF: {
                 /* TODO: Determine if can have more than one of these set */
                 if ( g_value_get_boolean( value ) ) {
-                    self->prv->addr_src = ADDRSRC_AUTOCONF; 
+                    self->prv->addr_src |= ADDRSRC_AUTOCONF; 
                 }
                 else {
                     self->prv->addr_src &= ~ADDRSRC_AUTOCONF; 
@@ -220,12 +220,11 @@ nwamui_ip_set_property (    GObject         *object,
         case PROP_IS_STATIC: {
                 /* TODO: Determine if can have more than one of these set */
                 if ( g_value_get_boolean( value ) ) {
-                    self->prv->addr_src = ADDRSRC_STATIC; 
+                    self->prv->addr_src |= ADDRSRC_STATIC; 
                 }
                 else {
                     self->prv->addr_src &= ~ADDRSRC_STATIC; 
                 }
-                self->prv->addr_src = g_value_get_boolean( value );
             }
             break;
 
