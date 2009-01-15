@@ -85,6 +85,10 @@ struct _NwamVPNPrefDialogPrivate {
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+
 static void nwam_vpn_pref_dialog_finalize(NwamVPNPrefDialog *self);
 static void nwam_compose_vpn_apps_view (NwamVPNPrefDialog *self);
 static void set_property (GObject         *object,
@@ -98,7 +102,6 @@ static void get_property (GObject         *object,
 static void nwam_vpn_add (NwamVPNPrefDialog *self, NwamuiEnm* obj);
 static void nwam_vpn_clear (NwamVPNPrefDialog *self);
 static void populate_panel( NwamVPNPrefDialog* self);
-static gboolean help (NwamPrefIFace *self, gpointer data);
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -300,7 +303,7 @@ static gboolean
 nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
 {
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(self);
-	gchar *txt = NULL;
+	const gchar *txt = NULL;
 	
 	txt = gtk_entry_get_text(prv->start_cmd_entry);
 	nwamui_enm_set_start_command(NWAMUI_ENM(prv->cur_obj), txt?txt:"");
@@ -387,7 +390,7 @@ populate_panel( NwamVPNPrefDialog* self)
 }
 
 static gboolean
-help (NwamPrefIFace *self, gpointer data)
+help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamVPNPrefDialog: Help");
     nwamui_util_show_help ("");

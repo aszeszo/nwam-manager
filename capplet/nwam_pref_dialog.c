@@ -68,8 +68,12 @@ struct _NwamCappletDialogPrivate {
     GList*                      ncp_list; /* currently active NCP */
 };
 
-static void nwam_capplet_dialog_finalize(NwamCappletDialog *self);
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+
+static void nwam_capplet_dialog_finalize(NwamCappletDialog *self);
 
 /* Callbacks */
 void show_comob_add (GtkComboBox* combo, GObject*  obj);
@@ -86,9 +90,6 @@ static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void show_changed_cb( GtkWidget* widget, gpointer data );
 static void refresh_clicked_cb( GtkButton *button, gpointer data );
-static gboolean refresh (NwamPrefIFace *self, gpointer data, gboolean force);
-static gboolean apply (NwamPrefIFace *self, gpointer data);
-static gboolean help (NwamPrefIFace *self, gpointer data);
 
 /* Utility Functions */
 static void     update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp );
@@ -253,22 +254,25 @@ nwam_capplet_dialog_finalize(NwamCappletDialog *self)
  * FIXED ME.
  **/
 static gboolean
-refresh (NwamPrefIFace *self, gpointer data, gboolean force)
+refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
+	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(iface);
     /* Refresh children */
     show_changed_cb(GTK_WIDGET(NWAM_CAPPLET_DIALOG(self)->prv->show_combo), (gpointer)self);
 }
 
 static gboolean
-apply (NwamPrefIFace *self, gpointer data)
+apply(NwamPrefIFace *iface, gpointer user_data)
 {
+	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(iface);
     gint idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
     nwam_pref_apply (NWAM_PREF_IFACE(NWAM_CAPPLET_DIALOG(self)->prv->panel[idx]), NULL);
 }
 
 static gboolean
-help (NwamPrefIFace *self, gpointer data)
+help(NwamPrefIFace *iface, gpointer user_data)
 {
+	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(iface);
     gint idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
     nwam_pref_help (NWAM_PREF_IFACE(NWAM_CAPPLET_DIALOG(self)->prv->panel[idx]), NULL);
 }

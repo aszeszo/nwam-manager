@@ -36,12 +36,12 @@ struct _NwamConditionVBoxPrivate {
     NwamuiObject*                  selected_object;
 };
 
-static void nwam_condition_vbox_finalize (NwamConditionVBox *self);
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 
+static void nwam_condition_vbox_finalize (NwamConditionVBox *self);
 static void table_lines_init (NwamConditionVBox *self, NwamuiObject *object);
 static void table_lines_free (NwamConditionVBox *self);
 static GtkWidget *table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond);

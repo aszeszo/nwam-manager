@@ -49,8 +49,6 @@
 #define CONN_STATUS_VPN_BUTTON           "vpn_btn"
 #define CONN_STATUS_REPAIR_BUTTON        "repair_connection_btn"
 
-static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
-
 struct _NwamConnStatusPanelPrivate {
 	/* Widget Pointers */
 	GtkTreeView*	conn_status_treeview;
@@ -76,14 +74,17 @@ enum {
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAM_TYPE_CONN_STATUS_PANEL, NwamConnStatusPanelPrivate)) 
 
+static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+
 static void nwam_conn_status_panel_finalize(NwamConnStatusPanel *self);
 static void nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 					     GtkCellRenderer   *renderer,
 					     GtkTreeModel      *model,
 					     GtkTreeIter       *iter,
 					     gpointer           data);
-
-static gboolean  nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -94,8 +95,9 @@ static void nwam_conn_status_conn_view_row_activated_cb (GtkTreeView *tree_view,
 static void repair_clicked_cb( GtkButton *button, gpointer data );
 static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
-static gboolean help (NwamConnStatusPanel *self, gpointer data);
-static gboolean apply (NwamPrefIFace *self, gpointer data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -109,7 +111,7 @@ static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
-	iface->refresh = nwam_conn_status_panel_refresh;
+	iface->refresh = refresh;
 	iface->apply = NULL;
 	iface->help = help;
 }
@@ -298,22 +300,22 @@ nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog)
 }
 
 /**
- * nwam_conn_status_panel_refresh:
+ * refresh:
  *
  * Refresh function for the NwamPrefIface Interface.
  **/
 static gboolean
-nwam_conn_status_panel_refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force)
+refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
     GList*                  enm_elem;
     gchar*                  text = NULL;
-    NwamConnStatusPanel*    self = NWAM_CONN_STATUS_PANEL( pref_iface );
+    NwamConnStatusPanel*    self = NWAM_CONN_STATUS_PANEL( iface );
 
     g_assert(NWAM_IS_CONN_STATUS_PANEL(self));
         
 	/* data could be null or ncp */
-    if (data != NULL) {
-        NwamuiNcp *ncp = NWAMUI_NCP(data);
+    if (user_data != NULL) {
+        NwamuiNcp *ncp = NWAMUI_NCP(user_data);
         GtkTreeModel *model;
         model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store(ncp));
         gtk_widget_hide(GTK_WIDGET(self->prv->conn_status_treeview));
@@ -346,7 +348,7 @@ nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
  * help:
  **/
 static gboolean
-help (NwamConnStatusPanel *self, gpointer data)
+help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamConnStatusPanel: Help");
     nwamui_util_show_help ("");

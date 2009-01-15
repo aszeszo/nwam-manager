@@ -32,12 +32,12 @@ struct _NwamRulesDialogPrivate {
 	NwamuiObject*                  selected_object;
 };
 
-static void nwam_rules_dialog_finalize (NwamRulesDialog *self);
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 
+static void nwam_rules_dialog_finalize (NwamRulesDialog *self);
 static void response_cb(GtkWidget* widget, gint responseid, gpointer user_data);
 
 G_DEFINE_TYPE_EXTENDED (NwamRulesDialog,
@@ -64,11 +64,14 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 	if (force) {
 		if (prv->selected_object) {
 			gchar *title;
+			gchar *name;
 
-			title = g_strdup_printf("Edit Rules : %s", nwamui_obj_get_display_name(prv->selected_object));
+			name = nwamui_obj_get_display_name(prv->selected_object);
+			title = g_strdup_printf("Edit Rules : %s", name);
 			g_object_set(prv->rules_dialog,
 			    "title", title,
 			    NULL);
+			g_free(name);
 			g_free(title);
 		}
 	}
@@ -160,16 +163,22 @@ nwam_rules_dialog_new (void)
 }
 
 gint
-nwam_rules_dialog_run(NwamRulesDialog  *self)
+nwam_rules_dialog_run(NwamRulesDialog  *self, GtkWindow* parent)
 {
 	gint response = GTK_RESPONSE_NONE;
     
 	g_assert(NWAM_IS_RULES_DIALOG(self));
 
 	if ( self->prv->rules_dialog != NULL ) {
+		if (parent) {
+			gtk_window_set_transient_for (GTK_WINDOW(self->prv->rules_dialog), parent);
+			gtk_window_set_modal (GTK_WINDOW(self->prv->rules_dialog), TRUE);
+		} else {
+			gtk_window_set_transient_for (GTK_WINDOW(self->prv->rules_dialog), NULL);
+			gtk_window_set_modal (GTK_WINDOW(self->prv->rules_dialog), FALSE);		
+		}
+
 		response = gtk_dialog_run(GTK_DIALOG(self->prv->rules_dialog));
-            
-		gtk_widget_hide(GTK_WIDGET(self->prv->rules_dialog));
 	}
 	return response;
 }
@@ -190,7 +199,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer user_data)
 		break;
 	case GTK_RESPONSE_OK:
 		g_debug("GTK_RESPONSE_OK");
-		if (nwam_pref_apply (NWAM_PREF_IFACE(self), NULL)) {
+		if (nwam_pref_apply(NWAM_PREF_IFACE(self), self->prv->selected_object)) {
 			gtk_widget_hide_all (GTK_WIDGET(self->prv->rules_dialog));
 		}
 		else {

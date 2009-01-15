@@ -152,7 +152,7 @@ nwamui_obj_get_display_name(GObject *obj)
 	} else if (type == NWAMUI_TYPE_ENM) {
 		name = nwamui_enm_get_name(NWAMUI_ENM(obj));
 	} else {
-		g_error("unknow get display name");
+		name = g_strdup("unknow get display name");
 	}
 	return name;
 }

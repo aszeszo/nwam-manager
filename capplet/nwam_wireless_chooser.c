@@ -62,8 +62,12 @@ enum {
     WIFI_FAV_SIGNAL
 };
 
-static void nwam_wireless_chooser_finalize(NwamWirelessChooser *self);
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+
+static void nwam_wireless_chooser_finalize(NwamWirelessChooser *self);
 static void nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data);
 static void nwam_rescan_wifi (NwamWirelessChooser *self);
 
@@ -80,9 +84,6 @@ static gint nwam_wifi_chooser_comp_cb (GtkTreeModel *model,
   gpointer user_data);
 static void wifi_add (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi);
 static void wifi_remove (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi);
-static gboolean refresh (NwamPrefIFace *self, gpointer data, gboolean force);
-static gboolean apply (NwamPrefIFace *iface, gpointer data);
-static gboolean help (NwamPrefIFace *self, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamWirelessChooser,
                         nwam_wireless_chooser,
@@ -319,19 +320,21 @@ nwam_wireless_chooser_run (NwamWirelessChooser *self, GtkWindow *parent)
  * Refresh #NwamWirelessChooser
  **/
 static gboolean
-refresh (NwamPrefIFace *self, gpointer data, gboolean force)
+refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
+    NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(iface);
+    NwamWirelessChooserPrivate* prv = self->prv;
     g_assert( NWAM_IS_WIRELESS_CHOOSER(self));
     
     populate_panel(NWAM_WIRELESS_CHOOSER(self), force);
 }
 
 static gboolean
-apply (NwamPrefIFace *iface, gpointer data)
+apply(NwamPrefIFace *iface, gpointer user_data)
 {
-    g_assert( NWAM_IS_WIRELESS_CHOOSER(iface));
     NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(iface);
     NwamWirelessChooserPrivate* prv = self->prv;
+    g_assert( NWAM_IS_WIRELESS_CHOOSER(iface));
 }
 
 /**
@@ -340,7 +343,7 @@ apply (NwamPrefIFace *iface, gpointer data)
  * Help #NwamWirelessChooser
  **/
 static gboolean
-help (NwamPrefIFace *self, gpointer data)
+help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamWirelessChooser: Help");
     nwamui_util_show_help ("");

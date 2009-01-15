@@ -48,8 +48,6 @@
 
 #define TREEVIEW_COLUMN_NUM             "meta:column"
 
-static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
-
 struct _NwamNetConfPanelPrivate {
 	/* Widget Pointers */
 	GtkTreeView*	    net_conf_treeview;
@@ -80,6 +78,11 @@ enum {
 	CONNVIEW_INFO,
     CONNVIEW_STATUS
 };
+
+static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 
 static void nwam_net_conf_panel_finalize(NwamNetConfPanel *self);
 
@@ -143,8 +146,9 @@ static void connection_move_down_btn_cb( GtkButton*, gpointer user_data );
 static void connection_rename_btn_cb( GtkButton*, gpointer user_data );
 static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
-static gboolean help (NwamPrefIFace *self, gpointer data);
-static gboolean apply (NwamPrefIFace *self, gpointer data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 
 static void update_rules_from_ncu (NwamNetConfPanel* self,
   GParamSpec *arg1,
@@ -554,15 +558,15 @@ nwam_net_conf_panel_new(NwamCappletDialog *pref_dialog)
  * Refresh #NwamNetConfPanel with the new connections.
  **/
 static gboolean
-refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force)
+refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
-    NwamNetConfPanel*    self = NWAM_NET_CONF_PANEL( pref_iface );
+    NwamNetConfPanel*    self = NWAM_NET_CONF_PANEL( iface );
     
     g_assert(NWAM_IS_NET_CONF_PANEL(self));
 
 	/* data could be null or ncp */
-    if (data != NULL) {
-        NwamuiNcp *ncp = NWAMUI_NCP(data);
+    if (user_data != NULL) {
+        NwamuiNcp *ncp = NWAMUI_NCP(user_data);
         GtkTreeModel *model;
         model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store(ncp));
         if (gtk_tree_view_get_model(self->prv->net_conf_treeview) != model ||
@@ -582,7 +586,7 @@ refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force)
 }
 
 static gboolean
-help (NwamPrefIFace *self, gpointer data)
+help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug("NwamNetConfPanel: Help");
     nwamui_util_show_help ("");

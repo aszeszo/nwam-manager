@@ -150,8 +150,12 @@ enum {
     WIFI_FAV_SIGNAL
 };
 
-static void nwam_conf_ip_panel_finalize(NwamConnConfIPPanel *self);
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+
+static void nwam_conf_ip_panel_finalize(NwamConnConfIPPanel *self);
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -197,9 +201,6 @@ static void wireless_tab_down_button_clicked_cb( GtkButton *button, gpointer dat
 static void refresh_clicked_cb( GtkButton *button, gpointer data );
 static void ipv4_addr_changed_cb( GtkEditable* editable, gpointer user_data );
 static void ipv4_subnet_changed_cb( GtkEditable* editable, gpointer user_data );
-static gboolean refresh (NwamConnConfIPPanel *self, gpointer data, gboolean force);
-static gboolean apply (NwamPrefIFace *iface, gpointer data);
-static gboolean help (NwamPrefIFace *self, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnConfIPPanel,
                         nwam_conf_ip_panel,
@@ -663,10 +664,11 @@ nwam_conf_ip_panel_new(void)
  * Refresh #NwamConnConfIPPanel
  **/
 static gboolean
-refresh (NwamConnConfIPPanel *self, gpointer data, gboolean force)
+refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
+    NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(iface);
     gboolean init_refresh = FALSE;
-    NwamuiNcu* ncu = NWAMUI_NCU(data);
+    NwamuiNcu* ncu = NWAMUI_NCU(user_data);
 
     g_return_val_if_fail( NWAM_IS_CONN_CONF_IP_PANEL(self), init_refresh );
     
@@ -695,12 +697,12 @@ refresh (NwamConnConfIPPanel *self, gpointer data, gboolean force)
 }
 
 static gboolean
-apply (NwamPrefIFace *iface, gpointer data)
+apply(NwamPrefIFace *iface, gpointer user_data)
 {
-    g_assert( NWAM_IS_CONN_CONF_IP_PANEL(iface));
     NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(iface);
     NwamConnConfIPPanelPrivate* prv = self->prv;
     
+    g_assert( NWAM_IS_CONN_CONF_IP_PANEL(iface));
     /* Populate WiFi conditions */
     {
         NwamuiProf*     prof;
@@ -750,7 +752,7 @@ apply (NwamPrefIFace *iface, gpointer data)
  * Help #NwamConnConfIPPanel
  **/
 static gboolean
-help (NwamPrefIFace *self, gpointer data)
+help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamConnConfIPPanel: Help");
     nwamui_util_show_help ("");

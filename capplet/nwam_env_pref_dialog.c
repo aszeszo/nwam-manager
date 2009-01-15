@@ -41,14 +41,7 @@
 #include "capplet-utils.h"
 
 /* Names of Widgets in Glade file */
-#define     ENV_PREF_DIALOG_NAME           "nwam_location"
-
-#define     ENVIRONMENT_NAME_COMBO         "environment_name_combo"
-#define     ADD_ENVIRONMENT_BTN            "add_environment_btn"
-#define     EDIT_ENVIRONMENT_BTN           "edit_environment_btn"
-#define     DUP_ENVIRONMENT_BTN            "dup_environment_btn"
-#define     DELETE_ENVIRONMENT_BTN         "delete_environment_btn"
-
+#define     ENV_PREF_DIALOG_NAME           "nwam_location_properties"
 #define     ENVIRONMENT_NOTEBOOK           "environment_notebook"
 #define     PROXY_CONFIG_COMBO             "proxy_config_combo"
 #define     PROXY_NOTEBOOK                 "proxy_notebook"
@@ -75,25 +68,25 @@
 #define     HTTPS_PROXY_PORT_LABEL         "https_proxy_port_label"          
 #define     HTTP_PROXY_PORT_LABEL          "http_proxy_port_label"           
 #define     FTP_PROXY_PORT_LABEL           "ftp_proxy_port_label"            
-#define     DEFAULT_NETSERVICES_LIST       "default_netservices_list"
-#define     ADDITIONAL_NETSERVICES_LIST    "additional_netservices_list"
-#define     ADD_NETSERVICE_BTN             "add_netservice_btn"
-#define     DELETE_NETSERVICE_BTN          "delete_netservice_btn"
-#define     ONLY_ALLOW_LABEL               "only_allow_lbl"
-#define     CONDITIONS_SCROLLWIN           "conditions_scrolledwindow"
+#define     ENABLED_NETSERVICES_LIST       "enabled_netservices_list"
+#define     DISABLED_NETSERVICES_LIST      "disabled_netservices_list"
+#define     ADD_ENABLED_NETSERVICE_BTN     "add_enabled_netservice_btn"
+#define     DELETE_ENABLED_NETSERVICE_BTN  "delete_enabled_netservice_btn"
+#define     ADD_DISABLED_NETSERVICE_BTN    "add_disabled_netservice_btn"
+#define     DELETE_DISABLED_NETSERVICE_BTN "delete_disabled_netservice_btn"
 
-#define     IPPOOL_CB                      "ippool_cb"
-#define     IPNAT_CB                       "ipnat_cb"
-#define     IPFILTER_V6_CB                 "ipfilter_v6_cb"
-#define     IPFILTER_CB                    "ipfilter_cb"
+#define     IPPOOL_CONFIG_CB               "ippool_config_cb"
+#define     NAT_CONFIG_CB                  "nat_config_cb"
+#define     IPF_V6_CONFIG_CB               "ipf_v6_config_cb"
+#define     IPF_CONFIG_CB                  "ipf_config_cb"
 #define     IPPOOL_FILE_CHOOSER            "ippool_file_chooser"
-#define     IPNAT_FILE_CHOOSER             "ipnat_file_chooser"
+#define     NAT_FILE_CHOOSER               "nat_file_chooser"
 #define     IPFILTER_V6_FILE_CHOOSER       "ipfilter_v6_file_chooser"
 #define     IPFILTER_FILE_CHOOSER          "ipfilter_file_chooser"
 
 #define     NAMESERVICES_CONFIG_COMBO      "nameservices_config_combo"
-#define     NAMESERVICES_ADD_BTN           "nameservices_add_btn"
-#define     NAMESERVICES_DELETE_BTN        "nameservices_delete_btn"
+#define     NAMESERVICE_ADD_BTN            "nameservice_add_btn"
+#define     NAMESERVICE_DELETE_BTN         "nameservice_delete_btn"
 #define     NSSWITCH_FILE_BTN              "nsswitch_file_btn"
 
 #define TREEVIEW_COLUMN_NUM             "meta:column"
@@ -115,11 +108,6 @@ struct _NwamEnvPrefDialogPrivate {
 
     /* Widget Pointers */
     GtkDialog*                  env_pref_dialog;
-    GtkComboBox*                environment_name_combo;
-    GtkButton*                  add_environment_btn;
-    GtkButton*                  edit_environment_btn;
-    GtkButton*                  dup_environment_btn;
-    GtkButton*                  delete_environment_btn;
     GtkNotebook*                environment_notebook;
     GtkComboBox*                proxy_config_combo;
     GtkNotebook*                proxy_notebook;
@@ -147,26 +135,26 @@ struct _NwamEnvPrefDialogPrivate {
     GtkLabel*                   https_proxy_port_label;
     GtkLabel*                   http_proxy_port_label;
     GtkLabel*                   ftp_proxy_port_label;
-    GtkLabel*                   only_allow_label;
     
-    GtkTreeView*                default_netservices_list;
-    GtkTreeView*                additional_netservices_list;
-    GtkButton*                  add_netservice_btn;
-    GtkButton*                  delete_netservice_btn;
-    GtkBox*                     conditions_vbox;
+    GtkTreeView*                enabled_netservices_list;
+    GtkTreeView*                disabled_netservices_list;
+    GtkButton*                  add_enabled_netservice_btn;
+    GtkButton*                  delete_enabled_netservice_btn;
+    GtkButton*                  add_disabled_netservice_btn;
+    GtkButton*                  delete_disabled_netservice_btn;
 
-    GtkCheckButton*             ippool_cb;
-    GtkCheckButton*             ipnat_cb;
-    GtkCheckButton*             ipfilter_cb;
-    GtkCheckButton*             ipfilter_v6_cb;
+    GtkCheckButton*             ippool_config_cb;
+    GtkCheckButton*             nat_config_cb;
+    GtkCheckButton*             ipf_config_cb;
+    GtkCheckButton*             ipf_v6_config_cb;
     GtkFileChooserButton*       ippool_file_chooser;
-    GtkFileChooserButton*       ipnat_file_chooser;
+    GtkFileChooserButton*       nat_file_chooser;
     GtkFileChooserButton*       ipfilter_file_chooser;
     GtkFileChooserButton*       ipfilter_v6_file_chooser;
 
     GtkComboBox*                nameservices_config_combo;
-    GtkButton*                  nameservices_add_btn;
-    GtkButton*                  nameservices_delete_btn;
+    GtkButton*                  nameservice_add_btn;
+    GtkButton*                  nameservice_delete_btn;
     GtkFileChooserButton*       nsswitch_file_btn;
 
     /* Other Data */
@@ -174,24 +162,20 @@ struct _NwamEnvPrefDialogPrivate {
     NwamuiEnv*                  selected_env;
 };
 
+static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+
 static void         nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self);
-static void         nwam_pref_init (gpointer g_iface, gpointer iface_data);
-
-static void         change_env_combo_model(NwamEnvPrefDialog *self);
-
 static void         populate_dialog( NwamEnvPrefDialog* self );
 
 static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_proxy_type_t proxy_type );
 
 static void nwam_compose_tree_view (NwamEnvPrefDialog *self);
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
-static gboolean refresh (NwamEnvPrefDialog *self, gpointer data, gboolean force);
-static gboolean apply (NwamPrefIFace *self, gpointer data);
-static gboolean help (NwamPrefIFace *self, gpointer data);
 
 /* Callbacks */
-static void         env_selection_changed_cb( GtkWidget* widget, gpointer data );
-
 static void         proxy_config_changed_cb( GtkWidget* widget, gpointer data );
 
 static void         use_for_all_toggled(GtkToggleButton *togglebutton, gpointer user_data);
@@ -199,14 +183,6 @@ static void         use_for_all_toggled(GtkToggleButton *togglebutton, gpointer 
 static void         server_text_changed_cb(GtkEntry *entry, gpointer  user_data);
 
 static void         port_changed_cb(GtkSpinButton *sbutton, gpointer  user_data);
-
-static void         env_add_button_clicked_cb(GtkButton *button, gpointer  user_data);
-
-static void         env_rename_button_clicked_cb(GtkButton *button, gpointer  user_data);
-
-static void         env_duplicate_button_clicked_cb(GtkButton *button, gpointer  user_data);
-
-static void         env_delete_button_clicked_cb(GtkButton *button, gpointer  user_data);
 
 static void         http_password_button_clicked_cb(GtkButton *button, gpointer  user_data);
 
@@ -272,11 +248,6 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     
     /* Iniialise pointers to important widgets */
     prv->env_pref_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(ENV_PREF_DIALOG_NAME));
-    prv->environment_name_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget( ENVIRONMENT_NAME_COMBO ));
-    prv->add_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_ENVIRONMENT_BTN ));
-    prv->edit_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( EDIT_ENVIRONMENT_BTN ));
-    prv->dup_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DUP_ENVIRONMENT_BTN ));
-    prv->delete_environment_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_ENVIRONMENT_BTN ));
     prv->environment_notebook = GTK_NOTEBOOK(nwamui_util_glade_get_widget( ENVIRONMENT_NOTEBOOK ));
     prv->proxy_config_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget( PROXY_CONFIG_COMBO ));
     prv->proxy_notebook = GTK_NOTEBOOK(nwamui_util_glade_get_widget( PROXY_NOTEBOOK ));
@@ -303,24 +274,25 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     prv->https_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTPS_PROXY_PORT_LABEL ));          
     prv->http_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTP_PROXY_PORT_LABEL ));           
     prv->ftp_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( FTP_PROXY_PORT_LABEL ));            
-    prv->default_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( DEFAULT_NETSERVICES_LIST ));
-    prv->additional_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( ADDITIONAL_NETSERVICES_LIST ));
-    prv->add_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_NETSERVICE_BTN ));
-    prv->delete_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_NETSERVICE_BTN ));
-    prv->only_allow_label = GTK_LABEL(nwamui_util_glade_get_widget( ONLY_ALLOW_LABEL ));     
+    prv->enabled_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( ENABLED_NETSERVICES_LIST ));
+    prv->disabled_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( DISABLED_NETSERVICES_LIST ));
+    prv->add_enabled_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_ENABLED_NETSERVICE_BTN ));
+    prv->delete_enabled_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_ENABLED_NETSERVICE_BTN ));
+    prv->add_disabled_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_DISABLED_NETSERVICE_BTN ));
+    prv->delete_disabled_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_DISABLED_NETSERVICE_BTN ));
 
-    prv->ippool_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPPOOL_CB ));
-    prv->ipnat_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPNAT_CB ));
-    prv->ipfilter_v6_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPFILTER_V6_CB ));
-    prv->ipfilter_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPFILTER_CB ));
+    prv->ippool_config_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPPOOL_CONFIG_CB ));
+    prv->nat_config_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( NAT_CONFIG_CB ));
+    prv->ipf_v6_config_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPF_V6_CONFIG_CB ));
+    prv->ipf_config_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPF_CONFIG_CB ));
     prv->ippool_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( IPPOOL_FILE_CHOOSER ));
-    prv->ipnat_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( IPNAT_FILE_CHOOSER ));
+    prv->nat_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( NAT_FILE_CHOOSER ));
     prv->ipfilter_v6_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( IPFILTER_V6_FILE_CHOOSER ));
     prv->ipfilter_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( IPFILTER_FILE_CHOOSER ));
 
     prv->nameservices_config_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(NAMESERVICES_CONFIG_COMBO));
-    prv->nameservices_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICES_ADD_BTN));
-    prv->nameservices_delete_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICES_DELETE_BTN));
+    prv->nameservice_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_ADD_BTN));
+    prv->nameservice_delete_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_DELETE_BTN));
     prv->nsswitch_file_btn = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_FILE_BTN));
     {
         NwamuiDaemon *daemon = nwamui_daemon_get_instance();
@@ -330,27 +302,14 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
         g_object_unref(daemon);
     }
 
-    conditions_scrollwin = nwamui_util_glade_get_widget(CONDITIONS_SCROLLWIN);
-    prv->conditions_vbox = GTK_BOX(nwam_condition_vbox_new());
-    gtk_scrolled_window_add_with_viewport (GTK_SCROLLED_WINDOW(conditions_scrollwin),
-                                           GTK_WIDGET(prv->conditions_vbox));
-    
     /* Other useful pointer */
     prv->selected_env = NULL;
     prv->daemon = NWAMUI_DAEMON(nwamui_daemon_get_instance());
     prv->proxy_password_dialog = NULL;
     
-    change_env_combo_model(self);
-    
     /* Add Signal Handlers */
 	g_signal_connect(GTK_DIALOG(self->prv->env_pref_dialog), "response", (GCallback)response_cb, (gpointer)self);
 
-    g_signal_connect(GTK_COMBO_BOX(prv->environment_name_combo), "changed", (GCallback)env_selection_changed_cb, (gpointer)self);
-    
-    g_signal_connect(GTK_BUTTON(prv->add_environment_btn), "clicked", G_CALLBACK(env_add_button_clicked_cb), (gpointer)self);
-    g_signal_connect(GTK_BUTTON(prv->edit_environment_btn), "clicked", G_CALLBACK(env_rename_button_clicked_cb), (gpointer)self);
-    g_signal_connect(GTK_BUTTON(prv->dup_environment_btn), "clicked", G_CALLBACK(env_duplicate_button_clicked_cb), (gpointer)self);
-    g_signal_connect(GTK_BUTTON(prv->delete_environment_btn), "clicked", G_CALLBACK(env_delete_button_clicked_cb), (gpointer)self);
     g_signal_connect(GTK_BUTTON(prv->http_password_btn), "clicked", G_CALLBACK(http_password_button_clicked_cb), (gpointer)self);
     
     g_signal_connect(GTK_COMBO_BOX(prv->proxy_config_combo), "changed", (GCallback)proxy_config_changed_cb, (gpointer)self);
@@ -384,12 +343,6 @@ nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
     }
     
     g_object_unref(G_OBJECT(self->prv->env_pref_dialog ));
-    g_object_unref(G_OBJECT(self->prv->environment_name_combo));
-    g_object_unref(G_OBJECT(self->prv->add_environment_btn));
-    g_object_unref(G_OBJECT(self->prv->edit_environment_btn));
-    g_object_unref(G_OBJECT(self->prv->dup_environment_btn));
-    g_object_unref(G_OBJECT(self->prv->delete_environment_btn));
-    g_object_unref(G_OBJECT(self->prv->environment_notebook));
     g_object_unref(G_OBJECT(self->prv->proxy_config_combo));
     g_object_unref(G_OBJECT(self->prv->proxy_notebook));
     g_object_unref(G_OBJECT(self->prv->http_name));
@@ -415,25 +368,25 @@ nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
     g_object_unref(G_OBJECT(self->prv->https_proxy_port_label));          
     g_object_unref(G_OBJECT(self->prv->http_proxy_port_label));           
     g_object_unref(G_OBJECT(self->prv->ftp_proxy_port_label));            
-    g_object_unref(G_OBJECT(self->prv->default_netservices_list));
-    g_object_unref(G_OBJECT(self->prv->additional_netservices_list));
-    g_object_unref(G_OBJECT(self->prv->add_netservice_btn));
-    g_object_unref(G_OBJECT(self->prv->delete_netservice_btn));
-    g_object_unref(G_OBJECT(self->prv->only_allow_label));
-    g_object_unref(G_OBJECT(self->prv->conditions_vbox));
+    g_object_unref(G_OBJECT(self->prv->enabled_netservices_list));
+    g_object_unref(G_OBJECT(self->prv->disabled_netservices_list));
+    g_object_unref(G_OBJECT(self->prv->add_enabled_netservice_btn));
+    g_object_unref(G_OBJECT(self->prv->delete_enabled_netservice_btn));
+    g_object_unref(G_OBJECT(self->prv->add_disabled_netservice_btn));
+    g_object_unref(G_OBJECT(self->prv->delete_disabled_netservice_btn));
 
-    g_object_unref(G_OBJECT(self->prv->ippool_cb));
-    g_object_unref(G_OBJECT(self->prv->ipnat_cb));
-    g_object_unref(G_OBJECT(self->prv->ipfilter_v6_cb));
-    g_object_unref(G_OBJECT(self->prv->ipfilter_cb));
+    g_object_unref(G_OBJECT(self->prv->ippool_config_cb));
+    g_object_unref(G_OBJECT(self->prv->nat_config_cb));
+    g_object_unref(G_OBJECT(self->prv->ipf_v6_config_cb));
+    g_object_unref(G_OBJECT(self->prv->ipf_config_cb));
     g_object_unref(G_OBJECT(self->prv->ippool_file_chooser));
-    g_object_unref(G_OBJECT(self->prv->ipnat_file_chooser));
+    g_object_unref(G_OBJECT(self->prv->nat_file_chooser));
     g_object_unref(G_OBJECT(self->prv->ipfilter_v6_file_chooser));
     g_object_unref(G_OBJECT(self->prv->ipfilter_file_chooser));
 
     g_object_unref(G_OBJECT(self->prv->nameservices_config_combo));
-    g_object_unref(G_OBJECT(self->prv->nameservices_add_btn));
-    g_object_unref(G_OBJECT(self->prv->nameservices_delete_btn));
+    g_object_unref(G_OBJECT(self->prv->nameservice_add_btn));
+    g_object_unref(G_OBJECT(self->prv->nameservice_delete_btn));
     g_object_unref(G_OBJECT(self->prv->nsswitch_file_btn));
 
     g_object_unref(G_OBJECT(self->prv->daemon));
@@ -496,7 +449,7 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
     /*
      * compose the default netservices view
      */
-    view = self->prv->default_netservices_list;
+    view = self->prv->enabled_netservices_list;
 
 	g_object_set (G_OBJECT(view),
 		      "headers-clickable", FALSE,
@@ -562,7 +515,7 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
     /*
      * compose view for additional netservices view
      */
-    view = self->prv->additional_netservices_list;
+    view = self->prv->disabled_netservices_list;
 
 	g_object_set (G_OBJECT(view),
 		      "headers-clickable", FALSE,
@@ -626,45 +579,6 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
 }
 
 static void
-update_combo( gpointer obj, gpointer user_data )
-{
-    NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(user_data);
-    GtkComboBox*     combo = GTK_COMBO_BOX( self->prv->environment_name_combo );
-    GtkTreeStore*    tree_store;
-    NwamuiEnv*       env = NWAMUI_ENV(obj);
-    GtkTreeIter      iter;
-    
-    g_return_if_fail( obj != NULL && user_data != NULL );
-    
-    tree_store = GTK_TREE_STORE(gtk_combo_box_get_model(combo));
-    
-    gtk_tree_store_append( tree_store, &iter, NULL );
-    gtk_tree_store_set(tree_store, &iter, 0, env, -1 );
-    
-    if ( nwamui_daemon_is_active_env(self->prv->daemon, env ) ) {
-        gtk_combo_box_set_active_iter(GTK_COMBO_BOX(combo), &iter);
-    }
-}
-
-static void
-populate_env_list_combo( NwamEnvPrefDialog* self ) 
-{
-    NwamEnvPrefDialogPrivate*   prv;
-    GList*                      env_list;
-    GtkTreeStore*               model;
-    
-    g_assert( NWAM_IS_ENV_PREF_DIALOG( self ) );
-    
-    prv = self->prv;
-    
-    env_list = nwamui_daemon_get_env_list(prv->daemon);
-    
-    model = GTK_TREE_STORE(gtk_combo_box_get_model(prv->environment_name_combo));
-    gtk_tree_store_clear(GTK_TREE_STORE(model));
-    g_list_foreach(env_list, update_combo, (gpointer)self);
-}
-
-static void
 populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 {
     NwamEnvPrefDialogPrivate*   prv;
@@ -681,7 +595,6 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     gchar*      no_proxy;
     gboolean    use_for_all;
     gchar*      env_name;
-    gchar*      new_rules_label;
     nwamui_env_proxy_type_t proxy_type;
     
     g_debug("populate_panels_from_env called");
@@ -692,14 +605,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     
     /* TODO - Not as per UI Spec - should be using a copy on write mechanism, allowing edits */
     if ( nwamui_env_is_modifiable( current_env ) ) {
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->delete_environment_btn), TRUE);
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->edit_environment_btn), TRUE);
         gtk_container_foreach(GTK_CONTAINER(self->prv->environment_notebook), (GtkCallback)gtk_widget_set_sensitive, (gpointer)TRUE);
-    }
-    else {
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->delete_environment_btn), FALSE);
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->edit_environment_btn), FALSE);
-        gtk_container_foreach(GTK_CONTAINER(self->prv->environment_notebook), (GtkCallback)gtk_widget_set_sensitive, (gpointer)FALSE);
     }
     
     /*
@@ -766,16 +672,6 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     gtk_entry_set_text(prv->no_proxy_entry, no_proxy?no_proxy:"");
     
     /*
-     * Rules Tab
-     */
-    env_name = nwamui_env_get_name(current_env);
-    new_rules_label = g_strdup_printf(_("Only allow '%s' to become active if the following conditions apply:"), env_name );
-    gtk_label_set_text(prv->only_allow_label, new_rules_label);
-    g_free(env_name);
-    g_free(new_rules_label);
-    nwam_pref_refresh(NWAM_PREF_IFACE(prv->conditions_vbox), current_env, TRUE);
-
-    /*
      * SVC Tab
      */
 #if 0
@@ -787,7 +683,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     /* default view */
     filter = GTK_TREE_MODEL_FILTER(gtk_tree_model_filter_new (model,
                                      NULL));
-    gtk_tree_view_set_model (prv->default_netservices_list,
+    gtk_tree_view_set_model (prv->enabled_netservices_list,
       GTK_TREE_MODEL(filter));
     gtk_tree_model_filter_set_visible_func (filter,
       default_netservices_vfunc,
@@ -799,7 +695,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     /* additional view */
     filter = GTK_TREE_MODEL_FILTER(gtk_tree_model_filter_new (model,
                                      NULL));
-    gtk_tree_view_set_model (prv->additional_netservices_list,
+    gtk_tree_view_set_model (prv->disabled_netservices_list,
       GTK_TREE_MODEL(filter));
     gtk_tree_model_filter_set_visible_func (filter,
       additional_netservices_vfunc,
@@ -823,10 +719,6 @@ populate_dialog( NwamEnvPrefDialog* self )
     
     prv = self->prv;
     
-    model = GTK_TREE_STORE(gtk_combo_box_get_model(prv->environment_name_combo));
-
-    populate_env_list_combo( self ); /* Will generate an event to handle population of tabs */
-
 }
 
 static void
@@ -887,63 +779,11 @@ show_env_cell_cb (GtkCellLayout *cell_layout,
 	}
 }
 
-/*
- * Change the combo box model to allow for the inclusion of a reference to the Env to be stored.
- */
-static void
-change_env_combo_model(NwamEnvPrefDialog *self)
-{
-	GtkCellRenderer *renderer;
-	GtkTreeModel      *model;
-	GtkCellRenderer   *pix_renderer;
-        
-        g_assert(NWAM_IS_ENV_PREF_DIALOG(self));
-        
-	model = GTK_TREE_MODEL(gtk_tree_store_new(1, G_TYPE_OBJECT));    /* Object Pointer */
-	
-	gtk_combo_box_set_model(GTK_COMBO_BOX(self->prv->environment_name_combo), model);
-	gtk_cell_layout_clear(GTK_CELL_LAYOUT(self->prv->environment_name_combo));
-	renderer = gtk_cell_renderer_text_new();
-	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(self->prv->environment_name_combo), renderer, TRUE);
-	gtk_cell_layout_set_cell_data_func(GTK_CELL_LAYOUT(self->prv->environment_name_combo),
-					renderer,
-					show_env_cell_cb,
-					NULL,
-					NULL);
-	g_object_unref(model);
-}
-
-static void
-env_selection_changed_cb( GtkWidget* widget, gpointer data )
-{
-    NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(data);
-    NwamuiEnv*      current_env = NULL;
-    GtkTreeModel   *model = NULL;
-    GtkTreeIter     iter;
-
-    /* TODO - check if changes were made before switchinh environments, maybe... */
-    model = gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
-
-    if ( gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), &iter ) ) {
-        gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &current_env, -1);
-
-        /* Maintain for quick access elsewhere */
-        if (self->prv->selected_env != NULL ) {
-            g_object_unref(self->prv->selected_env);
-        }
-        self->prv->selected_env = NWAMUI_ENV(g_object_ref(current_env)); 
-        
-        populate_panels_from_env(self, current_env);
-
-        g_object_unref( G_OBJECT(current_env) );
-    }
-}
-
 static void
 proxy_config_changed_cb( GtkWidget* widget, gpointer data )
 {
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
     NwamEnvPrefDialog*          self = NWAM_ENV_PREF_DIALOG(data);
-    NwamuiEnv*                  current_env = NULL;
     GtkTreeModel*               model = NULL;
     GtkTreeIter                 iter;
     gint                        index = gtk_combo_box_get_active(GTK_COMBO_BOX(widget));
@@ -965,15 +805,8 @@ proxy_config_changed_cb( GtkWidget* widget, gpointer data )
             break;
     }
 
-    /* TODO - check if changes were made before switchinh environments, maybe... */
-    model = gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->environment_name_combo));
-
-    if ( gtk_combo_box_get_active_iter(GTK_COMBO_BOX(self->prv->environment_name_combo), &iter ) ) {
-        gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &current_env, -1);
-        if ( proxy_type != nwamui_env_get_proxy_type( current_env ) ) {
-            nwamui_env_set_proxy_type( current_env, proxy_type );
-        }
-        g_object_unref( G_OBJECT(current_env) );
+    if ( proxy_type != nwamui_env_get_proxy_type( prv->selected_env ) ) {
+        nwamui_env_set_proxy_type( prv->selected_env, proxy_type );
     }
 
     select_proxy_panel( self, proxy_type );
@@ -1081,130 +914,6 @@ port_changed_cb   (GtkSpinButton *sbutton,
 }
 
 static void
-env_add_button_clicked_cb(GtkButton *button, gpointer  user_data)
-{
-    NwamEnvPrefDialog*          self = NWAM_ENV_PREF_DIALOG(user_data);
-    NwamuiEnv*                  new_env = NULL;
-    gchar*                      new_name;
-    
-    new_name = nwamui_util_rename_dialog_run(GTK_WINDOW(self->prv->env_pref_dialog), _("New Location"), "" );
-
-    if ( new_name != NULL && strlen( new_name ) > 0 ) {
-        new_env = nwamui_env_new( new_name );
-        nwamui_daemon_env_append(self->prv->daemon, new_env );
-        
-        nwamui_daemon_set_active_env(self->prv->daemon, new_env );
-
-        populate_env_list_combo(self);
-        
-        g_free(new_name);
-        g_object_unref(new_env);
-    }
-}
-
-static void
-env_rename_button_clicked_cb(GtkButton *button, gpointer  user_data)
-{
-    NwamEnvPrefDialog*          self = NWAM_ENV_PREF_DIALOG(user_data);
-    NwamuiEnv*                  current_env = NULL;
-    GtkTreeModel*               model = NULL;
-    GtkTreeIter                 iter;
-    
-    /* TODO - check if changes were made before switchinh environments, maybe... */
-    model = gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->environment_name_combo));
-
-    if ( gtk_combo_box_get_active_iter(GTK_COMBO_BOX(self->prv->environment_name_combo), &iter ) ) {
-        gchar*  current_name;
-        gchar*  new_name;
-        
-        gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &current_env, -1);
-        
-        current_name = nwamui_env_get_name(current_env);
-        
-        new_name = nwamui_util_rename_dialog_run(GTK_WINDOW(self->prv->env_pref_dialog), _("Rename Location"), current_name );
-        
-        if ( new_name != NULL ) {
-            GtkTreePath*    path = gtk_tree_model_get_path(model, &iter);
-            nwamui_env_set_name(current_env, new_name);
-            gtk_tree_model_row_changed(model, path, &iter);
-            gtk_tree_path_free(path);
-            g_free(new_name);
-        }
-
-        g_free(current_name);
-        g_object_unref( G_OBJECT(current_env) );
-    }
-    
-}
-
-static void
-env_duplicate_button_clicked_cb(GtkButton *button, gpointer  user_data)
-{
-    NwamEnvPrefDialog*          self = NWAM_ENV_PREF_DIALOG(user_data);
-    NwamuiEnv*                  current_env = NULL;
-    NwamuiEnv*                  new_env;
-    GtkTreeModel*               model = NULL;
-    GtkTreeIter                 iter;
-    
-    /* TODO - check if changes were made before switchinh environments, maybe... */
-    model = gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->environment_name_combo));
-
-    if ( gtk_combo_box_get_active_iter(GTK_COMBO_BOX(self->prv->environment_name_combo), &iter ) ) {
-        gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &current_env, -1);
-
-        new_env = nwamui_env_clone( current_env );
-        
-        nwamui_daemon_env_append(self->prv->daemon, new_env );
-        
-        nwamui_daemon_set_active_env(self->prv->daemon, new_env );
-
-        populate_env_list_combo(self);
-        
-        g_object_unref( G_OBJECT(new_env) );
-        g_object_unref( G_OBJECT(current_env) );
-    }
-    
-
-}
-
-static void
-env_delete_button_clicked_cb(GtkButton *button, gpointer  user_data)
-{
-    NwamEnvPrefDialog*          self = NWAM_ENV_PREF_DIALOG(user_data);
-    NwamuiEnv*                  current_env = NULL;
-    GtkTreeModel*               model = NULL;
-    GtkTreeIter                 iter;
-    
-    /* TODO - check if changes were made before switchinh environments, maybe... */
-    model = gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->environment_name_combo));
-
-    if ( gtk_combo_box_get_active_iter(GTK_COMBO_BOX(self->prv->environment_name_combo), &iter ) ) {
-        gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &current_env, -1);
-
-        if ( nwamui_env_is_modifiable( current_env ) ) {
-            /* TODO - Are you sure?? - if active, pick next best... ? */
-            gchar*  name = nwamui_env_get_name( current_env );
-            gchar*  message = g_strdup_printf(_("Remove location '%s'?"), name?name:"" );
-            if (nwamui_util_ask_yes_no( GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))), _("Remove Location?"), message )) {
-                g_debug("Removing location: '%s'", name);
-                
-                nwamui_daemon_env_remove(self->prv->daemon, current_env );
-        
-                populate_env_list_combo(self);
-            }
-            
-            if (name)
-                g_free(name);
-            
-            g_free(message);
-        }
-        
-        g_object_unref( G_OBJECT(current_env) );
-    }
-        
-}
-
-static void
 http_password_button_clicked_cb(GtkButton *button, gpointer  user_data)
 {
     NwamEnvPrefDialog*  self = NWAM_ENV_PREF_DIALOG(user_data);
@@ -1294,7 +1003,7 @@ default_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
     GtkTreePath  *tpath;
     NwamuiSvc *svc;
 
-    model = gtk_tree_view_get_model (prv->default_netservices_list);
+    model = gtk_tree_view_get_model (prv->enabled_netservices_list);
     if ((tpath = gtk_tree_path_new_from_string(path)) != NULL
       && gtk_tree_model_get_iter (model, &iter, tpath)) {
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &piter, &iter);
@@ -1330,7 +1039,7 @@ additional_svc_toggled_cb (GtkCellRendererToggle *cell_renderer,
     GtkTreePath  *tpath;
     NwamuiSvc *svc;
 
-    model = gtk_tree_view_get_model (prv->additional_netservices_list);
+    model = gtk_tree_view_get_model (prv->disabled_netservices_list);
     if ((tpath = gtk_tree_path_new_from_string(path)) != NULL
       && gtk_tree_model_get_iter (model, &iter, tpath)) {
         gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (model), &piter, &iter);
@@ -1422,48 +1131,68 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
 }
 
 static gboolean
-refresh (NwamEnvPrefDialog *self, gpointer data, gboolean force)
+refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
+    NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(iface);
+
     /* TODO nameservices_config_combo need it */
+    /* Maintain for quick access elsewhere */
+
+	if (prv->selected_env != user_data) {
+		if (prv->selected_env) {
+			g_object_unref(prv->selected_env);
+		}
+		if ((prv->selected_env = user_data) != NULL) {
+			g_object_ref(prv->selected_env);
+		}
+		force = TRUE;
+	}
+
+	if (force) {
+		if (prv->selected_env) {
+			gchar *title;
+            gchar *name;
+
+            name = nwamui_obj_get_display_name(prv->selected_env);
+			title = g_strdup_printf("Location Properties : %s", name);
+			g_object_set(prv->env_pref_dialog,
+			    "title", title,
+			    NULL);
+			g_free(name);
+			g_free(title);
+
+            populate_panels_from_env(self, prv->selected_env);
+		}
+	}
+	return TRUE;
 }
 
 static gboolean
-apply (NwamPrefIFace *self, gpointer data)
+apply(NwamPrefIFace *iface, gpointer user_data)
 {
-	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
-	GtkTreeIter iter;
-    GtkTreeModel *model;
-    GObject *obj;
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
+    NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(iface);
 
     g_debug("NwamEnvPrefDialog apply");
 
-	model = gtk_combo_box_get_model (GTK_COMBO_BOX(prv->environment_name_combo));
-    
-    /* FIXME, ok need call into separated panel/instance
-     * apply all changes, if no errors, hide all
-     */
-    if (gtk_tree_model_get_iter_first (model, &iter)) {
-        do {
-            gtk_tree_model_get (model, &iter, 0, &obj, -1);
-            if (!nwamui_env_commit (NWAMUI_ENV (obj))) {
-                gchar *name = nwamui_env_get_name (NWAMUI_ENV (obj));
-                gchar *msg = g_strdup_printf (_("Committing %s faild..."), name);
-                nwamui_util_show_message (prv->env_pref_dialog,
-                  GTK_MESSAGE_ERROR,
-                  _("Commit ENV error"),
-                  msg);
-                g_free (msg);
-                g_free (name);
-                return FALSE;
-            }
-        } while (gtk_tree_model_iter_next (model, &iter));
+    if (!nwamui_env_commit (NWAMUI_ENV (prv->selected_env))) {
+        gchar *name = nwamui_env_get_name (NWAMUI_ENV (prv->selected_env));
+        gchar *msg = g_strdup_printf (_("Committing %s faild..."), name);
+        nwamui_util_show_message (prv->env_pref_dialog,
+          GTK_MESSAGE_ERROR,
+          _("Commit ENV error"),
+          msg);
+        g_free (msg);
+        g_free (name);
+        return FALSE;
     }
     return TRUE;
 }
 
 static gboolean
-help (NwamPrefIFace *self, gpointer data)
+help(NwamPrefIFace *iface, gpointer user_data)
 {
-	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
     g_debug("NwamEnvPrefDialog help");
 }

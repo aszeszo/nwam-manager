@@ -33,6 +33,7 @@ struct _NwamRulesDialogClass
 
 extern  GType                   nwam_rules_dialog_get_type (void) G_GNUC_CONST;
 extern  NwamRulesDialog*      nwam_rules_dialog_new (void);
+extern  gint nwam_rules_dialog_run(NwamRulesDialog  *self, GtkWindow* parent);
 
 G_END_DECLS
 

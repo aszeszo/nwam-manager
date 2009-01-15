@@ -428,8 +428,6 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         }
     }
 
-    g_assert(prop_id < PROP_BUTTON_END);
-
 	switch (prop_id)
 	{
     case PROP_BUTTON_ADD: {
@@ -454,18 +452,12 @@ on_button_clicked(GtkButton *button, gpointer user_data)
     case PROP_BUTTON_EDIT:
     case PROP_BUTTON_RENAME:
     case PROP_BUTTON_UP:
-    case PROP_BUTTON_DOWN: {
-
+    case PROP_BUTTON_DOWN:
+	default:
         g_signal_emit(self,
           nwam_tree_view_signals[ACTIVATE_WIDGET],
           0, /* details */
-          prv->widget_list[prop_id]);
-
-/*         GtkTreeSelection *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self)); */
-/*         g_object_unref(selection); */
-    }
-        break;
-	default:
+          button);
 /*         g_assert_not_reached(); */
         break;
     }

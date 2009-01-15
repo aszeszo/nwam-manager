@@ -59,8 +59,12 @@ enum {
 	SVC_INFO
 };
 
-static void nwam_env_svc_finalize(NwamEnvSvc *self);
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+
+static void nwam_env_svc_finalize(NwamEnvSvc *self);
 
 /* Callbacks */
 static void nwam_env_svc_view_cb (GtkTreeViewColumn *col,

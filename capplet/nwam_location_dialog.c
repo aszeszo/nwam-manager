@@ -51,8 +51,6 @@
 
 #define TREEVIEW_COLUMN_NUM             "meta:column"
 
-static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
-
 struct _NwamLocationDialogPrivate {
 	/* Widget Pointers */
     GtkDialog*          location_dialog;
@@ -85,6 +83,11 @@ static const gchar *combo_contents[] = {
     N_("activated by rules"),
     N_("activated by system"),
     NULL};
+
+static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 
 static void nwam_location_dialog_finalize(NwamLocationDialog *self);
 
@@ -141,9 +144,6 @@ static void nwam_treeview_remove_object_cb(NwamTreeView *treeview, NwamuiObject 
 static void nwam_treeview_activate_btn_cb(GtkTreeView *treeview, GtkWidget *w, gpointer user_data );
 static void nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data);
 static void on_button_clicked(GtkButton *button, gpointer user_data);
-
-static gboolean refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force);
-static gboolean apply (NwamPrefIFace *self, gpointer data);
 
 static void location_activation_combo_cell_cb(GtkCellLayout *cell_layout,
   GtkCellRenderer   *renderer,
@@ -355,6 +355,8 @@ nwam_location_dialog_init(NwamLocationDialog *self)
       self->prv->location_rename_btn);
     nwam_tree_view_add_widget(self->prv->location_tree,
       self->prv->location_edit_btn);
+    nwam_tree_view_add_widget(self->prv->location_tree,
+      self->prv->location_dup_btn);
 
     {
         GtkTreeModel      *model;
@@ -443,15 +445,15 @@ nwam_location_dialog_run (NwamLocationDialog  *self, GtkWindow* parent)
  * Refresh #NwamLocationDialog with the new connections.
  **/
 static gboolean
-refresh(NwamPrefIFace *pref_iface, gpointer data, gboolean force)
+refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
-    NwamLocationDialog*    self = NWAM_LOCATION_DIALOG( pref_iface );
+    NwamLocationDialog*    self = NWAM_LOCATION_DIALOG( iface );
     
     g_debug("NwamLocationDialog: Refresh");
     g_assert(NWAM_IS_LOCATION_DIALOG(self));
     
     if (force) {
-        NwamuiNcp *ncp = NWAMUI_NCP(data);
+        NwamuiNcp *ncp = NWAMUI_NCP(user_data);
         GtkTreeModel *model;
 
         model = gtk_tree_view_get_model(self->prv->location_tree);
@@ -789,45 +791,76 @@ nwam_treeview_activate_btn_cb(GtkTreeView *treeview, GtkWidget *w, gpointer user
     g_assert(GTK_IS_BUTTON(w));
 
     if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
+        NwamuiEnv *env;
+
+        gtk_tree_model_get(model, &iter, 0, &env, -1);
+
         if (w == (gpointer)prv->location_edit_btn) {
-            NwamEnvPrefDialog*  env_pref_dialog;
-            GtkTreePath*    path = gtk_tree_model_get_path(model, &iter);
-        
-            if ( gtk_tree_path_prev(path) ) { /* See if we have somewhere to move up to... */
-                GtkTreeIter prev_iter;
-                if ( gtk_tree_model_get_iter(model, &prev_iter, path) ) {
-                    gtk_tree_store_move_before(GTK_TREE_STORE(model), &iter, &prev_iter );
-                }
-            }
-            gtk_tree_path_free(path);
+            static NwamEnvPrefDialog *env_pref_dialog = NULL;
+            if (env_pref_dialog == NULL)
+                env_pref_dialog = nwam_env_pref_dialog_new();
+
+            nwam_pref_refresh(NWAM_PREF_IFACE(env_pref_dialog), NWAMUI_OBJECT(env), TRUE);
+            nwam_env_pref_dialog_run(env_pref_dialog, GTK_WINDOW(prv->location_dialog));
 
         } else if (w == (gpointer)prv->location_remove_btn) {
-            GtkTreeIter *next_iter = gtk_tree_iter_copy(&iter);
+
+            if ( nwamui_env_is_modifiable( env ) ) {
+                /* TODO - Are you sure?? - if active, pick next best... ? */
+                gchar*  name = nwamui_env_get_name( env );
+                gchar*  message = g_strdup_printf(_("Remove location '%s'?"), name?name:"" );
+                if (nwamui_util_ask_yes_no( GTK_WINDOW(prv->location_dialog), _("Remove Location?"), message )) {
+                    g_debug("Removing location: '%s'", name);
+                
+                    nwam_treeview_remove_object_cb(treeview, env, (gpointer)self);
         
-            if ( gtk_tree_model_iter_next(GTK_TREE_MODEL(model), next_iter) ) { /* See if we have somewhere to move down to... */
-                gtk_tree_store_move_after(GTK_TREE_STORE(model), &iter, next_iter );
+                }
+            
+                if (name)
+                    g_free(name);
+            
+                g_free(message);
             }
+
+        } else if (w == (gpointer)prv->location_dup_btn) {
+            NwamuiEnv *new_env;
+            NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+
+            new_env = nwamui_env_clone( env );
         
-            gtk_tree_iter_free(next_iter);
+            nwamui_daemon_env_append(daemon, new_env );
+        
+            nwamui_daemon_set_active_env(daemon, new_env );
+
+            g_object_unref( G_OBJECT(new_env) );
+            g_object_unref(daemon);
 
         } else if (w == (gpointer)prv->location_rename_btn) {
-            GtkCellRendererText*        txt;
-            GtkTreeViewColumn*  info_col = gtk_tree_view_get_column( GTK_TREE_VIEW(self->prv->location_tree), LOCVIEW_MODE );
-            GList*              renderers = gtk_tree_view_column_get_cell_renderers( info_col );
+            gchar*  current_name;
+            gchar*  new_name;
         
-            /* Should be only one renderer */
-            g_assert( g_list_next( renderers ) == NULL );
+            current_name = nwamui_env_get_name(env);
         
-            if ((txt = GTK_CELL_RENDERER_TEXT(g_list_first( renderers )->data)) != NULL) {
-                GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+            new_name = nwamui_util_rename_dialog_run(GTK_WINDOW(prv->location_dialog), _("Rename Location"), current_name );
+        
+            if ( new_name != NULL ) {
+                nwamui_env_set_name(env, new_name);
+                g_free(new_name);
+            }
 
-                gtk_tree_view_set_cursor (GTK_TREE_VIEW(self->prv->location_tree), tpath, info_col, TRUE);
+            g_free(current_name);
 
-                gtk_tree_path_free(tpath);
+            {
+                GtkTreePath *path;
+                /* Update the tree view */
+                path = gtk_tree_model_get_path(model, &iter);
+                gtk_tree_model_row_changed(model, path, &iter);
+                gtk_tree_path_free(path);
             }
         } else {
             g_assert_not_reached();
         }
+        g_object_unref(env);
     }
 }
 
@@ -842,10 +875,10 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
 
     count_selected_rows = gtk_tree_selection_count_selected_rows(selection);
 
-    gtk_widget_set_sensitive(self->prv->location_remove_btn, count_selected_rows > 0 ? TRUE : FALSE);
-    gtk_widget_set_sensitive(self->prv->location_edit_btn, count_selected_rows > 0 ? TRUE : FALSE);
-    gtk_widget_set_sensitive(self->prv->location_dup_btn, count_selected_rows > 0 ? TRUE : FALSE);
-    gtk_widget_set_sensitive(self->prv->location_rename_btn, count_selected_rows > 0 ? TRUE : FALSE);
+    gtk_widget_set_sensitive(prv->location_remove_btn, count_selected_rows > 0 ? TRUE : FALSE);
+    gtk_widget_set_sensitive(prv->location_edit_btn, count_selected_rows > 0 ? TRUE : FALSE);
+    gtk_widget_set_sensitive(prv->location_dup_btn, count_selected_rows > 0 ? TRUE : FALSE);
+    gtk_widget_set_sensitive(prv->location_rename_btn, count_selected_rows > 0 ? TRUE : FALSE);
     gtk_widget_set_sensitive(prv->location_activation_combo, count_selected_rows > 0 ? TRUE : FALSE);
 
     if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
@@ -867,36 +900,13 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         default:
             gtk_combo_box_set_active(prv->location_activation_combo, 2);
             gtk_widget_set_sensitive(prv->location_activation_combo, FALSE);
+            gtk_widget_set_sensitive(prv->location_remove_btn, FALSE);
             break;
         }
 
         g_object_unref(env);
     }
 }
-
-#if 0
-static void
-location_add_update_btn_cb( GtkButton* button, gpointer user_data )
-{
-    NwamLocationDialog*           self = NWAM_LOCATION_DIALOG(user_data);
-    NwamLocationDialogPrivate*    prv = self->prv;
-    GtkTreeModel*               model;
-    GtkTreeIter                 iter;
-    GtkTreeSelection*           selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(prv->location_tree));
-
-    if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
-        GtkTreePath*    path = gtk_tree_model_get_path(model, &iter);
-        
-        if ( gtk_tree_path_prev(path) ) { /* See if we have somewhere to move up to... */
-            GtkTreeIter prev_iter;
-            if ( gtk_tree_model_get_iter(model, &prev_iter, path) ) {
-                gtk_tree_store_move_before(GTK_TREE_STORE(model), &iter, &prev_iter );
-            }
-        }
-        gtk_tree_path_free(path);
-    }
-}
-#endif
 
 static void
 on_button_clicked(GtkButton *button, gpointer user_data)
@@ -918,7 +928,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
                 rules_dialog = nwam_rules_dialog_new();
 
             nwam_pref_refresh(NWAM_PREF_IFACE(rules_dialog), NWAMUI_OBJECT(env), TRUE);
-            nwam_rules_dialog_run(rules_dialog);
+            nwam_rules_dialog_run(rules_dialog, GTK_WINDOW(prv->location_dialog));
         }
 
         g_object_unref(env);

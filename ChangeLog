@@ -1,3 +1,31 @@
+2009-01-15  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c: (nwamui_obj_get_display_name):
+	* capplet/nwam-manager-properties.glade:
+	* capplet/nwam_condition_vbox.c:
+	* capplet/nwam_conn_conf_ip_panel.c: (refresh), (apply), (help):
+	* capplet/nwam_conn_stat_panel.c: (nwam_pref_init), (refresh),
+	(help):
+	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_init),
+	(nwam_env_pref_dialog_finalize), (nwam_compose_tree_view),
+	(populate_panels_from_env), (populate_dialog),
+	(proxy_config_changed_cb), (default_svc_toggled_cb),
+	(additional_svc_toggled_cb), (refresh), (apply), (help):
+	* capplet/nwam_env_svc.c:
+	* capplet/nwam_location_dialog.c: (nwam_location_dialog_init),
+	(refresh), (nwam_treeview_activate_btn_cb),
+	(nwam_treeview_update_widget_cb), (on_button_clicked):
+	* capplet/nwam_net_conf_panel.c: (refresh), (help):
+	* capplet/nwam_pref_dialog.c: (refresh), (apply), (help):
+	* capplet/nwam_rules_dialog.c: (refresh), (nwam_rules_dialog_run),
+	(response_cb):
+	* capplet/nwam_rules_dialog.h:
+	* capplet/nwam_tree_view.c: (on_button_clicked):
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_update_obj), (help):
+	* capplet/nwam_wireless_chooser.c: (refresh), (apply), (help):
+	Clean some code. Compose condition vbox, env pref dialog and location
+	dialog.
+
 2009-01-15  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
