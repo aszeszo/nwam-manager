@@ -509,11 +509,11 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
 {        
     NwamConnConfIPPanelPrivate* prv;
     nwamui_ncu_type_t   ncu_type;
-    gboolean            ipv4_auto_conf;
+    gboolean            ipv4_dhcp;
     gchar*              ipv4_address;
     gchar*              ipv4_subnet;
     gboolean            ipv6_active;
-    gboolean            ipv6_auto_conf;
+    gboolean            ipv6_dhcp;
     gchar*              ipv6_address;
     gchar*              ipv6_prefix;
     NwamuiWifiNet*      wifi_info = NULL; 
@@ -525,11 +525,11 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     prv = self->prv;
     
     ncu_type = nwamui_ncu_get_ncu_type( NWAMUI_NCU(prv->ncu) );
-    ipv4_auto_conf = nwamui_ncu_get_ipv4_auto_conf( NWAMUI_NCU(prv->ncu) );
+    ipv4_dhcp = nwamui_ncu_get_ipv4_dhcp( NWAMUI_NCU(prv->ncu) );
     ipv4_address = nwamui_ncu_get_ipv4_address( NWAMUI_NCU(prv->ncu) );
     ipv4_subnet = nwamui_ncu_get_ipv4_subnet( NWAMUI_NCU(prv->ncu) );
     ipv6_active = nwamui_ncu_get_ipv6_active( NWAMUI_NCU(prv->ncu) );
-    ipv6_auto_conf = nwamui_ncu_get_ipv6_auto_conf( NWAMUI_NCU(prv->ncu) );
+    ipv6_dhcp = nwamui_ncu_get_ipv6_dhcp( NWAMUI_NCU(prv->ncu) );
     ipv6_address = nwamui_ncu_get_ipv6_address( NWAMUI_NCU(prv->ncu) );
     ipv6_prefix = nwamui_ncu_get_ipv6_prefix( NWAMUI_NCU(prv->ncu) );
     
@@ -588,7 +588,7 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     }
 
     if ( set_initial_state ) {
-        if ( ipv4_auto_conf ) { 
+        if ( ipv4_dhcp ) { 
             gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv4_combo), 1); /* Select DHCP on Combo Box */
         }
         else {
@@ -836,9 +836,9 @@ renew_cb( GtkButton *button, gpointer data )
 	NwamConnConfIPPanel* self = NWAM_CONN_CONF_IP_PANEL(data);
 	g_assert (self->prv->ncu);
 	if (button == self->prv->ipv4_renew_btn) {
-		nwamui_ncu_set_ipv4_auto_conf (self->prv->ncu, TRUE);
+		nwamui_ncu_set_ipv4_dhcp (self->prv->ncu, TRUE);
 	} else {
-		nwamui_ncu_set_ipv6_auto_conf (self->prv->ncu, TRUE);
+		nwamui_ncu_set_ipv6_dhcp (self->prv->ncu, TRUE);
 	}
 }
 */

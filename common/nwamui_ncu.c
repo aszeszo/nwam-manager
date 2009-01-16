@@ -1002,6 +1002,9 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     
     ip_version = (nwam_ip_version_t)get_nwam_ncu_uint64_prop(nwam_ncu, NWAM_NCU_PROP_IP_VERSION );
 
+    g_object_freeze_notify(ncu->prv->v4addresses);
+    g_object_freeze_notify(ncu->prv->v6addresses);
+
     gtk_list_store_clear(ncu->prv->v4addresses);
     if ( (ip_version == NWAM_IP_VERSION_IPV4) || (ip_version == NWAM_IP_VERSION_ALL) )  {
         char**  ptr;
@@ -1074,6 +1077,9 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
             ncu->prv->ipv6_active = TRUE;
         }
     }
+
+    g_object_thaw_notify(ncu->prv->v4addresses);
+    g_object_thaw_notify(ncu->prv->v6addresses);
 
 }
 

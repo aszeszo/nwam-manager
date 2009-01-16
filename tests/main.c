@@ -37,6 +37,7 @@ static int indent = 0;
 static void test_ncp_gobject( void );
 static void test_env_gobject( void );
 static void test_enm_gobject( void );
+static void test_known_wlan_gobject( void );
 
 /* Command-line options */
 static gboolean debug = FALSE;
@@ -107,6 +108,7 @@ main(int argc, char** argv)
     test_ncp_gobject();
     test_env_gobject();
     test_enm_gobject();
+    test_known_wlan_gobject();
         
     g_object_unref (G_OBJECT (program));
 
@@ -550,3 +552,52 @@ test_enm_gobject( void )
     
 }
 
+static void 
+process_known_wlan( gpointer data, gpointer user_data ) 
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    NwamuiWifiNet   *wifi = NWAMUI_WIFI_NET(data);
+    
+    if ( wifi != NULL ) {
+        gchar * essid = nwamui_wifi_net_get_essid( wifi );
+        gchar * bssid = nwamui_wifi_net_get_bssid( wifi );
+        GList * bssid_list = nwamui_wifi_net_get_bssid_list( wifi );
+
+        printf("%-*s=============================================================\n", indent, "");
+        indent +=4;
+        printf("%-*sWLAN : essid = %s\n", indent, "", essid?essid:"NULL" );
+        printf("%-*sWLAN : bssid = %s\n", indent, "", bssid?bssid:"NULL" );
+
+        print_string_list_and_free( "WLAN", "bssid_list", bssid_list );
+
+        indent -=4;
+        printf("%-*s=============================================================\n", indent, "");
+
+        g_free(essid);
+        g_free(bssid);
+        g_object_unref(G_OBJECT(wifi));
+    }
+
+    g_object_unref(G_OBJECT(daemon));
+    
+}
+
+static void
+test_known_wlan_gobject( void )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    
+    GList           *known_wlan_list = nwamui_daemon_get_fav_wifi_networks(daemon);
+    
+    printf("%-*s=============================================================\n", indent, "");
+    printf("%-*s WLANs \n", indent, "");
+    printf("%-*s=============================================================\n", indent, "");
+
+    indent += 4;
+    g_list_foreach(known_wlan_list, process_known_wlan, NULL );
+    indent -= 4;
+    
+    g_list_foreach(known_wlan_list, nwamui_util_obj_unref, NULL );
+    g_list_free( known_wlan_list );
+    g_object_unref(G_OBJECT(daemon));
+}

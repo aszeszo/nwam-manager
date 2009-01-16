@@ -74,15 +74,26 @@ static void nwamui_wifi_net_finalize (      NwamuiWifiNet *self);
 static gchar*       get_nwam_known_wlan_string_prop( nwam_known_wlan_handle_t known_wlan, 
                                                      const char* prop_name );
 
+static gboolean     set_nwam_known_wlan_string_prop( nwam_known_wlan_handle_t known_wlan, 
+                                                     const char* prop_name, const gchar* str );
+
 static gchar**      get_nwam_known_wlan_string_array_prop(
                                     nwam_known_wlan_handle_t known_wlan, const char* prop_name );
+
+static gboolean     set_nwam_known_wlan_string_array_prop( nwam_known_wlan_handle_t known_wlan, 
+                                                           const char* prop_name, char** strs, guint len );
 
 static guint64      get_nwam_known_wlan_uint64_prop( nwam_known_wlan_handle_t known_wlan, 
                                                      const char* prop_name );
 
+static gboolean     set_nwam_known_wlan_uint64_prop( nwam_known_wlan_handle_t known_wlan, 
+                                                     const char* prop_name, guint64 value );
+
 static guint64*     get_nwam_known_wlan_uint64_array_prop(
                                     nwam_known_wlan_handle_t known_wlan, const char* prop_name , guint* out_num );
 
+static gboolean     set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name, 
+                                                           const guint64 *value_array, guint len );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -638,7 +649,8 @@ nwamui_wifi_net_new_from_handle(    NwamuiNcu                       *ncu,
         g_free( self );
         return( NULL );
     }
-    
+
+    self->prv->ncu = ncu;
     self->prv->essid = g_strdup( name );
     free(name);
 
@@ -670,6 +682,75 @@ nwamui_wifi_net_connect ( NwamuiWifiNet *self )
     }
     
     g_free(device);
+}
+
+/**
+ * Ask NWAM to delete this favourite network.
+ **/
+extern gboolean
+nwamui_wifi_net_delete_favourite ( NwamuiWifiNet *self )
+{
+    nwam_error_t                nerr;
+    nwam_known_wlan_handle_t    wlan_h;
+
+    if ( (nerr = nwam_known_wlan_read(self->prv->essid, 0, &wlan_h)) != NWAM_SUCCESS) {
+        g_debug("Destroy error when reading: %s", nwam_strerror(nerr));
+        return(FALSE);;
+    }
+    if ( (nerr = nwam_known_wlan_destroy(wlan_h, 0)) != NWAM_SUCCESS) {
+        g_debug("Destroy error when destroying: %s", nwam_strerror(nerr));
+        nwam_known_wlan_free(wlan_h);
+        return(FALSE);;
+    }
+
+    nwam_known_wlan_free(wlan_h);
+
+    return(TRUE);
+}
+
+/**
+ * Ask NWAM to connect to this network.
+ **/
+extern gboolean
+nwamui_wifi_net_create_favourite ( NwamuiWifiNet *self )
+{
+    nwam_error_t                nerr;
+    nwam_known_wlan_handle_t    wlan_h;
+    gchar**                     bssid_strs = NULL;
+
+    g_return_val_if_fail( self != NULL, FALSE );
+
+    if ( self->prv->essid == NULL || strlen(self->prv->essid) == 0 ) {
+        g_warning("Got an empty ESSID, cannot save to known wlan list");
+    }
+
+    g_debug("Creating Favourite WLAN with NWAM : %s", self->prv->essid );
+
+    if ( (nerr = nwam_known_wlan_create(self->prv->essid, &wlan_h)) != NWAM_SUCCESS) {
+        g_warning("Error creating new favourite wlan: %s", nwam_strerror(nerr));
+        return( FALSE );
+    }
+
+    set_nwam_known_wlan_uint64_prop( wlan_h, NWAM_KNOWN_WLAN_PROP_PRIORITY, self->prv->priority );
+
+    bssid_strs = nwamui_util_glist_to_strv( self->prv->bssid_list );
+    if ( bssid_strs != NULL ) {
+        set_nwam_known_wlan_string_array_prop( wlan_h, NWAM_KNOWN_WLAN_PROP_BSSIDS, bssid_strs, 0 );
+        g_strfreev( bssid_strs );
+    }
+
+    if ( (nerr = nwam_known_wlan_commit(wlan_h, 0) ) != NWAM_SUCCESS ) {
+		if (nerr == NWAM_ENTITY_MISSING_MEMBER) {
+            const char* errprop = NULL;
+			nwam_known_wlan_validate(wlan_h, &errprop);
+            g_warning("Couldn't commit wlan due to a validation error with prop %s\n", errprop?errprop:"NULL");
+            nwam_known_wlan_free( wlan_h );
+            return( FALSE );
+        }
+    }
+
+    nwam_known_wlan_free( wlan_h );
+    return( TRUE );
 }
 
 /* Get/Set NCU */
@@ -1297,6 +1378,42 @@ get_nwam_known_wlan_string_prop( nwam_known_wlan_handle_t known_wlan, const char
     return( retval );
 }
 
+static gboolean
+set_nwam_known_wlan_string_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name, const gchar* str )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( known_wlan == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_known_wlan_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for known_wlan property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_string( (char*)str, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a string value for string %s", str?str:"NULL");
+        return retval;
+    }
+
+    if ( (nerr = nwam_known_wlan_set_prop_value (known_wlan, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
 static gchar**
 get_nwam_known_wlan_string_array_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name )
 {
@@ -1334,6 +1451,57 @@ get_nwam_known_wlan_string_array_prop( nwam_known_wlan_handle_t known_wlan, cons
             retval[i]  = g_strdup ( value[i] );
         }
         retval[num]=NULL;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static gboolean
+set_nwam_known_wlan_string_array_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name, char** strs, guint len )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( known_wlan == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_known_wlan_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for known_wlan property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( strs == NULL ) {
+        return retval;
+    }
+
+
+    if ( len == 0 ) { /* Assume a strv, i.e. NULL terminated list, otherwise strs would be NULL */
+        int i;
+
+        for( i = 0; strs != NULL && strs[i] != NULL; i++ ) {
+            /* Do Nothing, just count. */
+        }
+        len = i;
+    }
+
+    if ( (nerr = nwam_value_create_string_array (strs, len, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a value for string array 0x%08X", strs);
+        return retval;
+    }
+
+    if ( (nerr = nwam_known_wlan_set_prop_value (known_wlan, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
     }
 
     nwam_value_free(nwam_data);
@@ -1403,6 +1571,42 @@ get_nwam_known_wlan_uint64_prop( nwam_known_wlan_handle_t known_wlan, const char
     return( (guint64)value );
 }
 
+static gboolean
+set_nwam_known_wlan_uint64_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name, guint64 value )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( known_wlan == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_known_wlan_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for known_wlan property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_uint64 (value, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a uint64 value" );
+        return retval;
+    }
+
+    if ( (nerr = nwam_known_wlan_set_prop_value (known_wlan, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
 static guint64* 
 get_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name , guint *out_num )
 {
@@ -1440,6 +1644,43 @@ get_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, cons
 
     *out_num = num;
 
+    return( retval );
+}
+
+static gboolean
+set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name, 
+                                const guint64 *value_array, guint len )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( known_wlan == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_known_wlan_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for known_wlan property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_uint64_array ((uint64_t*)value_array, len, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a uint64 array value" );
+        return retval;
+    }
+
+    if ( (nerr = nwam_known_wlan_set_prop_value (known_wlan, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
     return( retval );
 }
 

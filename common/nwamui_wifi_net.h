@@ -126,6 +126,10 @@ extern  NwamuiWifiNet*              nwamui_wifi_net_new_from_handle(    struct _
 
 extern void                         nwamui_wifi_net_connect ( NwamuiWifiNet *self );
 
+extern gboolean                     nwamui_wifi_net_create_favourite ( NwamuiWifiNet *self );
+
+extern gboolean                     nwamui_wifi_net_delete_favourite ( NwamuiWifiNet *self );
+
 extern void                         nwamui_wifi_net_set_ncu ( NwamuiWifiNet *self, struct _NwamuiNcu* ncu );
                                 
 extern struct _NwamuiNcu*           nwamui_wifi_net_get_ncu ( NwamuiWifiNet *self );

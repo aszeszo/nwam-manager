@@ -1,3 +1,19 @@
+2009-01-16  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Change auto_conf to be dhcp since that is really what we're
+	  referring to.
+	* common/nwamui_daemon.c: 
+	  Handle the Wifi Favourites list.
+	* common/nwamui_ncu.c: 
+	  Freeze notifications while updating wifi_net list.
+	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c: 
+	  Add functions nwamui_wifi_net_delete_favourite and
+	  nwamui_wifi_net_create_favourite to for use when add/delete.
+	  Handle the get/set of the known wifi list settings.
+	* tests/main.c:
+	  Add some code to list the WLANs.
+
 2009-01-15  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c: (nwamui_obj_get_display_name):

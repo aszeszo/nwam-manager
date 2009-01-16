@@ -118,6 +118,7 @@ static void nwamui_daemon_get_property ( GObject         *object,
 
 static void nwamui_daemon_finalize (     NwamuiDaemon *self);
 
+static void nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -144,6 +145,7 @@ static gpointer nwam_events_thread ( gpointer daemon );
 static int nwam_loc_walker_cb (nwam_loc_handle_t env, void *data);
 static int nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data);
 static int nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data);
+static int nwam_known_wlan_walker_cb (nwam_known_wlan_handle_t wlan_h, void *data);
 
 G_DEFINE_TYPE (NwamuiDaemon, nwamui_daemon, NWAMUI_TYPE_OBJECT)
 
@@ -429,9 +431,9 @@ nwamui_daemon_init (NwamuiDaemon *self)
 		  (gpointer) nwamui_event_new(self, NWAMUI_DAEMON_INFO_ACTIVE, NULL),
 		  (GDestroyNotify) nwamui_event_free);
 
-        nwamui_daemon_populate_wifi_fav_list( self );
     }
 #endif /* 0 */
+
 	
     self->prv->nwam_events_gthread = g_thread_create(nwam_events_thread, g_object_ref(self), TRUE, &error);
     if( self->prv->nwam_events_gthread == NULL ) {
@@ -448,7 +450,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
             g_debug ("[libnwam] nwam_walk_ncps %s", nwam_strerror (nerr));
         }
     }
-    
+
     /* FIXME: Assume first NCP is the active until we can determine otherwise
      * using the API */
     if ( self->prv->active_ncp == NULL && self->prv->ncp_list  != NULL ) {
@@ -481,6 +483,8 @@ nwamui_daemon_init (NwamuiDaemon *self)
             g_debug ("[libnwam] nwam_walk_enms %s", nwam_strerror (nerr));
         }
     }
+
+    nwamui_daemon_populate_wifi_fav_list( self );
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
@@ -1334,26 +1338,14 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
                  item != NULL; 
                  item = g_list_next( item ) ) {
                 NwamuiWifiNet* wifi = NWAMUI_WIFI_NET(item->data);
-                gchar* essid = nwamui_wifi_net_get_essid( wifi );
-                gchar* bssid = nwamui_wifi_net_get_bssid( wifi );
 
-                g_debug("Removing deleted known network %s ; %s", essid?essid:"",  bssid?bssid:"" );
-#if 0         
-                /* TODO: Figure out how to delete a known AP */
-                if (self->prv->communicate_change_to_daemon 
-                    && libnwam_delete_known_ap( essid?essid:"",  bssid?bssid:"") != 0) {
-				    g_debug("Call libnwam_delete_known_ap failed: %s\n", strerror(errno));
-                }
-                else {
-                    /* If deleted, then remove from merged list */
+                if (!self->prv->communicate_change_to_daemon 
+                    || nwamui_wifi_net_delete_favourite( wifi ) ) {
+                    /* Deleted, so remove from merged list */
                     merged_list = g_list_remove( merged_list, item->data );
                     g_object_unref(G_OBJECT( item->data));
                 }
-#else
-                g_error("Unable to delete a known AP yet");
-#endif                
-                g_free(essid);
-                g_free(bssid);
+
                 /* Unref wifi now rather than looping again, will free
                  * old_copy when finished looping. */
                 g_object_unref(G_OBJECT( item->data));
@@ -1365,26 +1357,13 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
                  item != NULL; 
                  item = g_list_next( item ) ) {
                 NwamuiWifiNet* wifi = NWAMUI_WIFI_NET(item->data);
-                gchar* essid = nwamui_wifi_net_get_essid( wifi );
-                gchar* bssid = nwamui_wifi_net_get_bssid( wifi );
 
-                g_debug("Adding new known network %s ; %s", essid?essid:"",  bssid?bssid:"" );
-#if 0         
-                /* TODO: Figure out how to add a known AP */
-                if (self->prv->communicate_change_to_daemon 
-                    && libnwam_add_known_ap( essid?essid:"",  bssid?bssid:"") != 0) {
-				    g_debug("Call libnwam_add_known_ap failed: %s\n", strerror(errno));
-                }
-                else {
-                    /* If added, then add to merged list */
+                if (!self->prv->communicate_change_to_daemon 
+                    || nwamui_wifi_net_create_favourite( wifi ) ) {
+                    /* Added, so add to merged list */
                     merged_list = g_list_append( merged_list, item->data );
                     /* Don't ref, transfer ownership, since will be freeing new_items list anyway */
                 }
-#else
-                g_error("Unable to add a known AP yet");
-#endif                
-                g_free(essid);
-                g_free(bssid);
             }
             g_list_free( new_items );
 
@@ -1399,21 +1378,11 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
                  item != NULL; 
                  item = g_list_next( item ) ) {
                 NwamuiWifiNet* wifi = NWAMUI_WIFI_NET(item->data);
-                gchar* essid = nwamui_wifi_net_get_essid( wifi );
-                gchar* bssid = nwamui_wifi_net_get_bssid( wifi );
 
-                g_debug("Removing deleted known network %s ; %s", essid?essid:"",  bssid?bssid:"" );
-#if 0
-                /* TODO: Figure out how to delete a known AP */
-                if (self->prv->communicate_change_to_daemon 
-                    && libnwam_delete_known_ap( essid?essid:"",  bssid?bssid:"") != 0) {
-				    g_debug("Call libnwam_delete_known_ap failed: %s\n", strerror(errno));
+                if (!self->prv->communicate_change_to_daemon 
+                    || nwamui_wifi_net_delete_favourite( wifi ) ) {
+                    /* Deleted */
                 }
-#else
-                g_error("Unable to delete a known AP yet");
-#endif                
-                g_free(essid);
-                g_free(bssid);
 
                 /* Unref wifi now rather than looping again, will free
                  * old_copy when finished looping. */
@@ -1429,24 +1398,12 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
              item != NULL; 
              item = g_list_next( item ) ) {
             NwamuiWifiNet* wifi = NWAMUI_WIFI_NET(item->data);
-            gchar* essid = nwamui_wifi_net_get_essid( wifi );
-            gchar* bssid = nwamui_wifi_net_get_bssid( wifi );
 
-            g_debug("Adding new known network %s ; %s", essid?essid:"",  bssid?bssid:"" );
-#if 0
-                /* TODO: Figure out how to add a known AP */
-            if (self->prv->communicate_change_to_daemon 
-                && libnwam_add_known_ap( essid?essid:"",  bssid?bssid:"") != 0) {
-                g_debug("Call libnwam_add_known_ap failed: %s\n", strerror(errno));
-            } else {
+            if (!self->prv->communicate_change_to_daemon 
+                || nwamui_wifi_net_create_favourite( wifi ) ) {
                 /* Copy on succeeded */
                 self->prv->wifi_fav_list = g_list_prepend(self->prv->wifi_fav_list, g_object_ref(item->data));
             }
-#else
-                g_error("Unable to add a known AP yet");
-#endif                
-            g_free(essid);
-            g_free(bssid);
         }
         
     }
@@ -1658,29 +1615,22 @@ nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self )
 {
     NwamuiWifiNet*  wifi = NULL;
     GList*          new_list = NULL;
-#if 0 
-    /* TODO: Find API for getting known networks */
-    libnwam_known_ap_t *kap, *origka;
-    uint_t nkas;
+    nwam_error_t    nerr;
+    int             cbret;
 
-    origka = kap = libnwam_get_known_ap_list(&nkas);
-    g_debug("%d known APs.\n", nkas);
-    while (nkas-- > 0) {
-        g_debug("ESSID %-32s  BSSID %s\n", kap->ka_essid, kap->ka_bssid);
-        g_debug("  %s\n", kap->ka_haskey ? "Has key" : "No key");
 
-        wifi = nwamui_wifi_net_new_from_known_ap( kap );
-        new_list = g_list_append(new_list, (gpointer)g_object_ref(wifi) );
-        kap++;
+    nerr = nwam_walk_known_wlans(nwam_known_wlan_walker_cb, &new_list,
+                          NWAM_FLAG_KNOWN_WLAN_WALK_PRIORITY_ORDER, &cbret);
+
+    if (nerr != NWAM_SUCCESS) {
+        g_debug ("[libnwam] nwam_walk_known_wlans %s", nwam_strerror (nerr));
     }
-    libnwam_free_known_ap_list(origka);
 
     /* Use the set method to merge if necessary, but temporarily suspend
      * communication of changes to daemon */
     self->prv->communicate_change_to_daemon = FALSE;
     nwamui_daemon_set_fav_wifi_networks(self, new_list);
     self->prv->communicate_change_to_daemon = TRUE;
-#endif    
 }
 
 /* Handle case where using WEP, and open auth, trigger an event to request a
@@ -2702,6 +2652,22 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
     new_ncp = nwamui_ncp_new_with_handle (ncp);
         
     prv->ncp_list = g_list_append(prv->ncp_list, (gpointer)new_ncp);
+
+    return(0);
+}
+
+static int
+nwam_known_wlan_walker_cb (nwam_known_wlan_handle_t wlan_h, void *data)
+{
+    nwam_error_t nerr;
+    GList**        glist_p = (GList**)data;
+    NwamuiWifiNet* wifi = NULL;
+        
+    g_debug ("nwam_known_wlan_walker_cb 0x%p", wlan_h );
+    
+    wifi = nwamui_wifi_net_new_from_handle( NULL, wlan_h );
+        
+    (*glist_p) = g_list_append((*glist_p), (gpointer)wifi );
 
     return(0);
 }
