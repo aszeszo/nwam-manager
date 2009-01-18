@@ -113,6 +113,7 @@ main(int argc, char** argv)
     GnomeProgram*   program = NULL;
     GOptionContext*	option_context = NULL;
     GError*         err = NULL;
+    NwamPrefIFace *capplet_dialog = NULL;
     
     /* Initialise Thread Support */
     g_thread_init( NULL );
@@ -152,40 +153,40 @@ main(int argc, char** argv)
     glade_set_custom_handler(customwidgethandler, NULL);
 
     if ( add_wireless_dialog ) {
-        NwamWirelessDialog *wireless_dialog = NWAM_WIRELESS_DIALOG(nwam_wireless_dialog_new());
+        capplet_dialog = NWAM_PREF_IFACE(nwam_wireless_dialog_new());
         
-	if (*add_wireless_dialog != '\0') {
-		nwam_wireless_dialog_set_essid (wireless_dialog, add_wireless_dialog);
-	}
-        gint responseid = nwam_wireless_dialog_run( (NWAM_WIRELESS_DIALOG(wireless_dialog)) );
+        if (*add_wireless_dialog != '\0') {
+            nwam_wireless_dialog_set_essid (NWAM_WIRELESS_DIALOG(capplet_dialog), add_wireless_dialog);
+        }
+        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }
     else if( env_pref_dialog ) {
-        NwamEnvPrefDialog *env_pref_dialog = NWAM_ENV_PREF_DIALOG(nwam_env_pref_dialog_new());
+        capplet_dialog = NWAM_PREF_IFACE(nwam_env_pref_dialog_new());
         
-        gint responseid = nwam_env_pref_dialog_run( (NWAM_ENV_PREF_DIALOG(env_pref_dialog)), NULL );
+        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }
     else if( location_dialog ) {
-        NwamLocationDialog *location_dialog = NWAM_LOCATION_DIALOG(nwam_location_dialog_new());
+        capplet_dialog = NWAM_PREF_IFACE(nwam_location_dialog_new());
         
-        gint responseid = nwam_location_dialog_run( (NWAM_LOCATION_DIALOG(location_dialog)), NULL );
+        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }
     else if( vpn_pref_dialog ) {
-        NwamVPNPrefDialog *vpn_pref_dialog = nwam_vpn_pref_dialog_new();
+        capplet_dialog = NWAM_PREF_IFACE(nwam_vpn_pref_dialog_new());
         
-        gint responseid = nwam_vpn_pref_dialog_run( vpn_pref_dialog, NULL );
-        
+        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
+
         debug_response_id( responseid );
     }
     else if( wireless_chooser ) {
-        NwamWirelessChooser *wifi_chooser = nwam_wireless_chooser_new();
+        capplet_dialog = NWAM_PREF_IFACE(nwam_wireless_chooser_new());
         
-        gint responseid = nwam_wireless_chooser_run( wifi_chooser, NULL );
+        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }
@@ -213,9 +214,9 @@ main(int argc, char** argv)
         gtk_main();
     }
     else if( nwam_pref_dialog ) {
-        NwamCappletDialog *nwam_pref_dialog = NWAM_CAPPLET_DIALOG(nwam_capplet_dialog_new());
+        capplet_dialog = NWAM_PREF_IFACE(nwam_capplet_dialog_new());
         
-        gint responseid = nwam_capplet_dialog_run( (NWAM_CAPPLET_DIALOG(nwam_pref_dialog)) );
+        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }

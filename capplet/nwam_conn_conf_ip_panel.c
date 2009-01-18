@@ -37,6 +37,7 @@
 #include "nwam_conn_conf_ip_panel.h"
 #include "nwam_pref_iface.h"
 #include "nwam_wireless_dialog.h"
+#include "capplet-utils.h"
 
 /* Names of Widgets in Glade file */
 #define IP_PANEL_IFACE_NOTEBOOK	"interface_notebook"
@@ -215,6 +216,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->refresh = refresh;
 	iface->apply = apply;
     iface->help = help;
+    iface->dialog_run = NULL;
 }
 
 static void
@@ -1131,7 +1133,7 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
     
     g_debug("wireless_tab_add_button clicked");
     
-    switch (nwam_wireless_dialog_run( self->prv->wifi_dialog )) {
+    switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), button)) {
         case GTK_RESPONSE_OK:
                 new_wifi = nwam_wireless_dialog_get_wifi_net( self->prv->wifi_dialog );
                 nwamui_daemon_add_wifi_fav(self->prv->daemon, new_wifi);
@@ -1220,7 +1222,7 @@ wireless_tab_edit_button_clicked_cb( GtkButton *button, gpointer data )
 
                 nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, wifi_net );
 
-                switch (nwam_wireless_dialog_run( self->prv->wifi_dialog )) {
+                switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), button)) {
                     case GTK_RESPONSE_OK:
                         /* wifi_net object will be already updated, so only need to refresh row. */
                         gtk_tree_model_row_changed(GTK_TREE_MODEL(model), (GtkTreePath *)idx->data, &iter);

@@ -40,6 +40,7 @@
 #include "nwam_conn_stat_panel.h"
 #include "nwam_net_conf_panel.h"
 #include "nwam_pref_iface.h"
+#include "capplet-utils.h"
 
 /* Names of Widgets in Glade file */
 #define CONN_STATUS_TREEVIEW             "connection_status_table"
@@ -114,6 +115,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->refresh = refresh;
 	iface->apply = NULL;
 	iface->help = help;
+    iface->dialog_run = NULL;
 }
 
 static void
@@ -134,7 +136,6 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 	GtkCellRenderer *cell;
 	GtkTreeView *view = self->prv->conn_status_treeview;
 
-    g_debug("#############%s treeview 0x%p", __FILE__, view);
 	g_object_set (view,
       "headers-clickable", TRUE,
       "headers-visible", FALSE,
@@ -503,18 +504,12 @@ env_clicked_cb( GtkButton *button, gpointer data )
 {
 	NwamConnStatusPanel* self = NWAM_CONN_STATUS_PANEL(data);
         gint                 response;
-	GtkWidget *toplevel;
-	
-	toplevel = gtk_widget_get_toplevel (GTK_WIDGET(button));
-	if (!GTK_WIDGET_TOPLEVEL(toplevel)) {
-		toplevel = NULL;
-	}
 	
         if ( self->prv->env_dialog == NULL ) {
             self->prv->env_dialog = nwam_env_pref_dialog_new();
         }
         
-        response = nwam_env_pref_dialog_run( self->prv->env_dialog, GTK_WINDOW(toplevel) );
+        response = capplet_dialog_run(NWAM_PREF_IFACE(self->prv->env_dialog), GTK_WIDGET(button) );
         
         g_debug("env dialog returned %d", response );
 }
@@ -524,19 +519,12 @@ vpn_clicked_cb( GtkButton *button, gpointer data )
 {
 	NwamConnStatusPanel* self = NWAM_CONN_STATUS_PANEL(data);
 	gint response;
-	GtkWidget *toplevel;
-	
-	toplevel = gtk_widget_get_toplevel (GTK_WIDGET(button));
-        
-	if (!GTK_WIDGET_TOPLEVEL(toplevel)) {
-		toplevel = NULL;
-	}
-	
+
 	if ( self->prv->vpn_dialog == NULL ) {
             self->prv->vpn_dialog = nwam_vpn_pref_dialog_new();
-        }
+    }
 
-	response = nwam_vpn_pref_dialog_run( self->prv->vpn_dialog, GTK_WINDOW(toplevel));
+	response = capplet_dialog_run(NWAM_PREF_IFACE(self->prv->vpn_dialog), button);
 	
 	g_debug("VPN dialog returned %d", response);
 }

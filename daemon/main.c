@@ -40,8 +40,6 @@
 #include "notify.h"
 #include "libnwamui.h"
 
-#include "capplet/nwam_wireless_dialog.h"
-
 /*
  * Security Auth needed for NWAM to work. Console User and Network Management
  * profiles will have this.
@@ -319,6 +317,7 @@ find_wireless_interface(GtkTreeModel *model,
 extern void
 join_wireless(NwamuiWifiNet *wifi)
 {
+#if 0
     static NwamWirelessDialog *wifi_dialog = NULL;
     NwamuiDaemon *daemon = nwamui_daemon_get_instance();
     NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
@@ -364,7 +363,7 @@ join_wireless(NwamuiWifiNet *wifi)
     }
     nwam_wireless_dialog_set_wifi_net(wifi_dialog, wifi);
 
-    if (nwam_wireless_dialog_run(wifi_dialog) == GTK_RESPONSE_OK) {
+    if (capplet_dialog_run(NWAM_PREF_IFACE(wifi_dialog), NULL) == GTK_RESPONSE_OK) {
         gchar *name = NULL;
         gchar *passwd = NULL;
 
@@ -407,6 +406,7 @@ join_wireless(NwamuiWifiNet *wifi)
     }
 
     g_object_unref(ncu);
+#endif
 }
 
 extern void

@@ -1,3 +1,81 @@
+2009-01-18  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c: (capplet_compose_nwamui_obj_combo),
+	(nwamui_obj_name_cell_cb), (nwam_pref_iface_combo_changed_cb),
+	(capplet_compose_nwamui_obj_treeview),
+	(capplet_update_nwamui_obj_treeview), (capplet_dialog_run),
+	(nwamui_obj_name_cell_edited_cb),
+	(capplet_active_mode_renderer_cell_cb), (capplet_name_column_new),
+	(capplet_active_mode_column_new), (tree_model_find_object_cb),
+	(capplet_model_get_iter), (capplet_combo_get_active),
+	(capplet_combo_set_active):
+	Added some basic functions to operate combo, tree view and tree model.
+	* capplet/capplet-utils.h:
+	* capplet/main.c: (main):
+	* capplet/nwam_condition_vbox.c: (nwam_pref_init):
+	* capplet/nwam_conn_conf_ip_panel.c: (nwam_pref_init),
+	(wireless_tab_add_button_clicked_cb),
+	(wireless_tab_edit_button_clicked_cb):
+	* capplet/nwam_conn_stat_panel.c: (nwam_pref_init),
+	(nwam_compose_tree_view), (env_clicked_cb), (vpn_clicked_cb):
+	* capplet/nwam_env_pref_dialog.c: (nwam_pref_init), (dialog_run),
+	(refresh):
+	* capplet/nwam_env_pref_dialog.h:
+	* capplet/nwam_env_svc.c: (nwam_pref_init):
+	* capplet/nwam_location_dialog.c: (nwam_pref_init),
+	(nwam_compose_tree_view), (nwam_location_dialog_init),
+	(dialog_run), (refresh), (vanity_name_editing_started),
+	(nwam_treeview_update_widget_cb), (on_button_clicked):
+	* capplet/nwam_net_conf_panel.c: (nwam_pref_init),
+	(nwam_net_conf_panel_class_init), (nwam_compose_tree_view),
+	(nwam_net_conf_panel_init), (refresh),
+	(nwam_net_conf_panel_finalize), (update_rules_from_ncu),
+	(nwam_net_pref_rule_ncu_enabled_toggled_cb), (on_button_clicked),
+	(nwam_treeview_update_widget_cb),
+	(conditions_connected_toggled_cb), (conditions_set_status_changed),
+	(conditions_connected_changed), (ncu_notify_cb):
+	Added missed widgets.
+	* capplet/nwam_pref_dialog.c: (nwam_pref_init), (dialog_run):
+	* capplet/nwam_pref_dialog.h:
+	* capplet/nwam_rules_dialog.c: (refresh):
+	* capplet/nwam_tree_view.c: (nwam_tree_view_class_init),
+	(on_button_clicked), (nwam_tree_view_update_widget_cb),
+	(nwam_tree_view_locate_new_object):
+	* capplet/nwam_tree_view.h:
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_pref_init),
+	(nwam_vpn_pref_dialog_init), (nwam_compose_tree_view),
+	(dialog_run), (refresh), (vpn_pref_clicked_cb), (nwam_vpn_cell_cb),
+	(nwam_vpn_cell_edited_cb), (nwam_vpn_selection_changed),
+	(on_nwam_enm_notify_cb), (on_button_clicked):
+	Added missed widgets.
+	* capplet/nwam_vpn_pref_dialog.h:
+	* capplet/nwam_wireless_chooser.c: (nwam_pref_init), (dialog_run):
+	* capplet/nwam_wireless_dialog.c: (nwam_pref_init), (dialog_run):
+	* capplet/nwam_wireless_dialog.h:
+	All capplet object implemented dialog_run interface. And use new nwamui
+	object virtual functions.
+	* common/libnwamui.c: (nwamui_util_glade_get_widget):
+	* common/nwam_pref_iface.c: (nwam_pref_iface_class_init),
+	(nwam_pref_refresh), (nwam_pref_apply), (nwam_pref_cancel),
+	(nwam_pref_help), (nwam_pref_dialog_run):
+	* common/nwam_pref_iface.h:
+	Added dialog_run interface.
+	* common/nwamui_enm.c: (nwamui_enm_class_init):
+	* common/nwamui_env.c: (nwamui_env_class_init):
+	* common/nwamui_ncp.c: (nwamui_ncp_class_init):
+	* common/nwamui_ncu.c: (nwamui_ncu_class_init):
+	All updated due to new virtual functions.
+	* common/nwamui_object.c: (nwamui_object_class_init),
+	(nwamui_object_set_name), (nwamui_object_get_name),
+	(nwamui_object_set_conditions), (nwamui_object_get_conditions),
+	(nwamui_object_get_activation_mode),
+	(nwamui_object_set_activation_mode):
+	Added above virtual functions.
+	* common/nwamui_object.h:
+	* common/nwamui_wifi_net.c: (nwamui_wifi_net_class_init):
+	* daemon/main.c: (join_wireless):
+	Commented out for build issue.
+
 2009-01-16  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_conf_ip_panel.c: 

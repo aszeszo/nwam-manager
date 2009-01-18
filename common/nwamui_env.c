@@ -182,8 +182,12 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     gobject_class->get_property = nwamui_env_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_env_finalize;
 
+    nwamuiobject_class->get_name = nwamui_env_get_name;
+    nwamuiobject_class->set_name = nwamui_env_set_name;
     nwamuiobject_class->get_conditions = nwamui_env_get_conditions;
     nwamuiobject_class->set_conditions = nwamui_env_set_conditions;
+    nwamuiobject_class->get_activation_mode = nwamui_env_get_activation_mode;
+    nwamuiobject_class->set_activation_mode = nwamui_env_set_activation_mode;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,

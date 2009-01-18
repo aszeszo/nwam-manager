@@ -34,6 +34,7 @@
 #include <glib/gi18n.h>
 #include <strings.h>
 
+#include "nwam_pref_iface.h"
 #include "nwam_wireless_dialog.h"
 
 /* Names of Widgets in Glade file */
@@ -94,6 +95,12 @@ struct _NwamWirelessDialogPrivate {
         NwamuiWifiNet*  wifi_net;
 };
 
+static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
+
 static void nwam_wireless_dialog_set_property ( GObject         *object,
                                                 guint            prop_id,
                                                 const GValue    *value,
@@ -120,7 +127,21 @@ static void show_password_cb( GtkToggleButton* widget, gpointer data );
 
 
 
-G_DEFINE_TYPE (NwamWirelessDialog, nwam_wireless_dialog, G_TYPE_OBJECT)
+G_DEFINE_TYPE_EXTENDED (NwamWirelessDialog,
+  nwam_wireless_dialog,
+  G_TYPE_OBJECT,
+  0,
+  G_IMPLEMENT_INTERFACE (NWAM_TYPE_PREF_IFACE, nwam_pref_init))
+
+static void
+nwam_pref_init (gpointer g_iface, gpointer iface_data)
+{
+	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
+/*     iface->refresh = refresh; */
+/*     iface->apply = apply; */
+/*     iface->help = help; */
+    iface->dialog_run = dialog_run;
+}
 
 static void
 nwam_wireless_dialog_class_init (NwamWirelessDialogClass *klass)
@@ -901,9 +922,10 @@ nwam_wireless_dialog_get_transient (NwamWirelessDialog *self )
  * 
  * Blocks in a recursive main loop until the dialog either emits the response signal, or is destroyed.
  **/
-gint       
-nwam_wireless_dialog_run (NwamWirelessDialog  *self)
+static gint
+dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 {
+    NwamWirelessDialog *self = NWAM_WIRELESS_DIALOG(iface);
     gint            response = GTK_RESPONSE_NONE;
 
     g_assert(NWAM_IS_WIRELESS_DIALOG (self));

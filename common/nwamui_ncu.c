@@ -166,6 +166,8 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     gobject_class->get_property = nwamui_ncu_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_ncu_finalize;
 
+    nwamuiobject_class->get_name = nwamui_ncu_get_vanity_name;
+    nwamuiobject_class->set_name = nwamui_ncu_set_vanity_name;
     nwamuiobject_class->get_conditions = nwamui_ncu_get_selection_conditions;
     nwamuiobject_class->set_conditions = nwamui_ncu_set_selection_conditions;
 

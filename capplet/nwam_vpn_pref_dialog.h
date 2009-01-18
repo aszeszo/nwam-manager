@@ -61,8 +61,6 @@ struct _NwamVPNPrefDialogClass
 
 GType nwam_vpn_pref_dialog_get_type (void) G_GNUC_CONST;
 NwamVPNPrefDialog* nwam_vpn_pref_dialog_new (void);
-gint nwam_vpn_pref_dialog_run (NwamVPNPrefDialog  *dialog, GtkWindow *parent);
-
 
 G_END_DECLS
 

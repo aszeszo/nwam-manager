@@ -64,8 +64,6 @@ struct _NwamCappletDialogClass
 extern GType                   nwam_capplet_dialog_get_type (void) G_GNUC_CONST;
 extern NwamCappletDialog*     nwam_capplet_dialog_new (void);
 
-extern gint                    nwam_capplet_dialog_run (NwamCappletDialog  *capplet_dialog);
-
 extern void			nwam_capplet_dialog_refresh(NwamCappletDialog *self);
 /*
  * NwamPrefIFace instance should be added, so it can be refreshed or applied.

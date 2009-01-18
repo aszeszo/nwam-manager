@@ -66,6 +66,7 @@ static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
 static void nwam_wireless_chooser_finalize(NwamWirelessChooser *self);
 static void nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data);
@@ -98,6 +99,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->refresh = refresh;
 	iface->apply = apply;
     iface->help = help;
+    iface->dialog_run = dialog_run;
 }
 
 static void
@@ -284,17 +286,11 @@ nwam_wireless_chooser_new(void)
 	return NWAM_WIRELESS_CHOOSER(g_object_new(NWAM_TYPE_WIRELESS_CHOOSER, NULL));
 }
 
-/**
- * nwam_wireless_chooser_run:
- * @nnwam_wireless_chooser: a #NwamWirelessChooser.
- * @returns: a GTK_DIALOG Response ID
- *
- *
- * Blocks in a recursive main loop until the dialog either emits the response signal, or is destroyed.
- **/
-gint
-nwam_wireless_chooser_run (NwamWirelessChooser *self, GtkWindow *parent)
+static gint
+dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 {
+    NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(iface);
+    NwamWirelessChooserPrivate* prv = self->prv;
 	gint response = GTK_RESPONSE_NONE;
 	
 	g_assert(NWAM_IS_WIRELESS_CHOOSER(self));

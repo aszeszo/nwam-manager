@@ -72,6 +72,7 @@ static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
 static void nwam_capplet_dialog_finalize(NwamCappletDialog *self);
 
@@ -109,6 +110,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->refresh = refresh;
 	iface->apply = apply;
     iface->help = help;
+    iface->dialog_run = dialog_run;
 }
 
 static void
@@ -202,9 +204,10 @@ nwam_capplet_dialog_new(void)
  *
  * Blocks in a recursive main loop until the dialog either emits the response signal, or is destroyed.
  **/
-gint
-nwam_capplet_dialog_run(NwamCappletDialog  *self)
+static gint
+dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 {
+	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(iface);
     gint response = GTK_RESPONSE_NONE;
     
     g_assert(NWAM_IS_CAPPLET_DIALOG(self));

@@ -27,16 +27,8 @@
  *
  */
 
-#include <libnwam.h>
 #include <glib-object.h>
 #include <glib/gi18n.h>
-#include <strings.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <errno.h>
 
 #include "libnwamui.h"
 
@@ -87,8 +79,12 @@ nwamui_object_class_init(NwamuiObjectClass *klass)
 	gobject_class->set_property = nwamui_object_set_property;
 	gobject_class->get_property = nwamui_object_get_property;
 
+    klass->get_name = NULL;
+    klass->set_name = NULL;
     klass->get_conditions = NULL;
     klass->set_conditions = NULL;
+    klass->get_activation_mode = NULL;
+    klass->set_activation_mode = NULL;
 
 	g_type_class_add_private(klass, sizeof(NwamuiObjectPrivate));
 }
@@ -152,20 +148,52 @@ nwamui_object_finalize(NwamuiObject *self)
 }
 
 /** 
- * nwamui_env_set_conditions:
- * @nwamui_env: a #NwamuiEnv.
+ * nwamui_object_set_name:
+ * @nwamui_object: a #NwamuiObject.
+ * @name: Value to set name to.
+ * 
+ **/ 
+extern void
+nwamui_object_set_name (   NwamuiObject *object,
+                             const gchar* name )
+{
+    g_return_if_fail (NWAMUI_IS_OBJECT (object));
+    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_name);
+    g_assert (name != NULL );
+
+    NWAMUI_OBJECT_GET_CLASS (object)->set_name(object, name);
+}
+
+/**
+ * nwamui_object_get_name:
+ * @nwamui_object: a #NwamuiObject.
+ * @returns: the name.
+ *
+ **/
+extern gchar *
+nwamui_object_get_name (NwamuiObject *object)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), NULL);
+    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_name, NULL);
+
+    return NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);
+}
+
+/** 
+ * nwamui_object_set_conditions:
+ * @nwamui_object: a #NwamuiObject.
  * @conditions: Value to set conditions to.
  * 
  **/ 
 extern void
-nwamui_object_set_conditions (   NwamuiObject *self,
+nwamui_object_set_conditions (   NwamuiObject *object,
                              const GList* conditions )
 {
-    g_return_if_fail (NWAMUI_IS_OBJECT (self));
-    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (self)->set_conditions);
+    g_return_if_fail (NWAMUI_IS_OBJECT (object));
+    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_conditions);
     g_assert (conditions != NULL );
 
-    NWAMUI_OBJECT_GET_CLASS (self)->set_conditions(self, conditions);
+    NWAMUI_OBJECT_GET_CLASS (object)->set_conditions(object, conditions);
 }
 
 /**
@@ -175,10 +203,29 @@ nwamui_object_set_conditions (   NwamuiObject *self,
  *
  **/
 extern GList*
-nwamui_object_get_conditions (NwamuiObject *self)
+nwamui_object_get_conditions (NwamuiObject *object)
 {
-    g_return_val_if_fail (NWAMUI_IS_OBJECT (self), NULL);
-    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (self)->get_conditions, NULL);
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), NULL);
+    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_conditions, NULL);
 
-    return NWAMUI_OBJECT_GET_CLASS (self)->get_conditions(self);
+    return NWAMUI_OBJECT_GET_CLASS (object)->get_conditions(object);
+}
+
+extern gint
+nwamui_object_get_activation_mode(NwamuiObject *object)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), NWAMUI_COND_ACTIVATION_MODE_LAST);
+    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_activation_mode, NWAMUI_COND_ACTIVATION_MODE_LAST);
+
+    return NWAMUI_OBJECT_GET_CLASS (object)->get_activation_mode(object);
+}
+
+extern void
+nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
+{
+    g_return_if_fail (NWAMUI_IS_OBJECT (object));
+    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_activation_mode);
+    g_assert (activation_mode != NULL );
+
+    NWAMUI_OBJECT_GET_CLASS (object)->set_activation_mode(object, activation_mode);
 }

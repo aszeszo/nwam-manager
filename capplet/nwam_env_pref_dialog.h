@@ -64,9 +64,6 @@ extern  GType                   nwam_env_pref_dialog_get_type (void) G_GNUC_CONS
 extern  NwamEnvPrefDialog*      nwam_env_pref_dialog_new (void);
 extern  NwamEnvPrefDialog*      nwam_env_pref_dialog_new_with_label (const gchar *label);
 
-extern  gint                    nwam_env_pref_dialog_run (NwamEnvPrefDialog  *wireless_dialog, GtkWindow* parent);
-
-
 
 G_END_DECLS
 

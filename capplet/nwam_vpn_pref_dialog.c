@@ -28,12 +28,13 @@
 #include <glade/glade.h>
 #include <glib/gi18n.h>
 
-#include "nwam_vpn_pref_dialog.h"
-#include "nwam_pref_iface.h"
 #include "libnwamui.h"
+#include "capplet-utils.h"
+#include "nwam_pref_iface.h"
+#include "nwam_vpn_pref_dialog.h"
+#include "nwam_rules_dialog.h"
 
 #define VPN_APP_VIEW_COL_ID	"nwam_vpn_app_column_id"
-#define VPN_APP_VIEW_MODEL	"nwam_vpn_app_tree_model"
 
 /* Names of Widgets in Glade file */
 #define	VPN_PREF_DIALOG_NAME	"vpn_config"
@@ -42,6 +43,8 @@
 #define	VPN_PREF_REMOVE_BTN	"vpn_remove_btn"
 #define	VPN_PREF_START_BTN	"vpn_start_btn"
 #define	VPN_PREF_STOP_BTN	"vpn_stop_btn"
+#define	VPN_RULES_BTN	"vpn_rules_btn"
+#define	VPN_CONDITIONAL_CB	"vpn_conditional_cb"
 #define	VPN_PREF_BROWSE_START_CMD_BTN	"browse_start_cmd_btn"
 #define	VPN_PREF_BROWSE_STOP_CMD_BTN	"browse_stop_cmd_entry"
 #define VPN_PREF_START_CMD_ENTRY	"start_cmd_entry"
@@ -68,6 +71,8 @@ struct _NwamVPNPrefDialogPrivate {
 	GtkButton	*remove_btn;
 	GtkButton	*start_btn;
 	GtkButton	*stop_btn;
+	GtkCheckButton	*vpn_conditional_cb;
+	GtkButton	*vpn_rules_btn;
 	GtkButton	*browse_start_cmd_btn;
 	GtkButton	*browse_stop_cmd_btn;
 	GtkEntry	*start_cmd_entry;
@@ -88,9 +93,10 @@ static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+extern gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
 static void nwam_vpn_pref_dialog_finalize(NwamVPNPrefDialog *self);
-static void nwam_compose_vpn_apps_view (NwamVPNPrefDialog *self);
+static void nwam_compose_tree_view (NwamVPNPrefDialog *self);
 static void set_property (GObject         *object,
                           guint            prop_id,
                           const GValue    *value,
@@ -99,9 +105,6 @@ static void get_property (GObject         *object,
                           guint            prop_id,
                           GValue          *value,
                           GParamSpec      *pspec);
-static void nwam_vpn_add (NwamVPNPrefDialog *self, NwamuiEnm* obj);
-static void nwam_vpn_clear (NwamVPNPrefDialog *self);
-static void populate_panel( NwamVPNPrefDialog* self);
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -123,6 +126,7 @@ static gint nwam_vpn_cell_comp_cb(GtkTreeModel *model,
 static void nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	gpointer          data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void on_button_clicked(GtkButton *button, gpointer user_data);
 
 G_DEFINE_TYPE_EXTENDED (NwamVPNPrefDialog,
                         nwam_vpn_pref_dialog,
@@ -134,7 +138,9 @@ static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
+    iface->refresh = refresh;
     iface->help = help;
+    iface->dialog_run = dialog_run;
 }
 
 static void
@@ -156,9 +162,6 @@ nwam_vpn_pref_dialog_class_init(NwamVPNPrefDialogClass *klass)
 static void
 nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 {
-	GtkTreeModel    *model = NULL;
-	GtkTreeSelection *selection;
-	
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(self);
 	self->prv = prv;
 
@@ -172,6 +175,10 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 	prv->remove_btn = GTK_BUTTON(nwamui_util_glade_get_widget(VPN_PREF_REMOVE_BTN));
 	prv->start_btn = GTK_BUTTON(nwamui_util_glade_get_widget(VPN_PREF_START_BTN));
 	prv->stop_btn = GTK_BUTTON(nwamui_util_glade_get_widget(VPN_PREF_STOP_BTN));
+
+	prv->vpn_rules_btn = GTK_BUTTON(nwamui_util_glade_get_widget(VPN_RULES_BTN));
+	prv->vpn_conditional_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(VPN_CONDITIONAL_CB));
+
 	prv->browse_start_cmd_btn = GTK_BUTTON(nwamui_util_glade_get_widget(VPN_PREF_BROWSE_START_CMD_BTN));
 	prv->browse_stop_cmd_btn = GTK_BUTTON(nwamui_util_glade_get_widget(VPN_PREF_BROWSE_STOP_CMD_BTN));
 	prv->start_cmd_entry = GTK_ENTRY(nwamui_util_glade_get_widget(VPN_PREF_START_CMD_ENTRY));
@@ -182,28 +189,29 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 	prv->process_lbl = GTK_LABEL(nwamui_util_glade_get_widget(VPN_PREF_PROCESS_LBL));
 	prv->desc_lbl = GTK_LABEL(nwamui_util_glade_get_widget(VPN_PREF_DESC_LBL));
 
-	g_signal_connect(prv->add_btn, "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
-	g_signal_connect(prv->remove_btn, "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
-	g_signal_connect(prv->start_btn, "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
-	g_signal_connect(prv->stop_btn, "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
-	g_signal_connect(prv->browse_start_cmd_btn, "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
-	g_signal_connect(prv->browse_stop_cmd_btn, "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
+	g_signal_connect(prv->remove_btn,
+      "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
+	g_signal_connect(prv->start_btn,
+      "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
+	g_signal_connect(prv->stop_btn,
+      "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
+	g_signal_connect(prv->browse_start_cmd_btn,
+      "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
+	g_signal_connect(prv->browse_stop_cmd_btn,
+      "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
 	
 
 	g_signal_connect(self, "notify", (GCallback)object_notify_cb, NULL);
 	g_signal_connect(prv->vpn_pref_dialog, "response", (GCallback)response_cb, (gpointer)self);
 	
-	nwam_compose_vpn_apps_view (self);
-	
-	selection = gtk_tree_view_get_selection (prv->view);
-	gtk_tree_selection_set_mode (selection, GTK_SELECTION_SINGLE);
-	
-	g_signal_connect(selection,
-		"changed",
-		(GCallback)nwam_vpn_selection_changed,
-		(gpointer)self);
+    g_signal_connect(self->prv->vpn_rules_btn,
+      "clicked", G_CALLBACK(on_button_clicked),
+      (gpointer)self);
 
-	populate_panel (self);
+	nwam_compose_tree_view (self);
+	
+	/* Initializing */
+	nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
 }
 
 static void
@@ -231,71 +239,76 @@ static void get_property (GObject         *object,
 }
 
 static void
-nwam_compose_vpn_apps_view (NwamVPNPrefDialog *self)
+nwam_compose_tree_view (NwamVPNPrefDialog *self)
 {
 	GtkTreeViewColumn *col;
 	GtkCellRenderer *renderer;
-	GtkTreeView *view;
-	GtkTreeModel *model;
-
-	view = self->prv->view;
-	if (gtk_tree_view_get_model (view))
-		return;
+	GtkTreeView *view = self->prv->view;
 	
-        model = GTK_TREE_MODEL(gtk_list_store_new (1, G_TYPE_OBJECT));
-	gtk_tree_view_set_model (view, model);
-	
-	g_object_set (G_OBJECT(view),
-		      "headers-clickable", FALSE,
-		      NULL);
-	
-	// column APP_NAME
-	renderer = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new_with_attributes(_("Application Name"),
-      renderer,
-      "expand", TRUE,
-      "resizable", TRUE,
-      "clickable", TRUE,
-      "sort-indicator", TRUE,
-      "reorderable", TRUE,
+    g_object_set (G_OBJECT(view),
+      "headers-clickable", TRUE,
+      "headers-visible", TRUE,
+      "rules-hint", FALSE,
+      "reorderable", FALSE,
+      "enable-search", TRUE,
+      "show-expanders", TRUE,
+      "button-add", self->prv->add_btn,
       NULL);
-	gtk_tree_view_append_column (view, col);
-	gtk_tree_view_column_set_sort_column_id (col, APP_NAME);
-	gtk_tree_view_column_set_cell_data_func (col,
-						 renderer,
-						 nwam_vpn_cell_cb,
-						 (gpointer) self,
-						 NULL);
-	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
-	g_signal_connect(G_OBJECT(renderer), "edited",
-		(GCallback) nwam_vpn_cell_edited_cb, (gpointer) self);
-	g_object_set_data(G_OBJECT(renderer), VPN_APP_VIEW_COL_ID, GUINT_TO_POINTER(APP_NAME));
-	g_object_set_data(G_OBJECT(renderer), VPN_APP_VIEW_MODEL, (gpointer)model);
-	gtk_tree_sortable_set_sort_func	(GTK_TREE_SORTABLE(model),
-					 APP_NAME,
-					 (GtkTreeIterCompareFunc) nwam_vpn_cell_comp_cb,
-					 GINT_TO_POINTER(APP_NAME),
-					 NULL);
-	gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE(model),
-					      APP_NAME,
-					      GTK_SORT_ASCENDING);
 
-	// column APP_STATE
-	renderer = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new_with_attributes(_("Status"),
-      renderer,
+	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(view),
+      GTK_SELECTION_SINGLE);
+    g_signal_connect(gtk_tree_view_get_selection(view),
+      "changed",
+      G_CALLBACK(nwam_vpn_selection_changed),
+      (gpointer)self);
+
+    /* Mode column */
+    capplet_active_mode_column_new(view, &col, NULL, &renderer);
+
+	/* column APP_NAME */
+    capplet_name_column_new(view, &col, _("Application Name"), &renderer);
+
+	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
+	g_object_set_data(G_OBJECT(renderer), VPN_APP_VIEW_COL_ID, GUINT_TO_POINTER(APP_NAME));
+	g_signal_connect(G_OBJECT(renderer), "edited",
+      (GCallback) nwam_vpn_cell_edited_cb, (gpointer) self);
+
+#if 0
+	gtk_tree_view_column_set_sort_column_id (col, APP_NAME);
+	gtk_tree_sortable_set_sort_func	(GTK_TREE_SORTABLE(model),
+      APP_NAME,
+      (GtkTreeIterCompareFunc) nwam_vpn_cell_comp_cb,
+      GINT_TO_POINTER(APP_NAME),
+      NULL);
+	gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE(model),
+      APP_NAME,
+      GTK_SORT_ASCENDING);
+#endif
+
+	/* column APP_STATE */
+	col = gtk_tree_view_column_new();
+	gtk_tree_view_append_column (view, col);
+
+    g_object_set(col,
+      "title", _("Status"),
       "resizable", TRUE,
       "clickable", FALSE,
       "sort-indicator", TRUE,
       "reorderable", TRUE,
       NULL);
-	gtk_tree_view_column_set_cell_data_func (col,
-						 renderer,
-						 nwam_vpn_cell_cb,
-						 (gpointer) self,
-						 NULL);
 	gtk_tree_view_column_set_sort_column_id (col, APP_STATE);	
-	gtk_tree_view_append_column (view, col);
+
+    /* First cell */
+	renderer = gtk_cell_renderer_text_new();
+    gtk_tree_view_column_pack_start(col, renderer, TRUE);
+
+	gtk_tree_view_column_set_cell_data_func (col,
+      renderer,
+      nwam_vpn_cell_cb,
+      (gpointer) self,
+      NULL);
+
+    capplet_compose_nwamui_obj_treeview(view);
 }
 
 /* FIXME, if update failed, popup dialog and return FALSE */
@@ -326,17 +339,11 @@ nwam_vpn_pref_dialog_new(void)
 	return NWAM_VPN_PREF_DIALOG(g_object_new(NWAM_TYPE_VPN_PREF_DIALOG, NULL));
 }
 
-/**
- * nwam_vpn_pref_dialog_run:
- * @nnwam_vpn_pref_dialog: a #NwamVPNPrefDialog.
- * @returns: a GTK_DIALOG Response ID
- *
- *
- * Blocks in a recursive main loop until the dialog either emits the response signal, or is destroyed.
- **/
-gint
-nwam_vpn_pref_dialog_run(NwamVPNPrefDialog  *self, GtkWindow *parent)
+extern gint
+dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 {
+	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
 	gint response = GTK_RESPONSE_NONE;
 	
 	g_assert(NWAM_IS_VPN_PREF_DIALOG(self));
@@ -356,37 +363,22 @@ nwam_vpn_pref_dialog_run(NwamVPNPrefDialog  *self, GtkWindow *parent)
 	return(response);
 }
 
-static void
-nwam_vpn_add (NwamVPNPrefDialog *self, NwamuiEnm* obj)
-{
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	model = gtk_tree_view_get_model (self->prv->view);
-	gtk_list_store_append (GTK_LIST_STORE(model), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(model), &iter,
-			    0, obj, -1);
-}
-
-static void
-nwam_vpn_clear (NwamVPNPrefDialog *self)
-{
-	GtkTreeModel *model;
-	model = gtk_tree_view_get_model (self->prv->view);
-	gtk_list_store_clear (GTK_LIST_STORE(model));
-}
-
-static void
-populate_panel( NwamVPNPrefDialog* self)
+static gboolean
+refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {        
-	GList *enm_list = NULL, *idx;
+	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
 	
-	enm_list = nwamui_daemon_get_enm_list(self->prv->daemon);
-	
-	for (idx = enm_list; idx; idx = g_list_next (idx)) {
-		nwam_vpn_add (self, NWAMUI_ENM (idx->data));
-		g_signal_connect (idx->data, "notify::active",
-                          G_CALLBACK(on_nwam_enm_notify_cb), (gpointer)self);
-	}
+    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+    capplet_update_nwamui_obj_treeview(prv->view, daemon, NWAMUI_TYPE_ENM);
+    g_object_unref(daemon);
+
+
+/*     g_signal_connect (idx->data, "notify::active", */
+/*       G_CALLBACK(on_nwam_enm_notify_cb), (gpointer)self); */
+
+    if (force) {
+    }
 }
 
 static gboolean
@@ -481,20 +473,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 	NwamuiEnm *obj;
 	GtkTreeIter iter;
 	
-	if (button == self->prv->add_btn) {
-		GtkTreeIter iter;
-		GtkTreeModel *model;
-
-		model = gtk_tree_view_get_model (self->prv->view);
-
-		gtk_list_store_append(GTK_LIST_STORE(model), &iter );
-		gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-			0,  NULL,
-			-1);
-		gtk_tree_selection_select_iter (gtk_tree_view_get_selection(self->prv->view),
-			&iter);
-		return;
-	} else if (button == self->prv->remove_btn) {
+    if (button == self->prv->remove_btn) {
 		GtkTreeSelection *selection;
 		GList *list, *idx;
 		GtkTreeModel *model;
@@ -584,20 +563,6 @@ nwam_vpn_cell_cb (GtkTreeViewColumn *col,
 	gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &obj, -1);
 
 	switch (gtk_tree_view_column_get_sort_column_id(col)) {
-		case APP_NAME: {
-			if (obj) {
-				gchar *app_name = nwamui_enm_get_name(NWAMUI_ENM(obj));
-				g_object_set((gpointer)renderer,
-					"text", app_name,
-					NULL);
-				g_free(app_name);
-			} else {
-				g_object_set((gpointer)renderer,
-					"text", _("New name"),
-					NULL);
-			}
-		}
-		break;
 		case APP_STATE: {
 			if (obj) {
 				gboolean is_active;
@@ -631,7 +596,7 @@ nwam_vpn_cell_edited_cb (GtkCellRendererText *renderer,
 {
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
 	guint col_id = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(renderer), VPN_APP_VIEW_COL_ID));
-	GtkTreeModel *model = GTK_TREE_MODEL (g_object_get_data(G_OBJECT(renderer), VPN_APP_VIEW_MODEL));
+	GtkTreeModel *model = gtk_tree_view_get_model(prv->view);
 	GtkTreeIter iter;
 	GObject *obj;
 	
@@ -674,8 +639,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	
 	GtkTreeIter iter;
 	
-	if (gtk_tree_selection_get_selected(selection,
-		NULL, &iter)) {
+	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
 		GtkTreeModel *model = gtk_tree_view_get_model (prv->view);
 		NwamuiEnm *obj;
 		gchar *txt = NULL;
@@ -688,7 +652,6 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 		}
 		prv->cur_obj = obj;
 
-		gtk_widget_set_sensitive (GTK_WIDGET(prv->add_btn), TRUE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), TRUE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), TRUE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), TRUE);
@@ -699,8 +662,12 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_lbl), TRUE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->process_lbl), TRUE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->desc_lbl), TRUE);
+		gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_conditional_cb), TRUE);
 		
 		if (obj) {
+            gchar *title;
+            gchar *name;
+
 			txt = nwamui_enm_get_start_command (obj);
 			gtk_entry_set_text (prv->start_cmd_entry, txt?txt:"");
 			g_free (txt);
@@ -711,6 +678,27 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 			gtk_entry_set_text (prv->process_entry, txt?txt:"");
 			g_free (txt);
             on_nwam_enm_notify_cb(obj, NULL, data);
+
+            name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
+            title = g_strdup_printf(_("Start/stop '%s' according to rules"), name);
+            g_object_set(prv->vpn_conditional_cb, "label", title, NULL);
+
+            if (nwamui_enm_get_active (obj)) {
+                gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
+                gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), TRUE);
+            } else {
+                gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), TRUE);
+                gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
+            }
+            if (nwamui_enm_get_activation_mode(obj) == NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY) {
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->vpn_conditional_cb), TRUE);
+            } else {
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->vpn_conditional_cb), FALSE);
+            }
+
+            g_free(name);
+            g_free(title);
+
 		} else {
 			gtk_entry_set_text (prv->start_cmd_entry, "");
 			gtk_entry_set_text (prv->stop_cmd_entry, "");			
@@ -720,7 +708,6 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 		}
 		return;
 	}
-	gtk_widget_set_sensitive (GTK_WIDGET(prv->add_btn), TRUE);
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), FALSE);
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
@@ -733,6 +720,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_lbl), FALSE);
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->process_lbl), FALSE);
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->desc_lbl), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_conditional_cb), FALSE);
 }
 
 static void
@@ -744,20 +732,6 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
     GtkTreeSelection *selection;
     GtkTreeModel *model;
 	
-
-    nwamobj = NWAMUI_ENM(gobject);
-    if (prv->cur_obj != nwamobj) {
-        return;
-    }
-
-    if (nwamui_enm_get_active (nwamobj)) {
-        gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
-        gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), TRUE);
-    } else {
-        gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), TRUE);
-        gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
-    }
-
     selection = gtk_tree_view_get_selection (prv->view);
     model = gtk_tree_view_get_model (prv->view);
 	if (gtk_tree_selection_get_selected(selection,
@@ -768,5 +742,31 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
         gtk_tree_path_free (path);
     } else {
         g_assert_not_reached();
+    }
+}
+
+static void
+on_button_clicked(GtkButton *button, gpointer user_data)
+{
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(user_data);
+    GtkTreeModel*               model;
+    GtkTreeIter                 iter;
+    static NwamRulesDialog *rules_dialog = NULL;
+
+    if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->view), &model, &iter ) ) {
+        NwamuiEnm *enm;
+
+        gtk_tree_model_get(model, &iter, 0, &enm, -1);
+
+        /* TODO */
+        if (button == (gpointer)prv->vpn_rules_btn) {
+            if (rules_dialog == NULL)
+                rules_dialog = nwam_rules_dialog_new();
+
+            nwam_pref_refresh(NWAM_PREF_IFACE(rules_dialog), NWAMUI_OBJECT(enm), TRUE);
+            nwam_rules_dialog_run(rules_dialog, GTK_WINDOW(prv->vpn_pref_dialog));
+        }
+
+        g_object_unref(enm);
     }
 }

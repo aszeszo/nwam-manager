@@ -98,7 +98,8 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 {
     /* Pointer to GObject Part of Class */
     GObjectClass *gobject_class = (GObjectClass*) klass;
-        
+    NwamuiObjectClass *nwamuiobject_class = NWAMUI_OBJECT_CLASS(klass);
+    
     /* Initialise Static Parent Class pointer */
     parent_class = g_type_class_peek_parent (klass);
 
@@ -109,6 +110,9 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 
     klass->activate_ncu = default_activate_ncu_signal_handler;
     klass->deactivate_ncu = default_deactivate_ncu_signal_handler;
+
+    nwamuiobject_class->get_name = nwamui_ncp_get_name;
+    nwamuiobject_class->set_name = NULL;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,

@@ -47,20 +47,22 @@ typedef struct _NwamPrefInterface NwamPrefInterface;
 struct _NwamPrefInterface {
 	GTypeInterface parent;
 
-	gboolean (*refresh) (NwamPrefIFace *self, gpointer, gboolean);
-	gboolean (*apply) (NwamPrefIFace *self, gpointer);
-	gboolean (*cancel) (NwamPrefIFace *self, gpointer);
-	gboolean (*help) (NwamPrefIFace *self, gpointer);
+	gboolean (*refresh) (NwamPrefIFace *iface, gpointer user_data, gboolean force);
+	gboolean (*apply) (NwamPrefIFace *iface, gpointer user_data);
+	gboolean (*cancel) (NwamPrefIFace *iface, gpointer user_data);
+	gboolean (*help) (NwamPrefIFace *iface, gpointer user_data);
+    gint (*dialog_run)(NwamPrefIFace *iface, GtkWindow *parent);
 };
 
 extern GType nwam_pref_iface_get_type (void) G_GNUC_CONST;
 
 /* for nwam_pref application internal usage */
 
-extern gboolean         nwam_pref_refresh (NwamPrefIFace *self, gpointer data, gboolean force);
-extern gboolean         nwam_pref_apply (NwamPrefIFace *self, gpointer data);
-extern gboolean         nwam_pref_cancel (NwamPrefIFace *self, gpointer data);
-extern gboolean         nwam_pref_help (NwamPrefIFace *self, gpointer data);
+extern gboolean         nwam_pref_refresh (NwamPrefIFace *iface, gpointer user_data, gboolean force);
+extern gboolean         nwam_pref_apply (NwamPrefIFace *iface, gpointer user_data);
+extern gboolean         nwam_pref_cancel (NwamPrefIFace *iface, gpointer user_data);
+extern gboolean         nwam_pref_help (NwamPrefIFace *iface, gpointer user_data);
+extern gint             nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
 G_END_DECLS
 

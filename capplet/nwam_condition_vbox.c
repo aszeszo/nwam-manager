@@ -115,6 +115,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->refresh = refresh;
 	iface->apply = apply;
 	iface->help = NULL;
+	iface->dialog_run = NULL;
 }
 
 static void

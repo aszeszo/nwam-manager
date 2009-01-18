@@ -124,6 +124,7 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
 {
     /* Pointer to GObject Part of Class */
     GObjectClass *gobject_class = (GObjectClass*) klass;
+    NwamuiObjectClass *nwamuiobject_class = NWAMUI_OBJECT_CLASS(klass);
         
     /* Initialise Static Parent Class pointer */
     parent_class = g_type_class_peek_parent (klass);
@@ -132,6 +133,9 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
     gobject_class->set_property = nwamui_wifi_net_set_property;
     gobject_class->get_property = nwamui_wifi_net_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_wifi_net_finalize;
+
+    nwamuiobject_class->get_name = nwamui_wifi_net_get_essid;
+    nwamuiobject_class->set_name = nwamui_wifi_net_set_essid;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,

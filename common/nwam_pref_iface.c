@@ -29,6 +29,7 @@
  * 
  */
 
+#include <gtk/gtk.h>
 #include "nwam_pref_iface.h"
 
 static void
@@ -49,6 +50,7 @@ nwam_pref_iface_class_init (gpointer g_class, gpointer g_class_data)
 	self->refresh = NULL;
 	self->apply = NULL;
     self->help = NULL;
+    self->dialog_run = NULL;
 }
 
 GType
@@ -78,91 +80,103 @@ nwam_pref_iface_get_type (void)
 
 /**
  * nwam_pref_refresh:
- * @self: a #NwamPrefIFace instance.
- * @data: User data
+ * @iface: a #NwamPrefIFace instance.
+ * @user_data: User data
  * 
- * Refresh each @self.
+ * Refresh each @iface.
  * Invork by nwam_pref_dialog, currently do not check the refresh is successfully
  * Or not.
  *
- * Returns: TRUE, if refresh @self successfully. Default TRUE.
+ * Returns: TRUE, if refresh @iface successfully. Default TRUE.
  **/
 gboolean
-nwam_pref_refresh (NwamPrefIFace *self, gpointer data, gboolean force)
+nwam_pref_refresh (NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
-    NwamPrefInterface *iface = NWAM_GET_PREF_INTERFACE (self);
+    NwamPrefInterface *interface = NWAM_GET_PREF_INTERFACE (iface);
 
-    g_return_val_if_fail( self != NULL, FALSE );
-    g_return_val_if_fail( iface->refresh, FALSE );
+    g_return_val_if_fail(interface != NULL, FALSE );
+    g_return_val_if_fail(interface->refresh, FALSE );
 
-    return (iface)->refresh(self, data, force);
+    return interface->refresh(iface, user_data, force);
 }
 
 /**
  * nwam_pref_apply:
- * @self: a #NwamPrefIFace instance.
- * @data: User data
+ * @iface: a #NwamPrefIFace instance.
+ * @user_data: User data
  * 
- * Apply @self.
+ * Apply @iface.
  * Invork by nwam_pref_dialog, willcheck the application is successfully or not.
- * If all are successfully, nwam_pref_dialog will hide itself, else maybe popup
+ * If all are successfully, nwam_pref_dialog will hide itiface, else maybe popup
  * a error dialog(?) and keep living.
  *
- * Returns: TRUE, if apply @self successfully. Default FALSE.
+ * Returns: TRUE, if apply @iface successfully. Default FALSE.
  **/
 gboolean
-nwam_pref_apply (NwamPrefIFace *self, gpointer data)
+nwam_pref_apply (NwamPrefIFace *iface, gpointer user_data)
 {
-	NwamPrefInterface *iface = NWAM_GET_PREF_INTERFACE (self);
+	NwamPrefInterface *interface = NWAM_GET_PREF_INTERFACE (iface);
 
-    g_return_val_if_fail( self != NULL, FALSE );
-    g_return_val_if_fail( iface->apply, FALSE );
+    g_return_val_if_fail(interface != NULL, FALSE );
+    g_return_val_if_fail(interface->apply, FALSE );
 
-    return (iface)->apply(self, data);
+    return interface->apply(iface, user_data);
 }
 
 /**
  * nwam_pref_cancel:
- * @self: a #NwamPrefIFace instance.
- * @data: User data
+ * @iface: a #NwamPrefIFace instance.
+ * @user_data: User data
  * 
- * Cancel @self.
+ * Cancel @iface.
  * Invork by nwam_pref_dialog, will check the application is successfully or not.
- * If all are successfully, nwam_pref_dialog will hide itself, else maybe popup
+ * If all are successfully, nwam_pref_dialog will hide itiface, else maybe popup
  * a error dialog(?) and keep living.
  *
- * Returns: TRUE, if cancel @self successfully. Default FALSE.
+ * Returns: TRUE, if cancel @iface successfully. Default FALSE.
  **/
 gboolean
-nwam_pref_cancel (NwamPrefIFace *self, gpointer data)
+nwam_pref_cancel (NwamPrefIFace *iface, gpointer user_data)
 {
-	NwamPrefInterface *iface = NWAM_GET_PREF_INTERFACE (self);
+	NwamPrefInterface *interface = NWAM_GET_PREF_INTERFACE (iface);
 
-    g_return_val_if_fail( self != NULL, FALSE );
-    g_return_val_if_fail( iface->cancel, FALSE );
+    g_return_val_if_fail(interface != NULL, FALSE );
+    g_return_val_if_fail(interface->cancel, FALSE );
 
-    return (iface)->cancel(self, data);
+    return interface->cancel(iface, user_data);
 }
 
 /**
  * nwam_pref_help:
- * @self: a #NwamPrefIFace instance.
- * @data: User data
+ * @iface: a #NwamPrefIFace instance.
+ * @user_data: User data
  * 
- * Help each @self.
+ * Help each @iface.
  * Invork by nwam_pref_dialog, willcheck the application is successfully or not.
- * If all are successfully, nwam_pref_dialog will hide itself, else maybe popup
+ * If all are successfully, nwam_pref_dialog will hide itiface, else maybe popup
  * a error dialog(?) and keep living.
  *
- * Returns: TRUE, if help @self successfully. Default FALSE.
+ * Returns: TRUE, if help @iface successfully. Default FALSE.
  **/
 gboolean
-nwam_pref_help (NwamPrefIFace *self, gpointer data)
+nwam_pref_help (NwamPrefIFace *iface, gpointer user_data)
 {
-	NwamPrefInterface *iface = NWAM_GET_PREF_INTERFACE (self);
+	NwamPrefInterface *interface = NWAM_GET_PREF_INTERFACE (iface);
 
-    g_return_val_if_fail( self != NULL, FALSE );
-    g_return_val_if_fail( iface->help, FALSE );
+    g_return_val_if_fail(interface != NULL, FALSE );
+    g_return_val_if_fail(interface->help, FALSE );
 
-    return (iface)->help(self, data);
+    return interface->help(iface, user_data);
 }
+
+extern gint
+nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
+{
+	NwamPrefInterface *interface = NWAM_GET_PREF_INTERFACE (iface);
+
+    g_return_val_if_fail(interface != NULL, FALSE );
+    g_return_val_if_fail(interface->dialog_run, FALSE );
+
+    return interface->dialog_run(iface, parent);
+}
+

@@ -56,7 +56,6 @@ struct _NwamTreeViewClass {
       gpointer user_data);
 
     void (*activate_widget)(NwamTreeView *self, GtkWidget *widget, gpointer user_data);
-    void (*update_widget)(NwamTreeView *self, GtkWidget *widget, gpointer user_data);
 
 /*     void (*add)(NwamTreeView *self); */
 /*     void (*remove)(NwamTreeView *self); */

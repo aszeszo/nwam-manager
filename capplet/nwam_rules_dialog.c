@@ -66,7 +66,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 			gchar *title;
 			gchar *name;
 
-			name = nwamui_obj_get_display_name(prv->selected_object);
+			name = nwamui_object_get_name(prv->selected_object);
 			title = g_strdup_printf("Edit Rules : %s", name);
 			g_object_set(prv->rules_dialog,
 			    "title", title,

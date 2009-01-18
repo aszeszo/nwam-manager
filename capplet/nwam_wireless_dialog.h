@@ -71,8 +71,6 @@ extern  GType                   nwam_wireless_dialog_get_type (void) G_GNUC_CONS
 extern  NwamWirelessDialog*     nwam_wireless_dialog_new (void);
 extern  NwamWirelessDialog*     nwam_wireless_dialog_new_with_label (const gchar *label);
 
-extern  gint                    nwam_wireless_dialog_run (NwamWirelessDialog  *wireless_dialog);
-
 extern  void                    nwam_wireless_dialog_show (NwamWirelessDialog  *self);
 extern  void                    nwam_wireless_dialog_hide (NwamWirelessDialog  *self);
 

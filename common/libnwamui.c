@@ -134,7 +134,7 @@ nwamui_util_glade_get_widget( const gchar* widget_name )
     widget = glade_xml_get_widget(xml, widget_name );
     
     if ( widget == NULL )
-        g_debug("Failed to get widget by name %s", widget_name );
+        g_error("Failed to get widget by name %s", widget_name );
     
     g_assert( widget != NULL );
     

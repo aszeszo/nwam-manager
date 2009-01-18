@@ -53,8 +53,7 @@ enum {
 };
 
 enum {
-    ACTIVATE_WIDGET,
-    UPDATE_WIDGET,
+    PLACE_HOLDER,
     LAST_SIGNAL
 };
 
@@ -98,7 +97,6 @@ static void default_set_object_func(NwamTreeView *self,
   NwamTreeViewRemoveObjectFunc remove_object_func,
   gpointer user_data);
 static void default_signal_handler_activate_widget(NwamTreeView *self, GtkWidget *widget, gpointer user_data);
-static void default_signal_handler_update_widget(NwamTreeView *self, GtkWidget *widget, gpointer user_data);
 static void delete_selection_cb(GtkTreeModel *model,
   GtkTreePath *path,
   GtkTreeIter *iter,
@@ -187,31 +185,8 @@ nwam_tree_view_class_init (NwamTreeViewClass *klass)
 /*     } */
     
 
-    nwam_tree_view_signals[ACTIVATE_WIDGET] =
-      g_signal_new ("activate_widget",
-        G_TYPE_FROM_CLASS (klass),
-        G_SIGNAL_RUN_CLEANUP | G_SIGNAL_ACTION,
-        G_STRUCT_OFFSET (NwamTreeViewClass, activate_widget),
-        NULL, NULL,
-        g_cclosure_marshal_VOID__OBJECT,
-        G_TYPE_NONE,                  /* Return Type */
-        1,                            /* Number of Args */
-        GTK_TYPE_WIDGET);               /* Types of Args */
-
-    nwam_tree_view_signals[UPDATE_WIDGET] =
-      g_signal_new ("update_widget",
-        G_TYPE_FROM_CLASS (klass),
-        G_SIGNAL_RUN_CLEANUP | G_SIGNAL_ACTION,
-        G_STRUCT_OFFSET (NwamTreeViewClass, update_widget),
-        NULL, NULL,
-        g_cclosure_marshal_VOID__OBJECT,
-        G_TYPE_NONE,                  /* Return Type */
-        1,                            /* Number of Args */
-        GTK_TYPE_WIDGET);               /* Types of Args */
-
     klass->set_object_func = default_set_object_func;
     klass->activate_widget = default_signal_handler_activate_widget;
-    klass->update_widget = default_signal_handler_update_widget;
 
     g_type_class_add_private(klass, sizeof(NwamTreeViewPrivate));
 }
@@ -454,10 +429,6 @@ on_button_clicked(GtkButton *button, gpointer user_data)
     case PROP_BUTTON_UP:
     case PROP_BUTTON_DOWN:
 	default:
-        g_signal_emit(self,
-          nwam_tree_view_signals[ACTIVATE_WIDGET],
-          0, /* details */
-          button);
 /*         g_assert_not_reached(); */
         break;
     }
@@ -537,11 +508,6 @@ default_signal_handler_activate_widget(NwamTreeView *self, GtkWidget *widget, gp
 }
 
 static void
-default_signal_handler_update_widget(NwamTreeView *self, GtkWidget *widget, gpointer user_data)
-{
-}
-
-static void
 delete_selection_cb(GtkTreeModel *model,
   GtkTreePath *path,
   GtkTreeIter *iter,
@@ -602,11 +568,6 @@ static void
 nwam_tree_view_update_widget_cb (gpointer data, gpointer user_data)
 {
 	NwamTreeView *self = NWAM_TREE_VIEW(user_data);
-
-    g_signal_emit(self,
-      nwam_tree_view_signals[UPDATE_WIDGET],
-      0, /* details */
-      GTK_WIDGET(data));
 }
 
 static gboolean
@@ -620,6 +581,8 @@ nwam_tree_view_locate_new_object(GtkTreeModel *model,
     NwamuiObject *obj;
 
     gtk_tree_model_get(model, iter, 0, &obj, -1);
+    /* Safely unref */
+    g_object_unref(obj);
 
     if (prv->new_obj == (gpointer)obj) {
         gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(self)), iter);

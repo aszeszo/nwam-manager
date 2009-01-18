@@ -166,6 +166,7 @@ static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
 static void         nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self);
 static void         populate_dialog( NwamEnvPrefDialog* self );
@@ -222,6 +223,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->refresh = refresh;
 	iface->apply = apply;
     iface->help = help;
+    iface->dialog_run = dialog_run;
 }
 
 static void
@@ -414,9 +416,11 @@ nwam_env_pref_dialog_new (void)
  * 
  * Blocks in a recursive main loop until the dialog either emits the response signal, or is destroyed.
  **/
-gint       
-nwam_env_pref_dialog_run (NwamEnvPrefDialog  *self, GtkWindow* parent)
+static gint
+dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 {
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
+    NwamEnvPrefDialog*          self = NWAM_ENV_PREF_DIALOG(iface);
     gint response = GTK_RESPONSE_NONE;
     
     g_assert(NWAM_IS_ENV_PREF_DIALOG (self));
@@ -1154,7 +1158,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 			gchar *title;
             gchar *name;
 
-            name = nwamui_obj_get_display_name(prv->selected_env);
+            name = nwamui_object_get_name(NWAMUI_OBJECT(prv->selected_env));
 			title = g_strdup_printf("Location Properties : %s", name);
 			g_object_set(prv->env_pref_dialog,
 			    "title", title,
