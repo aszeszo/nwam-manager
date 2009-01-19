@@ -1,3 +1,10 @@
+2009-01-19  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Change how tables are created (using similar mechanism to that for
+	  the status panel) since using the previous mechanism seems to cause
+	  an assertion in gtkliststore.
+	
 2009-01-18  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c: (capplet_compose_nwamui_obj_combo),
