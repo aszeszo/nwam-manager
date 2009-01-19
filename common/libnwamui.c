@@ -1086,7 +1086,10 @@ nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
     }
 
     if ( address_p != NULL ) {
-        const char* addr_str = inet_ntoa(sin.sin_addr);
+        char        addr_str[INET6_ADDRSTRLEN];
+
+        inet_ntop(family, &sin.sin_addr, addr_str, addrlen);
+
         *address_p =  g_strdup(addr_str?addr_str:"");
     }
 

@@ -1,5 +1,11 @@
 2009-01-19  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/libnwamui.c: 
+	  Use inet_ntop() to create user-readable string rather than inet_ntoa
+	  which only supports IPv4. 
+
+2009-01-19  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam-manager-properties.glade,
 	  capplet/nwam_conn_conf_ip_panel.c:
 	  Change "Subnet" text to what it really is, the Subnet Mask.
