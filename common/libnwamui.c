@@ -36,6 +36,8 @@
 #include <glade/glade.h>
 #include <libgnome/libgnome.h>
 #include <string.h>
+#include <inet/ip.h>
+#include <inetcfg.h>
 
 #define NWAM_MANAGER_PROPERTIES_GLADE_FILE  "nwam-manager-properties.glade"
 
@@ -975,3 +977,125 @@ marshal_OBJECT__VOID(GClosure     *closure,
 
     g_value_set_object(return_value, obj);
 }
+
+/*
+ * Convert a prefix length to a netmask string.
+ */
+extern gchar*
+nwamui_util_convert_prefixlen_to_netmask_str( sa_family_t family, guint prefixlen ) 
+{
+    gchar*              netmask_str = NULL;
+    guint               maxlen = 0;
+	struct lifreq       lifr;
+    struct sockaddr_in *sin = (struct sockaddr_in *)&lifr.lifr_addr;
+    struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&lifr.lifr_addr;
+    uchar_t            *mask;
+
+	memset(&lifr.lifr_addr, 0, sizeof (lifr.lifr_addr));
+
+	lifr.lifr_addr.ss_family = family;
+
+    switch( family ) {
+        case AF_INET:
+            maxlen = IP_ABITS;
+            break;
+        case AF_INET6:
+            maxlen = IPV6_ABITS;
+            netmask_str = g_strdup_printf("%d", prefixlen);
+            return( netmask_str );
+        default:
+            break;
+    }
+
+    /* If v6, we will have returned already, but have some code here just
+     * incase we need it again... */
+	if ((prefixlen < 0) || (prefixlen > maxlen)) {
+        return( netmask_str );
+	}
+
+    switch( family ) {
+        case AF_INET:
+            mask = (uchar_t *)&(sin->sin_addr);
+            break;
+        case AF_INET6:
+            mask = (uchar_t *)&(sin6->sin6_addr);
+            break;
+        default:
+            break;
+    }
+
+	while (prefixlen > 0) {
+		if (prefixlen >= 8) {
+			*mask++ = 0xFF;
+			prefixlen -= 8;
+			continue;
+		}
+		*mask |= 1 << (8 - prefixlen);
+		prefixlen--;
+	}
+
+    switch( family ) {
+        case AF_INET:
+            netmask_str = g_strdup( inet_ntoa( sin->sin_addr ));
+            break;
+        case AF_INET6:
+            netmask_str = g_strdup_printf("%d", prefixlen);
+            break;
+        default:
+            break;
+    }
+
+    return( netmask_str );
+}
+
+extern gboolean
+nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
+                                  gchar**address_p, gint *prefixlen_p, gboolean *is_dhcp_p )
+{
+	icfg_if_t           intf;
+	icfg_handle_t       h;
+	struct sockaddr_in  sin;
+	socklen_t           addrlen = sizeof (struct sockaddr_in);
+	int                 prefixlen = 0;
+	uint64_t            flags = 0;
+
+	(void) strlcpy(intf.if_name, ifname, sizeof (intf.if_name));
+	intf.if_protocol = family;
+	if (icfg_open(&h, &intf) != ICFG_SUCCESS) {
+		g_debug( "icfg_open failed on interface %s", ifname);
+		return( FALSE );
+	}
+	if (icfg_get_addr(h, (struct sockaddr *)&sin, &addrlen, &prefixlen,
+	    B_TRUE) != ICFG_SUCCESS) {
+		g_debug( "icfg_get_addr failed on interface %s for family %s", ifname, (family == AF_INET6)?"v6":"v4");
+		icfg_close(h);
+		return( FALSE );
+	}
+
+	if (icfg_get_flags(h, &flags) != ICFG_SUCCESS) {
+		flags = 0;
+	}
+
+    if ( is_dhcp_p != NULL ) {
+        if ( flags & IFF_DHCPRUNNING ) {
+            *is_dhcp_p = TRUE;
+        }
+        else {
+            *is_dhcp_p = FALSE;
+        }
+    }
+
+    if ( address_p != NULL ) {
+        const char* addr_str = inet_ntoa(sin.sin_addr);
+        *address_p =  g_strdup(addr_str?addr_str:"");
+    }
+
+    if ( prefixlen_p != NULL ) {
+        *prefixlen_p =  prefixlen;
+    }
+
+	icfg_close(h);
+
+    return( TRUE );
+}
+

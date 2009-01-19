@@ -36,6 +36,8 @@
 #include "libnwamui.h"
 
 #include <errno.h>
+#include <sys/dlpi.h>
+#include <libdllink.h>
 
 static GObjectClass    *parent_class    = NULL;
 static NwamuiNcp       *instance        = NULL;
@@ -661,6 +663,36 @@ nwamui_ncp_remove_ncu( NwamuiNcp* self, const gchar* device_name )
     }
 }
 
+/* After discussion with Alan, it makes sense that we only show devices that
+ * only have a physical presence on the system - on the basis that to configure
+ * anything else would have no effect. 
+ *
+ * Tunnels are the only possible exception, but until it is implemented by
+ * Seb where tunnels have a physical link id, then this will omit them too.
+ */
+static gboolean
+device_exists_on_system( gchar* device_name )
+{
+    dladm_handle_t              handle;
+    datalink_id_t               linkid;
+    gboolean                    rval = FALSE;
+
+    if ( device_name != NULL ) {
+        if ( dladm_open( &handle ) == DLADM_STATUS_OK ) {
+            if ( dladm_name2info( handle, device_name, &linkid, NULL, NULL, NULL ) == DLADM_STATUS_OK ) {
+                rval = TRUE;
+            }
+            else {
+                g_debug("Unable to map device '%s' to linkid", device_name );
+            }
+
+            dladm_close( handle );
+        }
+    }
+
+    return( rval );
+}
+
 static int
 nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
 {
@@ -677,6 +709,11 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
     /* FIXME: Check if NCU already exists... */
     if ( (nerr = nwam_ncu_get_name (ncu, &name)) != NWAM_SUCCESS ) {
         g_debug ("Failed to get name for ncu, error: %s", nwam_strerror (nerr));
+    }
+
+    if ( !device_exists_on_system( name ) ) {
+        /* Skip device that don't have a physical equivalent */
+        return( 0 );
     }
     
     if ( (new_ncu = nwamui_ncp_get_ncu_by_device_name( ncp, name )) != NULL ) {

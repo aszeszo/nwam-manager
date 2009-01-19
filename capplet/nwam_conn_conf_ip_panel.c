@@ -413,7 +413,7 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       "reorderable", TRUE,
       NULL);
 	if (view == self->prv->ipv4_tv) {
-		gtk_tree_view_column_set_title(col, _("Subnet"));
+		gtk_tree_view_column_set_title(col, _("Subnet Mask"));
 	} else {
 		gtk_tree_view_column_set_title(col, _("Prefix Length"));
 	}

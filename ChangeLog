@@ -1,5 +1,26 @@
 2009-01-19  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam-manager-properties.glade,
+	  capplet/nwam_conn_conf_ip_panel.c:
+	  Change "Subnet" text to what it really is, the Subnet Mask.
+	* common/libnwamui.h, common/libnwamui.c:
+	  Add a function to convert a network prefix to a string for display
+	  and a function to read the live address/prefix/dhcp information.
+	* common/nwamui_enm.c:
+	  Correct the base-class of NwamuiEnm to be an NwamuiObject.
+	* common/nwamui_ip.c: 
+	  For a NwamuiIp, if it's configured for DHCP, don't store values when
+	  set is called, and read live system configuration when get is
+	  called.
+	* common/nwamui_ncp.c: 
+	  After speaking with Alan, it makes sense that that UI doesn't show
+	  device that don't have a physical counterpart on the system since it
+	  doesn't make sense to configure them in the GUI.
+	* common/nwamui_ncu.c: 
+	  Fix some minor nits.
+
+2009-01-19  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_conn_conf_ip_panel.c: 
 	  Change how tables are created (using similar mechanism to that for
 	  the status panel) since using the previous mechanism seems to cause

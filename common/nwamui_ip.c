@@ -44,6 +44,7 @@ static GObjectClass *parent_class = NULL;
 
 struct _NwamuiIpPrivate {
     NwamuiNcu*                ncu_parent;
+    gchar*                    ncu_device;
     gboolean                  is_v6;
     gchar*                    address;
     gint                      addr_src;
@@ -76,6 +77,9 @@ enum {
 };
 
 G_DEFINE_TYPE (NwamuiIp, nwamui_ip, NWAMUI_TYPE_OBJECT)
+
+
+#define IS_DHCP(self) (((self)->prv->addr_src | ADDRSRC_DHCP)?TRUE:FALSE)
 
 static void
 nwamui_ip_class_init (NwamuiIpClass *klass)
@@ -149,6 +153,7 @@ nwamui_ip_init (NwamuiIp *self)
     NwamuiIpPrivate *prv = (NwamuiIpPrivate*)g_new0 (NwamuiIpPrivate, 1);
 
     prv->ncu_parent = NULL;
+    prv->ncu_device = NULL;
     prv->is_v6 = FALSE;
     prv->address = NULL;
     prv->subnet_prefix = NULL;
@@ -180,18 +185,24 @@ nwamui_ip_set_property (    GObject         *object,
             break;
 
         case PROP_ADDRESS: {
-                if ( self->prv->address != NULL ) {
-                        g_free( self->prv->address );
+                /* If IP is DHCP, don't store values */
+                if ( !IS_DHCP(self) ) {
+                    if ( self->prv->address != NULL ) {
+                            g_free( self->prv->address );
+                    }
+                    self->prv->address = g_strdup( g_value_get_string( value ) );
                 }
-                self->prv->address = g_strdup( g_value_get_string( value ) );
             }
             break;
 
         case PROP_SUBNET_PREFIX: {
-                if ( self->prv->subnet_prefix != NULL ) {
-                        g_free( self->prv->subnet_prefix );
+                /* If IP is DHCP, don't store values */
+                if ( !IS_DHCP(self) ) {
+                    if ( self->prv->subnet_prefix != NULL ) {
+                            g_free( self->prv->subnet_prefix );
+                    }
+                    self->prv->subnet_prefix = g_strdup( g_value_get_string( value ) );
                 }
-                self->prv->subnet_prefix = g_strdup( g_value_get_string( value ) );
             }
             break;
 
@@ -255,12 +266,40 @@ nwamui_ip_get_property (GObject         *object,
             break;
 
         case PROP_ADDRESS: {
-                g_value_set_string( value, self->prv->address );
+                /* If IP is DHCP, we don't store values, get from system */
+                if ( IS_DHCP( self ) ) {
+                    gchar *address = NULL;
+
+                    nwamui_util_get_interface_address(  self->prv->ncu_device, 
+                                                        self->prv->is_v6?AF_INET6:AF_INET, 
+                                                        &address, NULL, NULL );
+
+                    g_value_set_string( value, address );
+                }
+                else {
+                    g_value_set_string( value, self->prv->address );
+                }
             }
             break;
 
         case PROP_SUBNET_PREFIX: {
-                g_value_set_string( value, self->prv->subnet_prefix );
+                /* If IP is DHCP, we don't store values, get from system */
+                if ( IS_DHCP( self ) ) {
+                    gint prefixlen = 0;
+                    gchar*  subnet_prefix = NULL;
+
+                    nwamui_util_get_interface_address(  self->prv->ncu_device, 
+                                                        self->prv->is_v6?AF_INET6:AF_INET, 
+                                                        NULL, &prefixlen, NULL );
+
+                    subnet_prefix = nwamui_util_convert_prefixlen_to_netmask_str( 
+                                            self->prv->is_v6?AF_INET6:AF_INET, prefixlen);
+
+                    g_value_set_string( value, subnet_prefix );
+                }
+                else {
+                    g_value_set_string( value, self->prv->subnet_prefix );
+                }
             }
             break;
         case PROP_IS_DHCP: {
@@ -288,6 +327,10 @@ static void
 nwamui_ip_finalize (NwamuiIp *self)
 {
     if ( self->prv ) {
+        if (self->prv->ncu_device != NULL ) {
+            g_free( self->prv->ncu_device );
+        }
+
         if (self->prv->address != NULL ) {
             g_free( self->prv->address );
         }
@@ -342,6 +385,8 @@ nwamui_ip_new(  NwamuiNcu*      ncu_parent,
                     NULL);
     
     self->prv->ncu_parent = ncu_parent;
+
+    self->prv->ncu_device = nwamui_ncu_get_device_name( self->prv->ncu_parent );
     
     return( self );
 }

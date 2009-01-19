@@ -84,7 +84,7 @@ static gboolean     set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char*
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
-G_DEFINE_TYPE (NwamuiEnm, nwamui_enm, G_TYPE_OBJECT)
+G_DEFINE_TYPE (NwamuiEnm, nwamui_enm, NWAMUI_TYPE_OBJECT)
 
 static void
 nwamui_enm_class_init (NwamuiEnmClass *klass)

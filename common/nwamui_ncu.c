@@ -805,6 +805,7 @@ nwamui_ncu_get_property (GObject         *object,
             break;
         case PROP_IPV6_ADDRESS: {
                 gchar *address = NULL;
+
                 if ( self->prv->ipv6_primary_ip != NULL ) {
                     address = nwamui_ip_get_address(self->prv->ipv6_primary_ip);
                 }
@@ -1004,8 +1005,8 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     
     ip_version = (nwam_ip_version_t)get_nwam_ncu_uint64_prop(nwam_ncu, NWAM_NCU_PROP_IP_VERSION );
 
-    g_object_freeze_notify(ncu->prv->v4addresses);
-    g_object_freeze_notify(ncu->prv->v6addresses);
+    g_object_freeze_notify(G_OBJECT(ncu->prv->v4addresses));
+    g_object_freeze_notify(G_OBJECT(ncu->prv->v6addresses));
 
     gtk_list_store_clear(ncu->prv->v4addresses);
     if ( (ip_version == NWAM_IP_VERSION_IPV4) || (ip_version == NWAM_IP_VERSION_ALL) )  {
@@ -1080,8 +1081,8 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
         }
     }
 
-    g_object_thaw_notify(ncu->prv->v4addresses);
-    g_object_thaw_notify(ncu->prv->v6addresses);
+    g_object_thaw_notify(G_OBJECT(ncu->prv->v4addresses));
+    g_object_thaw_notify(G_OBJECT(ncu->prv->v6addresses));
 
 }
 
@@ -2753,7 +2754,7 @@ get_ifflags(const char *name, sa_family_t family)
 		if (errno == ENOENT)
 			g_debug("get_ifflags: icfg_get_flags failed for '%s'", name);
 		else
-			g_debug("get_ifflags: icfg_get_flags %s af %d: %m", name, family);
+			g_debug("get_ifflags: icfg_get_flags %s af %d: %s", name, family, strerror( errno ));
 
 		flags = 0;
 	}
@@ -2780,7 +2781,7 @@ interface_has_addresses(const char *ifname, sa_family_t family)
 	}
 	if (icfg_get_addr(h, (struct sockaddr *)&sin, &addrlen, &prefixlen,
 	    B_TRUE) != ICFG_SUCCESS) {
-		g_debug( "icfg_get_addr failed on interface %s", ifname);
+		g_debug( "icfg_get_addr failed on interface %s for family %s", ifname, (family == AF_INET6)?"v6":"v4");
 		icfg_close(h);
 		return( FALSE );
 	}
@@ -2789,55 +2790,36 @@ interface_has_addresses(const char *ifname, sa_family_t family)
     return( TRUE );
 }
 
-extern const char*inet_ntoa(struct in_addr addr);
-
 static gchar*
 get_interface_address_str(const char *ifname, sa_family_t family)
 {
 	gchar              *string = NULL;
-	icfg_if_t           intf;
-	icfg_handle_t       h;
-	struct sockaddr_in  sin;
-	socklen_t           addrlen = sizeof (struct sockaddr_in);
+	gchar              *address = NULL;
 	int                 prefixlen = 0;
-	uint64_t            flags = 0;
+    gboolean            is_dhcp = FALSE;
     gchar*              dhcp_str;
 
-	(void) strlcpy(intf.if_name, ifname, sizeof (intf.if_name));
-	intf.if_protocol = family;
-	if (icfg_open(&h, &intf) != ICFG_SUCCESS) {
-		g_debug( "icfg_open failed on interface %s", ifname);
-		return( NULL );
-	}
-	if (icfg_get_addr(h, (struct sockaddr *)&sin, &addrlen, &prefixlen,
-	    B_TRUE) != ICFG_SUCCESS) {
-		g_debug( "icfg_get_addr failed on interface %s", ifname);
-		icfg_close(h);
-		return( NULL );
-	}
+    if ( nwamui_util_get_interface_address( ifname, family, &address, &prefixlen, &is_dhcp ) ) {
+        if ( is_dhcp ) {
+            dhcp_str = _(" (DHCP)");
+        }
+        else {
+            dhcp_str = "";
+        }
 
-	if (icfg_get_flags(h, &flags) != ICFG_SUCCESS) {
-		flags = 0;
-	}
+        switch ( family ) {
+            case AF_INET:
+                string = g_strdup_printf( _("Address: %s/%d%s"), address, prefixlen, dhcp_str);
+                break;
+            case AF_INET6:
+                string = g_strdup_printf( _("Address(v6): %s/%d%s"), address, prefixlen, dhcp_str);
+                break;
+            default:
+                break;
+        }
 
-    if ( flags & IFF_DHCPRUNNING ) {
-        dhcp_str = _(" (DHCP)");
+        g_free( address );
     }
-    else {
-        dhcp_str = "";
-    }
-    switch ( family ) {
-        case AF_INET:
-            string = g_strdup_printf( _("Address: %s/%d%s"), inet_ntoa(sin.sin_addr), prefixlen, dhcp_str);
-            break;
-        case AF_INET6:
-            string = g_strdup_printf( _("Address(v6): %s/%d%s"), inet_ntoa(sin.sin_addr), prefixlen, dhcp_str);
-            break;
-        default:
-            break;
-    }
-
-	icfg_close(h);
 
     return( string );
 }

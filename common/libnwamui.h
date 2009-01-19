@@ -95,6 +95,9 @@ typedef guint64 libnwam_diag_cause_t;
 #include "nwamui_daemon.h"
 #endif /* _NWAMUI_DAEMON_H */
 
+/* Some external functions */
+extern const char*inet_ntoa(struct in_addr addr);
+
 #define  NWAM_ICON_NETWORK_WIRELESS         "network-wireless"
 #define  NWAM_ICON_NETWORK_LOCATION         "network-location"
 
@@ -208,6 +211,14 @@ extern char**                   nwamui_util_map_object_list_to_condition_strings
 extern GList*                   nwamui_util_strv_to_glist( gchar **strv );
 
 extern char**                   nwamui_util_glist_to_strv( GList *list );
+
+extern gchar*                   nwamui_util_convert_prefixlen_to_netmask_str( sa_family_t family, guint prefixlen );
+
+extern gboolean                 nwamui_util_get_interface_address(  const char  *ifname, 
+                                                                    sa_family_t  family, 
+                                                                    gchar      **address_p, 
+                                                                    gint        *prefixlen_p, 
+                                                                    gboolean    *is_dhcp_p );
 
 G_END_DECLS
 
