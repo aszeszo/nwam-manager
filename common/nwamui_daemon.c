@@ -37,6 +37,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <errno.h>
+#include <pthread.h>
 
 #include "libnwamui.h"
 
@@ -88,6 +89,7 @@ struct _NwamuiDaemonPrivate {
     nwamui_daemon_status_t       status;
     nwamui_daemon_event_cause_t  event_cause;
     GThread                     *nwam_events_gthread;
+    pthread_t                    nwam_tid;
     gboolean                     communicate_change_to_daemon;
     guint                        wep_timeout_id;
     gboolean                     emit_wlan_changed_signals;
@@ -413,12 +415,12 @@ nwamui_daemon_init (NwamuiDaemon *self)
     self->prv->active_env = NULL;
     self->prv->active_ncp = NULL;
 
-#if 0
     /* TODO: Register for Events here */
-    if (tid == 0) {
-        nwam_events_register (nwam_events_callback, &tid);
+    if (self->prv->nwam_tid == 0) {
+        nwam_events_register (nwam_events_callback, &(self->prv->nwam_tid));
     }
     
+#if 0
     if ( libnwam_init(0) == -1 ) {
         g_debug("NWAM Daemon doesn't appear to be running, errno = %s", strerror(errno) );
     } else {
@@ -627,8 +629,15 @@ static void
 nwamui_daemon_finalize (NwamuiDaemon *self)
 {
     int retval;
+    int err;
     
     /* TODO - kill tid before destruct self */
+    if (self->prv->nwam_tid != 0 ) {
+        if ( (err = pthread_cancel(self->prv->nwam_tid))  != 0 ) {
+            g_warning("Error cancelling NWAM Event thread %d\n", err );
+        }
+    }
+
     if ( self->prv->nwam_events_gthread != NULL ) {
         nwamui_daemon_terminate_event_thread( self );
     }

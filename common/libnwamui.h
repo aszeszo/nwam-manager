@@ -95,9 +95,6 @@ typedef guint64 libnwam_diag_cause_t;
 #include "nwamui_daemon.h"
 #endif /* _NWAMUI_DAEMON_H */
 
-/* Some external functions */
-extern const char*inet_ntoa(struct in_addr addr);
-
 #define  NWAM_ICON_NETWORK_WIRELESS         "network-wireless"
 #define  NWAM_ICON_NETWORK_LOCATION         "network-location"
 

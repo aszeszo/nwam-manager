@@ -1,5 +1,17 @@
 2009-01-21  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/libnwamui.h:
+	  Remove unneeded function declaration.
+	* common/nwamui_daemon.c: 
+	  Start the nwam event thread, and store thread id, and cancel in
+	  finalize.
+	* common/nwamui_ncp.c, common/nwamui_ncp.h:
+	  Try to catch a removed NCU when re-populating the ncu list. Change
+	  nwamui_ncu_remove_ncu to use a ncu param rather than a device_name,
+	  and create alternative function to do same with a device name.
+
+2009-01-21  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/main.c:
 	  Add icons dir to theme search path.
 	* capplet/nwam-manager-properties.glade:
