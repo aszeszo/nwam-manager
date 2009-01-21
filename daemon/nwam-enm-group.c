@@ -72,10 +72,10 @@ nwam_enm_group_class_init(NwamEnmGroupClass *klass)
 	gobject_class->finalize = (void (*)(GObject*)) nwam_enm_group_finalize;
 
     menu_group_class = NWAM_MENU_GROUP_CLASS(klass);
-/*     menu_group_class->attach = nwam_enm_group_attach; */
-/*     menu_group_class->detach = nwam_enm_group_detach; */
-/*     menu_group_class->add_item = nwam_enm_group_add_item; */
-/*     menu_group_class->remove_item = nwam_enm_group_remove_item; */
+    menu_group_class->attach = nwam_enm_group_attach;
+    menu_group_class->detach = nwam_enm_group_detach;
+    menu_group_class->add_item = nwam_enm_group_add_item;
+    menu_group_class->remove_item = nwam_enm_group_remove_item;
     menu_group_class->get_item_by_name = nwam_enm_group_get_item_by_name;
     menu_group_class->get_item_by_proxy = nwam_enm_group_get_item_by_proxy;
 
@@ -86,20 +86,8 @@ static void
 nwam_enm_group_init(NwamEnmGroup *self)
 {
     NwamEnmGroupPrivate *prv = NWAM_ENM_GROUP_GET_PRIVATE(self);
-	GList *idx = NULL;
-	GtkAction* action = NULL;
-
     prv->daemon = nwamui_daemon_get_instance();
 
-	for (idx = nwamui_daemon_get_enm_list(prv->daemon); idx; idx = g_list_next(idx)) {
-		action = GTK_ACTION(nwam_enm_action_new(NWAMUI_ENM(idx->data)));
-        //nwam_menuitem_proxy_new(action, vpn_group);
-        nwam_menu_group_add_item(NWAM_MENU_GROUP(self),
-          G_OBJECT(action),
-          TRUE);
-
-		g_object_unref(action);
-	}
 }
 
 static void
@@ -161,11 +149,26 @@ nwam_enm_group_new(GtkUIManager *ui_manager,
   const gchar *place_holder)
 {
     NwamEnmGroup *self;
+    NwamEnmGroupPrivate *prv = NULL;
+	GList *idx = NULL;
+	GtkAction* action = NULL;
+
 
     self = g_object_new(NWAM_TYPE_ENM_GROUP,
       "ui-manager", ui_manager,
       "ui-placeholder", place_holder,
       NULL);
+
+    prv = NWAM_ENM_GROUP_GET_PRIVATE(self);
+	for (idx = nwamui_daemon_get_enm_list(prv->daemon); idx; idx = g_list_next(idx)) {
+		action = GTK_ACTION(nwam_enm_action_new(NWAMUI_ENM(idx->data)));
+        //nwam_menuitem_proxy_new(action, vpn_group);
+        nwam_menu_group_add_item(NWAM_MENU_GROUP(self),
+          G_OBJECT(action),
+          TRUE);
+
+		g_object_unref(action);
+	}
 
     return self;
 }

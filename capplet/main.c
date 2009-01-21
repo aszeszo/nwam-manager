@@ -126,12 +126,15 @@ main(int argc, char** argv)
 
     option_context = g_option_context_new("nwam-manager-properties");
     g_option_context_add_main_entries(option_context, application_options, NULL);
+
     program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,
                                   argc, argv,
                                   GNOME_PARAM_GOPTION_CONTEXT, option_context,
-                                  GNOME_PARAM_APP_DATADIR,
-                                  NWAM_MANAGER_DATADIR,
+                                  GNOME_PARAM_APP_DATADIR, NWAM_MANAGER_DATADIR,
                                   GNOME_PARAM_NONE);
+
+    gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (),
+                           NWAM_MANAGER_DATADIR G_DIR_SEPARATOR_S "icons");
 
 #if 0
     /*

@@ -318,7 +318,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     if (user_data != NULL) {
         NwamuiNcp *ncp = NWAMUI_NCP(user_data);
         GtkTreeModel *model;
-        model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store(ncp));
+        model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(ncp));
         gtk_widget_hide(GTK_WIDGET(self->prv->conn_status_treeview));
         gtk_tree_view_set_model(self->prv->conn_status_treeview, model);
         gtk_widget_show(GTK_WIDGET(self->prv->conn_status_treeview));

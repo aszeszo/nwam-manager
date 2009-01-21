@@ -401,6 +401,10 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
 
 		entry = GTK_ENTRY(gtk_entry_new ());
 
+        g_object_set(G_OBJECT(entry),
+                    "width-chars", 20,
+                    NULL);
+
 		g_signal_connect(combo1, "changed",
 		    G_CALLBACK(condition_field_op_changed_cb),
 		    (gpointer)box);

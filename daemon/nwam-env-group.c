@@ -74,10 +74,10 @@ nwam_env_group_class_init(NwamEnvGroupClass *klass)
 	gobject_class->finalize = (void (*)(GObject*)) nwam_env_group_finalize;
 
     menu_group_class = NWAM_MENU_GROUP_CLASS(klass);
-/*     menu_group_class->attach = nwam_env_group_attach; */
-/*     menu_group_class->detach = nwam_env_group_detach; */
-/*     menu_group_class->add_item = nwam_env_group_add_item; */
-/*     menu_group_class->remove_item = nwam_env_group_remove_item; */
+    menu_group_class->attach = nwam_env_group_attach;
+    menu_group_class->detach = nwam_env_group_detach;
+    menu_group_class->add_item = nwam_env_group_add_item;
+    menu_group_class->remove_item = nwam_env_group_remove_item;
     menu_group_class->get_item_by_name = nwam_env_group_get_item_by_name;
     menu_group_class->get_item_by_proxy = nwam_env_group_get_item_by_proxy;
 

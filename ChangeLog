@@ -1,3 +1,36 @@
+2009-01-21  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/main.c:
+	  Add icons dir to theme search path.
+	* capplet/nwam-manager-properties.glade:
+	  Set a size hint of 500x200 for the rules dialog and disable
+	  horizontal scrollbar by default.
+	  Also add network-idle.png as the icon for most dialogs. 
+	  (NOTE: If you edit using glade-3, you may need to replace the
+	  instances of "network-idle.png" with "icons/network-idle.png" since
+	  it doesn't seem to like such a path when editing in source dir ).
+	* capplet/nwam_condition_vbox.c: 
+	  Set size of text entry to be 20 chars at least.
+	* common/nwamui_ncp.c, common/nwamui_ncp.h:
+	  Use a master GList as the list of NCUs internally, but only provide
+	  access to this via a GtkListStore or GtkTreeStore - there is a need
+	  for the list store for the status panel, while the configuration
+	  panel needs the tree store - it doesn't work if we try represent
+	  them using the same store.
+	  Updated remove_ncu function to remove from all lists.
+	  Notification functions still need to handle events on either tree
+	  for consistency of insert/remove/re-order.
+	* capplet/nwam_conn_stat_panel.c: 
+	  Use NCU ListStore for status panel.
+	* capplet/nwam_rules_dialog.c: 
+	  Set dialog_run virtual function.
+	* daemon/nwam-enm-group.c, daemon/nwam-env-group.c: 
+	  Uncomment code to set attach/detach/add_item and remove_item virtual
+	  function pointers.
+	* daemon/status_icon.c: 
+	  Comment out code to set initial state from event since it was
+	  causing a circular dependenct on status_icon/notify - needs fixing.
+
 2009-01-19  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/libnwamui.c: 

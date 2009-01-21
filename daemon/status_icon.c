@@ -972,9 +972,11 @@ nwam_status_icon_init (NwamStatusIcon *self)
       G_CALLBACK (status_icon_size_changed_cb), NULL);
 
     /* initially populate network info */
+    /*
     event_daemon_status_changed(self->prv->daemon,
       nwamui_daemon_get_status(self->prv->daemon),
       (gpointer)self);
+      */
 }
 
 static void
