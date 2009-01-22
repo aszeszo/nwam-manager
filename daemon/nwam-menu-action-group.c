@@ -222,6 +222,7 @@ nwam_menu_action_group_add_item(NwamMenuActionGroup *self,
 {
     NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(self);
     guint uid;
+
 /*     GtkUIManager *ui_manager; */
 /*     gchar *ui_placeholder; */
 /*     g_object_get(self, */
@@ -236,6 +237,8 @@ nwam_menu_action_group_add_item(NwamMenuActionGroup *self,
 
     g_object_set_data(G_OBJECT(action), UID_DATA, uid);
 
+    g_debug("Add action '%s' to '%s'", gtk_action_get_name(action), prv->ui_placeholder);
+
     gtk_ui_manager_add_ui(prv->ui_manager,
       uid,
       prv->ui_placeholder,
@@ -244,10 +247,10 @@ nwam_menu_action_group_add_item(NwamMenuActionGroup *self,
       GTK_UI_MANAGER_MENUITEM,
       top);
 
-#if 1
+#if 0
 	{
 		gchar *ui = gtk_ui_manager_get_ui(prv->ui_manager);
-		g_debug("%s\n", ui);
+		g_debug("\n%s\n", ui);
 		g_free (ui);
 	}
 #endif
@@ -264,6 +267,8 @@ nwam_menu_action_group_remove_item(NwamMenuActionGroup *self,
 /*     g_object_get(self, */
 /*       "ui-manager", &ui_manager, */
 /*       NULL); */
+
+    g_debug("Remove action '%s'", gtk_action_get_name(action));
 
     uid = g_object_get_data(G_OBJECT(action), UID_DATA);
 

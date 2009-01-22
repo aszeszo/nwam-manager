@@ -7,7 +7,7 @@
     <separator name="section_fav_ap_begin"/>
     <separator name="section_fav_ap_end"/>
     <separator/>
-    <menu action="5_refresh_wireless"/>
+    <menuitem action="5_refresh_wireless"/>
     <menuitem action="1_join_wireless"/>
     <separator/>
     <menu action="vpn">

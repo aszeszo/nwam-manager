@@ -876,14 +876,13 @@ nwam_net_pref_connection_view_row_activated_cb (GtkTreeView *tree_view,
     /* skip the toggle coolumn */
     if (columnid != CONNVIEW_COND_INFO) {
         if (gtk_tree_model_get_iter (model, &iter, path)) {
-            gpointer    connection;
             NwamuiNcu*  ncu;
 
-            gtk_tree_model_get(model, &iter, 0, &connection, -1);
-
-            ncu  = NWAMUI_NCU( connection );
+            gtk_tree_model_get(model, &iter, 0, &ncu, -1);
 
             nwam_capplet_dialog_select_ncu(self->prv->pref_dialog, ncu );
+
+            g_object_unref(ncu);
         }
     }
 }

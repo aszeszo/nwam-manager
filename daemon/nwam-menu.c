@@ -72,7 +72,7 @@ static const gchar * dynamic_menuitem_inserting_path[N_ID] = {
     NULL,			/* ID_GLOBAL, shouldn't be used */
     NWAMUI_PROOT"/section_fav_ap_end",			/* ID_WIFI */
 	NWAMUI_PROOT"/addfavor",	/* ID_FAV_WIFI */
-    NWAMUI_PROOT"/section_location_end", /* ID_ENV */
+    NWAMUI_PROOT"/location/section_location_end", /* ID_ENV */
     NWAMUI_PROOT"/vpn/section_vpn_end",  /* ID_VPN */
 };
 
@@ -1129,7 +1129,7 @@ nwam_menu_get_statusicon_menu (NwamMenu *self)
 #if 0
 	{
 		gchar *ui = gtk_ui_manager_get_ui (self->prv->ui_manager);
-		g_debug("%s\n", ui);
+		g_debug("\n%s\n", ui);
 		g_free (ui);
 	}
 #endif

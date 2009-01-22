@@ -55,13 +55,13 @@ struct _NwamStatusIconClass {
 
 GType nwam_status_icon_get_type(void) G_GNUC_CONST;
 
-extern NwamStatusIcon* get_nwam_status_icon_instance ();
-extern GtkWidget* get_status_icon_status_icon( gint index );
 extern void nwam_exec (const gchar *nwam_arg);
 
 typedef     void (*StatusIconCallback)(GObject *user_data);
 
 NwamStatusIcon* nwam_status_icon_new( void );
+
+void nwam_status_icon_run(NwamStatusIcon *self);
 
 void nwam_status_icon_set_activate_callback(NwamStatusIcon *self,
   const char* message, 
@@ -70,7 +70,7 @@ void nwam_status_icon_set_activate_callback(NwamStatusIcon *self,
 
 void nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, const gchar* reason );
 
-void nwam_status_icon_show_menu( gint index, guint button, guint activate_time );
+void nwam_status_icon_show_menu(NwamStatusIcon *self);
 
 G_END_DECLS
 

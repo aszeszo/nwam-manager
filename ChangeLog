@@ -1,5 +1,31 @@
 2009-01-22  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_net_conf_panel.c:
+	(nwam_net_pref_connection_view_row_activated_cb):
+	Fixed a nit.
+	* daemon/main.c: (init_wait_for_embedding), (main):
+	Do not connect to any common object signals, until status icon is shown
+	* daemon/nwam-env-group.c: (nwam_env_group_finalize),
+	(nwam_env_group_new):
+	Comment out location 'automatic' since nwam daemon will populate the
+	data.
+	* daemon/nwam-menu-action-group.c:
+	(nwam_menu_action_group_add_item),
+	(nwam_menu_action_group_remove_item):
+	Add debug code.
+	* daemon/nwam-menu.c: (nwam_menu_get_statusicon_menu):
+	Fixed a ui manage XML nit
+	* daemon/nwam-ui.xml:
+	Fixed a nit.
+	* daemon/status_icon.c: (event_daemon_info),
+	(nwam_status_icon_run), (nwam_status_icon_show_menu),
+	(status_icon_popup_cb), (on_notifyaction_popup_menus),
+	(nwam_status_icon_init):
+	* daemon/status_icon.h:
+	Fixed a bug. Now location menuitems will be shown.
+
+2009-01-22  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/capplet-utils.c: (capplet_compose_nwamui_obj_combo),
 	(capplet_model_foreach_find_object),
 	(capplet_list_foreach_merge_to_model),

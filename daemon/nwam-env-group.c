@@ -44,7 +44,7 @@
 typedef struct _NwamEnvGroupPrivate NwamEnvGroupPrivate;
 struct _NwamEnvGroupPrivate {
     NwamuiDaemon *daemon;
-    GtkRadioAction *automatic;
+/*     GtkRadioAction *automatic; */
 };
 
 #define NWAM_ENV_GROUP_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_ENV_GROUP, NwamEnvGroupPrivate))
@@ -98,7 +98,7 @@ nwam_env_group_finalize(NwamEnvGroup *self)
     NwamEnvGroupPrivate *prv = NWAM_ENV_GROUP_GET_PRIVATE(self);
 
     g_object_unref(prv->daemon);
-    g_object_unref(prv->automatic);
+/*     g_object_unref(prv->automatic); */
 	
 	G_OBJECT_CLASS(nwam_env_group_parent_class)->finalize(G_OBJECT(self));
 }
@@ -163,15 +163,15 @@ nwam_env_group_new(GtkUIManager *ui_manager,
       NULL);
     prv = NWAM_ENV_GROUP_GET_PRIVATE(self);
 
-    prv->automatic = gtk_radio_action_new("automatic",
-      _("Automatic"),
-      NULL,
-      NULL,
-      0);
+/*     prv->automatic = gtk_radio_action_new("automatic", */
+/*       _("Automatic"), */
+/*       NULL, */
+/*       NULL, */
+/*       0); */
 
-    nwam_menu_group_add_item(NWAM_MENU_GROUP(self),
-      prv->automatic,
-      TRUE);
+/*     nwam_menu_group_add_item(NWAM_MENU_GROUP(self), */
+/*       prv->automatic, */
+/*       TRUE); */
 
 
 	for (idx = nwamui_daemon_get_env_list(prv->daemon); idx; idx = g_list_next(idx)) {

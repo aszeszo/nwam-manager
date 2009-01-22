@@ -509,6 +509,8 @@ init_wait_for_embedding(gpointer data)
     while ( !notification_area_ready( status_icon  ) ) {
         sleep(2);
     }
+    /* We make sure icon is available, then we get everything work */
+    nwam_status_icon_run(NWAM_STATUS_ICON(status_icon));
 
     return( TRUE );
 }
@@ -577,7 +579,8 @@ main( int argc, char* argv[] )
         g_thread_init(NULL);
     }
 
-
+    daemon = nwamui_daemon_get_instance ();
+    
     /* nwamui preference signals */
     {
         NwamuiProf* prof;
@@ -611,11 +614,6 @@ main( int argc, char* argv[] )
      * the point where the status icon's embedded flag is correctly set
      */
     gtk_init_add(init_wait_for_embedding, (gpointer)status_icon);
-
-    daemon = nwamui_daemon_get_instance ();
-    status_icon = GTK_STATUS_ICON(nwam_status_icon_new());
-    
-    nwam_notification_init(status_icon);
 
     gtk_main();
 

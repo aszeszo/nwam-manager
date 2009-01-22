@@ -61,7 +61,6 @@ static void nwam_status_icon_create_static_status_iconitems (NwamStatusIcon *sel
 static void nwam_status_icon_group_recreate(NwamStatusIcon *self, int group_id,
   const gchar *group_name);
 
-static GtkStatusIcon*   get_status_icon( gint index );
 static void             nwam_status_icon_refresh_tooltip(NwamStatusIcon *self);
 
 static gboolean animation_panel_icon_timeout (gpointer user_data);
@@ -249,7 +248,7 @@ event_daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, 
                   NULL,	/* action */
                   NULL,	/* label */
                   on_notifyaction_popup_menus,
-                  NULL,
+                  (gpointer)self,
                   NULL,
                   NOTIFY_EXPIRES_DEFAULT);
 
@@ -637,6 +636,36 @@ nwam_status_icon_new( void )
 }
 
 void
+nwam_status_icon_run(NwamStatusIcon *self)
+{
+	/* ref daemon instance */
+	self->prv->daemon = nwamui_daemon_get_instance ();
+    self->prv->current_status = NWAMUI_ENV_STATUS_CONNECTED;
+    self->prv->menu = nwam_menu_new();
+
+    /* TODO - For Phase 1 */
+    /* nwam_status_icon_set_activate_callback(status_icon_index, G_CALLBACK(activate_cb)); */
+
+    /* handle all daemon signals here */
+    connect_nwam_obj_signals(G_OBJECT(self), G_OBJECT(self->prv->daemon));
+    /* nwamui preference signals */
+#if PHASE_1_0
+    {
+        NwamuiNcp* ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
+        connect_nwam_obj_signals(G_OBJECT(self), G_OBJECT(ncp));
+        g_object_unref(ncp);
+    }
+#endif
+
+    /* initially populate network info */
+    /*
+    event_daemon_status_changed(self->prv->daemon,
+      nwamui_daemon_get_status(self->prv->daemon),
+      (gpointer)self);
+      */
+}
+
+void
 nwam_status_icon_set_activate_callback(NwamStatusIcon *self,
                                         const char* message, 
                                         StatusIconCallback activate_cb, 
@@ -740,12 +769,11 @@ nwam_status_icon_refresh_tooltip(NwamStatusIcon *self)
 }
 
 void
-nwam_status_icon_show_menu( gint index, guint button, guint activate_time ) 
+nwam_status_icon_show_menu(NwamStatusIcon *self)
 {
-	GtkStatusIcon* s_icon = get_status_icon( index );
-    status_icon_popup_cb(s_icon,
-      button,
-      activate_time,
+    status_icon_popup_cb(GTK_STATUS_ICON(self),
+      0,
+      gtk_get_current_event_time(),
       NULL);
 }
 
@@ -764,11 +792,13 @@ status_icon_popup_cb(GtkStatusIcon *status_icon,
         /* Trigger a re-scan of the networks while we're at it */
         nwamui_daemon_wifi_start_scan(daemon);
 
+        g_object_unref(daemon);
+
 		gtk_menu_popup(GTK_MENU(s_menu),
           NULL,
           NULL,
           gtk_status_icon_position_menu,
-          NULL,
+          (gpointer)self,
           button,
           activate_time);
 		gtk_widget_show_all(s_menu);
@@ -911,20 +941,7 @@ on_notifyaction_popup_menus(NotifyNotification *n,
     nwamui_daemon_wifi_start_scan(daemon);
     g_object_unref(daemon);
 
-    nwam_status_icon_show_menu((gint)user_data, 0, gtk_get_current_event_time());
-}
-
-static GtkStatusIcon*
-get_status_icon( gint index )
-{ 
-    if ( status_icon == NULL ) {  
-
-        status_icon = GTK_STATUS_ICON(g_object_new(NWAM_TYPE_STATUS_ICON, NULL));
-
-    }
-    g_assert( status_icon != NULL );
-
-    return (status_icon);
+    nwam_status_icon_show_menu(NWAM_STATUS_ICON(user_data));
 }
 
 static void
@@ -943,24 +960,6 @@ nwam_status_icon_init (NwamStatusIcon *self)
 
 	self->prv = g_new0 (NwamStatusIconPrivate, 1);
 	
-	/* ref daemon instance */
-	self->prv->daemon = nwamui_daemon_get_instance ();
-    self->prv->current_status = NWAMUI_ENV_STATUS_CONNECTED;
-    self->prv->menu = nwam_menu_new();
-
-    /* TODO - For Phase 1 */
-    /* nwam_status_icon_set_activate_callback(status_icon_index, G_CALLBACK(activate_cb)); */
-
-    /* handle all daemon signals here */
-    connect_nwam_obj_signals(G_OBJECT(self), G_OBJECT(self->prv->daemon));
-    /* nwamui preference signals */
-#if PHASE_1_0
-    {
-        NwamuiNcp* ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
-        connect_nwam_obj_signals(G_OBJECT(self), G_OBJECT(ncp));
-        g_object_unref(ncp);
-    }
-#endif
     /* Connect signals */
     g_signal_connect (G_OBJECT (self), "popup-menu",
       G_CALLBACK (status_icon_popup_cb), NULL);
@@ -970,13 +969,6 @@ nwam_status_icon_init (NwamStatusIcon *self)
 
     g_signal_connect (G_OBJECT (self), "size-changed",
       G_CALLBACK (status_icon_size_changed_cb), NULL);
-
-    /* initially populate network info */
-    /*
-    event_daemon_status_changed(self->prv->daemon,
-      nwamui_daemon_get_status(self->prv->daemon),
-      (gpointer)self);
-      */
 }
 
 static void
