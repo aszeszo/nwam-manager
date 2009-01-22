@@ -1,5 +1,14 @@
 2009-01-22  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_conn_stat_panel.c: (on_nwam_enm_notify_cb):
+	* capplet/nwam_net_conf_panel.c: (nwam_net_conf_panel_init),
+	(refresh), (update_widgets), (connection_activation_combo_cell_cb),
+	(connection_activation_combo_changed_cb),
+	(connection_activation_combo_filter):
+	Change combo contents according to selected object.
+
+2009-01-22  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* daemon/nwam-menu-group.c: (nwam_menu_group_get_item_by_proxy):
 	Add some comments.
 

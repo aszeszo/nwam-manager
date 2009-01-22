@@ -76,6 +76,7 @@ struct _NwamNetConfPanelPrivate {
     NwamuiNcu*          selected_ncu;			/* Use g_object_set for it */
     gboolean            update_inprogress;
     gboolean			manual_expander_flag;
+    gboolean            connection_activation_combo_show_ncu_part;
 };
 
 enum {
@@ -86,6 +87,15 @@ enum {
 	CONNVIEW_COND_INFO=0,
 	CONNVIEW_INFO,
 };
+
+static const gchar *combo_contents[] = {
+    N_("Always active"),
+    N_("Activated by rules"),
+    N_("Never active"),
+    N_("Only one connection may be active"),
+    N_("One or more connections may be active"),
+    N_("All connections must be active"),
+    NULL};
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
@@ -136,6 +146,15 @@ static void nwam_net_pref_connection_enabled_toggled_cb(    GtkCellRendererToggl
 static void nwam_net_pref_rule_ncu_enabled_toggled_cb(      GtkCellRendererToggle *cell_renderer,
                                                             gchar                 *path,
                                                             gpointer               user_data); /* unused */
+
+static void connection_activation_combo_cell_cb(GtkCellLayout *cell_layout,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data);
+static void connection_activation_combo_changed_cb(GtkComboBox* combo, gpointer user_data );
+static gboolean connection_activation_combo_filter(GtkTreeModel *model, GtkTreeIter *iter, gpointer user_data);
+
 
 static void on_button_clicked(GtkButton *button, gpointer user_data );
 static void update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection);
@@ -432,6 +451,41 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     capplet_update_model_from_daemon(gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->profile_name_combo1)), daemon, NWAMUI_TYPE_NCP);
     gtk_widget_show(GTK_WIDGET(self->prv->profile_name_combo1));
 
+    capplet_compose_combo(self->prv->connection_activation_combo,
+      G_TYPE_INT,
+      connection_activation_combo_cell_cb,
+      NULL,
+      connection_activation_combo_changed_cb,
+      (gpointer)self,
+      NULL);
+    {
+        GtkTreeModel      *model;
+        GtkTreeModel *filter;
+        GtkTreeIter   iter;
+        int i;
+
+        model = gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->connection_activation_combo));
+        /* Clean all */
+        gtk_list_store_clear(GTK_LIST_STORE(model));
+
+        filter = gtk_tree_model_filter_new(model, NULL);
+
+        gtk_tree_model_filter_set_visible_func(GTK_TREE_MODEL_FILTER(filter),
+          connection_activation_combo_filter,
+          (gpointer)self, NULL);
+
+        gtk_widget_hide(GTK_WIDGET(self->prv->connection_activation_combo));
+        gtk_combo_box_set_model(GTK_COMBO_BOX(self->prv->connection_activation_combo), filter);
+        gtk_widget_show(GTK_WIDGET(self->prv->connection_activation_combo));
+        g_object_unref(filter);
+
+        for (i = 0; combo_contents[i]; i++) {
+            gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+            gtk_list_store_set (GTK_LIST_STORE(model), &iter,
+              0, i,
+              -1);
+        }
+    }
     g_signal_connect(self->prv->connection_activation_combo, "changed", G_CALLBACK(conditions_connected_changed),(gpointer)self);
 
     nwam_compose_tree_view(self);
@@ -514,9 +568,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     }
     
     if (force) {
-        gtk_combo_box_set_active(GTK_COMBO_BOX(self->prv->profile_name_combo1), 0); /* TODO */
-
-
     }
 
     return( TRUE );
@@ -1211,9 +1262,12 @@ update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection)
             gtk_tree_model_get_iter(model, &iter, path);
             if (!gtk_tree_model_iter_has_child(model, &iter)) {
                 gtk_label_set_markup_with_mnemonic(prv->activation_mode_lbl, _("_Selected connection:"));
+                prv->connection_activation_combo_show_ncu_part = TRUE;
             } else {
                 gtk_label_set_markup_with_mnemonic(prv->activation_mode_lbl, _("_Selected group:"));
+                prv->connection_activation_combo_show_ncu_part = FALSE;
             }
+            gtk_tree_model_filter_refilter(gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->connection_activation_combo)));
         }
     }
 
@@ -1445,4 +1499,53 @@ ncp_build_group(GtkTreeModel *model)
 
         } while (gtk_tree_model_iter_next(model, &iter));
     }
+}
+
+static void
+connection_activation_combo_cell_cb(GtkCellLayout *cell_layout,
+    GtkCellRenderer   *renderer,
+    GtkTreeModel      *model,
+    GtkTreeIter       *iter,
+    gpointer           data)
+{
+    gint row_data;
+	gtk_tree_model_get(model, iter, 0, &row_data, -1);
+    g_object_set(G_OBJECT(renderer), "text", combo_contents[row_data], NULL);
+}
+
+static void 
+connection_activation_combo_changed_cb(GtkComboBox* combo, gpointer user_data)
+{
+    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(user_data);
+    GtkTreeModel *model = gtk_tree_model_filter_get_model(GTK_TREE_MODEL_FILTER(gtk_combo_box_get_model(combo)));
+	GtkTreeIter iter;
+	GtkTreeIter child_iter;
+
+	if (gtk_combo_box_get_active_iter(combo, &iter)) {
+        gint row_data;
+        gtk_tree_model_filter_convert_iter_to_child_iter(GTK_TREE_MODEL_FILTER(gtk_combo_box_get_model(combo)), &child_iter, &iter);
+		gtk_tree_model_get(model, &child_iter, 0, &row_data, -1);
+		switch (row_data) {
+        case 1:
+        case 3:
+        case 4:
+            gtk_widget_set_sensitive(prv->connection_rules_btn, TRUE);
+            break;
+        default:
+            gtk_widget_set_sensitive(prv->connection_rules_btn, FALSE);
+            break;
+        }
+	}
+}
+
+static gboolean
+connection_activation_combo_filter(GtkTreeModel *model, GtkTreeIter *iter, gpointer user_data)
+{
+    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(user_data);
+    gint row_data;
+
+    gtk_tree_model_get(model, iter, 0, &row_data, -1);
+
+    return (prv->connection_activation_combo_show_ncu_part && row_data < 3) ||
+      (!prv->connection_activation_combo_show_ncu_part && row_data >= 3);
 }

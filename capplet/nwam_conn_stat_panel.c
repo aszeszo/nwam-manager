@@ -103,7 +103,6 @@ static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
-static gboolean filter_ncu(GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnStatusPanel,
                         nwam_conn_status_panel,
@@ -606,31 +605,4 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
     gtk_label_set_text(prv->current_vpn_lbl, enm_str );
         
     g_free( enm_str );
-}
-
-static gboolean
-filter_ncu(GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
-{
-    NwamuiObject *object;
-    gboolean show_it = FALSE;
-
-    //return !gtk_tree_model_iter_has_child(model, iter);
-/*     if (gtk_tree_model_iter_has_child(model, iter)) { */
-/*         g_debug("$$$$$$$$$ %s ignore", __func__); */
-/*         return FALSE; */
-/*     } */
-
-    gchar *name;
-    gtk_tree_model_get(model, iter, 0, &object, -1);
-
-    if (object) {
-        if (NWAMUI_IS_NCU(object)) {
-            name = nwamui_object_get_name(object);
-            g_message("$$$$$$$$$ %s pass %s", __func__, name);
-            g_free(name);
-            show_it = TRUE;
-        }
-        g_object_unref(object);
-    }
-    return show_it;
 }
