@@ -59,6 +59,7 @@ static GObject* nwam_menu_group_constructor(GType type,
   GObjectConstructParam *construct_properties);
 static void nwam_menu_group_finalize (NwamMenuGroup *self);
 
+/* NwamMenuGroup is an virtual class */
 G_DEFINE_ABSTRACT_TYPE(NwamMenuGroup, nwam_menu_group, G_TYPE_OBJECT)
 
 static void
@@ -138,39 +139,81 @@ nwam_menu_group_init(NwamMenuGroup *self)
 {
 }
 
+/**
+ * nwam_menu_group_attach:
+ * @self: a #NwamMenuGroup instance.
+ *
+ * Attach the group of menuitems to the menu (show them).
+ */
 void
 nwam_menu_group_attach(NwamMenuGroup *self)
 {
     NWAM_MENU_GROUP_GET_CLASS(self)->attach(self);
 }
 
+/**
+ * nwam_menu_group_detach:
+ * @self: a #NwamMenuGroup instance.
+ *
+ * Detach the group of menuitems from the menu (do not show them).
+ */
 void
 nwam_menu_group_detach(NwamMenuGroup *self)
 {
     NWAM_MENU_GROUP_GET_CLASS(self)->detach(self);
 }
 
+/**
+ * nwam_menu_group_add_item:
+ * @self: a #NwamMenuGroup instance.
+ * @item: a menu item.
+ * @top: the position to add
+ *
+ * Add an menu item to the menu item group.
+ */
 void
 nwam_menu_group_add_item(NwamMenuGroup *self, GObject *item, gboolean top)
 {
     NWAM_MENU_GROUP_GET_CLASS(self)->add_item(self, item, top);
 }
 
+/**
+ * nwam_menu_group_remove_item:
+ * @self: a #NwamMenuGroup instance.
+ * @item: a menu item.
+ *
+ * Remove an menu item from the menu item group.
+ */
 void
 nwam_menu_group_remove_item(NwamMenuGroup *self, GObject *item)
 {
     NWAM_MENU_GROUP_GET_CLASS(self)->remove_item(self, item);
 }
 
+/**
+ * nwam_menu_group_get_item_by_name:
+ * @self: a #NwamMenuGroup instance.
+ * @name: the name of the menu item what we are looking for.
+ * @return: the menu item if founded, else NULL.
+ *
+ * Find an menu item in the menu item group by the name of item.
+ */
 GObject*
 nwam_menu_group_get_item_by_name(NwamMenuGroup *self, const gchar *name)
 {
     return NWAM_MENU_GROUP_GET_CLASS(self)->get_item_by_name(self, name);
 }
 
+/**
+ * nwam_menu_group_get_item_by_proxy:
+ * @self: a #NwamMenuGroup instance.
+ * @proxy: the proxy what the menu item has.
+ * @return: the menu item if founded, else NULL.
+ *
+ * Find an menu item in the menu item group by the proxy what item has.
+ */
 GObject*
 nwam_menu_group_get_item_by_proxy(NwamMenuGroup *self, GObject *proxy)
 {
     return NWAM_MENU_GROUP_GET_CLASS(self)->get_item_by_proxy(self, proxy);
 }
-

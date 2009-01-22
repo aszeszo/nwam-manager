@@ -1,5 +1,10 @@
 2009-01-22  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* daemon/nwam-menu-group.c: (nwam_menu_group_get_item_by_proxy):
+	Add some comments.
+
+2009-01-22  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_net_conf_panel.c:
 	(nwam_net_pref_connection_view_row_activated_cb):
 	Fixed a nit.
