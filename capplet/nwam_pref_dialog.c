@@ -94,7 +94,6 @@ static void refresh_clicked_cb( GtkButton *button, gpointer data );
 
 /* Utility Functions */
 static void     update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp );
-static void     change_show_combo_model(NwamCappletDialog *self);
 
 
 G_DEFINE_TYPE_EXTENDED (NwamCappletDialog,
@@ -160,12 +159,19 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     self->prv->panel[PANEL_NET_PREF] = NWAM_PREF_IFACE(nwam_net_conf_panel_new(self));
     self->prv->panel[PANEL_CONF_IP] = NWAM_PREF_IFACE(nwam_conf_ip_panel_new());
 
-    change_show_combo_model( self ); /* Change Model */
+    /* Change Model */
+	capplet_compose_combo(self->prv->show_combo,
+      G_TYPE_OBJECT,
+      show_combo_cell_cb,
+      show_combo_separator_cb,
+      show_changed_cb,
+      (gpointer)self);
+
 	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_CONN_STATUS]));
 	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_NET_PREF])); 
 	show_comob_add (self->prv->show_combo, NULL); /* Separator */
+
     update_show_combo_from_ncp( self->prv->show_combo, self->prv->active_ncp );
-    g_signal_connect(GTK_COMBO_BOX(self->prv->show_combo), "changed", (GCallback)show_changed_cb, (gpointer)self);
                 
     gtk_combo_box_set_active (GTK_COMBO_BOX(self->prv->show_combo), 0);
 
@@ -459,37 +465,6 @@ show_comob_add (GtkComboBox* combo, GObject*  obj)
 	gtk_list_store_set (GTK_LIST_STORE(model), &iter, 0, obj, -1);
 }
 
-/*
- * Change the combo box model to allow for the inclusion of a reference to the NCP to be stored.
- */
-static void
-change_show_combo_model(NwamCappletDialog *self)
-{
-	GtkCellRenderer *renderer;
-	GtkTreeModel      *model;
-	GtkCellRenderer   *pix_renderer;
-        
-    g_assert(NWAM_IS_CAPPLET_DIALOG(self));
-    
-	model = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_OBJECT));
-	
-	gtk_combo_box_set_model(GTK_COMBO_BOX(self->prv->show_combo), model);
-	g_object_unref(model);
-
-	gtk_cell_layout_clear(GTK_CELL_LAYOUT(self->prv->show_combo));
-	renderer = gtk_cell_renderer_text_new();
-	gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(self->prv->show_combo), renderer, TRUE);
-	gtk_cell_layout_set_cell_data_func(GTK_CELL_LAYOUT(self->prv->show_combo),
-					renderer,
-					show_combo_cell_cb,
-					NULL,
-					NULL);
-	gtk_combo_box_set_row_separator_func (self->prv->show_combo,
-					show_combo_separator_cb,
-					NULL,
-					NULL);
-}
-
 static gboolean
 add_ncu_element(    GtkTreeModel *model,
                     GtkTreePath *path,
@@ -502,12 +477,6 @@ add_ncu_element(    GtkTreeModel *model,
     gchar *name;
 	
   	gtk_tree_model_get(model, iter, 0, &ncu, -1);
-
-    g_assert( NWAMUI_IS_NCU(ncu) );
-    
-    name = nwamui_ncu_get_display_name(ncu);
-    g_debug("NwamPrefDialog: Adding NCU %s ( 0x%p ) to drop-down list", name, ncu);
-    g_free (name);
 
     gtk_list_store_append(GTK_LIST_STORE(combo_model), &new_iter);
     gtk_list_store_set(GTK_LIST_STORE(combo_model), &new_iter, 0, ncu, -1);

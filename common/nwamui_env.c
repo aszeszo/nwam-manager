@@ -1463,6 +1463,7 @@ get_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name )
     nwam_value_t        nwam_data;
     boolean_t           value = FALSE;
 
+#if 0
     g_return_val_if_fail( prop_name != NULL, value );
 
     if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
@@ -1482,7 +1483,7 @@ get_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name )
     }
 
     nwam_value_free(nwam_data);
-
+#endif
     return( (gboolean)value );
 }
 
@@ -1498,7 +1499,7 @@ set_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name, gboolea
     if ( loc == NULL ) {
         return( retval );
     }
-
+#if 0
     if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
         g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
@@ -1518,7 +1519,7 @@ set_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name, gboolea
     }
 
     nwam_value_free(nwam_data);
-    
+#endif
     return( retval );
 }
 

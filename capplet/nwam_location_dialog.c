@@ -408,7 +408,9 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         NwamuiNcp *ncp = NWAMUI_NCP(user_data);
         NwamuiDaemon *daemon = nwamui_daemon_get_instance();
 
-        capplet_update_nwamui_obj_treeview(self->prv->location_tree, daemon, NWAMUI_TYPE_ENV);
+        gtk_widget_hide(GTK_WIDGET(self->prv->location_tree));
+        capplet_update_model_from_daemon(gtk_tree_view_get_model(self->prv->location_tree), daemon, NWAMUI_TYPE_ENV);
+        gtk_widget_show(GTK_WIDGET(self->prv->location_tree));
 
         g_object_unref(daemon);
 

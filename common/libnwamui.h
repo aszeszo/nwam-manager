@@ -183,6 +183,8 @@ extern GdkPixbuf*               nwamui_util_get_network_status_icon( NwamuiNcu* 
 
 extern const gchar*             nwamui_util_get_ncu_group_icon( NwamuiNcu* ncu  );
 
+extern const gchar*             nwamui_util_get_active_mode_icon( NwamuiObject *object  );
+
 extern GdkPixbuf*               nwamui_util_get_network_type_icon( nwamui_ncu_type_t ncu_type );
 
 extern GdkPixbuf*               nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status );

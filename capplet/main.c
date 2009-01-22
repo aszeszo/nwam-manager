@@ -96,6 +96,7 @@ customwidgethandler(GladeXML *xml,
     if (g_ascii_strcasecmp(name, "address_table") == 0 ||
       g_ascii_strcasecmp(name, "connection_status_table") == 0 ||
       g_ascii_strcasecmp(name, "location_tree") == 0 ||
+      g_ascii_strcasecmp(name, "vpn_apps_list") == 0 ||
       g_ascii_strcasecmp(name, "network_profile_table") == 0) {
         g_debug("CUSTOMIZED WIDGET %s", name);
         return nwam_tree_view_new();

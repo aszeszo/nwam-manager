@@ -1,3 +1,54 @@
+2009-01-22  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c: (capplet_compose_nwamui_obj_combo),
+	(capplet_model_foreach_find_object),
+	(capplet_list_foreach_merge_to_model),
+	(capplet_model_update_from_list), (capplet_model_find_object),
+	(capplet_model_remove_object), (capplet_update_model_from_daemon),
+	(nwamui_obj_name_cell_cb), (capplet_tree_store_move_object),
+	(capplet_tree_store_merge_children),
+	(capplet_tree_store_exclude_children),
+	(capplet_tree_view_expand_row), (capplet_tree_view_collapse_row):
+	* capplet/capplet-utils.h:
+	Updated utility functions.
+	* capplet/main.c: (customwidgethandler):
+	* capplet/nwam-manager-properties.glade:
+	Customize tree view of VPN dialog.
+	* capplet/nwam_conn_stat_panel.c: (nwam_conn_status_panel_init),
+	(refresh), (env_clicked_cb), (on_nwam_env_notify_cb),
+	(on_nwam_enm_notify_cb), (filter_ncu):
+	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_init):
+	* capplet/nwam_location_dialog.c: (refresh):
+	* capplet/nwam_pref_dialog.c: (nwam_capplet_dialog_init),
+	(add_ncu_element):
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_compose_tree_view),
+	(refresh):
+	Updated due to capplet-utils changes
+	* capplet/nwam_net_conf_panel.c: (nwam_compose_tree_view),
+	(nwam_net_conf_panel_init), (refresh),
+	(nwam_net_conf_update_status_cell_cb),
+	(nwam_net_pref_connection_enabled_toggled_cb),
+	(vanity_name_editing_started), (vanity_name_edited),
+	(on_button_clicked), (cursor_changed), (selection_changed),
+	(update_widgets), (ncp_build_group_index), (ncp_build_group):
+	Group, move up, move down.
+	* capplet/nwam_rules_dialog.c: (response_cb):
+	Hide dialog on closing
+	* capplet/nwam_tree_view.c: (nwam_tree_view_key_press):
+	Fixed an assertion
+	* common/libnwamui.c: (nwamui_util_get_ncu_group_icon),
+	(nwamui_util_get_active_mode_icon):
+	* common/libnwamui.h:
+	Translate action mode to icon (temporary icons)
+	* common/nwamui_env.c: (get_nwam_loc_boolean_prop),
+	(set_nwam_loc_boolean_prop):
+	Comment out "read-only" properity due to bfu 1-20
+	* common/nwamui_ncp.c: (nwamui_ncp_populate_ncu_list),
+	(row_deleted_cb), (row_inserted_cb), (rows_reordered_cb):
+	* common/nwamui_ncu.c: (nwamui_ncu_class_init):
+	Group view need insert NwamuiObject as group rows, so update tree store
+	new function. And comment out some lines which will cause warnings.
+
 2009-01-21  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/libnwamui.h:

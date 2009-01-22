@@ -296,13 +296,6 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     prv->nameservice_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_ADD_BTN));
     prv->nameservice_delete_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_DELETE_BTN));
     prv->nsswitch_file_btn = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_FILE_BTN));
-    {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-        capplet_compose_nwamui_obj_combo(GTK_COMBO_BOX(prv->nameservices_config_combo), NWAM_PREF_IFACE(self));
-        capplet_update_nwamui_obj_combo(GTK_COMBO_BOX(prv->nameservices_config_combo), daemon, NWAMUI_TYPE_ENV);
-        gtk_combo_box_set_active(GTK_COMBO_BOX(prv->nameservices_config_combo), 0);
-        g_object_unref(daemon);
-    }
 
     /* Other useful pointer */
     prv->selected_env = NULL;

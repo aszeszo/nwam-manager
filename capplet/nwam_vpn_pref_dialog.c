@@ -245,10 +245,10 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
 	GtkCellRenderer *renderer;
 	GtkTreeView *view = self->prv->view;
 	
-    g_object_set (G_OBJECT(view),
+    g_object_set(view,
       "headers-clickable", TRUE,
       "headers-visible", TRUE,
-      "rules-hint", FALSE,
+      "rules-hint", TRUE,
       "reorderable", FALSE,
       "enable-search", TRUE,
       "show-expanders", TRUE,
@@ -370,7 +370,9 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
 	
     NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-    capplet_update_nwamui_obj_treeview(prv->view, daemon, NWAMUI_TYPE_ENM);
+    gtk_widget_hide(GTK_WIDGET(prv->view));
+    capplet_update_model_from_daemon(gtk_tree_view_get_model(prv->view), daemon, NWAMUI_TYPE_ENM);
+    gtk_widget_show(GTK_WIDGET(prv->view));
     g_object_unref(daemon);
 
 

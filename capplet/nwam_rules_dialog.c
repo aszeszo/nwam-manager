@@ -222,5 +222,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer user_data)
 	}
 	if ( stop_emission ) {
 		g_signal_stop_emission_by_name(widget, "response" );
+	} else {
+		gtk_widget_hide(GTK_WIDGET(self->prv->rules_dialog));
 	}
 }

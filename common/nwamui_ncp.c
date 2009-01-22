@@ -884,7 +884,7 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
     }
 
     if ( self->prv->ncu_tree_store  == NULL ) {
-        self->prv->ncu_tree_store = gtk_tree_store_new ( 1, NWAMUI_TYPE_NCU);
+        self->prv->ncu_tree_store = gtk_tree_store_new ( 1, NWAMUI_TYPE_OBJECT);
         connect_tree_signals = TRUE;
     }
 
@@ -1204,7 +1204,7 @@ row_deleted_cb (GtkTreeModel *model, GtkTreePath *path, gpointer user_data)
         g_warning("NCU Removed from List, but not propagated.");
     }
     else if ( model == GTK_TREE_MODEL(ncp->prv->ncu_tree_store )) {
-        g_warning("NCU Removed from Tree, but not propagated.");
+/*         g_warning("NCU Removed from Tree, but not propagated."); */
     }
 }
 
@@ -1219,7 +1219,7 @@ row_inserted_cb (GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpoi
         g_warning("NCU Inserted in List, but not propagated.");
     }
     else if ( model == GTK_TREE_MODEL(ncp->prv->ncu_tree_store )) {
-        g_warning("NCU Inserted in Tree, but not propagated.");
+/*         g_warning("NCU Inserted in Tree, but not propagated."); */
     }
 }
 
@@ -1235,7 +1235,7 @@ rows_reordered_cb(GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter
         g_warning("NCU Re-ordered in List, but not propagated.");
     }
     else if ( tree_model == GTK_TREE_MODEL(ncp->prv->ncu_tree_store )) {
-        g_warning("NCU Re-ordered in Tree, but not propagated.");
+/*         g_warning("NCU Re-ordered in Tree, but not propagated."); */
     }
 }
 

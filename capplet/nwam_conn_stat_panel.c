@@ -44,19 +44,21 @@
 
 /* Names of Widgets in Glade file */
 #define CONN_STATUS_TREEVIEW             "connection_status_table"
-#define CONN_STATUS_ENV_NAME_LABEL       "current_env_lbl"
+#define CONN_STATUS_PROFILE_LABEL        "current_profile_lbl"
+#define CONN_STATUS_ENV_LABEL            "current_env_lbl"
 #define CONN_STATUS_ENV_BUTTON           "environments_btn"
-#define CONN_STATUS_VPN_NAME_LABEL       "current_vpn_lbl"
+#define CONN_STATUS_VPN_LABEL            "current_vpn_lbl"
 #define CONN_STATUS_VPN_BUTTON           "vpn_btn"
 #define CONN_STATUS_REPAIR_BUTTON        "repair_connection_btn"
 
 struct _NwamConnStatusPanelPrivate {
 	/* Widget Pointers */
 	GtkTreeView*	conn_status_treeview;
+	GtkLabel*	current_profile_lbl;
 	GtkButton*	env_btn;
-	GtkLabel*	env_name_lbl;
+	GtkLabel*	current_env_lbl;
 	GtkButton*	vpn_btn;
-	GtkLabel*	vpn_name_lbl;
+	GtkLabel*	current_vpn_lbl;
 
 	/* Other Data */
     NwamCappletDialog*  pref_dialog;
@@ -101,6 +103,7 @@ static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
+static gboolean filter_ncu(GtkTreeModel *model, GtkTreeIter *iter, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnStatusPanel,
                         nwam_conn_status_panel,
@@ -242,9 +245,10 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
 
 	/* Iniialise pointers to important widgets */
 	prv->conn_status_treeview = GTK_TREE_VIEW(nwamui_util_glade_get_widget(CONN_STATUS_TREEVIEW));
-	prv->env_name_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_ENV_NAME_LABEL));
+	prv->current_profile_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_PROFILE_LABEL));
+	prv->current_env_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_ENV_LABEL));
 	prv->env_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_ENV_BUTTON));
-	prv->vpn_name_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_VPN_NAME_LABEL));
+	prv->current_vpn_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_VPN_LABEL));
 	prv->vpn_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_VPN_BUTTON));
     btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_REPAIR_BUTTON));
 
@@ -313,7 +317,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     NwamConnStatusPanel*    self = NWAM_CONN_STATUS_PANEL( iface );
 
     g_assert(NWAM_IS_CONN_STATUS_PANEL(self));
-        
+    
 	/* data could be null or ncp */
     if (user_data != NULL) {
         NwamuiNcp *ncp = NWAMUI_NCP(user_data);
@@ -323,15 +327,22 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         gtk_tree_view_set_model(self->prv->conn_status_treeview, model);
         gtk_widget_show(GTK_WIDGET(self->prv->conn_status_treeview));
         g_object_unref(model);
-        g_debug("%s", __func__);
+
+        text = nwamui_daemon_get_active_ncp_name(NWAMUI_DAEMON(self->prv->daemon));
+        if (text) {
+            gtk_label_set_text(self->prv->current_profile_lbl, text);
+            g_free (text);
+        } else {
+            gtk_label_set_text(self->prv->current_profile_lbl, _("Unknow profile"));
+        }
     }
 
     text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(self->prv->daemon));
     if (text) {
-        gtk_label_set_text(self->prv->env_name_lbl, text);
+        gtk_label_set_text(self->prv->current_env_lbl, text);
         g_free (text);
     } else {
-        gtk_label_set_text(self->prv->env_name_lbl, _("Unknow env"));
+        gtk_label_set_text(self->prv->current_env_lbl, _("Unknow env"));
     }
     on_nwam_enm_notify_cb (NULL, NULL, (gpointer)self);
     return(TRUE);
@@ -373,7 +384,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
     gchar*                  ncu_ipv4_addr = NULL;
     GdkPixbuf              *status_icon;
     gchar*                  info_string = NULL;
-        
+
 	gtk_tree_model_get(model, iter, 0, &ncu, -1);
 
     ncu_type = nwamui_ncu_get_ncu_type(ncu);
@@ -503,15 +514,19 @@ static void
 env_clicked_cb( GtkButton *button, gpointer data )
 {
 	NwamConnStatusPanel* self = NWAM_CONN_STATUS_PANEL(data);
-        gint                 response;
-	
+    gint                 response;
+    NwamuiEnv *env = nwamui_daemon_get_active_env(NWAMUI_DAEMON(self->prv->daemon));
+
+    if (env) {
         if ( self->prv->env_dialog == NULL ) {
             self->prv->env_dialog = nwam_env_pref_dialog_new();
         }
-        
+        nwam_pref_refresh(NWAM_PREF_IFACE(self->prv->env_dialog), env, TRUE);
         response = capplet_dialog_run(NWAM_PREF_IFACE(self->prv->env_dialog), GTK_WIDGET(button) );
         
         g_debug("env dialog returned %d", response );
+        g_object_unref(env);
+    }
 }
 
 static void
@@ -544,10 +559,10 @@ on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
     if ( g_ascii_strcasecmp(arg1->name, "active_env") == 0 ) {
         if (text) {
             text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(prv->daemon));
-            gtk_label_set_text(prv->env_name_lbl, text);
+            gtk_label_set_text(prv->current_env_lbl, text);
             g_free (text);
         } else {
-            gtk_label_set_text(prv->env_name_lbl, _("Unknow env"));
+            gtk_label_set_text(prv->current_env_lbl, _("Unknow env"));
         }
     }
 }
@@ -588,7 +603,34 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
         enm_str = g_strdup_printf("%s Active", enm_active_count);
     }
         
-    gtk_label_set_text(prv->vpn_name_lbl, enm_str );
+    gtk_label_set_text(prv->current_vpn_lbl, enm_str );
         
     g_free( enm_str );
+}
+
+static gboolean
+filter_ncu(GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
+{
+    NwamuiObject *object;
+    gboolean show_it = FALSE;
+
+    //return !gtk_tree_model_iter_has_child(model, iter);
+/*     if (gtk_tree_model_iter_has_child(model, iter)) { */
+/*         g_debug("$$$$$$$$$ %s ignore", __func__); */
+/*         return FALSE; */
+/*     } */
+
+    gchar *name;
+    gtk_tree_model_get(model, iter, 0, &object, -1);
+
+    if (object) {
+        if (NWAMUI_IS_NCU(object)) {
+            name = nwamui_object_get_name(object);
+            g_message("$$$$$$$$$ %s pass %s", __func__, name);
+            g_free(name);
+            show_it = TRUE;
+        }
+        g_object_unref(object);
+    }
+    return show_it;
 }

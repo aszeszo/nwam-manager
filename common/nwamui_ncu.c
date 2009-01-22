@@ -170,6 +170,8 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     nwamuiobject_class->set_name = nwamui_ncu_set_vanity_name;
     nwamuiobject_class->get_conditions = nwamui_ncu_get_selection_conditions;
     nwamuiobject_class->set_conditions = nwamui_ncu_set_selection_conditions;
+    nwamuiobject_class->get_activation_mode = nwamui_ncu_get_activation_mode;
+    nwamuiobject_class->set_activation_mode = nwamui_ncu_set_activation_mode;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,

@@ -486,6 +486,25 @@ nwamui_util_get_ncu_group_icon( NwamuiNcu* ncu  )
         return GTK_STOCK_STOP;
     default:
         g_assert_not_reached();
+        return NULL;
+    }
+}
+
+extern const gchar*
+nwamui_util_get_active_mode_icon( NwamuiObject *object  )
+{
+    switch (nwamui_object_get_activation_mode(object)) {
+    case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+        return GTK_STOCK_GO_FORWARD;
+    case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
+        return GTK_STOCK_GO_BACK;
+    case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+        return GTK_STOCK_GO_UP;
+    case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
+        return GTK_STOCK_GO_DOWN;
+    default:
+        g_assert_not_reached();
+        break;
     }
 }
 

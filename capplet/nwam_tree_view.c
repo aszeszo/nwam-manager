@@ -452,8 +452,9 @@ nwam_tree_view_key_press(GtkWidget   *widget, GdkEventKey *event)
 
             gtk_widget_set_sensitive(prv->widget_list[PROP_BUTTON_ADD], TRUE);
         }
-        g_assert(prv->widget_list[PROP_BUTTON_ADD]);
-        gtk_widget_grab_focus(GTK_WIDGET(prv->widget_list[PROP_BUTTON_ADD]));
+        
+        if (prv->widget_list[PROP_BUTTON_ADD])
+            gtk_widget_grab_focus(GTK_WIDGET(prv->widget_list[PROP_BUTTON_ADD]));
         
         return TRUE;
     }

@@ -37,6 +37,8 @@
 #include "capplet-utils.h"
 #include "nwam_tree_view.h"
 
+#define DEBUG()	g_debug ("[[ %20s : %-4d ]]", __func__, __LINE__)
+
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAM_TYPE_NET_CONF_PANEL, NwamNetConfPanelPrivate)) 
 
@@ -83,7 +85,6 @@ enum {
 enum {
 	CONNVIEW_COND_INFO=0,
 	CONNVIEW_INFO,
-    CONNVIEW_STATUS
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
@@ -137,9 +138,9 @@ static void nwam_net_pref_rule_ncu_enabled_toggled_cb(      GtkCellRendererToggl
                                                             gpointer               user_data); /* unused */
 
 static void on_button_clicked(GtkButton *button, gpointer user_data );
-static void nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data);
-static void env_clicked_cb( GtkButton *button, gpointer data );
-static void vpn_clicked_cb( GtkButton *button, gpointer data );
+static void update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection);
+static void selection_changed(GtkTreeSelection *selection, gpointer user_data);
+static void cursor_changed(GtkTreeView *treeview, gpointer user_data);
 
 static void update_rules_from_ncu (NwamNetConfPanel* self,
   GParamSpec *arg1,
@@ -148,6 +149,10 @@ static void conditions_connected_toggled_cb(GtkToggleButton *togglebutton, gpoin
 static void conditions_set_status_changed(GtkComboBox* combo, gpointer user_data );
 static void conditions_connected_changed(GtkComboBox* combo, gpointer user_data );
 static void on_activate_static_menuitems (GtkAction *action, gpointer data);
+/* ncp group */
+static void ncp_build_group_index(GtkTreeModel *model, GHashTable *hash, GtkTreeIter *parent, GtkTreeIter *iter, NwamuiNcu *ncu);
+static void ncp_build_group(GtkTreeModel *model);
+
 
 G_DEFINE_TYPE_EXTENDED (NwamNetConfPanel,
   nwam_net_conf_panel,
@@ -295,8 +300,16 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
 
     g_signal_connect(gtk_tree_view_get_selection(view),
       "changed",
-      G_CALLBACK(nwam_treeview_update_widget_cb),
+      G_CALLBACK(selection_changed),
       (gpointer)self);
+
+/*     g_signal_connect(view, */
+/*       "cursor-changed", */
+/*       G_CALLBACK(cursor_changed), */
+/*       (gpointer)self); */
+
+	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(view),
+      GTK_SELECTION_MULTIPLE);
 
     {
         col = gtk_tree_view_column_new();
@@ -352,21 +365,6 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
           nwam_net_conf_update_status_cell_cb, (gpointer) 0,
           NULL);
 
-        /* Second cell */
-        cell = gtk_cell_renderer_text_new();
-        gtk_tree_view_column_pack_end(col, cell, FALSE);
-
-        g_object_set (cell,
-          "xalign", 1.0,
-          "weight", PANGO_WEIGHT_BOLD,
-          NULL );
-        g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (CONNVIEW_STATUS));
-
-        gtk_tree_view_column_set_cell_data_func (col,
-          cell,
-          nwam_net_conf_update_status_cell_cb,
-          (gpointer) 0,
-          NULL);
     } /* column info */
 }
 
@@ -429,7 +427,10 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
 
     /* FIXME: How about zero ncp? */
     capplet_compose_nwamui_obj_combo(GTK_COMBO_BOX(self->prv->profile_name_combo1), NWAM_PREF_IFACE(self));
-    capplet_update_nwamui_obj_combo(GTK_COMBO_BOX(self->prv->profile_name_combo1), daemon, NWAMUI_TYPE_NCP);
+
+    gtk_widget_hide(GTK_WIDGET(self->prv->profile_name_combo1));
+    capplet_update_model_from_daemon(gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->profile_name_combo1)), daemon, NWAMUI_TYPE_NCP);
+    gtk_widget_show(GTK_WIDGET(self->prv->profile_name_combo1));
 
     g_signal_connect(self->prv->connection_activation_combo, "changed", G_CALLBACK(conditions_connected_changed),(gpointer)self);
 
@@ -484,6 +485,8 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     if (user_data != NULL) {
         GtkTreeModel *model;
 
+        /* Update ncp combo first if the selected ncp isn't the same to what we
+         * are refreshing */
         combo_object = capplet_combo_get_active(prv->profile_name_combo1);
         /* Safely unref */
         if (combo_object)
@@ -499,10 +502,13 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         if (gtk_tree_view_get_model(prv->net_conf_treeview) != model ||
           force) {
             gtk_widget_hide(GTK_WIDGET(prv->net_conf_treeview));
+
+            ncp_build_group(model);
+
             gtk_tree_view_set_model(prv->net_conf_treeview, model);
             gtk_widget_show(GTK_WIDGET(prv->net_conf_treeview));
             /* Update widgets */
-            nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(prv->net_conf_treeview), (gpointer)self);
+            selection_changed(gtk_tree_view_get_selection(prv->net_conf_treeview), (gpointer)self);
         }
         g_object_unref(model);
     }
@@ -571,20 +577,53 @@ nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
     gchar*                  ncu_phy_addr;
     GdkPixbuf              *status_icon;
     gchar*                  info_string;
+    gboolean                is_group = FALSE;
     
     gtk_tree_model_get(model, iter, 0, &ncu, -1);
-    
-    ncu_type = nwamui_ncu_get_ncu_type(ncu);
-    ncu_status = nwamui_ncu_get_active(ncu);
+
+    if (!ncu)
+        return;
+
+    if (NWAMUI_IS_NCU(ncu)) {
+        ncu_type = nwamui_ncu_get_ncu_type(ncu);
+        ncu_status = nwamui_ncu_get_active(ncu);
+    } else {
+        is_group = TRUE;
+    }
+
     
     switch (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (renderer), TREEVIEW_COLUMN_NUM))) {
         case CONNVIEW_COND_INFO: {
-            g_object_set(renderer,
-              "stock-id", nwamui_util_get_ncu_group_icon(ncu),
-              NULL);
+            if (!is_group) {
+                g_object_set(renderer,
+                  "stock-id", nwamui_util_get_active_mode_icon(ncu),
+                  NULL);
+            } else {
+                gboolean is_expanded;
+                GtkTreeIter child_iter;
+                GString *str = NULL;
+
+                g_object_get(renderer,
+                  "is-expanded", &is_expanded,
+                  NULL);
+
+                if (gtk_tree_model_iter_children(model, &child_iter, iter)) {
+                    NwamuiNcu *child_ncu;
+
+                    gtk_tree_model_get(model, &child_iter, 0, &child_ncu, -1);
+
+                    g_object_set(renderer,
+                      "stock-id", nwamui_util_get_ncu_group_icon(child_ncu),
+                      "is-expander", is_group,
+                      NULL);
+
+                    g_object_unref(child_ncu);
+                }
+            }
         }
             break;
         case CONNVIEW_INFO: {
+            if (!is_group) {
                 ncu_text = nwamui_ncu_get_display_name(ncu);
                 ncu_is_dhcp = nwamui_ncu_get_ipv4_auto_conf(ncu);
                 ncu_ipv4_addr = nwamui_ncu_get_ipv4_address(ncu);
@@ -624,15 +663,65 @@ nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
                 g_free (info_string);
                 g_free( ncu_markup );
                 g_free( ncu_text );
+            } else {
+                gboolean is_expanded;
+                GtkTreeIter child_iter;
+                GString *str = NULL;
+
+                g_object_get(renderer,
+                  "is-expanded", &is_expanded,
+                  NULL);
+
+                if (gtk_tree_model_iter_children(model, &child_iter, iter)) {
+                    NwamuiNcu *child_ncu;
+
+                    gtk_tree_model_get(model, &child_iter, 0, &child_ncu, -1);
+
+                    switch (nwamui_ncu_get_priority_group_mode(child_ncu)) {
+                    case NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE:
+                        str = g_string_new(_("Exactly one of:"));
+                        break;
+                    case NWAMUI_COND_PRIORITY_GROUP_MODE_SHARED:
+                        str = g_string_new(_("One or more of:"));
+                        break;
+                    case NWAMUI_COND_PRIORITY_GROUP_MODE_ALL:
+                        str = g_string_new(_("All of:"));
+                        break;
+                    default:
+                        g_assert_not_reached();
+                        break;
+                    }
+
+                    g_object_unref(child_ncu);
+
+                    if (!is_expanded) {
+                        for (;;) {
+                            gchar *name;
+
+                            gtk_tree_model_get(model, &child_iter, 0, &child_ncu, -1);
+                            name = nwamui_object_get_name(NWAMUI_OBJECT(child_ncu));
+                            g_object_unref(child_ncu);
+
+                            if (gtk_tree_model_iter_next(model, &child_iter)) {
+                                g_string_append_printf(str, " %s,", name);
+                                g_free(name);
+                            } else {
+                                g_string_append_printf(str, " %s", name);
+                                g_free(name);
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                g_object_set(G_OBJECT(renderer),
+                        "markup", str->str,
+                        NULL);
+                g_string_free(str, TRUE);
             }
+        }
             break;
             
-        case CONNVIEW_STATUS: {
-                g_object_set(G_OBJECT(renderer),
-                  "text", ncu_status?_("Enabled"):_("Disabled"),
-                  NULL);
-            }
-            break;
         default:
             g_assert_not_reached();
     }
@@ -665,20 +754,21 @@ nwam_net_pref_connection_enabled_toggled_cb(    GtkCellRendererToggle *cell_rend
 
         gtk_tree_model_get(model, &iter, 0, &connection, -1);
 
-        ncu  = NWAMUI_NCU( connection );
+        if (NWAMUI_IS_NCU( connection )) {
+            ncu  = NWAMUI_NCU( connection );
 
-        g_object_get (cell_renderer, "inconsistent", &inconsistent, NULL);
-        if (gtk_cell_renderer_toggle_get_active(cell_renderer)) {
-            if (inconsistent) {
-                nwamui_ncu_set_active(ncu, FALSE);
-                //nwamui_ncu_set_selection_rules_enabled (ncu, FALSE);
+            g_object_get (cell_renderer, "inconsistent", &inconsistent, NULL);
+            if (gtk_cell_renderer_toggle_get_active(cell_renderer)) {
+                if (inconsistent) {
+                    nwamui_ncu_set_active(ncu, FALSE);
+                    //nwamui_ncu_set_selection_rules_enabled (ncu, FALSE);
+                } else {
+                    //nwamui_ncu_set_selection_rules_enabled (ncu, TRUE);
+                }
             } else {
-                //nwamui_ncu_set_selection_rules_enabled (ncu, TRUE);
+                nwamui_ncu_set_active(ncu, TRUE);
             }
-        } else {
-            nwamui_ncu_set_active(ncu, TRUE);
         }
-
         g_object_unref(G_OBJECT(connection));
         
     }
@@ -714,16 +804,17 @@ vanity_name_editing_started (GtkCellRenderer *cell,
 
             gtk_tree_model_get(model, &iter, 0, &connection, -1);
 
-            ncu  = NWAMUI_NCU( connection );
+            if (NWAMUI_IS_NCU( connection )) {
+                ncu  = NWAMUI_NCU( connection );
 
-            vname = nwamui_ncu_get_vanity_name(ncu);
+                vname = nwamui_ncu_get_vanity_name(ncu);
             
-            gtk_entry_set_text( entry, vname?vname:"" );
+                gtk_entry_set_text( entry, vname?vname:"" );
 
-            g_free( vname );
+                g_free( vname );
             
+            }
             g_object_unref(G_OBJECT(connection));
-
             gtk_tree_path_free(tpath);
         }
     }
@@ -750,10 +841,11 @@ vanity_name_edited ( GtkCellRendererText *cell,
             NwamuiNcu*  ncu;
             gtk_tree_model_get(model, &iter, 0, &connection, -1);
 
-            ncu  = NWAMUI_NCU( connection );
+            if (NWAMUI_IS_NCU( connection )) {
+                ncu  = NWAMUI_NCU( connection );
 
-            nwamui_ncu_set_vanity_name(ncu, new_text);
-
+                nwamui_ncu_set_vanity_name(ncu, new_text);
+            }
             g_object_unref(G_OBJECT(connection));
 
           }
@@ -895,36 +987,116 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         gtk_tree_model_get_iter(model, &iter, path);
 
         if (button == (gpointer)prv->connection_group_btn) {
-            gtk_tree_model_get_iter(model, &iter, path);
-            if (!gtk_tree_model_iter_has_child(model, &iter)) {
-            } else {
-            }
-        }
+            gboolean all_in_group = (gboolean)g_object_get_data(prv->connection_group_btn, "all_in_group");
+            GList *i;
+            GList *rowrefs = NULL;
+            GtkTreeIter parent;
 
-        if (count_selected_rows == 1) {
+            if (!all_in_group) {
+                /* Append a new group */
+                NwamuiObject *pobj = g_object_new(NWAMUI_TYPE_OBJECT, NULL);
+                gtk_tree_store_append(model, &parent, NULL);
+                gtk_tree_store_set(GTK_TREE_STORE(model), &parent, 0, pobj, -1);
+                g_object_unref(pobj);
+            }
+
+            for (i = rows; i; i = g_list_next(i)) {
+                rowrefs = g_list_prepend(rowrefs, gtk_tree_row_reference_new(model, (GtkTreePath*)i->data));
+            }
+            for (i = rowrefs; i; i = g_list_next(i)) {
+                GtkTreeIter iter;
+                gtk_tree_model_get_iter(model, &iter,
+                  gtk_tree_row_reference_get_path((GtkTreeRowReference*)i->data));
+
+                /* TODO */
+                if (all_in_group)
+                    capplet_tree_store_exclude_children(model,
+                      &iter,
+                      NULL,
+                      NULL);
+                else {
+                    capplet_tree_store_merge_children(model,
+                      &parent,
+                      &iter,
+                      NULL,
+                      NULL);
+                    gtk_tree_selection_select_iter(gtk_tree_view_get_selection(prv->net_conf_treeview), &parent);
+                }
+            }
+            g_list_foreach (rowrefs, gtk_tree_row_reference_free, NULL);
+            g_list_free (rowrefs);
+            
+        } else if (count_selected_rows == 1) {
             NwamuiObject *object;
             gtk_tree_model_get(model, &iter, 0, &object, -1);
 
             if (button == (gpointer)prv->connection_move_up_btn) {
+                GtkTreeIter prev_iter;
+                GtkTreeIter parent_iter;
 
                 if ( gtk_tree_path_prev(path) ) { /* See if we have somewhere to move up to... */
-                    GtkTreeIter prev_iter;
-                    if ( gtk_tree_model_get_iter(model, &prev_iter, path) ) {
+                    gtk_tree_model_get_iter(model, &prev_iter, path);
+                    if (!gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &parent_iter, &prev_iter)) {
                         gtk_tree_store_move_before(GTK_TREE_STORE(model), &iter, &prev_iter );
                         gtk_tree_selection_select_iter(selection, &iter);
+                    } else {
+                        parent_iter = prev_iter;
+                        gtk_tree_store_append(GTK_TREE_STORE(model),
+                          &prev_iter,
+                          &parent_iter);
+                        capplet_tree_store_move_object(GTK_TREE_MODEL(model),
+                          &prev_iter, &iter);
+                        capplet_tree_view_expand_row(prv->net_conf_treeview,
+                          &parent_iter, TRUE);
+                        gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
+                        gtk_tree_selection_select_iter(selection, &prev_iter);
                     }
+                } else if (gtk_tree_model_iter_parent(GTK_TREE_MODEL(model), &parent_iter, &iter)) {
+                    gtk_tree_store_insert_before(GTK_TREE_STORE(model),
+                      &prev_iter,
+                      NULL,
+                      &parent_iter);
+                    capplet_tree_store_move_object(GTK_TREE_MODEL(model),
+                      &prev_iter, &iter);
+                    gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
+                    if (!gtk_tree_model_iter_has_child(GTK_TREE_MODEL(model), &parent_iter))
+                        gtk_tree_store_remove(GTK_TREE_STORE(model), &parent_iter);
+                    gtk_tree_selection_select_iter(selection, &prev_iter);
                 }
-
+                update_widgets(self, gtk_tree_view_get_selection(prv->net_conf_treeview));
             } else if (button == (gpointer)prv->connection_move_down_btn) {
-                GtkTreeIter *next_iter = gtk_tree_iter_copy(&iter);
+                GtkTreeIter next_iter = iter;
+                GtkTreeIter parent_iter;
         
-                if ( gtk_tree_model_iter_next(GTK_TREE_MODEL(model), next_iter) ) { /* See if we have somewhere to move down to... */
-                    gtk_tree_store_move_after(GTK_TREE_STORE(model), &iter, next_iter );
-                    gtk_tree_selection_select_iter(selection, &iter);
+                if ( gtk_tree_model_iter_next(GTK_TREE_MODEL(model), &next_iter) ) { /* See if we have somewhere to move down to... */
+                    if (!gtk_tree_model_iter_has_child(GTK_TREE_MODEL(model), &next_iter)) {
+                        gtk_tree_store_move_after(GTK_TREE_STORE(model), &iter, &next_iter );
+                        gtk_tree_selection_select_iter(selection, &iter);
+                    } else {
+                        parent_iter = next_iter;
+                        gtk_tree_store_prepend(GTK_TREE_STORE(model),
+                          &next_iter,
+                          &parent_iter);
+                        capplet_tree_store_move_object(GTK_TREE_MODEL(model),
+                          &next_iter, &iter);
+                        capplet_tree_view_expand_row(prv->net_conf_treeview,
+                          &parent_iter, TRUE);
+                        gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
+                        gtk_tree_selection_select_iter(selection, &next_iter);
+                    }
+                } else if (gtk_tree_model_iter_parent(GTK_TREE_MODEL(model), &parent_iter, &iter)) {
+                    gtk_tree_store_insert_after(GTK_TREE_STORE(model),
+                      &next_iter,
+                      NULL,
+                      &parent_iter);
+                    capplet_tree_store_move_object(GTK_TREE_MODEL(model),
+                      &next_iter, &iter);
+                    gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
+                    if (!gtk_tree_model_iter_has_child(GTK_TREE_MODEL(model), &parent_iter))
+                        gtk_tree_store_remove(GTK_TREE_STORE(model), &parent_iter);
+                    gtk_tree_selection_select_iter(selection, &next_iter);
                 }
-        
-                gtk_tree_iter_free(next_iter);
-
+                update_widgets(self, gtk_tree_view_get_selection(prv->net_conf_treeview));
             } else if (button == (gpointer)prv->connection_rename_btn) {
                 GtkCellRendererText*        txt;
                 GtkTreeViewColumn*  info_col = gtk_tree_view_get_column( GTK_TREE_VIEW(self->prv->net_conf_treeview), CONNVIEW_INFO );
@@ -958,9 +1130,21 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 }
 
 static void
-nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
+cursor_changed(GtkTreeView *treeview, gpointer user_data)
 {
-    NwamNetConfPanel*           self = NWAM_NET_CONF_PANEL(user_data);
+    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(user_data);
+    update_widgets(NWAM_NET_CONF_PANEL(user_data), gtk_tree_view_get_selection(prv->net_conf_treeview));
+}
+
+static void
+selection_changed(GtkTreeSelection *selection, gpointer user_data)
+{
+    update_widgets(NWAM_NET_CONF_PANEL(user_data), selection);
+}
+
+static void
+update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection)
+{
     NwamNetConfPanelPrivate*    prv = GET_PRIVATE(self);
     GtkTreeModel*               model = gtk_tree_view_get_model(prv->net_conf_treeview);
     GtkTreeIter                 iter;
@@ -974,6 +1158,7 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
     gtk_widget_set_sensitive(prv->connection_group_btn, FALSE);
     gtk_widget_set_sensitive(prv->connection_rules_btn, FALSE);
     gtk_widget_set_sensitive(prv->connection_activation_combo, FALSE);
+    gtk_button_set_label(prv->connection_group_btn, _("_Group"));
 
     if (!prv->selected_ncp || !nwamui_ncp_is_modifiable(prv->selected_ncp)) {
         return;
@@ -982,38 +1167,55 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
     count_selected_rows = gtk_tree_selection_count_selected_rows(selection);
     rows = gtk_tree_selection_get_selected_rows(selection, &model);
 
-    if (count_selected_rows == 1) {
-        GtkTreePath *path = (GtkTreePath *)rows->data;
+    if (count_selected_rows >= 1) {
+        gboolean all_in_group = TRUE; /* Selected a group or selected children */
+        GList *i;
+        for (i = rows; i; i = g_list_next(i)) {
+            if (all_in_group &&
+              gtk_tree_path_get_depth((GtkTreePath*)i->data) == 1) {
+                GtkTreeIter iter;
 
-        gtk_widget_set_sensitive(prv->connection_rules_btn, TRUE);
-        gtk_widget_set_sensitive(prv->connection_activation_combo, TRUE);
+                gtk_tree_model_get_iter(model, &iter, (GtkTreePath*)i->data);
 
-        if (gtk_tree_model_get_iter_first(model, &iter)) {
-            gtk_widget_set_sensitive(prv->connection_move_up_btn, TRUE);
-            gtk_widget_set_sensitive(prv->connection_move_down_btn, TRUE);
-            gtk_widget_set_sensitive(prv->connection_rename_btn, TRUE);
-            if (gtk_tree_selection_iter_is_selected(selection, &iter)) {
-                gtk_widget_set_sensitive(prv->connection_move_up_btn, FALSE);
-            }
-            gtk_tree_model_iter_nth_child(model,
-              &iter,
-              NULL,
-              gtk_tree_model_iter_n_children(model, NULL) - 1);
-            if (gtk_tree_selection_iter_is_selected(selection, &iter)) {
-                gtk_widget_set_sensitive(prv->connection_move_down_btn, FALSE);
+                if (!gtk_tree_model_iter_has_child(model, &iter)) {
+                    all_in_group = FALSE;
+                }
             }
         }
-
-        gtk_tree_model_get_iter(model, &iter, path);
-        if (!gtk_tree_model_iter_has_child(model, &iter)) {
-            gtk_label_set_markup_with_mnemonic(prv->activation_mode_lbl, _("_Selected connection:"));
-        } else {
-            gtk_label_set_markup_with_mnemonic(prv->activation_mode_lbl, _("_Selected group:"));
-        }
-    }
-
-    if (count_selected_rows > 1) {
         gtk_widget_set_sensitive(prv->connection_group_btn, TRUE);
+        if (all_in_group)
+            gtk_button_set_label(prv->connection_group_btn, _("Un_group"));
+        g_object_set_data(prv->connection_group_btn, "all_in_group", (gpointer)all_in_group);
+
+        if (count_selected_rows == 1) {
+            GtkTreePath *path = (GtkTreePath *)rows->data;
+
+            gtk_widget_set_sensitive(prv->connection_rules_btn, TRUE);
+            gtk_widget_set_sensitive(prv->connection_activation_combo, TRUE);
+
+            if (gtk_tree_model_get_iter_first(model, &iter)) {
+                gtk_widget_set_sensitive(prv->connection_move_up_btn, TRUE);
+                gtk_widget_set_sensitive(prv->connection_move_down_btn, TRUE);
+                gtk_widget_set_sensitive(prv->connection_rename_btn, TRUE);
+                if (gtk_tree_selection_iter_is_selected(selection, &iter)) {
+                    gtk_widget_set_sensitive(prv->connection_move_up_btn, FALSE);
+                }
+                gtk_tree_model_iter_nth_child(model,
+                  &iter,
+                  NULL,
+                  gtk_tree_model_iter_n_children(model, NULL) - 1);
+                if (gtk_tree_selection_iter_is_selected(selection, &iter)) {
+                    gtk_widget_set_sensitive(prv->connection_move_down_btn, FALSE);
+                }
+            }
+
+            gtk_tree_model_get_iter(model, &iter, path);
+            if (!gtk_tree_model_iter_has_child(model, &iter)) {
+                gtk_label_set_markup_with_mnemonic(prv->activation_mode_lbl, _("_Selected connection:"));
+            } else {
+                gtk_label_set_markup_with_mnemonic(prv->activation_mode_lbl, _("_Selected group:"));
+            }
+        }
     }
 
     g_list_foreach (rows, gtk_tree_path_free, NULL);
@@ -1135,3 +1337,113 @@ on_activate_static_menuitems (GtkAction *action, gpointer data)
     }
 }
 
+static void
+ncp_build_group_index(GtkTreeModel *model, GHashTable *hash, GtkTreeIter *parent, GtkTreeIter *iter, NwamuiNcu *ncu)
+{
+    GtkTreeRowReference* rowref;
+    gint group_id = nwamui_ncu_get_priority_group(ncu);
+    GtkTreePath *parent_path;
+    GtkTreeIter parent_iter;
+    gboolean need_merge = TRUE;
+
+    /* Assume ncu should be in a group in this function */
+    g_assert(iter);
+
+    if ((rowref = (GtkTreeRowReference*)g_hash_table_lookup(hash, group_id)) == NULL) {
+    l_beginning:
+        if (!parent) {
+            /* The ncu isn't in a group and there is no index for the group */
+            gtk_tree_store_append(GTK_TREE_STORE(model), &parent_iter, NULL);
+            /* Point to the new group */
+            parent = &parent_iter;
+        } else {
+            /* The only one case we only need create a hash key and needn't
+             * merge */
+            need_merge = FALSE;
+        }
+        parent_path = gtk_tree_model_get_path(model, parent);
+        rowref = gtk_tree_row_reference_new(model, parent_path);
+        g_hash_table_insert(hash, group_id, rowref);
+        gtk_tree_path_free(parent_path);
+
+    } else {
+        /* Assume the old one is what we added is a temp group if there are two
+         * or more groups have the same group id. so we merge all temp group to
+         * this current one. */
+        GtkTreePath *path = gtk_tree_row_reference_get_path(rowref);
+
+        if (gtk_tree_model_get_iter(model, &parent_iter, path)) {
+            if (parent) {
+                /* We have a temp group/index for the group id, but there is
+                 * already a group, so we need merge and update the index */
+                parent_path = gtk_tree_model_get_path(model, parent);
+                rowref = gtk_tree_row_reference_new(model, parent_path);
+                g_hash_table_insert(hash, group_id, rowref);
+                gtk_tree_path_free(parent_path);
+                /* Point to the temp group */
+                iter = &parent_iter;
+            } else {
+                /* The ncu isn't in a group but we have an index, so we move
+                 * it */
+                parent = &parent_iter;
+            }
+        } else {
+            /* reference is invalid? goto beginning */
+            g_assert_not_reached();
+            goto l_beginning;
+        }
+    }
+    if (need_merge)
+        capplet_tree_store_merge_children(GTK_TREE_STORE(model),
+          parent,
+          iter,
+          NULL,
+          NULL);
+}
+
+static void
+ncp_build_group(GtkTreeModel *model)
+{
+    GHashTable *hash = (GHashTable*)g_object_get_data(model, "ncp_group_index");
+    GtkTreeIter iter;
+
+    DEBUG();
+    if (hash == NULL) {
+        hash = g_hash_table_new_full(g_int_hash,
+          g_int_equal,
+          NULL,
+          (GDestroyNotify)gtk_tree_row_reference_free);
+        g_object_set_data_full(model, "ncp_group_index",
+          (gpointer)hash, (GDestroyNotify)g_hash_table_destroy);
+    }
+
+    if (gtk_tree_model_get_iter_first(model, &iter)) {
+        do {
+            GtkTreeIter child_iter;
+            GtkTreeIter *parent_iter = NULL;
+            NwamuiNcu *ncu;
+
+            /* Assume each fake group object must have childen */
+            /* We only iterate the first level -- group */
+            if (gtk_tree_model_iter_children(model, &child_iter, &iter)) {
+                gtk_tree_model_get(model, &child_iter, 0, &ncu, -1);
+
+                parent_iter = &iter;
+            } else {
+                gtk_tree_model_get(model, &iter, 0, &ncu, -1);
+
+            }
+
+            g_assert(ncu);
+
+            if (nwamui_ncu_get_priority_group_mode(ncu) == NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED) {
+                ncp_build_group_index(model, hash,
+                  parent_iter,
+                  parent_iter ? &child_iter : &iter,
+                  ncu);
+            }
+            g_object_unref(ncu);
+
+        } while (gtk_tree_model_iter_next(model, &iter));
+    }
+}

@@ -2,15 +2,11 @@
 #include <glib/gi18n.h>
 #include "capplet-utils.h"
 
-static gboolean ncu_panel_mixed_combo_separator_cb(GtkTreeModel *model,
-    GtkTreeIter *iter,
-    gpointer data);
-
-static void ncu_panel_mixed_combo_cell_cb (GtkCellLayout *cell_layout,
-    GtkCellRenderer   *renderer,
-    GtkTreeModel      *model,
-    GtkTreeIter       *iter,
-    gpointer           data);
+typedef struct _CappletForeachData {
+	GtkTreeModelForeachFunc foreach_func;
+	gpointer user_data;
+	gpointer ret_data;
+} CappletForeachData;
 
 static void nwamui_obj_name_cell_cb (GtkCellLayout *cell_layout,
     GtkCellRenderer   *renderer,
@@ -19,44 +15,6 @@ static void nwamui_obj_name_cell_cb (GtkCellLayout *cell_layout,
     gpointer           data);
 
 static void nwam_pref_iface_combo_changed_cb(GtkComboBox* combo, gpointer user_data);
-
-void
-daemon_compose_ncu_panel_mixed_combo(GtkComboBox *combo, NwamuiDaemon *daemon)
-{
-	capplet_compose_combo(combo,
-	    G_TYPE_OBJECT,
-	    ncu_panel_mixed_combo_cell_cb,
-	    ncu_panel_mixed_combo_separator_cb,
-	    NULL,
-	    NULL,
-	    NULL);
-}
-
-void
-daemon_update_ncu_panel_mixed_model(GtkComboBox *combo, NwamuiDaemon *daemon)
-{
-	GtkTreeModel      *model;
-	model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo));        
-}
-
-static void
-ncu_panel_mixed_combo_cell_cb (GtkCellLayout *cell_layout,
-    GtkCellRenderer   *renderer,
-    GtkTreeModel      *model,
-    GtkTreeIter       *iter,
-    gpointer           data)
-{
-}
-
-static gboolean
-ncu_panel_mixed_combo_separator_cb(GtkTreeModel *model,
-    GtkTreeIter *iter,
-    gpointer data)
-{
-	gpointer item = NULL;
-	gtk_tree_model_get(model, iter, 0, &item, -1);
-	return item == NULL;
-}
 
 void
 capplet_compose_nwamui_obj_combo(GtkComboBox *combo, NwamPrefIFace *iface)
@@ -70,15 +28,89 @@ capplet_compose_nwamui_obj_combo(GtkComboBox *combo, NwamPrefIFace *iface)
 	    NULL);
 }
 
-void
-capplet_update_nwamui_obj_combo(GtkComboBox *combo, NwamuiDaemon *daemon, GType type)
+static gboolean
+capplet_model_foreach_find_object(GtkTreeModel *model,
+    GtkTreePath *path,
+    GtkTreeIter *iter,
+    gpointer user_data)
 {
-	GtkTreeModel      *model;
-	GList           *obj_list;
-	GList           *idx;
+	CappletForeachData *data = (CappletForeachData *)user_data;
+	GObject *object;
+
+        gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
+
+        if (object == data->user_data) {
+		data->ret_data = (gpointer)gtk_tree_iter_copy(iter);
+        }
+	if (object)
+		g_object_unref(object);
+
+	return data->ret_data != NULL;
+}
+
+static void
+capplet_list_foreach_merge_to_model(gpointer data, gpointer user_data)
+{
+	GtkTreeModel *model = (GtkTreeModel *)user_data;
 	GtkTreeIter   iter;
 
-	model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo));
+	gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+	gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, G_OBJECT(data), -1);
+
+	g_object_unref(data);
+}
+
+void
+capplet_model_update_from_list(GtkTreeModel *model, GList *obj_list)
+{
+	GtkTreeIter   iter;
+	GList           *idx;
+
+	
+	for (idx = obj_list; idx; idx = g_list_next(idx)) {
+		gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+		gtk_list_store_set (GTK_LIST_STORE(model), &iter,
+		    0, idx->data,
+                    -1);
+		g_object_unref(idx->data);
+	}
+}
+
+GtkTreeIter *
+capplet_model_find_object(GtkTreeModel *model, GObject *object)
+{
+	CappletForeachData data;
+
+	data.user_data = (gpointer)object;
+	data.ret_data = NULL;
+
+	gtk_tree_model_foreach(model,
+	    capplet_model_foreach_find_object,
+	    (gpointer)&data);
+
+	return data.ret_data;
+}
+
+void
+capplet_model_remove_object(GtkTreeModel *model, GObject *object)
+{
+	GtkTreeIter *iter = capplet_model_find_object(model, object);
+
+	if (iter) {
+		if (GTK_IS_LIST_STORE(model))
+			gtk_list_store_remove(GTK_LIST_STORE(model), iter);
+		else
+			gtk_tree_store_remove(GTK_TREE_STORE(model), iter);
+
+		gtk_tree_iter_free(iter);
+	}
+}
+
+void
+capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon, GType type)
+{
+	GList *obj_list;
+
 	/* TODO clean all */
 	gtk_list_store_clear(GTK_LIST_STORE(model));
 
@@ -93,13 +125,7 @@ capplet_update_nwamui_obj_combo(GtkComboBox *combo, NwamuiDaemon *daemon, GType 
 		g_error("unknow supported get nwamui obj list");
 	}
 
-	for (idx = obj_list; idx; idx = g_list_next(idx)) {
-		gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-		gtk_list_store_set (GTK_LIST_STORE(model), &iter,
-		    0, idx->data,
-                    -1);
-		g_object_unref(idx->data);
-	}
+	g_list_foreach(obj_list, capplet_list_foreach_merge_to_model, (gpointer)model);
 	g_list_free(obj_list);
 }
 
@@ -126,6 +152,8 @@ nwamui_obj_name_cell_cb (GtkCellLayout *cell_layout,
 
 		g_object_set (G_OBJECT(renderer), "text", text, NULL);
 		g_free (text);
+
+		g_object_unref(object);
 	}
 }
 
@@ -154,43 +182,6 @@ capplet_compose_nwamui_obj_treeview(GtkTreeView *treeview)
 		gtk_tree_view_set_model(treeview, model);
 		g_object_unref(model);
         }
-}
-
-void
-capplet_update_nwamui_obj_treeview(GtkTreeView *treeview, NwamuiDaemon *daemon, GType type)
-{
-	GtkTreeModel      *model;
-	GList           *obj_list;
-	GList           *idx;
-	GtkTreeIter   iter;
-
-	model = gtk_tree_view_get_model(treeview);
-	/* TODO clean all */
-	gtk_list_store_clear(GTK_LIST_STORE(model));
-
-	if (type == NWAMUI_TYPE_NCP) {
-		obj_list = nwamui_daemon_get_ncp_list(daemon);
-	/* } else if (type == NWAMUI_TYPE_NCU) { */
-	} else if (type == NWAMUI_TYPE_ENV) {
-		obj_list = nwamui_daemon_get_env_list(daemon);
-	} else if (type == NWAMUI_TYPE_ENM) {
-		obj_list = nwamui_daemon_get_enm_list(daemon);
-	} else {
-		g_error("unknow supported get nwamui obj list");
-	}
-
-        gtk_widget_hide(GTK_WIDGET(treeview));
-
-	for (idx = obj_list; idx; idx = g_list_next(idx)) {
-		gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-		gtk_list_store_set (GTK_LIST_STORE(model), &iter,
-		    0, idx->data,
-                    -1);
-		g_object_unref(idx->data);
-	}
-        gtk_widget_show(GTK_WIDGET(treeview));
-
-	g_list_free(obj_list);
 }
 
 void
@@ -420,4 +411,125 @@ capplet_combo_set_active(GtkComboBox *combo, NwamuiObject *object)
 
 	if (capplet_model_get_iter(gtk_combo_box_get_model(combo), object, &iter))
 		gtk_combo_box_set_active_iter(combo, &iter);
+}
+
+void
+capplet_tree_store_move_object(GtkTreeModel *model,
+    GtkTreeIter *target,
+    GtkTreeIter *source)
+{
+	NwamuiObject *object;
+	gtk_tree_model_get(GTK_TREE_MODEL(model), source, 0, &object, -1);
+	gtk_tree_store_set(GTK_TREE_STORE(model), target, 0, object, -1);
+	g_object_unref(object);
+}
+
+void
+capplet_tree_store_merge_children(GtkTreeStore *model,
+    GtkTreeIter *target,
+    GtkTreeIter *source,
+    GtkTreeModelForeachFunc func,
+    gpointer user_data)
+{
+	GtkTreeIter t_iter;
+	GtkTreeIter s_iter;
+	GtkTreeIter iter;
+
+	if (!gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &t_iter, target)) {
+		/* Think about the target position? */
+	}
+
+	/* If source doesn't have children, then we move it */
+	if (gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &s_iter, source)) {
+		do {
+			/* Take care if there are customer monitoring
+			 * row-add/delete signals */
+			gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, target, NULL);
+			capplet_tree_store_move_object(GTK_TREE_MODEL(model),
+			    &iter, &s_iter);
+
+			if (func)
+				func(GTK_TREE_MODEL(model), NULL, &iter, user_data);
+
+		} while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter));
+	} else {
+		gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, target, NULL);
+		capplet_tree_store_move_object(GTK_TREE_MODEL(model),
+		    &iter, source);
+
+		if (func)
+			func(GTK_TREE_MODEL(model), NULL, &iter, user_data);
+
+	}
+	/* Remove the parent */
+	gtk_tree_store_remove(GTK_TREE_STORE(model), source);
+}
+
+void
+capplet_tree_store_exclude_children(GtkTreeStore *model,
+    GtkTreeIter *source,
+    GtkTreeModelForeachFunc func,
+    gpointer user_data)
+{
+	GtkTreeIter target;
+	GtkTreeIter t_iter;
+	GtkTreeIter s_iter;
+	GtkTreeIter iter;
+
+	if (gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &s_iter, source)) {
+		do {
+			/* Take care if there are customer monitoring
+			 * row-add/delete signals */
+			gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, NULL, source);
+			capplet_tree_store_move_object(GTK_TREE_MODEL(model),
+			    &iter, &s_iter);
+
+			if (func)
+				func(GTK_TREE_MODEL(model), NULL, &iter, user_data);
+
+		} while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter));
+
+		/* Remove the parent */
+		gtk_tree_store_remove(GTK_TREE_STORE(model), source);
+	} else {
+		if (gtk_tree_model_iter_parent(GTK_TREE_MODEL(model), &target, source)) {
+
+			gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, NULL, &target);
+			capplet_tree_store_move_object(GTK_TREE_MODEL(model),
+			    &iter, source);
+
+			if (func)
+				func(GTK_TREE_MODEL(model), NULL, &iter, user_data);
+
+			if (!gtk_tree_store_remove(GTK_TREE_STORE(model), source)) {
+				/* Doesn't have sibling, delete parent */
+				gtk_tree_store_remove(GTK_TREE_STORE(model), &target);
+			}
+
+		} else {
+			/* Nothing to do is no parent? */
+			return;
+		}
+	}
+}
+
+gboolean
+capplet_tree_view_expand_row(GtkTreeView *treeview,
+    GtkTreeIter *iter,
+    gboolean open_all)
+{
+	GtkTreePath *path = gtk_tree_model_get_path(gtk_tree_view_get_model(treeview), iter);
+	gboolean ret = gtk_tree_view_expand_row(treeview, path, open_all);
+	gtk_tree_path_free(path);
+	return ret;
+}
+
+gboolean
+capplet_tree_view_collapse_row(GtkTreeView *treeview,
+    GtkTreeIter *iter)
+{
+	GtkTreePath *path = gtk_tree_model_get_path(gtk_tree_view_get_model(treeview), iter);
+	gboolean ret = gtk_tree_view_collapse_row(treeview, path);
+	gtk_tree_path_free(path);
+	return ret;
 }
