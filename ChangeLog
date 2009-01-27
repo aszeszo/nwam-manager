@@ -1,3 +1,10 @@
+2009-01-27  Calum Benson  <calum.benson@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Change BSSID entry from a text field to a list in the 
+	add_wireless_network dialog, per discussion with Darren.
+
 2009-01-22  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_stat_panel.c: (on_nwam_enm_notify_cb):
