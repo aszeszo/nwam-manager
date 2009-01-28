@@ -89,11 +89,13 @@ typedef enum {
 } nwamui_env_nameservices_t;
 
 
-extern  NwamuiEnv*          nwamui_env_new ( gchar* name );
+extern NwamuiEnv*           nwamui_env_new ( gchar* name );
 
-extern	NwamuiEnv*			nwamui_env_new_with_handle (nwam_loc_handle_t envh);
+extern NwamuiEnv*			nwamui_env_new_with_handle (nwam_loc_handle_t envh);
 
-extern  NwamuiEnv*          nwamui_env_clone( NwamuiEnv* self );
+extern gboolean             nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh);
+
+extern NwamuiEnv*           nwamui_env_clone( NwamuiEnv* self );
 
 extern void                 nwamui_env_set_name ( NwamuiEnv *self, const gchar* name );
 extern gchar*               nwamui_env_get_name ( NwamuiEnv *self );
@@ -262,7 +264,10 @@ extern void                 nwamui_env_svc_foreach (NwamuiEnv *self, GtkTreeMode
 
 extern gboolean             nwamui_env_activate (NwamuiEnv *self);
 
-extern gboolean             nwamui_env_commit (NwamuiEnv *self);
+extern gboolean             nwamui_env_has_modifications( NwamuiEnv* self );
+extern gboolean             nwamui_env_commit( NwamuiEnv* self );
+extern gboolean             nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret );
+extern void                 nwamui_env_reload( NwamuiEnv* self );
 
 G_END_DECLS
 

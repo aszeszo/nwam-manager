@@ -1249,50 +1249,6 @@ nwamui_daemon_remove_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* wifi )
     }
 }
 
-static gint
-compare_essid_bssid( gconstpointer _a, gconstpointer _b )
-{
-    NwamuiWifiNet* a = NWAMUI_WIFI_NET(_a); 
-    NwamuiWifiNet *b = NWAMUI_WIFI_NET(_b);
-    gint rval = -1;
-    gchar *essid_a = NULL;
-    gchar *essid_b = NULL;
-    gchar *bssid_a = NULL;
-    gchar *bssid_b = NULL;
-
-    g_return_val_if_fail( NWAMUI_IS_WIFI_NET(a) && NWAMUI_IS_WIFI_NET(b), rval );
-
-    essid_a = nwamui_wifi_net_get_essid( a );
-    essid_b = nwamui_wifi_net_get_essid( b );
-
-    if ( essid_a == NULL && essid_b == NULL ) {
-        rval = 0;
-    }
-    else if ( essid_a == NULL || essid_b == NULL ) {
-        rval = essid_a == NULL ? -1:1;
-    }
-    else if ( ( rval = strcmp(essid_a, essid_b)) == 0 ) {
-        bssid_a = nwamui_wifi_net_get_bssid( a );
-        bssid_b = nwamui_wifi_net_get_bssid( b );
-
-        if ( bssid_a == NULL && bssid_b == NULL ) {
-            rval = 0;
-        }
-        else if ( bssid_a == NULL || bssid_b == NULL ) {
-            rval = bssid_a == NULL ? -1:1;
-        }
-        else {
-            rval = strcmp(bssid_a, bssid_b);
-        }
-        g_free( bssid_a );
-        g_free( bssid_b );
-    }
-
-    g_free( essid_a );
-    g_free( essid_b );
-    return( rval );
-}
-
 /**
  * nwamui_daemon_set_fav_wifi_networks:
  * @self: NwamuiDaemon*
@@ -1323,7 +1279,7 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
          *    
          */
         GList* merged_list = self->prv->wifi_fav_list; /* Work on original list */
-        GList *old_copy = nwamui_daemon_get_fav_wifi_networks(self);
+        GList *old_copy = nwamui_util_copy_obj_list(self->prv->wifi_fav_list); /* Get a copy to work with */
         GList *new_items = NULL;
 
         for( GList* item = g_list_first( new_list ); 
@@ -1331,8 +1287,9 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
              item = g_list_next( item ) ) {
             GList* found_item = NULL;
             
-            if ( (found_item = g_list_find_custom( old_copy, item->data, compare_essid_bssid )) != NULL ) {
+            if ( (found_item = g_list_find_custom( old_copy, item->data, (GCompareFunc)nwamui_wifi_net_compare )) != NULL ) {
                 /* Same */
+                nwamui_wifi_net_update_with_handle( NWAMUI_WIFI_NET( found_item->data ), NULL ); /* Re-read configuration */
                 g_object_unref(G_OBJECT(found_item->data));
                 old_copy = g_list_delete_link( old_copy, found_item );
             }
@@ -2674,7 +2631,7 @@ nwam_known_wlan_walker_cb (nwam_known_wlan_handle_t wlan_h, void *data)
         
     g_debug ("nwam_known_wlan_walker_cb 0x%p", wlan_h );
     
-    wifi = nwamui_wifi_net_new_from_handle( NULL, wlan_h );
+    wifi = nwamui_wifi_net_new_with_handle( NULL, wlan_h );
         
     (*glist_p) = g_list_append((*glist_p), (gpointer)wifi );
 

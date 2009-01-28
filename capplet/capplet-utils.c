@@ -298,6 +298,9 @@ capplet_active_mode_renderer_cell_cb (GtkTreeViewColumn *col,
     case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
             object_markup= g_strdup_printf(_("<b>%s</b>"), "C");
             break;
+    case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
+            object_markup= g_strdup_printf(_("<b>%s</b>"), "A");
+            break;
     default:
             g_assert_not_reached();
             break;

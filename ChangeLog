@@ -1,3 +1,38 @@
+2009-01-28  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	  Update to hide the proxy tab, which is not being used in Phase 1,
+	  and fix icon references to use relative path "icons/network-idle.png"
+	* capplet/capplet-utils.c: 
+	  Add case option for activation mode CONDITIONAL_ALL.
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Block "changed" handlers when setting programmatically. Add code to
+	  stop switch if there are un-saved modifications.
+	* common/libnwamui.c: 
+	  Add case option for activation mode CONDITIONAL_ALL.
+	* common/nwamui_cond.h:
+	  Correct activation modes to match order in libnwam.h and also
+	  include new CONDITIONAL_ANY option.
+	* common/nwamui_daemon.c: 
+	  Use NwamuiWifiNet compare function, and if an object is found to be
+	  the same, then re-read it's configuration to be the latest.
+	* common/nwamui_enm.h, common/nwamui_enm.c: 
+	  Add functions to commit/validate/reload and check for modifications.
+	* common/nwamui_env.h, common/nwamui_env.c: 
+	  Add functions to commit/validate/reload and check for modifications.
+	* common/nwamui_ncp.c: 
+	  Determine NCP read-only/modifiable status based off NCU objects
+	  below - this is how nwamcfg does it since an NCP doesn't have this
+	  value in itself.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Add code to monitor modification of the NCU object to know when
+	  there is something to be saved. Also added commit/verify/reload
+	  functions.
+	* common/nwamui_wifi_net.c, common/nwamui_wifi_net.h:
+	  Add function to compare two NwamuiWifiNet objects, and also store
+	  known_wlan handle, and add a function to update the object if
+	  provided with this.
+
 2009-01-27  Calum Benson  <calum.benson@sun.com>
 
 	* capplet/nwam-manager-properties.glade:

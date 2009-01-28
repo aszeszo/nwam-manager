@@ -823,6 +823,11 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
         g_debug("Updating existing ncu (%s) from handle 0x%08X", name, ncu );
         nwamui_ncu_update_with_handle( new_ncu, ncu);
 
+        if ( prv->modifiable && nwamui_ncu_is_readonly(new_ncu) ) {
+            /* Assumption is that if any NCU is readonly, then the NCP is */
+            prv->modifiable = FALSE; 
+        }
+
         /*
          * Remove from temp_ncu_list, which is being used to find NCUs that
          * have been removed from the system.
@@ -902,6 +907,10 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
         self->prv->temp_ncu_list = NULL;
     }
 
+    /* Assume true, unless an NCU is read-only, which implies the NCP is since
+     * the NCP doesn't have it's own property to check 
+     */
+    self->prv->modifiable = TRUE; 
     nwam_ncp_walk_ncus( self->prv->nwam_ncp, nwam_ncu_walker_cb, (void*)self,
                         NWAM_FLAG_NCU_TYPE_CLASS_ALL, &cb_ret );
 

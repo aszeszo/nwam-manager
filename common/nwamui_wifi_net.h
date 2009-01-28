@@ -121,10 +121,14 @@ extern  NwamuiWifiNet*              nwamui_wifi_net_new(    struct _NwamuiNcu   
                                                             nwamui_wifi_bss_type_t           bss_type,
                                                             nwamui_wifi_wpa_config_t         wpa_config );
 
-extern  NwamuiWifiNet*              nwamui_wifi_net_new_from_handle(    struct _NwamuiNcu               *ncu,
+extern  NwamuiWifiNet*              nwamui_wifi_net_new_with_handle(    struct _NwamuiNcu               *ncu,
                                                                         nwam_known_wlan_handle_t         handle );
 
+extern gboolean                     nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_t  handle );
+
 extern void                         nwamui_wifi_net_connect ( NwamuiWifiNet *self );
+
+extern gint                         nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other );
 
 extern gboolean                     nwamui_wifi_net_create_favourite ( NwamuiWifiNet *self );
 

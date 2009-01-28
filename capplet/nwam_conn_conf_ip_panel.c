@@ -616,6 +616,7 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
         }
     }
     
+    g_signal_handlers_block_by_func(G_OBJECT(prv->ipv4_addr_entry ), (gpointer)ipv4_addr_changed_cb, (gpointer)self);
     if ( ipv4_address != NULL ) { 
           gtk_label_set_text(GTK_LABEL(prv->ipv4_addr_lbl), ipv4_address);
           gtk_entry_set_text(GTK_ENTRY(prv->ipv4_addr_entry), ipv4_address);
@@ -624,7 +625,9 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
           gtk_label_set_text(GTK_LABEL(prv->ipv4_addr_lbl), "");
           gtk_entry_set_text(GTK_ENTRY(prv->ipv4_addr_entry), "");
     }
+    g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv4_addr_entry ), (gpointer)ipv4_addr_changed_cb, (gpointer)self);
     
+    g_signal_handlers_block_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
     if ( ipv4_subnet != NULL ) { 
           gtk_label_set_text(GTK_LABEL(prv->ipv4_subnet_lbl), ipv4_subnet);
           gtk_entry_set_text(GTK_ENTRY(prv->ipv4_subnet_entry), ipv4_subnet);
@@ -633,6 +636,7 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
           gtk_label_set_text(GTK_LABEL(prv->ipv4_subnet_lbl), "");
           gtk_entry_set_text(GTK_ENTRY(prv->ipv4_subnet_entry), "");
     }
+    g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
 
     if ( set_initial_state ) {
         if ( ! ipv6_active ) { 
@@ -694,7 +698,12 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     if ( ! NWAMUI_IS_NCU(ncu) ) {
         return( init_refresh );
     }
-    
+    if ( !force && self->prv->ncu != NULL && 
+         nwamui_ncu_has_modifications( self->prv->ncu ) ) {
+         /* There are unsaved modifications, stop switch */
+         return( FALSE );
+    }
+
     if (self->prv->ncu != ncu) {
         init_refresh = TRUE;
 

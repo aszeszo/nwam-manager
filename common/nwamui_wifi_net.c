@@ -41,6 +41,7 @@ static GObjectClass *parent_class = NULL;
 
 
 struct _NwamuiWifiNetPrivate {
+        nwam_known_wlan_handle_t        known_wlan_h;
         gchar                          *essid;            
         NwamuiNcu                      *ncu;
         nwamui_wifi_security_t          security;
@@ -635,37 +636,135 @@ nwamui_wifi_net_new(NwamuiNcu                       *ncu,
     return( self );
 }
 
-extern  NwamuiWifiNet*
-nwamui_wifi_net_new_from_handle(    NwamuiNcu                       *ncu,
-                                    nwam_known_wlan_handle_t         handle )
+extern gboolean
+nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_t  handle )
 {
-    NwamuiWifiNet*  self = NULL;
     gchar*          name = NULL;
-    guint64         prio = 0;
     gchar**         bssid_strv = NULL;
-    GList*          bssid_list = NULL;
     nwam_error_t    nerr;
-    
-    self = NWAMUI_WIFI_NET(g_object_new (NWAMUI_TYPE_WIFI_NET, NULL));
 
-    if ( (nerr = nwam_known_wlan_get_name(handle, &name)) != NWAM_SUCCESS) {
-        g_warning("Error getting name of known wlan: %s", nwam_strerror(nerr));
-        g_free( self );
-        return( NULL );
+    /* Accept NULL to allow for simple re-read from system */
+    if ( handle != NULL ) {
+        char*   _name = NULL;
+        if ( (nerr = nwam_known_wlan_get_name(handle, &_name)) != NWAM_SUCCESS) {
+            g_warning("Error getting name of known wlan: %s", nwam_strerror(nerr));
+            return( FALSE );
+        }
+        name = g_strdup( _name );
+        free(_name);
+    }
+    else if ( self->prv->essid != NULL ) {
+        name = g_strdup( self->prv->essid );
+    }
+    else {
+        g_warning("Request to update known_wlan without valid handle or name");
+        return( FALSE );
     }
 
-    self->prv->ncu = ncu;
+    nerr = nwam_known_wlan_read (name, 0, &self->prv->known_wlan_h);
+
+    if (nerr != NWAM_SUCCESS) {
+        g_error ("nwamui_wifi_net_update_with_handle failed to read nwam_known_wlan handle %s", name );
+        return (FALSE);
+    }
+
     self->prv->essid = g_strdup( name );
-    free(name);
 
     self->prv->priority = get_nwam_known_wlan_uint64_prop( handle, NWAM_KNOWN_WLAN_PROP_PRIORITY );
 
     bssid_strv = get_nwam_known_wlan_string_array_prop( handle, NWAM_KNOWN_WLAN_PROP_BSSIDS );
+    if ( self->prv->bssid_list != NULL ) {
+        /* TODO: Consider merging lists here */
+        g_list_foreach( self->prv->bssid_list, (GFunc)g_free, NULL );
+        g_list_free( self->prv->bssid_list );
+    }
     self->prv->bssid_list = nwamui_util_strv_to_glist( bssid_strv );
     
     g_strfreev( bssid_strv );
+    g_free(name);
+
+    return(TRUE);
+}
+
+
+extern  NwamuiWifiNet*
+nwamui_wifi_net_new_with_handle(    NwamuiNcu                       *ncu,
+                                    nwam_known_wlan_handle_t         handle )
+{
+    NwamuiWifiNet*  self = NULL;
+    
+    self = NWAMUI_WIFI_NET(g_object_new (NWAMUI_TYPE_WIFI_NET, NULL));
+
+    if ( ! nwamui_wifi_net_update_with_handle( self, handle ) ) {
+        g_object_unref(self);
+        return( NULL );
+    }
+
+    if ( ncu != NULL ) {
+        self->prv->ncu = NWAMUI_NCU(g_object_ref(ncu));
+    }
 
     return(self);
+}
+
+/** 
+ * Compare WifiNet objects, returns values like strcmp().
+ */
+extern gint
+nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other )
+{
+    gint rval = -1;
+
+    if ( !( NWAMUI_IS_WIFI_NET(self) && NWAMUI_IS_WIFI_NET(other) ) ) {
+        return( rval );
+    }
+
+    if ( self->prv->essid == NULL && other->prv->essid == NULL ) {
+        rval = 0;
+    }
+    else if ( self->prv->essid == NULL || other->prv->essid == NULL ) {
+        rval = self->prv->essid == NULL ? -1:1;
+    }
+    else if ( ( rval = strcmp(self->prv->essid, other->prv->essid)) == 0 ) {
+        /* Now need to look at BSSID */
+        if ( self->prv->bssid == NULL && other->prv->bssid == NULL ) {
+            rval = 0;
+        }
+        else if ( self->prv->bssid == NULL || other->prv->bssid == NULL ) {
+            rval = self->prv->bssid == NULL ? -1:1;
+        }
+        else  {
+            if ( ( rval = strcmp(self->prv->bssid, other->prv->bssid)) == 0 ) {
+                /* Same bssid, so return now */
+            }
+            else {
+                /* Now need to look at BSSID List too if we've no match so far */
+                if ( self->prv->bssid_list == NULL && other->prv->bssid_list == NULL ) {
+                    /* Use rval from previous strcmp */
+                }
+                else {
+                    if ( self->prv->bssid_list != NULL ) {
+                        /* Look for a match between other bssid and an entry in the
+                         * own bssid_list */
+                        GList *match = g_list_find_custom( self->prv->bssid_list, other->prv->bssid, (GCompareFunc)strcmp );
+                        if ( match != NULL ) {
+                            rval = 0;
+                        }
+                    }
+                    if ( rval != 0 && other->prv->bssid_list != NULL ) {
+                        /* Look for a match between own bssid and an entry in the
+                         * other bssid_list */
+                        GList *match = g_list_find_custom( other->prv->bssid_list, self->prv->bssid, (GCompareFunc)strcmp );
+                        if ( match != NULL ) {
+                            rval = 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return( rval );
 }
 
 /**

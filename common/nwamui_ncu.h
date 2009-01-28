@@ -85,8 +85,13 @@ typedef enum {
 
 extern struct _NwamuiNcp;
 
-extern  NwamuiNcu*          nwamui_ncu_new_with_handle( struct _NwamuiNcp* ncp, nwam_ncu_handle_t ncu );
+extern NwamuiNcu*           nwamui_ncu_new_with_handle( struct _NwamuiNcp* ncp, nwam_ncu_handle_t ncu );
 extern void                 nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   );
+
+extern gboolean             nwamui_ncu_has_modifications( NwamuiNcu* self );
+extern gboolean             nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret );
+extern gboolean             nwamui_ncu_commit( NwamuiNcu* self );
+extern void                 nwamui_ncu_reload( NwamuiNcu* self );
 
 extern gchar*               nwamui_ncu_get_vanity_name ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name );
@@ -160,6 +165,9 @@ extern void                 nwamui_ncu_set_activation_mode ( NwamuiNcu *self,
 extern nwamui_cond_activation_mode_t 
                             nwamui_ncu_get_activation_mode ( NwamuiNcu *self );
 
+
+extern void                 nwamui_ncu_set_readonly ( NwamuiNcu *self, gboolean readonly );
+extern gboolean             nwamui_ncu_is_readonly ( NwamuiNcu *self );
 
 extern void                 nwamui_ncu_set_enabled ( NwamuiNcu *self, gboolean enabled );
 extern gboolean             nwamui_ncu_get_enabled ( NwamuiNcu *self );

@@ -101,7 +101,10 @@ extern GList*               nwamui_enm_get_selection_conditions( NwamuiEnm* self
 
 extern void                 nwamui_enm_set_selection_conditions( NwamuiEnm* self, GList* conditions );
 
-extern gboolean             nwamui_enm_commit (NwamuiEnm *self);
+extern gboolean             nwamui_enm_has_modifications( NwamuiEnm* self );
+extern gboolean             nwamui_enm_validate( NwamuiEnm* self, gchar **prop_name_ret );
+extern gboolean             nwamui_enm_commit( NwamuiEnm* self );
+extern void                 nwamui_enm_reload( NwamuiEnm* self );
 
 G_END_DECLS
 

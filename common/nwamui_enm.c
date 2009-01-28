@@ -45,6 +45,7 @@ struct _NwamuiEnmPrivate {
     gchar*               smf_fmri;
 
     nwam_enm_handle_t	nwam_enm;
+    gboolean        	nwam_enm_modified;
 };
 
 enum {
@@ -316,6 +317,7 @@ nwamui_enm_set_property (   GObject         *object,
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
     }
+    self->prv->nwam_enm_modified = TRUE;
 }
 
 static void
@@ -701,15 +703,13 @@ set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 
 
 
 /**
- * nwamui_enm_new_with_handle:
- * @returns: a new #NwamuiEnm.
+ * nwamui_enm_update_with_handle:
+ * @returns: TRUE if successfully updated
  *
  **/
-extern  NwamuiEnm*          
-nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
+extern gboolean
+nwamui_enm_update_with_handle (NwamuiEnm* self, nwam_enm_handle_t enm)
 {
-    NwamuiEnm*      self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM,
-                                   NULL));
     char*           name = NULL;
     gboolean        enabled = FALSE;
     gchar*          smf_fmri = NULL;
@@ -720,10 +720,12 @@ nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
     
     if ( (nerr = nwam_enm_get_name (enm, &name)) != NWAM_SUCCESS ) {
         g_debug ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
+        return( FALSE );
     }
 
     if ( ( nerr = nwam_enm_read (name, 0, &nwam_enm) ) != NWAM_SUCCESS ) {
         g_debug ("Failed to create private handle for enm, error: %s", nwam_strerror (nerr));
+        return( FALSE );
     }
 
     smf_fmri = get_nwam_enm_string_prop( enm, NWAM_ENM_PROP_FMRI );
@@ -734,13 +736,53 @@ nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
 
     stop_command = get_nwam_enm_string_prop( enm, NWAM_ENM_PROP_STOP );
 
+    if ( self->prv->nwam_enm != NULL ) {
+         nwam_enm_free(self->prv->nwam_enm);
+    }
     self->prv->nwam_enm = nwam_enm;
 
+    if ( self->prv->name != NULL ) {
+         g_free(self->prv->name);
+    }
     self->prv->name = name;
+
     self->prv->active = enabled;
+
+    if ( self->prv->smf_fmri != NULL ) {
+         g_free(self->prv->smf_fmri);
+    }
     self->prv->smf_fmri = smf_fmri;
+
+    if ( self->prv->start_command != NULL ) {
+         g_free(self->prv->start_command);
+    }
     self->prv->start_command = start_command;
+
+    if ( self->prv->stop_command != NULL ) {
+         g_free(self->prv->stop_command);
+    }
     self->prv->stop_command = stop_command;
+
+    self->prv->nwam_enm_modified = FALSE;
+
+    return( TRUE );
+}
+
+/**
+ * nwamui_enm_new_with_handle:
+ * @returns: a new #NwamuiEnm.
+ *
+ **/
+extern  NwamuiEnm*          
+nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
+{
+    NwamuiEnm*      self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM,
+                                   NULL));
+    
+    if ( ! nwamui_enm_update_with_handle (self, enm) ) {
+        g_object_unref( self );
+        return( NULL );
+    }
     
     return( self );
 }
@@ -993,16 +1035,85 @@ nwamui_enm_set_selection_conditions( NwamuiEnm* self, GList* conditions )
                   NULL);
 }
 
-
-extern gboolean
-nwamui_enm_commit (NwamuiEnm *self)
+/**
+ * nwamui_enm_reload:   re-load stored configuration
+ **/
+extern void
+nwamui_enm_reload( NwamuiEnm* self )
 {
-    nwam_error_t nerr;
+    g_return_if_fail( NWAMUI_IS_ENM(self) );
 
-    g_return_val_if_fail( self != NULL, NWAM_ERROR_INTERNAL);
+    /* nwamui_enm_update_with_handle will cause re-read from configuration */
+    g_object_freeze_notify(G_OBJECT(self));
 
-    nerr = nwam_enm_commit (self->prv->nwam_enm, 0);
-    return nerr == NWAM_SUCCESS;
+    if ( self->prv->nwam_enm != NULL ) {
+        nwamui_enm_update_with_handle( self, self->prv->nwam_enm );
+    }
+
+    g_object_thaw_notify(G_OBJECT(self));
+}
+
+/**
+ * nwamui_enm_has_modifications:   test if there are un-saved changes
+ * @returns: TRUE if unsaved changes exist.
+ **/
+extern gboolean
+nwamui_enm_has_modifications( NwamuiEnm* self )
+{
+    if ( NWAMUI_IS_ENM(self) && self->prv->nwam_enm_modified ) {
+        return( TRUE );
+    }
+
+    return( FALSE );
+}
+
+/**
+ * nwamui_enm_validate:   validate in-memory configuration
+ * @prop_name_ret:  If non-NULL, the name of the property that failed will be
+ *                  returned, should be freed by caller.
+ * @returns: TRUE if valid, FALSE if failed
+ **/
+extern gboolean
+nwamui_enm_validate( NwamuiEnm* self, gchar **prop_name_ret )
+{
+    nwam_error_t    nerr;
+    const char*     prop_name = NULL;
+
+    g_return_val_if_fail( NWAMUI_IS_ENM(self), FALSE );
+
+    if ( self->prv->nwam_enm_modified && self->prv->nwam_enm != NULL ) {
+        if ( (nerr = nwam_enm_validate( self->prv->nwam_enm, &prop_name ) ) != NWAM_SUCCESS ) {
+            g_debug("Failed when validating ENM for %s : invalid value for %s", 
+                    self->prv->name, prop_name);
+            if ( prop_name_ret != NULL ) {
+                *prop_name_ret = g_strdup( prop_name );
+            }
+            return( FALSE );
+        }
+    }
+
+    return( TRUE );
+}
+
+/**
+ * nwamui_enm_commit:   commit in-memory configuration, to persistant storage
+ * @returns: TRUE if succeeded, FALSE if failed
+ **/
+extern gboolean
+nwamui_enm_commit( NwamuiEnm* self )
+{
+    nwam_error_t    nerr;
+
+    g_return_val_if_fail( NWAMUI_IS_ENM(self), FALSE );
+
+    if ( self->prv->nwam_enm_modified && self->prv->nwam_enm != NULL ) {
+        if ( (nerr = nwam_enm_commit( self->prv->nwam_enm, 0 ) ) != NWAM_SUCCESS ) {
+            g_warning("Failed when committing ENM for %s", self->prv->name);
+            return( FALSE );
+        }
+    }
+
+    return( TRUE );
 }
 
 static void

@@ -502,6 +502,8 @@ nwamui_util_get_active_mode_icon( NwamuiObject *object  )
         return GTK_STOCK_GO_UP;
     case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
         return GTK_STOCK_GO_DOWN;
+    case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
+        return GTK_STOCK_GO_DOWN;
     default:
         g_assert_not_reached();
         break;

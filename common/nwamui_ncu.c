@@ -50,14 +50,19 @@ static GObjectClass *parent_class = NULL;
 struct _NwamuiNcuPrivate {
         NwamuiNcp*                      ncp;  /* Parent NCP */
         nwam_ncu_handle_t               nwam_ncu_phys;
+        gboolean                        nwam_ncu_phys_modified;
         nwam_ncu_handle_t               nwam_ncu_ip;
+        gboolean                        nwam_ncu_ip_modified;
         nwam_ncu_handle_t               nwam_ncu_iptun;
+        gboolean                        nwam_ncu_iptun_modified;
+
         gboolean                        active;
 
         /* General Properties */
         gchar*                          vanity_name;
         gchar*                          device_name;
         nwamui_ncu_type_t               ncu_type;
+        gboolean                        read_only;
 
         /* IPTun Properties */
         nwam_iptun_type_t               tun_type; 
@@ -85,6 +90,7 @@ enum {
         PROP_PHY_ADDRESS,
         PROP_NCU_TYPE,
         PROP_ACTIVE,
+        PROP_READONLY,
         PROP_SPEED,
         PROP_MTU,
         PROP_IPV4_DHCP,
@@ -230,6 +236,14 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           _("active"),
                                                           FALSE,
                                                           G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_READONLY,
+                                     g_param_spec_boolean ("readonly",
+                                                          _("readonly"),
+                                                          _("readonly"),
+                                                          FALSE,
+                                                          G_PARAM_READABLE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_SPEED,
@@ -405,6 +419,10 @@ nwamui_ncu_init (NwamuiNcu *self)
     self->prv->nwam_ncu_ip = NULL;
     self->prv->nwam_ncu_iptun = NULL;
 
+    self->prv->nwam_ncu_phys_modified = FALSE;
+    self->prv->nwam_ncu_ip_modified = FALSE;
+    self->prv->nwam_ncu_iptun_modified = FALSE;
+
     self->prv->vanity_name = NULL;
     self->prv->device_name = NULL;
     self->prv->ncu_type = NWAMUI_NCU_TYPE_WIRED;
@@ -420,6 +438,9 @@ nwamui_ncu_init (NwamuiNcu *self)
     g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-deleted", (GCallback)ip_row_deleted_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-changed", (GCallback)ip_row_inserted_or_changed_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-inserted", (GCallback)ip_row_inserted_or_changed_cb, (gpointer)self);
+    g_signal_connect(G_OBJECT(self->prv->v6addresses), "row-deleted", (GCallback)ip_row_deleted_cb, (gpointer)self);
+    g_signal_connect(G_OBJECT(self->prv->v6addresses), "row-changed", (GCallback)ip_row_inserted_or_changed_cb, (gpointer)self);
+    g_signal_connect(G_OBJECT(self->prv->v6addresses), "row-inserted", (GCallback)ip_row_inserted_or_changed_cb, (gpointer)self);
 }
 
 static void
@@ -460,6 +481,7 @@ nwamui_ncu_set_property ( GObject         *object,
         case PROP_PHY_ADDRESS: {
                 const gchar* mac_addr = g_strdup( g_value_get_string( value ) );
                 set_nwam_ncu_string_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_LINK_MAC_ADDR, mac_addr );
+                self->prv->nwam_ncu_phys_modified = TRUE;
             }
             break;
         case PROP_NCU_TYPE: {
@@ -473,6 +495,7 @@ nwamui_ncu_set_property ( GObject         *object,
         case PROP_MTU: {
                 guint64 mtu = g_value_get_uint( value );
                 set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_LINK_MTU, mtu );
+                self->prv->nwam_ncu_phys_modified = TRUE;
             }
             break;
         case PROP_IPV4_DHCP: {
@@ -486,10 +509,14 @@ nwamui_ncu_set_property ( GObject         *object,
                                                     dhcp, FALSE, FALSE );
                     GtkTreeIter iter;
 
+                    g_signal_handlers_block_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                     gtk_list_store_insert(self->prv->v4addresses, &iter, 0 );
                     gtk_list_store_set(self->prv->v4addresses, &iter, 0, ip, -1 );
+                    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                     self->prv->ipv4_primary_ip = ip;
                 }
+                self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV4_AUTO_CONF: {
@@ -503,10 +530,14 @@ nwamui_ncu_set_property ( GObject         *object,
                                                     FALSE, auto_conf, FALSE );
                     GtkTreeIter iter;
 
+                    g_signal_handlers_block_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                     gtk_list_store_insert(self->prv->v4addresses, &iter, 0 );
                     gtk_list_store_set(self->prv->v4addresses, &iter, 0, ip, -1 );
+                    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                     self->prv->ipv4_primary_ip = ip;
                 }
+                self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV4_ADDRESS: {
@@ -521,10 +552,14 @@ nwamui_ncu_set_property ( GObject         *object,
                                                         FALSE, FALSE, TRUE );
                         GtkTreeIter iter;
 
+                        g_signal_handlers_block_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                         gtk_list_store_insert(self->prv->v4addresses, &iter, 0 );
                         gtk_list_store_set(self->prv->v4addresses, &iter, 0, ip, -1 );
+                        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                         self->prv->ipv4_primary_ip = ip;
                     }
+                    self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                 }
             }
             break;
@@ -540,15 +575,21 @@ nwamui_ncu_set_property ( GObject         *object,
                                                         FALSE, FALSE, TRUE );
                         GtkTreeIter iter;
 
+                        g_signal_handlers_block_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                         gtk_list_store_insert(self->prv->v4addresses, &iter, 0 );
                         gtk_list_store_set(self->prv->v4addresses, &iter, 0, ip, -1 );
+                        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                         self->prv->ipv4_primary_ip = ip;
                     }
+                    self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                 }
             }
             break;
         case PROP_IPV6_ACTIVE: {
                 self->prv->ipv6_active = g_value_get_boolean( value );
+                self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV6_DHCP: {
@@ -562,10 +603,14 @@ nwamui_ncu_set_property ( GObject         *object,
                                                     dhcp, FALSE, FALSE );
                     GtkTreeIter iter;
 
+                    g_signal_handlers_block_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                     gtk_list_store_insert(self->prv->v6addresses, &iter, 0 );
                     gtk_list_store_set(self->prv->v6addresses, &iter, 0, ip, -1 );
+                    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                     self->prv->ipv6_primary_ip = ip;
                 }
+                self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV6_AUTO_CONF: {
@@ -579,10 +624,14 @@ nwamui_ncu_set_property ( GObject         *object,
                                                     FALSE, auto_conf, FALSE );
                     GtkTreeIter iter;
 
+                    g_signal_handlers_block_by_func(G_OBJECT(self->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                     gtk_list_store_insert(self->prv->v6addresses, &iter, 0 );
                     gtk_list_store_set(self->prv->v6addresses, &iter, 0, ip, -1 );
+                    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                     self->prv->ipv6_primary_ip = ip;
                 }
+                self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV6_ADDRESS: {
@@ -597,11 +646,15 @@ nwamui_ncu_set_property ( GObject         *object,
                                                         FALSE, FALSE, TRUE );
                         GtkTreeIter iter;
 
+                        g_signal_handlers_block_by_func(G_OBJECT(self->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                         gtk_list_store_insert(self->prv->v6addresses, &iter, 0 );
                         gtk_list_store_set(self->prv->v6addresses, &iter, 0, ip, -1 );
+                        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                         self->prv->ipv6_primary_ip = ip;
                     }
                 }
+                self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV6_PREFIX: {
@@ -616,20 +669,28 @@ nwamui_ncu_set_property ( GObject         *object,
                                                         FALSE, FALSE, TRUE );
                         GtkTreeIter iter;
 
+                        g_signal_handlers_block_by_func(G_OBJECT(self->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                         gtk_list_store_insert(self->prv->v6addresses, &iter, 0 );
                         gtk_list_store_set(self->prv->v6addresses, &iter, 0, ip, -1 );
+                        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                         self->prv->ipv6_primary_ip = ip;
                     }
                 }
+                self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_V4ADDRESSES: {
                 self->prv->v4addresses = GTK_LIST_STORE(g_value_dup_object( value ));
+                self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
 
         case PROP_V6ADDRESSES: {
                 self->prv->v6addresses = GTK_LIST_STORE(g_value_dup_object( value ));
+                self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_WIFI_INFO: {
@@ -647,12 +708,14 @@ nwamui_ncu_set_property ( GObject         *object,
                     (nwamui_cond_activation_mode_t)g_value_get_int( value );
 
                 set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
+                self->prv->nwam_ncu_phys_modified = TRUE;
             }
             break;
 
         case PROP_ENABLED: {
                 gboolean enabled = g_value_get_boolean( value );
                 set_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED, enabled );
+                self->prv->nwam_ncu_phys_modified = TRUE;
             }
             break;
 
@@ -660,12 +723,14 @@ nwamui_ncu_set_property ( GObject         *object,
                 guint64 priority_group = g_value_get_uint( value );
 
                 set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_PRIORITY_GROUP, priority_group );
+                self->prv->nwam_ncu_phys_modified = TRUE;
             }
             break;
 
         case PROP_PRIORITY_GROUP_MODE: {
                 guint64 priority_mode = g_value_get_int( value );
                 set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_PRIORITY_MODE, priority_mode );
+                self->prv->nwam_ncu_phys_modified = TRUE;
             }
             break;
 
@@ -674,6 +739,7 @@ nwamui_ncu_set_property ( GObject         *object,
                 gchar** autopush_strs = nwamui_util_glist_to_strv( autopush );
                 set_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_LINK_AUTOPUSH, autopush_strs, 0 );
                 g_strfreev(autopush_strs);
+                self->prv->nwam_ncu_phys_modified = TRUE;
             }
 
         case PROP_CONDITIONS: {
@@ -683,6 +749,7 @@ nwamui_ncu_set_property ( GObject         *object,
 
                 condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
                 set_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_CONDITIONS, condition_strs, len );
+                self->prv->nwam_ncu_phys_modified = TRUE;
             }
             break;
 
@@ -860,6 +927,14 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
 
+        case PROP_READONLY: {
+                boolean_t	read_only = B_FALSE;
+                nwam_ncu_get_read_only(self->prv->nwam_ncu_phys, &read_only);
+                g_value_set_boolean( value, read_only?TRUE:FALSE);
+
+            }
+            break;
+
         case PROP_PRIORITY_GROUP: {
                 g_value_set_uint( value, (guint)get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys,
                                                       NWAM_NCU_PROP_PRIORITY_GROUP ) );
@@ -1034,8 +1109,10 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 
             GtkTreeIter iter;
 
+            g_signal_handlers_block_by_func(G_OBJECT(ncu->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
             gtk_list_store_insert(ncu->prv->v4addresses, &iter, 0 );
             gtk_list_store_set(ncu->prv->v4addresses, &iter, 0, ip, -1 );
+            g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
 
             if ( i == 0 ) {
                 ncu->prv->ipv4_primary_ip = NWAMUI_IP(g_object_ref(ip));
@@ -1070,8 +1147,10 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 
             GtkTreeIter iter;
 
+            g_signal_handlers_block_by_func(G_OBJECT(ncu->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
             gtk_list_store_insert(ncu->prv->v6addresses, &iter, 0 );
             gtk_list_store_set(ncu->prv->v6addresses, &iter, 0, ip, -1 );
+            g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
 
             if ( i == 0 ) {
                 ncu->prv->ipv6_primary_ip = NWAMUI_IP(g_object_ref(ip));
@@ -1124,16 +1203,19 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
         case NWAM_NCU_CLASS_PHYS: {
                 /* CLASS PHYS is of type LINK, so has LINK props */
                 self->prv->nwam_ncu_phys = ncu;
+                self->prv->nwam_ncu_phys_modified = FALSE;
             }
             break;
         case NWAM_NCU_CLASS_IPTUN: {
                 self->prv->nwam_ncu_iptun = ncu;
                 populate_iptun_ncu_data( self, ncu );
+                self->prv->nwam_ncu_iptun_modified = FALSE;
             }
             break;
         case NWAM_NCU_CLASS_IP: {
                 self->prv->nwam_ncu_ip = ncu;
                 populate_ip_ncu_data( self, ncu );
+                self->prv->nwam_ncu_ip_modified = FALSE;
             }
             break;
         default:
@@ -1194,12 +1276,20 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
                 nwam_ncu_handle_t   ncu_handle;
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_LINK );
 
+                if ( self->prv->nwam_ncu_phys != NULL ) {
+                    nwam_ncu_free( self->prv->nwam_ncu_phys );
+                }
+
                 self->prv->nwam_ncu_phys = ncu_handle;
             }
             break;
         case NWAM_NCU_CLASS_IPTUN: {
                 nwam_ncu_handle_t   ncu_handle;
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_IP );
+
+                if ( self->prv->nwam_ncu_iptun != NULL ) {
+                    nwam_ncu_free( self->prv->nwam_ncu_iptun );
+                }
 
                 self->prv->nwam_ncu_iptun = ncu_handle;
                 populate_iptun_ncu_data( self, ncu_handle );
@@ -1210,6 +1300,11 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
 
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_IP );
 
+                if ( self->prv->nwam_ncu_ip != NULL ) {
+                    nwam_ncu_free( self->prv->nwam_ncu_ip );
+                }
+
+                self->prv->nwam_ncu_ip = ncu_handle;
                 populate_ip_ncu_data( self, ncu_handle );
             }
             break;
@@ -1271,6 +1366,136 @@ nwamui_ncu_new (    const gchar*        vanity_name,
     return( self );
 }
 
+/**
+ * nwamui_ncu_reload:   re-load stored configuration
+ **/
+extern void
+nwamui_ncu_reload( NwamuiNcu* self )
+{
+    g_return_if_fail( NWAMUI_IS_NCU(self) );
+
+    /* nwamui_ncu_update_with_handle will cause re-read from configuration */
+    g_object_freeze_notify(G_OBJECT(self));
+
+    if ( self->prv->nwam_ncu_phys != NULL ) {
+        g_debug("Reverting NCU PHYS for %s", self->prv->device_name);
+        nwamui_ncu_update_with_handle( self, self->prv->nwam_ncu_phys );
+    }
+
+    if ( self->prv->nwam_ncu_ip != NULL ) {
+        g_debug("Reverting NCU IP for %s", self->prv->device_name);
+        nwamui_ncu_update_with_handle( self, self->prv->nwam_ncu_ip );
+    }
+
+    if ( self->prv->nwam_ncu_iptun != NULL ) {
+        g_debug("Reverting NCU IPTUN for %s", self->prv->device_name);
+        nwamui_ncu_update_with_handle( self, self->prv->nwam_ncu_iptun );
+    }
+
+    g_object_thaw_notify(G_OBJECT(self));
+}
+
+/**
+ * nwamui_ncu_has_modifications:   test if there are un-saved changes
+ * @returns: TRUE if unsaved changes exist.
+ **/
+extern gboolean
+nwamui_ncu_has_modifications( NwamuiNcu* self )
+{
+    if ( NWAMUI_IS_NCU(self) &&
+          ( self->prv->nwam_ncu_phys_modified 
+         || self->prv->nwam_ncu_ip_modified 
+         || self->prv->nwam_ncu_iptun_modified) ) {
+        return( TRUE );
+    }
+
+    return( FALSE );
+}
+
+/**
+ * nwamui_ncu_validate:   validate in-memory configuration
+ * @prop_name_ret:  If non-NULL, the name of the property that failed will be
+ *                  returned, should be freed by caller.
+ * @returns: TRUE if valid, FALSE if failed
+ **/
+extern gboolean
+nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret )
+{
+    nwam_error_t    nerr;
+    const char*     prop_name = NULL;
+
+    g_return_val_if_fail( NWAMUI_IS_NCU(self), FALSE );
+
+    if ( self->prv->nwam_ncu_phys_modified && self->prv->nwam_ncu_phys != NULL ) {
+        if ( (nerr = nwam_ncu_validate( self->prv->nwam_ncu_phys, &prop_name ) ) != NWAM_SUCCESS ) {
+            g_debug("Failed when validating PHYS NCU for %s : invalid value for %s", 
+                    self->prv->device_name, prop_name);
+            if ( prop_name_ret != NULL ) {
+                *prop_name_ret = g_strdup( prop_name );
+            }
+            return( FALSE );
+        }
+    }
+
+    if ( self->prv->nwam_ncu_ip_modified && self->prv->nwam_ncu_ip != NULL ) {
+        if ( (nerr = nwam_ncu_validate( self->prv->nwam_ncu_ip, &prop_name )) != NWAM_SUCCESS ) {
+            g_debug("Failed when validating IP NCU for %s : invalid value for %s",
+                    self->prv->device_name, prop_name);
+            if ( prop_name_ret != NULL ) {
+                *prop_name_ret = g_strdup( prop_name );
+            }
+            return( FALSE );
+        }
+    }
+
+    if ( self->prv->nwam_ncu_iptun_modified && self->prv->nwam_ncu_iptun != NULL ) {
+        if ( (nerr = nwam_ncu_validate( self->prv->nwam_ncu_iptun, &prop_name )) != NWAM_SUCCESS ) {
+            g_debug("Failed when validating IPTUN NCU for %s : invalid value for %s",
+                    self->prv->device_name, prop_name);
+            if ( prop_name_ret != NULL ) {
+                *prop_name_ret = g_strdup( prop_name );
+            }
+            return( FALSE );
+        }
+    }
+
+    return( TRUE );
+}
+
+/**
+ * nwamui_ncu_commit:   commit in-memory configuration, to persistant storage
+ * @returns: TRUE if succeeded, FALSE if failed
+ **/
+extern gboolean
+nwamui_ncu_commit( NwamuiNcu* self )
+{
+    nwam_error_t    nerr;
+
+    g_return_val_if_fail( NWAMUI_IS_NCU(self), FALSE );
+
+    if ( self->prv->nwam_ncu_phys_modified && self->prv->nwam_ncu_phys != NULL ) {
+        if ( (nerr = nwam_ncu_commit( self->prv->nwam_ncu_phys, 0 ) ) != NWAM_SUCCESS ) {
+            g_warning("Failed when committing PHYS NCU for %s", self->prv->device_name);
+            return( FALSE );
+        }
+    }
+
+    if ( self->prv->nwam_ncu_ip_modified && self->prv->nwam_ncu_ip != NULL ) {
+        if ( (nerr = nwam_ncu_commit( self->prv->nwam_ncu_ip, 0 )) != NWAM_SUCCESS ) {
+            g_warning("Failed when committing IP NCU for %s", self->prv->device_name);
+            return( FALSE );
+        }
+    }
+
+    if ( self->prv->nwam_ncu_iptun_modified && self->prv->nwam_ncu_iptun != NULL ) {
+        if ( (nerr = nwam_ncu_commit( self->prv->nwam_ncu_iptun, 0 )) != NWAM_SUCCESS ) {
+            g_warning("Failed when committing IPTUN NCU for %s", self->prv->device_name);
+            return( FALSE );
+        }
+    }
+
+    return( TRUE );
+}
 /**
  * nwamui_ncu_get_vanity_name:
  * @returns: null-terminated C String with the vanity name of the the NCU.
@@ -2078,6 +2303,44 @@ nwamui_ncu_get_activation_mode (NwamuiNcu *self)
 }
 
 /** 
+ * nwamui_ncu_set_readonly:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @readonly: Value to set readonly to.
+ * 
+ **/ 
+extern void
+nwamui_ncu_set_readonly (   NwamuiNcu      *self,
+                           gboolean        readonly )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+
+    g_object_set (G_OBJECT (self),
+                  "readonly", readonly,
+                  NULL);
+}
+
+/**
+ * nwamui_ncu_is_readonly:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @returns: the readonly.
+ *
+ **/
+extern gboolean
+nwamui_ncu_is_readonly (NwamuiNcu *self)
+{
+    gboolean  readonly = FALSE; 
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), readonly);
+
+    g_object_get (G_OBJECT (self),
+                  "readonly", &readonly,
+                  NULL);
+
+    return( readonly );
+}
+
+
+/** 
  * nwamui_ncu_set_enabled:
  * @nwamui_ncu: a #NwamuiNcu.
  * @enabled: Value to set enabled to.
@@ -2446,8 +2709,12 @@ get_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name )
         return( value );
     }
 
-    if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
-         || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
+    if ( (nerr = nwam_ncu_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS ) {
+        g_warning("Unexpected error for ncu property %s - %s\n", prop_name, nwam_strerror( nerr ) );
+        return value;
+    }
+
+    if ( nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
         g_warning("Unexpected type for ncu property %s - got %d\n", prop_name, nwam_type );
         return value;
     }
@@ -3104,6 +3371,9 @@ ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkT
     NwamuiNcu* self = NWAMUI_NCU(data);
     gboolean is_v6 = (tree_model == GTK_TREE_MODEL(self->prv->v6addresses));
 
+    self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
+
     /* Chain events in the tree to the NCU object*/
     g_object_notify(G_OBJECT(self), is_v6?"v6addresses":"v4addresses");
 }
@@ -3113,6 +3383,9 @@ ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer data)
 {
     NwamuiNcu* self = NWAMUI_NCU(data);
     gboolean is_v6 = (tree_model == GTK_TREE_MODEL(self->prv->v6addresses));
+
+    self->prv->nwam_ncu_ip_modified = TRUE;
+g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
 
     /* Chain events in the tree to the NCU object*/
     g_object_notify(G_OBJECT(self), is_v6?"v6addresses":"v4addresses");
