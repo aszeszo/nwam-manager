@@ -1185,46 +1185,6 @@ get_device_from_ncu_name( const gchar* ncu_name )
     return( ptr );
 }
 
-
-extern void
-nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
-{
-    nwam_ncu_class_t    ncu_class;
-    
-    g_return_if_fail( NWAMUI_IS_NCU(self) );
-
-    ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu, NWAM_NCU_PROP_CLASS);
-
-    g_object_freeze_notify( G_OBJECT(self) );
-
-    populate_common_ncu_data( self, ncu );
-
-    switch ( ncu_class ) {
-        case NWAM_NCU_CLASS_PHYS: {
-                /* CLASS PHYS is of type LINK, so has LINK props */
-                self->prv->nwam_ncu_phys = ncu;
-                self->prv->nwam_ncu_phys_modified = FALSE;
-            }
-            break;
-        case NWAM_NCU_CLASS_IPTUN: {
-                self->prv->nwam_ncu_iptun = ncu;
-                populate_iptun_ncu_data( self, ncu );
-                self->prv->nwam_ncu_iptun_modified = FALSE;
-            }
-            break;
-        case NWAM_NCU_CLASS_IP: {
-                self->prv->nwam_ncu_ip = ncu;
-                populate_ip_ncu_data( self, ncu );
-                self->prv->nwam_ncu_ip_modified = FALSE;
-            }
-            break;
-        default:
-            g_error("Unexpected ncu class %u", (guint)ncu_class);
-    }
-    
-    g_object_thaw_notify( G_OBJECT(self) );
-}
-
 /* 
  * A nwam_ncu_handle_t is actually a set of nvpairs we need to get our
  * own handle (i.e. snapshot) since the handle we are passed may be freed by
@@ -1253,16 +1213,12 @@ get_nwam_ncu_handle( NwamuiNcu* self, nwam_ncu_type_t ncu_type )
     return( ncu_handle );
 }
 
-
-extern  NwamuiNcu*
-nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
+extern void
+nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
 {
-    NwamuiNcu*          self = NULL;
     nwam_ncu_class_t    ncu_class;
     
-    self = NWAMUI_NCU(g_object_new (NWAMUI_TYPE_NCU,
-                                    "ncp", ncp,
-                                    NULL));
+    g_return_if_fail( NWAMUI_IS_NCU(self) );
 
     ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu, NWAM_NCU_PROP_CLASS);
 
@@ -1313,6 +1269,20 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
     }
     
     g_object_thaw_notify( G_OBJECT(self) );
+}
+
+
+extern  NwamuiNcu*
+nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
+{
+    NwamuiNcu*          self = NULL;
+    nwam_ncu_class_t    ncu_class;
+    
+    self = NWAMUI_NCU(g_object_new (NWAMUI_TYPE_NCU,
+                                    "ncp", ncp,
+                                    NULL));
+
+    nwamui_ncu_update_with_handle( self, ncu );
 
     return( self );
 }

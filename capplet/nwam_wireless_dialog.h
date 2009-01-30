@@ -99,10 +99,10 @@ extern  void                    nwam_wireless_dialog_set_key (NwamWirelessDialog
 
 extern  gchar*                  nwam_wireless_dialog_get_key (NwamWirelessDialog *wireless_dialog );
 
-extern  void                    nwam_wireless_dialog_set_bssid (NwamWirelessDialog  *wireless_dialog,
-                                                                const gchar         *bssid_name );
+extern  void                    nwam_wireless_dialog_set_bssid_list (NwamWirelessDialog  *wireless_dialog,
+                                                                     GList               *bssid_list );
 
-extern  gchar*                  nwam_wireless_dialog_get_bssid (NwamWirelessDialog *wireless_dialog );
+extern  GList*                  nwam_wireless_dialog_get_bssid_list (NwamWirelessDialog *wireless_dialog );
 
 extern  void                    nwam_wireless_dialog_set_transient (NwamWirelessDialog  *wireless_dialog,
                                                                     gboolean             transient);

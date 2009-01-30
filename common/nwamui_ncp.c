@@ -665,6 +665,10 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
 
     g_return_val_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL, ret_ncu ); 
 
+    if ( device_name == NULL ) {
+        return( NULL );
+    }
+
     for (GList *elem = g_list_first(self->prv->ncu_list);
          elem != NULL;
          elem = g_list_next(elem) ) {
@@ -839,11 +843,11 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
         return( 0 );
     }
     else {
-        free(name);
 
         g_debug("Creating a new ncu for %s from handle 0x%08X", name, ncu );
         new_ncu = nwamui_ncu_new_with_handle( NWAMUI_NCP(data), ncu);
 
+        free(name);
     }
 
     /* NCU isn't already in the list, so add it */

@@ -419,7 +419,9 @@ on_button_clicked(GtkButton *button, gpointer user_data)
               nwam_tree_view_locate_new_object,
               (gpointer)self);
 
-            gtk_widget_set_sensitive(prv->widget_list[prop_id], FALSE);
+            /* Add should always be sensitive 
+             *  gtk_widget_set_sensitive(prv->widget_list[prop_id], FALSE);
+             */
         }
         break;
     }

@@ -114,7 +114,7 @@ extern  GType                       nwamui_wifi_net_get_type (void) G_GNUC_CONST
 extern  NwamuiWifiNet*              nwamui_wifi_net_new(    struct _NwamuiNcu               *ncu,
                                                             const gchar                     *essid, 
                                                             nwamui_wifi_security_t           security,
-                                                            const gchar                     *bssid,
+                                                            GList                           *bssid_list,
                                                             const gchar                     *mode,
                                                             guint                            speed,
                                                             nwamui_wifi_signal_strength_t    signal_strength,
@@ -134,6 +134,8 @@ extern gboolean                     nwamui_wifi_net_create_favourite ( NwamuiWif
 
 extern gboolean                     nwamui_wifi_net_delete_favourite ( NwamuiWifiNet *self );
 
+extern gboolean                     nwamui_wifi_net_validate_favourite( NwamuiWifiNet *self, gchar**error_prop );
+
 extern void                         nwamui_wifi_net_set_ncu ( NwamuiWifiNet *self, struct _NwamuiNcu* ncu );
                                 
 extern struct _NwamuiNcu*           nwamui_wifi_net_get_ncu ( NwamuiWifiNet *self );
@@ -141,10 +143,6 @@ extern struct _NwamuiNcu*           nwamui_wifi_net_get_ncu ( NwamuiWifiNet *sel
 extern void                         nwamui_wifi_net_set_essid ( NwamuiWifiNet *self, const gchar *essid );
                                 
 extern gchar*                       nwamui_wifi_net_get_essid ( NwamuiWifiNet *self );
-
-extern void                         nwamui_wifi_net_set_bssid ( NwamuiWifiNet *self, const gchar *bssid );
-                          
-extern gchar*                       nwamui_wifi_net_get_bssid ( NwamuiWifiNet *self );
 
 extern gchar*                       nwamui_wifi_net_get_unique_name ( NwamuiWifiNet *self );
 

@@ -482,6 +482,7 @@ process_enm( gpointer data, gpointer user_data )
     NwamuiEnm           *enm = NWAMUI_ENM( data );
     gchar*               name;
     gboolean             active;
+    gboolean             enabled;
     gchar*               start_command;
     gchar*               stop_command;
     gchar*               smf_frmi;
@@ -508,6 +509,9 @@ process_enm( gpointer data, gpointer user_data )
 
     smf_frmi = nwamui_enm_get_smf_fmri ( NWAMUI_ENM(enm) );
     printf("%-*sNwamuiEnm : smf_frmi = %s\n", indent, "", smf_frmi?smf_frmi:"NULL" );
+
+    enabled = nwamui_enm_get_enabled ( NWAMUI_ENM(enm) );
+    printf("%-*sNwamuiEnm : enabled = %s\n", indent, "", enabled?"True":"False" );
 
     print_conditions( G_OBJECT(enm) );
 
@@ -560,13 +564,11 @@ process_known_wlan( gpointer data, gpointer user_data )
     
     if ( wifi != NULL ) {
         gchar * essid = nwamui_wifi_net_get_essid( wifi );
-        gchar * bssid = nwamui_wifi_net_get_bssid( wifi );
         GList * bssid_list = nwamui_wifi_net_get_bssid_list( wifi );
 
         printf("%-*s=============================================================\n", indent, "");
         indent +=4;
         printf("%-*sWLAN : essid = %s\n", indent, "", essid?essid:"NULL" );
-        printf("%-*sWLAN : bssid = %s\n", indent, "", bssid?bssid:"NULL" );
 
         print_string_list_and_free( "WLAN", "bssid_list", bssid_list );
 
@@ -574,7 +576,6 @@ process_known_wlan( gpointer data, gpointer user_data )
         printf("%-*s=============================================================\n", indent, "");
 
         g_free(essid);
-        g_free(bssid);
         g_object_unref(G_OBJECT(wifi));
     }
 

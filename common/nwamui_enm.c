@@ -39,10 +39,6 @@ static GObjectClass    *parent_class    = NULL;
 
 struct _NwamuiEnmPrivate {
     gchar*               name;
-    gboolean             active;
-    gchar*               start_command;
-    gchar*               stop_command;
-    gchar*               smf_fmri;
 
     nwam_enm_handle_t	nwam_enm;
     gboolean        	nwam_enm_modified;
@@ -51,6 +47,7 @@ struct _NwamuiEnmPrivate {
 enum {
     PROP_NAME = 1,
     PROP_ACTIVE,
+    PROP_ENABLED,
     PROP_START_COMMAND,
     PROP_STOP_COMMAND,
     PROP_SMF_FMRI,
@@ -75,6 +72,9 @@ static void nwamui_enm_finalize (     NwamuiEnm *self);
 static gboolean get_nwam_enm_boolean_prop( nwam_enm_handle_t enm, const char* prop_name );
 
 static gchar* get_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name );
+
+static gchar*       get_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name );
+static gboolean     set_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name, const char* str );
 
 static gchar**      get_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name );
 static gboolean     set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name, char** strs, guint len);
@@ -123,6 +123,14 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
                                      g_param_spec_boolean ("active",
                                                           _("active"),
                                                           _("active"),
+                                                          FALSE,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_ENABLED,
+                                     g_param_spec_boolean ("enabled",
+                                                          _("enabled"),
+                                                          _("enabled"),
                                                           FALSE,
                                                           G_PARAM_READWRITE));
 
@@ -186,10 +194,6 @@ nwamui_enm_init ( NwamuiEnm *self)
     self->prv = g_new0 (NwamuiEnmPrivate, 1);
     
     self->prv->name = NULL;
-    self->prv->active = FALSE;
-    self->prv->start_command = NULL;
-    self->prv->stop_command = NULL;
-    self->prv->smf_fmri = NULL;
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
@@ -220,96 +224,127 @@ nwamui_enm_set_property (   GObject         *object,
                         g_debug ("nwamui_enm_set_property found nwam_enm_handle %s", self->prv->name);
                     } else {
                         nerr = nwam_enm_create (self->prv->name, NULL, &self->prv->nwam_enm);
-                        g_assert (nerr == NWAM_SUCCESS);
+                        if (nerr != NWAM_SUCCESS) {
+                            g_debug ("nwamui_enm_set_property error creating nwam_enm_handle %s", self->prv->name);
+                            self->prv->nwam_enm == NULL;
+                        }
                     }
                 }
 
-                nerr = nwam_enm_set_name (self->prv->nwam_enm, self->prv->name);
-                if (nerr != NWAM_SUCCESS) {
-                    g_debug ("nwam_enm_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+                if (self->prv->nwam_enm != NULL) {
+                    nerr = nwam_enm_set_name (self->prv->nwam_enm, self->prv->name);
+                    if (nerr != NWAM_SUCCESS) {
+                        g_debug ("nwam_enm_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+                    }
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
                 }
             }
             break;
 
         case PROP_ACTIVE: {
-                self->prv->active = g_value_get_boolean( value );
-                if (self->prv->active) {
-                    if ((nerr = nwam_enm_enable (self->prv->nwam_enm)) != NWAM_SUCCESS) {
-                        self->prv->active = FALSE;
-                        g_debug ("nwam_enm_start error: %s", nwam_strerror (nerr));
+                if (self->prv->nwam_enm != NULL) {
+                    gboolean active = g_value_get_boolean( value );
+                    if (active) {
+                        if ((nerr = nwam_enm_enable (self->prv->nwam_enm)) != NWAM_SUCCESS) {
+                            g_debug ("nwam_enm_start error: %s", nwam_strerror (nerr));
+                        }
+                    } else {
+                        if ((nerr = nwam_enm_disable (self->prv->nwam_enm)) != NWAM_SUCCESS) {
+                            g_debug ("nwam_enm_stop error: %s", nwam_strerror (nerr));
+                        }
                     }
-                } else {
-                    if ((nerr = nwam_enm_disable (self->prv->nwam_enm)) != NWAM_SUCCESS) {
-                        self->prv->active = TRUE;
-                        g_debug ("nwam_enm_stop error: %s", nwam_strerror (nerr));
-                    }
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
+            }
+            break;
+
+        case PROP_ENABLED: {
+                if (self->prv->nwam_enm != NULL) {
+                    gboolean enabled = g_value_get_boolean( value );
+                    set_nwam_enm_boolean_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ENABLED, enabled );
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
                 }
             }
             break;
 
         case PROP_START_COMMAND: {
-                if ( self->prv->start_command != NULL ) {
-                        g_free( self->prv->start_command );
-                }
-                self->prv->start_command = g_strdup( g_value_get_string( value ) );
+                if (self->prv->nwam_enm != NULL) {
+                    gchar *start_command = g_strdup( g_value_get_string( value ) );
 
-                if ( (nerr = nwam_value_create_string( self->prv->start_command, &nwamdata ) ) == NWAM_SUCCESS ) {
-                    nerr = nwam_enm_set_prop_value(self->prv->nwam_enm, NWAM_ENM_PROP_START, nwamdata);
-                    g_assert (nerr == NWAM_SUCCESS);
-                    nwam_value_free( nwamdata );
+                    if ( start_command != NULL ) {
+                        set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_START, start_command );
+                    }
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
                 }
             }
             break;
 
         case PROP_STOP_COMMAND: {
-                if ( self->prv->stop_command != NULL ) {
-                        g_free( self->prv->stop_command );
-                }
-                self->prv->stop_command = g_strdup( g_value_get_string( value ) );
+                if (self->prv->nwam_enm != NULL) {
+                    gchar *stop_command = g_strdup( g_value_get_string( value ) );
 
-                if ( (nerr = nwam_value_create_string( self->prv->stop_command, &nwamdata ) ) == NWAM_SUCCESS ) {
-                    nerr = nwam_enm_set_prop_value(self->prv->nwam_enm, NWAM_ENM_PROP_STOP, nwamdata);
-                    g_assert (nerr == NWAM_SUCCESS);
-                    nwam_value_free( nwamdata );
+                    if ( stop_command != NULL ) {
+                        set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP, stop_command );
+                    }
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
                 }
             }
             break;
 
         case PROP_SMF_FMRI: {
-                if ( self->prv->smf_fmri != NULL ) {
-                        g_free( self->prv->smf_fmri );
-                }
-                self->prv->smf_fmri = g_strdup( g_value_get_string( value ) );
+                if (self->prv->nwam_enm != NULL) {
+                    gchar *smf_fmri = g_strdup( g_value_get_string( value ) );
 
-                if ( (nerr = nwam_value_create_string( self->prv->smf_fmri, &nwamdata ) ) == NWAM_SUCCESS ) {
-                    nerr = nwam_enm_set_prop_value(self->prv->nwam_enm, NWAM_ENM_PROP_FMRI, nwamdata);
-                    g_assert (nerr == NWAM_SUCCESS);
-                    nwam_value_free( nwamdata );
+                    if ( smf_fmri != NULL ) {
+                        set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_FMRI, smf_fmri );
+                    }
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
                 }
             }
             break;
 
         case PROP_NWAM_ENM: {
-            g_assert (self->prv->nwam_enm == NULL);
-            self->prv->nwam_enm = g_value_get_pointer (value);
+                self->prv->nwam_enm = g_value_get_pointer (value);
             }
             break;
 
         case PROP_ACTIVATION_MODE: {
-                nwamui_cond_activation_mode_t activation_mode = 
-                    (nwamui_cond_activation_mode_t)g_value_get_int( value );
+                if (self->prv->nwam_enm != NULL) {
+                    nwamui_cond_activation_mode_t activation_mode = 
+                        (nwamui_cond_activation_mode_t)g_value_get_int( value );
 
-                set_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
+                    set_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
             }
             break;
 
         case PROP_CONDITIONS: {
-                GList *conditions = g_value_get_pointer( value );
-                char  **condition_strs = NULL;
-                guint   len = 0;
+                if (self->prv->nwam_enm != NULL) {
+                    GList *conditions = g_value_get_pointer( value );
+                    char  **condition_strs = NULL;
+                    guint   len = 0;
 
-                condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
-                set_nwam_enm_string_array_prop( self->prv->nwam_enm, NWAM_NCU_PROP_CONDITIONS, condition_strs, len );
+                    condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
+                    set_nwam_enm_string_array_prop( self->prv->nwam_enm, NWAM_NCU_PROP_CONDITIONS, condition_strs, len );
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
             }
             break;
 
@@ -336,90 +371,118 @@ nwamui_enm_get_property (   GObject         *object,
             if (self->prv->name == NULL) {
                 char *name;
 
-                if ( (nerr = nwam_enm_get_name (self->prv->nwam_enm, &name)) != NWAM_SUCCESS ) {
-                    g_debug ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
-                }
+                if (self->prv->nwam_enm != NULL) {
+                    if ( (nerr = nwam_enm_get_name (self->prv->nwam_enm, &name)) != NWAM_SUCCESS ) {
+                        g_debug ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
+                    }
 
-                if (g_ascii_strcasecmp (self->prv->name, name) != 0) {
-                    g_free(self->prv->name);
-                    self->prv->name = g_strdup(name);
-                    g_object_notify(G_OBJECT(self), "name");
+                    if (g_ascii_strcasecmp (self->prv->name, name) != 0) {
+                        g_free(self->prv->name);
+                        self->prv->name = g_strdup(name);
+                        g_object_notify(G_OBJECT(self), "name");
+                    }
+                    free (name);
                 }
-                free (name);
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
             }
             g_value_set_string( value, self->prv->name );
         }
         break;
 
         case PROP_ACTIVE: {
-            gboolean enabled;
+                /* TODO: Get the active (currently running) state from daemon */
+                gboolean enabled = FALSE;
+                if (self->prv->nwam_enm != NULL) {
+                    enabled = get_nwam_enm_boolean_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ENABLED ); 
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
+                g_value_set_boolean( value, enabled );
+        }
+        break;
 
-            g_assert (self->prv->nwam_enm || self->prv->name);
-
-            enabled = get_nwam_enm_boolean_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ENABLED ); 
-            if ( self->prv->active != enabled ) {
-                self->prv->active = enabled;
-                g_object_notify(G_OBJECT(self), "active");
-            }
-            g_value_set_boolean( value, self->prv->active );
+        case PROP_ENABLED: {
+                gboolean enabled = FALSE;
+                if (self->prv->nwam_enm != NULL) {
+                    enabled = get_nwam_enm_boolean_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ENABLED ); 
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
+                g_value_set_boolean( value, enabled );
         }
         break;
 
         case PROP_START_COMMAND: {
-            if (self->prv->start_command == NULL) {
-                gchar* start_command = get_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_START );
-                if ( self->prv->start_command != start_command ) {
-                    self->prv->start_command = start_command;
-                    g_object_notify(G_OBJECT(self), "start_command");
+                gchar* start_command = NULL;
+                if (self->prv->nwam_enm != NULL) {
+                    start_command = get_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_START );
                 }
-            }
-            g_value_set_string( value, self->prv->start_command );
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
+                g_value_set_string( value, start_command );
         }
         break;
 
         case PROP_STOP_COMMAND: {
-            if (self->prv->stop_command == NULL) {
-                gchar* stop_command = get_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP );
-                if ( self->prv->stop_command != stop_command ) {
-                    self->prv->stop_command = stop_command;
-                    g_object_notify(G_OBJECT(self), "stop_command");
+                gchar* stop_command = NULL;
+                if (self->prv->nwam_enm != NULL) {
+                    stop_command = get_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP );
                 }
-            }
-            g_value_set_string( value, self->prv->stop_command );
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
+                g_value_set_string( value, stop_command );
         }
         break;
 
         case PROP_SMF_FMRI: {
-            if (self->prv->smf_fmri == NULL) {
-                gchar* smf_fmri = get_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_FMRI );
-                if ( self->prv->smf_fmri != smf_fmri ) {
-                    self->prv->smf_fmri = smf_fmri;
-                    g_object_notify(G_OBJECT(self), "smf_fmri");
+                gchar* smf_fmri = NULL;
+                if (self->prv->nwam_enm != NULL) {
+                    smf_fmri = get_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_FMRI );
                 }
-            }
-            g_value_set_string( value, self->prv->smf_fmri );
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
+                g_value_set_string( value, smf_fmri );
         }
         break;
 
         case PROP_ACTIVATION_MODE: {
-                nwamui_cond_activation_mode_t activation_mode;
-                activation_mode = (nwamui_cond_activation_mode_t)
-                                    get_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_NCU_PROP_ACTIVATION_MODE );
-
+                nwamui_cond_activation_mode_t activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
+                if (self->prv->nwam_enm != NULL) {
+                    activation_mode = (nwamui_cond_activation_mode_t)
+                                        get_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_NCU_PROP_ACTIVATION_MODE );
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
                 g_value_set_int( value, (gint)activation_mode );
 
             }
             break;
 
         case PROP_CONDITIONS: {
-                gchar** condition_strs = get_nwam_enm_string_array_prop( self->prv->nwam_enm, 
-                                                                         NWAM_NCU_PROP_CONDITIONS );
+                gpointer    ptr = NULL;
 
-                GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
+                if (self->prv->nwam_enm != NULL) {
+                    gchar** condition_strs = get_nwam_enm_string_array_prop( self->prv->nwam_enm, 
+                                                                             NWAM_NCU_PROP_CONDITIONS );
 
-                g_value_set_pointer( value, conditions );
+                    GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
 
-                g_strfreev( condition_strs );
+                    ptr = (gpointer)conditions;
+
+                    g_strfreev( condition_strs );
+                }
+                else {
+                    g_warning("Unexpected null enm handle");
+                }
+                g_value_set_pointer( value, ptr );
             }
             break;
 
@@ -435,60 +498,22 @@ nwamui_enm_get_property (   GObject         *object,
  *
  **/
 extern  NwamuiEnm*          
-nwamui_enm_new (    const gchar*    name, 
-                    gboolean        active, 
-                    const gchar*    smf_fmri,
-                    const gchar*    start_command,
-                    const gchar*    stop_command )
+nwamui_enm_new (    const gchar*    name )
 {
-    NwamuiEnm *self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM, NULL));
+    NwamuiEnm *self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM, 
+                "name", name,
+                NULL));
 
     g_object_set (G_OBJECT (self),
-                  "name", name,
-                  "active", active,
-                  "smf_fmri", smf_fmri,
-                  "start_command", start_command,
-                  "stop_command", stop_command,
+                  "enabled", FALSE,
+                  "activation_mode", NWAMUI_COND_ACTIVATION_MODE_MANUAL,
                   NULL);
     
+    self->prv->nwam_enm_modified = FALSE;
+
     return( self );
 }
 
-static gchar*
-get_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name )
-{
-    nwam_error_t        nerr;
-    nwam_value_type_t   nwam_type;
-    nwam_value_t        nwam_data;
-    gchar*              retval = NULL;
-    char*               value = NULL;
-
-    g_return_val_if_fail( prop_name != NULL, retval );
-
-    if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
-         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
-        g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
-        return retval;
-    }
-
-    if ( (nerr = nwam_enm_get_prop_value (enm, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
-        return retval;
-    }
-
-    if ( (nerr = nwam_value_get_string(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get string value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
-        return retval;
-    }
-
-    if ( value != NULL ) {
-        retval  = g_strdup ( value );
-    }
-
-    nwam_value_free(nwam_data);
-    
-    return( retval );
-}
 
 static gboolean
 get_nwam_enm_boolean_prop( nwam_enm_handle_t enm, const char* prop_name )
@@ -519,6 +544,119 @@ get_nwam_enm_boolean_prop( nwam_enm_handle_t enm, const char* prop_name )
     nwam_value_free(nwam_data);
 
     return( (gboolean)value );
+}
+
+static gboolean
+set_nwam_enm_boolean_prop( nwam_enm_handle_t enm, const char* prop_name, gboolean bool_value )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( enm == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
+        g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_boolean ((boolean_t)bool_value, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a boolean value" );
+        return retval;
+    }
+
+    if ( (nerr = nwam_enm_set_prop_value (enm, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+
+static gchar*
+get_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gchar*              retval = NULL;
+    char*               value = NULL;
+
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( enm == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( (nerr = nwam_enm_get_prop_value (enm, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_get_string(nwam_data, &value )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get string value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        return retval;
+    }
+
+    if ( value != NULL ) {
+        retval  = g_strdup ( value );
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
+}
+
+static gboolean
+set_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name, const gchar* str )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    gboolean            retval = FALSE;
+    g_return_val_if_fail( prop_name != NULL, retval );
+
+    if ( enm == NULL ) {
+        return( retval );
+    }
+
+    if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_STRING ) {
+        g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
+        return retval;
+    }
+
+    if ( (nerr = nwam_value_create_string( (char*)str, &nwam_data )) != NWAM_SUCCESS ) {
+        g_debug("Error creating a string value for string %s", str?str:"NULL");
+        return retval;
+    }
+
+    if ( (nerr = nwam_enm_set_prop_value (enm, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
+        retval = TRUE;
+    }
+
+    nwam_value_free(nwam_data);
+    
+    return( retval );
 }
 
 static gchar**
@@ -711,10 +849,6 @@ extern gboolean
 nwamui_enm_update_with_handle (NwamuiEnm* self, nwam_enm_handle_t enm)
 {
     char*           name = NULL;
-    gboolean        enabled = FALSE;
-    gchar*          smf_fmri = NULL;
-    gchar*          start_command = NULL;
-    gchar*          stop_command = NULL;
     nwam_error_t    nerr;
     nwam_enm_handle_t nwam_enm;
     
@@ -728,14 +862,6 @@ nwamui_enm_update_with_handle (NwamuiEnm* self, nwam_enm_handle_t enm)
         return( FALSE );
     }
 
-    smf_fmri = get_nwam_enm_string_prop( enm, NWAM_ENM_PROP_FMRI );
-    
-    enabled = get_nwam_enm_boolean_prop( enm, NWAM_ENM_PROP_ENABLED ); 
-
-    start_command = get_nwam_enm_string_prop( enm, NWAM_ENM_PROP_START );
-
-    stop_command = get_nwam_enm_string_prop( enm, NWAM_ENM_PROP_STOP );
-
     if ( self->prv->nwam_enm != NULL ) {
          nwam_enm_free(self->prv->nwam_enm);
     }
@@ -745,23 +871,6 @@ nwamui_enm_update_with_handle (NwamuiEnm* self, nwam_enm_handle_t enm)
          g_free(self->prv->name);
     }
     self->prv->name = name;
-
-    self->prv->active = enabled;
-
-    if ( self->prv->smf_fmri != NULL ) {
-         g_free(self->prv->smf_fmri);
-    }
-    self->prv->smf_fmri = smf_fmri;
-
-    if ( self->prv->start_command != NULL ) {
-         g_free(self->prv->start_command);
-    }
-    self->prv->start_command = start_command;
-
-    if ( self->prv->stop_command != NULL ) {
-         g_free(self->prv->stop_command);
-    }
-    self->prv->stop_command = stop_command;
 
     self->prv->nwam_enm_modified = FALSE;
 
@@ -862,6 +971,43 @@ nwamui_enm_get_active (NwamuiEnm *self)
                   NULL);
 
     return( active );
+}
+
+/** 
+ * nwamui_enm_set_enabled:
+ * @nwamui_enm: a #NwamuiEnm.
+ * @enabled: Value to set enabled to.
+ * 
+ **/ 
+extern void
+nwamui_enm_set_enabled (   NwamuiEnm *self,
+                              gboolean        enabled )
+{
+    g_return_if_fail (NWAMUI_IS_ENM (self));
+
+    g_object_set (G_OBJECT (self),
+                  "enabled", enabled,
+                  NULL);
+}
+
+/**
+ * nwamui_enm_get_enabled:
+ * @nwamui_enm: a #NwamuiEnm.
+ * @returns: the enabled.
+ *
+ **/
+extern gboolean
+nwamui_enm_get_enabled (NwamuiEnm *self)
+{
+    gboolean  enabled = FALSE; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENM (self), enabled);
+
+    g_object_get (G_OBJECT (self),
+                  "enabled", &enabled,
+                  NULL);
+
+    return( enabled );
 }
 
 /** 
@@ -1125,18 +1271,6 @@ nwamui_enm_finalize (NwamuiEnm *self)
 
     if (self->prv->name != NULL ) {
         g_free( self->prv->name );
-    }
-
-    if (self->prv->start_command != NULL ) {
-        g_free( self->prv->start_command );
-    }
-
-    if (self->prv->stop_command != NULL ) {
-        g_free( self->prv->stop_command );
-    }
-
-    if (self->prv->smf_fmri != NULL ) {
-        g_free( self->prv->smf_fmri );
     }
 
     g_free (self->prv); 

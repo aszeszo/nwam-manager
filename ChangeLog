@@ -1,3 +1,29 @@
+2009-01-30  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_tree_view.c:
+	  Don't make the add button insensitive, it should always work.
+	* capplet/nwam_vpn_pref_dialog.c:
+	  Make the VPN dialog work better, and actually save information.
+	* capplet/nwam_wireless_dialog.c, capplet/nwam_wireless_dialog.h:
+	  Handle the addition of known networks, use of the bssid list and
+	  validate.
+	* common/nwamui_daemon.c: 
+	  Temporarily select the first environment to be the active env.
+	* common/nwamui_enm.c, common/nwamui_enm.h:
+	  Make better use of the enm handle to store values. Add enabled
+	  property to match NWAM equivalent, the "active" property is 
+	  a run/stop switch
+	* common/nwamui_ncp.c: 
+	  Don't crash if the name is NULL, and also free the name after we've
+	  used it, not before.
+	* common/nwamui_ncu.c: 
+	  Use nwamui_ncu_update_with_handle() in nwamui_ncu_new_with_handle().
+	* common/nwamui_wifi_net.c, common/nwamui_wifi_net.h:
+	  Remove the bssid value, using bssid_list instead, store the
+	  bssid_list directly in the known_wlan handle.
+	* tests/main.c: 
+	  Updates for new/removed properties.
+
 2009-01-28  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.glade:

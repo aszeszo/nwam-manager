@@ -474,6 +474,16 @@ nwamui_daemon_init (NwamuiDaemon *self)
             g_debug ("[libnwam] nwam_walk_locs %s", nwam_strerror (nerr));
         }
     }
+    if ( self->prv->active_env == NULL && self->prv->env_list  != NULL ) {
+        GList* first_element = g_list_first( self->prv->env_list );
+
+
+        if ( first_element != NULL && first_element->data != NULL )  {
+            self->prv->active_env = NWAMUI_ENV(g_object_ref(G_OBJECT(first_element->data)));
+        }
+        
+    }
+
     
     /* TODO - Get list of ENM from libnwam */
     self->prv->enm_list = NULL;
@@ -1325,7 +1335,7 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
                 NwamuiWifiNet* wifi = NWAMUI_WIFI_NET(item->data);
 
                 if (!self->prv->communicate_change_to_daemon 
-                    || nwamui_wifi_net_create_favourite( wifi ) ) {
+                    || nwamui_wifi_net_commit_favourite( wifi ) ) {
                     /* Added, so add to merged list */
                     merged_list = g_list_append( merged_list, item->data );
                     /* Don't ref, transfer ownership, since will be freeing new_items list anyway */
@@ -1366,7 +1376,7 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
             NwamuiWifiNet* wifi = NWAMUI_WIFI_NET(item->data);
 
             if (!self->prv->communicate_change_to_daemon 
-                || nwamui_wifi_net_create_favourite( wifi ) ) {
+                || nwamui_wifi_net_commit_favourite( wifi ) ) {
                 /* Copy on succeeded */
                 self->prv->wifi_fav_list = g_list_prepend(self->prv->wifi_fav_list, g_object_ref(item->data));
             }

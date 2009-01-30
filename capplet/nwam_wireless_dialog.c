@@ -43,7 +43,10 @@
 #define WIRELESS_DIALOG_SEC_COMBO               "security_combo"
 #define WIRELESS_PASSWORD_NOTEBOOK              "password_notebook"
 #define WIRELESS_DIALOG_WEP_KEY_ENTRY           "wep_password_entry"
-#define WIRELESS_DIALOG_BSSID_ENTRY             "bssid_entry"
+#define WIRELESS_DIALOG_WEP_KEY_CONF_ENTRY      "wep_confirm_password_entry"
+#define WIRELESS_DIALOG_BSSID_LIST              "bssid_list"
+#define WIRELESS_DIALOG_BSSID_ADD_BUTTON        "bssid_add_btn"
+#define WIRELESS_DIALOG_BSSID_REMOVE_BUTTON     "bssid_remove_btn"
 #define WIRELESS_DIALOG_WPA_CONFIG_COMBO        "wpa_config_combo"
 #define WIRELESS_DIALOG_WPA_USERNAME_ENTRY      "wpa_username_entry"
 #define WIRELESS_DIALOG_WPA_PASSWORD_ENTRY      "wpa_password_entry"
@@ -68,7 +71,7 @@ enum {
         PROP_WPA_PASSWORD,
         PROP_WPA_CONFIG_TYPE,
         PROP_WPA_CERT_FILE,
-        PROP_BSSID,
+        PROP_BSSID_LIST,
         PROP_TRANSIENT,
 };
 
@@ -83,7 +86,10 @@ struct _NwamWirelessDialogPrivate {
         GtkCheckButton*         show_password_cbutton;
         /* WEP Settings */
         GtkEntry*               key_entry;
-        GtkEntry*               bssid_entry;
+        GtkEntry*               key_conf_entry;
+        GtkTreeView*            bssid_list_tv;
+        GtkButton*              bssid_add_btn;
+        GtkButton*              bssid_remove_btn;
         /* WPA Settings */
         GtkComboBox*            wpa_config_combo;
         GtkEntry*		wpa_username_entry;
@@ -124,6 +130,10 @@ static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void essid_changed_cb( GtkWidget* widget, gpointer data );
 static void security_selection_cb( GtkWidget* widget, gpointer data );
 static void show_password_cb( GtkToggleButton* widget, gpointer data );
+static void bssid_add_cb(GtkWidget *button, gpointer data);
+static void bssid_remove_cb(GtkWidget *widget, gpointer data);
+static void bssid_edited_cb (GtkCellRendererText *renderer, gchar *path,
+                             gchar *new_text, gpointer user_data);
 
 
 
@@ -219,12 +229,12 @@ nwam_wireless_dialog_class_init (NwamWirelessDialogClass *klass)
                                                           NULL,
                                                           G_PARAM_READWRITE));    
     g_object_class_install_property (gobject_class,
-                                     PROP_BSSID,
-                                     g_param_spec_string ("bssid",
-                                                          _("Wireless BSSID"),
-                                                          _("The Wireless AP BSSID to connect to."),
-                                                          NULL,
+                                     PROP_BSSID_LIST,
+                                     g_param_spec_pointer ("bssid_list",
+                                                          _("Wireless BSSID list"),
+                                                          _("The Wireless AP BSSIDs known."),
                                                           G_PARAM_READWRITE));
+
     g_object_class_install_property (gobject_class,
                                      PROP_TRANSIENT,
                                      g_param_spec_boolean ("transient",
@@ -240,6 +250,7 @@ static void
 nwam_wireless_dialog_init (NwamWirelessDialog *self)
 {
     GtkTreeModel    *model = NULL;
+    GtkListStore    *bssid_list_store = NULL;
     
     self->prv = g_new0 (NwamWirelessDialogPrivate, 1);
     
@@ -250,7 +261,11 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     self->prv->security_combo =         GTK_COMBO_BOX(nwamui_util_glade_get_widget(WIRELESS_DIALOG_SEC_COMBO));
     self->prv->password_notebook =      GTK_NOTEBOOK(nwamui_util_glade_get_widget(WIRELESS_PASSWORD_NOTEBOOK));
     self->prv->key_entry =              GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_ENTRY));
-    self->prv->bssid_entry =            GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_BSSID_ENTRY));
+    /* self->prv->key_conf_entry =         GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_CONF_ENTRY)); */
+    self->prv->key_conf_entry =         GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_ENTRY));
+    self->prv->bssid_list_tv =          GTK_TREE_VIEW(nwamui_util_glade_get_widget(WIRELESS_DIALOG_BSSID_LIST));
+    self->prv->bssid_add_btn =          GTK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_BSSID_ADD_BUTTON));
+    self->prv->bssid_remove_btn =       GTK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_BSSID_REMOVE_BUTTON));
     self->prv->wpa_config_combo =       GTK_COMBO_BOX(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_CONFIG_COMBO));
     self->prv->wpa_username_entry =     GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_USERNAME_ENTRY));
     self->prv->wpa_password_entry =     GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_PASSWORD_ENTRY));
@@ -259,6 +274,28 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     
     /* Change the ESSID comboboxentry to use Text and an an image (for Secure/Open) */
     change_essid_cbentry_model(GTK_COMBO_BOX_ENTRY(self->prv->essid_combo));
+
+    /* Create model for the bssid_list treeview */
+    bssid_list_store = gtk_list_store_new( 1, G_TYPE_STRING );
+    gtk_tree_view_set_model( self->prv->bssid_list_tv, GTK_TREE_MODEL( bssid_list_store ) );
+    g_object_set(G_OBJECT(self->prv->bssid_list_tv), 
+            "enable-search", FALSE, 
+            NULL);
+    {
+        GtkCellRenderer*    renderer = gtk_cell_renderer_text_new ();
+	    g_object_set(G_OBJECT(renderer), 
+                "editable", TRUE, 
+                NULL);
+        g_signal_connect(G_OBJECT(renderer), "edited",
+                         (GCallback) bssid_edited_cb, (gpointer) self->prv->bssid_list_tv);
+        GtkTreeViewColumn*  column = gtk_tree_view_column_new_with_attributes (_("BSSID"),
+                                   renderer,
+                                   "text", 0,
+                                   NULL);
+        gtk_tree_view_column_set_sort_column_id (column, 0);
+        gtk_tree_view_append_column(self->prv->bssid_list_tv, column);
+    }
+    g_object_unref( bssid_list_store );
 
     /* Initialise list of security types */
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->security_combo));
@@ -283,6 +320,10 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     g_signal_connect(GTK_ENTRY(self->prv->essid_cbentry), "changed", (GCallback)essid_changed_cb, (gpointer)self);
     g_signal_connect(GTK_COMBO_BOX(self->prv->security_combo), "changed", (GCallback)security_selection_cb, (gpointer)self);
     g_signal_connect(GTK_TOGGLE_BUTTON(self->prv->show_password_cbutton), "toggled", (GCallback)show_password_cb, (gpointer)self);
+    g_signal_connect(GTK_BUTTON(self->prv->bssid_add_btn), "clicked", (GCallback)bssid_add_cb, 
+                               (gpointer)self->prv->bssid_list_tv);
+    g_signal_connect(GTK_BUTTON(self->prv->bssid_remove_btn), "clicked", (GCallback)bssid_remove_cb, 
+                               (gpointer)self->prv->bssid_list_tv);
 }
 
 static void
@@ -406,6 +447,9 @@ nwam_wireless_dialog_set_property ( GObject         *object,
             if (self->prv->key_entry != NULL) {
                 gtk_entry_set_text(GTK_ENTRY(self->prv->key_entry), tmpstr?tmpstr:"");
             }
+            if (self->prv->key_conf_entry != NULL) {
+                gtk_entry_set_text(GTK_ENTRY(self->prv->key_conf_entry), tmpstr?tmpstr:"");
+            }
             break;
 	case PROP_WPA_CONFIG_TYPE:
             tmpint = g_value_get_int (value);
@@ -442,11 +486,20 @@ nwam_wireless_dialog_set_property ( GObject         *object,
             }
              */
             break;
-        case PROP_BSSID:
-            tmpstr = (gchar *) g_value_get_string (value);
+        case PROP_BSSID_LIST: {
+                GList          *blist = (GList *) g_value_get_pointer (value);
+                GtkTreeModel   *model = NULL;
+                GtkTreeIter     iter;
 
-            if (self->prv->bssid_entry != NULL) {
-                gtk_entry_set_text(GTK_ENTRY(self->prv->bssid_entry), tmpstr?tmpstr:"");
+                model = gtk_tree_view_get_model (self->prv->bssid_list_tv);
+                gtk_list_store_clear( GTK_LIST_STORE(model) );
+
+                for ( GList* elem = g_list_first( blist );
+                      elem != NULL;
+                      elem = g_list_next(elem) ) {
+                    gtk_list_store_append(GTK_LIST_STORE(model), &iter );
+                    gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, elem->data, -1);
+                }
             }
             break;
         case PROP_TRANSIENT:
@@ -511,9 +564,25 @@ nwam_wireless_dialog_get_property (GObject         *object,
             }
              */
             break;
-        case PROP_BSSID:
-            if (self->prv->bssid_entry != NULL) {
-                g_value_set_string( value, g_strdup(gtk_entry_get_text(GTK_ENTRY(self->prv->bssid_entry))) );
+        case PROP_BSSID_LIST: {
+                GList          *blist = NULL;
+                GtkTreeModel   *model = NULL;
+                GtkTreeIter     iter;
+
+                model = gtk_tree_view_get_model (self->prv->bssid_list_tv);
+
+                if ( gtk_tree_model_get_iter_first( model, &iter ) ) {
+                    do {
+                        gchar*  string = NULL;
+                        gtk_tree_model_get(model, &iter, 0, &string, -1);
+
+                        if ( string != NULL ) {
+                            blist = g_list_append( blist, string );
+                        }
+                    }
+                    while ( gtk_tree_model_iter_next( model, &iter ) );
+                }
+                g_value_set_pointer( value, blist );
             }
             break;
 	case PROP_TRANSIENT:
@@ -620,7 +689,7 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
     if ( wifi_net != NULL ) {
         g_object_set(G_OBJECT (self),
                 "essid", nwamui_wifi_net_get_essid(wifi_net),
-                "bssid", nwamui_wifi_net_get_bssid(wifi_net),
+                "bssid_list", nwamui_wifi_net_get_bssid_list(wifi_net),
                 "security", nwamui_wifi_net_get_security(wifi_net),
                 "key", nwamui_wifi_net_get_wep_password(wifi_net),
                 "wpa_config_type", nwamui_wifi_net_get_wpa_config(wifi_net),
@@ -864,30 +933,30 @@ nwam_wireless_dialog_get_leap_password (NwamWirelessDialog *self )
 }
 
 void                    
-nwam_wireless_dialog_set_bssid (NwamWirelessDialog  *self,
-                                const gchar         *bssid )
+nwam_wireless_dialog_set_bssid_list (NwamWirelessDialog  *self,
+                                     GList               *bssid_list )
 {
     g_return_if_fail (NWAM_IS_WIRELESS_DIALOG (self));
-    g_assert (bssid != NULL );
+    g_assert (bssid_list != NULL );
 
-    if ( bssid != NULL ) {
+    if ( bssid_list != NULL ) {
         g_object_set (G_OBJECT (self),
-                      "bssid", bssid,
+                      "bssid_list", bssid_list,
                       NULL);
     }
 }
                                 
-gchar*                  
-nwam_wireless_dialog_get_bssid (NwamWirelessDialog *self )
+GList*                  
+nwam_wireless_dialog_get_bssid_list (NwamWirelessDialog *self )
 {
-    gchar*  bssid = NULL;
+    GList*  bssid_list = NULL;
     
-    g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), bssid);
+    g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), bssid_list);
 
     g_object_get (G_OBJECT (self),
-                  "bssid", &bssid,
+                  "bssid_list", &bssid_list,
                   NULL);
-    return( bssid );
+    return( bssid_list );
 }
 
 void                    
@@ -939,7 +1008,7 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
                     g_object_set(G_OBJECT(self->prv->wifi_net),
                                 "essid", nwam_wireless_dialog_get_essid(self),
                                 "security", nwam_wireless_dialog_get_security(self),
-                                "bssid", nwam_wireless_dialog_get_bssid(self),
+                                "bssid_list", nwam_wireless_dialog_get_bssid_list(self),
                                 "wpa_config", nwam_wireless_dialog_get_wpa_config_type(self),
                                 NULL);
                 }
@@ -948,7 +1017,7 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
                                 self->prv->ncu,
                                 nwam_wireless_dialog_get_essid(self),
                                 nwam_wireless_dialog_get_security(self),
-                                nwam_wireless_dialog_get_bssid(self),
+                                nwam_wireless_dialog_get_bssid_list(self),
                                 "g",
                                 (gint)g_random_int_range(0, 56), /* Random speed */
                                 (nwamui_wifi_signal_strength_t)g_random_int_range((gint32)NWAMUI_WIFI_STRENGTH_NONE, (gint32)NWAMUI_WIFI_STRENGTH_GOOD),
@@ -1009,14 +1078,17 @@ nwam_wireless_dialog_finalize (NwamWirelessDialog *self)
 {
     if ( self->prv->ncu != NULL )
         g_free (self->prv->ncu );
-    
+
     gtk_widget_unref(GTK_WIDGET(self->prv->wireless_dialog ));
     gtk_widget_unref(GTK_WIDGET(self->prv->essid_combo ));
     gtk_widget_unref(GTK_WIDGET(self->prv->essid_cbentry ));
     gtk_widget_unref(GTK_WIDGET(self->prv->security_combo ));
     gtk_widget_unref(GTK_WIDGET(self->prv->password_notebook ));
     gtk_widget_unref(GTK_WIDGET(self->prv->key_entry ));
-    gtk_widget_unref(GTK_WIDGET(self->prv->bssid_entry ));
+    gtk_widget_unref(GTK_WIDGET(self->prv->key_conf_entry ));
+    gtk_widget_unref(GTK_WIDGET(self->prv->bssid_list_tv ));
+    gtk_widget_unref(GTK_WIDGET(self->prv->bssid_add_btn ));
+    gtk_widget_unref(GTK_WIDGET(self->prv->bssid_remove_btn ));
     gtk_widget_unref(GTK_WIDGET(self->prv->wpa_config_combo));
     gtk_widget_unref(GTK_WIDGET(self->prv->wpa_username_entry));
     gtk_widget_unref(GTK_WIDGET(self->prv->wpa_password_entry));
@@ -1030,38 +1102,133 @@ nwam_wireless_dialog_finalize (NwamWirelessDialog *self)
     parent_class->finalize (G_OBJECT (self));
 }
 
+#define _MSGBUFSIZE     (2048)
+
 /* Verify data */
-static gboolean
+static const gchar*
 validate_information( NwamWirelessDialog* self )
 {
+    static gchar    ret_str[_MSGBUFSIZE];
+    NwamuiWifiNet  *tmp_wifi = NULL;
+    gchar          *error_prop = NULL;
+    const char     *rval = NULL;
+
+    ret_str[0] = '\0'; /* For use where we need to printf things */
+
+    if ( GTK_WIDGET_IS_SENSITIVE( GTK_WIDGET(self->prv->essid_cbentry) ) ) {
+        const gchar * essid = gtk_entry_get_text(GTK_ENTRY(self->prv->essid_cbentry)); 
+
+        if (essid != NULL && strlen(essid) > 0 ) {
+            for ( const char *c = essid; c != NULL && *c != '\0'; c++ ) {
+                if ( !g_ascii_isprint( *c ) ) {
+                    return( _("The Wireless network name (ESSID) contains invalid (non-ASCII) characters.") );
+                }
+            }
+        }
+        else {
+            return( _("The Wireless network name (ESSID) should not be blank.") );
+        }
+    }
+
+    if ( GTK_WIDGET_IS_SENSITIVE( GTK_WIDGET(self->prv->bssid_list_tv) ) ) {
+        GList          *blist = NULL;
+        GtkTreeModel   *model = NULL;
+        GtkTreeIter     iter;
+
+        model = gtk_tree_view_get_model (self->prv->bssid_list_tv);
+
+        if ( gtk_tree_model_get_iter_first( model, &iter ) ) {
+            do {
+                gchar*  string = NULL;
+                gtk_tree_model_get(model, &iter, 0, &string, -1);
+
+                if ( string != NULL ) {
+                    struct ether_addr *ether = ether_aton( string );
+                    
+                    if ( ether == NULL ) {
+                        snprintf(ret_str, _MSGBUFSIZE, _("Wireless AP (BSSID) - '%s' is not a valid address"), string  );
+
+                        g_free(string);
+
+                        return( ret_str );
+                    }
+                }
+            }
+            while ( gtk_tree_model_iter_next( model, &iter ) );
+        }
+    }
+
     switch( nwam_wireless_dialog_get_security(self) ) {
         case NWAMUI_WIFI_SEC_NONE: 
-            return( TRUE );
+            break;
 
         case NWAMUI_WIFI_SEC_WEP_HEX:
         case NWAMUI_WIFI_SEC_WEP_ASCII:
+        case NWAMUI_WIFI_SEC_WPA_PERSONAL:
             {
                 const gchar* key =        gtk_entry_get_text(GTK_ENTRY(self->prv->key_entry));
+                const gchar *key_conf =   gtk_entry_get_text(GTK_ENTRY(self->prv->key_conf_entry));
                 
-                return( TRUE );
+                if ( key == NULL && key_conf == NULL ) {    /* Same, so TRUE */
+                    return( NULL );
+                }
+                else if( key == NULL || key_conf == NULL ||
+                         strcmp( key, key_conf ) != 0 ) { /* Different, so FALSE */
+                    return( _("Keys entered are different" ));
+                }
             }
             break;
-        case NWAMUI_WIFI_SEC_WPA_PERSONAL:
         case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
             {
                 const gchar* username =   gtk_entry_get_text(GTK_ENTRY(self->prv->wpa_username_entry));
                 const gchar* password =   gtk_entry_get_text(GTK_ENTRY(self->prv->wpa_password_entry));  
                 
                 if ( username != NULL && strlen(username) > 0  && password != NULL ) {
-                    return( TRUE );
+                    return( NULL );
                 }
                 /* TODO - Determine more WPA Validation criteria */
             }
             break;
     }   
-    
-    /* All other conditions, FALSE */
-    return( FALSE );
+
+    if ( self->prv->wifi_net == NULL ) {
+        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
+        NwamuiNcu *ncu;
+
+        ncu = nwamui_ncp_get_ncu_by_device_name(ncp, nwam_wireless_dialog_get_ncu(self));
+
+        g_object_unref(ncp);
+        g_object_unref(daemon);
+
+        tmp_wifi = nwamui_wifi_net_new(
+                ncu,
+                nwam_wireless_dialog_get_essid(self),
+                nwam_wireless_dialog_get_security(self),
+                nwam_wireless_dialog_get_bssid_list(self),
+                "g",
+                (gint)g_random_int_range(0, 56), /* Random speed */
+                (nwamui_wifi_signal_strength_t)g_random_int_range((gint32)NWAMUI_WIFI_STRENGTH_NONE, (gint32)NWAMUI_WIFI_STRENGTH_GOOD),
+                NWAMUI_WIFI_BSS_TYPE_AUTO,
+                nwam_wireless_dialog_get_wpa_config_type(self));
+                
+
+    }
+    else {
+        tmp_wifi = NWAMUI_WIFI_NET(g_object_ref(self->prv->wifi_net));
+    }
+
+    if ( !nwamui_wifi_net_validate_favourite( tmp_wifi, &error_prop ) ) {
+        snprintf(ret_str, _MSGBUFSIZE, _("Failed to validate wireless network due to an error with the property : %s"), error_prop );
+        rval = ret_str;
+    }
+    else {
+        rval = NULL;  /* All OK */
+    }
+
+    g_object_unref(tmp_wifi);
+
+    return( rval );
 }
 
 /* Callbacks */
@@ -1074,6 +1241,7 @@ show_password_cb( GtkToggleButton* widget, gpointer data )
     g_assert( self != NULL );
     
     gtk_entry_set_visibility(GTK_ENTRY(self->prv->key_entry), active );
+    gtk_entry_set_visibility(GTK_ENTRY(self->prv->key_conf_entry), active );
     gtk_entry_set_visibility(GTK_ENTRY(self->prv->wpa_password_entry), active );
 }
 
@@ -1088,16 +1256,26 @@ security_selection_cb( GtkWidget* widget, gpointer data )
         case NWAMUI_WIFI_SEC_NONE:
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WEP_PAGE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_entry), FALSE);
+            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_conf_entry), FALSE);
+            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->show_password_cbutton ), FALSE );
             break;
         case NWAMUI_WIFI_SEC_WEP_HEX:
         case NWAMUI_WIFI_SEC_WEP_ASCII:
+        case NWAMUI_WIFI_SEC_WPA_PERSONAL:
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WEP_PAGE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_entry), TRUE);
+            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_conf_entry), TRUE);
+            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->show_password_cbutton ), FALSE );
             break;
-        case NWAMUI_WIFI_SEC_WPA_PERSONAL:
         case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WPA_PAGE);
-            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_entry), TRUE);
+            gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WPA_PAGE);
+            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->wpa_username_entry), TRUE);
+            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->wpa_password_entry), TRUE);
+            /* default set to automatic */
+            if (gtk_combo_box_get_active(self->prv->wpa_config_combo) == -1) {
+                gtk_combo_box_set_active(self->prv->wpa_config_combo, 0);
+            }
             break;
         default:
             break;
@@ -1109,6 +1287,7 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
 {
     NwamWirelessDialog* self = NWAM_WIRELESS_DIALOG(data);
     gboolean            stop_emission = FALSE;
+    const gchar*        validation_error = NULL;
     
     switch (responseid) {
         case GTK_RESPONSE_NONE:
@@ -1119,12 +1298,12 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
             break;
         case GTK_RESPONSE_OK:
             g_debug("GTK_RESPONSE_OK");
-            stop_emission = !validate_information(self);
+            validation_error = validate_information(self);
+            stop_emission = (validation_error != NULL );
             if ( stop_emission ) {
-                /* TODO - Be more specific about WHY validation fails */
                 nwamui_util_show_message(GTK_WINDOW(gtk_widget_get_toplevel(widget)), GTK_MESSAGE_ERROR, 
                                                     _("Validation Failed."), 
-                                                    _("The configuration you specified is not valid"));
+                                                    validation_error );
             }
             g_debug("Validation = %s", (!stop_emission)?"TRUE":"FALSE");
             break;
@@ -1159,6 +1338,56 @@ essid_changed_cb( GtkWidget* widget, gpointer data )
     }
     
     gtk_dialog_set_response_sensitive(GTK_DIALOG(self->prv->wireless_dialog), GTK_RESPONSE_OK, state );
+}
+
+/* Add BSSID Button */
+static void
+bssid_add_cb(GtkWidget *button, gpointer data)
+{
+  GtkTreeIter iter;
+  GtkTreeView       *treeview = (GtkTreeView *)data;
+  GtkTreeModel      *model = gtk_tree_view_get_model (treeview);
+  GtkTreeSelection  *selection = gtk_tree_view_get_selection (treeview);
+  GtkTreeViewColumn *col = gtk_tree_view_get_column(treeview, 0);
+  GtkTreePath *path;
+
+  gtk_list_store_append (GTK_LIST_STORE (model), &iter);
+  gtk_list_store_set (GTK_LIST_STORE (model), &iter, 0, "", -1);
+
+  /* Start editing it */
+  path = gtk_tree_model_get_path (model, &iter);
+  gtk_tree_view_set_cursor(treeview, path, col, TRUE);
+  gtk_tree_path_free (path);
+}
+
+/* Remove BSSID Button */
+static void
+bssid_remove_cb(GtkWidget *widget, gpointer data)
+{
+  GtkTreeIter iter;
+  GtkTreeView *treeview = (GtkTreeView *)data;
+  GtkTreeModel *model = gtk_tree_view_get_model (treeview);
+  GtkTreeSelection *selection = gtk_tree_view_get_selection (treeview);
+
+  if (gtk_tree_selection_get_selected (selection, NULL, &iter)) {
+      GtkTreePath *path;
+
+      path = gtk_tree_model_get_path (model, &iter);
+      gtk_list_store_remove (GTK_LIST_STORE (model), &iter);
+      gtk_tree_path_free (path);
+    }
+}
+
+static void 
+bssid_edited_cb (GtkCellRendererText *renderer, gchar *path,
+                 gchar *new_text, gpointer user_data) 
+{
+    GtkTreeView        *view = GTK_TREE_VIEW(user_data);
+	GtkTreeModel*       model = GTK_TREE_MODEL (gtk_tree_view_get_model(view));
+	GtkTreeIter         iter;
+	
+	gtk_tree_model_get_iter_from_string (model, &iter, path);
+	gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, new_text, -1);
 }
 
 static void
