@@ -68,6 +68,7 @@ struct _NwamTreeViewPrivate {
     GList *widgets;
     NwamTreeViewAddObjectFunc add_object_func;
     NwamTreeViewRemoveObjectFunc remove_object_func;
+    NwamTreeViewCommitObjectFunc commit_object_func;
     gpointer object_func_user_data;
 
 };
@@ -95,6 +96,7 @@ static gboolean nwam_tree_view_key_release(GtkWidget   *widget, GdkEventKey *eve
 static void default_set_object_func(NwamTreeView *self,
   NwamTreeViewAddObjectFunc add_object_func,
   NwamTreeViewRemoveObjectFunc remove_object_func,
+  NwamTreeViewCommitObjectFunc commit_object_func,
   gpointer user_data);
 static void default_signal_handler_activate_widget(NwamTreeView *self, GtkWidget *widget, gpointer user_data);
 static void delete_selection_cb(GtkTreeModel *model,
@@ -344,11 +346,13 @@ void
 nwam_tree_view_set_object_func(NwamTreeView *self,
   NwamTreeViewAddObjectFunc add_object_func,
   NwamTreeViewRemoveObjectFunc remove_object_func,
+  NwamTreeViewCommitObjectFunc commit_object_func,
   gpointer user_data)
 {
     NWAM_TREE_VIEW_GET_CLASS(self)->set_object_func(self,
       add_object_func,
       remove_object_func,
+      commit_object_func,
       user_data);
 }
 
@@ -410,18 +414,18 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         g_assert(prv->new_obj == NULL);
         g_assert(prv->add_object_func);
 
-        prv->add_object_func(self, &prv->new_obj, prv->object_func_user_data);
+        if (prv->add_object_func) {
+            prv->add_object_func(self, &prv->new_obj, prv->object_func_user_data);
 
-        g_assert(prv->new_obj);
+            g_assert(prv->new_obj);
 
-        if (prv->new_obj) {
-            gtk_tree_model_foreach(gtk_tree_view_get_model(GTK_TREE_VIEW(self)),
-              nwam_tree_view_locate_new_object,
-              (gpointer)self);
+            if (prv->new_obj) {
+                gtk_tree_model_foreach(gtk_tree_view_get_model(GTK_TREE_VIEW(self)),
+                  nwam_tree_view_locate_new_object,
+                  (gpointer)self);
 
-            /* Add should always be sensitive 
-             *  gtk_widget_set_sensitive(prv->widget_list[prop_id], FALSE);
-             */
+                gtk_widget_set_sensitive(prv->widget_list[prop_id], FALSE);
+            }
         }
         break;
     }
@@ -459,6 +463,15 @@ nwam_tree_view_key_press(GtkWidget   *widget, GdkEventKey *event)
             gtk_widget_grab_focus(GTK_WIDGET(prv->widget_list[PROP_BUTTON_ADD]));
         
         return TRUE;
+    } else if (event->keyval == GDK_Return || event->keyval == GDK_Tab) {
+        if (prv->new_obj) {
+            if (prv->commit_object_func(self, prv->new_obj, prv->object_func_user_data)) {
+                prv->new_obj = NULL;
+
+                gtk_widget_set_sensitive(prv->widget_list[PROP_BUTTON_ADD], TRUE);
+            }
+        }
+
     }
     return FALSE;
 }
@@ -494,6 +507,7 @@ static void
 default_set_object_func(NwamTreeView *self,
   NwamTreeViewAddObjectFunc add_object_func,
   NwamTreeViewRemoveObjectFunc remove_object_func,
+  NwamTreeViewCommitObjectFunc commit_object_func,
   gpointer user_data)
 {
     NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(self);
@@ -502,6 +516,7 @@ default_set_object_func(NwamTreeView *self,
 
     prv->add_object_func = add_object_func;
     prv->remove_object_func = remove_object_func;
+    prv->commit_object_func = commit_object_func;
     prv->object_func_user_data = user_data;
 }
 

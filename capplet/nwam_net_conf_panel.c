@@ -377,9 +377,8 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
         gtk_tree_view_column_pack_start(col, cell, TRUE);
 
         g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (CONNVIEW_INFO));
-        g_object_set (cell, "editable", TRUE, NULL);
         g_signal_connect (cell, "edited", G_CALLBACK(vanity_name_edited), (gpointer)self);
-        g_signal_connect (cell, "editing-started", G_CALLBACK (vanity_name_editing_started), (gpointer)self);
+        g_signal_connect (cell, "editing-started", G_CALLBACK(vanity_name_editing_started), (gpointer)self);
         gtk_tree_view_column_set_cell_data_func (col, cell,
           nwam_net_conf_update_status_cell_cb, (gpointer) 0,
           NULL);
@@ -835,9 +834,12 @@ vanity_name_editing_started (GtkCellRenderer *cell,
                              gpointer         data)
 {
   	NwamNetConfPanel*       self = NWAM_NET_CONF_PANEL(data);
+
     g_debug("Editing Started");
-    if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT(cell), TREEVIEW_COLUMN_NUM)) !=
-      CONNVIEW_INFO) {
+
+    g_object_set (cell, "editable", FALSE, NULL);
+
+    if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT(cell), TREEVIEW_COLUMN_NUM)) != CONNVIEW_INFO) {
         return;
     }
     if (GTK_IS_ENTRY (editable)) {
@@ -906,6 +908,8 @@ vanity_name_edited ( GtkCellRendererText *cell,
     }
 
     gtk_tree_path_free (path);
+
+    g_object_set (cell, "editable", FALSE, NULL);
 }
 
 /*
@@ -1157,6 +1161,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         
                 if ((txt = GTK_CELL_RENDERER_TEXT(g_list_first( renderers )->data)) != NULL) {
                     GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+                    g_object_set (txt, "editable", TRUE, NULL);
 
                     gtk_tree_view_set_cursor (GTK_TREE_VIEW(self->prv->net_conf_treeview), tpath, info_col, TRUE);
 
@@ -1268,6 +1273,8 @@ update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection)
                 prv->connection_activation_combo_show_ncu_part = FALSE;
             }
             gtk_tree_model_filter_refilter(gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->connection_activation_combo)));
+            if (gtk_combo_box_get_active(self->prv->connection_activation_combo) == -1)
+                gtk_combo_box_set_active(self->prv->connection_activation_combo, 0);
         }
     }
 

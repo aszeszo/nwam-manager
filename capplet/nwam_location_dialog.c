@@ -128,6 +128,10 @@ static void vanity_name_editing_started (GtkCellRenderer *cell,
                                          GtkCellEditable *editable,
                                          const gchar     *path,
                                          gpointer         data);
+static void vanity_name_edited ( GtkCellRendererText *cell,
+                                 const gchar         *path_string,
+                                 const gchar         *new_text,
+                                 gpointer             data);
 static void nwam_location_connection_enabled_toggled_cb(    GtkCellRendererToggle *cell_renderer,
                                                             gchar                 *path,
                                                             gpointer               user_data);
@@ -227,6 +231,7 @@ nwam_compose_tree_view (NwamLocationDialog *self)
     nwam_tree_view_set_object_func(NWAM_TREE_VIEW(view),
       nwam_treeview_add_object_cb,
       nwam_treeview_remove_object_cb,
+      capplet_tree_view_commit_object,
       (gpointer)self);
 
     g_signal_connect(gtk_tree_view_get_selection(view),
@@ -264,17 +269,31 @@ nwam_compose_tree_view (NwamLocationDialog *self)
     g_signal_connect(G_OBJECT(cell), "toggled", G_CALLBACK(nwam_location_connection_enabled_toggled_cb), (gpointer)self);
 
     /* Mode column */
-    capplet_active_mode_column_new(view, &col, NULL, &cell);
+	col = capplet_column_new(view, NULL);
+	cell = capplet_column_append_cell(col, gtk_cell_renderer_text_new(), FALSE,
+	    nwamui_object_active_mode_text_cell, NULL, NULL);
 
     g_object_set_data (G_OBJECT (col), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (LOCVIEW_MODE));
 
     /* Name column */
-    capplet_name_column_new(view, &col, _("Name"), &cell);
-	g_object_set (cell, "weight", PANGO_WEIGHT_BOLD, NULL);
-	g_object_set (cell, "editable", TRUE, NULL);
-	g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (LOCVIEW_NAME));
-    g_signal_connect (cell, "editing-started", G_CALLBACK (vanity_name_editing_started), (gpointer)self);
+	col = capplet_column_new(view,
+      "title", _("Name"),
+      "expand", FALSE,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", FALSE,
+      "reorderable", TRUE,
+      NULL);
+	cell = capplet_column_append_cell(col, gtk_cell_renderer_text_new(), FALSE,
+	    (GtkTreeCellDataFunc)nwamui_object_name_cell, NULL, NULL);
+	g_signal_connect(cell, "edited",
+      G_CALLBACK(nwamui_object_name_cell_edited), (gpointer)view);
+    g_signal_connect (cell, "edited", G_CALLBACK(vanity_name_edited), (gpointer)self);
+    g_signal_connect (cell, "editing-started", G_CALLBACK(vanity_name_editing_started), (gpointer)self);
 
+    g_object_set_data (G_OBJECT (col), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER(LOCVIEW_NAME));
+	g_object_set (cell, "weight", PANGO_WEIGHT_BOLD, NULL);
+	g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (LOCVIEW_NAME));
 
     /* Model */
     capplet_compose_nwamui_obj_treeview(view);
@@ -559,8 +578,10 @@ vanity_name_editing_started (GtkCellRenderer *cell,
 	NwamLocationDialog *self =  NWAM_LOCATION_DIALOG(data);
 
     g_debug("Editing Started");
-    if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT(cell), TREEVIEW_COLUMN_NUM)) !=
-      LOCVIEW_NAME) {
+
+    g_object_set (cell, "editable", FALSE, NULL);
+
+    if (GPOINTER_TO_INT (g_object_get_data (G_OBJECT(cell), TREEVIEW_COLUMN_NUM)) != LOCVIEW_NAME) {
         return;
     }
     if (GTK_IS_ENTRY (editable)) {
@@ -591,6 +612,15 @@ vanity_name_editing_started (GtkCellRenderer *cell,
             gtk_tree_path_free(tpath);
         }
     }
+}
+
+static void
+vanity_name_edited ( GtkCellRendererText *cell,
+                     const gchar         *path_string,
+                     const gchar         *new_text,
+                     gpointer             data)
+{
+    g_object_set (cell, "editable", FALSE, NULL);
 }
 
 /*
@@ -782,6 +812,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             g_object_unref(daemon);
 
         } else if (button == (gpointer)prv->location_rename_btn) {
+#if 0
             gchar*  current_name;
             gchar*  new_name;
         
@@ -795,13 +826,21 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             }
 
             g_free(current_name);
+#endif
+            GtkCellRendererText*        txt;
+            GtkTreeViewColumn*  info_col = gtk_tree_view_get_column( GTK_TREE_VIEW(prv->location_tree), LOCVIEW_NAME );
+            GList*              renderers = gtk_tree_view_column_get_cell_renderers( info_col );
+        
+            /* Should be only one renderer */
+            g_assert( g_list_next( renderers ) == NULL );
+        
+            if ((txt = GTK_CELL_RENDERER_TEXT(g_list_first( renderers )->data)) != NULL) {
+                GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+                g_object_set (txt, "editable", TRUE, NULL);
 
-            {
-                GtkTreePath *path;
-                /* Update the tree view */
-                path = gtk_tree_model_get_path(model, &iter);
-                gtk_tree_model_row_changed(model, path, &iter);
-                gtk_tree_path_free(path);
+                gtk_tree_view_set_cursor (GTK_TREE_VIEW(prv->location_tree), tpath, info_col, TRUE);
+
+                gtk_tree_path_free(tpath);
             }
         } else if (button == (gpointer)prv->location_rules_btn) {
             static NwamPrefIFace *rules_dialog = NULL;

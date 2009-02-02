@@ -229,3 +229,39 @@ nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
 
     NWAMUI_OBJECT_GET_CLASS (object)->set_activation_mode(object, activation_mode);
 }
+
+extern gint
+nwamui_object_get_active(NwamuiObject *object)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
+    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_active, FALSE);
+
+    return NWAMUI_OBJECT_GET_CLASS (object)->get_active(object);
+}
+
+extern void
+nwamui_object_set_active(NwamuiObject *object, gboolean active)
+{
+    g_return_if_fail (NWAMUI_IS_OBJECT (object));
+    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_active);
+
+    NWAMUI_OBJECT_GET_CLASS (object)->set_active(object, active);
+}
+
+extern gboolean
+nwamui_object_commit(NwamuiObject *object)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
+    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->commit, FALSE);
+
+    return NWAMUI_OBJECT_GET_CLASS (object)->commit(object);
+}
+
+extern void
+nwamui_object_reload(NwamuiObject *object)
+{
+    g_return_if_fail (NWAMUI_IS_OBJECT (object));
+    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->reload);
+
+    NWAMUI_OBJECT_GET_CLASS (object)->reload(object);
+}

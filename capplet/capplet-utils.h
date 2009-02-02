@@ -5,6 +5,8 @@
 #include "nwam_pref_iface.h"
 #include "libnwamui.h"
 
+#include "nwam_tree_view.h"
+
 void capplet_compose_nwamui_obj_combo(GtkComboBox *combo, NwamPrefIFace *iface);
 
 void capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon, GType type);
@@ -26,6 +28,8 @@ gboolean capplet_model_get_iter(GtkTreeModel *model, NwamuiObject *object, GtkTr
 NwamuiObject *capplet_combo_get_active(GtkComboBox *combo);
 void capplet_combo_set_active(GtkComboBox *combo, NwamuiObject *object);
 
+gboolean capplet_tree_view_commit_object(NwamTreeView *self, NwamuiObject *object, gpointer user_data);
+
 void capplet_tree_store_merge_children(GtkTreeStore *model,
     GtkTreeIter *target,
     GtkTreeIter *source,
@@ -44,13 +48,27 @@ gboolean capplet_tree_view_collapse_row(GtkTreeView *treeview,
 
 
 /* Column and renderer */
-void capplet_name_column_new(GtkTreeView *treeview,
-    GtkTreeViewColumn **col, const gchar *title,
-    GtkCellRenderer **cell);
+GtkTreeViewColumn *capplet_column_new(GtkTreeView *treeview, ...);
 
-void capplet_active_mode_column_new(GtkTreeView *treeview,
-    GtkTreeViewColumn **col, const gchar *title,
-    GtkCellRenderer **cell);
+GtkCellRenderer *capplet_column_append_cell(GtkTreeViewColumn *col,
+    GtkCellRenderer *cell, gboolean expand,
+    GtkTreeCellDataFunc func, gpointer user_data, GDestroyNotify destroy);
 
+void nwamui_object_name_cell (GtkCellLayout *cell_layout,
+    GtkCellRenderer   *renderer,
+    GtkTreeModel      *model,
+    GtkTreeIter       *iter,
+    gpointer           data);
+
+void nwamui_object_name_cell_edited ( GtkCellRendererText *cell,
+    const gchar         *path_string,
+    const gchar         *new_text,
+    gpointer             data);
+
+void nwamui_object_active_mode_text_cell (GtkTreeViewColumn *col,
+    GtkCellRenderer   *renderer,
+    GtkTreeModel      *model,
+    GtkTreeIter       *iter,
+    gpointer           data);
 
 #endif /* _CAPPLET_UTILS_H */

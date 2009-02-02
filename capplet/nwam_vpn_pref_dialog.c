@@ -29,10 +29,10 @@
 #include <glib/gi18n.h>
 
 #include "libnwamui.h"
-#include "capplet-utils.h"
 #include "nwam_pref_iface.h"
 #include "nwam_vpn_pref_dialog.h"
 #include "nwam_rules_dialog.h"
+#include "capplet-utils.h"
 #include "nwam_tree_view.h"
 
 #define VPN_APP_VIEW_COL_ID	"nwam_vpn_app_column_id"
@@ -116,10 +116,6 @@ static void nwam_vpn_cell_cb(GtkTreeViewColumn *col,
 	GtkTreeModel      *model,
 	GtkTreeIter       *iter,
 	gpointer           data);
-static void nwam_vpn_cell_edited_cb(GtkCellRendererText *renderer,
-	gchar               *path,
-	gchar               *new_text,
-	gpointer             user_data);
 static gint nwam_vpn_cell_comp_cb(GtkTreeModel *model,
 	GtkTreeIter *a,
 	GtkTreeIter *b,
@@ -261,6 +257,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
     nwam_tree_view_set_object_func(NWAM_TREE_VIEW(view),
       nwam_treeview_add_object_cb,
       nwam_treeview_remove_object_cb,
+      capplet_tree_view_commit_object,
       (gpointer)self);
 
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(view),
@@ -271,15 +268,27 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       (gpointer)self);
 
     /* Mode column */
-    capplet_active_mode_column_new(view, &col, NULL, &renderer);
+	col = capplet_column_new(view, NULL);
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), FALSE,
+      nwamui_object_active_mode_text_cell, NULL, NULL);
 
 	/* column APP_NAME */
-    capplet_name_column_new(view, &col, _("Application Name"), &renderer);
-
+	col = capplet_column_new(view,
+      "title", _("Application Name"),
+      "expand", FALSE,
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "sort-indicator", FALSE,
+      "reorderable", TRUE,
+      NULL);
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), FALSE,
+      (GtkTreeCellDataFunc)nwamui_object_name_cell, NULL, NULL);
+	g_signal_connect(renderer, "edited",
+      G_CALLBACK(nwamui_object_name_cell_edited), (gpointer)view);
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
 	g_object_set_data(G_OBJECT(renderer), VPN_APP_VIEW_COL_ID, GUINT_TO_POINTER(APP_NAME));
-	g_signal_connect(G_OBJECT(renderer), "edited",
-      (GCallback) nwam_vpn_cell_edited_cb, (gpointer) self);
 
 #if 0
 	gtk_tree_view_column_set_sort_column_id (col, APP_NAME);
@@ -642,40 +651,6 @@ nwam_vpn_cell_cb (GtkTreeViewColumn *col,
 			}
 		}
 		break;
-		default:
-			g_assert_not_reached();
-	}
-}
-
-static void
-nwam_vpn_cell_edited_cb (GtkCellRendererText *renderer,
-			gchar               *path,
-                        gchar               *new_text,
-                        gpointer             data)
-{
-	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
-	guint col_id = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(renderer), VPN_APP_VIEW_COL_ID));
-	GtkTreeModel *model = gtk_tree_view_get_model(prv->view);
-	GtkTreeIter iter;
-	GObject *obj;
-	
-	gtk_tree_model_get_iter_from_string(model, &iter, path);
-	gtk_tree_model_get(model, &iter, 0, &obj, -1);
-	
-	switch (col_id) {
-		case APP_NAME:
-			if (new_text && *new_text != '\0') {
-				if (obj) {
-					nwamui_enm_set_name(NWAMUI_ENM(obj), new_text);
-				} else {
-					obj = G_OBJECT(nwamui_enm_new(new_text));
-					gtk_list_store_set(GTK_LIST_STORE(model), &iter,
-						               0,  obj, -1);
-					/* assign the new one to the current selection */
-					prv->cur_obj = obj;
-				}
-			}
-			break;
 		default:
 			g_assert_not_reached();
 	}

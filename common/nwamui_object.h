@@ -62,7 +62,10 @@ struct _NwamuiObjectClass
     void                 (*set_conditions)(NwamuiObject *object, const GList* conditions);
     gint                 (*get_activation_mode)(NwamuiObject *object);
     void                 (*set_activation_mode)(NwamuiObject *object, gint activation_mode);
-    
+    gint                 (*get_active)(NwamuiObject *object);
+    void                 (*set_active)(NwamuiObject *object, gboolean active);
+    gboolean             (*commit)(NwamuiObject *object);
+    void                 (*reload)(NwamuiObject *object);
 };
 
 extern  GType               nwamui_object_get_type (void) G_GNUC_CONST;
@@ -73,6 +76,10 @@ extern void                 nwamui_object_set_conditions ( NwamuiObject *object,
 extern GList*               nwamui_object_get_conditions ( NwamuiObject *object );
 extern gint                 nwamui_object_get_activation_mode(NwamuiObject *object);
 extern void                 nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode);
+extern gint                 nwamui_object_get_active(NwamuiObject *object);
+extern void                 nwamui_object_set_active(NwamuiObject *object, gboolean active);
+extern gboolean             nwamui_object_commit(NwamuiObject *object);
+extern void                 nwamui_object_reload(NwamuiObject *object);
 
 G_END_DECLS
 

@@ -49,7 +49,7 @@
 #define IP_PANEL_IPV6_EXP_LBL	"label34"
 
 #define IP_PANEL_WIRELESS_TAB                   "wireless_tab_vbox"
-#define IP_PANEL_WIRELESS_TABLE                 "treeview1"
+#define IP_PANEL_WIRELESS_TABLE                 "wireless_treeview"
 #define IP_PANEL_WIRELESS_TAB_ADD_BUTTON        "wireless_tab_add_button"
 #define IP_PANEL_WIRELESS_TAB_REMOVE_BUTTON     "wireless_tab_remove_button"
 #define IP_PANEL_WIRELESS_TAB_EDIT_BUTTON       "wireless_tab_edit_button"
@@ -243,15 +243,16 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
     gtk_tree_view_set_model (view, model);
 
     g_object_set (G_OBJECT(view),
-                  "headers-clickable", FALSE,
-                  "reorderable", TRUE,
-                  NULL);
+      "headers-visible", TRUE,
+      "headers-clickable", TRUE,
+      "reorderable", FALSE,
+      "rules-hint", TRUE,
+      "enable-search", FALSE,
+      "show-expanders", TRUE,
+      NULL);
 
     // Column:	WIFI_FAV_ESSID
-	col = gtk_tree_view_column_new();
-    gtk_tree_view_append_column (view, col);
-            
-    g_object_set( col,
+    col = capplet_column_new(view,
       "title", _("Name (ESSID)"),
       "expand", TRUE,
       "resizable", TRUE,
@@ -259,23 +260,41 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       "sort-indicator", FALSE,
       "reorderable", FALSE,
       NULL);
-
-    renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
-
-    gtk_tree_view_column_set_cell_data_func (col,
-      renderer,
-      nwam_conn_wifi_fav_cell_cb,
-      (gpointer) self,
-      NULL);
-    g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), FALSE,
+      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)self, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_ESSID));
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
     
+    // Column:	WIFI_FAV_SIGNAL
+    col = capplet_column_new(view,
+      "title", _("Channel"),
+      "expand", TRUE,
+      "resizable", TRUE,
+      "clickable", FALSE,
+      "sort-indicator", FALSE,
+      "reorderable", FALSE,
+      NULL);
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), FALSE,
+      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)self, NULL);
+    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SIGNAL));
+    
+    // Column:	WIFI_FAV_SPEED
+    col = capplet_column_new(view,
+      "title", _("Mb/s"),
+      "expand", TRUE,
+      "resizable", TRUE,
+      "clickable", FALSE,
+      "sort-indicator", FALSE,
+      "reorderable", FALSE,
+      NULL);
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), FALSE,
+      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)self, NULL);
+    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SPEED));
+
     // Column:	WIFI_FAV_SECURITY
-	col = gtk_tree_view_column_new();
-    gtk_tree_view_append_column (view, col);
-    g_object_set( col,
+    col = capplet_column_new(view,
       "title", _("Security"),
       "expand", TRUE,
       "resizable", TRUE,
@@ -283,63 +302,10 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       "sort-indicator", FALSE,
       "reorderable", FALSE,
       NULL);
-
-    renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
-    gtk_tree_view_column_set_cell_data_func (col,
-                                             renderer,
-                                             nwam_conn_wifi_fav_cell_cb,
-                                             (gpointer) self,
-                                             NULL);
-    g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), FALSE,
+      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)self, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SECURITY));
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
-    
-    // Column:	WIFI_FAV_SPEED
-	col = gtk_tree_view_column_new();
-    gtk_tree_view_append_column (view, col);
-    g_object_set( col,
-      "title", _("Speed"),
-      "expand", TRUE,
-      "resizable", TRUE,
-      "clickable", FALSE,
-      "sort-indicator", FALSE,
-      "reorderable", FALSE,
-      NULL);
-
-    renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
-    gtk_tree_view_column_set_cell_data_func (col,
-                                             renderer,
-                                             nwam_conn_wifi_fav_cell_cb,
-                                             (gpointer) self,
-                                             NULL);
-    g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SPEED));
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
-
-    // Column:	WIFI_FAV_SIGNAL
-	col = gtk_tree_view_column_new();
-    gtk_tree_view_append_column (view, col);
-    g_object_set( col,
-      "title", _("Signal"),
-      "expand", TRUE,
-      "resizable", TRUE,
-      "clickable", FALSE,
-      "sort-indicator", FALSE,
-      "reorderable", FALSE,
-      NULL);
-    gtk_tree_view_column_set_sort_column_id (col, WIFI_FAV_SIGNAL);
-
-    renderer = gtk_cell_renderer_progress_new();
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
-    gtk_tree_view_column_set_cell_data_func (col,
-                                             renderer,
-                                             nwam_conn_wifi_fav_cell_cb,
-                                             (gpointer) self,
-                                             NULL);
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SIGNAL));
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
     
 }
 /*
@@ -381,22 +347,16 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_HOSTNAME));
 */
 	// column IP_VIEW_ADDR
-	col = gtk_tree_view_column_new();
-	gtk_tree_view_append_column (view, col);
-    g_object_set( col, 
+    col = capplet_column_new(view,
       "title", _("Address"),
       "resizable", TRUE,
       "clickable", TRUE,
       "sort-indicator", TRUE,
       "reorderable", TRUE,
       NULL);
-	renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
-	gtk_tree_view_column_set_cell_data_func (col,
-						 renderer,
-						 nwam_conn_multi_ip_cell_cb,
-						 (gpointer) view,
-						 NULL);
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), FALSE,
+      (GtkTreeCellDataFunc)nwam_conn_multi_ip_cell_cb, (gpointer)view, NULL);
 	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_ADDR);	
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
 	g_signal_connect(G_OBJECT(renderer), "edited",

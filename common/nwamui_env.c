@@ -189,6 +189,10 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     nwamuiobject_class->set_conditions = nwamui_env_set_conditions;
     nwamuiobject_class->get_activation_mode = nwamui_env_get_activation_mode;
     nwamuiobject_class->set_activation_mode = nwamui_env_set_activation_mode;
+    nwamuiobject_class->get_active = nwamui_env_get_enabled;
+    nwamuiobject_class->set_active = nwamui_env_set_enabled;
+    nwamuiobject_class->commit = nwamui_env_commit;
+    nwamuiobject_class->reload = nwamui_env_reload;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,

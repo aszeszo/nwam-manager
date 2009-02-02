@@ -145,7 +145,7 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
       (gpointer) 0,
       NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SIGNAL));
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
+
     /* second ESSID text cell */
     renderer = gtk_cell_renderer_text_new();
     gtk_tree_view_column_pack_end(col, renderer, TRUE);
@@ -156,7 +156,6 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
       NULL);
     g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_ESSID));
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
     
     // Column:	WIFI_FAV_SPEED
     renderer = gtk_cell_renderer_text_new();
@@ -176,7 +175,6 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
       NULL);
     g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SPEED));
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
 
     // Column:	WIFI_FAV_SECURITY
     renderer = gtk_cell_renderer_text_new();
@@ -196,7 +194,6 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
       NULL);
     g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SECURITY));
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_tree_model", (gpointer)model);
 
 }
 

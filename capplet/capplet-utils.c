@@ -8,12 +8,6 @@ typedef struct _CappletForeachData {
 	gpointer ret_data;
 } CappletForeachData;
 
-static void nwamui_obj_name_cell_cb (GtkCellLayout *cell_layout,
-    GtkCellRenderer   *renderer,
-    GtkTreeModel      *model,
-    GtkTreeIter       *iter,
-    gpointer           data);
-
 static void nwam_pref_iface_combo_changed_cb(GtkComboBox* combo, gpointer user_data);
 
 void
@@ -21,7 +15,7 @@ capplet_compose_nwamui_obj_combo(GtkComboBox *combo, NwamPrefIFace *iface)
 {
 	capplet_compose_combo(combo,
 	    G_TYPE_OBJECT,
-	    nwamui_obj_name_cell_cb,
+	    nwamui_object_name_cell,
 	    NULL,
 	    nwam_pref_iface_combo_changed_cb,
 	    (gpointer)iface,
@@ -129,8 +123,8 @@ capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon, GTyp
 	g_list_free(obj_list);
 }
 
-static void
-nwamui_obj_name_cell_cb (GtkCellLayout *cell_layout,
+void
+nwamui_object_name_cell (GtkCellLayout *cell_layout,
     GtkCellRenderer   *renderer,
     GtkTreeModel      *model,
     GtkTreeIter       *iter,
@@ -144,17 +138,14 @@ nwamui_obj_name_cell_cb (GtkCellLayout *cell_layout,
 	if (object) {
 		g_assert(NWAMUI_IS_OBJECT (object));
 	
-		if (object) {
-			text = nwamui_object_get_name(object);
-		} else {
-			text = g_strdup(_("No name"));
-		}
-
-		g_object_set (G_OBJECT(renderer), "text", text, NULL);
-		g_free (text);
+		text = nwamui_object_get_name(object);
 
 		g_object_unref(object);
+	} else {
+		text = g_strdup(_("No name"));
 	}
+	g_object_set (G_OBJECT(renderer), "text", text, NULL);
+	g_free (text);
 }
 
 static void
@@ -251,8 +242,8 @@ capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w)
 	return nwam_pref_dialog_run(iface, parent);
 }
 
-static void
-nwamui_obj_name_cell_edited_cb ( GtkCellRendererText *cell,
+void
+nwamui_object_name_cell_edited ( GtkCellRendererText *cell,
                      const gchar         *path_string,
                      const gchar         *new_text,
                      gpointer             data)
@@ -273,8 +264,8 @@ nwamui_obj_name_cell_edited_cb ( GtkCellRendererText *cell,
 	gtk_tree_path_free (path);
 }
 
-static void
-capplet_active_mode_renderer_cell_cb (GtkTreeViewColumn *col,
+void
+nwamui_object_active_mode_text_cell (GtkTreeViewColumn *col,
   GtkCellRenderer   *renderer,
   GtkTreeModel      *model,
   GtkTreeIter       *iter,
@@ -311,54 +302,31 @@ capplet_active_mode_renderer_cell_cb (GtkTreeViewColumn *col,
     g_free( object_markup );
 }
 
-void
-capplet_name_column_new(GtkTreeView *treeview,
-    GtkTreeViewColumn **col, const gchar *title,
-    GtkCellRenderer **cell)
+GtkTreeViewColumn *
+capplet_column_new(GtkTreeView *treeview, ...)
 {
-	*col = gtk_tree_view_column_new();
-	gtk_tree_view_append_column (treeview, *col);
+	GtkTreeViewColumn *col = gtk_tree_view_column_new();
+	va_list args;
+	gchar *attribute;
 
-	g_object_set(*col,
-	    "title", title,
-	    "expand", TRUE,
-	    "resizable", TRUE,
-	    "clickable", TRUE,
-	    "sort-indicator", TRUE,
-	    "reorderable", TRUE,
-	    NULL);
+	va_start(args, treeview);
+	attribute = va_arg(args, gchar *);
+	if (attribute)
+		g_object_set_valist(col, attribute, args);
+	va_end (args);
 
-	*cell = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_pack_start(*col, *cell, FALSE);
-	gtk_tree_view_column_set_cell_data_func (*col, *cell,
-	    (GtkTreeCellDataFunc)nwamui_obj_name_cell_cb, (gpointer) 0,
-	    NULL);
-	g_signal_connect(*cell, "edited",
-	    G_CALLBACK(nwamui_obj_name_cell_edited_cb), (gpointer)treeview);
+	gtk_tree_view_append_column (treeview, col);
+	return col;
 }
 
-void
-capplet_active_mode_column_new(GtkTreeView *treeview,
-    GtkTreeViewColumn **col, const gchar *title,
-    GtkCellRenderer **cell)
+GtkCellRenderer *
+capplet_column_append_cell(GtkTreeViewColumn *col,
+    GtkCellRenderer *cell, gboolean expand,
+    GtkTreeCellDataFunc func, gpointer user_data, GDestroyNotify destroy)
 {
-	*col = gtk_tree_view_column_new();
-	gtk_tree_view_append_column (treeview, *col);
-
-	g_object_set(*col,
-	    "title", title,
-	    "expand", FALSE,
-	    "resizable", TRUE,
-	    "clickable", TRUE,
-	    "sort-indicator", FALSE,
-	    "reorderable", TRUE,
-	    NULL);
-
-	*cell = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_pack_start(*col, *cell, FALSE);
-	gtk_tree_view_column_set_cell_data_func (*col, *cell,
-	    capplet_active_mode_renderer_cell_cb, (gpointer) 0,
-	    NULL);
+	gtk_tree_view_column_pack_start(col, cell, expand);
+	gtk_tree_view_column_set_cell_data_func (col, cell, func, user_data, destroy);
+	return cell;
 }
 
 static gboolean
@@ -536,3 +504,10 @@ capplet_tree_view_collapse_row(GtkTreeView *treeview,
 	gtk_tree_path_free(path);
 	return ret;
 }
+
+gboolean
+capplet_tree_view_commit_object(NwamTreeView *self, NwamuiObject *object, gpointer user_data)
+{
+	return nwamui_object_commit(object);
+}
+

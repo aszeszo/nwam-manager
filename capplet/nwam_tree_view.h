@@ -42,6 +42,7 @@ typedef struct _NwamTreeView        NwamTreeView;
 typedef struct _NwamTreeViewClass   NwamTreeViewClass;
 typedef void (*NwamTreeViewAddObjectFunc)(NwamTreeView *self, NwamuiObject **object, gpointer user_data);
 typedef void (*NwamTreeViewRemoveObjectFunc)(NwamTreeView *self, NwamuiObject *object, gpointer user_data);
+typedef gboolean (*NwamTreeViewCommitObjectFunc)(NwamTreeView *self, NwamuiObject *object, gpointer user_data);
 
 struct _NwamTreeView {
 	GtkTreeView parent;
@@ -53,6 +54,7 @@ struct _NwamTreeViewClass {
     void (*set_object_func)(NwamTreeView *self,
       NwamTreeViewAddObjectFunc add_object_func,
       NwamTreeViewRemoveObjectFunc remove_object_func,
+      NwamTreeViewCommitObjectFunc commit_object_func,
       gpointer user_data);
 
     void (*activate_widget)(NwamTreeView *self, GtkWidget *widget, gpointer user_data);
@@ -75,6 +77,7 @@ void nwam_tree_view_remove_widget(NwamTreeView *self, GtkWidget *w);
 void nwam_tree_view_set_object_func(NwamTreeView *self,
   NwamTreeViewAddObjectFunc add_object_func,
   NwamTreeViewRemoveObjectFunc remove_object_func,
+  NwamTreeViewCommitObjectFunc commit_object_func,
   gpointer user_data);
 
 void nwam_tree_view_add(NwamTreeView *self);
