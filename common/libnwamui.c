@@ -1123,3 +1123,8 @@ nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
     return( TRUE );
 }
 
+extern FILE*
+get_stdio( void )
+{
+    return( stdout );
+}

@@ -73,19 +73,22 @@ extern void                 nwamui_enm_set_name ( NwamuiEnm *self, const gchar* 
 extern gchar*               nwamui_enm_get_name ( NwamuiEnm *self );
 
 
-extern void                 nwamui_enm_set_active ( NwamuiEnm *self, gboolean active );
+extern gboolean             nwamui_enm_set_active ( NwamuiEnm *self, gboolean active );
 extern gboolean             nwamui_enm_get_active ( NwamuiEnm *self );
 
+extern gboolean             nwamui_enm_set_enabled ( NwamuiEnm *self, gboolean enabled );
+extern gboolean             nwamui_enm_get_enabled ( NwamuiEnm *self );
 
-extern void                 nwamui_enm_set_start_command ( NwamuiEnm *self, const gchar* start_command );
+
+extern gboolean             nwamui_enm_set_start_command ( NwamuiEnm *self, const gchar* start_command );
 extern gchar*               nwamui_enm_get_start_command ( NwamuiEnm *self );
 
 
-extern void                 nwamui_enm_set_stop_command ( NwamuiEnm *self, const gchar* stop_command );
+extern gboolean             nwamui_enm_set_stop_command ( NwamuiEnm *self, const gchar* stop_command );
 extern gchar*               nwamui_enm_get_stop_command ( NwamuiEnm *self );
 
 
-extern void                 nwamui_enm_set_smf_fmri ( NwamuiEnm *self, const gchar* smf_frmi );
+extern gboolean             nwamui_enm_set_smf_fmri ( NwamuiEnm *self, const gchar* smf_frmi );
 extern gchar*               nwamui_enm_get_smf_fmri ( NwamuiEnm *self );
 
 extern void                 nwamui_enm_set_activation_mode ( NwamuiEnm *self, 

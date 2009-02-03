@@ -111,6 +111,7 @@ static void get_property (GObject         *object,
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void vpn_pref_clicked_cb(GtkButton *button, gpointer data);
+static void command_entry_changed(GtkEditable *editable, gpointer data);
 static void nwam_vpn_cell_cb(GtkTreeViewColumn *col,
 	GtkCellRenderer   *renderer,
 	GtkTreeModel      *model,
@@ -187,6 +188,10 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 	prv->stop_cmd_lbl = GTK_LABEL(nwamui_util_glade_get_widget(VPN_PREF_STOP_CMD_LBL));
 	prv->process_lbl = GTK_LABEL(nwamui_util_glade_get_widget(VPN_PREF_PROCESS_LBL));
 	prv->desc_lbl = GTK_LABEL(nwamui_util_glade_get_widget(VPN_PREF_DESC_LBL));
+
+	g_signal_connect(prv->start_cmd_entry, "changed", (GCallback)command_entry_changed, (gpointer)self);
+	g_signal_connect(prv->stop_cmd_entry, "changed", (GCallback)command_entry_changed, (gpointer)self);
+	g_signal_connect(prv->process_entry, "changed", (GCallback)command_entry_changed, (gpointer)self);
 
 	g_signal_connect(prv->remove_btn,
       "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
@@ -342,22 +347,34 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
 
 	prev_txt = nwamui_enm_get_start_command(NWAMUI_ENM(obj));
 	txt = gtk_entry_get_text(prv->start_cmd_entry);
-	if ( prev_txt != NULL && strcmp( prev_txt, txt?txt:"") != 0 ) {
-        nwamui_enm_set_start_command(NWAMUI_ENM(obj), txt?txt:"");
+	if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
+        if ( !nwamui_enm_set_start_command(NWAMUI_ENM(obj), txt?txt:"") ) {
+            nwamui_util_show_message (self->prv->vpn_pref_dialog, GTK_MESSAGE_ERROR, _("Validation Error"), 
+                    _("Invalid value specified for Start Command") );
+            return( FALSE );
+        }
     }
     g_free(prev_txt);
 
 	prev_txt = nwamui_enm_get_stop_command(NWAMUI_ENM(obj));
 	txt = gtk_entry_get_text(prv->stop_cmd_entry);
-	if ( prev_txt != NULL && strcmp( prev_txt, txt?txt:"") != 0 ) {
-        nwamui_enm_set_stop_command(NWAMUI_ENM(obj), txt?txt:"");
+	if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
+        if ( !nwamui_enm_set_stop_command(NWAMUI_ENM(obj), txt?txt:"") ) {
+            nwamui_util_show_message (self->prv->vpn_pref_dialog, GTK_MESSAGE_ERROR, _("Validation Error"), 
+                    _("Invalid value specified for Stop Command") );
+            return( FALSE );
+        }
     }
     g_free(prev_txt);
 
 	prev_txt = nwamui_enm_get_smf_fmri(NWAMUI_ENM(obj));
 	txt = gtk_entry_get_text(prv->process_entry);
-	if ( prev_txt != NULL && strcmp( prev_txt, txt?txt:"") != 0 ) {
-        nwamui_enm_set_smf_fmri(NWAMUI_ENM(obj), txt?txt:"");
+	if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
+        if ( !nwamui_enm_set_smf_fmri(NWAMUI_ENM(obj), txt?txt:"") ) {
+            nwamui_util_show_message (self->prv->vpn_pref_dialog, GTK_MESSAGE_ERROR, _("Validation Error"), 
+                    _("Invalid value specified for SMF FMRI") );
+            return( FALSE );
+        }
     }
     g_free(prev_txt);
 
@@ -393,6 +410,7 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 	}
 	
 	if ( self->prv->vpn_pref_dialog != NULL ) {
+        nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
 		response =  gtk_dialog_run(GTK_DIALOG(self->prv->vpn_pref_dialog));
 		
 		gtk_widget_hide( GTK_WIDGET(self->prv->vpn_pref_dialog) );
@@ -463,20 +481,22 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
                 gtk_tree_model_get (model, &iter, 0, &obj, -1);
                 /* update the new one before close */
                 if (prv->cur_obj && prv->cur_obj == obj) {
-                    nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), obj);
+                    if ( ! nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), obj) ) {
+                        stop_emission = TRUE;
+                    }
                 }
             }
 
 			/* FIXME, ok need call into separated panel/instance
 			 * apply all changes, if no errors, hide all
 			 */
-            if (gtk_tree_model_get_iter_first (model, &iter)) {
+            if ( !stop_emission && gtk_tree_model_get_iter_first (model, &iter)) {
                 gchar* prop_name = NULL;
                 do {
                     gtk_tree_model_get (model, &iter, 0, &obj, -1);
                     if (nwamui_enm_validate (NWAMUI_ENM (obj), &prop_name)) {
                         if (!nwamui_enm_commit (NWAMUI_ENM (obj))) {
-                            /* Start highligh relevant ENM */
+                            /* Start highlight relevant ENM */
                             path = gtk_tree_model_get_path (model, &iter);
                             gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
                             gtk_tree_path_free (path);
@@ -530,6 +550,39 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
     if ( stop_emission ) {
         g_signal_stop_emission_by_name(widget, "response" );
     }
+}
+
+static void 
+command_entry_changed(GtkEditable *editable, gpointer data)
+{
+	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(data);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(self);
+    gboolean    start_visible = TRUE;
+    gboolean    stop_visible = TRUE;
+    gboolean    fmri_visible = TRUE;
+
+    if ( editable == GTK_EDITABLE(prv->start_cmd_entry ) ) {
+        if ( gtk_entry_get_text_length( GTK_ENTRY( prv->start_cmd_entry ) ) > 0 ) {
+            fmri_visible = FALSE;
+        }
+    } 
+    else if ( editable == GTK_EDITABLE(prv->stop_cmd_entry ) ) {
+        if ( gtk_entry_get_text_length( GTK_ENTRY( prv->stop_cmd_entry ) ) > 0 ) {
+            fmri_visible = FALSE;
+        }
+    }
+    else {
+        if ( gtk_entry_get_text_length( GTK_ENTRY( prv->process_entry ) ) > 0 ) {
+            start_visible = FALSE;
+            stop_visible = FALSE;
+        }
+    }
+            
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), start_visible);
+	gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), start_visible);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_entry), stop_visible);
+	gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), stop_visible);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->process_entry), fmri_visible);
 }
 
 static void
@@ -701,17 +754,35 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 		if (obj) {
             gchar *title;
             gchar *name;
+            gboolean    start_value = FALSE;
+            gboolean    stop_value = FALSE;
+            gboolean    fmri_value = FALSE;
 
 			txt = nwamui_enm_get_start_command (NWAMUI_ENM(obj));
 			gtk_entry_set_text (prv->start_cmd_entry, txt?txt:"");
+            if ( txt != NULL && strlen(txt) > 0 ) {
+                start_value = TRUE;
+            }
 			g_free (txt);
 			txt = nwamui_enm_get_stop_command (NWAMUI_ENM(obj));
 			gtk_entry_set_text (prv->stop_cmd_entry, txt?txt:"");
+            if ( txt != NULL && strlen(txt) > 0 ) {
+                stop_value = TRUE;
+            }
 			g_free (txt);
 			txt = nwamui_enm_get_smf_fmri (NWAMUI_ENM(obj));
 			gtk_entry_set_text (prv->process_entry, txt?txt:"");
+            if ( txt != NULL && strlen(txt) > 0 ) {
+                fmri_value = TRUE;
+            }
 			g_free (txt);
             on_nwam_enm_notify_cb(G_OBJECT(obj), NULL, data);
+
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), start_value);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), start_value);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_entry), stop_value);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), stop_value);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->process_entry), fmri_value);
 
             name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
             title = g_strdup_printf(_("Start/stop '%s' according to rules"), name);

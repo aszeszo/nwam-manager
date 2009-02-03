@@ -1,3 +1,24 @@
+2009-02-03  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	  Fix Locations Dialog button response ids.
+	  Fix icon paths, again. 
+	  Change text for "Process" field to be more correct, since it refers
+	  to an SMF FMRI not a process name.
+	* capplet/nwam_conn_stat_panel.c: 
+	  Change Locations button to launch the Locations dialog, not the
+	  properties editor of a location.
+	* capplet/nwam_location_dialog.c:
+	  Make this dialog do things when cancel/ok clicked.
+	* capplet/nwam_vpn_pref_dialog.c: 
+	  Fix issues found then using the dialog.
+	* common/libnwamui.c:
+	  Silly function to get stdio FILE, since it's not possible to do from
+	  dbx.
+	* common/nwamui_enm.c, common/nwamui_enm.h:
+	  Change how some ENM properties are set to allow validation by
+	  libnwam.
+
 2009-02-02  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c: (capplet_compose_nwamui_obj_combo),

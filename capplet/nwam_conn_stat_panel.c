@@ -36,6 +36,7 @@
 #include "libnwamui.h"
 #include "nwam_pref_dialog.h"
 #include "nwam_env_pref_dialog.h"
+#include "nwam_location_dialog.h"
 #include "nwam_vpn_pref_dialog.h"
 #include "nwam_conn_stat_panel.h"
 #include "nwam_net_conf_panel.h"
@@ -64,7 +65,7 @@ struct _NwamConnStatusPanelPrivate {
     NwamCappletDialog*  pref_dialog;
     NwamuiNcp*          ncp;
     NwamuiDaemon*       daemon;
-    NwamEnvPrefDialog*  env_dialog;
+    NwamLocationDialog* location_dialog;
 	NwamVPNPrefDialog*  vpn_dialog;
 };
 
@@ -514,17 +515,15 @@ env_clicked_cb( GtkButton *button, gpointer data )
 {
 	NwamConnStatusPanel* self = NWAM_CONN_STATUS_PANEL(data);
     gint                 response;
-    NwamuiEnv *env = nwamui_daemon_get_active_env(NWAMUI_DAEMON(self->prv->daemon));
 
-    if (env) {
-        if ( self->prv->env_dialog == NULL ) {
-            self->prv->env_dialog = nwam_env_pref_dialog_new();
-        }
-        nwam_pref_refresh(NWAM_PREF_IFACE(self->prv->env_dialog), env, TRUE);
-        response = capplet_dialog_run(NWAM_PREF_IFACE(self->prv->env_dialog), GTK_WIDGET(button) );
+    if ( self->prv->location_dialog == NULL ) {
+        self->prv->location_dialog = nwam_location_dialog_new();
+    }
+    if ( self->prv->location_dialog != NULL ) {
+        nwam_pref_refresh(NWAM_PREF_IFACE(self->prv->location_dialog), NULL, TRUE);
+        response = capplet_dialog_run(NWAM_PREF_IFACE(self->prv->location_dialog), GTK_WIDGET(button) );
         
-        g_debug("env dialog returned %d", response );
-        g_object_unref(env);
+        g_debug("location_dialog returned %d", response );
     }
 }
 

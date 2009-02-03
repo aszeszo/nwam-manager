@@ -248,74 +248,32 @@ nwamui_enm_set_property (   GObject         *object,
             break;
 
         case PROP_ACTIVE: {
-                if (self->prv->nwam_enm != NULL) {
-                    gboolean active = g_value_get_boolean( value );
-                    if (active) {
-                        if ((nerr = nwam_enm_enable (self->prv->nwam_enm)) != NWAM_SUCCESS) {
-                            g_debug ("nwam_enm_start error: %s", nwam_strerror (nerr));
-                        }
-                    } else {
-                        if ((nerr = nwam_enm_disable (self->prv->nwam_enm)) != NWAM_SUCCESS) {
-                            g_debug ("nwam_enm_stop error: %s", nwam_strerror (nerr));
-                        }
-                    }
-                }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
+                gboolean active = g_value_get_boolean( value );
+                nwamui_enm_set_active( self, active );
             }
             break;
 
         case PROP_ENABLED: {
-                if (self->prv->nwam_enm != NULL) {
-                    gboolean enabled = g_value_get_boolean( value );
-                    set_nwam_enm_boolean_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ENABLED, enabled );
-                }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
+                gboolean enabled = g_value_get_boolean( value );
+                nwamui_enm_set_enabled( self, enabled );
             }
             break;
 
         case PROP_START_COMMAND: {
-                if (self->prv->nwam_enm != NULL) {
-                    gchar *start_command = g_strdup( g_value_get_string( value ) );
-
-                    if ( start_command != NULL ) {
-                        set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_START, start_command );
-                    }
-                }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
+                const gchar *start_command = g_value_get_string( value );
+                nwamui_enm_set_start_command ( self, start_command );
             }
             break;
 
         case PROP_STOP_COMMAND: {
-                if (self->prv->nwam_enm != NULL) {
-                    gchar *stop_command = g_strdup( g_value_get_string( value ) );
-
-                    if ( stop_command != NULL ) {
-                        set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP, stop_command );
-                    }
-                }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
+                const gchar *stop_command = g_value_get_string( value );
+                nwamui_enm_set_stop_command ( self, stop_command );
             }
             break;
 
         case PROP_SMF_FMRI: {
-                if (self->prv->nwam_enm != NULL) {
-                    gchar *smf_fmri = g_strdup( g_value_get_string( value ) );
-
-                    if ( smf_fmri != NULL ) {
-                        set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_FMRI, smf_fmri );
-                    }
-                }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
+                const gchar *smf_fmri = g_value_get_string( value );
+                nwamui_enm_set_smf_fmri ( self, smf_fmri );
             }
             break;
 
@@ -946,15 +904,31 @@ nwamui_enm_get_name (NwamuiEnm *self)
  * @active: Value to set active to.
  * 
  **/ 
-extern void
+extern gboolean
 nwamui_enm_set_active (   NwamuiEnm *self,
-                              gboolean        active )
+                          gboolean        active )
 {
-    g_return_if_fail (NWAMUI_IS_ENM (self));
+    nwam_error_t    nerr;
+    g_return_val_if_fail (NWAMUI_IS_ENM (self), FALSE);
 
-    g_object_set (G_OBJECT (self),
-                  "active", active,
-                  NULL);
+    if (self->prv->nwam_enm != NULL) {
+        if (active) {
+            if ((nerr = nwam_enm_enable (self->prv->nwam_enm)) != NWAM_SUCCESS) {
+                g_debug ("nwam_enm_start error: %s", nwam_strerror (nerr));
+                return( FALSE );
+            }
+        } else {
+            if ((nerr = nwam_enm_disable (self->prv->nwam_enm)) != NWAM_SUCCESS) {
+                g_debug ("nwam_enm_stop error: %s", nwam_strerror (nerr));
+                return( FALSE );
+            }
+        }
+        self->prv->nwam_enm_modified = TRUE;
+    }
+    else {
+        g_warning("Unexpected null enm handle");
+    }
+    return( FALSE );
 }
 
 /**
@@ -983,15 +957,26 @@ nwamui_enm_get_active (NwamuiEnm *self)
  * @enabled: Value to set enabled to.
  * 
  **/ 
-extern void
+extern gboolean
 nwamui_enm_set_enabled (   NwamuiEnm *self,
-                              gboolean        enabled )
+                           gboolean        enabled )
 {
-    g_return_if_fail (NWAMUI_IS_ENM (self));
+    nwam_error_t    nerr;
+    g_return_val_if_fail (NWAMUI_IS_ENM (self), FALSE);
 
-    g_object_set (G_OBJECT (self),
-                  "enabled", enabled,
-                  NULL);
+    if (self->prv->nwam_enm != NULL) {
+        if ( !set_nwam_enm_boolean_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ENABLED, enabled ) ) {
+            g_debug("Error setting ENM boolean prop ENABLED");
+            return( FALSE) ;
+        }
+        g_object_notify (G_OBJECT (self), "enabled" );
+        self->prv->nwam_enm_modified = TRUE;
+        return(TRUE);
+    }
+    else {
+        g_warning("Unexpected null enm handle");
+    }
+    return( FALSE );
 }
 
 /**
@@ -1020,18 +1005,36 @@ nwamui_enm_get_enabled (NwamuiEnm *self)
  * @start_command: Value to set start_command to.
  * 
  **/ 
-extern void
+extern gboolean
 nwamui_enm_set_start_command (   NwamuiEnm *self,
                               const gchar*  start_command )
 {
-    g_return_if_fail (NWAMUI_IS_ENM (self));
-    g_assert (start_command != NULL );
+    nwam_error_t    nerr;
+    g_return_val_if_fail (NWAMUI_IS_ENM (self), FALSE);
 
     if ( start_command != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "start_command", start_command,
-                      NULL);
+        if (self->prv->nwam_enm != NULL) {
+            if ( start_command != NULL ) {
+                if ( strlen( start_command ) == 0 ) {
+                    /* Delete property, don't set to empty string */
+                    if (nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_START ) != NWAM_SUCCESS ) {
+                        return( FALSE );
+                    }
+                }
+                else if ( !set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_START, start_command ) ) {
+                    return( FALSE );
+                }
+                g_object_notify(G_OBJECT (self), "start_command");
+                self->prv->nwam_enm_modified = TRUE;
+            }
+        }
+        else {
+            g_warning("Unexpected null enm handle");
+            return( FALSE );
+        }
     }
+
+    return( TRUE );
 }
 
 /**
@@ -1060,18 +1063,36 @@ nwamui_enm_get_start_command (NwamuiEnm *self)
  * @stop_command: Value to set stop_command to.
  * 
  **/ 
-extern void
+extern gboolean
 nwamui_enm_set_stop_command (   NwamuiEnm *self,
                               const gchar*  stop_command )
 {
-    g_return_if_fail (NWAMUI_IS_ENM (self));
-    g_assert (stop_command != NULL );
+    nwam_error_t    nerr;
+    g_return_val_if_fail (NWAMUI_IS_ENM (self), FALSE);
 
     if ( stop_command != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "stop_command", stop_command,
-                      NULL);
+        if (self->prv->nwam_enm != NULL) {
+            if ( stop_command != NULL ) {
+                if ( strlen( stop_command ) == 0 ) {
+                    /* Delete property, don't set to empty string */
+                    if (nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP) != NWAM_SUCCESS ) {
+                        return( FALSE );
+                    }
+                }
+                else if ( !set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP, stop_command ) ) {
+                    return( FALSE );
+                }
+                g_object_notify(G_OBJECT (self), "stop_command");
+                self->prv->nwam_enm_modified = TRUE;
+            }
+        }
+        else {
+            g_warning("Unexpected null enm handle");
+            return( FALSE );
+        }
     }
+
+    return( TRUE );
 }
 
 /**
@@ -1100,18 +1121,36 @@ nwamui_enm_get_stop_command (NwamuiEnm *self)
  * @smf_fmri: Value to set smf_fmri to.
  * 
  **/ 
-extern void
+extern gboolean
 nwamui_enm_set_smf_fmri (   NwamuiEnm *self,
                               const gchar*  smf_fmri )
 {
-    g_return_if_fail (NWAMUI_IS_ENM (self));
-    g_assert (smf_fmri != NULL );
+    nwam_error_t    nerr;
+    g_return_val_if_fail (NWAMUI_IS_ENM (self), FALSE);
 
     if ( smf_fmri != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "smf_fmri", smf_fmri,
-                      NULL);
+        if (self->prv->nwam_enm != NULL) {
+            if ( smf_fmri != NULL ) {
+                if ( strlen( smf_fmri ) == 0 ) {
+                    /* Delete property, don't set to empty string */
+                    if (nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_FMRI) != NWAM_SUCCESS ) {
+                        return( FALSE );
+                    }
+                }
+                else if ( !set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_FMRI, smf_fmri ) ) {
+                    return( FALSE );
+                }
+                g_object_notify(G_OBJECT (self), "smf_fmri");
+                self->prv->nwam_enm_modified = TRUE;
+            }
+        }
+        else {
+            g_warning("Unexpected null enm handle");
+            return( FALSE );
+        }
     }
+
+    return( TRUE );
 }
 
 /**
@@ -1258,7 +1297,7 @@ nwamui_enm_commit( NwamuiEnm* self )
 
     if ( self->prv->nwam_enm_modified && self->prv->nwam_enm != NULL ) {
         if ( (nerr = nwam_enm_commit( self->prv->nwam_enm, 0 ) ) != NWAM_SUCCESS ) {
-            g_warning("Failed when committing ENM for %s", self->prv->name);
+            g_warning("Failed when committing ENM for %s, %s", self->prv->name, nwam_strerror( nerr ));
             return( FALSE );
         }
     }

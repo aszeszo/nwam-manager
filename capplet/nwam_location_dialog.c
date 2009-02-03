@@ -78,11 +78,18 @@ enum {
     LOCVIEW_NAME
 };
 
-static const gchar *combo_contents[] = {
+enum {
+    NWAMUI_LOC_ACTIVATION_MANUAL = 0,
+    NWAMUI_LOC_ACTIVATION_BY_RULES,
+    NWAMUI_LOC_ACTIVATION_BY_SYSTEM,
+    NWAMUI_LOC_ACTIVATION_LAST
+};
+
+static const gchar *combo_contents[NWAMUI_LOC_ACTIVATION_LAST] = {
     N_("manual activation only"),
     N_("activated by rules"),
-    N_("activated by system"),
-    NULL};
+    N_("activated by system")
+};
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
@@ -111,6 +118,7 @@ static void location_get_property (GObject         *object,
   GParamSpec      *pspec);
 
 /* Callbacks */
+static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static gint nwam_location_connection_compare_cb (GtkTreeModel *model,
 			      GtkTreeIter *a,
@@ -178,7 +186,6 @@ nwam_location_dialog_class_init(NwamLocationDialogClass *klass)
 
 	/* Override Some Function Pointers */
 	gobject_class->finalize = (void (*)(GObject*)) nwam_location_dialog_finalize;
-
 }
 
 static void
@@ -328,6 +335,9 @@ nwam_location_dialog_init(NwamLocationDialog *self)
     g_signal_connect(self->prv->location_dup_btn,
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
 
+    g_signal_connect(self->prv->location_dialog,
+      "response", G_CALLBACK(response_cb), (gpointer)self);
+
     self->prv->location_activation_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(LOCATION_ACTIVATION_COMBO));
     capplet_compose_combo(self->prv->location_activation_combo,
       G_TYPE_INT,
@@ -346,11 +356,10 @@ nwam_location_dialog_init(NwamLocationDialog *self)
         /* Clean all */
         gtk_list_store_clear(GTK_LIST_STORE(model));
 
-        for (i = 0; combo_contents[i]; i++) {
+        /* Add entries for each selection item */
+        for (i = 0; i < NWAMUI_LOC_ACTIVATION_LAST; i++) {
             gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-            gtk_list_store_set (GTK_LIST_STORE(model), &iter,
-              0, i,
-              -1);
+            gtk_list_store_set (GTK_LIST_STORE(model), &iter, 0, i, -1);
         }
     }
 
@@ -361,10 +370,10 @@ nwam_location_dialog_init(NwamLocationDialog *self)
       "row-activated",
       (GCallback)nwam_location_connection_view_row_activated_cb,
       (gpointer)self);
-/* 	g_signal_connect(GTK_TREE_VIEW(self->prv->location_tree), */
-/*       "cursor-changed", */
-/*       (GCallback)nwam_location_connection_view_row_selected_cb, */
-/*       (gpointer)self); */
+	g_signal_connect(GTK_TREE_VIEW(self->prv->location_tree),
+      "cursor-changed",
+      (GCallback)nwam_location_connection_view_row_selected_cb,
+      (gpointer)self);
 
     /* Initially refresh self */
     nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
@@ -424,7 +433,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     g_assert(NWAM_IS_LOCATION_DIALOG(self));
     
     if (force) {
-        NwamuiNcp *ncp = NWAMUI_NCP(user_data);
         NwamuiDaemon *daemon = nwamui_daemon_get_instance();
 
         gtk_widget_hide(GTK_WIDGET(self->prv->location_tree));
@@ -433,9 +441,10 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 
         g_object_unref(daemon);
 
-        nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(self->prv->location_tree),
-          (gpointer)self);
     }
+
+    nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(self->prv->location_tree),
+      (gpointer)self);
 
     return( TRUE );
 }
@@ -501,6 +510,7 @@ nwam_location_update_status_cell_cb (GtkTreeViewColumn *col,
         case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
             env_markup= g_strdup_printf(_("<b>%s</b>"), "P");
             break;
+        case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
             env_markup= g_strdup_printf(_("<b>%s</b>"), "C");
             break;
@@ -739,16 +749,16 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         switch (nwamui_env_get_activation_mode(env)) {
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
             gtk_widget_set_sensitive(prv->location_activation_combo, TRUE);
-            gtk_combo_box_set_active(prv->location_activation_combo, 0);
+            gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_MANUAL);
             break;
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
             gtk_widget_set_sensitive(prv->location_activation_combo, TRUE);
-            gtk_combo_box_set_active(prv->location_activation_combo, 1);
+            gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_RULES );
             break;
         case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
         case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED: /* ?? TODO */
         default:
-            gtk_combo_box_set_active(prv->location_activation_combo, 2);
+            gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_SYSTEM);
             gtk_widget_set_sensitive(prv->location_activation_combo, FALSE);
             gtk_widget_set_sensitive(prv->location_remove_btn, FALSE);
             break;
@@ -889,6 +899,110 @@ location_activation_combo_changed_cb(GtkComboBox* combo, gpointer user_data)
             break;
         }
 	}
+}
+
+static void
+response_cb(GtkWidget* widget, gint responseid, gpointer data)
+{
+	NwamLocationDialog         *self = NWAM_LOCATION_DIALOG(data);
+	NwamLocationDialogPrivate  *prv = self->prv;
+    gboolean                    stop_emission = FALSE;
+	GtkTreeSelection           *selection = NULL;
+	GtkTreeIter                 iter;
+    GtkTreePath                *path = NULL;
+    GtkTreeModel               *model;
+    GObject                    *obj;
+
+	switch (responseid) {
+		case GTK_RESPONSE_NONE:
+			g_debug("GTK_RESPONSE_NONE");
+			break;
+		case GTK_RESPONSE_DELETE_EVENT:
+			g_debug("GTK_RESPONSE_DELETE_EVENT");
+			break;
+		case GTK_RESPONSE_OK:
+			g_debug("GTK_RESPONSE_OK");
+
+#if 0
+            model = gtk_tree_view_get_model (prv->view);
+            selection = gtk_tree_view_get_selection (prv->view);
+            if (gtk_tree_selection_get_selected(selection,
+                  NULL, &iter)) {
+
+                gtk_tree_model_get (model, &iter, 0, &obj, -1);
+                /* update the new one before close */
+                if (prv->cur_obj && prv->cur_obj == obj) {
+                    if ( ! nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), obj) ) {
+                        stop_emission = TRUE;
+                    }
+                }
+            }
+
+			/* FIXME, ok need call into separated panel/instance
+			 * apply all changes, if no errors, hide all
+			 */
+            if ( !stop_emission && gtk_tree_model_get_iter_first (model, &iter)) {
+                gchar* prop_name = NULL;
+                do {
+                    gtk_tree_model_get (model, &iter, 0, &obj, -1);
+                    if (nwamui_enm_validate (NWAMUI_ENM (obj), &prop_name)) {
+                        if (!nwamui_enm_commit (NWAMUI_ENM (obj))) {
+                            /* Start highlight relevant ENM */
+                            path = gtk_tree_model_get_path (model, &iter);
+                            gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
+                            gtk_tree_path_free (path);
+
+                            gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
+                            gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
+                            nwamui_util_show_message (prv->location_dialog,
+                              GTK_MESSAGE_ERROR,
+                              _("Commit ENM error"),
+                              msg);
+                            g_free (msg);
+                            g_free (name);
+                            stop_emission = TRUE;
+                            break;
+                        }
+                    }
+                    else {
+                        gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
+                        gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
+
+                        /* Start highligh relevant ENM */
+                        path = gtk_tree_model_get_path (model, &iter);
+                        gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
+                        gtk_tree_path_free (path);
+
+                        nwamui_util_show_message (prv->location_dialog,
+                          GTK_MESSAGE_ERROR,
+                          _("Validation error"),
+                          msg);
+                        g_free (msg);
+                        g_free (name);
+                        stop_emission = TRUE;
+                        break;
+                    }
+                } while (gtk_tree_model_iter_next (model, &iter));
+#endif
+                {
+                if (!stop_emission) {
+                    gtk_widget_hide (GTK_WIDGET(prv->location_dialog));
+                }
+            }
+			break;
+		case GTK_RESPONSE_CANCEL:
+			g_debug("GTK_RESPONSE_CANCEL");
+			gtk_widget_hide (GTK_WIDGET(prv->location_dialog));
+            stop_emission = FALSE;
+			break;
+		case GTK_RESPONSE_HELP:
+            nwam_pref_help (NWAM_PREF_IFACE(data), NULL);
+            stop_emission = TRUE;
+			break;
+	}
+    if ( stop_emission ) {
+        g_signal_stop_emission_by_name(widget, "response" );
+    }
 }
 
 static void
