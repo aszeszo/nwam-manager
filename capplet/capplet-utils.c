@@ -176,6 +176,14 @@ capplet_compose_nwamui_obj_treeview(GtkTreeView *treeview)
 }
 
 void
+capplet_list_store_add(GtkTreeModel *model, NwamuiObject *object)
+{
+	GtkTreeIter iter;
+	gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+	gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, object, -1);
+}
+
+void
 capplet_compose_combo(GtkComboBox *combo,
     GType type,
     GtkCellLayoutDataFunc layout_func,
@@ -333,8 +341,9 @@ static gboolean
 tree_model_find_object_cb(GtkTreeModel *model,
   GtkTreePath *path,
   GtkTreeIter *iter,
-  gpointer data)
+  gpointer user_data)
 {
+	CappletForeachData *data = (CappletForeachData*)user_data;
 	NwamuiObject *obj;
 
 	gtk_tree_model_get(model, iter, 0, &obj, -1);
@@ -342,23 +351,28 @@ tree_model_find_object_cb(GtkTreeModel *model,
 	g_object_unref(obj);
 
 	if (obj == data) {
-		GtkTreeIter *iter_ret = (GtkTreeIter*)g_object_get_data(model, "capplet:get_iter");
-		g_object_set_data(model, "capplet:get_iter_valid", (gpointer)TRUE);
+		GtkTreeIter *iter_ret = (GtkTreeIter*)data->ret_data;
+
 		*iter_ret = *iter;
-		return TRUE;
+
+		data->ret_data = NULL;
 	}
-	return FALSE;
+	return data->ret_data == NULL;
 }
 
 gboolean
 capplet_model_get_iter(GtkTreeModel *model, NwamuiObject *object, GtkTreeIter *iter)
 {
-	g_object_set_data(model, "capplet:get_iter", (gpointer*)iter);
-	g_object_set_data(model, "capplet:get_iter_valid", (gpointer)FALSE);
+	CappletForeachData data;
+
+	data.user_data = (gpointer)object;
+	data.ret_data = (gpointer)iter;
+
 	gtk_tree_model_foreach(model,
 	    tree_model_find_object_cb,
-	    (gpointer)object);
-	return (gboolean)g_object_get_data(model, "capplet:get_iter_valid");
+	    (gpointer)&data);
+
+	return data.ret_data == NULL;
 }
 
 NwamuiObject *
@@ -511,3 +525,33 @@ capplet_tree_view_commit_object(NwamTreeView *self, NwamuiObject *object, gpoint
 	return nwamui_object_commit(object);
 }
 
+static gboolean
+capplet_model_foreach_add_to_list(GtkTreeModel *model,
+    GtkTreePath *path,
+    GtkTreeIter *iter,
+    gpointer user_data)
+{
+	CappletForeachData *data = (CappletForeachData *)user_data;
+	GList *list = (GList*)data->ret_data;
+	GObject *object;
+
+        gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
+	list = g_list_prepend(list, object);
+	data->ret_data = (gpointer)list;
+
+	return FALSE;
+}
+
+GList*
+capplet_model_to_list(GtkTreeModel *model)
+{
+	CappletForeachData data;
+
+	data.ret_data = NULL;
+
+	gtk_tree_model_foreach(model,
+	    capplet_model_foreach_add_to_list,
+	    (gpointer)&data);
+
+	return data.ret_data;
+}

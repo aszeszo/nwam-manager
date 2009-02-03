@@ -1,3 +1,34 @@
+2009-02-03  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c: (capplet_list_store_add),
+	(tree_model_find_object_cb), (capplet_model_get_iter),
+	(capplet_model_foreach_add_to_list), (capplet_model_to_list):
+	Added function to get iter from object
+	* capplet/nwam_conn_conf_ip_panel.c:
+	(nwam_compose_multi_ip_tree_view), (apply):
+	Make this panel do things when ok is clicked.
+	* capplet/nwam_location_dialog.c:
+	(nwam_location_dialog_class_init), (nwam_compose_tree_view),
+	(nwam_location_dialog_init), (on_button_clicked):
+	Updated due to nwam tree view changes.
+	* capplet/nwam_tree_view.c: (nwam_tree_view_class_init),
+	(nwam_tree_view_set_property), (nwam_tree_view_get_property),
+	(nwam_tree_view_init), (on_button_clicked),
+	(nwam_tree_view_key_press), (nwam_tree_view_key_release),
+	(default_set_object_func), (object_notify_cb),
+	(nwam_tree_view_row_inserted), (nwam_tree_view_row_changed),
+	(nwam_tree_view_row_deleted),
+	(nwam_tree_view_select_cached_object),
+	(nwam_tree_view_get_cached_object), (connect_model_signals),
+	(disconnect_model_signals):
+	* capplet/nwam_tree_view.h:
+	Cache object and make add button a little smart
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_pref_init),
+	(nwam_vpn_pref_dialog_init), (nwam_compose_tree_view), (apply),
+	(help), (object_notify_cb), (response_cb), (vpn_pref_clicked_cb):
+	Updated due to nwam tree view changes. Fixed add new object dup other
+	object issue.
+
 2009-02-03  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.glade:

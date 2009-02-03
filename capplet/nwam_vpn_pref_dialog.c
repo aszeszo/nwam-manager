@@ -125,8 +125,6 @@ static void nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	gpointer          data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_button_clicked(GtkButton *button, gpointer user_data);
-static void nwam_treeview_add_object_cb(NwamTreeView *treeview, NwamuiObject **object, gpointer user_data);
-static void nwam_treeview_remove_object_cb(NwamTreeView *treeview, NwamuiObject *object, gpointer user_data);
 
 G_DEFINE_TYPE_EXTENDED (NwamVPNPrefDialog,
                         nwam_vpn_pref_dialog,
@@ -139,6 +137,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
     iface->refresh = refresh;
+    iface->apply = apply;
     iface->help = help;
     iface->dialog_run = dialog_run;
 }
@@ -193,6 +192,8 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 	g_signal_connect(prv->stop_cmd_entry, "changed", (GCallback)command_entry_changed, (gpointer)self);
 	g_signal_connect(prv->process_entry, "changed", (GCallback)command_entry_changed, (gpointer)self);
 
+	g_signal_connect(prv->add_btn,
+      "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
 	g_signal_connect(prv->remove_btn,
       "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
 	g_signal_connect(prv->start_btn,
@@ -260,8 +261,8 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       NULL);
 
     nwam_tree_view_set_object_func(NWAM_TREE_VIEW(view),
-      nwam_treeview_add_object_cb,
-      nwam_treeview_remove_object_cb,
+      NULL,
+      NULL,
       capplet_tree_view_commit_object,
       (gpointer)self);
 
@@ -439,6 +440,75 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 }
 
 static gboolean
+apply(NwamPrefIFace *iface, gpointer user_data)
+{
+	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
+	GtkTreeSelection *selection = NULL;
+	GtkTreeIter iter;
+    GtkTreePath *path = NULL;
+    GtkTreeModel *model;
+    GObject *obj;
+
+    model = gtk_tree_view_get_model (prv->view);
+    selection = gtk_tree_view_get_selection (prv->view);
+    if (gtk_tree_selection_get_selected(selection,
+        NULL, &iter)) {
+
+        gtk_tree_model_get (model, &iter, 0, &obj, -1);
+        /* update the new one before close */
+        if (prv->cur_obj && prv->cur_obj == obj) {
+            nwam_update_obj (NWAM_VPN_PREF_DIALOG(user_data), obj);
+        }
+    }
+
+    /* FIXME, ok need call into separated panel/instance
+     * apply all changes, if no errors, hide all
+     */
+    if (gtk_tree_model_get_iter_first (model, &iter)) {
+        gchar* prop_name = NULL;
+        do {
+            gtk_tree_model_get (model, &iter, 0, &obj, -1);
+            if (nwamui_enm_validate (NWAMUI_ENM (obj), &prop_name)) {
+                if (!nwamui_enm_commit (NWAMUI_ENM (obj))) {
+                    /* Start highligh relevant ENM */
+                    path = gtk_tree_model_get_path (model, &iter);
+                    gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
+                    gtk_tree_path_free (path);
+
+                    gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
+                    gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
+                    nwamui_util_show_message (prv->vpn_pref_dialog,
+                      GTK_MESSAGE_ERROR,
+                      _("Commit ENM error"),
+                      msg);
+                    g_free (msg);
+                    g_free (name);
+                    return TRUE;
+                }
+            }
+            else {
+                gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
+                gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
+
+                /* Start highligh relevant ENM */
+                path = gtk_tree_model_get_path (model, &iter);
+                gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
+                gtk_tree_path_free (path);
+
+                nwamui_util_show_message (prv->vpn_pref_dialog,
+                  GTK_MESSAGE_ERROR,
+                  _("Validation error"),
+                  msg);
+                g_free (msg);
+                g_free (name);
+                return TRUE;
+            }
+        } while (gtk_tree_model_iter_next (model, &iter));
+    }
+}
+
+static gboolean
 help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamVPNPrefDialog: Help");
@@ -457,11 +527,6 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 {
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
     gboolean            stop_emission = FALSE;
-	GtkTreeSelection *selection = NULL;
-	GtkTreeIter iter;
-    GtkTreePath *path = NULL;
-    GtkTreeModel *model;
-    GObject *obj;
 
 	switch (responseid) {
 		case GTK_RESPONSE_NONE:
@@ -472,70 +537,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 			break;
 		case GTK_RESPONSE_OK:
 			g_debug("GTK_RESPONSE_OK");
-
-            model = gtk_tree_view_get_model (prv->view);
-            selection = gtk_tree_view_get_selection (prv->view);
-            if (gtk_tree_selection_get_selected(selection,
-                  NULL, &iter)) {
-
-                gtk_tree_model_get (model, &iter, 0, &obj, -1);
-                /* update the new one before close */
-                if (prv->cur_obj && prv->cur_obj == obj) {
-                    if ( ! nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), obj) ) {
-                        stop_emission = TRUE;
-                    }
-                }
-            }
-
-			/* FIXME, ok need call into separated panel/instance
-			 * apply all changes, if no errors, hide all
-			 */
-            if ( !stop_emission && gtk_tree_model_get_iter_first (model, &iter)) {
-                gchar* prop_name = NULL;
-                do {
-                    gtk_tree_model_get (model, &iter, 0, &obj, -1);
-                    if (nwamui_enm_validate (NWAMUI_ENM (obj), &prop_name)) {
-                        if (!nwamui_enm_commit (NWAMUI_ENM (obj))) {
-                            /* Start highlight relevant ENM */
-                            path = gtk_tree_model_get_path (model, &iter);
-                            gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
-                            gtk_tree_path_free (path);
-
-                            gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
-                            gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
-                            nwamui_util_show_message (prv->vpn_pref_dialog,
-                              GTK_MESSAGE_ERROR,
-                              _("Commit ENM error"),
-                              msg);
-                            g_free (msg);
-                            g_free (name);
-                            stop_emission = TRUE;
-                            break;
-                        }
-                    }
-                    else {
-                        gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
-                        gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
-
-                        /* Start highligh relevant ENM */
-                        path = gtk_tree_model_get_path (model, &iter);
-                        gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
-                        gtk_tree_path_free (path);
-
-                        nwamui_util_show_message (prv->vpn_pref_dialog,
-                          GTK_MESSAGE_ERROR,
-                          _("Validation error"),
-                          msg);
-                        g_free (msg);
-                        g_free (name);
-                        stop_emission = TRUE;
-                        break;
-                    }
-                } while (gtk_tree_model_iter_next (model, &iter));
-                if (!stop_emission) {
-                    gtk_widget_hide (GTK_WIDGET(prv->vpn_pref_dialog));
-                }
-            }
+            stop_emission = nwam_pref_apply(NWAM_PREF_IFACE(data), NULL);
 			break;
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
@@ -594,6 +596,13 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 	NwamuiEnm *obj;
 	GtkTreeIter iter;
 	
+    if (button == (gpointer)self->prv->add_btn) {
+        NwamuiObject *object = NWAMUI_OBJECT(nwamui_enm_new("New VPN Object") );
+        capplet_list_store_add(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(self->prv->view))), object);
+        g_object_unref(object);
+        return;
+    }
+
     if (button == self->prv->remove_btn) {
 		GtkTreeSelection *selection;
 		GList *list, *idx;
@@ -610,7 +619,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 				gtk_tree_model_get (model, &iter, 0, &obj, -1);
 				gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
 				if (obj) {
-                    nwamui_daemon_enm_remove (self->prv->daemon, obj);
+                    g_object_unref(obj);
                 }
 			} else {
 				g_assert_not_reached ();
@@ -849,36 +858,6 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
     } else {
         g_assert_not_reached();
     }
-}
-
-static void
-nwam_treeview_add_object_cb(NwamTreeView *treeview, NwamuiObject **object, gpointer user_data)
-{
-	NwamVPNPrefDialog*   self = NWAM_VPN_PREF_DIALOG(user_data);
-    NwamVPNPrefDialogPrivate*    prv = self->prv;
-    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-
-    *object = NWAMUI_OBJECT(nwamui_enm_new("New VPN Object") );
-    nwamui_daemon_enm_append(daemon, NWAMUI_ENM(*object));
-
-    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
-
-    g_object_unref(daemon);
-}
-
-static void
-nwam_treeview_remove_object_cb(NwamTreeView *treeview, NwamuiObject *object, gpointer user_data)
-{
-	NwamVPNPrefDialog*   self = NWAM_VPN_PREF_DIALOG(user_data);
-    NwamVPNPrefDialogPrivate*    prv = self->prv;
-    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-    
-    nwamui_daemon_enm_remove(daemon, NWAMUI_ENM(object));
-
-    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
-
-    g_object_unref(daemon);
-    g_object_unref(object);
 }
 
 static void

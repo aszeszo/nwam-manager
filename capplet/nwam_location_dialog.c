@@ -148,8 +148,6 @@ static void nwam_location_rule_ncu_enabled_toggled_cb(      GtkCellRendererToggl
                                                             gchar                 *path,
                                                             gpointer               user_data);
 
-static void nwam_treeview_add_object_cb(NwamTreeView *treeview, NwamuiObject **object, gpointer user_data);
-static void nwam_treeview_remove_object_cb(NwamTreeView *treeview, NwamuiObject *object, gpointer user_data);
 static void nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data);
 static void on_button_clicked(GtkButton *button, gpointer user_data);
 
@@ -186,6 +184,7 @@ nwam_location_dialog_class_init(NwamLocationDialogClass *klass)
 
 	/* Override Some Function Pointers */
 	gobject_class->finalize = (void (*)(GObject*)) nwam_location_dialog_finalize;
+
 }
 
 static void
@@ -236,8 +235,8 @@ nwam_compose_tree_view (NwamLocationDialog *self)
       NULL);
 
     nwam_tree_view_set_object_func(NWAM_TREE_VIEW(view),
-      nwam_treeview_add_object_cb,
-      nwam_treeview_remove_object_cb,
+      NULL,
+      NULL,
       capplet_tree_view_commit_object,
       (gpointer)self);
 
@@ -325,6 +324,8 @@ nwam_location_dialog_init(NwamLocationDialog *self)
     self->prv->location_rules_btn = GTK_BUTTON(nwamui_util_glade_get_widget(LOCATION_RULES_BTN));
 
     g_signal_connect(self->prv->location_rules_btn,
+      "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
+    g_signal_connect(self->prv->location_add_btn,
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
     g_signal_connect(self->prv->location_remove_btn,
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
@@ -693,37 +694,6 @@ nwam_location_connection_view_row_selected_cb (GtkTreeView *tree_view,
     gtk_tree_path_free (path);
 }
 
-
-static void
-nwam_treeview_add_object_cb(NwamTreeView *treeview, NwamuiObject **object, gpointer user_data)
-{
-	NwamLocationDialog*   self = NWAM_LOCATION_DIALOG(user_data);
-    NwamLocationDialogPrivate*    prv = self->prv;
-    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-
-    *object = NWAMUI_OBJECT(nwamui_env_new("new location object"));
-    nwamui_daemon_env_append(daemon, NWAMUI_ENV(*object));
-
-    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
-
-    g_object_unref(daemon);
-}
-
-static void
-nwam_treeview_remove_object_cb(NwamTreeView *treeview, NwamuiObject *object, gpointer user_data)
-{
-	NwamLocationDialog*   self = NWAM_LOCATION_DIALOG(user_data);
-    NwamLocationDialogPrivate*    prv = self->prv;
-    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-    
-    nwamui_daemon_env_remove(daemon, NWAMUI_ENV(object));
-
-    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
-
-    g_object_unref(daemon);
-    g_object_unref(object);
-}
-
 static void
 nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
 {
@@ -776,6 +746,14 @@ on_button_clicked(GtkButton *button, gpointer user_data)
     GtkTreeModel*               model;
     GtkTreeIter                 iter;
 
+    
+    if (button == (gpointer)prv->location_add_btn) {
+        NwamuiObject *object = NWAMUI_OBJECT(nwamui_env_new("New Env Object") );
+        capplet_list_store_add(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
+        g_object_unref(object);
+        return;
+    }
+
     if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->location_tree), &model, &iter ) ) {
         NwamuiEnv *env;
 
@@ -798,7 +776,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
                 if (nwamui_util_ask_yes_no( GTK_WINDOW(prv->location_dialog), _("Remove Location?"), message )) {
                     g_debug("Removing location: '%s'", name);
                 
-                    nwam_treeview_remove_object_cb(prv->location_tree, env, (gpointer)self);
+                    gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
         
                 }
             
@@ -864,7 +842,9 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         } else {
             g_assert_not_reached();
         }
-        g_object_unref(env);
+        if (env) {
+            g_object_unref(env);
+        }
     }
 }
 

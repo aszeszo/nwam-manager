@@ -49,7 +49,6 @@ enum {
     PROP_BUTTON_UP,
     PROP_BUTTON_DOWN,
     PROP_BUTTON_END,
-    PROP_OBJECT,
 };
 
 enum {
@@ -61,7 +60,8 @@ static guint nwam_tree_view_signals[LAST_SIGNAL] = {0};
 
 typedef struct _NwamTreeViewPrivate NwamTreeViewPrivate;
 struct _NwamTreeViewPrivate {
-    NwamuiObject *new_obj;
+    GtkTreeModel *model;
+    GtkTreeRowReference *new_obj_ref;
     gint count_selected_rows;
     GtkTreePath *selected_path;
     GtkWidget *widget_list[PROP_BUTTON_END];
@@ -110,11 +110,22 @@ static void nwam_tree_view_row_activated_cb(GtkTreeView *tree_view,
 static void nwam_tree_view_row_selected_cb(GtkTreeView *tree_view, gpointer user_data);
 static void nwam_tree_view_selection_changed_cb(GtkTreeSelection *selection, gpointer user_data);
 static void nwam_tree_view_update_widget_cb (gpointer data, gpointer user_data);
+static void connect_model_signals(GObject *self, GtkTreeModel *model);
+static void disconnect_model_signals(GObject *self, GtkTreeModel *model);
 
-static gboolean nwam_tree_view_locate_new_object(GtkTreeModel *model,
+static void nwam_tree_view_row_inserted(GtkTreeModel *tree_model,
+  GtkTreePath  *path,
+  GtkTreeIter  *iter,
+  gpointer      user_data);
+static void nwam_tree_view_row_changed(GtkTreeModel *tree_model,
+  GtkTreePath  *path,
+  GtkTreeIter  *iter,
+  gpointer      user_data);
+static void nwam_tree_view_row_deleted(GtkTreeModel *tree_model,
   GtkTreePath *path,
-  GtkTreeIter *iter,
-  gpointer data);
+  gpointer user_data);
+
+static void object_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
 G_DEFINE_TYPE(NwamTreeView, nwam_tree_view, GTK_TYPE_TREE_VIEW)
 
@@ -156,14 +167,6 @@ nwam_tree_view_class_init (NwamTreeViewClass *klass)
     widget_class->key_press_event = nwam_tree_view_key_press;
     widget_class->key_release_event = nwam_tree_view_key_release;
 
-    g_object_class_install_property (gobject_class,
-      PROP_OBJECT,
-      g_param_spec_object("object",
-        _("new object"),
-        _("new object"),
-        GTK_TYPE_BUTTON,
-        G_PARAM_READABLE));
-    
     /* Only enable ADD button */
     g_object_class_install_property (gobject_class,
       PROP_BUTTON_ADD,
@@ -238,6 +241,12 @@ nwam_tree_view_set_property (GObject *object,
 
 	switch (prop_id) {
     case PROP_BUTTON_ADD:
+        /* TODO, start the cache function. Or we disable it if add button is
+         * removed */
+        if (prv->model) {
+            connect_model_signals(G_OBJECT(self), prv->model);
+        }
+
     case PROP_BUTTON_REMOVE:
     case PROP_BUTTON_EDIT:
     case PROP_BUTTON_RENAME:
@@ -268,9 +277,6 @@ nwam_tree_view_get_property (GObject *object,
 
 	switch (prop_id)
 	{
-    case PROP_OBJECT:
-        g_value_set_object(value, prv->new_obj);
-        break;
     case PROP_BUTTON_ADD:
     case PROP_BUTTON_REMOVE:
     case PROP_BUTTON_EDIT:
@@ -306,6 +312,9 @@ nwam_tree_view_init(NwamTreeView *self)
       "row-activated",
       (GCallback)nwam_tree_view_row_activated_cb,
       (gpointer)self);
+
+	g_signal_connect(G_OBJECT(self),
+      "notify::model", (GCallback)object_notify_cb, NULL);
 
 }
 
@@ -409,26 +418,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
 	switch (prop_id)
 	{
-    case PROP_BUTTON_ADD: {
-        GValue return_value;
-        g_assert(prv->new_obj == NULL);
-        g_assert(prv->add_object_func);
-
-        if (prv->add_object_func) {
-            prv->add_object_func(self, &prv->new_obj, prv->object_func_user_data);
-
-            g_assert(prv->new_obj);
-
-            if (prv->new_obj) {
-                gtk_tree_model_foreach(gtk_tree_view_get_model(GTK_TREE_VIEW(self)),
-                  nwam_tree_view_locate_new_object,
-                  (gpointer)self);
-
-                gtk_widget_set_sensitive(prv->widget_list[prop_id], FALSE);
-            }
-        }
-        break;
-    }
+    case PROP_BUTTON_ADD:
     case PROP_BUTTON_REMOVE:
     case PROP_BUTTON_EDIT:
     case PROP_BUTTON_RENAME:
@@ -452,25 +442,26 @@ nwam_tree_view_key_press(GtkWidget   *widget, GdkEventKey *event)
     } else if (event->keyval == GDK_Escape) {
         g_debug("TODO Escape cancel all cell");
 
-        if (prv->new_obj) {
-            prv->remove_object_func(self, prv->new_obj, prv->object_func_user_data);
-            prv->new_obj = NULL;
+/*         if (prv->new_obj) { */
 
-            gtk_widget_set_sensitive(prv->widget_list[PROP_BUTTON_ADD], TRUE);
-        }
+/*             prv->remove_object_func(self, prv->new_obj, prv->object_func_user_data); */
+/*             prv->new_obj = NULL; */
+
+/*         } */
         
-        if (prv->widget_list[PROP_BUTTON_ADD])
-            gtk_widget_grab_focus(GTK_WIDGET(prv->widget_list[PROP_BUTTON_ADD]));
+/*         if (prv->widget_list[PROP_BUTTON_ADD]) */
+/*             gtk_widget_grab_focus(GTK_WIDGET(prv->widget_list[PROP_BUTTON_ADD])); */
         
         return TRUE;
     } else if (event->keyval == GDK_Return || event->keyval == GDK_Tab) {
-        if (prv->new_obj) {
-            if (prv->commit_object_func(self, prv->new_obj, prv->object_func_user_data)) {
-                prv->new_obj = NULL;
+/*         if (prv->new_obj) { */
+/*             if (prv->commit_object_func(self, prv->new_obj, prv->object_func_user_data)) { */
 
-                gtk_widget_set_sensitive(prv->widget_list[PROP_BUTTON_ADD], TRUE);
-            }
-        }
+/*                 prv->new_obj = NULL; */
+
+/*                 gtk_widget_set_sensitive(prv->widget_list[PROP_BUTTON_ADD], TRUE); */
+/*             } */
+/*         } */
 
     }
     return FALSE;
@@ -489,10 +480,10 @@ nwam_tree_view_key_release(GtkWidget   *widget, GdkEventKey *event)
     } else if (event->keyval == GDK_Escape) {
         g_debug("TODO Escape cancel all cell");
 
-        if (prv->new_obj) {
-            prv->remove_object_func(self, prv->new_obj, prv->object_func_user_data);
-            prv->new_obj = NULL;
-        }
+/*         if (prv->new_obj) { */
+/*             prv->remove_object_func(self, prv->new_obj, prv->object_func_user_data); */
+/*             prv->new_obj = NULL; */
+/*         } */
         g_assert(prv->widget_list[PROP_BUTTON_ADD]);
         gtk_widget_grab_focus(GTK_WIDGET(prv->widget_list[PROP_BUTTON_ADD]));
         
@@ -511,8 +502,6 @@ default_set_object_func(NwamTreeView *self,
   gpointer user_data)
 {
     NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(self);
-
-    g_assert(add_object_func && remove_object_func);
 
     prv->add_object_func = add_object_func;
     prv->remove_object_func = remove_object_func;
@@ -588,23 +577,164 @@ nwam_tree_view_update_widget_cb (gpointer data, gpointer user_data)
 	NwamTreeView *self = NWAM_TREE_VIEW(user_data);
 }
 
-static gboolean
-nwam_tree_view_locate_new_object(GtkTreeModel *model,
-  GtkTreePath *path,
-  GtkTreeIter *iter,
-  gpointer data)
+static void
+object_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 {
-	NwamTreeView *self = NWAM_TREE_VIEW(data);
-    NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(data);
-    NwamuiObject *obj;
+	NwamTreeView *self = NWAM_TREE_VIEW(gobject);
+    NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(gobject);
+    GtkTreeModel *new_model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
 
-    gtk_tree_model_get(model, iter, 0, &obj, -1);
-    /* Safely unref */
-    g_object_unref(obj);
+    /* We do not enable cache function if there is not add button */
+    if (!prv->widget_list[PROP_BUTTON_ADD])
+        return;
 
-    if (prv->new_obj == (gpointer)obj) {
-        gtk_tree_selection_select_iter(gtk_tree_view_get_selection(GTK_TREE_VIEW(self)), iter);
-        return TRUE;
+    if (prv->model != new_model) {
+
+        /* Model changed, so free new obj ref */
+        if (prv->new_obj_ref) {
+            gtk_tree_row_reference_free(prv->new_obj_ref);
+            prv->new_obj_ref = NULL;
+        }
+
+        if (prv->model) {
+            disconnect_model_signals(G_OBJECT(self), prv->model);
+        }
+
+        /* Record the new model */
+        if ((prv->model = new_model) != NULL) {
+            connect_model_signals(G_OBJECT(self), prv->model);
+        }
     }
-    return FALSE;
+}
+
+static void
+nwam_tree_view_row_inserted(GtkTreeModel *tree_model,
+  GtkTreePath  *path,
+  GtkTreeIter  *iter,
+  gpointer      user_data)
+{
+	NwamTreeView *self = NWAM_TREE_VIEW(user_data);
+    NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(user_data);
+    NwamuiObject *object;
+
+    gtk_tree_model_get(tree_model, iter, 0, &object, -1);
+
+    if (object == NULL) {
+        /* Append a new row will cause this, we disable add button here. */
+        gtk_widget_set_sensitive(prv->widget_list[PROP_BUTTON_ADD], FALSE);
+
+        g_assert(!prv->new_obj_ref);
+        prv->new_obj_ref = gtk_tree_row_reference_new(tree_model, path);
+        g_assert(prv->new_obj_ref);
+    } else {
+        /* Shouldn't reach here */
+        g_object_unref(object);
+    }
+}
+
+static void
+nwam_tree_view_row_changed(GtkTreeModel *tree_model,
+  GtkTreePath  *path,
+  GtkTreeIter  *iter,
+  gpointer      user_data)
+{
+	NwamTreeView *self = NWAM_TREE_VIEW(user_data);
+    NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(user_data);
+    GtkTreePath  *ref_path;
+    NwamuiObject *object;
+
+    if (!prv->new_obj_ref)
+        return;
+    else
+        ref_path = gtk_tree_row_reference_get_path(prv->new_obj_ref);
+
+    if (!gtk_tree_path_compare(ref_path, path)) {
+        gtk_tree_model_get(tree_model, iter, 0, &object, -1);
+        if (object) {
+            /* Real object is inserted, we enable add button here */
+            gtk_widget_set_sensitive(prv->widget_list[PROP_BUTTON_ADD], TRUE);
+
+            g_assert(prv->new_obj_ref);
+            gtk_tree_row_reference_free(prv->new_obj_ref);
+            prv->new_obj_ref = NULL;
+
+            g_object_unref(object);
+        } else {
+            /* Append a new row will cause this, we disable add button here. */
+            gtk_widget_set_sensitive(prv->widget_list[PROP_BUTTON_ADD], FALSE);
+
+            g_assert(!prv->new_obj_ref);
+            prv->new_obj_ref = gtk_tree_row_reference_new(tree_model, path);
+            g_assert(prv->new_obj_ref);
+        }
+    }
+}
+
+static void
+nwam_tree_view_row_deleted(GtkTreeModel *tree_model,
+  GtkTreePath *path,
+  gpointer user_data)
+{
+	NwamTreeView *self = NWAM_TREE_VIEW(user_data);
+    NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(user_data);
+
+}
+
+void
+nwam_tree_view_select_cached_object(NwamTreeView *self)
+{
+    NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(self);
+    if (prv->new_obj_ref && gtk_tree_row_reference_valid(prv->new_obj_ref))
+        /* Select new row */
+        gtk_tree_selection_select_path(gtk_tree_view_get_selection(GTK_TREE_VIEW(self)), gtk_tree_row_reference_get_path(prv->new_obj_ref));
+}
+
+NwamuiObject*
+nwam_tree_view_get_cached_object(NwamTreeView *self)
+{
+    NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(self);
+    if (prv->new_obj_ref && gtk_tree_row_reference_valid(prv->new_obj_ref)) {
+        GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(self));
+        GtkTreePath *path = gtk_tree_row_reference_get_path(prv->new_obj_ref);
+        GtkTreeIter iter;
+        NwamuiObject *object;
+
+        g_assert(model == (gpointer)gtk_tree_row_reference_get_path(prv->new_obj_ref));
+        if (gtk_tree_model_get_iter(model, &iter, path)) {
+            gtk_tree_model_get(model, &iter, 0, &object, -1);
+            return object;
+        }
+    }
+    return NULL;
+}
+
+static void
+connect_model_signals(GObject *self, GtkTreeModel *model)
+{
+    g_signal_connect(model,
+      "row-inserted",
+      G_CALLBACK(nwam_tree_view_row_inserted),
+      self);
+    g_signal_connect(model,
+      "row-changed",
+      G_CALLBACK(nwam_tree_view_row_changed),
+      self);
+    g_signal_connect(model,
+      "row-deleted",
+      G_CALLBACK(nwam_tree_view_row_deleted),
+      self);
+}
+
+static void
+disconnect_model_signals(GObject *self, GtkTreeModel *model)
+{
+    g_signal_handlers_disconnect_by_func(model,
+      nwam_tree_view_row_inserted,
+      self);
+    g_signal_handlers_disconnect_by_func(model,
+      nwam_tree_view_row_changed,
+      self);
+    g_signal_handlers_disconnect_by_func(model,
+      nwam_tree_view_row_deleted,
+      self);
 }

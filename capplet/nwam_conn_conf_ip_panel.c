@@ -357,6 +357,7 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	renderer = capplet_column_append_cell(col,
       gtk_cell_renderer_text_new(), FALSE,
       (GtkTreeCellDataFunc)nwam_conn_multi_ip_cell_cb, (gpointer)view, NULL);
+
 	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_ADDR);	
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
 	g_signal_connect(G_OBJECT(renderer), "edited",
@@ -364,9 +365,7 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_ADDR));
 
 	// column IP_VIEW_MASK
-	col = gtk_tree_view_column_new();
-	gtk_tree_view_append_column (view, col);
-    g_object_set( col,
+    col = capplet_column_new(view,
       "resizable", TRUE,
       "clickable", TRUE,
       "sort-indicator", TRUE,
@@ -377,13 +376,10 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	} else {
 		gtk_tree_view_column_set_title(col, _("Prefix Length"));
 	}
-	renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_pack_start(col, renderer, TRUE);
-	gtk_tree_view_column_set_cell_data_func (col,
-						 renderer,
-						 nwam_conn_multi_ip_cell_cb,
-						 (gpointer) view,
-						 NULL);
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), FALSE,
+      (GtkTreeCellDataFunc)nwam_conn_multi_ip_cell_cb, (gpointer)view, NULL);
+
 	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_MASK);	
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
 	g_signal_connect(G_OBJECT(renderer), "edited",
@@ -690,47 +686,116 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(iface);
     NwamConnConfIPPanelPrivate* prv = self->prv;
     
-    g_assert( NWAM_IS_CONN_CONF_IP_PANEL(iface));
-    /* Populate WiFi conditions */
-    {
-        NwamuiProf*     prof;
-        gboolean join_open, join_preferred, add_any_wifi;
-        gint action_if_no_fav;
+    nwamui_ncu_type_t   ncu_type;
+    gboolean            ipv4_dhcp;
+    gchar*              ipv4_address;
+    gchar*              ipv4_subnet;
+    gboolean            ipv6_active;
+    gboolean            ipv6_dhcp;
+    gchar*              ipv6_address;
+    gchar*              ipv6_prefix;
+    NwamuiWifiNet*      wifi_info = NULL; 
+    GtkTreeModel*   model;
+
+    g_return_if_fail( NWAMUI_IS_NCU(self->prv->ncu) );
+
+    prv = self->prv;
+    
+    ncu_type = nwamui_ncu_get_ncu_type( NWAMUI_NCU(prv->ncu) );
+    
+    if ( ncu_type == NWAMUI_NCU_TYPE_WIRELESS) {
+        GList*          fav_list;
+        GtkTreeIter     iter;
         
-        prof = nwamui_prof_get_instance ();
-            
-        action_if_no_fav = gtk_combo_box_get_active (prv->no_preferred_networks_combo);
-        join_open = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->join_open_cbox));
-        join_preferred = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->join_preferred_cbox));
-        add_any_wifi = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->add_cbox));
+        wifi_info = nwamui_ncu_get_wifi_info( NWAMUI_NCU(prv->ncu) );
         
-        if (prv->action_if_no_fav != action_if_no_fav) {
-            prv->action_if_no_fav = action_if_no_fav;
-            g_object_set (prof,
-              "action_on_no_fav_networks", prv->action_if_no_fav,
-              NULL);
-        }
-            
-        if (prv->join_open != join_open) {
-            prv->join_open = join_open;
-            g_object_set (prof,
-              "join_wifi_not_in_fav", prv->join_open,
-              NULL);
-        }
-        if (prv->join_preferred != join_preferred) {
-            prv->join_preferred = join_preferred;
-            g_object_set (prof,
-              "join_any_fav_wifi", prv->join_preferred,
-              NULL);
-        }
-        if (prv->add_any_wifi != add_any_wifi) {
-            prv->add_any_wifi = add_any_wifi;
-            g_object_set (prof,
-              "add_any_new_wifi_to_fav", prv->add_any_wifi,
-              NULL);
+        /* Populate WiFi Favourites */
+        model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->wifi_fav_tv)));
+        fav_list = capplet_model_to_list(model);
+        nwamui_daemon_set_fav_wifi_networks( NWAMUI_DAEMON(prv->daemon),  fav_list);
+        if (fav_list) {
+            nwamui_util_free_obj_list( fav_list );
         }
 
-        g_object_unref (prof);
+        /* Apply WiFi conditions */
+        {
+            NwamuiProf*     prof;
+            gboolean join_open, join_preferred, add_any_wifi;
+            gint action_if_no_fav;
+        
+            prof = nwamui_prof_get_instance ();
+            
+            action_if_no_fav = gtk_combo_box_get_active (prv->no_preferred_networks_combo);
+            join_open = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->join_open_cbox));
+            join_preferred = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->join_preferred_cbox));
+            add_any_wifi = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->add_cbox));
+        
+            if (prv->action_if_no_fav != action_if_no_fav) {
+                prv->action_if_no_fav = action_if_no_fav;
+                g_object_set (prof,
+                  "action_on_no_fav_networks", prv->action_if_no_fav,
+                  NULL);
+            }
+            
+            if (prv->join_open != join_open) {
+                prv->join_open = join_open;
+                g_object_set (prof,
+                  "join_wifi_not_in_fav", prv->join_open,
+                  NULL);
+            }
+            if (prv->join_preferred != join_preferred) {
+                prv->join_preferred = join_preferred;
+                g_object_set (prof,
+                  "join_any_fav_wifi", prv->join_preferred,
+                  NULL);
+            }
+            if (prv->add_any_wifi != add_any_wifi) {
+                prv->add_any_wifi = add_any_wifi;
+                g_object_set (prof,
+                  "add_any_new_wifi_to_fav", prv->add_any_wifi,
+                  NULL);
+            }
+
+            g_object_unref (prof);
+        }
+    }
+
+    switch (gtk_combo_box_get_active(GTK_COMBO_BOX(prv->ipv4_combo))) {
+    case 1:
+        nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), TRUE);
+        break;
+    case 2:
+        ipv4_address = gtk_entry_get_text(GTK_ENTRY(prv->ipv4_addr_entry));
+        ipv4_subnet = gtk_label_get_text(GTK_LABEL(prv->ipv4_subnet_lbl));
+        nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+        nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu),
+          ipv4_address ? ipv4_address : "");
+        nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu),
+          ipv4_subnet ? ipv4_subnet : "");
+        break;
+    case 3:
+        model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv4_tv)));
+        nwamui_ncu_set_v4addresses(NWAMUI_NCU(prv->ncu), model);
+        break;
+    default:
+        /* Disable ipv4 dhcp */
+        nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+        break;
+    }
+    
+    if ( nwamui_ncu_get_ipv6_active( NWAMUI_NCU(prv->ncu) ) ) { 
+        switch (gtk_combo_box_get_active(GTK_COMBO_BOX(prv->ipv6_combo))) {
+        case 0:
+            nwamui_ncu_set_ipv6_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+            break;
+        case 1:
+            model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv6_tv)));
+            nwamui_ncu_set_v6addresses(NWAMUI_NCU(prv->ncu), model);
+            break;
+        default:
+            /* Disable ipv6 dhcp */
+            break;
+        }
     }
 }
 
@@ -953,15 +1018,6 @@ show_changed_cb( GtkComboBox* widget, gpointer data )
 	} else {
 		g_assert_not_reached ();
 	}
-}
-
-/*
- * Be invorked if user clicks the OK button of capplet dialog
- */
-static void
-ok_clicked_cb( gpointer data )
-{
-	NwamConnConfIPPanel* self = NWAM_CONN_CONF_IP_PANEL(data);
 }
 
 static void

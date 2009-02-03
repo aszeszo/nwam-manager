@@ -75,8 +75,8 @@ GtkWidget* nwam_tree_view_new();
 void nwam_tree_view_add_widget(NwamTreeView *self, GtkWidget *w);
 void nwam_tree_view_remove_widget(NwamTreeView *self, GtkWidget *w);
 void nwam_tree_view_set_object_func(NwamTreeView *self,
-  NwamTreeViewAddObjectFunc add_object_func,
-  NwamTreeViewRemoveObjectFunc remove_object_func,
+  NwamTreeViewAddObjectFunc add_object_func, /* unused */
+  NwamTreeViewRemoveObjectFunc remove_object_func, /* unused */
   NwamTreeViewCommitObjectFunc commit_object_func,
   gpointer user_data);
 
