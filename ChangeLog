@@ -1,5 +1,13 @@
 2009-02-04  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_vpn_pref_dialog_init),
+	(nwam_update_obj), (nwam_vpn_selection_changed),
+	(on_radio_button_toggled):
+	Updated due to 'Add radio buttons for swapping between CLI and SMF for
+	VPN apps'.
+
+2009-02-04  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/capplet-utils.c: (capplet_model_find_max_name_suffix),
 	(capplet_get_increasable_name), (capplet_get_max_name_num),
 	(capplet_get_original_name):
