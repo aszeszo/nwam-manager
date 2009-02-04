@@ -2950,19 +2950,19 @@ nwamui_ncu_get_signal_strength_string( NwamuiNcu* self )
                  attr.la_wlan_attr.wa_valid & DLADM_WLAN_ATTR_STRENGTH ) {
                 switch ( attr.la_wlan_attr.wa_strength ) {
                     case DLADM_WLAN_STRENGTH_VERY_WEAK:
-                        signal_str = _("Very Weak");
+                        signal_str = nwamui_wifi_net_convert_strength_to_string(NWAMUI_WIFI_STRENGTH_VERY_WEAK);
                         break;
                     case DLADM_WLAN_STRENGTH_WEAK:
-                        signal_str = _("Weak");
+                        signal_str = nwamui_wifi_net_convert_strength_to_string(NWAMUI_WIFI_STRENGTH_WEAK);
                         break;
                     case DLADM_WLAN_STRENGTH_GOOD:
-                        signal_str = _("Good");
+                        signal_str = nwamui_wifi_net_convert_strength_to_string(NWAMUI_WIFI_STRENGTH_GOOD);
                         break;
                     case DLADM_WLAN_STRENGTH_VERY_GOOD:
-                        signal_str = _("Very Good");
+                        signal_str = nwamui_wifi_net_convert_strength_to_string(NWAMUI_WIFI_STRENGTH_VERY_GOOD);
                         break;
                     case DLADM_WLAN_STRENGTH_EXCELLENT:
-                        signal_str = _("Excellent");
+                        signal_str = nwamui_wifi_net_convert_strength_to_string(NWAMUI_WIFI_STRENGTH_EXCELLENT);
                         break;
                     default:
                         break;

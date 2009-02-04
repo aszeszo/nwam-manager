@@ -1248,6 +1248,8 @@ update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection)
             gtk_widget_set_sensitive(prv->connection_rules_btn, TRUE);
             gtk_widget_set_sensitive(prv->connection_activation_combo, TRUE);
 
+            connection_activation_combo_changed_cb(prv->connection_activation_combo, (gpointer) self);
+
             if (gtk_tree_model_get_iter_first(model, &iter)) {
                 gtk_widget_set_sensitive(prv->connection_move_up_btn, TRUE);
                 gtk_widget_set_sensitive(prv->connection_move_down_btn, TRUE);

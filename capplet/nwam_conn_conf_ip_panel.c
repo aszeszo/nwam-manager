@@ -148,7 +148,7 @@ enum {
 	WIFI_FAV_ESSID=0,
 	WIFI_FAV_SECURITY,
 	WIFI_FAV_SPEED,
-    WIFI_FAV_SIGNAL
+    WIFI_CHANNEL
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
@@ -261,11 +261,15 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       "reorderable", FALSE,
       NULL);
 	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_pixbuf_new(), FALSE,
+      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)0, NULL);
+    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_ESSID));
+	renderer = capplet_column_append_cell(col,
       gtk_cell_renderer_text_new(), FALSE,
-      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)self, NULL);
+      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)1, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_ESSID));
     
-    // Column:	WIFI_FAV_SIGNAL
+    // Column:	WIFI_CHANNEL
     col = capplet_column_new(view,
       "title", _("Channel"),
       "expand", TRUE,
@@ -276,8 +280,8 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       NULL);
 	renderer = capplet_column_append_cell(col,
       gtk_cell_renderer_text_new(), FALSE,
-      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)self, NULL);
-    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SIGNAL));
+      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)0, NULL);
+    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_CHANNEL));
     
     // Column:	WIFI_FAV_SPEED
     col = capplet_column_new(view,
@@ -290,7 +294,7 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       NULL);
 	renderer = capplet_column_append_cell(col,
       gtk_cell_renderer_text_new(), FALSE,
-      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)self, NULL);
+      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)0, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SPEED));
 
     // Column:	WIFI_FAV_SECURITY
@@ -303,8 +307,13 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       "reorderable", FALSE,
       NULL);
 	renderer = capplet_column_append_cell(col,
-      gtk_cell_renderer_text_new(), FALSE,
-      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)self, NULL);
+      gtk_cell_renderer_text_new(), TRUE,
+      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)0, NULL);
+    g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SECURITY));
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_pixbuf_new(), FALSE,
+      (GtkTreeCellDataFunc)nwam_conn_wifi_fav_cell_cb, (gpointer)1, NULL);
+    /* gtk_tree_view_column_pack_end( col, renderer, FALSE ); */
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SECURITY));
     
 }
@@ -1027,7 +1036,7 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
 				GtkTreeIter       *iter,
 				gpointer           data)
 {
-    NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(data);
+    guint                cell_num  = (guint)data;
     NwamuiWifiNet       *wifi_info  = NULL;
 
     gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &wifi_info, -1);
@@ -1037,22 +1046,46 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
     switch (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (renderer), "nwam_wifi_fav_column_id"))) {
     case WIFI_FAV_ESSID:
         {   
-            gchar*  essid = nwamui_wifi_net_get_essid(wifi_info);
-            
-            g_object_set (G_OBJECT(renderer),
-                    "text", essid?essid:"",
-                    NULL);
-                    
-            g_free(essid);
+            if ( cell_num == 0 ) {
+                GdkPixbuf   *status_icon;
+
+                status_icon = nwamui_util_get_wireless_strength_icon( 
+                    nwamui_wifi_net_get_signal_strength(wifi_info), TRUE );
+                g_object_set (G_OBJECT(renderer),
+                  "pixbuf", status_icon,
+                  NULL);
+                g_object_unref(G_OBJECT(status_icon));
+            }
+            else if ( cell_num == 1 ) {
+                gchar*  essid = nwamui_wifi_net_get_essid(wifi_info);
+                
+                g_object_set (G_OBJECT(renderer),
+                        "text", essid?essid:"",
+                        NULL);
+                        
+                g_free(essid);
+            }
         }
         break;
     case WIFI_FAV_SECURITY:
         {   
             nwamui_wifi_security_t sec = nwamui_wifi_net_get_security(wifi_info);
             
-            g_object_set (G_OBJECT(renderer),
-                    "text", nwamui_util_wifi_sec_to_short_string(sec),
-                    NULL);
+            if ( cell_num == 0 ) {
+                g_object_set (G_OBJECT(renderer),
+                        "text", nwamui_util_wifi_sec_to_short_string(sec),
+                        NULL);
+            }
+            else if ( cell_num == 1 ) {
+                GdkPixbuf   *status_icon;
+
+                status_icon = nwamui_util_get_network_security_icon( sec, TRUE );
+
+                g_object_set (G_OBJECT(renderer),
+                  "pixbuf", status_icon,
+                  NULL);
+                g_object_unref(G_OBJECT(status_icon));
+            }
                     
         }
         break;
@@ -1068,13 +1101,13 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
             g_free( str );
         }
         break;
-    case WIFI_FAV_SIGNAL:
-        {   
-            nwamui_wifi_signal_strength_t signal = nwamui_wifi_net_get_signal_strength(wifi_info);
+    case WIFI_CHANNEL:
+        {  
+            const gchar* signal_str = nwamui_wifi_net_get_signal_strength_string (wifi_info);
             
             g_object_set (G_OBJECT(renderer),
-                    "text", "",
-                    "value", ((((gint)signal) * 100)/(((gint)NWAMUI_WIFI_STRENGTH_LAST) - 1)) % 101,
+                    "text", signal_str,
+                    /* "value", ((((gint)signal) * 100)/(((gint)NWAMUI_WIFI_STRENGTH_LAST) - 1)) % 101, */
                     NULL);
                     
         }

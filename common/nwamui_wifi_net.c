@@ -1065,6 +1065,50 @@ nwamui_wifi_net_get_signal_strength (NwamuiWifiNet *self )
     return( (nwamui_wifi_signal_strength_t)retval );
 }
 
+extern const gchar*
+nwamui_wifi_net_convert_strength_to_string( nwamui_wifi_signal_strength_t strength ) 
+{
+    const gchar* signal_str = NULL;
+
+    switch ( strength ) {
+        case NWAMUI_WIFI_STRENGTH_VERY_WEAK:
+            signal_str = _("Very Weak");
+            break;
+        case NWAMUI_WIFI_STRENGTH_WEAK:
+            signal_str = _("Weak");
+            break;
+        case NWAMUI_WIFI_STRENGTH_GOOD:
+            signal_str = _("Good");
+            break;
+        case NWAMUI_WIFI_STRENGTH_VERY_GOOD:
+            signal_str = _("Very Good");
+            break;
+        case NWAMUI_WIFI_STRENGTH_EXCELLENT:
+            signal_str = _("Excellent");
+            break;
+        case NWAMUI_WIFI_STRENGTH_NONE:
+        default:
+            signal_str = _("No Signal");
+            break;
+    }
+
+    return( signal_str );
+}
+
+extern const gchar*
+nwamui_wifi_net_get_signal_strength_string(NwamuiWifiNet *self )
+{
+    gint    signal = NWAMUI_WIFI_SEC_NONE;
+    
+    if (NWAMUI_IS_WIFI_NET (self)) {
+        g_object_get (G_OBJECT (self),
+                      "signal_strength", &signal,
+                      NULL);
+    }
+    
+    return ( nwamui_wifi_net_convert_strength_to_string( signal ) );
+}
+
 extern nwamui_wifi_bss_type_t
 nwamui_wifi_net_get_bss_type (NwamuiWifiNet *self )
 {

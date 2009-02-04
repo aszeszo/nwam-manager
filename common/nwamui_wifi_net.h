@@ -168,6 +168,10 @@ extern void                         nwamui_wifi_net_set_signal_strength (   Nwam
                         
 extern nwamui_wifi_signal_strength_t nwamui_wifi_net_get_signal_strength (NwamuiWifiNet *self );
 
+extern const gchar*                 nwamui_wifi_net_convert_strength_to_string( nwamui_wifi_signal_strength_t strength );
+
+extern const gchar*                 nwamui_wifi_net_get_signal_strength_string(NwamuiWifiNet *self );
+
 extern nwamui_wifi_bss_type_t        nwamui_wifi_net_get_bss_type (NwamuiWifiNet *self );
 
 extern void                         nwamui_wifi_net_set_wpa_config (    NwamuiWifiNet           *self,
