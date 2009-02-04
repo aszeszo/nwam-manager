@@ -88,9 +88,12 @@ typedef enum {
     NWAMUI_COND_FIELD_LAST /* Not to be used directly */                
 } nwamui_cond_field_t;
 
+
 typedef enum {
     NWAMUI_COND_OP_IS = 1,
     NWAMUI_COND_OP_IS_NOT,
+    NWAMUI_COND_OP_INCLUDE,         
+    NWAMUI_COND_OP_DOES_NOT_INCLUDE,
     NWAMUI_COND_OP_IS_IN_RANGE,
     NWAMUI_COND_OP_IS_NOT_IN_RANGE,
     NWAMUI_COND_OP_CONTAINS,

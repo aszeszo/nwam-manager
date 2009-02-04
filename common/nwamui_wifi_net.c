@@ -47,6 +47,7 @@ struct _NwamuiWifiNetPrivate {
         nwamui_wifi_security_t          security;
         nwamui_wifi_bss_type_t          bss_type;
         nwamui_wifi_signal_strength_t   signal_strength;
+        guint                           channel;
         guint                           speed;
         gchar*                          mode;
         nwamui_wifi_wpa_config_t        wpa_config; /* Only valid if security is WPA */
@@ -102,6 +103,7 @@ enum {
         PROP_STATUS,
         PROP_SECURITY,
         PROP_SIGNAL_STRENGTH,
+        PROP_CHANNEL,
         PROP_BSS_TYPE,
         PROP_SPEED,
         PROP_MODE,
@@ -169,6 +171,16 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
                                                           NWAMUI_WIFI_SEC_LAST-1, /* Max */
                                                           NWAMUI_WIFI_SEC_NONE, /* Default */
                                                           G_PARAM_READWRITE));
+    g_object_class_install_property (gobject_class,
+                                     PROP_CHANNEL,
+                                     g_param_spec_int    ("channel",
+                                                          _("Wifi Network Channel"),
+                                                          _("Wifi Network Channel"),
+                                                          0, /* Min */
+                                                          G_MAXINT-1, /* Max */
+                                                          0, /* Default */
+                                                          G_PARAM_READWRITE));    
+
     g_object_class_install_property (gobject_class,
                                      PROP_SIGNAL_STRENGTH,
                                      g_param_spec_int    ("signal_strength",
@@ -368,6 +380,11 @@ nwamui_wifi_net_set_property (  GObject         *object,
                 prv->security = (nwamui_wifi_security_t)tmpint;
             }
             break;
+        case PROP_CHANNEL: {
+                prv->channel = g_value_get_int (value); 
+            }
+            break;
+
         case PROP_SIGNAL_STRENGTH: {
                 gint tmpint = g_value_get_int (value);
 
@@ -519,6 +536,10 @@ nwamui_wifi_net_get_property (GObject         *object,
             break;
         case PROP_SECURITY: {
                 g_value_set_int(value, (gint)prv->security );
+            }
+            break;
+        case PROP_CHANNEL: {
+                g_value_set_int(value, (gint)prv->channel );
             }
             break;
         case PROP_SIGNAL_STRENGTH: {
@@ -1036,6 +1057,32 @@ nwamui_wifi_net_get_security (NwamuiWifiNet *self )
                   NULL);
     
     return( (nwamui_wifi_security_t)retval );
+}
+
+/* Get/Set Channel */
+extern void                    
+nwamui_wifi_net_set_channel (   NwamuiWifiNet      *self,
+                                gint                channel )
+{
+    g_return_if_fail (NWAMUI_IS_WIFI_NET(self));
+
+    g_object_set (G_OBJECT (self),
+                  "channel", channel,
+                  NULL);
+}
+                                
+extern gint
+nwamui_wifi_net_get_channel (NwamuiWifiNet *self )
+{
+    gint    retval = 0;
+    
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), retval);
+
+    g_object_get (G_OBJECT (self),
+                  "channel", &retval,
+                  NULL);
+    
+    return( retval );
 }
 
 /* Get/Set Signal Strength */

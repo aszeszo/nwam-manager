@@ -3377,46 +3377,6 @@ nwamui_env_get_conditions (NwamuiEnv *self)
     return( (GList*)conditions );
 }
 
-extern GtkTreeModel *
-nwamui_env_get_condition_subject ()
-{
-    static GtkTreeModel *condition_subject = NULL;
-	GtkTreeIter iter;
-    gint i;
-
-    if (condition_subject != NULL) {
-        return condition_subject;
-    }
-
-	condition_subject = GTK_TREE_MODEL(gtk_list_store_new (1, G_TYPE_INT));
-	/* Note we use NWAMUI_COND_FIELD_LAST to display <No conditions> */
-    for (i = NWAMUI_COND_FIELD_IP_ADDRESS; i <= NWAMUI_COND_FIELD_LAST; i++) {
-        gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, i, -1);
-    }
-    return condition_subject;
-}
-
-extern GtkTreeModel *
-nwamui_env_get_condition_predicate ()
-{
-    static GtkTreeModel *condition_predicate = NULL;
-	GtkTreeIter iter;
-    gint i;
-
-    if (condition_predicate != NULL) {
-        return condition_predicate;
-    }
-
-	condition_predicate = GTK_TREE_MODEL(gtk_list_store_new (1, G_TYPE_INT));
-	
-    for (i = NWAMUI_COND_OP_IS; i < NWAMUI_COND_OP_LAST; i++) {
-        gtk_list_store_append (GTK_LIST_STORE(condition_predicate), &iter);
-        gtk_list_store_set (GTK_LIST_STORE(condition_predicate), &iter, 0, i, -1);
-    }
-    return condition_predicate;
-}
-
 #if 0
 /* These are not needed right now since we don't support property templates,
  * but would like to keep around for when we do.

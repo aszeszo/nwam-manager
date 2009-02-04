@@ -163,6 +163,10 @@ extern guint                        nwamui_wifi_net_get_speed ( NwamuiWifiNet *s
 extern void                         nwamui_wifi_net_set_mode ( NwamuiWifiNet *self, const gchar* mode );
 extern gchar*                       nwamui_wifi_net_get_mode ( NwamuiWifiNet *self );
 
+extern void                         nwamui_wifi_net_set_channel (   NwamuiWifiNet      *self,
+                                                                    gint                channel );
+extern gint                         nwamui_wifi_net_get_channel (NwamuiWifiNet *self );
+
 extern void                         nwamui_wifi_net_set_signal_strength (   NwamuiWifiNet                  *self,
                                                                             nwamui_wifi_signal_strength_t   signal_strength );
                         

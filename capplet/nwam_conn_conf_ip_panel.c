@@ -1103,12 +1103,14 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
         break;
     case WIFI_CHANNEL:
         {  
-            const gchar* signal_str = nwamui_wifi_net_get_signal_strength_string (wifi_info);
+            guint   channel = nwamui_wifi_net_get_channel (wifi_info);
+            gchar  *channel_str = g_strdup_printf("%d", channel);
             
             g_object_set (G_OBJECT(renderer),
-                    "text", signal_str,
+                    "text", channel_str,
                     /* "value", ((((gint)signal) * 100)/(((gint)NWAMUI_WIFI_STRENGTH_LAST) - 1)) % 101, */
                     NULL);
+            g_free(channel_str);
                     
         }
         break;

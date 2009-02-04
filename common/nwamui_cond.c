@@ -99,7 +99,7 @@ nwamui_cond_class_init (NwamuiCondClass *klass)
                                                        _("op"),
                                                        NWAMUI_COND_OP_IS,
                                                        NWAMUI_COND_OP_LAST,
-                                                       NWAMUI_COND_OP_IS,
+                                                       NWAMUI_COND_OP_INCLUDE,
                                                        G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -129,7 +129,7 @@ nwamui_cond_init ( NwamuiCond *self)
     self->prv = g_new0 (NwamuiCondPrivate, 1);
     
     self->prv->field = NWAMUI_COND_FIELD_NCU;
-    self->prv->op = NWAMUI_COND_OP_IS;
+    self->prv->op = NWAMUI_COND_OP_INCLUDE;
     self->prv->value = NULL;
     self->prv->object = NULL;
 
@@ -481,7 +481,7 @@ nwamui_cond_set_field (   NwamuiCond *self,
                               nwamui_cond_field_t        field )
 {
     g_return_if_fail (NWAMUI_IS_COND (self));
-    g_assert (field >= NWAMUI_COND_FIELD_IP_ADDRESS && field <= NWAMUI_COND_FIELD_LAST );
+    g_assert (field >= NWAMUI_COND_FIELD_NCU && field <= NWAMUI_COND_FIELD_LAST );
 
     g_object_set (G_OBJECT (self),
                   "field", (gint)field,
@@ -647,13 +647,13 @@ nwamui_cond_field_to_str( nwamui_cond_field_t field )
 {
     
     switch( field ) {
-        case NWAMUI_COND_FIELD_NCU:          return(_("LINK"));
-        case NWAMUI_COND_FIELD_ENM:          return(_("ENM"));
-        case NWAMUI_COND_FIELD_LOC:          return(_("Location"));
-        case NWAMUI_COND_FIELD_IP_ADDRESS:   return(_("IP Address"));
-        case NWAMUI_COND_FIELD_DOMAINNAME:   return(_("Domain Name"));
-        case NWAMUI_COND_FIELD_ESSID:        return(_("Wireless Name (ESSID)"));
-        case NWAMUI_COND_FIELD_BSSID:        return(_("Wireless AP (BSSID)"));
+        case NWAMUI_COND_FIELD_NCU:          return(_("Active Connections"));
+        case NWAMUI_COND_FIELD_ENM:          return(_("Running VPN Applications"));
+        case NWAMUI_COND_FIELD_LOC:          return(_("Current Location"));
+        case NWAMUI_COND_FIELD_IP_ADDRESS:   return(_("Any IP Address"));
+        case NWAMUI_COND_FIELD_DOMAINNAME:   return(_("Any Domain Name"));
+        case NWAMUI_COND_FIELD_ESSID:        return(_("Wireless Network Name"));
+        case NWAMUI_COND_FIELD_BSSID:        return(_("Wireless network (BSSID)"));
         default:
             g_assert_not_reached();
             return(NULL);
@@ -666,6 +666,8 @@ nwamui_cond_op_to_str( nwamui_cond_op_t op )
     switch( op ) {
         case NWAMUI_COND_OP_IS:                 return(_("is"));
         case NWAMUI_COND_OP_IS_NOT:             return(_("is not"));
+        case NWAMUI_COND_OP_INCLUDE:            return(_("include"));
+        case NWAMUI_COND_OP_DOES_NOT_INCLUDE:   return(_("does not include"));
         case NWAMUI_COND_OP_IS_IN_RANGE:        return(_("is in the range"));
         case NWAMUI_COND_OP_IS_NOT_IN_RANGE:    return(_("is not in the range"));
         case NWAMUI_COND_OP_CONTAINS:           return(_("contains"));
