@@ -54,6 +54,10 @@ void capplet_reset_increasable_name(GObject *object);
 
 gchar* capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GObject *object);
 
+gint capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix);
+
+gchar* capplet_get_original_name(const gchar *prefix, const gchar *name);
+
 
 /* Column and renderer */
 GtkTreeViewColumn *capplet_column_new(GtkTreeView *treeview, ...);

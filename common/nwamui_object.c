@@ -225,7 +225,6 @@ nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
 {
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
     g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_activation_mode);
-    g_assert (activation_mode != NULL );
 
     NWAMUI_OBJECT_GET_CLASS (object)->set_activation_mode(object, activation_mode);
 }

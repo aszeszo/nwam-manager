@@ -565,7 +565,7 @@ capplet_model_find_max_name_suffix(GtkTreeModel *model,
 {
 	CappletForeachData *data = (CappletForeachData *)user_data;
 	const gchar *prefix = data->user_data;
-	gint *inc = data->ret_data;
+	gint *max = data->ret_data;
 	NwamuiObject *object;
 
         gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
@@ -578,10 +578,10 @@ capplet_model_find_max_name_suffix(GtkTreeModel *model,
 			gint prefix_len = strlen(prefix);
 			if (*(name + prefix_len) != '\0') {
 				num = strtoll(name + prefix_len + 1, &endptr, 10);
-				if (num > 0 && *inc < num)
-					*inc = num;
+				if (num > 0 && *max < num)
+					*max = num;
 			} else
-				*inc = 0;
+				*max = 0;
 		}
 		g_free(name);
 		g_object_unref(object);
@@ -602,14 +602,7 @@ capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GObject *
 
 	/* Initial flag */
 	if (inc < 0) {
-		CappletForeachData data;
-
-		data.user_data = prefix;
-		data.ret_data = &inc;
-
-		gtk_tree_model_foreach(model,
-		    capplet_model_find_max_name_suffix,
-		    (gpointer)&data);
+		capplet_get_max_name_num(model, prefix);
 	}
 
 	if (++inc > 0)
@@ -626,5 +619,40 @@ void
 capplet_reset_increasable_name(GObject *object)
 {
 	g_object_set_data(object, "capplet::increasable_name", (gpointer)-1);
+}
+
+gint
+capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix)
+{
+	CappletForeachData data;
+	gint max;
+
+	data.user_data = prefix;
+	data.ret_data = &max;
+
+	gtk_tree_model_foreach(model,
+	    capplet_model_find_max_name_suffix,
+	    (gpointer)&data);
+
+	return max;
+}
+
+gchar*
+capplet_get_original_name(const gchar *prefix, const gchar *name)
+{
+	if (g_str_has_prefix(name, prefix)) {
+		gchar *oname = g_strdup(name);
+		gchar *p_num = g_strrstr(oname, " ");
+		gint num;
+		gchar *endptr;
+		if (p_num) {
+			num = strtoll(p_num + 1, &endptr, 10);
+			if (num > 0) {
+				*p_num = '\0';
+				return oname;
+			}
+		}
+	}
+	return NULL;
 }
 

@@ -144,10 +144,6 @@ static void nwam_location_connection_enabled_toggled_cb(    GtkCellRendererToggl
                                                             gchar                 *path,
                                                             gpointer               user_data);
 
-static void nwam_location_rule_ncu_enabled_toggled_cb(      GtkCellRendererToggle *cell_renderer,
-                                                            gchar                 *path,
-                                                            gpointer               user_data);
-
 static void nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data);
 static void on_button_clicked(GtkButton *button, gpointer user_data);
 
@@ -157,6 +153,11 @@ static void location_activation_combo_cell_cb(GtkCellLayout *cell_layout,
   GtkTreeIter       *iter,
   gpointer           data);
 static void location_activation_combo_changed_cb(GtkComboBox* combo, gpointer user_data );
+
+static gboolean tree_model_foreach_find_enabled_env(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data);
 
 G_DEFINE_TYPE_EXTENDED (NwamLocationDialog,
   nwam_location_dialog,
@@ -169,7 +170,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
-	iface->apply = NULL;
+	iface->apply = apply;
 	iface->help = NULL;
     iface->dialog_run = dialog_run;
 }
@@ -396,6 +397,61 @@ nwam_location_dialog_new(void)
     return( self );
 }
 
+/* FIXME, if update failed, popup dialog and return FALSE */
+static gboolean
+nwam_update_obj (NwamLocationDialog *self, GObject *obj)
+{
+	NwamLocationDialogPrivate  *prv = self->prv;
+    gboolean enabled;
+    gint cond;
+	const gchar *txt = NULL;
+    gchar* prev_txt = NULL;
+
+    if (!NWAMUI_IS_ENV(obj)) {
+        return( FALSE );
+    }
+#if 0
+	prev_txt = nwamui_env_get_start_command(NWAMUI_ENV(obj));
+	txt = gtk_entry_get_text(prv->start_cmd_entry);
+	if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
+        if ( !nwamui_env_set_start_command(NWAMUI_ENV(obj), txt?txt:"") ) {
+            nwamui_util_show_message (self->prv->vpn_pref_dialog, GTK_MESSAGE_ERROR, _("Validation Error"), 
+                    _("Invalid value specified for Start Command") );
+            return( FALSE );
+        }
+    }
+    g_free(prev_txt);
+#endif
+    enabled = nwamui_env_get_enabled(NWAMUI_ENV(obj));
+    if (enabled != nwamui_object_get_active(obj)) {
+        nwamui_object_set_active(obj, enabled);
+    }
+
+    cond = nwamui_object_get_activation_mode(obj);
+    switch (gtk_combo_box_get_active(prv->location_activation_combo)) {
+    case NWAMUI_LOC_ACTIVATION_MANUAL:
+        if (cond != NWAMUI_COND_ACTIVATION_MODE_MANUAL) {
+            nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_MANUAL);
+        }
+        break;
+    case NWAMUI_LOC_ACTIVATION_BY_RULES:
+        if (cond != NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY) {
+            nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY);
+        }
+        break;
+    case NWAMUI_LOC_ACTIVATION_BY_SYSTEM:
+        if (cond != NWAMUI_COND_ACTIVATION_MODE_SYSTEM) {
+            nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_SYSTEM);
+        }
+        break;
+    default:
+        g_assert_not_reached();
+        break;
+    }
+
+	return TRUE;
+}
+
 static gint
 dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 {
@@ -450,6 +506,111 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     capplet_reset_increasable_name(G_OBJECT(self));
 
     return( TRUE );
+}
+
+static gboolean
+apply(NwamPrefIFace *iface, gpointer user_data)
+{
+    NwamLocationDialog*    self = NWAM_LOCATION_DIALOG( iface );
+	NwamLocationDialogPrivate  *prv = self->prv;
+	GtkTreeSelection           *selection = NULL;
+	GtkTreeIter                 iter;
+    GtkTreePath                *path = NULL;
+    GtkTreeModel               *model;
+    GObject                    *obj;
+    gboolean retval = TRUE;
+
+    model = gtk_tree_view_get_model (prv->location_tree);
+
+    /* FIXME, ok need call into separated panel/instance
+     * apply all changes, if no errors, hide all
+     */
+    if (retval && gtk_tree_model_get_iter_first (model, &iter)) {
+        gchar* prop_name = NULL;
+        do {
+            gtk_tree_model_get (model, &iter, 0, &obj, -1);
+            if (!nwam_update_obj (self, obj)) {
+                g_object_unref(obj);
+                retval = FALSE;
+                break;
+            }
+            if (nwamui_env_validate (NWAMUI_ENV (obj), &prop_name)) {
+                if (!nwamui_env_commit (NWAMUI_ENV (obj))) {
+                    /* Start highlight relevant ENV */
+                    path = gtk_tree_model_get_path (model, &iter);
+                    gtk_tree_view_set_cursor(prv->location_tree, path, NULL, TRUE);
+                    gtk_tree_path_free (path);
+
+                    gchar *name = nwamui_env_get_name (NWAMUI_ENV (obj));
+                    gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
+                    nwamui_util_show_message (prv->location_dialog,
+                      GTK_MESSAGE_ERROR,
+                      _("Commit ENV error"),
+                      msg);
+                    g_free (msg);
+                    g_free (name);
+                    g_object_unref(obj);
+                    retval = FALSE;
+                    break;
+                }
+            }
+            else {
+                gchar *name = nwamui_env_get_name (NWAMUI_ENV (obj));
+                gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
+
+                /* Start highligh relevant ENV */
+                path = gtk_tree_model_get_path (model, &iter);
+                gtk_tree_view_set_cursor(prv->location_tree, path, NULL, TRUE);
+                gtk_tree_path_free (path);
+
+                nwamui_util_show_message (prv->location_dialog,
+                  GTK_MESSAGE_ERROR,
+                  _("Validation error"),
+                  msg);
+                g_free (msg);
+                g_free (name);
+                g_object_unref(obj);
+                retval = FALSE;
+                break;
+            }
+            g_object_unref(obj);
+        } while (gtk_tree_model_iter_next (model, &iter));
+    }
+
+    if (retval) {
+        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+        GList *nlist = capplet_model_to_list(model);
+        GList *olist = nwamui_daemon_get_env_list(daemon);
+        GList *i;
+        /* Sync o and b */
+        if (nlist) {
+            /* We remove the element from olist if it existed in both list. So
+             * olist finally have all the private elements which should be
+             * deleted. */
+            for (i = nlist; i; i = i->next) {
+                GList *found;
+
+                if ((found = g_list_find(olist, i->data)) != NULL) {
+                    g_object_unref(found->data);
+                    olist = g_list_delete_link(olist, found);
+                } else {
+                    nwamui_daemon_env_append(daemon, NWAMUI_ENV(i->data));
+                }
+                g_object_unref(i->data);
+            }
+            g_list_free(nlist);
+        }
+
+        for (i = olist; i; i = i->next) {
+            nwamui_daemon_env_remove(daemon, NWAMUI_ENV(i->data));
+            g_object_unref(i->data);
+        }
+
+        g_list_free(olist);
+
+        g_object_unref(daemon);
+    }
+
 }
 
 static void
@@ -563,18 +724,25 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
     if (tpath != NULL && gtk_tree_model_get_iter (model, &iter, tpath))
     {
         NwamuiEnv*  env;
-        gboolean	inconsistent;
 
         gtk_tree_model_get(model, &iter, 0, &env, -1);
 
-        g_object_get (cell_renderer, "inconsistent", &inconsistent, NULL);
-        if (gtk_cell_renderer_toggle_get_active(cell_renderer)) {
-            nwamui_env_set_enabled(env, FALSE);
-        } else {
-            nwamui_env_set_enabled(env, TRUE);
-        }
+        if (env) {
+            /* Figer out which one is enabled, change it to disabled */
+            gtk_tree_model_foreach(model,
+              tree_model_foreach_find_enabled_env,
+              NULL);
 
-        g_object_unref(env);
+            if (gtk_cell_renderer_toggle_get_active(cell_renderer)) {
+                nwamui_env_set_enabled(env, FALSE);
+            } else {
+                nwamui_env_set_enabled(env, TRUE);
+            }
+
+            gtk_tree_model_row_changed(model, tpath, &iter);
+
+            g_object_unref(env);
+        }
         
     }
     if (tpath) {
@@ -799,17 +967,46 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             }
 
         } else if (button == (gpointer)prv->location_dup_btn) {
-            NwamuiEnv *new_env;
-            NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+            gchar*  sname = nwamui_env_get_name( env );
+            gchar *oname;
+            gchar *prefix;
+            gchar *name;
+            NwamuiObject *object;
 
-            new_env = nwamui_env_clone( env );
-        
-            nwamui_daemon_env_append(daemon, new_env );
-        
-            nwamui_daemon_set_active_env(daemon, new_env );
+            /* TODO avoid Copy of Copy of ... */
+            /* Try to get the original name if it is something like 'Copy...' */
+            if (!(oname = capplet_get_original_name(_("Copy of"), sname))) {
+                prefix = g_strdup_printf(_("Copy of %s"), sname);
+            } else {
+                prefix = g_strdup_printf(_("Copy of %s"), oname);
+                g_free(oname);
+            }
 
-            g_object_unref( G_OBJECT(new_env) );
-            g_object_unref(daemon);
+            name = capplet_get_increasable_name(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree)), prefix, G_OBJECT(env));
+
+            g_assert(name);
+
+            object = NWAMUI_OBJECT(nwamui_env_clone( env ));
+            nwamui_object_set_name(object, name);
+
+            capplet_list_store_add(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
+
+            g_free(name);
+            g_free(prefix);
+            g_free(sname);
+            g_object_unref(object);
+
+
+/*             NwamuiDaemon *daemon = nwamui_daemon_get_instance(); */
+
+
+
+/*             nwamui_daemon_env_append(daemon, new_env ); */
+        
+/*             nwamui_daemon_set_active_env(daemon, new_env ); */
+
+/*             g_object_unref( G_OBJECT(new_env) ); */
+/*             g_object_unref(daemon); */
 
         } else if (button == (gpointer)prv->location_rename_btn) {
 #if 0
@@ -899,11 +1096,6 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 	NwamLocationDialog         *self = NWAM_LOCATION_DIALOG(data);
 	NwamLocationDialogPrivate  *prv = self->prv;
     gboolean                    stop_emission = FALSE;
-	GtkTreeSelection           *selection = NULL;
-	GtkTreeIter                 iter;
-    GtkTreePath                *path = NULL;
-    GtkTreeModel               *model;
-    GObject                    *obj;
 
 	switch (responseid) {
 		case GTK_RESPONSE_NONE:
@@ -914,72 +1106,9 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 			break;
 		case GTK_RESPONSE_OK:
 			g_debug("GTK_RESPONSE_OK");
-
-#if 0
-            model = gtk_tree_view_get_model (prv->view);
-            selection = gtk_tree_view_get_selection (prv->view);
-            if (gtk_tree_selection_get_selected(selection,
-                  NULL, &iter)) {
-
-                gtk_tree_model_get (model, &iter, 0, &obj, -1);
-                /* update the new one before close */
-                if (prv->cur_obj && prv->cur_obj == obj) {
-                    if ( ! nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), obj) ) {
-                        stop_emission = TRUE;
-                    }
-                }
-            }
-
-			/* FIXME, ok need call into separated panel/instance
-			 * apply all changes, if no errors, hide all
-			 */
-            if ( !stop_emission && gtk_tree_model_get_iter_first (model, &iter)) {
-                gchar* prop_name = NULL;
-                do {
-                    gtk_tree_model_get (model, &iter, 0, &obj, -1);
-                    if (nwamui_enm_validate (NWAMUI_ENM (obj), &prop_name)) {
-                        if (!nwamui_enm_commit (NWAMUI_ENM (obj))) {
-                            /* Start highlight relevant ENM */
-                            path = gtk_tree_model_get_path (model, &iter);
-                            gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
-                            gtk_tree_path_free (path);
-
-                            gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
-                            gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
-                            nwamui_util_show_message (prv->location_dialog,
-                              GTK_MESSAGE_ERROR,
-                              _("Commit ENM error"),
-                              msg);
-                            g_free (msg);
-                            g_free (name);
-                            stop_emission = TRUE;
-                            break;
-                        }
-                    }
-                    else {
-                        gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
-                        gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
-
-                        /* Start highligh relevant ENM */
-                        path = gtk_tree_model_get_path (model, &iter);
-                        gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
-                        gtk_tree_path_free (path);
-
-                        nwamui_util_show_message (prv->location_dialog,
-                          GTK_MESSAGE_ERROR,
-                          _("Validation error"),
-                          msg);
-                        g_free (msg);
-                        g_free (name);
-                        stop_emission = TRUE;
-                        break;
-                    }
-                } while (gtk_tree_model_iter_next (model, &iter));
-#endif
-                {
-                if (!stop_emission) {
-                    gtk_widget_hide (GTK_WIDGET(prv->location_dialog));
-                }
+            stop_emission = !nwam_pref_apply(NWAM_PREF_IFACE(data), NULL);
+            if (!stop_emission) {
+                gtk_widget_hide (GTK_WIDGET(prv->location_dialog));
             }
 			break;
 		case GTK_RESPONSE_CANCEL:
@@ -1003,3 +1132,25 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     g_debug("NwamLocationDialog: notify %s changed\n", arg1->name);
 }
 
+static gboolean
+tree_model_foreach_find_enabled_env(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data)
+{
+	NwamuiEnv *env;
+
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &env, -1);
+    if (env) {
+        if (nwamui_env_get_enabled(env)) {
+            nwamui_env_set_enabled(env, FALSE);
+
+            gtk_tree_model_row_changed(model, path, iter);
+
+            g_object_unref(env);
+            return TRUE;
+        }
+        g_object_unref(env);
+    }
+    return FALSE;
+}

@@ -1,3 +1,17 @@
+2009-02-04  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c: (capplet_model_find_max_name_suffix),
+	(capplet_get_increasable_name), (capplet_get_max_name_num),
+	(capplet_get_original_name):
+	* capplet/capplet-utils.h:
+	Updated to deal with 'Copy of Copy of ..' things.
+	* capplet/nwam_location_dialog.c: (nwam_pref_init),
+	(nwam_update_obj), (apply),
+	(nwam_location_connection_enabled_toggled_cb), (on_button_clicked),
+	(response_cb), (tree_model_foreach_find_enabled_env):
+	* common/nwamui_object.c: (nwamui_object_set_activation_mode):
+	OK really does things.
+
 2009-02-04  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_env.h, common/nwamui_env.c: 
