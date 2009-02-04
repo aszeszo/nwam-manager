@@ -431,7 +431,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     gtk_widget_show(GTK_WIDGET(prv->view));
     g_object_unref(daemon);
 
-
+    capplet_reset_increasable_name(G_OBJECT(self));
 /*     g_signal_connect (idx->data, "notify::active", */
 /*       G_CALLBACK(on_nwam_enm_notify_cb), (gpointer)self); */
 
@@ -636,8 +636,16 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 	GtkTreeIter iter;
 	
     if (button == (gpointer)self->prv->add_btn) {
-        NwamuiObject *object = NWAMUI_OBJECT(nwamui_enm_new("New VPN Object") );
+        gchar *name;
+        NwamuiObject *object;
+
+        name = capplet_get_increasable_name(gtk_tree_view_get_model(self->prv->view), _("Unnamed VPN"), G_OBJECT(self));
+
+        g_assert(name);
+
+        object = NWAMUI_OBJECT(nwamui_enm_new(name) );
         capplet_list_store_add(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(self->prv->view))), object);
+        g_free(name);
         g_object_unref(object);
 
         nwam_tree_view_select_cached_object(NWAM_TREE_VIEW(self->prv->view));

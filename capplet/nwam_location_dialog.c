@@ -447,6 +447,8 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(self->prv->location_tree),
       (gpointer)self);
 
+    capplet_reset_increasable_name(G_OBJECT(self));
+
     return( TRUE );
 }
 
@@ -748,8 +750,16 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
     
     if (button == (gpointer)prv->location_add_btn) {
-        NwamuiObject *object = NWAMUI_OBJECT(nwamui_env_new("New Env Object") );
+        gchar *name;
+        NwamuiObject *object;
+
+        name = capplet_get_increasable_name(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree)), _("Unnamed Location"), G_OBJECT(self));
+
+        g_assert(name);
+
+        object = NWAMUI_OBJECT(nwamui_env_new(name) );
         capplet_list_store_add(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
+        g_free(name);
         g_object_unref(object);
 
         nwam_tree_view_select_cached_object(NWAM_TREE_VIEW(prv->location_tree));

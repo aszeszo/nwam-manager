@@ -1,5 +1,16 @@
 2009-02-03  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/capplet-utils.c: (tree_model_find_object_cb),
+	(capplet_model_find_max_name_suffix),
+	(capplet_get_increasable_name), (capplet_reset_increasable_name):
+	* capplet/capplet-utils.h:
+	Add simply functions to get increased name.
+	* capplet/nwam_location_dialog.c: (refresh), (on_button_clicked):
+	* capplet/nwam_vpn_pref_dialog.c: (refresh), (vpn_pref_clicked_cb):
+	Use the increased name for the new added objects.
+
+2009-02-03  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/capplet-utils.c, capplet/capplet-utils.h:
 	Add a simple comment and update header file.
 	* capplet/nwam_location_dialog.c: (on_button_clicked):

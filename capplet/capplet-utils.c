@@ -350,7 +350,7 @@ tree_model_find_object_cb(GtkTreeModel *model,
 	/* Safely unref */
 	g_object_unref(obj);
 
-	if (obj == data) {
+	if (obj == data->user_data) {
 		GtkTreeIter *iter_ret = (GtkTreeIter*)data->ret_data;
 
 		*iter_ret = *iter;
@@ -556,3 +556,75 @@ capplet_model_to_list(GtkTreeModel *model)
 
 	return data.ret_data;
 }
+
+static gboolean
+capplet_model_find_max_name_suffix(GtkTreeModel *model,
+    GtkTreePath *path,
+    GtkTreeIter *iter,
+    gpointer user_data)
+{
+	CappletForeachData *data = (CappletForeachData *)user_data;
+	const gchar *prefix = data->user_data;
+	gint *inc = data->ret_data;
+	NwamuiObject *object;
+
+        gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
+	
+	if (object) {
+		gchar *name = nwamui_object_get_name(object);
+		gchar *endptr;
+		gint num;
+		if (g_str_has_prefix(name, prefix)) {
+			gint prefix_len = strlen(prefix);
+			if (*(name + prefix_len) != '\0') {
+				num = strtoll(name + prefix_len + 1, &endptr, 10);
+				if (num > 0 && *inc < num)
+					*inc = num;
+			} else
+				*inc = 0;
+		}
+		g_free(name);
+		g_object_unref(object);
+	}
+	return FALSE;
+}
+
+gchar*
+capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GObject *object)
+{
+	gchar *name;
+	gint inc;
+
+	g_return_val_if_fail(object && G_IS_OBJECT(object), NULL);
+
+	inc = (gint)g_object_get_data(object, "capplet::increasable_name");
+	g_assert(inc >= -1);
+
+	/* Initial flag */
+	if (inc < 0) {
+		CappletForeachData data;
+
+		data.user_data = prefix;
+		data.ret_data = &inc;
+
+		gtk_tree_model_foreach(model,
+		    capplet_model_find_max_name_suffix,
+		    (gpointer)&data);
+	}
+
+	if (++inc > 0)
+		name = g_strdup_printf("%s %d", prefix, inc);
+	else
+		name = g_strdup(prefix);
+
+	g_object_set_data(object, "capplet::increasable_name", (gpointer)inc);
+
+	return name;
+}
+
+void
+capplet_reset_increasable_name(GObject *object)
+{
+	g_object_set_data(object, "capplet::increasable_name", (gpointer)-1);
+}
+

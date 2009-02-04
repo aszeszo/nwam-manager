@@ -50,6 +50,10 @@ GList* capplet_model_to_list(GtkTreeModel *model);
 
 void capplet_list_store_add(GtkTreeModel *model, NwamuiObject *object);
 
+void capplet_reset_increasable_name(GObject *object);
+
+gchar* capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GObject *object);
+
 
 /* Column and renderer */
 GtkTreeViewColumn *capplet_column_new(GtkTreeView *treeview, ...);
