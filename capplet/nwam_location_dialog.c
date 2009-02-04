@@ -751,6 +751,8 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         NwamuiObject *object = NWAMUI_OBJECT(nwamui_env_new("New Env Object") );
         capplet_list_store_add(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
         g_object_unref(object);
+
+        nwam_tree_view_select_cached_object(NWAM_TREE_VIEW(prv->location_tree));
         return;
     }
 

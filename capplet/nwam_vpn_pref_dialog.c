@@ -449,6 +449,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     GtkTreePath *path = NULL;
     GtkTreeModel *model;
     GObject *obj;
+    gboolean retval = TRUE;
 
     model = gtk_tree_view_get_model (prv->view);
     selection = gtk_tree_view_get_selection (prv->view);
@@ -458,20 +459,22 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         gtk_tree_model_get (model, &iter, 0, &obj, -1);
         /* update the new one before close */
         if (prv->cur_obj && prv->cur_obj == obj) {
-            nwam_update_obj (NWAM_VPN_PREF_DIALOG(user_data), obj);
+            if ( ! nwam_update_obj (self, obj) ) {
+                retval = FALSE;
+            }
         }
     }
 
     /* FIXME, ok need call into separated panel/instance
      * apply all changes, if no errors, hide all
      */
-    if (gtk_tree_model_get_iter_first (model, &iter)) {
+    if (retval && gtk_tree_model_get_iter_first (model, &iter)) {
         gchar* prop_name = NULL;
         do {
             gtk_tree_model_get (model, &iter, 0, &obj, -1);
             if (nwamui_enm_validate (NWAMUI_ENM (obj), &prop_name)) {
                 if (!nwamui_enm_commit (NWAMUI_ENM (obj))) {
-                    /* Start highligh relevant ENM */
+                    /* Start highlight relevant ENM */
                     path = gtk_tree_model_get_path (model, &iter);
                     gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
                     gtk_tree_path_free (path);
@@ -484,7 +487,8 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                       msg);
                     g_free (msg);
                     g_free (name);
-                    return TRUE;
+                    retval = FALSE;
+                    break;
                 }
             }
             else {
@@ -502,10 +506,45 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                   msg);
                 g_free (msg);
                 g_free (name);
-                return TRUE;
+                retval = FALSE;
+                break;
             }
         } while (gtk_tree_model_iter_next (model, &iter));
     }
+
+    if (retval) {
+        NwamuiDaemon *daemon = prv->daemon;
+        GList *nlist = capplet_model_to_list(model);
+        GList *olist = nwamui_daemon_get_enm_list(daemon);
+        GList *i;
+        /* Sync o and b */
+        if (nlist) {
+            /* We remove the element from olist if it existed in both list. So
+             * olist finally have all the private elements which should be
+             * deleted. */
+            for (i = nlist; i; i = i->next) {
+                GList *found;
+
+                if ((found = g_list_find(olist, i->data)) != NULL) {
+                    g_object_unref(found->data);
+                    olist = g_list_delete_link(olist, found);
+                } else {
+                    nwamui_daemon_enm_append(daemon, NWAMUI_ENM(i->data));
+                }
+                g_object_unref(i->data);
+            }
+            g_list_free(nlist);
+        }
+
+        for (i = olist; i; i = i->next) {
+            nwamui_daemon_enm_remove(daemon, NWAMUI_ENM(i->data));
+            g_object_unref(i->data);
+        }
+
+        g_list_free(olist);
+    }
+
+    return retval;
 }
 
 static gboolean
@@ -537,7 +576,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 			break;
 		case GTK_RESPONSE_OK:
 			g_debug("GTK_RESPONSE_OK");
-            stop_emission = nwam_pref_apply(NWAM_PREF_IFACE(data), NULL);
+            stop_emission = !nwam_pref_apply(NWAM_PREF_IFACE(data), NULL);
 			break;
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
@@ -600,6 +639,8 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
         NwamuiObject *object = NWAMUI_OBJECT(nwamui_enm_new("New VPN Object") );
         capplet_list_store_add(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(self->prv->view))), object);
         g_object_unref(object);
+
+        nwam_tree_view_select_cached_object(NWAM_TREE_VIEW(self->prv->view));
         return;
     }
 
@@ -766,6 +807,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
             gboolean    start_value = FALSE;
             gboolean    stop_value = FALSE;
             gboolean    fmri_value = FALSE;
+            gboolean    init_editting = FALSE;
 
 			txt = nwamui_enm_get_start_command (NWAMUI_ENM(obj));
 			gtk_entry_set_text (prv->start_cmd_entry, txt?txt:"");
@@ -787,11 +829,15 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 			g_free (txt);
             on_nwam_enm_notify_cb(G_OBJECT(obj), NULL, data);
 
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), start_value);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), start_value);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_entry), stop_value);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), stop_value);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->process_entry), fmri_value);
+            if (!(start_value || stop_value || fmri_value)) {
+                init_editting = TRUE;
+            }
+
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), start_value || init_editting);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), start_value || init_editting);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_entry), stop_value || init_editting);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), stop_value || init_editting);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->process_entry), fmri_value || init_editting);
 
             name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
             title = g_strdup_printf(_("Start/stop '%s' according to rules"), name);

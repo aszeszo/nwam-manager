@@ -1,3 +1,15 @@
+2009-02-03  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c, capplet/capplet-utils.h:
+	Add a simple comment and update header file.
+	* capplet/nwam_location_dialog.c: (on_button_clicked):
+	Select new object after add it
+	* capplet/nwam_vpn_pref_dialog.c: (apply), (response_cb),
+	(vpn_pref_clicked_cb), (nwam_vpn_selection_changed):
+	Add code to sync model and enm list. And select new object after add it.
+	* capplet/nwam_tree_view.h:
+	Updated header file
+
 2009-02-03  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_conf_ip_panel.c: 

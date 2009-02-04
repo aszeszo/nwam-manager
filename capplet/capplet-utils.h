@@ -46,6 +46,10 @@ gboolean capplet_tree_view_expand_row(GtkTreeView *treeview,
 gboolean capplet_tree_view_collapse_row(GtkTreeView *treeview,
     GtkTreeIter *iter);
 
+GList* capplet_model_to_list(GtkTreeModel *model);
+
+void capplet_list_store_add(GtkTreeModel *model, NwamuiObject *object);
+
 
 /* Column and renderer */
 GtkTreeViewColumn *capplet_column_new(GtkTreeView *treeview, ...);

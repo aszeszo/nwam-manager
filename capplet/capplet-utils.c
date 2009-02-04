@@ -542,6 +542,7 @@ capplet_model_foreach_add_to_list(GtkTreeModel *model,
 	return FALSE;
 }
 
+/* Convert model to a list, each element is ref'ed. */
 GList*
 capplet_model_to_list(GtkTreeModel *model)
 {
