@@ -1,5 +1,12 @@
 2009-02-04  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_env.h, common/nwamui_env.c: 
+	  Add ACTIVE property to get the state of the loc object when read
+	  from libnwam. ENABLED can now be used to reflect the "desired" state
+	  which will be acted upon on a call to commit.
+
+2009-02-04  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam-manager-properties.glade:
 	  Fix response id and icon path.
 

@@ -46,6 +46,7 @@ struct _NwamuiEnvPrivate {
     gchar*                      name;
     nwam_loc_handle_t			nwam_loc;
     gboolean                    nwam_loc_modified;
+    gboolean                    enabled; /* Cache state we we can "enable" on commit */
 
     /* Not used for Phase 1 any more */
     nwamui_env_proxy_type_t     proxy_type;
@@ -72,6 +73,7 @@ struct _NwamuiEnvPrivate {
 enum {
     PROP_NAME=1,
     PROP_MODIFIABLE,
+    PROP_ACTIVE,
     PROP_ENABLED,
     PROP_NAMESERVICE_DISCOVER,
     PROP_NAMESERVICES,
@@ -220,6 +222,14 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                        NWAMUI_COND_ACTIVATION_MODE_LAST-1,
                                                        NWAMUI_COND_ACTIVATION_MODE_MANUAL,
                                                        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_ACTIVE,
+                                     g_param_spec_boolean ("active",
+                                                          _("active"),
+                                                          _("active"),
+                                                          FALSE,
+                                                          G_PARAM_READABLE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_ENABLED,
@@ -646,7 +656,7 @@ nwamui_env_set_property (   GObject         *object,
             break;
 
         case PROP_ENABLED: {
-                set_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED, g_value_get_boolean( value ) );
+                prv->enabled = g_value_get_boolean( value );
             }
             break;
 
@@ -949,9 +959,15 @@ nwamui_env_get_property (GObject         *object,
             }
             break;
 
+        case PROP_ACTIVE: {
+                /* Get current state of enabled */
+                g_value_set_boolean( value, get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED ) );
+            }
+            break;
+
         case PROP_ENABLED: {
-                g_value_set_boolean( value, 
-                        get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED ) );
+                /* Get user desired state for enabled */
+                g_value_set_boolean( value, prv->enabled );
             }
             break;
 
@@ -1211,6 +1227,7 @@ nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh)
     NwamuiEnvPrivate   *prv = self->prv;
     nwam_error_t        nerr;
     int                 rval;
+    gboolean            enabled = FALSE;
     
     nerr = nwam_loc_get_name (envh, (char **)&name);
     if (nerr != NWAM_SUCCESS) {
@@ -1229,6 +1246,9 @@ nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh)
     g_debug ("loading nwamui_env_update_with_handle %s", name);
 
     free (name);
+
+    /* Initialise enabled to be the original value */
+    prv->enabled = get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED );
 
     prv->nwam_loc_modified = FALSE;
 
@@ -1915,6 +1935,26 @@ nwamui_env_get_enabled (NwamuiEnv *self)
                   NULL);
 
     return( enabled );
+}
+
+/**
+ * nwamui_env_get_active:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: whether it is the active location.
+ *
+ **/
+extern gboolean
+nwamui_env_is_active (NwamuiEnv *self)
+{
+    gboolean  active = FALSE; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), active);
+
+    g_object_get (G_OBJECT (self),
+                  "active", &active,
+                  NULL);
+
+    return( active );
 }
 
 /** 
@@ -3602,6 +3642,13 @@ nwamui_env_commit( NwamuiEnv* self )
         if ( (nerr = nwam_loc_commit( self->prv->nwam_loc, 0 ) ) != NWAM_SUCCESS ) {
             g_warning("Failed when committing LOC for %s", self->prv->name);
             return( FALSE );
+        }
+        if ( self->prv->enabled ) {
+            nwam_error_t nerr;
+            if ( (nerr = nwam_loc_enable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
+                g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
+                return (FALSE);
+            }
         }
     }
 
