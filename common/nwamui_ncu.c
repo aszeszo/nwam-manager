@@ -48,6 +48,8 @@
 static GObjectClass *parent_class = NULL;
 
 struct _NwamuiNcuPrivate {
+        gboolean                        initialisation;
+
         NwamuiNcp*                      ncp;  /* Parent NCP */
         nwam_ncu_handle_t               nwam_ncu_phys;
         gboolean                        nwam_ncu_phys_modified;
@@ -62,7 +64,6 @@ struct _NwamuiNcuPrivate {
         gchar*                          vanity_name;
         gchar*                          device_name;
         nwamui_ncu_type_t               ncu_type;
-        gboolean                        read_only;
 
         /* IPTun Properties */
         nwam_iptun_type_t               tun_type; 
@@ -242,14 +243,6 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_READONLY,
-                                     g_param_spec_boolean ("readonly",
-                                                          _("readonly"),
-                                                          _("readonly"),
-                                                          FALSE,
-                                                          G_PARAM_READABLE));
-
-    g_object_class_install_property (gobject_class,
                                      PROP_SPEED,
                                      g_param_spec_uint ("speed",
                                                        _("speed"),
@@ -418,7 +411,9 @@ static void
 nwamui_ncu_init (NwamuiNcu *self)
 {
     self->prv = g_new0 (NwamuiNcuPrivate, 1);
-    
+
+    self->prv->initialisation = TRUE;
+
     self->prv->nwam_ncu_phys = NULL;
     self->prv->nwam_ncu_ip = NULL;
     self->prv->nwam_ncu_iptun = NULL;
@@ -456,6 +451,17 @@ nwamui_ncu_set_property ( GObject         *object,
     NwamuiNcu *self = NWAMUI_NCU(object);
     gchar*      tmpstr = NULL;
     gint        tmpint = 0;
+
+    gboolean     read_only = FALSE;
+
+    if ( !self->prv->initialisation ) {
+        read_only = !nwamui_ncu_is_modifiable(self);
+
+        if ( read_only ) {
+            g_error("Attempting to modify read-only ncu %s", self->prv->device_name?self->prv->device_name:"NULL");
+            return;
+        }
+    }
 
     switch (prop_id) {
     case PROP_NCP: {
@@ -920,14 +926,6 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
 
-        case PROP_READONLY: {
-                boolean_t	read_only = B_FALSE;
-                nwam_ncu_get_read_only(self->prv->nwam_ncu_phys, &read_only);
-                g_value_set_boolean( value, read_only?TRUE:FALSE);
-
-            }
-            break;
-
         case PROP_PRIORITY_GROUP: {
                 g_value_set_uint( value, (guint)get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys,
                                                       NWAM_NCU_PROP_PRIORITY_GROUP ) );
@@ -1213,9 +1211,11 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
     
     g_return_if_fail( NWAMUI_IS_NCU(self) );
 
+
     ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu, NWAM_NCU_PROP_CLASS);
 
     g_object_freeze_notify( G_OBJECT(self) );
+    self->prv->initialisation = TRUE;
 
     populate_common_ncu_data( self, ncu );
 
@@ -1262,6 +1262,8 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
     }
     
     g_object_thaw_notify( G_OBJECT(self) );
+
+    self->prv->initialisation = FALSE;
 }
 
 
@@ -1276,6 +1278,8 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
                                     NULL));
 
     nwamui_ncu_update_with_handle( self, ncu );
+
+    self->prv->initialisation = FALSE;
 
     return( self );
 }
@@ -1328,6 +1332,34 @@ nwamui_ncu_new (    const gchar*        vanity_name,
     
     return( self );
 }
+
+/**
+ * nwamui_ncu_is_modifiable:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @returns: the modifiable.
+ *
+ **/
+extern gboolean
+nwamui_ncu_is_modifiable (NwamuiNcu *self)
+{
+    nwam_error_t    nerr;
+    gboolean        modifiable = FALSE; 
+    boolean_t       readonly;
+
+    if (!NWAMUI_IS_NCU (self) || self->prv->nwam_ncu_phys == NULL ) {
+        return( modifiable );
+    }
+
+    if ( (nerr = nwam_ncu_get_read_only( self->prv->nwam_ncu_phys, &readonly )) == NWAM_SUCCESS ) {
+        modifiable = readonly?FALSE:TRUE;
+    }
+    else {
+        g_warning("Error getting ncu read-only status: %s", nwam_strerror( nerr ) );
+    }
+
+    return( modifiable );
+}
+
 
 /**
  * nwamui_ncu_reload:   re-load stored configuration
@@ -2264,44 +2296,6 @@ nwamui_ncu_get_activation_mode (NwamuiNcu *self)
 
     return( (nwamui_cond_activation_mode_t)activation_mode );
 }
-
-/** 
- * nwamui_ncu_set_readonly:
- * @nwamui_ncu: a #NwamuiNcu.
- * @readonly: Value to set readonly to.
- * 
- **/ 
-extern void
-nwamui_ncu_set_readonly (   NwamuiNcu      *self,
-                           gboolean        readonly )
-{
-    g_return_if_fail (NWAMUI_IS_NCU (self));
-
-    g_object_set (G_OBJECT (self),
-                  "readonly", readonly,
-                  NULL);
-}
-
-/**
- * nwamui_ncu_is_readonly:
- * @nwamui_ncu: a #NwamuiNcu.
- * @returns: the readonly.
- *
- **/
-extern gboolean
-nwamui_ncu_is_readonly (NwamuiNcu *self)
-{
-    gboolean  readonly = FALSE; 
-
-    g_return_val_if_fail (NWAMUI_IS_NCU (self), readonly);
-
-    g_object_get (G_OBJECT (self),
-                  "readonly", &readonly,
-                  NULL);
-
-    return( readonly );
-}
-
 
 /** 
  * nwamui_ncu_set_enabled:

@@ -214,7 +214,7 @@ nwamui_enm_set_property (   GObject         *object,
     nwam_error_t nerr;
     int num;
     nwam_value_t nwamdata;
-    
+
     switch (prop_id) {
        case PROP_NAME: {
                 if ( self->prv->name != NULL ) {
@@ -703,11 +703,6 @@ set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name, ch
         len = i;
     }
 
-    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
-        g_error("Attempting to set a read-only enm property %s", prop_name );
-        return retval;
-    }
-
     if ( (nerr = nwam_value_create_string_array (strs, len, &nwam_data )) != NWAM_SUCCESS ) {
         g_debug("Error creating a value for string array 0x%08X", strs);
         return retval;
@@ -776,11 +771,6 @@ set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 
     if ( (nerr = nwam_enm_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
         g_warning("Unexpected type for enm property %s - got %d\n", prop_name, nwam_type );
-        return retval;
-    }
-
-    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
-        g_error("Attempting to set a read-only enm property %s", prop_name );
         return retval;
     }
 

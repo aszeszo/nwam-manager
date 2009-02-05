@@ -1,5 +1,15 @@
 2009-02-05  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_env_pref_dialog.c,  capplet/nwam_location_dialog.c,
+	  common/nwamui_daemon.c,  common/nwamui_enm.c,  common/nwamui_env.c,
+	  common/nwamui_env.h,  common/nwamui_ncp.c,  common/nwamui_ncp.h,
+	  common/nwamui_ncu.c,  common/nwamui_ncu.h,  tests/main.c: 
+	  Change all read-only methods / properties to use "is_modifiable" and
+	  directly pull the information from the nwam_*handle since it's not
+	  possible to set it.
+
+2009-02-05  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_condition_vbox.c: 
 	  Update rules dialog to match the UI spec w.r.t. the possiblity to
 	  select NCU/ENM/LOC/WIFI_NET from a drop-down list or editable combo

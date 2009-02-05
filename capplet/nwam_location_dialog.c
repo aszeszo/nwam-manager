@@ -948,24 +948,20 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             capplet_dialog_run(NWAM_PREF_IFACE(env_pref_dialog), button);
 
         } else if (button == (gpointer)prv->location_remove_btn) {
-
-            if ( nwamui_env_is_modifiable( env ) ) {
-                /* TODO - Are you sure?? - if active, pick next best... ? */
-                gchar*  name = nwamui_env_get_name( env );
-                gchar*  message = g_strdup_printf(_("Remove location '%s'?"), name?name:"" );
-                if (nwamui_util_ask_yes_no( GTK_WINDOW(prv->location_dialog), _("Remove Location?"), message )) {
-                    g_debug("Removing location: '%s'", name);
-                
-                    gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
-        
-                }
+            /* TODO - Are you sure?? - if active, pick next best... ? */
+            gchar*  name = nwamui_env_get_name( env );
+            gchar*  message = g_strdup_printf(_("Remove location '%s'?"), name?name:"" );
+            if (nwamui_util_ask_yes_no( GTK_WINDOW(prv->location_dialog), _("Remove Location?"), message )) {
+                g_debug("Removing location: '%s'", name);
             
-                if (name)
-                    g_free(name);
-            
-                g_free(message);
+                gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+    
             }
-
+        
+            if (name)
+                g_free(name);
+        
+            g_free(message);
         } else if (button == (gpointer)prv->location_dup_btn) {
             gchar*  sname = nwamui_env_get_name( env );
             gchar *oname;

@@ -72,7 +72,6 @@ struct _NwamuiEnvPrivate {
 
 enum {
     PROP_NAME=1,
-    PROP_MODIFIABLE,
     PROP_ACTIVE,
     PROP_ENABLED,
     PROP_NAMESERVICE_DISCOVER,
@@ -203,14 +202,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           _("name"),
                                                           _("name"),
                                                           "",
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_MODIFIABLE,
-                                     g_param_spec_boolean ("modifiable",
-                                                          _("modifiable"),
-                                                          _("modifiable"),
-                                                          TRUE,
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -596,15 +587,6 @@ nwamui_env_set_property (   GObject         *object,
     gchar*      tmpstr = NULL;
     gint        tmpint = 0;
     nwam_error_t nerr;
-    gboolean     read_only = prv->nwam_loc?get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_READ_ONLY ):FALSE;
-
-    /* TODO - Handle modifiable in a "copy on write" fashion" */
-    g_assert( read_only != TRUE );
-    
-    if ( read_only ) {
-        g_warning("Attempting to modify read-only loc %s", prv->name?prv->name:"NULL");
-        return;
-    }
     
     switch (prop_id) {
         case PROP_NAME: {
@@ -626,11 +608,6 @@ nwamui_env_set_property (   GObject         *object,
                 if (nerr != NWAM_SUCCESS) {
                     g_debug ("nwam_loc_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
                 }
-            }
-            break;
-
-        case PROP_MODIFIABLE: {
-                set_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_READ_ONLY, !g_value_get_boolean( value ));
             }
             break;
 
@@ -932,12 +909,6 @@ nwamui_env_get_property (GObject         *object,
                     free (name);
                 }
                 g_value_set_string( value, self->prv->name );
-            }
-            break;
-
-        case PROP_MODIFIABLE: {
-                g_value_set_boolean( value, 
-                        !get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_READ_ONLY ) );
             }
             break;
 
@@ -1312,7 +1283,6 @@ nwamui_env_clone( NwamuiEnv* self )
     
     g_object_set (G_OBJECT (new_env),
             "name", new_name,
-            "modifiable", TRUE, /* Should be modifiable, regardless of orig */
             "proxy_type", self->prv->proxy_type,
             "use_http_proxy_for_all", self->prv->use_http_proxy_for_all,
             "proxy_pac_file", self->prv->proxy_pac_file,
@@ -1389,19 +1359,29 @@ set_nwam_loc_string_prop( nwam_loc_handle_t loc, const char* prop_name, const gc
         return retval;
     }
 
-    if ( (nerr = nwam_value_create_string( (char*)str, &nwam_data )) != NWAM_SUCCESS ) {
-        g_debug("Error creating a string value for string %s", str?str:"NULL");
-        return retval;
-    }
+    if ( str != NULL ) {
+        if ( (nerr = nwam_value_create_string( (char*)str, &nwam_data )) != NWAM_SUCCESS ) {
+            g_debug("Error creating a string value for string %s", str?str:"NULL");
+            return retval;
+        }
 
-    if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+            g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        }
+        else {
+            retval = TRUE;
+        }
+
+        nwam_value_free(nwam_data);
     }
     else {
-        retval = TRUE;
+        if ( (nerr = nwam_loc_delete_prop (loc, prop_name)) != NWAM_SUCCESS ) {
+            g_debug("Unable to delete loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        }
+        else {
+            retval = TRUE;
+        }
     }
-
-    nwam_value_free(nwam_data);
     
     return( retval );
 }
@@ -1472,6 +1452,12 @@ set_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name, ch
     }
 
     if ( strs == NULL ) {
+        if ( (nerr = nwam_loc_delete_prop (loc, prop_name)) != NWAM_SUCCESS ) {
+            g_debug("Unable to delete loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        }
+        else {
+            retval = TRUE;
+        }
         return retval;
     }
 
@@ -1546,7 +1532,6 @@ set_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name, gboolea
     if ( loc == NULL ) {
         return( retval );
     }
-#if 0
     if ( (nerr = nwam_loc_get_prop_type( prop_name, &nwam_type ) ) != NWAM_SUCCESS 
          || nwam_type != NWAM_VALUE_TYPE_BOOLEAN ) {
         g_warning("Unexpected type for loc property %s - got %d\n", prop_name, nwam_type );
@@ -1566,7 +1551,7 @@ set_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name, gboolea
     }
 
     nwam_value_free(nwam_data);
-#endif
+
     return( retval );
 }
 
@@ -1859,45 +1844,6 @@ nwamui_env_get_name (NwamuiEnv *self)
                   NULL);
 
     return( name );
-}
-
-/** 
- * nwamui_env_set_modifiable:
- * @nwamui_env: a #NwamuiEnv.
- * @modifiable: Value to set modifiable to.
- * 
- * Once you set the object unmodifiable, then any attempts to change any values will fail.
- *
- **/ 
-extern void
-nwamui_env_set_modifiable (   NwamuiEnv *self,
-                              gboolean        modifiable )
-{
-    g_return_if_fail (NWAMUI_IS_ENV (self));
-
-    g_object_set (G_OBJECT (self),
-                  "modifiable", modifiable,
-                  NULL);
-}
-
-/**
- * nwamui_env_is_modifiable:
- * @nwamui_env: a #NwamuiEnv.
- * @returns: the modifiable.
- *
- **/
-extern gboolean
-nwamui_env_is_modifiable (NwamuiEnv *self)
-{
-    gboolean  modifiable = FALSE; 
-
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), modifiable);
-
-    g_object_get (G_OBJECT (self),
-                  "modifiable", &modifiable,
-                  NULL);
-
-    return( modifiable );
 }
 
 /** 

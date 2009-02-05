@@ -600,10 +600,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     
     prv = self->prv;
     
-    /* TODO - Not as per UI Spec - should be using a copy on write mechanism, allowing edits */
-    if ( nwamui_env_is_modifiable( current_env ) ) {
-        gtk_container_foreach(GTK_CONTAINER(self->prv->environment_notebook), (GtkCallback)gtk_widget_set_sensitive, (gpointer)TRUE);
-    }
+    gtk_container_foreach(GTK_CONTAINER(self->prv->environment_notebook), (GtkCallback)gtk_widget_set_sensitive, (gpointer)TRUE);
     
     /*
      * Proxy Tab

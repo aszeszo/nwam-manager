@@ -100,9 +100,6 @@ extern NwamuiEnv*           nwamui_env_clone( NwamuiEnv* self );
 extern void                 nwamui_env_set_name ( NwamuiEnv *self, const gchar* name );
 extern gchar*               nwamui_env_get_name ( NwamuiEnv *self );
 
-extern void                 nwamui_env_set_modifiable ( NwamuiEnv *self, gboolean modifiable );
-extern gboolean             nwamui_env_is_modifiable ( NwamuiEnv *self );
-
 extern GtkTreeModel *       nwamui_env_get_condition_predicate ();
 extern GtkTreeModel *       nwamui_env_get_condition_subject ();
 

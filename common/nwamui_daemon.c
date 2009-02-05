@@ -1122,15 +1122,8 @@ nwamui_daemon_env_remove(NwamuiDaemon *self, NwamuiEnv* env )
 
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self), rval );
 
-    g_assert( nwamui_env_is_modifiable( env ) );
-    
-    if ( nwamui_env_is_modifiable( env ) ) {
-        self->prv->env_list = g_list_remove(self->prv->env_list, (gpointer)env);
-        rval = TRUE;
-    }
-    else {
-        g_debug("Environment is not removeable");
-    }
+    self->prv->env_list = g_list_remove(self->prv->env_list, (gpointer)env);
+    rval = TRUE;
 
     return(rval);
 }
@@ -2590,7 +2583,6 @@ nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
     
     new_env = nwamui_env_new_with_handle (env);
         
-    nwamui_env_set_modifiable(new_env, TRUE);
     prv->env_list = g_list_append(prv->env_list, (gpointer)new_env);
 
     return(0);

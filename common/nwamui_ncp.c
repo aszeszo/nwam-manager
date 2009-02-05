@@ -45,7 +45,6 @@ static NwamuiNcp       *instance        = NULL;
 
 enum {
     PROP_NWAM_NCP = 1,
-    PROP_MODIFIABLE,
     PROP_NAME,
     PROP_NCU_LIST,
     PROP_NCU_TREE_STORE,
@@ -65,7 +64,6 @@ static guint nwamui_ncp_signals[LAST_SIGNAL] = { 0, 0 };
 
 struct _NwamuiNcpPrivate {
         nwam_ncp_handle_t           nwam_ncp;
-        gboolean                    modifiable;
         gchar*                      name;
         NwamuiNcu*                  active_ncu;
         nwamui_ncp_selection_mode_t selection_mode;
@@ -137,13 +135,6 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
                                                           _("Name of the NCP"),
                                                           _("Name of the NCP"),
                                                           "",
-                                                          G_PARAM_READWRITE));
-    g_object_class_install_property (gobject_class,
-                                     PROP_MODIFIABLE,
-                                     g_param_spec_boolean ("modifiable",
-                                                          _("modifiable"),
-                                                          _("modifiable"),
-                                                          TRUE,
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -228,8 +219,6 @@ nwamui_ncp_init ( NwamuiNcp *self)
     
     self->prv->name = NULL;
 
-    self->prv->modifiable = TRUE;
-
     self->prv->ncu_list = NULL;
     self->prv->ncu_tree_store = NULL;
     self->prv->ncu_list_store = NULL;
@@ -250,11 +239,14 @@ nwamui_ncp_set_property (   GObject         *object,
     gchar*          tmpstr = NULL;
     gint            tmpint = 0;
     nwam_error_t    nerr;
+    gboolean        read_only = FALSE;
 
-    /* TODO - Handle modifiable in a "copy on write" fashion" */
-    g_assert( self->prv->modifiable != FALSE );
-    
-    g_return_if_fail( self->prv->modifiable );
+    read_only = !nwamui_ncp_is_modifiable(self);
+
+    if ( read_only ) {
+        g_error("Attempting to modify read-only ncp %s", self->prv->name?self->prv->name:"NULL");
+        return;
+    }
 
     switch (prop_id) {
         case PROP_NAME: {
@@ -280,10 +272,6 @@ nwamui_ncp_set_property (   GObject         *object,
                     g_debug ("nwam_ncp_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
                 }
                 */
-            }
-            break;
-        case PROP_MODIFIABLE: {
-                self->prv->modifiable = g_value_get_boolean( value );
             }
             break;
         case PROP_NWAM_NCP: {
@@ -354,10 +342,6 @@ nwamui_ncp_get_property (   GObject         *object,
     switch (prop_id) {
         case PROP_NAME: {
                 g_value_set_string( value, self->prv->name );
-            }
-            break;
-        case PROP_MODIFIABLE: {
-                g_value_set_boolean( value, self->prv->modifiable );
             }
             break;
         case PROP_ACTIVE_NCU: {
@@ -506,25 +490,6 @@ nwamui_ncp_get_name ( NwamuiNcp *self )
     return( name );
 }
 
-/** 
- * nwamui_ncp_set_modifiable:
- * @nwamui_ncp: a #NwamuiNcp.
- * @modifiable: Value to set modifiable to.
- * 
- * Once you set the object unmodifiable, then any attempts to change any values will fail.
- *
- **/ 
-extern void
-nwamui_ncp_set_modifiable (   NwamuiNcp *self,
-                              gboolean        modifiable )
-{
-    g_return_if_fail (NWAMUI_IS_NCP (self));
-
-    g_object_set (G_OBJECT (self),
-                  "modifiable", modifiable,
-                  NULL);
-}
-
 /**
  * nwamui_ncp_is_modifiable:
  * @nwamui_ncp: a #NwamuiNcp.
@@ -534,17 +499,33 @@ nwamui_ncp_set_modifiable (   NwamuiNcp *self,
 extern gboolean
 nwamui_ncp_is_modifiable (NwamuiNcp *self)
 {
-    gboolean  modifiable = FALSE; 
+    nwam_error_t    nerr;
+    gboolean        modifiable = FALSE; 
+    boolean_t       readonly;
 
-    g_return_val_if_fail (NWAMUI_IS_NCP (self), modifiable);
+    if (!NWAMUI_IS_NCP (self) && self->prv->nwam_ncp == NULL ) {
+        return( modifiable );
+    }
 
-    g_object_get (G_OBJECT (self),
-                  "modifiable", &modifiable,
-                  NULL);
+    /* function doesn't exist, but will be made available, comment out until
+     * then */
+    /*
+    if ( (nerr = nwam_ncp_get_read_only( self->prv->nwam_ncp, &readonly )) == NWAM_SUCCESS ) {
+        modifiable = readonly?FALSE:TRUE;
+    }
+    else {
+        g_warning("Error getting ncp read-only status: %s", nwam_strerror( nerr ) );
+    }
+    */
+    if ( self->prv->name && strcmp( self->prv->name, "automatic" ) == 0 ) {
+        modifiable = FALSE;
+    }
+    else {
+        modifiable = TRUE;
+    }
 
     return( modifiable );
 }
-
 
 /**
  * nwamui_ncp_get_ncu_tree_store_store:
@@ -827,11 +808,6 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
         g_debug("Updating existing ncu (%s) from handle 0x%08X", name, ncu );
         nwamui_ncu_update_with_handle( new_ncu, ncu);
 
-        if ( prv->modifiable && nwamui_ncu_is_readonly(new_ncu) ) {
-            /* Assumption is that if any NCU is readonly, then the NCP is */
-            prv->modifiable = FALSE; 
-        }
-
         /*
          * Remove from temp_ncu_list, which is being used to find NCUs that
          * have been removed from the system.
@@ -911,10 +887,6 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
         self->prv->temp_ncu_list = NULL;
     }
 
-    /* Assume true, unless an NCU is read-only, which implies the NCP is since
-     * the NCP doesn't have it's own property to check 
-     */
-    self->prv->modifiable = TRUE; 
     nwam_ncp_walk_ncus( self->prv->nwam_ncp, nwam_ncu_walker_cb, (void*)self,
                         NWAM_FLAG_NCU_TYPE_CLASS_ALL, &cb_ret );
 

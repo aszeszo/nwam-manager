@@ -397,7 +397,6 @@ process_env( gpointer data, gpointer user_data )
 {
     NwamuiEnv  *env = NWAMUI_ENV( data );
     gchar*      name;
-    gboolean    modifiable  =  nwamui_env_is_modifiable ( env );
     nwamui_cond_activation_mode_t
                 activation_mode  =  nwamui_env_get_activation_mode ( env );
     GList*      conditions  =  nwamui_env_get_conditions ( env );
@@ -427,7 +426,6 @@ process_env( gpointer data, gpointer user_data )
     printf("%-*s*************************************************************\n", indent, "");
     indent += 4;
     printf("%-*sEnv name = %s\n", indent, "", name?name:"NULL" );
-    printf("%-*sEnv modifiable  = %s\n", indent, "", modifiable ?"TRUE":"FALSE" );
     printf("%-*sEnv enabled  = %s\n", indent, "", enabled ?"TRUE":"FALSE" );
     printf("%-*sEnv nameservice_discover  = %s\n", indent, "", nameservice_discover ?"TRUE":"FALSE" );
     print_ns_list_and_free( "Env", "nameservices", nameservices );
