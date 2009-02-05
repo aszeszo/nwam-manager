@@ -970,32 +970,27 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
 
         if (field == NWAMUI_COND_FIELD_NCU) {
             gtk_notebook_set_current_page( value_nb, VALUE_NCU_COMBO_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_NCU_COMBO_PAGE", __func__, __LINE__);
             /* Find match for NCU in available list */
             select_item_with_value( ncu_combo, value );
         }
         else if (field == NWAMUI_COND_FIELD_LOC) {
             gtk_notebook_set_current_page( value_nb, VALUE_LOC_COMBO_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_LOC_COMBO_PAGE", __func__, __LINE__);
             /* Find match for LOC in available list */
             select_item_with_value( loc_combo, value );
         }
         else if (field == NWAMUI_COND_FIELD_ENM ) {
             gtk_notebook_set_current_page( value_nb, VALUE_ENM_COMBO_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_ENM_COMBO_PAGE", __func__, __LINE__);
             /* Find match for ENM in available list */
             select_item_with_value( enm_combo, value );
         }
         else if (field == NWAMUI_COND_FIELD_ESSID ) {
             GtkCombo *combo = GTK_COMBO_BOX_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_WIFI_COMBO_ENTRY));
             gtk_notebook_set_current_page( value_nb, VALUE_WIFI_COMBO_ENTRY_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_WIFI_COMBO_ENTRY_PAGE", __func__, __LINE__);
             /* Find match for ESSID in available list */
             select_item_with_value( GTK_COMBO_BOX(wifi_combo_entry), value );
         }
         else {
             gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_ENTRY_PAGE", __func__, __LINE__);
             gtk_entry_set_text (GTK_ENTRY(entry), value?value:"" );
         }
 	} else {
@@ -1004,7 +999,6 @@ g_warning("Setting page to %s, func %s, line %d", "VALUE_ENTRY_PAGE", __func__, 
 		    NWAMUI_COND_FIELD_LAST);
 		gtk_entry_set_text (GTK_ENTRY(entry), "");
         gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_ENTRY_PAGE", __func__, __LINE__);
         gtk_combo_box_set_active( ncu_combo, 0 );
         gtk_combo_box_set_active( enm_combo, 0 );
         gtk_combo_box_set_active( loc_combo, 0 );
@@ -1166,31 +1160,26 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
             value = nwamui_cond_get_value( cond );
             if (field == NWAMUI_COND_FIELD_NCU) {
                 gtk_notebook_set_current_page( value_nb, VALUE_NCU_COMBO_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_NCU_COMBO_PAGE", __func__, __LINE__);
                 /* Find match for NCU in available list */
                 select_item_with_value( ncu_combo, value );
             }
             else if (field == NWAMUI_COND_FIELD_LOC) {
                 gtk_notebook_set_current_page( value_nb, VALUE_LOC_COMBO_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_LOC_COMBO_PAGE", __func__, __LINE__);
                 /* Find match for LOC in available list */
                 select_item_with_value( loc_combo, value );
             }
             else if (field == NWAMUI_COND_FIELD_ENM ) {
                 gtk_notebook_set_current_page( value_nb, VALUE_ENM_COMBO_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_ENM_COMBO_PAGE", __func__, __LINE__);
                 /* Find match for ENM in available list */
                 select_item_with_value( enm_combo, value );
             }
             else if (field == NWAMUI_COND_FIELD_ESSID ) {
                 gtk_notebook_set_current_page( value_nb, VALUE_WIFI_COMBO_ENTRY_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_WIFI_COMBO_ENTRY_PAGE", __func__, __LINE__);
                 /* Find match for ESSID in available list */
                 select_item_with_value( GTK_COMBO_BOX(wifi_combo_entry), value );
             }
             else {
                 gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
-g_warning("Setting page to %s, func %s, line %d", "VALUE_ENTRY_PAGE", __func__, __LINE__);
                 gtk_entry_set_text (GTK_ENTRY(entry), value?value:"" );
             }
             g_free(value);
