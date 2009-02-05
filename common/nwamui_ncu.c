@@ -520,7 +520,6 @@ nwamui_ncu_set_property ( GObject         *object,
                     self->prv->ipv4_primary_ip = ip;
                 }
                 self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV4_AUTO_CONF: {
@@ -541,7 +540,6 @@ g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                     self->prv->ipv4_primary_ip = ip;
                 }
                 self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV4_ADDRESS: {
@@ -563,7 +561,6 @@ g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                         self->prv->ipv4_primary_ip = ip;
                     }
                     self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                 }
             }
             break;
@@ -586,14 +583,12 @@ g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                         self->prv->ipv4_primary_ip = ip;
                     }
                     self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                 }
             }
             break;
         case PROP_IPV6_ACTIVE: {
                 self->prv->ipv6_active = g_value_get_boolean( value );
                 self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV6_DHCP: {
@@ -614,7 +609,6 @@ g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                     self->prv->ipv6_primary_ip = ip;
                 }
                 self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV6_AUTO_CONF: {
@@ -635,7 +629,6 @@ g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                     self->prv->ipv6_primary_ip = ip;
                 }
                 self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV6_ADDRESS: {
@@ -658,7 +651,6 @@ g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                     }
                 }
                 self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_IPV6_PREFIX: {
@@ -681,20 +673,17 @@ g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
                     }
                 }
                 self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_V4ADDRESSES: {
                 self->prv->v4addresses = GTK_LIST_STORE(g_value_dup_object( value ));
                 self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
 
         case PROP_V6ADDRESSES: {
                 self->prv->v6addresses = GTK_LIST_STORE(g_value_dup_object( value ));
                 self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
             }
             break;
         case PROP_WIFI_INFO: {
@@ -3346,7 +3335,6 @@ ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkT
     gboolean is_v6 = (tree_model == GTK_TREE_MODEL(self->prv->v6addresses));
 
     self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
 
     /* Chain events in the tree to the NCU object*/
     g_object_notify(G_OBJECT(self), is_v6?"v6addresses":"v4addresses");
@@ -3359,7 +3347,6 @@ ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer data)
     gboolean is_v6 = (tree_model == GTK_TREE_MODEL(self->prv->v6addresses));
 
     self->prv->nwam_ncu_ip_modified = TRUE;
-g_warning("nwam_ncu_ip_modified at line %d", __LINE__);
 
     /* Chain events in the tree to the NCU object*/
     g_object_notify(G_OBJECT(self), is_v6?"v6addresses":"v4addresses");
