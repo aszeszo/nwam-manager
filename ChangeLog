@@ -1,3 +1,17 @@
+2009-02-05  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_condition_vbox.c: 
+	  Update rules dialog to match the UI spec w.r.t. the possiblity to
+	  select NCU/ENM/LOC/WIFI_NET from a drop-down list or editable combo
+	  when the field is selected.
+	* capplet/nwam_rules_dialog.c: 
+	  Change from hide_all to hide to prevent a blank window being shown
+	  on subsequent dialog runs. Also set a size request on the dialog
+	  after a refresh to resize it to match the contents.
+	* common/nwamui_cond.h, common/nwamui_cond.c: 
+	  Handle null values better, and map include to is and don't include
+	  to is not for NWAM library.
+
 2009-02-04  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_vpn_pref_dialog.c: (nwam_vpn_pref_dialog_init),

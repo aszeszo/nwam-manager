@@ -78,7 +78,7 @@ typedef enum {
 } nwamui_cond_priority_group_mode_t;
 
 typedef enum {
-	NWAMUI_COND_FIELD_NCU = 1,
+	NWAMUI_COND_FIELD_NCU = 0,
 	NWAMUI_COND_FIELD_ENM,
 	NWAMUI_COND_FIELD_LOC,
 	NWAMUI_COND_FIELD_IP_ADDRESS,
@@ -90,7 +90,7 @@ typedef enum {
 
 
 typedef enum {
-    NWAMUI_COND_OP_IS = 1,
+    NWAMUI_COND_OP_IS = 0,
     NWAMUI_COND_OP_IS_NOT,
     NWAMUI_COND_OP_INCLUDE,         
     NWAMUI_COND_OP_DOES_NOT_INCLUDE,

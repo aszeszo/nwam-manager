@@ -17,6 +17,7 @@
 #define TABLE_ROW_NCU_COMBO "condition_vbox_row_ncu_combo"
 #define TABLE_ROW_ENM_COMBO "condition_vbox_row_enm_combo"
 #define TABLE_ROW_LOC_COMBO "condition_vbox_row_loc_combo"
+#define TABLE_ROW_WIFI_COMBO_ENTRY "condition_vbox_row_wifi_combo_entry"
 #define TABLE_ROW_ADD "condition_vbox_row_add"
 #define TABLE_ROW_REMOVE "condition_vbox_row_remove"
 #define TABLE_ROW_CDATA "condition_vbox_row_cdata"
@@ -32,7 +33,7 @@ enum {
     VALUE_NCU_COMBO_PAGE,
     VALUE_ENM_COMBO_PAGE,
     VALUE_LOC_COMBO_PAGE,
-    VALUE_WIFI_COMBO_PAGE
+    VALUE_WIFI_COMBO_ENTRY_PAGE
 };
 
 static guint cond_signals[LAST_SIGNAL] = {0};
@@ -70,12 +71,12 @@ extern GtkTreeModel *table_get_condition_predicate_model ();
 extern GtkTreeModel *table_get_condition_ncu_list_model ();
 extern GtkTreeModel *table_get_condition_enm_list_model ();
 extern GtkTreeModel *table_get_condition_loc_list_model ();
+extern GtkTreeModel *table_get_condition_wifi_list_model ();
 
 static void condition_field_op_changed_cb( GtkWidget* widget, gpointer data );
 static void condition_value_changed_cb( GtkWidget* widget, gpointer data );
-static void condition_ncu_combo_changed_cb( GtkComboBox* combo, gpointer data );
-static void condition_enm_combo_changed_cb( GtkComboBox* combo, gpointer data );
-static void condition_loc_combo_changed_cb( GtkComboBox* combo, gpointer data );
+static void condition_gobject_combo_changed_cb( GtkComboBox* combo, gpointer data );
+static void condition_wifi_combo_changed_cb( GtkComboBox* combo, gpointer data );
 
 static void default_condition_add_signal_handler (NwamConditionVBox *self, GObject* data, gpointer user_data);
 static void default_condition_remove_signal_handler (NwamConditionVBox *self, GObject* data, gpointer user_data);
@@ -113,11 +114,155 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 	return TRUE;
 }
 
+static gint
+get_unfiltered_index_from_combo( GtkComboBox* combo ) {
+    GtkTreeIter         iter, realiter;
+    GtkTreeModel       *filter;
+    GtkTreeModel       *model;
+
+    gint                index = 0;
+
+    filter = GTK_TREE_MODEL(gtk_combo_box_get_model (GTK_COMBO_BOX(combo)));
+    if ( filter != NULL && GTK_IS_TREE_MODEL_FILTER(filter) ) {
+        model = gtk_tree_model_filter_get_model (GTK_TREE_MODEL_FILTER(filter));
+    }
+    else { /* There is no filter */
+        model = filter;
+        filter = NULL;
+    }
+
+    if (gtk_combo_box_get_active_iter (GTK_COMBO_BOX(combo), &iter)) {
+        if ( filter != NULL ) {
+            gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER(filter),
+                                                              &realiter, &iter);
+            gtk_tree_model_get (model, &realiter, 0, &index, -1);
+        }
+        else {
+            gtk_tree_model_get (model, &iter, 0, &index, -1);
+        }
+    }
+
+    return (index);
+}
+
+static void
+update_cond_from_row( GtkWidget *widget, NwamuiCond *cond )
+{
+	GtkBox             *box = NULL;
+	GtkComboBox        *combo, *combo1, *combo2, *ncu_combo, *enm_combo, *loc_combo;
+    GtkComboBoxEntry   *wifi_combo_entry;
+    GtkNotebook        *value_nb;
+	GtkEntry           *entry;
+	GtkButton          *add, *remove;
+    GtkTreeIter         iter;
+    GtkTreeModel       *model = NULL;
+    nwamui_cond_field_t field;
+    nwamui_cond_op_t    oper;
+    gchar*              value;
+	
+    box = GTK_BOX(widget);
+    combo1 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO1));
+    combo2 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO2));
+    value_nb = GTK_NOTEBOOK(g_object_get_data(G_OBJECT(box), TABLE_ROW_NOTEBOOK ));
+    entry = GTK_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENTRY));
+    ncu_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_NCU_COMBO));
+    enm_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENM_COMBO));
+    loc_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_LOC_COMBO));
+    wifi_combo_entry = GTK_COMBO_BOX_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_WIFI_COMBO_ENTRY));
+
+    /* Get the Field */
+    field = (nwamui_cond_field_t)get_unfiltered_index_from_combo( combo1 );
+
+    /* Get the Operator */
+    oper = (nwamui_cond_op_t)get_unfiltered_index_from_combo( combo2 );
+
+    /* Get the appropriate value, depending on field */
+    if (field == NWAMUI_COND_FIELD_NCU) {
+        combo = ncu_combo;
+        model = gtk_combo_box_get_model(ncu_combo);
+    }
+    else if (field == NWAMUI_COND_FIELD_LOC) {
+        combo = loc_combo;
+        model = gtk_combo_box_get_model(loc_combo);
+    }
+    else if (field == NWAMUI_COND_FIELD_ENM ) {
+        combo = enm_combo;
+        model = gtk_combo_box_get_model(enm_combo);
+    }
+    
+    
+    if (model != NULL) {
+        if ( gtk_combo_box_get_active_iter( combo, &iter ) ) {
+            gpointer    ptr;
+
+            gtk_tree_model_get (model, &iter, 0, &ptr, -1);
+
+            if ( gtk_tree_model_get_column_type(model, 0) == G_TYPE_OBJECT 
+                 || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_NCU
+                 || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_ENM
+                 || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_ENV ) {
+                GObject* obj = (GObject*)ptr;
+
+                if ( NWAMUI_IS_NCU( obj ) ) {
+                    value = nwamui_ncu_get_device_name( NWAMUI_NCU(obj) );
+                }
+                else if ( NWAMUI_IS_ENM( obj ) ) {
+                    value = nwamui_enm_get_name( NWAMUI_ENM(obj) );
+                }
+                else if ( NWAMUI_IS_ENV( obj ) ) {
+                    value = nwamui_env_get_name( NWAMUI_ENV(obj) );
+                }
+            }
+
+        }
+    }
+    else {
+        if (field == NWAMUI_COND_FIELD_ESSID ) {
+            value = g_strdup(gtk_combo_box_get_active_text( GTK_COMBO_BOX(wifi_combo_entry) ));
+        }
+        else {
+            value = g_strdup(gtk_entry_get_text(GTK_ENTRY(entry)));
+        }
+    }
+
+    nwamui_cond_set_field( cond, (nwamui_cond_field_t)field);
+    nwamui_cond_set_oper( cond, (nwamui_cond_op_t)oper);
+    nwamui_cond_set_value( cond, value);
+
+    g_free(value);
+}
+
+static void
+apply_table_row( GtkWidget* widget, gpointer user_data )
+{
+    NwamuiCond *cond = NWAMUI_COND(g_object_get_data(G_OBJECT(widget), TABLE_ROW_CDATA));
+    GList     **obj_list = (GList**)user_data;
+
+    if ( cond == NULL ) {
+        g_warning("Got NULL condition from table row");
+        return;
+    }
+
+    update_cond_from_row( widget, cond );
+
+    if ( obj_list != NULL ) {
+        char *str = nwamui_cond_to_string( cond );
+        g_warning("Appending condition : %s", str?str:"<NULL>" );
+        free(str);
+
+        *obj_list = g_list_append( *obj_list, (gpointer)g_object_ref(cond) );
+    }
+}
+
 static gboolean
 apply(NwamPrefIFace *iface, gpointer user_data)
 {
-	NwamConditionVBoxPrivate *prv = GET_PRIVATE(iface);
-	nwamui_object_set_conditions(NWAMUI_OBJECT(prv->selected_object), NULL);
+	NwamConditionVBoxPrivate   *prv = GET_PRIVATE(iface);
+    GList                      *conditions_list = NULL;
+    
+    gtk_container_foreach( GTK_CONTAINER(iface), apply_table_row, &conditions_list );
+
+	nwamui_object_set_conditions(NWAMUI_OBJECT(prv->selected_object), conditions_list);
 }
 
 static gboolean
@@ -201,8 +346,9 @@ static void
 _cu_cond_combo_filter_value (GtkWidget *combo, gint value)
 {
     g_object_set_data (G_OBJECT(combo),
-      _CU_COND_FILTER_VALUE,
-      (gpointer)value);
+                       _CU_COND_FILTER_VALUE,
+                       (gpointer)value);
+
     gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER(gtk_combo_box_get_model(GTK_COMBO_BOX(combo))));
 }
 
@@ -214,7 +360,7 @@ _cu_cond_combo_filter_visible_cb (GtkTreeModel *model,
     gint value;
     gint row_data;
     value = GPOINTER_TO_INT(g_object_get_data(G_OBJECT(data),
-                              _CU_COND_FILTER_VALUE));
+                                              _CU_COND_FILTER_VALUE));
 
     gtk_tree_model_get (model, iter, 0, &row_data, -1);
 
@@ -429,18 +575,42 @@ _cu_cond_combo_new (GtkTreeModel *model)
     filter = gtk_tree_model_filter_new (model, NULL);
     gtk_combo_box_set_model (GTK_COMBO_BOX(combo), GTK_TREE_MODEL (filter));
     gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER(filter),
-	_cu_cond_combo_filter_visible_cb,
-	(gpointer)combo,
-	NULL);
+                                            _cu_cond_combo_filter_visible_cb,
+                                            (gpointer)combo,
+                                            NULL);
 
     gtk_cell_layout_clear (GTK_CELL_LAYOUT(combo));
     renderer = gtk_cell_renderer_combo_new ();
     gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(combo), renderer, TRUE);
     gtk_cell_layout_set_cell_data_func (GTK_CELL_LAYOUT(combo),
-	renderer,
-	_cu_cond_combo_cell_cb,
-	NULL,
-	NULL);
+                                        renderer,
+                                        _cu_cond_combo_cell_cb,
+                                        NULL,
+                                        NULL);
+
+    return combo;
+}
+
+static GtkWidget*
+_cu_wifi_combo_entry_new ( void )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    GtkWidget       *combo;
+    GtkCellRenderer *renderer;
+	GList           *obj_list = nwamui_daemon_get_fav_wifi_networks(daemon);
+
+    combo = gtk_combo_box_entry_new_text ();
+
+    for ( GList *elem = g_list_first( obj_list );
+          elem != NULL;
+          elem = g_list_next( elem ) ) {
+        gchar *essid;
+
+        essid = nwamui_wifi_net_get_essid( NWAMUI_WIFI_NET(elem->data) );
+        gtk_combo_box_append_text( GTK_COMBO_BOX(combo), essid );
+
+        g_free( essid );
+    }
 
     return combo;
 }
@@ -615,12 +785,70 @@ table_get_condition_enm_list_model ()
     return (model);
 }
 
+static void
+select_item_with_value( GtkComboBox*  combo, const gchar* value )
+{
+    gpointer       *ptr = NULL;
+    GtkTreeIter     iter;
+    GtkTreeModel   *model;
+    gchar          *obj_name = NULL;
+
+    model = gtk_combo_box_get_model (GTK_COMBO_BOX(combo));
+
+    if ( gtk_tree_model_get_iter_first( model, &iter ) ) {
+        do {
+            gtk_tree_model_get (model, &iter, 0, &ptr, -1);
+
+            if ( gtk_tree_model_get_column_type(model, 0) == G_TYPE_OBJECT 
+                 || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_NCU
+                 || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_ENM
+                 || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_ENV ) {
+                GObject* obj = (GObject*)ptr;
+
+                if ( NWAMUI_IS_NCU( obj ) ) {
+                    obj_name = nwamui_ncu_get_device_name( NWAMUI_NCU(obj) );
+                }
+                else if ( NWAMUI_IS_ENM( obj ) ) {
+                    obj_name = nwamui_enm_get_name( NWAMUI_ENM(obj) );
+                }
+                else if ( NWAMUI_IS_ENV( obj ) ) {
+                    obj_name = nwamui_env_get_name( NWAMUI_ENV(obj) );
+                }
+            }
+            else {
+                /* Assume is a string */
+                obj_name = g_strdup((gchar*)ptr);
+            }
+
+            if ( strcmp(obj_name?obj_name:"", value?value:"") == 0 ) {
+                gtk_combo_box_set_active_iter( combo, &iter );
+                break;
+            }
+            g_free(obj_name);
+            obj_name = NULL;
+        }
+        while (gtk_tree_model_iter_next(model, &iter));
+    }
+
+    if ( obj_name == NULL ) {
+        if ( GTK_IS_COMBO_BOX_ENTRY( combo ) ) {
+            GtkEntry*   entry = gtk_bin_get_child( GTK_WIDGET(combo) );
+
+            gtk_entry_set_text( entry, value );
+        }
+        else {
+            gtk_combo_box_set_active( combo, 0 );
+        }
+    }
+}
+
 static GtkWidget *
 table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
 {
 	NwamConditionVBoxPrivate *prv = GET_PRIVATE(self);
 	GtkBox *box = NULL;
 	GtkComboBox *combo1, *combo2, *ncu_combo, *enm_combo, *loc_combo;
+    GtkComboBoxEntry *wifi_combo_entry;
     GtkNotebook *value_nb;
 	GtkEntry *entry;
 	GtkButton *add, *remove;
@@ -635,6 +863,7 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
 		ncu_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_NCU_COMBO));
 		enm_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENM_COMBO));
 		loc_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_LOC_COMBO));
+		wifi_combo_entry = GTK_COMBO_BOX_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_WIFI_COMBO_ENTRY));
 		add = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_ADD));
 		remove = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_REMOVE));
 	} else {
@@ -665,10 +894,10 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
 		loc_combo = GTK_COMBO_BOX(_cu_loc_combo_new (table_get_condition_loc_list_model()));
         gtk_combo_box_set_active(GTK_COMBO_BOX(loc_combo), 0 );
         gtk_notebook_append_page( value_nb, GTK_WIDGET(loc_combo), NULL );
-        /* VALUE_WIFI_COMBO_PAGE */
+        /* VALUE_WIFI_COMBO_ENTRY_PAGE */
+		wifi_combo_entry = GTK_COMBO_BOX(_cu_wifi_combo_entry_new());
+        gtk_notebook_append_page( value_nb, GTK_WIDGET(wifi_combo_entry), NULL );
     
-        gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
-
         g_object_set(G_OBJECT(entry),
                     "width-chars", 20,
                     NULL);
@@ -682,7 +911,19 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
 		    (gpointer)box);
 
 		g_signal_connect(ncu_combo, "changed",
-		    G_CALLBACK(condition_ncu_combo_changed_cb),
+		    G_CALLBACK(condition_gobject_combo_changed_cb),
+		    (gpointer)box);
+
+		g_signal_connect(enm_combo, "changed",
+		    G_CALLBACK(condition_gobject_combo_changed_cb),
+		    (gpointer)box);
+
+		g_signal_connect(loc_combo, "changed",
+		    G_CALLBACK(condition_gobject_combo_changed_cb),
+		    (gpointer)box);
+
+		g_signal_connect(wifi_combo_entry, "changed",
+		    G_CALLBACK(condition_wifi_combo_changed_cb),
 		    (gpointer)box);
 
 		g_signal_connect(entry, "changed",
@@ -711,11 +952,14 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
 		g_object_set_data (G_OBJECT(box), TABLE_ROW_NCU_COMBO, (gpointer)ncu_combo);
 		g_object_set_data (G_OBJECT(box), TABLE_ROW_ENM_COMBO, (gpointer)enm_combo);
 		g_object_set_data (G_OBJECT(box), TABLE_ROW_LOC_COMBO, (gpointer)loc_combo);
+		g_object_set_data (G_OBJECT(box), TABLE_ROW_WIFI_COMBO_ENTRY, (gpointer)wifi_combo_entry);
 		g_object_set_data (G_OBJECT(box), TABLE_ROW_ADD, (gpointer)add);
 		g_object_set_data (G_OBJECT(box), TABLE_ROW_REMOVE, (gpointer)remove);
 	}
-	g_object_set_data (G_OBJECT(box), TABLE_ROW_CDATA, cond);
+	g_object_set_data (G_OBJECT(box), TABLE_ROW_CDATA, g_object_ref(cond) );
 	
+    gtk_widget_show_all( GTK_WIDGET(box) );
+
 	if (cond && NWAMUI_IS_COND( cond )) {
 		// Initialize box according to data
 		nwamui_cond_field_t field = nwamui_cond_get_field( cond );
@@ -726,15 +970,32 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
 
         if (field == NWAMUI_COND_FIELD_NCU) {
             gtk_notebook_set_current_page( value_nb, VALUE_NCU_COMBO_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_NCU_COMBO_PAGE", __func__, __LINE__);
+            /* Find match for NCU in available list */
+            select_item_with_value( ncu_combo, value );
         }
         else if (field == NWAMUI_COND_FIELD_LOC) {
             gtk_notebook_set_current_page( value_nb, VALUE_LOC_COMBO_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_LOC_COMBO_PAGE", __func__, __LINE__);
+            /* Find match for LOC in available list */
+            select_item_with_value( loc_combo, value );
         }
         else if (field == NWAMUI_COND_FIELD_ENM ) {
             gtk_notebook_set_current_page( value_nb, VALUE_ENM_COMBO_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_ENM_COMBO_PAGE", __func__, __LINE__);
+            /* Find match for ENM in available list */
+            select_item_with_value( enm_combo, value );
+        }
+        else if (field == NWAMUI_COND_FIELD_ESSID ) {
+            GtkCombo *combo = GTK_COMBO_BOX_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_WIFI_COMBO_ENTRY));
+            gtk_notebook_set_current_page( value_nb, VALUE_WIFI_COMBO_ENTRY_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_WIFI_COMBO_ENTRY_PAGE", __func__, __LINE__);
+            /* Find match for ESSID in available list */
+            select_item_with_value( GTK_COMBO_BOX(wifi_combo_entry), value );
         }
         else {
             gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_ENTRY_PAGE", __func__, __LINE__);
             gtk_entry_set_text (GTK_ENTRY(entry), value?value:"" );
         }
 	} else {
@@ -743,7 +1004,13 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
 		    NWAMUI_COND_FIELD_LAST);
 		gtk_entry_set_text (GTK_ENTRY(entry), "");
         gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_ENTRY_PAGE", __func__, __LINE__);
+        gtk_combo_box_set_active( ncu_combo, 0 );
+        gtk_combo_box_set_active( enm_combo, 0 );
+        gtk_combo_box_set_active( loc_combo, 0 );
+        gtk_combo_box_set_active( GTK_COMBO_BOX(wifi_combo_entry), 0 );
 	}
+    gtk_widget_show_all (GTK_WIDGET(box));
 	return GTK_WIDGET(box);
 }
 
@@ -873,13 +1140,19 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
 
     if (gtk_combo_box_get_active_iter (GTK_COMBO_BOX(widget), &iter)) {
         gtk_tree_model_filter_convert_iter_to_child_iter (filter,
-          &realiter, &iter);
+                                                          &realiter, &iter);
         gtk_tree_model_get (model, &realiter, 0, &index, -1);
 
         if (model == table_get_condition_subject_model ()) {
-            GtkComboBox *combo2 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_COMBO2));
-		    GtkNotebook *value_nb = GTK_NOTEBOOK(g_object_get_data(G_OBJECT(data), TABLE_ROW_NOTEBOOK ));
-            nwamui_cond_field_t    field;
+	        GtkEntry               *entry = GTK_ENTRY(g_object_get_data(G_OBJECT(data), TABLE_ROW_ENTRY));
+            GtkComboBox            *combo2 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_COMBO2));
+		    GtkNotebook            *value_nb = GTK_NOTEBOOK(g_object_get_data(G_OBJECT(data), TABLE_ROW_NOTEBOOK ));
+		    GtkComboBox            *ncu_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_NCU_COMBO));
+		    GtkComboBox            *enm_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_ENM_COMBO));
+		    GtkComboBox            *loc_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_LOC_COMBO));
+		    GtkComboBox            *wifi_combo_entry = GTK_COMBO_BOX_ENTRY(g_object_get_data(G_OBJECT(data), TABLE_ROW_WIFI_COMBO_ENTRY));
+            nwamui_cond_field_t     field;
+            gchar*                  value;
             /*
              * work out thec contents depends on the selection
              * of the first combo and also update self to remove
@@ -889,18 +1162,38 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
             _cu_cond_combo_filter_value (combo2, index);
             field = (nwamui_cond_field_t)index;
             nwamui_cond_set_field( cond, (nwamui_cond_field_t)index);
+
+            value = nwamui_cond_get_value( cond );
             if (field == NWAMUI_COND_FIELD_NCU) {
                 gtk_notebook_set_current_page( value_nb, VALUE_NCU_COMBO_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_NCU_COMBO_PAGE", __func__, __LINE__);
+                /* Find match for NCU in available list */
+                select_item_with_value( ncu_combo, value );
             }
             else if (field == NWAMUI_COND_FIELD_LOC) {
                 gtk_notebook_set_current_page( value_nb, VALUE_LOC_COMBO_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_LOC_COMBO_PAGE", __func__, __LINE__);
+                /* Find match for LOC in available list */
+                select_item_with_value( loc_combo, value );
             }
             else if (field == NWAMUI_COND_FIELD_ENM ) {
                 gtk_notebook_set_current_page( value_nb, VALUE_ENM_COMBO_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_ENM_COMBO_PAGE", __func__, __LINE__);
+                /* Find match for ENM in available list */
+                select_item_with_value( enm_combo, value );
+            }
+            else if (field == NWAMUI_COND_FIELD_ESSID ) {
+                gtk_notebook_set_current_page( value_nb, VALUE_WIFI_COMBO_ENTRY_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_WIFI_COMBO_ENTRY_PAGE", __func__, __LINE__);
+                /* Find match for ESSID in available list */
+                select_item_with_value( GTK_COMBO_BOX(wifi_combo_entry), value );
             }
             else {
                 gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
+g_warning("Setting page to %s, func %s, line %d", "VALUE_ENTRY_PAGE", __func__, __LINE__);
+                gtk_entry_set_text (GTK_ENTRY(entry), value?value:"" );
             }
+            g_free(value);
         } else {
             nwamui_cond_set_oper( cond, (nwamui_cond_op_t)index);
         }
@@ -908,10 +1201,25 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
 }
 
 static void
-condition_ncu_combo_changed_cb( GtkComboBox* combo, gpointer data )
+condition_wifi_combo_changed_cb( GtkComboBox* combo, gpointer data )
+{
+    NwamuiCond *cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
+    gchar      *value = NULL;
+
+    value = gtk_combo_box_get_active_text( combo );
+
+    if ( cond != NULL ) {
+        nwamui_cond_set_value(cond, value);
+    }
+
+    g_free(value);
+}
+
+static void
+condition_gobject_combo_changed_cb( GtkComboBox* combo, gpointer data )
 {
     NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
-    NwamuiNcu*  ncu = NULL;
+    GObject*    obj = NULL;
     GtkTreeIter iter, realiter;
     GtkTreeModelFilter *filter;
     GtkTreeModel *model;
@@ -920,13 +1228,19 @@ condition_ncu_combo_changed_cb( GtkComboBox* combo, gpointer data )
     model = gtk_combo_box_get_model (GTK_COMBO_BOX(combo));
 
     if (gtk_combo_box_get_active_iter (GTK_COMBO_BOX(combo), &iter)) {
-        gtk_tree_model_get (model, &iter, 0, &ncu, -1);
+        gtk_tree_model_get (model, &iter, 0, &obj, -1);
 
-        if ( NWAMUI_IS_NCU( ncu ) ) {
-            value = nwamui_ncu_get_device_name( ncu );
+        if ( NWAMUI_IS_NCU( obj ) ) {
+            value = nwamui_ncu_get_device_name( NWAMUI_NCU(obj) );
         }
+        else if ( NWAMUI_IS_ENM( obj ) ) {
+            value = nwamui_enm_get_name( NWAMUI_ENM(obj) );
+        }
+        else if ( NWAMUI_IS_ENV( obj ) ) {
+            value = nwamui_env_get_name( NWAMUI_ENV(obj) );
+        }
+        nwamui_cond_set_value(cond, value);
     }
-    nwamui_cond_set_value(cond, value);
 
     g_free(value);
 }

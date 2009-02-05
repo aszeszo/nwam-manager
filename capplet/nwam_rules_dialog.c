@@ -50,6 +50,7 @@ static gboolean
 refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
 	NwamRulesDialogPrivate *prv = GET_PRIVATE(iface);
+    gboolean                rval;
 
 	if (prv->selected_object != user_data) {
 		if (prv->selected_object) {
@@ -75,7 +76,9 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 			g_free(title);
 		}
 	}
-	return nwam_pref_refresh(NWAM_PREF_IFACE(prv->rules_vbox), prv->selected_object, force);
+	rval = nwam_pref_refresh(NWAM_PREF_IFACE(prv->rules_vbox), prv->selected_object, force);
+    gtk_widget_set_size_request( GTK_WIDGET(prv->rules_dialog), -1, 200 );
+    return(rval);
 }
 
 static gboolean
@@ -201,7 +204,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer user_data)
 	case GTK_RESPONSE_OK:
 		g_debug("GTK_RESPONSE_OK");
 		if (nwam_pref_apply(NWAM_PREF_IFACE(self), self->prv->selected_object)) {
-			gtk_widget_hide_all (GTK_WIDGET(self->prv->rules_dialog));
+			gtk_widget_hide (GTK_WIDGET(self->prv->rules_dialog));
 		}
 		else {
 			/* TODO - report error to user */

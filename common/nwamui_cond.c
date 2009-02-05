@@ -130,7 +130,7 @@ nwamui_cond_init ( NwamuiCond *self)
     
     self->prv->field = NWAMUI_COND_FIELD_NCU;
     self->prv->op = NWAMUI_COND_OP_INCLUDE;
-    self->prv->value = NULL;
+    self->prv->value = g_strdup("");
     self->prv->object = NULL;
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
@@ -336,16 +336,26 @@ map_field_to_condition_obj( nwamui_cond_field_t field )
 }
 
 static nwamui_cond_op_t
-map_condition_to_op( nwam_condition_t condition ) 
+map_condition_to_op( nwam_condition_t condition, gboolean field_is_obj ) 
 {
     nwamui_cond_op_t op;
 
     switch( condition ) {
         case NWAM_CONDITION_IS:
-            op = NWAMUI_COND_OP_IS;
+            if ( field_is_obj ) {
+                op = NWAMUI_COND_OP_INCLUDE;
+            }
+            else {
+                op = NWAMUI_COND_OP_IS;
+            }
             break;
         case NWAM_CONDITION_IS_NOT:
-            op = NWAMUI_COND_OP_IS_NOT;
+            if ( field_is_obj ) {
+                op = NWAMUI_COND_OP_DOES_NOT_INCLUDE;
+            }
+            else {
+                op = NWAMUI_COND_OP_IS_NOT;
+            }
             break;
         case NWAM_CONDITION_IS_IN_RANGE:
             op = NWAMUI_COND_OP_IS_IN_RANGE;
@@ -373,9 +383,11 @@ map_op_to_condition( nwamui_cond_op_t op )
 
     switch( op ) {
         case NWAMUI_COND_OP_IS:
+        case NWAMUI_COND_OP_INCLUDE:
             condition = NWAM_CONDITION_IS;
             break;
         case NWAMUI_COND_OP_IS_NOT:
+        case NWAMUI_COND_OP_DOES_NOT_INCLUDE:
             condition = NWAM_CONDITION_IS_NOT;
             break;
         case NWAMUI_COND_OP_IS_IN_RANGE:
@@ -404,6 +416,7 @@ populate_fields_from_string( NwamuiCond* self, const gchar* condition_str )
     nwam_condition_object_type_t condition_object;
     nwam_condition_t             condition;
     char *                       value;
+    gboolean                     field_is_obj;
     
     g_return_val_if_fail( NWAMUI_IS_COND(self), FALSE );
     g_return_val_if_fail( condition_str != NULL, FALSE );
@@ -415,7 +428,10 @@ populate_fields_from_string( NwamuiCond* self, const gchar* condition_str )
     }
 
     self->prv->field = map_condition_obj_to_field( condition_object );
-    self->prv->op = map_condition_to_op( condition );
+    field_is_obj = ( self->prv->field == NWAMUI_COND_FIELD_NCU ||
+                     self->prv->field == NWAMUI_COND_FIELD_ENM ||
+                     self->prv->field == NWAMUI_COND_FIELD_LOC );
+    self->prv->op = map_condition_to_op( condition, field_is_obj );
     self->prv->value = g_strdup((value != NULL)?(value):(""));
 
     return( TRUE );
@@ -432,7 +448,7 @@ nwamui_cond_new_from_str( const gchar* condition_str )
 {
     NwamuiCond         *self = NWAMUI_COND(g_object_new (NWAMUI_TYPE_COND, NULL));
     nwamui_cond_field_t field = NWAMUI_COND_FIELD_NCU;
-    nwamui_cond_op_t    op = NWAMUI_COND_OP_IS;
+    nwamui_cond_op_t    op = NWAMUI_COND_OP_INCLUDE;
     char*               value = "";
 
     populate_fields_from_string( self, condition_str );
