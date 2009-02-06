@@ -120,6 +120,9 @@ enum {
 
 enum {
     SVC_INFO = 0,
+    NAMESERVICES_NAME,
+    DOMAIN_NAME,
+    NAMESERVICES_ADDR,
 };
 
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
@@ -223,6 +226,12 @@ static void         http_password_button_clicked_cb(GtkButton *button, gpointer 
 static void         svc_button_clicked(GtkButton *button, gpointer  user_data);
 
 static void default_svc_status_cb (GtkTreeViewColumn *tree_column,
+                                   GtkCellRenderer *cell,
+                                   GtkTreeModel *tree_model,
+                                   GtkTreeIter *iter,
+                                   gpointer data);
+
+static void nameservices_status_cb (GtkTreeViewColumn *tree_column,
                                    GtkCellRenderer *cell,
                                    GtkTreeModel *tree_model,
                                    GtkTreeIter *iter,
@@ -409,6 +418,13 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 
         nwam_compose_tree_view (self);
 
+        /* Nameservices table */
+/* 		model = GTK_TREE_MODEL(gtk_list_store_new(3, G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING)); */
+		model = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_INT));
+        gtk_tree_view_set_model(prv->nameservices_table, model);
+		g_object_unref(model);
+
+        /* Svc tables */
 		model = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
         gtk_tree_view_set_model(prv->enabled_netservices_list, model);
 		g_object_unref(model);
@@ -499,7 +515,56 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
 	GtkTreeView *view;
 
     /*
-     * compose the default netservices view
+     * compose the netservices table view
+     */
+    view = self->prv->nameservices_table;
+
+	g_object_set (G_OBJECT(view),
+		      "headers-clickable", FALSE,
+		      NULL);
+
+	/* column name */
+	col = capplet_column_new(view,
+      "title", _("Name service"),
+      NULL);
+
+    /* First cell */
+	cell = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), TRUE,
+      nameservices_status_cb, (gpointer) self, NULL);
+
+    g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
+      GINT_TO_POINTER (NAMESERVICES_NAME));
+
+	/* column Domain */
+	col = capplet_column_new(view,
+      "title", _("Domain"),
+      NULL);
+
+    /* First cell */
+	cell = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), TRUE,
+      nameservices_status_cb, (gpointer) self, NULL);
+
+    g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
+      GINT_TO_POINTER (DOMAIN_NAME));
+
+	/* column Server Addresses */
+	col = capplet_column_new(view,
+      "title", _("Server Addresses"),
+      NULL);
+
+    /* First cell */
+	cell = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), TRUE,
+      nameservices_status_cb, (gpointer) self, NULL);
+
+    g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
+      GINT_TO_POINTER (NAMESERVICES_ADDR));
+
+        
+    /*
+     * compose the enabled netservices view
      */
     view = self->prv->enabled_netservices_list;
 
@@ -528,7 +593,7 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
 
         
     /*
-     * compose view for additional netservices view
+     * compose view for disabled netservices view
      */
     view = self->prv->disabled_netservices_list;
 
@@ -654,6 +719,10 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         gtk_combo_box_set_active(prv->nameservices_config_combo, NWAMUI_NETSERVICE_AUTOMATIC);
     else
         gtk_combo_box_set_active(prv->nameservices_config_combo, NWAMUI_NETSERVICE_MANUAL);
+
+    {
+        nwamui_env_get_nameservices(current_env);
+    }
 
     {
         gchar *config_file;
@@ -1091,6 +1160,77 @@ default_svc_status_cb (GtkTreeViewColumn *tree_column,
     }
 
     g_free(svc);
+}
+
+static void
+nameservices_status_cb (GtkTreeViewColumn *tree_column,
+  GtkCellRenderer *cell,
+  GtkTreeModel *tree_model,
+  GtkTreeIter *iter,
+  gpointer data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+    nwam_nameservices_t ns;
+    
+    gtk_tree_model_get(tree_model, iter, 0, &ns, -1);
+
+    switch (GPOINTER_TO_INT(g_object_get_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM))) {
+    case NAMESERVICES_NAME:
+    {
+        g_object_set(G_OBJECT(cell), "markup",
+          nwam_nameservices_enum_to_string(ns), NULL);
+    }
+    break;
+    case DOMAIN_NAME:
+    {
+        gchar *name = nwamui_env_get_domainname(prv->selected_env);
+
+        g_object_set(G_OBJECT(cell), "markup", name, NULL);
+
+        g_free(name);
+    }
+    break;
+    case NAMESERVICES_ADDR:
+    {
+        GList *list = NULL;
+        GString *name = NULL;
+
+        switch (ns) {
+        case NWAM_NAMESERVICES_DNS:
+            list = nwamui_env_get_dns_nameservice_servers(prv->selected_env);
+            break;
+        case NWAM_NAMESERVICES_FILES:
+            break;
+        case NWAM_NAMESERVICES_NIS:
+            list = nwamui_env_get_nis_nameservice_servers(prv->selected_env);
+            break;
+        case NWAM_NAMESERVICES_NISPLUS:
+            list = nwamui_env_get_nisplus_nameservice_servers(prv->selected_env);
+            break;
+        case NWAM_NAMESERVICES_LDAP:
+            list = nwamui_env_get_ldap_nameservice_servers(prv->selected_env);
+            break;
+        default:
+            g_assert_not_reached();
+            break;
+        }
+
+        if (list) {
+            GList *i;
+            name = g_string_new("");
+            for (i = list; i; i = i->next) {
+                g_string_append_printf(name, ", %s", (gchar*)i->data);
+            }
+
+            g_object_set(G_OBJECT(cell), "markup", name->str + 2, NULL);
+            g_string_free(name, TRUE);
+        }
+    }
+    break;
+    default:
+        g_assert_not_reached();
+        break;
+    }
 }
 
 static void

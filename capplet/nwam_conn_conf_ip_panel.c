@@ -1084,7 +1084,8 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
                 g_object_set (G_OBJECT(renderer),
                   "pixbuf", status_icon,
                   NULL);
-                g_object_unref(G_OBJECT(status_icon));
+                if (status_icon)
+                    g_object_unref(G_OBJECT(status_icon));
             }
                     
         }

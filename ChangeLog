@@ -1,3 +1,14 @@
+2009-02-05  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c: (nwam_conn_wifi_fav_cell_cb):
+	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_init),
+	(nwam_compose_tree_view), (populate_panels_from_env),
+	(nameservices_status_cb):
+	Only finish show nameservice table.
+	* common/nwamui_env.c: (nwam_nameservices_enum_to_string):
+	* common/nwamui_env.h:
+	Added a function to translate nameservice type enum to string.
+
 2009-02-06  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_rules_dialog.c: 

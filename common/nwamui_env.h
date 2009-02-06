@@ -100,9 +100,6 @@ extern NwamuiEnv*           nwamui_env_clone( NwamuiEnv* self );
 extern void                 nwamui_env_set_name ( NwamuiEnv *self, const gchar* name );
 extern gchar*               nwamui_env_get_name ( NwamuiEnv *self );
 
-extern GtkTreeModel *       nwamui_env_get_condition_predicate ();
-extern GtkTreeModel *       nwamui_env_get_condition_subject ();
-
 extern void                 nwamui_env_set_activation_mode ( NwamuiEnv *self, 
                                                              nwamui_cond_activation_mode_t activation_mode );
 extern nwamui_cond_activation_mode_t 
@@ -267,6 +264,8 @@ extern gboolean             nwamui_env_has_modifications( NwamuiEnv* self );
 extern gboolean             nwamui_env_commit( NwamuiEnv* self );
 extern gboolean             nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret );
 extern void                 nwamui_env_reload( NwamuiEnv* self );
+
+const gchar*                nwam_nameservices_enum_to_string(nwam_nameservices_t ns);
 
 G_END_DECLS
 

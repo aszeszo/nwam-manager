@@ -3721,3 +3721,22 @@ nwam_loc_sys_svc_walker_cb (nwam_loc_handle_t env, nwam_loc_prop_template_t svc,
 }
 #endif /* 0 */
 
+const gchar*
+nwam_nameservices_enum_to_string(nwam_nameservices_t ns)
+{
+    switch (ns) {
+	case NWAM_NAMESERVICES_DNS:
+        return _("DNS");
+	case NWAM_NAMESERVICES_FILES:
+        return _("FILES");
+	case NWAM_NAMESERVICES_NIS:
+        return _("NIS");
+	case NWAM_NAMESERVICES_NISPLUS:
+        return _("NISPLUS");
+	case NWAM_NAMESERVICES_LDAP:
+        return _("LDAP");
+    default:
+        g_assert_not_reached();
+        break;
+    }
+}
