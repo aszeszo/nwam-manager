@@ -1,3 +1,18 @@
+2009-02-06  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_rules_dialog.c: 
+	  Update the object's conditional All/Any activation mode.
+	* capplet/nwam_vpn_pref_dialog.c: 
+	  Update to provide some better validation, and also handle validation
+	  just before selection changes.
+	* common/nwamui_enm.c: 
+	  Change set_nwam_enm_string_array_prop() to allow you to delete the
+	  property if a NULL array is passed.
+	  Changed start/stop/fmri set functions to allow you to pass a NULL
+	  value.
+	* common/nwamui_object.c: 
+	  Allow nwamui_object_set_conditions to take NULL to clear the list.
+
 2009-02-05  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c: (capplet_dialog_run):

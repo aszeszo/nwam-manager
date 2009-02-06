@@ -690,6 +690,15 @@ set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name, ch
     }
 
     if ( strs == NULL ) {
+        nwam_error_t nerr;
+
+        /* Delete property, don't set to empty list */
+        if ( (nerr = nwam_enm_delete_prop( enm, prop_name ))  != NWAM_SUCCESS ) {
+            retval = FALSE;
+        }
+        else {
+            retval = TRUE;
+        }
         return retval;
     }
 
@@ -1002,26 +1011,28 @@ nwamui_enm_set_start_command (   NwamuiEnm *self,
     nwam_error_t    nerr;
     g_return_val_if_fail (NWAMUI_IS_ENM (self), FALSE);
 
-    if ( start_command != NULL ) {
-        if (self->prv->nwam_enm != NULL) {
-            if ( start_command != NULL ) {
-                if ( strlen( start_command ) == 0 ) {
-                    /* Delete property, don't set to empty string */
-                    if (nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_START ) != NWAM_SUCCESS ) {
-                        return( FALSE );
-                    }
-                }
-                else if ( !set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_START, start_command ) ) {
-                    return( FALSE );
-                }
-                g_object_notify(G_OBJECT (self), "start_command");
-                self->prv->nwam_enm_modified = TRUE;
+    if (self->prv->nwam_enm != NULL) {
+        gboolean delete_prop = TRUE;
+
+        if ( start_command != NULL && strlen( start_command ) > 0 ) {
+            if ( !set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_START, start_command ) ) {
+                return( FALSE );
             }
         }
         else {
-            g_warning("Unexpected null enm handle");
-            return( FALSE );
+            nwam_error_t nerr;
+
+            /* Delete property, don't set to empty string */
+            if ( (nerr = nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_START ))  != NWAM_SUCCESS ) {
+                return( FALSE );
+            }
         }
+        g_object_notify(G_OBJECT (self), "start_command");
+        self->prv->nwam_enm_modified = TRUE;
+    }
+    else {
+        g_warning("Unexpected null enm handle");
+        return( FALSE );
     }
 
     return( TRUE );
@@ -1047,12 +1058,6 @@ nwamui_enm_get_start_command (NwamuiEnm *self)
     return( start_command );
 }
 
-/** 
- * nwamui_enm_set_stop_command:
- * @nwamui_enm: a #NwamuiEnm.
- * @stop_command: Value to set stop_command to.
- * 
- **/ 
 extern gboolean
 nwamui_enm_set_stop_command (   NwamuiEnm *self,
                               const gchar*  stop_command )
@@ -1060,26 +1065,28 @@ nwamui_enm_set_stop_command (   NwamuiEnm *self,
     nwam_error_t    nerr;
     g_return_val_if_fail (NWAMUI_IS_ENM (self), FALSE);
 
-    if ( stop_command != NULL ) {
-        if (self->prv->nwam_enm != NULL) {
-            if ( stop_command != NULL ) {
-                if ( strlen( stop_command ) == 0 ) {
-                    /* Delete property, don't set to empty string */
-                    if (nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP) != NWAM_SUCCESS ) {
-                        return( FALSE );
-                    }
-                }
-                else if ( !set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP, stop_command ) ) {
-                    return( FALSE );
-                }
-                g_object_notify(G_OBJECT (self), "stop_command");
-                self->prv->nwam_enm_modified = TRUE;
+    if (self->prv->nwam_enm != NULL) {
+        gboolean delete_prop = TRUE;
+
+        if ( stop_command != NULL && strlen( stop_command ) > 0 ) {
+            if ( !set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP, stop_command ) ) {
+                return( FALSE );
             }
         }
         else {
-            g_warning("Unexpected null enm handle");
-            return( FALSE );
+            nwam_error_t nerr;
+
+            /* Delete property, don't set to empty string */
+            if ( (nerr = nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP ))  != NWAM_SUCCESS ) {
+                return( FALSE );
+            }
         }
+        g_object_notify(G_OBJECT (self), "stop_command");
+        self->prv->nwam_enm_modified = TRUE;
+    }
+    else {
+        g_warning("Unexpected null enm handle");
+        return( FALSE );
     }
 
     return( TRUE );
@@ -1118,26 +1125,28 @@ nwamui_enm_set_smf_fmri (   NwamuiEnm *self,
     nwam_error_t    nerr;
     g_return_val_if_fail (NWAMUI_IS_ENM (self), FALSE);
 
-    if ( smf_fmri != NULL ) {
-        if (self->prv->nwam_enm != NULL) {
-            if ( smf_fmri != NULL ) {
-                if ( strlen( smf_fmri ) == 0 ) {
-                    /* Delete property, don't set to empty string */
-                    if (nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_FMRI) != NWAM_SUCCESS ) {
-                        return( FALSE );
-                    }
-                }
-                else if ( !set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_FMRI, smf_fmri ) ) {
-                    return( FALSE );
-                }
-                g_object_notify(G_OBJECT (self), "smf_fmri");
-                self->prv->nwam_enm_modified = TRUE;
+    if (self->prv->nwam_enm != NULL) {
+        gboolean delete_prop = TRUE;
+
+        if ( smf_fmri != NULL && strlen( smf_fmri ) > 0 ) {
+            if ( !set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_FMRI, smf_fmri ) ) {
+                return( FALSE );
             }
         }
         else {
-            g_warning("Unexpected null enm handle");
-            return( FALSE );
+            nwam_error_t nerr;
+
+            /* Delete property, don't set to empty string */
+            if ( (nerr = nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_FMRI ))  != NWAM_SUCCESS ) {
+                return( FALSE );
+            }
         }
+        g_object_notify(G_OBJECT (self), "smf_fmri");
+        self->prv->nwam_enm_modified = TRUE;
+    }
+    else {
+        g_warning("Unexpected null enm handle");
+        return( FALSE );
     }
 
     return( TRUE );

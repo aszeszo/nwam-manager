@@ -191,7 +191,6 @@ nwamui_object_set_conditions (   NwamuiObject *object,
 {
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
     g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_conditions);
-    g_assert (conditions != NULL );
 
     NWAMUI_OBJECT_GET_CLASS (object)->set_conditions(object, conditions);
 }

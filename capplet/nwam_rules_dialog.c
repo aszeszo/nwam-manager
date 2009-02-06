@@ -84,7 +84,22 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 static gboolean
 apply(NwamPrefIFace *iface, gpointer user_data)
 {
+    gboolean                cond_all;
 	NwamRulesDialogPrivate *prv = GET_PRIVATE(iface);
+
+    /* Set the activation mode based on the toggle */
+    cond_all = gtk_toggle_button_get_active( prv->rules_match_all_rb );
+
+    if (cond_all) {
+        nwamui_object_set_activation_mode(  prv->selected_object, 
+                                            NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL );
+    }
+    else {
+        nwamui_object_set_activation_mode(  prv->selected_object, 
+                                            NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY );
+    }
+
+
 	return nwam_pref_apply(NWAM_PREF_IFACE(prv->rules_vbox), user_data);
 }
 
