@@ -42,7 +42,7 @@ capplet_model_foreach_find_object(GtkTreeModel *model,
 	return data->ret_data != NULL;
 }
 
-static void
+void
 capplet_list_foreach_merge_to_model(gpointer data, gpointer user_data)
 {
 	GtkTreeModel *model = (GtkTreeModel *)user_data;
@@ -52,22 +52,6 @@ capplet_list_foreach_merge_to_model(gpointer data, gpointer user_data)
 	gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, G_OBJECT(data), -1);
 
 	g_object_unref(data);
-}
-
-void
-capplet_model_update_from_list(GtkTreeModel *model, GList *obj_list)
-{
-	GtkTreeIter   iter;
-	GList           *idx;
-
-	
-	for (idx = obj_list; idx; idx = g_list_next(idx)) {
-		gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-		gtk_list_store_set (GTK_LIST_STORE(model), &iter,
-		    0, idx->data,
-                    -1);
-		g_object_unref(idx->data);
-	}
 }
 
 GtkTreeIter *
@@ -243,7 +227,7 @@ capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w)
 	if (w) {
 		w = gtk_widget_get_toplevel(w);
 
-		if (!GTK_WIDGET_TOPLEVEL (w)) {
+		if (GTK_WIDGET_TOPLEVEL (w)) {
 			parent = GTK_WINDOW(w);
 		}
 	}

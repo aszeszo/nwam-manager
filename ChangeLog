@@ -1,3 +1,19 @@
+2009-02-05  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c: (capplet_dialog_run):
+	* capplet/capplet-utils.h:
+	Fixed a top widget detect nit.
+	* capplet/nwam-manager-properties.glade:
+	Romved ipsec key related widgets.
+	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_init),
+	(nwam_env_pref_dialog_finalize), (dialog_run),
+	(nwam_compose_tree_view), (populate_panels_from_env),
+	(svc_button_clicked), (default_svc_status_cb), (apply),
+	(combo_cell_strings_value), (combo_changed_strings_value),
+	(on_button_toggled), (svc_list_merge_to_model), (populate_svc),
+	(fmri_dialog_response_cb):
+	Remove unused code. Make OK do things.
+
 2009-02-05  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_env_pref_dialog.c,  capplet/nwam_location_dialog.c,

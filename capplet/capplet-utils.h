@@ -46,6 +46,8 @@ gboolean capplet_tree_view_expand_row(GtkTreeView *treeview,
 gboolean capplet_tree_view_collapse_row(GtkTreeView *treeview,
     GtkTreeIter *iter);
 
+void capplet_list_foreach_merge_to_model(gpointer data, gpointer user_data);
+
 GList* capplet_model_to_list(GtkTreeModel *model);
 
 void capplet_list_store_add(GtkTreeModel *model, NwamuiObject *object);
