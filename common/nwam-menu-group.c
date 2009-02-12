@@ -205,15 +205,29 @@ nwam_menu_group_get_item_by_name(NwamMenuGroup *self, const gchar *name)
 }
 
 /**
- * nwam_menu_group_get_item_by_proxy:
+ * nwam_menu_group_get_items:
  * @self: a #NwamMenuGroup instance.
- * @proxy: the proxy what the menu item has.
- * @return: the menu item if founded, else NULL.
+ * @return: the menu item list.
  *
- * Find an menu item in the menu item group by the proxy what item has.
+ * Get menu item list in the menu item group, should call g_list_free after use
+ * it.
  */
-GObject*
-nwam_menu_group_get_item_by_proxy(NwamMenuGroup *self, GObject *proxy)
+GList*
+nwam_menu_group_get_items(NwamMenuGroup *self)
 {
-    return NWAM_MENU_GROUP_GET_CLASS(self)->get_item_by_proxy(self, proxy);
+    return NWAM_MENU_GROUP_GET_CLASS(self)->get_items(self);
 }
+
+/**
+ * nwam_menu_group_get_menu:
+ * @self: a #NwamMenuGroup instance.
+ * @return: the #GtkMenu instance.
+ *
+ * Get #GtkMenu instance of the menu item group, shouldn't free it.
+ */
+GtkMenu*
+nwam_menu_group_get_menu(NwamMenuGroup *self)
+{
+    return NWAM_MENU_GROUP_GET_CLASS(self)->get_menu(self);
+}
+

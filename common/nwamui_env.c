@@ -3736,7 +3736,6 @@ nwam_nameservices_enum_to_string(nwam_nameservices_t ns)
 	case NWAM_NAMESERVICES_LDAP:
         return _("LDAP");
     default:
-        g_assert_not_reached();
-        break;
+        return NULL;
     }
 }

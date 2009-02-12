@@ -35,7 +35,6 @@
 #include <stdlib.h>
 
 #include "nwam-menu-action-group.h"
-#include "nwam-obj-proxy-iface.h"
 
 #define UID_DATA "uid"
 #define DEBUG()	g_debug ("[[ %20s : %-4d ]]", __func__, __LINE__)
@@ -65,15 +64,17 @@ static void nwam_menu_action_group_get_property (GObject *object,
   GParamSpec *pspec);
 
 static void nwam_menu_action_group_finalize(NwamMenuActionGroup *self);
-static void nwam_menu_action_group_attach(NwamMenuActionGroup *self);
-static void nwam_menu_action_group_detach(NwamMenuActionGroup *self);
-static void nwam_menu_action_group_add_item(NwamMenuActionGroup *self,
-  GtkAction *action,
+
+static void nwam_menu_action_group_attach(NwamMenuGroup *menugroup);
+static void nwam_menu_action_group_detach(NwamMenuGroup *menugroup);
+static void nwam_menu_action_group_add_item(NwamMenuGroup *menugroup,
+  GObject *object,
   gboolean top);
-static void nwam_menu_action_group_remove_item(NwamMenuActionGroup *self,
-  GtkAction *action);
-static GObject* nwam_menu_action_group_get_item_by_name(NwamMenuActionGroup *self, const gchar* action_name);
-static GObject* nwam_menu_action_group_get_item_by_proxy(NwamMenuActionGroup *self, GObject* proxy);
+static void nwam_menu_action_group_remove_item(NwamMenuGroup *menugroup,
+  GObject *object);
+static GObject* nwam_menu_action_group_get_item_by_name(NwamMenuGroup *menugroup, const gchar* action_name);
+static GList* nwam_menu_action_group_get_items(NwamMenuGroup *menugroup);
+static GtkMenu* nwam_menu_action_group_get_menu(NwamMenuGroup *menugroup);
 
 G_DEFINE_TYPE(NwamMenuActionGroup,
   nwam_menu_action_group,
@@ -94,7 +95,8 @@ nwam_menu_action_group_class_init(NwamMenuActionGroupClass *klass)
     menu_group_class->add_item = nwam_menu_action_group_add_item;
     menu_group_class->remove_item = nwam_menu_action_group_remove_item;
     menu_group_class->get_item_by_name = nwam_menu_action_group_get_item_by_name;
-    menu_group_class->get_item_by_proxy = nwam_menu_action_group_get_item_by_proxy;
+    menu_group_class->get_items = nwam_menu_action_group_get_items;
+    menu_group_class->get_menu = nwam_menu_action_group_get_menu;
 
 	gobject_class->set_property = nwam_menu_action_group_set_property;
 	gobject_class->get_property = nwam_menu_action_group_get_property;
@@ -186,46 +188,32 @@ nwam_menu_action_group_finalize(NwamMenuActionGroup *self)
 }
 
 static GObject*
-nwam_menu_action_group_get_item_by_name(NwamMenuActionGroup *self, const gchar* action_name)
+nwam_menu_action_group_get_item_by_name(NwamMenuGroup *menugroup, const gchar* action_name)
 {
-    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(self);
+    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(menugroup);
     GtkAction *action = NULL;
 
     action = gtk_action_group_get_action(prv->action_group, action_name);
 
-    return G_OBJECT(action);
-}
-
-static GObject*
-nwam_menu_action_group_get_item_by_proxy(NwamMenuActionGroup *self, GObject* proxy)
-{
-    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(self);
-    GObject *item = NULL;
-    GList *actions;
-    GList *idx;
-
-    actions = gtk_action_group_list_actions(prv->action_group);
-    for(idx = actions; idx; idx = idx->next) {
-        if (nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(idx->data)) == proxy) {
-            item = G_OBJECT(idx->data);
-            break;
-        }
-    }
-    g_list_free(actions);
-    return item;
+    return (GObject *)action;
 }
 
 static void
-nwam_menu_action_group_add_item(NwamMenuActionGroup *self,
-  GtkAction *action,
+nwam_menu_action_group_add_item(NwamMenuGroup *menugroup,
+  GObject *object,
   gboolean top)
 {
-    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(self);
+    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(menugroup);
     guint uid;
+    GtkAction *action;
+
+    g_assert(GTK_IS_ACTION(object));
+
+    action = GTK_ACTION(object);
 
 /*     GtkUIManager *ui_manager; */
 /*     gchar *ui_placeholder; */
-/*     g_object_get(self, */
+/*     g_object_get(menugroup, */
 /*       "ui-manager", &ui_manager, */
 /*       "ui-placeholder", &ui_placeholder, */
 /*       NULL); */
@@ -242,12 +230,12 @@ nwam_menu_action_group_add_item(NwamMenuActionGroup *self,
     gtk_ui_manager_add_ui(prv->ui_manager,
       uid,
       prv->ui_placeholder,
-      gtk_action_get_name(GTK_ACTION(action)), /* name */
-      gtk_action_get_name(GTK_ACTION(action)), /* action */
+      gtk_action_get_name(action), /* name */
+      gtk_action_get_name(action), /* action */
       GTK_UI_MANAGER_MENUITEM,
       top);
 
-#if 0
+#if 1
 	{
 		gchar *ui = gtk_ui_manager_get_ui(prv->ui_manager);
 		g_debug("\n%s\n", ui);
@@ -258,13 +246,19 @@ nwam_menu_action_group_add_item(NwamMenuActionGroup *self,
 }
 
 static void
-nwam_menu_action_group_remove_item(NwamMenuActionGroup *self,
-  GtkAction *action)
+nwam_menu_action_group_remove_item(NwamMenuGroup *menugroup,
+  GObject *object)
 {
-    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(self);
+    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(menugroup);
     guint uid;
+    GtkAction *action;
+
+    g_assert(GTK_IS_ACTION(object));
+
+    action = GTK_ACTION(object);
+
 /*     GtkUIManager *ui_manager; */
-/*     g_object_get(self, */
+/*     g_object_get(menugroup, */
 /*       "ui-manager", &ui_manager, */
 /*       NULL); */
 
@@ -278,29 +272,92 @@ nwam_menu_action_group_remove_item(NwamMenuActionGroup *self,
 }
 
 static void
-nwam_menu_action_group_attach(NwamMenuActionGroup *self)
+nwam_menu_action_group_attach(NwamMenuGroup *menugroup)
 {
-    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(self);
+    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(menugroup);
 /*     GtkUIManager *ui_manager; */
-/*     g_object_get(self, "ui-manager", &ui_manager, NULL); */
+/*     g_object_get(menugroup, "ui-manager", &ui_manager, NULL); */
 	gtk_ui_manager_insert_action_group (prv->ui_manager, prv->action_group, 0);
 }
 
 static void
-nwam_menu_action_group_detach(NwamMenuActionGroup *self)
+nwam_menu_action_group_detach(NwamMenuGroup *menugroup)
 {
-    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(self);
+    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(menugroup);
 /*     GtkUIManager *ui_manager; */
-/*     g_object_get(self, "ui-manager", &ui_manager, NULL); */
+/*     g_object_get(menugroup, "ui-manager", &ui_manager, NULL); */
     gtk_ui_manager_remove_action_group (prv->ui_manager, prv->action_group);
 }
 
-NwamMenuActionGroup*
+static GList*
+nwam_menu_action_group_get_items(NwamMenuGroup *menugroup)
+{
+    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(menugroup);
+    return gtk_action_group_list_actions(prv->action_group);
+}
+
+static GtkMenu*
+nwam_menu_action_group_get_menu(NwamMenuGroup *menugroup)
+{
+    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(menugroup);
+    GtkWidget *menu;
+
+    menu = gtk_ui_manager_get_widget(prv->ui_manager, prv->ui_placeholder);
+
+    if (!GTK_IS_MENU(menu)) {
+        gchar *parent_name;
+
+        parent_name = prv->ui_placeholder + strlen(prv->ui_placeholder) - 1;
+
+        if (*parent_name == '/')
+            parent_name--;
+
+        for (; parent_name != prv->ui_placeholder && *parent_name != '/';
+             parent_name--);
+        
+        if (parent_name != prv->ui_placeholder) {
+            gint len = (gint)(prv->ui_placeholder - parent_name);
+
+            parent_name = g_new(gchar, len);
+            g_strlcpy(parent_name, prv->ui_placeholder, len);
+            *(parent_name + len) = '\0';
+
+            menu = gtk_ui_manager_get_widget(prv->ui_manager, prv->ui_placeholder);
+            g_free(parent_name);
+
+        }
+    }
+
+    return menu;
+}
+
+NwamMenuGroup*
 nwam_menu_action_group_new(GtkUIManager *ui_manager,
   const gchar *place_holder)
 {
-    return g_object_new(NWAM_TYPE_MENU_ACTION_GROUP,
-      "ui-manager", ui_manager,
-      "ui-placeholder", place_holder,
-      NULL);
+    NwamMenuGroup *self = NWAM_MENU_GROUP(g_object_new(NWAM_TYPE_MENU_ACTION_GROUP,
+        "ui-manager", ui_manager,
+        "ui-placeholder", place_holder,
+        NULL));
+    NwamMenuActionGroupPrivate *prv = NWAM_MENU_ACTION_GROUP_GET_PRIVATE(self);
+
+    g_assert(prv->ui_manager);
+    if (prv->ui_placeholder == NULL ||
+      *prv->ui_placeholder == '\0' ||
+      *prv->ui_placeholder == '/') {
+        gtk_ui_manager_add_ui(prv->ui_manager,
+          gtk_ui_manager_new_merge_id(prv->ui_manager),
+          "/",
+          "nwam_menu_action_group",
+          NULL,
+          GTK_UI_MANAGER_POPUP,
+          FALSE);
+
+        if (prv->ui_placeholder)
+            g_free(prv->ui_placeholder);
+        prv->ui_placeholder = g_strdup("/nwam_menu_action_group");
+    }
+
+    return self;
 }
+

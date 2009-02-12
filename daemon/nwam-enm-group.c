@@ -48,15 +48,6 @@ struct _NwamEnmGroupPrivate {
 #define NWAM_ENM_GROUP_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_ENM_GROUP, NwamEnmGroupPrivate))
 
 static void nwam_enm_group_finalize(NwamEnmGroup *self);
-static void nwam_enm_group_attach(NwamEnmGroup *self);
-static void nwam_enm_group_detach(NwamEnmGroup *self);
-static void nwam_enm_group_add_item(NwamEnmGroup *self,
-  GtkAction *action,
-  gboolean top);
-static void nwam_enm_group_remove_item(NwamEnmGroup *self,
-  GtkAction *action);
-static GObject* nwam_enm_group_get_item_by_name(NwamEnmGroup *self, const gchar* action_name);
-static GObject* nwam_enm_group_get_item_by_proxy(NwamEnmGroup *self, GObject* proxy);
 
 G_DEFINE_TYPE(NwamEnmGroup,
   nwam_enm_group,
@@ -72,12 +63,6 @@ nwam_enm_group_class_init(NwamEnmGroupClass *klass)
 	gobject_class->finalize = (void (*)(GObject*)) nwam_enm_group_finalize;
 
     menu_group_class = NWAM_MENU_GROUP_CLASS(klass);
-    menu_group_class->attach = nwam_enm_group_attach;
-    menu_group_class->detach = nwam_enm_group_detach;
-    menu_group_class->add_item = nwam_enm_group_add_item;
-    menu_group_class->remove_item = nwam_enm_group_remove_item;
-    menu_group_class->get_item_by_name = nwam_enm_group_get_item_by_name;
-    menu_group_class->get_item_by_proxy = nwam_enm_group_get_item_by_proxy;
 
     g_type_class_add_private(klass, sizeof(NwamEnmGroupPrivate));
 }
@@ -98,50 +83,6 @@ nwam_enm_group_finalize(NwamEnmGroup *self)
     g_object_unref(prv->daemon);
 
 	G_OBJECT_CLASS(nwam_enm_group_parent_class)->finalize(G_OBJECT(self));
-}
-
-static GObject*
-nwam_enm_group_get_item_by_name(NwamEnmGroup *self, const gchar* action_name)
-{
-    if (action_name) {
-        return NWAM_MENU_GROUP_CLASS(nwam_enm_group_parent_class)->get_item_by_name(NWAM_MENU_GROUP(self), action_name);
-    } else {
-        return NULL;
-    }
-}
-
-static GObject*
-nwam_enm_group_get_item_by_proxy(NwamEnmGroup *self, GObject* proxy)
-{
-    if (proxy) {
-        return NWAM_MENU_GROUP_CLASS(nwam_enm_group_parent_class)->get_item_by_proxy(NWAM_MENU_GROUP(self), proxy);
-    } else {
-        return NULL;
-    }
-}
-
-static void
-nwam_enm_group_add_item(NwamEnmGroup *self, GtkAction *action, gboolean top)
-{
-    NWAM_MENU_GROUP_CLASS(nwam_enm_group_parent_class)->add_item(NWAM_MENU_GROUP(self), G_OBJECT(action), top);
-}
-
-static void
-nwam_enm_group_remove_item(NwamEnmGroup *self, GtkAction *action)
-{
-    NWAM_MENU_GROUP_CLASS(nwam_enm_group_parent_class)->remove_item(NWAM_MENU_GROUP(self), G_OBJECT(action));
-}
-
-static void
-nwam_enm_group_attach(NwamEnmGroup *self)
-{
-    NWAM_MENU_GROUP_CLASS(nwam_enm_group_parent_class)->attach(NWAM_MENU_GROUP(self));
-}
-
-static void
-nwam_enm_group_detach(NwamEnmGroup *self)
-{
-    NWAM_MENU_GROUP_CLASS(nwam_enm_group_parent_class)->detach(NWAM_MENU_GROUP(self));
 }
 
 NwamEnmGroup*

@@ -52,7 +52,7 @@ struct _NwamMenuActionGroupClass {
 
 GType nwam_menu_action_group_get_type(void) G_GNUC_CONST;
 
-NwamMenuActionGroup* nwam_menu_action_group_new(GtkUIManager *ui_manager,
+NwamMenuGroup* nwam_menu_action_group_new(GtkUIManager *ui_manager,
   const gchar *place_holder);
 
 G_END_DECLS

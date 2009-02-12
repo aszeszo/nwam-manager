@@ -63,9 +63,6 @@ nwam_manager_SOURCES =		\
 	nwam-wifi-group.c	\
 	nwam-env-group.c	\
 	nwam-enm-group.c	\
-	nwam-menu-group.c	\
-	nwam-menu-action-group.c	\
-	nwam-menu-radio-action-group.c	\
 	nwam-obj-proxy-iface.c	\
 	$(NULL)
 
@@ -117,9 +114,6 @@ EXTRA_DIST = 		\
 	nwam-wifi-group.h	\
 	nwam-env-group.h	\
 	nwam-enm-group.h	\
-	nwam-menu-group.h	\
-	nwam-menu-action-group.h	\
-	nwam-menu-radio-action-group.h	\
 	nwam-obj-proxy-iface.h	\
 	$(ui_DATA)	\
 	$(schemas_in_files)	\

@@ -40,6 +40,7 @@
 #include "nwam_env_pref_dialog.h"
 #include "nwam_proxy_password_dialog.h"
 #include "capplet-utils.h"
+#include "nwam-menu-action-group.h"
 
 /* Names of Widgets in Glade file */
 #define     ENV_PREF_DIALOG_NAME           "nwam_location_properties"
@@ -185,6 +186,7 @@ struct _NwamEnvPrefDialogPrivate {
     GtkButton*                  nameservice_add_btn;
     GtkButton*                  nameservice_delete_btn;
     GtkFileChooserButton*       nsswitch_file_btn;
+    NwamMenuGroup*              menugroup;
 
     /* add fmri dialog */
     GtkDialog*                  enter_service_fmri_dialog;
@@ -212,6 +214,8 @@ static void fmri_dialog_response_cb( GtkWidget* widget, gint repsonseid, gpointe
 
 static void populate_svc(const char *fmri, gchar **name_out);
 
+static void action_menu_group_set_visible(NwamMenuGroup *menugroup, const gchar *name, gboolean visible);
+
 /* Callbacks */
 static void         proxy_config_changed_cb( GtkWidget* widget, gpointer data );
 
@@ -224,6 +228,25 @@ static void         port_changed_cb(GtkSpinButton *sbutton, gpointer  user_data)
 static void         http_password_button_clicked_cb(GtkButton *button, gpointer  user_data);
 
 static void         svc_button_clicked(GtkButton *button, gpointer  user_data);
+static void         nameservices_button_clicked(GtkButton *button, gpointer  user_data);
+
+static void vanity_name_edited ( GtkCellRendererText *cell,
+  const gchar         *path_string,
+  const gchar         *new_text,
+  gpointer             data);
+
+static void vanity_name_editing_started (GtkCellRenderer *cell,
+  GtkCellEditable *editable,
+  const gchar     *path,
+  gpointer         data);
+
+static void menu_pos_func(GtkMenu *menu,
+  gint *x,
+  gint *y,
+  gboolean *push_in,
+  gpointer user_data);
+
+static void ns_menu_action_activate (GtkAction *action, gpointer user_data);
 
 static void default_svc_status_cb (GtkTreeViewColumn *tree_column,
                                    GtkCellRenderer *cell,
@@ -247,7 +270,9 @@ static void combo_changed_strings_value(GtkComboBox* combo, gpointer user_data);
 
 static void on_button_toggled(GtkToggleButton *button, gpointer user_data);
 
-void svc_list_merge_to_model(gpointer data, gpointer user_data);
+static void svc_list_merge_to_model(gpointer data, gpointer user_data);
+
+static void on_activate_static_menuitems (GtkAction *action, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamEnvPrefDialog,
   nwam_env_pref_dialog,
@@ -401,6 +426,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
         GtkTreeModel      *model;
         GtkTreeIter   iter;
         int i;
+        GtkAction *action;
 
         model = gtk_combo_box_get_model(prv->nameservices_config_combo);
         /* Clean all */
@@ -410,6 +436,28 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
         for (i = 0; i < NWAMUI_NETSERVICE_LAST; i++) {
             gtk_list_store_append(GTK_LIST_STORE(model), &iter);
             gtk_list_store_set (GTK_LIST_STORE(model), &iter, 0, i, -1);
+        }
+
+        g_signal_connect(prv->nameservice_add_btn,
+          "clicked", G_CALLBACK(nameservices_button_clicked), (gpointer)self);
+        g_signal_connect(prv->nameservice_delete_btn,
+          "clicked", G_CALLBACK(nameservices_button_clicked), (gpointer)self);
+
+        prv->menugroup = nwam_menu_action_group_new(gtk_ui_manager_new(), NULL);
+
+        for (i = NWAM_NAMESERVICES_DNS; i <= NWAM_NAMESERVICES_LDAP; i++) {
+            if (i == NWAM_NAMESERVICES_FILES)
+                continue;
+            action = gtk_action_new(nwam_nameservices_enum_to_string(i),
+              nwam_nameservices_enum_to_string(i),
+              NULL, NULL);
+
+            g_object_set_data(G_OBJECT(action), "ns_type", (gpointer)i);
+            g_signal_connect(action,
+              "activate", (GCallback)ns_menu_action_activate, (gpointer)self);
+
+            nwam_menu_group_add_item(prv->menugroup, action, FALSE);
+            g_object_unref(action);
         }
     }
 
@@ -451,10 +499,13 @@ nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
     if ( self->prv->proxy_password_dialog != NULL ) {
         g_object_unref(G_OBJECT(self->prv->proxy_password_dialog));
     }
-    
+
+    g_object_unref(self->prv->menugroup);
+
     g_object_unref(G_OBJECT(self->prv->env_pref_dialog ));
 
     g_object_unref(G_OBJECT(self->prv->daemon));
+
     G_OBJECT_CLASS(nwam_env_pref_dialog_parent_class)->finalize(G_OBJECT(self));
 }
 
@@ -497,8 +548,6 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
             gtk_window_set_modal (GTK_WINDOW(self->prv->env_pref_dialog), FALSE);		
         }
     
-        nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
-
         response =  gtk_dialog_run(GTK_DIALOG(self->prv->env_pref_dialog));
 
     }
@@ -532,6 +581,12 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
 	cell = capplet_column_append_cell(col,
       gtk_cell_renderer_text_new(), TRUE,
       nameservices_status_cb, (gpointer) self, NULL);
+
+    g_object_set(cell, "editable", TRUE, NULL);
+    g_signal_connect (cell, "edited", 
+      G_CALLBACK(vanity_name_edited), (gpointer)self);
+    g_signal_connect (cell, "editing-started", 
+      G_CALLBACK(vanity_name_editing_started), (gpointer)self);
 
     g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
       GINT_TO_POINTER (NAMESERVICES_NAME));
@@ -715,13 +770,31 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     /*
      * Name Services Tab
      */
-    if (nwamui_env_get_nameservice_discover(current_env))
+    if (nwamui_env_get_nameservice_discover(current_env)) {
         gtk_combo_box_set_active(prv->nameservices_config_combo, NWAMUI_NETSERVICE_AUTOMATIC);
-    else
+    } else {
         gtk_combo_box_set_active(prv->nameservices_config_combo, NWAMUI_NETSERVICE_MANUAL);
+    }
 
     {
-        nwamui_env_get_nameservices(current_env);
+        GtkTreeModel *model;
+        GtkTreeIter iter;
+        GList *nameservices;
+        GList *i;
+
+        nameservices = nwamui_env_get_nameservices(current_env);
+
+        model = gtk_tree_view_get_model(prv->nameservices_table);
+
+        for (i = nameservices; i; i = i->next) {
+            gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+            gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, i->data, -1);
+
+            /* Disable related menu */
+            action_menu_group_set_visible(prv->menugroup,
+              nwam_nameservices_enum_to_string(i->data),
+              FALSE);
+        }
     }
 
     {
@@ -1119,6 +1192,51 @@ svc_button_clicked(GtkButton *button, gpointer  user_data)
 }
 
 static void
+nameservices_button_clicked(GtkButton *button, gpointer  user_data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(user_data);
+    NwamEnvPrefDialog *self = NWAM_ENV_PREF_DIALOG(user_data);
+    GtkTreeView *treeview;
+    GtkTreeModel *model;
+    gboolean is_adding = TRUE;
+
+    g_assert(button == (gpointer)prv->nameservice_add_btn ||
+      button == (gpointer)prv->nameservice_delete_btn);
+
+    treeview = prv->nameservices_table;
+    is_adding = (button == (gpointer)prv->nameservice_add_btn);
+
+    model = gtk_tree_view_get_model(treeview);
+
+    if (is_adding) {
+        GtkTreeIter iter;
+        gint nstype;
+
+        /* TODO. We actually should select a flag to indicate a empty row */
+        nstype = -1;
+        /* Simpley append a empty/null row */
+        gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+        gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, nstype, -1);
+    } else {
+        GtkTreeIter iter;
+        GtkTreeSelection *selection = gtk_tree_view_get_selection(treeview);
+
+        if (gtk_tree_selection_get_selected (selection, NULL, &iter)) {
+            gint ns;
+
+            gtk_tree_model_get(model, &iter, 0, &ns, -1);
+
+            gtk_list_store_remove (GTK_LIST_STORE(model), &iter);
+
+            /* Enable current menu */
+            action_menu_group_set_visible(prv->menugroup,
+              nwam_nameservices_enum_to_string(ns),
+              TRUE);
+        }
+    }
+}
+
+static void
 default_svc_status_cb (GtkTreeViewColumn *tree_column,
                        GtkCellRenderer *cell,
                        GtkTreeModel *tree_model,
@@ -1177,8 +1295,19 @@ nameservices_status_cb (GtkTreeViewColumn *tree_column,
     switch (GPOINTER_TO_INT(g_object_get_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM))) {
     case NAMESERVICES_NAME:
     {
-        g_object_set(G_OBJECT(cell), "markup",
-          nwam_nameservices_enum_to_string(ns), NULL);
+        switch (ns) {
+        case NWAM_NAMESERVICES_DNS:
+        case NWAM_NAMESERVICES_FILES:
+        case NWAM_NAMESERVICES_NIS:
+        case NWAM_NAMESERVICES_NISPLUS:
+        case NWAM_NAMESERVICES_LDAP:
+            g_object_set(G_OBJECT(cell), "markup",
+              nwam_nameservices_enum_to_string(ns), NULL);
+            break;
+        default:
+            g_object_set(G_OBJECT(cell), "markup", NULL, NULL);
+            break;
+        }
     }
     break;
     case DOMAIN_NAME:
@@ -1211,8 +1340,8 @@ nameservices_status_cb (GtkTreeViewColumn *tree_column,
             list = nwamui_env_get_ldap_nameservice_servers(prv->selected_env);
             break;
         default:
-            g_assert_not_reached();
-            break;
+            g_object_set(G_OBJECT(cell), "markup", NULL, NULL);
+            return;
         }
 
         if (list) {
@@ -1523,7 +1652,7 @@ on_button_toggled(GtkToggleButton *button, gpointer user_data)
 /*     } */
 }
 
-void
+static void
 svc_list_merge_to_model(gpointer data, gpointer user_data)
 {
 	GtkTreeModel *model = (GtkTreeModel *)user_data;
@@ -1726,3 +1855,145 @@ fmri_dialog_response_cb( GtkWidget* widget, gint repsonseid, gpointer data )
     }
 }
 
+static void
+on_activate_static_menuitems (GtkAction *action, gpointer data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+    NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(data);
+
+    gchar first_char = *gtk_action_get_name(action);
+
+    switch(first_char) {
+    case '0':
+    case '1':
+    default:;
+    }
+}
+
+static void
+vanity_name_edited ( GtkCellRendererText *cell,
+  const gchar         *path_string,
+  const gchar         *new_text,
+  gpointer             data)
+{
+}
+
+static void
+vanity_name_editing_started (GtkCellRenderer *cell,
+  GtkCellEditable *editable,
+  const gchar     *path_string,
+  gpointer         data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
+    NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(data);
+    GtkTreeModel *model;
+    GtkTreePath *path = gtk_tree_path_new_from_string (path_string);
+    GtkTreeIter iter;
+
+	model = gtk_tree_view_get_model(prv->nameservices_table);
+    if ( gtk_tree_model_get_iter (model, &iter, path))
+        switch (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM))) {
+        case NAMESERVICES_NAME:      {
+            
+            if (GTK_IS_ENTRY(editable)) {
+                GtkWidget *menu;
+                GtkTreeViewColumn *column;
+                GtkAllocation a;
+                GdkRectangle rect;
+
+                menu = nwam_menu_group_get_menu(prv->menugroup);
+
+                gtk_tree_view_get_cursor(prv->nameservices_table,
+                  NULL,
+                  &column);
+
+                if (column && menu) {
+                    gint ns;
+
+                    gtk_tree_model_get(model, &iter, 0, &ns, -1);
+
+                    gtk_tree_view_get_cell_area(prv->nameservices_table,
+                      path,
+                      column,
+                      &rect);
+
+                    gdk_window_get_origin(gtk_tree_view_get_bin_window(prv->nameservices_table),
+                      &a.x,
+                      &a.y);
+                    a.x += rect.x;
+                    a.y += rect.y;
+
+                    /* Enable current menu */
+                    action_menu_group_set_visible(prv->menugroup,
+                      nwam_nameservices_enum_to_string(ns),
+                      TRUE);
+
+                    gtk_menu_popup(menu, NULL, NULL, menu_pos_func, &a, 0,
+                      gtk_get_current_event_time());
+
+                }
+            }
+        }
+            break;
+        default:
+            g_assert_not_reached();
+        }
+
+    gtk_tree_path_free (path);
+}
+
+static void
+menu_pos_func(GtkMenu *menu,
+  gint *x,
+  gint *y,
+  gboolean *push_in,
+  gpointer user_data)
+{
+    GtkAllocation *a = (GtkAllocation*)user_data;
+    *x = a->x;
+    *y = a->y;
+    *push_in = FALSE;
+}
+
+static void
+action_menu_group_set_visible(NwamMenuGroup *menugroup, const gchar *name, gboolean visible)
+{
+    GtkAction *action;
+
+    if (name) {
+        action = (GtkAction*)nwam_menu_group_get_item_by_name(menugroup, name);
+
+        if (action) {
+            g_assert(GTK_IS_ACTION(action));
+
+            gtk_action_set_visible(action, visible);
+        }
+    }
+}
+
+static void
+ns_menu_action_activate (GtkAction *action, gpointer user_data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(user_data);
+    GtkTreeModel *model;
+    GtkTreeIter iter;
+    GtkTreePath *path;
+
+	model = gtk_tree_view_get_model(prv->nameservices_table);
+    gtk_tree_view_get_cursor(prv->nameservices_table, &path, NULL);
+
+    if (path) {
+        gint ns;
+
+        ns = (gint)g_object_get_data(G_OBJECT(action), "ns_type");
+
+        gtk_tree_model_get_iter (model, &iter, path);
+
+        gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, ns, -1);
+
+        gtk_tree_path_free(path);
+
+        /* Disable related menu */
+        gtk_action_set_visible(action, FALSE);
+    }
+}

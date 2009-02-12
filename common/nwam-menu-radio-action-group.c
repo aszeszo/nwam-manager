@@ -42,8 +42,8 @@ struct _NwamMenuRadioActionGroupPrivate {
 };
 
 static void nwam_menu_radio_action_group_finalize(NwamMenuRadioActionGroup *self);
-static void nwam_menu_radio_action_group_add_item(NwamMenuRadioActionGroup *self,
-  GtkAction *action,
+static void nwam_menu_radio_action_group_add_item(NwamMenuGroup *menugroup,
+  GObject *object,
   gboolean top);
 
 G_DEFINE_TYPE(NwamMenuRadioActionGroup,
@@ -82,13 +82,18 @@ nwam_menu_radio_action_group_finalize(NwamMenuRadioActionGroup *self)
 }
 
 static void
-nwam_menu_radio_action_group_add_item(NwamMenuRadioActionGroup *self,
-  GtkAction *action,
+nwam_menu_radio_action_group_add_item(NwamMenuGroup *menugroup,
+  GObject *object,
   gboolean top)
 {
-    NwamMenuRadioActionGroupPrivate *prv = NWAM_MENU_RADIO_ACTION_GROUP_GET_PRIVATE(self);
+    NwamMenuRadioActionGroupPrivate *prv = NWAM_MENU_RADIO_ACTION_GROUP_GET_PRIVATE(menugroup);
+    GtkAction *action;
 
-    NWAM_MENU_GROUP_CLASS(nwam_menu_radio_action_group_parent_class)->add_item(NWAM_MENU_GROUP(self), G_OBJECT(action), top);
+    g_assert(GTK_IS_ACTION(object));
+
+    action = GTK_ACTION(object);
+
+    NWAM_MENU_GROUP_CLASS(nwam_menu_radio_action_group_parent_class)->add_item(NWAM_MENU_GROUP(menugroup), G_OBJECT(action), top);
     gtk_radio_action_set_group (GTK_RADIO_ACTION(action), prv->radio_group);
     prv->radio_group = gtk_radio_action_get_group (GTK_RADIO_ACTION(action));
 }

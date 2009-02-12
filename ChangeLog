@@ -1,3 +1,47 @@
+2009-02-12  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_init),
+	(nwam_env_pref_dialog_finalize), (dialog_run),
+	(nwam_compose_tree_view), (populate_panels_from_env),
+	(nameservices_button_clicked), (nameservices_status_cb),
+	(on_activate_static_menuitems), (vanity_name_edited),
+	(vanity_name_editing_started), (menu_pos_func),
+	(action_menu_group_set_visible), (ns_menu_action_activate):
+	Pop up menu on nameservices table. Fixed dialog run always set selected
+	env to NULL.
+	* common/Makefile.am:
+	Menu group classes are moved here.
+	* common/nwam-menu-action-group.c:
+	(nwam_menu_action_group_class_init),
+	(nwam_menu_action_group_get_item_by_name),
+	(nwam_menu_action_group_add_item),
+	(nwam_menu_action_group_remove_item),
+	(nwam_menu_action_group_attach), (nwam_menu_action_group_detach),
+	(nwam_menu_action_group_get_items),
+	(nwam_menu_action_group_get_menu), (nwam_menu_action_group_new):
+	Fixed some warnings. If there is no root menu or popup, create a temp
+	one, so we can get a completed menu to show.
+	* common/nwam-menu-action-group.h:
+	* common/nwam-menu-group.c: (nwam_menu_group_get_items),
+	(nwam_menu_group_get_menu):
+	* common/nwam-menu-group.h:
+	Added new virtual function to get menu and menu items.
+	* common/nwam-menu-radio-action-group.c:
+	(nwam_menu_radio_action_group_add_item):
+	* common/nwamui_env.c: (nwam_nameservices_enum_to_string):
+	* daemon/Makefile.am:
+	Moved menu group classes to common lib.
+	* daemon/nwam-enm-group.c: (nwam_enm_group_class_init):
+	* daemon/nwam-env-group.c: (nwam_env_group_class_init):
+	* daemon/nwam-menu-action-group.c:
+	* daemon/nwam-menu-action-group.h:
+	* daemon/nwam-menu-group.c:
+	* daemon/nwam-menu-group.h:
+	* daemon/nwam-menu-radio-action-group.c:
+	* daemon/nwam-menu-radio-action-group.h:
+	* daemon/nwam-menu.c: (nwam_menu_group_get_item_by_proxy):
+	Removed some useless code.
+
 2009-02-05  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_conf_ip_panel.c: (nwam_conn_wifi_fav_cell_cb):

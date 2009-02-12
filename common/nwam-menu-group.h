@@ -53,8 +53,8 @@ struct _NwamMenuGroupClass {
     void (*add_item)(NwamMenuGroup *self, GObject *item, gboolean top);
     void (*remove_item)(NwamMenuGroup *self, GObject *item);
     GObject *(*get_item_by_name)(NwamMenuGroup *self, const gchar *name);
-    GObject *(*get_item_by_proxy)(NwamMenuGroup *self, GObject *proxy);
-/*     void (*foreach)(NwamMenuGroup *self, GtkCallback callback, gpointer user_data); */
+    GList* (*get_items)(NwamMenuGroup *self);
+    GtkMenu* (*get_menu)(NwamMenuGroup *self);
 };
 
 GType nwam_menu_group_get_type(void) G_GNUC_CONST;
@@ -64,7 +64,8 @@ void nwam_menu_group_detach(NwamMenuGroup *self);
 void nwam_menu_group_add_item(NwamMenuGroup *self, GObject *item, gboolean top);
 void nwam_menu_group_remove_item(NwamMenuGroup *self, GObject *item);
 GObject* nwam_menu_group_get_item_by_name(NwamMenuGroup *self, const gchar *name);
-GObject* nwam_menu_group_get_item_by_proxy(NwamMenuGroup *self, GObject *proxy);
+GList* nwam_menu_group_get_items(NwamMenuGroup *self);
+GtkMenu* nwam_menu_group_get_menu(NwamMenuGroup *self);
 
 G_END_DECLS
 

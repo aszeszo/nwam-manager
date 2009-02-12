@@ -41,6 +41,7 @@
 #include "nwam-env-group.h"
 #include "nwam-enm-group.h"
 #include "libnwamui.h"
+#include "nwam-obj-proxy-iface.h"
 
 #define DEBUG()	g_debug ("[[ %20s : %-4d ]]", __func__, __LINE__)
 
@@ -125,6 +126,7 @@ static void menus_set_toggle_action_active(NwamMenu *self,
   const gchar* action_name,
   gboolean active);
 
+static GObject* nwam_menu_group_get_item_by_proxy(NwamMenuGroup *menugroup, GObject* proxy);
 
 /* call back */
 /* Notification menuitem events */
@@ -1135,3 +1137,22 @@ nwam_menu_get_statusicon_menu (NwamMenu *self)
 #endif
 	return gtk_ui_manager_get_widget(self->prv->ui_manager, NWAMUI_PROOT);
 }
+
+static GObject*
+nwam_menu_group_get_item_by_proxy(NwamMenuGroup *menugroup, GObject* proxy)
+{
+    GObject *item = NULL;
+    GList *actions;
+    GList *idx;
+
+    actions = nwam_menu_group_get_items(menugroup);
+    for(idx = actions; idx; idx = idx->next) {
+        if (nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(idx->data)) == proxy) {
+            item = G_OBJECT(idx->data);
+            break;
+        }
+    }
+    g_list_free(actions);
+    return item;
+}
+
