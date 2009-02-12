@@ -1,5 +1,10 @@
 2009-02-12  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwam-obj-proxy-iface.c, common/nwam-obj-proxy-iface.h:
+	Removed those files which are added by mistake.
+
+2009-02-12  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_env_pref_dialog.c: (nwam_env_pref_dialog_init),
 	(nwam_env_pref_dialog_finalize), (dialog_run),
 	(nwam_compose_tree_view), (populate_panels_from_env),
