@@ -66,6 +66,9 @@ struct _NwamCappletDialogPrivate {
     /* Other Data */
     NwamuiNcp*                  active_ncp; /* currently active NCP */
     GList*                      ncp_list; /* currently active NCP */
+
+    NwamuiNcu*                  selected_ncu;
+    NwamuiNcu*                  prev_selected_ncu;
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
@@ -91,6 +94,7 @@ static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void show_changed_cb( GtkWidget* widget, gpointer data );
 static void refresh_clicked_cb( GtkButton *button, gpointer data );
+
 
 /* Utility Functions */
 static void     update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp );
@@ -139,6 +143,9 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     daemon = nwamui_daemon_get_instance();
     self->prv->active_ncp = nwamui_daemon_get_active_ncp( daemon );
     self->prv->ncp_list = nwamui_daemon_get_ncp_list( daemon );
+
+    self->prv->selected_ncu = NULL;
+    self->prv->prev_selected_ncu = NULL;
 
     if ( self->prv->active_ncp == NULL && self->prv->ncp_list  != NULL ) {
         /* FIXME: Show multiple NCPs */
@@ -273,9 +280,36 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 static gboolean
 apply(NwamPrefIFace *iface, gpointer user_data)
 {
-	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(iface);
-    gint idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
-    nwam_pref_apply (NWAM_PREF_IFACE(NWAM_CAPPLET_DIALOG(self)->prv->panel[idx]), NULL);
+	NwamCappletDialog  *self = NWAM_CAPPLET_DIALOG(iface);
+    gboolean            rval = TRUE;
+    NwamuiDaemon       *daemon = NULL;
+
+    daemon = nwamui_daemon_get_instance();
+
+    if ( self->prv->selected_ncu ) {
+        /* Ensure we don't have unsaved data */
+        gint        cur_idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
+        gchar      *prop_name = NULL;
+
+        if ( !nwam_pref_apply (NWAM_PREF_IFACE(NWAM_CAPPLET_DIALOG(self)->prv->panel[cur_idx]), NULL) ) {
+            rval = FALSE;
+        }
+
+        /* Validate NCU */
+        if ( !nwamui_ncu_validate( NWAMUI_NCU(self->prv->selected_ncu), &prop_name ) ) {
+            gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe property '%s' caused this failure"), prop_name );
+            nwamui_util_show_message (GTK_WINDOW(self->prv->capplet_dialog), 
+                                      GTK_MESSAGE_ERROR, _("Validation Error"), message );
+            g_free(prop_name);
+            rval = FALSE;
+        }
+    }
+
+    if (rval && !nwamui_daemon_commit_changed_objects( daemon ) ) {
+        rval = FALSE;
+    }
+
+    return( rval );
 }
 
 static gboolean
@@ -357,17 +391,58 @@ show_changed_cb( GtkWidget* widget, gpointer data )
         g_assert_not_reached();
     }
 
+    /* Track the previously selected ncu so that we can know when to validate
+     * the ncu, specifically when changing from one ncu to another.
+     */
+    if ( self->prv->prev_selected_ncu != NULL ) {
+        g_object_unref(self->prv->prev_selected_ncu);
+    }
+    self->prv->prev_selected_ncu = self->prv->selected_ncu;
+    self->prv->selected_ncu = NULL;
+
     type = G_OBJECT_TYPE(obj);
     if (type == NWAM_TYPE_CONN_STATUS_PANEL) {
         idx = 0;
     } else if (type == NWAM_TYPE_NET_CONF_PANEL) {
         idx = 1;
     } else if (type == NWAMUI_TYPE_NCU) {
+        self->prv->selected_ncu = NWAMUI_NCU(g_object_ref(obj));
         user_data = obj;
         obj = G_OBJECT(self->prv->panel[PANEL_CONF_IP]);
         idx = 2;
     } else {
         g_assert_not_reached();
+    }
+
+    if ( self->prv->prev_selected_ncu != NULL &&
+         self->prv->selected_ncu != self->prv->prev_selected_ncu ) {
+        /* We are switching from an NCU to something else, so we should apply
+         * any changes, and attempt to validate. If validation changes, then
+         * we need to re-selected the previous item.
+         */
+        gboolean    valid = TRUE;
+        gint        cur_idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
+        gchar      *prop_name = NULL;
+
+        if ( !nwam_pref_apply (NWAM_PREF_IFACE(NWAM_CAPPLET_DIALOG(self)->prv->panel[cur_idx]), NULL) ) {
+            /* Don't change selection */
+            valid = FALSE;
+        }
+
+        /* Validate NCU */
+        if ( !nwamui_ncu_validate( NWAMUI_NCU(self->prv->prev_selected_ncu), &prop_name ) ) {
+            gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe property '%s' caused this failure"), prop_name );
+            nwamui_util_show_message (GTK_WINDOW(self->prv->capplet_dialog), 
+                                      GTK_MESSAGE_ERROR, _("Validation Error"), message );
+            g_free(prop_name);
+            /* Don't change selection */
+            valid = FALSE;
+        }
+        if ( ! valid ) {
+            nwam_capplet_dialog_select_ncu(self, self->prv->prev_selected_ncu );
+            /* Reset selected_ncu, otherwise we will enter a validation loop */
+            self->prv->selected_ncu = NWAMUI_NCU(g_object_ref(self->prv->prev_selected_ncu));
+        }
     }
 
 	/* update the notetab according to the selected entry */
@@ -542,3 +617,5 @@ nwam_capplet_dialog_select_ncu(NwamCappletDialog  *self, NwamuiNcu*  ncu )
         }
     }
 }
+
+

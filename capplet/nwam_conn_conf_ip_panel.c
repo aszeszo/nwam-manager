@@ -411,6 +411,7 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
     self->prv->wifi_dialog = nwam_wireless_dialog_new();
     
 	/* Iniialise pointers to important widgets */
+    self->prv->iface_nb = GTK_WIDGET(nwamui_util_glade_get_widget(IP_PANEL_IFACE_NOTEBOOK));
     self->prv->wireless_tab = GTK_WIDGET(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB));
     self->prv->wifi_fav_tv  = GTK_TREE_VIEW(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TABLE));
     
@@ -663,11 +664,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     if ( ! NWAMUI_IS_NCU(ncu) ) {
         return( init_refresh );
     }
-    if ( !force && self->prv->ncu != NULL && 
-         nwamui_ncu_has_modifications( self->prv->ncu ) ) {
-         /* There are unsaved modifications, stop switch */
-         return( FALSE );
-    }
 
     if (self->prv->ncu != ncu) {
         init_refresh = TRUE;
@@ -806,6 +802,8 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             break;
         }
     }
+    
+    return( TRUE );
 }
 
 /**
@@ -1388,4 +1386,5 @@ ipv4_subnet_changed_cb( GtkEditable* editable, gpointer data )
         nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu), ipv4_subnet );
     }
 }
+
 

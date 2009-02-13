@@ -204,6 +204,8 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 	prv->process_lbl = GTK_LABEL(nwamui_util_glade_get_widget(VPN_PREF_PROCESS_LBL));
 	prv->desc_lbl = GTK_LABEL(nwamui_util_glade_get_widget(VPN_PREF_DESC_LBL));
 
+    nwamui_util_set_entry_smf_fmri_completion( GTK_ENTRY(prv->process_entry) );
+
 /* 	g_signal_connect(prv->start_cmd_entry, "changed", (GCallback)command_entry_changed, (gpointer)self); */
 /* 	g_signal_connect(prv->stop_cmd_entry, "changed", (GCallback)command_entry_changed, (gpointer)self); */
 /* 	g_signal_connect(prv->process_entry, "changed", (GCallback)command_entry_changed, (gpointer)self); */

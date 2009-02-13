@@ -1,3 +1,51 @@
+2009-02-13  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Remove wrong code, and return a value in apply().
+	* capplet/nwam_pref_dialog.c:
+	  Attempt to handle switch away from a modified NCU which doesn't
+	  validate.
+	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c: 
+	  Add function to nwamui_wifi_net_has_modifications(). Also #if 0 out
+	  any references to ENTERPRISE security since it's not supported by
+	  the drivers yet, so we shouldn't allow configuration of it.
+	* capplet/nwam_wireless_dialog.c:
+	  Change nwam_wifi_net_new() to take less arguments, most of which are
+	  not needed at this point. Change the properties which are get/set
+	  in a wifi_net object based on the selected security type.
+	  Set sensible defaults if no wifi_net object is associated with the
+	  dialog when dialog_run() is called.
+	  Also update for disabled ENTERPRISE security type.
+	* common/libnwamui.h, common/libnwamui.c: 
+	  Update nwamui_util_wifi_sec_to_string(),
+	  nwamui_util_wifi_sec_to_short_string(), and
+	  nwamui_util_get_network_security_icon() for disabled ENTERPRISE
+	  security type.
+	  Add utility function nwamui_util_set_entry_smf_fmri_completion() to
+	  add autocompletion support to GtkEntry widgets which allow entry of
+	  an FMRI.
+	  Fix bug in nwamui_util_copy_obj_list() where it wasn't returning the
+	  new list!.
+	* capplet/nwam_env_pref_dialog.c:
+	  Add completion to FMRI entry field.
+	  Slightly change how the entry of an FMRI is validated - we allow any
+	  FMRI, even if it doesn't exist, just as long as it's valid (i.e. can
+	  be decoded). Changed the function to get the name to work cleaner.
+	  If no name is found (which unfortunately some don't have) then we
+	  don't use it in the tree view.  (Maybe this needs a "No Name Found"
+	  string, not sure).
+	* capplet/nwam_vpn_pref_dialog.c: 
+	  Add completion to FMRI entry field.
+	* common/nwamui_ncp.c: 
+	  Fix bug in nwamui_ncp_is_modifiable() where the name is "Automatic"
+	  not "automatic" now. Also added accessor for the ncu_list GList.
+	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
+	  Add function nwamui_daemon_commit_changed_objects() which will loop
+	  through NCPs and NCUs committing modified NCUs.
+	  Update for change in nwamui_wifi_net_new(). Fix issue in merging of
+	  wifi_fav_list where it's possible for an entry in the existing list
+	  to be in-memory only, and so needs committing.
+
 2009-02-12  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwam-obj-proxy-iface.c, common/nwam-obj-proxy-iface.h:

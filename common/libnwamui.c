@@ -38,6 +38,7 @@
 #include <string.h>
 #include <inet/ip.h>
 #include <inetcfg.h>
+#include <libscf.h>
 
 #define NWAM_MANAGER_PROPERTIES_GLADE_FILE  "nwam-manager-properties.glade"
 
@@ -157,7 +158,10 @@ nwamui_util_wifi_sec_to_string( nwamui_wifi_security_t wireless_sec ) {
         case NWAMUI_WIFI_SEC_WEP_HEX:           return(_("WEP Hex"));
         case NWAMUI_WIFI_SEC_WEP_ASCII:         return(_("WEP ASCII"));
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:      return(_("WPA Personal(PSK)"));
+#if 0
+        /* ENTERPRISE currently not supported */
         case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:    return(_("WPA Enterprise (Radius)"));
+#endif
         default:                                return(_("None") );
     }
 }
@@ -176,7 +180,10 @@ nwamui_util_wifi_sec_to_short_string( nwamui_wifi_security_t wireless_sec ) {
         case NWAMUI_WIFI_SEC_WEP_HEX:           return(_("WEP"));
         case NWAMUI_WIFI_SEC_WEP_ASCII:         return(_("WEP"));
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:      return(_("WPA"));
+#if 0
+        /* ENTERPRISE currently not supported */
         case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:    return(_("WPA"));
+#endif
         default:                                return(_("Open") );
     }
 }
@@ -263,6 +270,8 @@ nwamui_util_copy_obj_list( GList*   obj_list )
     new_list = g_list_copy( obj_list );
     
     g_list_foreach(new_list, nwamui_util_obj_ref, NULL );    
+
+    return( new_list );
 }
 
 static GtkStatusIcon*   status_icon = NULL;
@@ -418,7 +427,7 @@ nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type, gboolean
     switch (sec_type) {
         case NWAMUI_WIFI_SEC_WEP_ASCII:
         case NWAMUI_WIFI_SEC_WEP_HEX:
-        case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
+        /* case NWAMUI_WIFI_SEC_WPA_ENTERPRISE: - Currently not supported */
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:
             return( GDK_PIXBUF(g_object_ref(G_OBJECT(secured_icon) )) );
         case NWAMUI_WIFI_SEC_NONE: 
@@ -1119,6 +1128,123 @@ nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
     }
 
 	icfg_close(h);
+
+    return( TRUE );
+}
+
+static void
+foreach_service( GFunc callback, gpointer user_data )
+{
+    scf_handle_t   *handle = scf_handle_create( SCF_VERSION );
+	ssize_t         max_scf_name_length = scf_limit(SCF_LIMIT_MAX_NAME_LENGTH);
+	ssize_t         max_scf_fmri_length = scf_limit(SCF_LIMIT_MAX_FMRI_LENGTH);
+    scf_scope_t    *scope = scf_scope_create( handle );
+    scf_service_t  *service = scf_service_create( handle );
+    scf_instance_t *instance = scf_instance_create( handle );
+    scf_iter_t     *svc_iter = scf_iter_create(handle);
+    scf_iter_t     *inst_iter = scf_iter_create(handle);
+    char           *name = malloc( max_scf_name_length + 1 );
+    char           *sname = malloc( max_scf_name_length + 1 );
+    char           *fmri = malloc( max_scf_fmri_length + 1 );
+
+
+    if ( !handle  || !scope  || !service  || !instance || !svc_iter || !inst_iter ) {
+        g_warning("Couldn't allocation SMF handles" );
+        return;
+    }
+
+    if (scf_handle_bind(handle) == -1 ) {
+        g_warning("Couldn't bind to smf service: %s\n", scf_strerror(scf_error()) );
+        scf_handle_destroy( handle );
+        return;
+    }
+
+    if ( scf_handle_get_scope( handle, SCF_SCOPE_LOCAL, scope ) == 0 ) {
+        if ( scf_iter_scope_services( svc_iter, scope ) == 0 ) {
+            for ( int r = scf_iter_next_service( svc_iter, service );
+                  r == 1;
+                  r = scf_iter_next_service( svc_iter, service ) ) {
+                if( scf_service_get_name( service, sname, max_scf_name_length + 1) != -1 ) {
+                    if ( scf_iter_service_instances( inst_iter, service ) == 0 ) {
+                        for ( int rv = scf_iter_next_instance( inst_iter, instance );
+                              rv == 1;
+                              rv = scf_iter_next_instance( inst_iter, instance ) ) {
+                            if ( scf_instance_get_name( instance, name, max_scf_name_length + 1) != -1 ) {
+                                if ( callback != NULL ) {
+                                    snprintf( fmri, max_scf_fmri_length, "svc:/%s:%s", sname, name );
+                                    (*callback)( (gpointer)fmri, (gpointer)user_data );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    scf_handle_destroy( handle );
+
+    free(name);
+    free(sname);
+    free(fmri);
+}
+
+static void
+add_smf_fmri( gpointer data, gpointer user_data )
+{
+    gchar          *name = (gchar*)data;
+    GtkListStore   *lstore = GTK_LIST_STORE(user_data);
+    GtkTreeIter     iter;
+
+    gtk_list_store_append( lstore, &iter );
+    gtk_list_store_set( lstore, &iter, 0, name, -1 );
+}
+
+static gboolean
+partial_smf_completion_func(GtkEntryCompletion *completion,
+                            const gchar *key,
+                            GtkTreeIter *iter,
+                            gpointer user_data)
+{
+    GtkTreeModel   *model = GTK_TREE_MODEL(user_data);
+    gchar          *name = NULL;
+    gboolean        rval = FALSE;
+
+    gtk_tree_model_get( model, iter, 0, &name, -1 );
+
+    if ( name && g_strstr_len( name, strlen(name), key ) != NULL ) {
+        rval = TRUE;
+    }
+
+    g_free(name);
+
+    return( rval );
+}
+
+extern gboolean
+nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry )
+{
+    static GtkListStore    *fmri_model  = NULL;
+    GtkEntryCompletion     *completion = NULL;
+
+    if ( entry == NULL || !GTK_IS_ENTRY( entry ) ) {
+        return( FALSE );
+    }
+
+    if ( fmri_model == NULL ) {
+        fmri_model  = GTK_LIST_STORE(g_object_ref(gtk_list_store_new( 1, G_TYPE_STRING )));
+    }
+
+    foreach_service( add_smf_fmri, fmri_model );
+
+    completion = gtk_entry_completion_new();
+
+    gtk_entry_completion_set_model( completion, GTK_TREE_MODEL(g_object_ref( fmri_model )) );
+    gtk_entry_completion_set_minimum_key_length( completion, 3 );
+    gtk_entry_completion_set_text_column( completion, 0 );
+    gtk_entry_completion_set_inline_completion( completion, FALSE );
+    gtk_entry_completion_set_match_func( completion, partial_smf_completion_func, fmri_model, NULL );
+    gtk_entry_set_completion( entry, completion );
 
     return( TRUE );
 }

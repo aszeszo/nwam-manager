@@ -42,6 +42,7 @@ static GObjectClass *parent_class = NULL;
 
 struct _NwamuiWifiNetPrivate {
         nwam_known_wlan_handle_t        known_wlan_h;
+        gboolean                        modified;
         gchar                          *essid;            
         NwamuiNcu                      *ncu;
         nwamui_wifi_security_t          security;
@@ -287,6 +288,8 @@ nwamui_wifi_net_init (NwamuiWifiNet *self)
 {
     NwamuiWifiNetPrivate *prv = (NwamuiWifiNetPrivate*)g_new0 (NwamuiWifiNetPrivate, 1);
 
+    prv->modified = FALSE;
+
     prv->essid = NULL;            
     prv->security = NWAMUI_WIFI_SEC_NONE;
     prv->signal_strength = NWAMUI_WIFI_STRENGTH_NONE;
@@ -509,6 +512,8 @@ nwamui_wifi_net_set_property (  GObject         *object,
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
     }
+
+    self->prv->modified = TRUE;
 }
 
 static void
@@ -648,8 +653,6 @@ nwamui_wifi_net_finalize (NwamuiWifiNet *self)
  * @essid: a C string containing the ESSID of the link
  * @security: a #nwamui_wifi_security_t
  * @bssid_list: a GList with the BSSIDs of the AP.
- * @signal_strength: a nwamui_wifi_signal_strength_t
- * @wpa_config: a nwamui_wifi_wpa_config_t, only assumed valid if #security is a WPA type.
  * 
  * @returns: a new #NwamuiWifiNet.
  *
@@ -660,11 +663,7 @@ nwamui_wifi_net_new(    NwamuiNcu                       *ncu,
 				        const gchar                     *essid, 
                         nwamui_wifi_security_t           security,
                         GList                           *bssid_list,
-                        const gchar                     *mode,
-                        guint                            speed,
-                        nwamui_wifi_signal_strength_t    signal_strength,
-                        nwamui_wifi_bss_type_t           bss_type,
-                        nwamui_wifi_wpa_config_t         wpa_config )
+                        nwamui_wifi_bss_type_t           bss_type )
 {
     NwamuiWifiNet*  self = NULL;
     
@@ -676,13 +675,11 @@ nwamui_wifi_net_new(    NwamuiNcu                       *ncu,
     g_object_set (G_OBJECT (self),
                     "security", security,
                     "bssid_list", bssid_list,
-                    "mode", mode,
-                    "speed", speed,
-                    "signal_strength", signal_strength,
                     "bss_type", bss_type,
-                    "wpa_config", wpa_config,
                     NULL);
     
+    self->prv->modified = TRUE;
+
     return( self );
 }
 
@@ -725,6 +722,8 @@ nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_
     self->prv->essid = g_strdup( name );
 
     g_free(name);
+
+    self->prv->modified = FALSE;
 
     return(TRUE);
 }
@@ -1864,6 +1863,16 @@ set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, cons
     return( retval );
 }
 
+extern gboolean
+nwamui_wifi_net_has_modifications( NwamuiWifiNet* self ) 
+{
+    if ( self != NULL && NWAMUI_IS_WIFI_NET(self) &&
+         self->prv->modified ) {
+        return( TRUE );
+    }
+
+    return( FALSE );
+}
 
 /* Callbacks */
 

@@ -178,6 +178,8 @@ extern void                         nwamui_daemon_emit_info_message( NwamuiDaemo
 
 extern void                         nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, nwam_events_msg_t* event );
 
+extern gboolean                     nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon );
+
 G_END_DECLS
 
 #endif	/* _NWAMUI_DAEMON_H */

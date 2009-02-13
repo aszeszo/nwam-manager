@@ -349,7 +349,7 @@ nwamui_ncp_get_property (   GObject         *object,
             }
             break;
         case PROP_NCU_LIST: {
-                g_value_set_object( value, self->prv->ncu_list );
+                g_value_set_pointer( value, nwamui_util_copy_obj_list( self->prv->ncu_list ) );
             }
             break;
         case PROP_NCU_TREE_STORE: {
@@ -517,7 +517,7 @@ nwamui_ncp_is_modifiable (NwamuiNcp *self)
         g_warning("Error getting ncp read-only status: %s", nwam_strerror( nerr ) );
     }
     */
-    if ( self->prv->name && strcmp( self->prv->name, "automatic" ) == 0 ) {
+    if ( self->prv->name && strcmp( self->prv->name, "Automatic" ) == 0 ) {
         modifiable = FALSE;
     }
     else {
@@ -548,6 +548,29 @@ nwamui_ncp_get_ncu_tree_store( NwamuiNcp *self )
                   NULL);
 
     return( ncu_tree_store );
+}
+
+/**
+ * nwamui_ncp_get_ncu_list:
+ * @returns: GList containing NwamuiNcu elements
+ *
+ **/
+extern GList*
+nwamui_ncp_get_ncu_list( NwamuiNcp *self )
+{
+    GList*  ncu_list = NULL;
+
+    if ( self == NULL ) {
+        return( NULL );
+    }
+
+    g_return_val_if_fail (NWAMUI_IS_NCP(self), ncu_list); 
+    
+    g_object_get (G_OBJECT (self),
+                  "ncu_list", &ncu_list,
+                  NULL);
+
+    return( ncu_list );
 }
 
 /**

@@ -1292,7 +1292,19 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
             
             if ( (found_item = g_list_find_custom( old_copy, item->data, (GCompareFunc)nwamui_wifi_net_compare )) != NULL ) {
                 /* Same */
-                nwamui_wifi_net_update_with_handle( NWAMUI_WIFI_NET( found_item->data ), NULL ); /* Re-read configuration */
+                gboolean committed = TRUE;
+
+                if ( nwamui_wifi_net_has_modifications( NWAMUI_WIFI_NET( found_item->data ) ) ) {
+                    /* Commit first */
+                    committed = nwamui_wifi_net_commit_favourite( NWAMUI_WIFI_NET( found_item->data ) );
+                }
+
+                if ( committed ) {
+                    /* Can't re-read if was never committed - at least this is
+                     * the case if it exists only in memory.
+                     */
+                    nwamui_wifi_net_update_with_handle( NWAMUI_WIFI_NET( found_item->data ), NULL ); /* Re-read configuration */
+                }
                 g_object_unref(G_OBJECT(found_item->data));
                 old_copy = g_list_delete_link( old_copy, found_item );
             }
@@ -1380,6 +1392,46 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
     return( TRUE );
 }
 
+extern gboolean
+nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon ) 
+{
+    gboolean    rval = TRUE;
+
+    for( GList* ncp_item = g_list_first(daemon->prv->ncp_list); 
+         rval && ncp_item != NULL; 
+         ncp_item = g_list_next( ncp_item ) ) {
+        NwamuiNcp*  ncp = NWAMUI_NCP(ncp_item->data);
+        gchar*      ncp_name = nwamui_ncp_get_name( ncp );
+
+        if ( nwamui_ncp_is_modifiable( ncp ) ) {
+            g_warning("NCP : %s modifiable", ncp_name );
+            for( GList* ncu_item = g_list_first(nwamui_ncp_get_ncu_list( NWAMUI_NCP(ncp) ) ); 
+                 rval && ncu_item != NULL; 
+                 ncu_item = g_list_next( ncu_item ) ) {
+                NwamuiNcu*  ncu = NWAMUI_NCU(ncu_item->data);
+                gchar*      ncu_name = nwamui_ncu_get_display_name( ncu );
+
+                if ( nwamui_ncu_has_modifications( ncu ) ) {
+                    g_warning("Going to commit changes for %s : %s", ncp_name, ncu_name );
+                    if ( !nwamui_ncu_commit( ncu ) ) {
+                        g_warning("Commit FAILED for %s : %s", ncp_name, ncu_name );
+                        rval = FALSE;
+                        break;
+                    }
+                }
+                else {
+                    g_warning("No changes for %s : %s", ncp_name, ncu_name );
+                }
+            }
+        }
+        else {
+            g_warning("NCP : %s read-only", ncp_name );
+        }
+
+        g_free( ncp_name );
+    }
+    return( rval );
+}
 
 /* Callbacks */
 
@@ -2227,15 +2279,13 @@ nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse)
                 idx->data.wlan_scan.name));
              
             for (i = 0; i < idx->data.wlan_scan.num_wlans; i++) {
+                GList *bssid_list = g_list_append( NULL, g_strdup(wlans->bssid) );
                 wifi_net = nwamui_wifi_net_new (NULL,
                   wlans->essid,
                   nwamui_wifi_net_security_map (wlans->security_mode),
-                  wlans->bssid,
-                  NULL,
-                  0,
-                  nwamui_wifi_net_strength_map (wlans->signal_strength),
-                  NWAMUI_WIFI_BSS_TYPE_AUTO,
-                  NULL);
+                  bssid_list,
+                  NWAMUI_WIFI_BSS_TYPE_AUTO);
+                  
                 /* trigger event */
                 g_signal_emit (self,
                   nwamui_daemon_signals[WIFI_SCAN_RESULT],

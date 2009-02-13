@@ -71,7 +71,7 @@ typedef enum {
     NWAMUI_WIFI_SEC_WEP_HEX,
     NWAMUI_WIFI_SEC_WEP_ASCII,
     NWAMUI_WIFI_SEC_WPA_PERSONAL,
-    NWAMUI_WIFI_SEC_WPA_ENTERPRISE,
+    /* NWAMUI_WIFI_SEC_WPA_ENTERPRISE,- Currently not supported  */
     NWAMUI_WIFI_SEC_LAST /* Not to be used directly */
 } nwamui_wifi_security_t;
 
@@ -111,15 +111,15 @@ extern struct _NwamuiNcu; /* forwardref */
 
 extern  GType                       nwamui_wifi_net_get_type (void) G_GNUC_CONST;
 
+extern gboolean                     nwamui_wifi_net_has_modifications( NwamuiWifiNet* self );
+
+extern gboolean                     nwamui_wifi_net_commit_favourite ( NwamuiWifiNet *self );
+
 extern  NwamuiWifiNet*              nwamui_wifi_net_new(    struct _NwamuiNcu               *ncu,
                                                             const gchar                     *essid, 
                                                             nwamui_wifi_security_t           security,
                                                             GList                           *bssid_list,
-                                                            const gchar                     *mode,
-                                                            guint                            speed,
-                                                            nwamui_wifi_signal_strength_t    signal_strength,
-                                                            nwamui_wifi_bss_type_t           bss_type,
-                                                            nwamui_wifi_wpa_config_t         wpa_config );
+                                                            nwamui_wifi_bss_type_t           bss_type );
 
 extern  NwamuiWifiNet*              nwamui_wifi_net_new_with_handle(    struct _NwamuiNcu               *ncu,
                                                                         nwam_known_wlan_handle_t         handle );

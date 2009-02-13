@@ -684,19 +684,63 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
     if ( self->prv->wifi_net != NULL ) {
         g_object_unref(self->prv->wifi_net);
     }
-    self->prv->wifi_net = wifi_net;
+    self->prv->wifi_net = NULL;
 
     if ( wifi_net != NULL ) {
+        nwamui_wifi_security_t   security = nwamui_wifi_net_get_security(wifi_net);
+
+        self->prv->wifi_net = NWAMUI_WIFI_NET(g_object_ref(wifi_net));
+
         g_object_set(G_OBJECT (self),
                 "essid", nwamui_wifi_net_get_essid(wifi_net),
                 "bssid_list", nwamui_wifi_net_get_bssid_list(wifi_net),
-                "security", nwamui_wifi_net_get_security(wifi_net),
-                "key", nwamui_wifi_net_get_wep_password(wifi_net),
-                "wpa_config_type", nwamui_wifi_net_get_wpa_config(wifi_net),
-                "wpa_username", nwamui_wifi_net_get_wpa_username(wifi_net),
-                "wpa_password", nwamui_wifi_net_get_wpa_password(wifi_net),
-                "wpa_cert_file", nwamui_wifi_net_get_wpa_cert_file(wifi_net),
-                NULL);
+                "security", security,
+                NULL );
+
+        switch (security) {
+            case NWAMUI_WIFI_SEC_NONE: 
+                break;
+
+            case NWAMUI_WIFI_SEC_WEP_HEX:
+            case NWAMUI_WIFI_SEC_WEP_ASCII:
+            case NWAMUI_WIFI_SEC_WPA_PERSONAL:
+                g_object_set(G_OBJECT (self),
+                        "key", nwamui_wifi_net_get_wep_password(wifi_net),
+                        NULL);
+                break;
+#if 0
+            /* Currently ENTERPRISE is not supported */
+            case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
+                nwamui_wifi_wpa_config_t wpa_config_type = nwamui_wifi_net_get_wpa_config(wifi_net);
+
+                g_object_set(G_OBJECT (self),
+                        "wpa_config_type", wpa_config_type,
+                        "wpa_username", nwamui_wifi_net_get_wpa_username(wifi_net),
+                        "wpa_password", nwamui_wifi_net_get_wpa_password(wifi_net),
+                        NULL);
+
+                switch( wpa_config_type ) {
+                    case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC:
+                        break;
+                    case NWAMUI_WIFI_WPA_CONFIG_LEAP:
+                    case NWAMUI_WIFI_WPA_CONFIG_PEAP:
+                        g_object_set(G_OBJECT (self),
+                                "wpa_cert_file", nwamui_wifi_net_get_wpa_cert_file(wifi_net),
+                                NULL);
+                        break;
+                }
+                break;
+#endif
+            default:
+                break;
+        }
+    }
+    else {
+        g_object_set(G_OBJECT (self),
+                "essid", "",
+                "bssid_list", NULL,
+                "security", NWAMUI_WIFI_SEC_NONE,
+                NULL );
     }
 }
 
@@ -999,6 +1043,14 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 
     g_assert(NWAM_IS_WIRELESS_DIALOG (self));
     
+    if (self->prv->wifi_net == NULL ) {
+        g_object_set(G_OBJECT (self),
+                "essid", "",
+                "bssid_list", NULL,
+                "security", NWAMUI_WIFI_SEC_NONE,
+                NULL );
+    }
+    
     if ( self->prv->wireless_dialog != NULL ) {
         response = gtk_dialog_run(GTK_DIALOG(self->prv->wireless_dialog));
         
@@ -1009,7 +1061,6 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
                                 "essid", nwam_wireless_dialog_get_essid(self),
                                 "security", nwam_wireless_dialog_get_security(self),
                                 "bssid_list", nwam_wireless_dialog_get_bssid_list(self),
-                                "wpa_config", nwam_wireless_dialog_get_wpa_config_type(self),
                                 NULL);
                 }
                 else {
@@ -1018,13 +1069,40 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
                                 nwam_wireless_dialog_get_essid(self),
                                 nwam_wireless_dialog_get_security(self),
                                 nwam_wireless_dialog_get_bssid_list(self),
-                                "g",
-                                (gint)g_random_int_range(0, 56), /* Random speed */
-                                (nwamui_wifi_signal_strength_t)g_random_int_range((gint32)NWAMUI_WIFI_STRENGTH_NONE, (gint32)NWAMUI_WIFI_STRENGTH_GOOD),
-                                NWAMUI_WIFI_BSS_TYPE_AUTO,
-                                nwam_wireless_dialog_get_wpa_config_type(self)
-                            );
+                                NWAMUI_WIFI_BSS_TYPE_AUTO);
                 }
+
+                switch ( nwam_wireless_dialog_get_security(self) ) {
+                    case NWAMUI_WIFI_SEC_NONE: 
+                        break;
+
+                    case NWAMUI_WIFI_SEC_WEP_HEX:
+                    case NWAMUI_WIFI_SEC_WEP_ASCII:
+                    case NWAMUI_WIFI_SEC_WPA_PERSONAL:
+                        g_object_set(G_OBJECT (self->prv->wifi_net),
+                                "wep_password", nwam_wireless_dialog_get_key(self),
+                                NULL);
+                        break;
+#if 0
+                    /* Currently ENTERPRISE is not supported */
+                    case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
+                        nwamui_wifi_wpa_config_t wpa_config_type = nwamui_wifi_net_get_wpa_config(wifi_net);
+
+                        /* FIXME: Make this work */
+                        switch( wpa_config_type ) {
+                            case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC:
+                                break;
+                            case NWAMUI_WIFI_WPA_CONFIG_LEAP:
+                                break;
+                            case NWAMUI_WIFI_WPA_CONFIG_PEAP:
+                                break;
+                        }
+                        break;
+#endif
+                    default:
+                        break;
+                }
+
                 break;
             default:
                 if ( self->prv->wifi_net != NULL ) {
@@ -1178,6 +1256,8 @@ validate_information( NwamWirelessDialog* self )
                 }
             }
             break;
+#if 0
+        /* Currently ENTERPRISE is not supported */
         case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
             {
                 const gchar* username =   gtk_entry_get_text(GTK_ENTRY(self->prv->wpa_username_entry));
@@ -1189,6 +1269,7 @@ validate_information( NwamWirelessDialog* self )
                 /* TODO - Determine more WPA Validation criteria */
             }
             break;
+#endif
     }   
 
     if ( self->prv->wifi_net == NULL ) {
@@ -1206,13 +1287,38 @@ validate_information( NwamWirelessDialog* self )
                 nwam_wireless_dialog_get_essid(self),
                 nwam_wireless_dialog_get_security(self),
                 nwam_wireless_dialog_get_bssid_list(self),
-                "g",
-                (gint)g_random_int_range(0, 56), /* Random speed */
-                (nwamui_wifi_signal_strength_t)g_random_int_range((gint32)NWAMUI_WIFI_STRENGTH_NONE, (gint32)NWAMUI_WIFI_STRENGTH_GOOD),
-                NWAMUI_WIFI_BSS_TYPE_AUTO,
-                nwam_wireless_dialog_get_wpa_config_type(self));
-                
+                NWAMUI_WIFI_BSS_TYPE_AUTO );
 
+        switch ( nwam_wireless_dialog_get_security(self) ) {
+            case NWAMUI_WIFI_SEC_NONE: 
+                break;
+
+            case NWAMUI_WIFI_SEC_WEP_HEX:
+            case NWAMUI_WIFI_SEC_WEP_ASCII:
+            case NWAMUI_WIFI_SEC_WPA_PERSONAL:
+                g_object_set(G_OBJECT (tmp_wifi),
+                        "wep_password", nwam_wireless_dialog_get_key(self),
+                        NULL);
+                break;
+#if 0
+            /* Currently ENTERPRISE is not supported */
+            case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
+                nwamui_wifi_wpa_config_t wpa_config_type = nwamui_wifi_net_get_wpa_config(wifi_net);
+
+                /* FIXME: Make this work */
+                switch( wpa_config_type ) {
+                    case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC:
+                        break;
+                    case NWAMUI_WIFI_WPA_CONFIG_LEAP:
+                        break;
+                    case NWAMUI_WIFI_WPA_CONFIG_PEAP:
+                        break;
+                }
+                break;
+#endif
+            default:
+                break;
+        }
     }
     else {
         tmp_wifi = NWAMUI_WIFI_NET(g_object_ref(self->prv->wifi_net));
@@ -1267,6 +1373,8 @@ security_selection_cb( GtkWidget* widget, gpointer data )
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_conf_entry), TRUE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->show_password_cbutton ), FALSE );
             break;
+#if 0
+        /* Currently ENTERPRISE is not supported */
         case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WPA_PAGE);
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WPA_PAGE);
@@ -1277,6 +1385,7 @@ security_selection_cb( GtkWidget* widget, gpointer data )
                 gtk_combo_box_set_active(self->prv->wpa_config_combo, 0);
             }
             break;
+#endif
         default:
             break;
     }

@@ -219,6 +219,8 @@ extern gboolean                 nwamui_util_get_interface_address(  const char  
                                                                     gint        *prefixlen_p, 
                                                                     gboolean    *is_dhcp_p );
 
+extern gboolean                 nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry );
+
 G_END_DECLS
 
 #endif	/* _libnwamui_H */

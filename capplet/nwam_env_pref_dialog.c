@@ -212,7 +212,7 @@ static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 
 static void fmri_dialog_response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 
-static void populate_svc(const char *fmri, gchar **name_out);
+static void get_smf_service_name(const char *fmri, gchar **name_out, gboolean *valid_fmri );
 
 static void action_menu_group_set_visible(NwamMenuGroup *menugroup, const gchar *name, gboolean visible);
 
@@ -374,6 +374,8 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     /* add fmri dialog */
     prv->enter_service_fmri_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(ENTER_SERVICE_FMRI_DIALOG));
     prv->smf_fmri_entry = GTK_ENTRY(nwamui_util_glade_get_widget(SMF_FMRI_ENTRY));
+
+    nwamui_util_set_entry_smf_fmri_completion( prv->smf_fmri_entry );
 
     /* Add Signal Handlers */
 	g_signal_connect(GTK_DIALOG(self->prv->env_pref_dialog), "response", (GCallback)response_cb, (gpointer)self);
@@ -1172,9 +1174,11 @@ svc_button_clicked(GtkButton *button, gpointer  user_data)
         gtk_window_set_modal (GTK_WINDOW(prv->enter_service_fmri_dialog), TRUE);
         gtk_window_set_transient_for (GTK_WINDOW(prv->enter_service_fmri_dialog), parent);
 
+        gtk_entry_set_text(prv->smf_fmri_entry, "" );
+
         if (GTK_RESPONSE_OK == gtk_dialog_run(GTK_DIALOG(prv->enter_service_fmri_dialog))) {
             GtkTreeIter iter;
-            gchar *svc;
+            const gchar *svc;
 
             svc = gtk_entry_get_text(prv->smf_fmri_entry);
 
@@ -1259,12 +1263,16 @@ default_svc_status_cb (GtkTreeViewColumn *tree_column,
         gchar *name;
         gchar *fmri;
 
-        populate_svc(svc, &name);
-
-        g_assert(name);
+        get_smf_service_name(svc, &name, NULL );
 
         fmri = g_strstr_len(svc, sizeof("svc:/"), "/");
-        info = g_strdup_printf(_("<b>%s</b>\n%s"), name, fmri ? fmri + 1 : svc);
+
+        if ( name != NULL ) {
+            info = g_strdup_printf(_("<b>%s</b>\n%s"), name, fmri ? fmri + 1 : svc);
+        }
+        else {
+            info = g_strdup_printf(_("%s"), fmri ? fmri + 1 : svc);
+        }
 
         g_object_set(G_OBJECT(cell), "markup", info, NULL);
 
@@ -1665,7 +1673,7 @@ svc_list_merge_to_model(gpointer data, gpointer user_data)
 }
 
 static void
-populate_svc(const char *fmri, gchar **name_out)
+get_smf_service_name(const char *fmri, gchar **name_out, gboolean* valid_fmri )
 {
     static scf_handle_t        *handle = NULL;
 	ssize_t         max_scf_name_length = scf_limit(SCF_LIMIT_MAX_NAME_LENGTH);
@@ -1678,131 +1686,118 @@ populate_svc(const char *fmri, gchar **name_out)
     char           *cname;
     char           *desc;
 
-    *name_out = NULL;
+    if ( fmri == NULL ) {
+        return;
+    }
+
+    if ( name_out != NULL ) {
+        *name_out = NULL;
+    }
+
+    if ( valid_fmri != NULL ) {
+        *valid_fmri = FALSE;
+    }
 
     if ( handle == NULL ) {
         handle = scf_handle_create(SCF_VERSION);
 
         if (scf_handle_bind(handle) == -1 ) {
             g_error("couldn't bind to smf service: %s", scf_strerror(scf_error()) );
+            return;
         }
     }
+
     service = scf_service_create( handle );
     instance = scf_instance_create( handle );
-    pg = scf_pg_create( handle );
-    prop = scf_property_create( handle );
-    value = scf_value_create( handle );
-    name = malloc( max_scf_name_length + 1 );
-    cname = malloc( max_scf_name_length + 1 );
-    desc = malloc( max_scf_name_length + 1 );
 
     if ( scf_handle_decode_fmri( handle, fmri , NULL, service, instance, NULL, NULL,
         SCF_DECODE_FMRI_REQUIRE_INSTANCE ) < 0 ) {
-        g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()));
+        g_debug("Problem decoding the fmri '%s' at line %d : %s\n", fmri, __LINE__, scf_strerror(scf_error()));
+        scf_service_destroy( service );
+        scf_instance_destroy( instance );
+        return;
     }
 
-    if ( scf_instance_get_name( instance, name, max_scf_name_length + 1) < 0 ) {
-        g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-    }
-    else {
-        g_message("NAME : '%s'\n", name );
+    /* Got this far, so FMRI is valid */
+    if ( valid_fmri != NULL ) {
+        *valid_fmri = TRUE;
     }
 
-    if ( scf_service_get_pg( service, SCF_PG_TM_COMMON_NAME, pg) < 0 ) {
-        g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-    }
-    else {
-        if ( scf_pg_get_property(pg, "C", prop ) < 0 ) {
-            g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-        }
-        else {
-            if ( scf_property_get_value(prop, value ) < 0 ) {
-                g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-            }
-            else {
-                if ( scf_value_get_ustring(value, cname, max_scf_name_length + 1 ) < 0 ) {
-                    g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-                }
-                else {
-                    g_message("SERVICE COMMON NAME : '%s'\n", cname );
-                    *name_out = g_strdup(cname);
-                }
-            }
-        }
+    if ( name_out == NULL ) {
+        /* May as well return now since we don't have anything to do if
+         * name_out is NULL
+         */
+        return;
     }
 
-    if ( scf_service_get_pg( service, SCF_PG_TM_DESCRIPTION, pg) < 0 ) {
-        g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-    }
-    else {
-        if ( scf_pg_get_property(pg, "C", prop ) < 0 ) {
-            g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-        }
-        else {
-            if ( scf_property_get_value(prop, value ) < 0 ) {
-                g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-            }
-            else {
-                if ( scf_value_get_ustring(value, desc, max_scf_name_length + 1 ) < 0 ) {
-                    g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-                }
-                else {
-                    g_message("SERVICE DESCRIPTION : '%s'\n", desc );
+    pg = scf_pg_create( handle );
+    prop = scf_property_create( handle );
+    value = scf_value_create( handle );
+    name = g_malloc( max_scf_name_length + 1 );
+    cname = g_malloc( max_scf_name_length + 1 );
+    desc = g_malloc( max_scf_name_length + 1 );
+
+    /* Check for the instance name first */
+    if ( scf_instance_get_pg( instance, SCF_PG_TM_COMMON_NAME, pg) != -1 ) {
+        if ( scf_pg_get_property(pg, "C", prop ) != -1 ) {
+            if ( scf_property_get_value(prop, value ) != -1 ) {
+                if ( scf_value_get_ustring(value, cname, max_scf_name_length + 1 ) != -1 ) {
+                    g_debug("INSTANCE COMMON NAME : '%s'\n", cname );
+                    if ( name_out != NULL ) {
+                        *name_out = g_strdup(cname);
+                    }
                 }
             }
         }
     }
 
-    if ( scf_instance_get_pg( instance, SCF_PG_TM_COMMON_NAME, pg) < 0 ) {
-        g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-    }
-    else {
-        if ( scf_pg_get_property(pg, "C", prop ) < 0 ) {
-            g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-        }
-        else {
-            if ( scf_property_get_value(prop, value ) < 0 ) {
-                g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-            }
-            else {
-                if ( scf_value_get_ustring(value, cname, max_scf_name_length + 1 ) < 0 ) {
-                    g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-                }
-                else {
-                    g_message("INSTANCE COMMON NAME : '%s'\n", cname );
+    /* Check the service name, if the instance name wasn't set */
+    if ( *name_out != NULL ) {
+        if ( scf_service_get_pg( service, SCF_PG_TM_COMMON_NAME, pg) != -1) {
+            if ( scf_pg_get_property(pg, "C", prop ) != -1 ) {
+                if ( scf_property_get_value(prop, value ) != -1 ) {
+                    if ( scf_value_get_ustring(value, cname, max_scf_name_length + 1 ) != -1 ) {
+                        g_debug("SERVICE COMMON NAME : '%s'\n", cname );
+                        *name_out = g_strdup(cname);
+                    }
                 }
             }
         }
     }
 
-    if ( scf_instance_get_pg( instance, SCF_PG_TM_DESCRIPTION, pg) < 0 ) {
-        g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-    }
-    else {
-        if ( scf_pg_get_property(pg, "C", prop ) < 0 ) {
-            g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-        }
-        else {
-            if ( scf_property_get_value(prop, value ) < 0 ) {
-                g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-            }
-            else {
-                if ( scf_value_get_ustring(value, desc, max_scf_name_length + 1 ) < 0 ) {
-                    g_message("Error: line %d : %s\n", __LINE__, scf_strerror(scf_error()) );
-                }
-                else {
-                    g_message("INSTANCE DESCRIPTION : '%s'\n", desc );
+#if 0
+    /* Right now we don't need to get the description, but just in case we
+     * need it in the future, we'll keep the code here.
+     */
+    if ( scf_service_get_pg( service, SCF_PG_TM_DESCRIPTION, pg) != -1 ) {
+        if ( scf_pg_get_property(pg, "C", prop ) != -1 ) {
+            if ( scf_property_get_value(prop, value ) != -1 ) {
+                if ( scf_value_get_ustring(value, desc, max_scf_name_length + 1 ) != -1 ) {
+                    g_debug("SERVICE DESCRIPTION : '%s'\n", desc );
                 }
             }
         }
     }
 
-
+    if ( scf_instance_get_pg( instance, SCF_PG_TM_DESCRIPTION, pg) != -1 ) {
+        if ( scf_pg_get_property(pg, "C", prop ) != -1 ) {
+            if ( scf_property_get_value(prop, value ) != -1 ) {
+                if ( scf_value_get_ustring(value, desc, max_scf_name_length + 1 ) != -1 ) {
+                    g_debug("INSTANCE DESCRIPTION : '%s'\n", desc );
+                }
+            }
+        }
+    }
+#endif
 
 /*     scf_handle_destroy( handle ); */
-    free(name);
-    free(cname);
-    free(desc);
+    scf_pg_destroy( pg );
+    scf_property_destroy( prop );
+    scf_value_destroy( value );
+
+    g_free(name);
+    g_free(cname);
+    g_free(desc);
 }
 
 static void
@@ -1824,8 +1819,15 @@ fmri_dialog_response_cb( GtkWidget* widget, gint repsonseid, gpointer data )
         svc = gtk_entry_get_text(prv->smf_fmri_entry);
 
         if (svc) {
-            populate_svc(svc, &svc_name);
-            if (svc_name) {
+            gboolean valid_fmri = FALSE;
+
+            get_smf_service_name(svc, &svc_name, &valid_fmri );
+
+            /* Only fail if the FMRI isn't parseable, rather than based on
+             * whether the name is valid, since some services don't set a
+             * common name - a bug in the service, but we shoudn't fail.
+             */
+            if (valid_fmri) {
                 gtk_widget_hide(widget);
                 g_free(svc_name);
                 break;
