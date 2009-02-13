@@ -1237,9 +1237,48 @@ condition_gobject_combo_changed_cb( GtkComboBox* combo, gpointer data )
 static void
 condition_value_changed_cb( GtkWidget* widget, gpointer data )
 {
-    NwamuiCond* cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
+    NwamuiCond             *cond = NWAMUI_COND(g_object_get_data (G_OBJECT(data), TABLE_ROW_CDATA));
+    GtkComboBox            *combo1 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_COMBO1));
+    nwamui_cond_field_t     field;
+    gboolean                valid = FALSE;
+
+    field = (nwamui_cond_field_t)get_unfiltered_index_from_combo( combo1 );
     
-    nwamui_cond_set_value(cond, gtk_entry_get_text(GTK_ENTRY(widget)));
+    /* Need to validate the text appropriately w.r.t. the field selected */
+    switch ( field ) {
+        case NWAMUI_COND_FIELD_NCU: {
+                valid = TRUE;
+            }
+            break;
+        case NWAMUI_COND_FIELD_ENM: {
+                valid = TRUE;
+            }
+            break;
+        case NWAMUI_COND_FIELD_LOC: {
+                valid = TRUE;
+            }
+            break;
+        case NWAMUI_COND_FIELD_IP_ADDRESS: {
+                valid = TRUE;
+            }
+            break;
+        case NWAMUI_COND_FIELD_DOMAINNAME: {
+                valid = TRUE;
+            }
+            break;
+        case NWAMUI_COND_FIELD_ESSID: {
+                valid = TRUE;
+            }
+            break;
+        case NWAMUI_COND_FIELD_BSSID: {
+                valid = TRUE;
+            }
+            break;
+    }
+
+    if ( valid ) {
+        nwamui_cond_set_value(cond, gtk_entry_get_text(GTK_ENTRY(widget)));
+    }
 }
 
 static void

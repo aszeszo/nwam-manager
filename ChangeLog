@@ -1,5 +1,11 @@
 2009-02-13  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_condition_vbox.c: 
+	  Put in place-holder code for validation of the text value according
+	  to the type of the field.
+
+2009-02-13  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_conn_conf_ip_panel.c: 
 	  Remove wrong code, and return a value in apply().
 	* capplet/nwam_pref_dialog.c:
