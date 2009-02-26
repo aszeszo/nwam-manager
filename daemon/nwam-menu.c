@@ -894,35 +894,9 @@ event_daemon_info (NwamuiDaemon* daemon,
     case NWAMUI_DAEMON_INFO_WLAN_CHANGED:
         nwam_menu_recreate_wifi_menuitems(self);
         break;
-    case NWAMUI_DAEMON_INFO_WLAN_CONNECTED: {
-        gchar *name = nwamui_wifi_net_get_unique_name(NWAMUI_WIFI_NET(obj));
-
-        /* Since nwamui daemon may create another wifi net instance for a same
-         * wlan and set to a ncu, so we should try to find the menu item which
-         * has the same essid so that we can update its wifi data. */
-        GtkAction* action = menu_group_get_action_by_name(self, ID_WIFI, name);
-
-        g_free(name);
-
-        if (action) {
-            nwam_action_set_wifi(NWAM_WIFI_ACTION(action), NWAMUI_WIFI_NET(obj));
-
-            self->prv->change_from_daemon = TRUE;
-            gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), TRUE);
-            self->prv->change_from_daemon = FALSE;
-        }
-    }
-        break;
-    case NWAMUI_DAEMON_INFO_WLAN_DISCONNECTED: {
-        gchar *name = nwamui_wifi_net_get_unique_name(NWAMUI_WIFI_NET(obj));
-        menus_set_toggle_action_active(self, ID_WIFI, name, FALSE);
-        g_free(name);
-    }
-        /* Fall through */
+    case NWAMUI_DAEMON_INFO_WLAN_CONNECTED:
+    case NWAMUI_DAEMON_INFO_WLAN_DISCONNECTED:
     case NWAMUI_DAEMON_INFO_WLAN_CONNECT_FAILED:
-        /* enable default "false" wlan */
-        menus_set_toggle_action_active(self, ID_WIFI, NULL, TRUE);
-        break;
     default:
         /* ignore others */
         break;

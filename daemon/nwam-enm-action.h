@@ -45,7 +45,7 @@ typedef struct _NwamEnmActionClass   NwamEnmActionClass;
 
 struct _NwamEnmAction
 {
-  GtkRadioAction parent;
+  GtkToggleAction parent;
 
 	/*< private >*/
 
@@ -54,7 +54,7 @@ struct _NwamEnmAction
 
 struct _NwamEnmActionClass
 {
-  GtkRadioActionClass parent_class;
+  GtkToggleActionClass parent_class;
 };
 
 GType            nwam_enm_action_get_type          (void) G_GNUC_CONST;

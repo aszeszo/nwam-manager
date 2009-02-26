@@ -43,11 +43,11 @@ typedef struct _NwamEnvGroup        NwamEnvGroup;
 typedef struct _NwamEnvGroupClass   NwamEnvGroupClass;
 
 struct _NwamEnvGroup {
-	NwamMenuRadioActionGroup parent;
+	NwamMenuActionGroup parent;
 };
 
 struct _NwamEnvGroupClass {
-	NwamMenuRadioActionGroupClass parent_class;
+	NwamMenuActionGroupClass parent_class;
 };
 
 GType nwam_env_group_get_type(void) G_GNUC_CONST;

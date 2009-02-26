@@ -41,6 +41,7 @@
 
 struct _NwamEnmActionPrivate {
     NwamuiEnm *enm;
+    gulong toggled_handler_id;
 };
 
 enum {
@@ -75,7 +76,7 @@ static void on_nwam_enm_toggled (GtkAction *action, gpointer data);
 static void on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED(NwamEnmAction, nwam_enm_action,
-  GTK_TYPE_RADIO_ACTION, 0,
+  GTK_TYPE_TOGGLE_ACTION, 0,
   G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJ_PROXY_IFACE, nwam_obj_proxy_init))
 
 static void
@@ -132,6 +133,9 @@ nwam_enm_action_init (NwamEnmAction *self)
         g_object_unref(ncp);
         g_object_unref(daemon);
     }
+
+    prv->toggled_handler_id = g_signal_connect(self,
+      "toggled", G_CALLBACK(on_nwam_enm_toggled), NULL);
 }
 
 NwamEnmAction *
@@ -149,9 +153,6 @@ nwam_enm_action_new(NwamuiEnm *enm)
       "stock-id", NULL,
       "enm", enm,
       NULL);
-
-    g_signal_connect (G_OBJECT(action), "activate",
-      G_CALLBACK(on_nwam_enm_toggled), (gpointer)action);
 
     g_free(menu_text);
 
@@ -209,8 +210,6 @@ nwam_enm_action_set_property (GObject         *object,
 
             /* initializing */
             on_nwam_enm_notify(G_OBJECT(prv->enm), NULL, (gpointer)self);
-
-            g_object_set (object, "value", (gint)prv->enm, NULL);
         }
         break;
 	default:
@@ -263,6 +262,10 @@ on_nwam_enm_toggled (GtkAction *action, gpointer data)
 {
 	NwamEnmAction *self = NWAM_ENM_ACTION (action);
     NwamEnmActionPrivate *prv = GET_PRIVATE(self);
+
+    g_signal_handler_block(self, prv->toggled_handler_id);
+    gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(self), FALSE);
+    g_signal_handler_unblock(self, prv->toggled_handler_id);
 
 	if (nwamui_enm_get_active(prv->enm)) {
 		nwamui_enm_set_active(prv->enm, FALSE);

@@ -50,7 +50,7 @@ static void nwam_wifi_group_finalize(NwamWifiGroup *self);
 
 G_DEFINE_TYPE(NwamWifiGroup,
   nwam_wifi_group,
-  NWAM_TYPE_MENU_RADIO_ACTION_GROUP)
+  NWAM_TYPE_MENU_ACTION_GROUP)
 
 static void
 nwam_wifi_group_class_init(NwamWifiGroupClass *klass)

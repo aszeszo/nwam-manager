@@ -45,7 +45,7 @@ typedef struct _NwamWifiActionClass   NwamWifiActionClass;
 
 struct _NwamWifiAction
 {
-  GtkRadioAction parent;
+  GtkToggleAction parent;
 
 	/*< private >*/
 
@@ -54,7 +54,7 @@ struct _NwamWifiAction
 
 struct _NwamWifiActionClass
 {
-  GtkRadioActionClass parent_class;
+  GtkToggleActionClass parent_class;
 };
 
 GType            nwam_wifi_action_get_type          (void) G_GNUC_CONST;

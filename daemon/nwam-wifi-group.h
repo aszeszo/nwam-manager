@@ -43,11 +43,11 @@ typedef struct _NwamWifiGroup        NwamWifiGroup;
 typedef struct _NwamWifiGroupClass   NwamWifiGroupClass;
 
 struct _NwamWifiGroup {
-	NwamMenuRadioActionGroup parent;
+	NwamMenuActionGroup parent;
 };
 
 struct _NwamWifiGroupClass {
-	NwamMenuRadioActionGroupClass parent_class;
+	NwamMenuActionGroupClass parent_class;
 };
 
 GType nwam_wifi_group_get_type(void) G_GNUC_CONST;

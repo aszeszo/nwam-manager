@@ -53,7 +53,7 @@ static void nwam_env_group_finalize(NwamEnvGroup *self);
 
 G_DEFINE_TYPE(NwamEnvGroup,
   nwam_env_group,
-  NWAM_TYPE_MENU_RADIO_ACTION_GROUP)
+  NWAM_TYPE_MENU_ACTION_GROUP)
 
 static void
 nwam_env_group_class_init(NwamEnvGroupClass *klass)
