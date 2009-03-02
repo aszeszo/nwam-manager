@@ -287,7 +287,7 @@ nwamui_enm_set_property (   GObject         *object,
                     nwamui_cond_activation_mode_t activation_mode = 
                         (nwamui_cond_activation_mode_t)g_value_get_int( value );
 
-                    set_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
+                    set_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ACTIVATION_MODE, (guint64)activation_mode );
                 }
                 else {
                     g_warning("Unexpected null enm handle");
@@ -302,7 +302,7 @@ nwamui_enm_set_property (   GObject         *object,
                     guint   len = 0;
 
                     condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
-                    set_nwam_enm_string_array_prop( self->prv->nwam_enm, NWAM_NCU_PROP_CONDITIONS, condition_strs, len );
+                    set_nwam_enm_string_array_prop( self->prv->nwam_enm, NWAM_ENM_PROP_CONDITIONS, condition_strs, len );
                 }
                 else {
                     g_warning("Unexpected null enm handle");
@@ -418,7 +418,7 @@ nwamui_enm_get_property (   GObject         *object,
                 nwamui_cond_activation_mode_t activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
                 if (self->prv->nwam_enm != NULL) {
                     activation_mode = (nwamui_cond_activation_mode_t)
-                                        get_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_NCU_PROP_ACTIVATION_MODE );
+                                        get_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ACTIVATION_MODE );
                 }
                 else {
                     g_warning("Unexpected null enm handle");
@@ -433,7 +433,7 @@ nwamui_enm_get_property (   GObject         *object,
 
                 if (self->prv->nwam_enm != NULL) {
                     gchar** condition_strs = get_nwam_enm_string_array_prop( self->prv->nwam_enm, 
-                                                                             NWAM_NCU_PROP_CONDITIONS );
+                                                                             NWAM_ENM_PROP_CONDITIONS );
 
                     GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
 

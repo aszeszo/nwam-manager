@@ -97,21 +97,21 @@ gladedir   = $(pkgdatadir)
 glade_DATA = nwam-manager-properties.glade
 
 EXTRA_DIST = 		\
-	nwam_wireless_dialog.h	\
-	nwam_pref_dialog.h	\
-	nwam_net_conf_panel.h	\
+	capplet-utils.h	\
+	nwam_condition_vbox.h	\
+	nwam_conn_conf_ip_panel.h	\
 	nwam_conn_stat_panel.h	\
 	nwam_env_pref_dialog.h	\
-	nwam_vpn_pref_dialog.h	\
-	nwam_conn_conf_ip_panel.h	\
 	nwam_env_svc.h	\
-	nwam_proxy_password_dialog.h	\
-	nwam_wireless_chooser.h	\
-	nwam_condition_vbox.h	\
-	nwam_tree_view.h	\
 	nwam_location_dialog.h	\
+	nwam_net_conf_panel.h	\
+	nwam_pref_dialog.h	\
+	nwam_proxy_password_dialog.h	\
 	nwam_rules_dialog.h	\
-	capplet-utils.h	\
+	nwam_tree_view.h	\
+	nwam_vpn_pref_dialog.h	\
+	nwam_wireless_chooser.h	\
+	nwam_wireless_dialog.h	\
 	$(glade_DATA)	\
 	$(NULL)
 

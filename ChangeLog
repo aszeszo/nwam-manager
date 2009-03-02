@@ -1,3 +1,24 @@
+2009-03-02  Darren Kenny  <darren.kenny@sun.com>
+
+	* Makefile.am:
+	  Include nwam_core headers in EXTRA_DIST (for now).
+	* capplet/Makefile.am,  daemon/Makefile.am,  common/Makefile.am:
+	  Add Missing header files into EXTRA_DIST, and sort them.
+	* common/nwamui_enm.c,  common/nwamui_enm.c: 
+	  Fix references to NWAM_NCU_PROP variables.
+	* configure.in:
+	  Set version number to 1.0
+	* daemon/nwam-manager-daemon.glade:
+	  Remove unused glade file.
+	* nwam_core/usr/include/libdlflow.h,  nwam_core/usr/include/libnwam.h,
+	  nwam_core/usr/include/sys/dld.h,  nwam_core/usr/include/sys/dlpi.h,
+	  nwam_core/usr/include/sys/mac.h,
+	  nwam_core/usr/include/sys/mac_flow.h:
+	  Update nwam_core header files from latest NWAM sources.
+	  NOTE: This breaks the build - we need to work on fixing this since
+	  many references have changed w.r.t. events and NCU_PROP_CONDITIONS
+	  to name a few.
+
 2009-02-26  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/nwam-enm-action.c (nwam_enm_action_init),

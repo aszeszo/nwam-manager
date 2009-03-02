@@ -105,16 +105,16 @@ ui_DATA         = nwam-ui.xml
 
 EXTRA_DIST = 		\
 	notify.h	\
-	status_icon.h	\
+	nwam-enm-action.h	\
+	nwam-enm-group.h	\
+	nwam-env-action.h	\
+	nwam-env-group.h	\
 	nwam-menu.h	\
 	nwam-menuitem.h	\
-	nwam-wifi-action.h	\
-	nwam-env-action.h	\
-	nwam-enm-action.h	\
-	nwam-wifi-group.h	\
-	nwam-env-group.h	\
-	nwam-enm-group.h	\
 	nwam-obj-proxy-iface.h	\
+	nwam-wifi-action.h	\
+	nwam-wifi-group.h	\
+	status_icon.h	\
 	$(ui_DATA)	\
 	$(schemas_in_files)	\
 	$(autosession_in_files)	\

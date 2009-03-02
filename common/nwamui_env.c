@@ -622,7 +622,7 @@ nwamui_env_set_property (   GObject         *object,
                 guint   len = 0;
 
                 condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
-                set_nwam_loc_string_array_prop( self->prv->nwam_loc, NWAM_NCU_PROP_CONDITIONS, condition_strs, len );
+                set_nwam_loc_string_array_prop( self->prv->nwam_loc, NWAM_LOC_PROP_CONDITIONS, condition_strs, len );
             }
             break;
 
@@ -920,7 +920,7 @@ nwamui_env_get_property (GObject         *object,
             
         case PROP_CONDITIONS: {
                 gchar** condition_strs = get_nwam_loc_string_array_prop( self->prv->nwam_loc, 
-                                                                         NWAM_NCU_PROP_CONDITIONS );
+                                                                         NWAM_LOC_PROP_CONDITIONS );
 
                 GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
 

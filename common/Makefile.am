@@ -74,20 +74,21 @@ install-data-local:
 gladedir   = $(datadir)/nwam-manager
 
 EXTRA_DIST = 		\
-	libnwamui.h		\
-	nwamui_object.h \
-	nwamui_ip.h \
-	nwamui_svc.h \
-	nwamui_wifi_net.h \
+	libnwamui.h \
+	nwam-menu-action-group.h \
+	nwam-menu-group.h \
+	nwam-menu-radio-action-group.h \
+	nwam_pref_iface.h \
+	nwam_ui_icons.h \
+	nwamui_cond.h \
 	nwamui_daemon.h \
 	nwamui_enm.h \
+	nwamui_env.h \
+	nwamui_ip.h \
 	nwamui_ncp.h \
 	nwamui_ncu.h \
-	nwamui_cond.h \
+	nwamui_object.h \
 	nwamui_prof.h \
-	nwam_pref_iface.h	\
-	nwam-menu-group.h	\
-	nwam-menu-action-group.h	\
-	nwam-menu-radio-action-group.h	\
+	nwamui_svc.h \
+	nwamui_wifi_net.h \
 	$(NULL)
-
