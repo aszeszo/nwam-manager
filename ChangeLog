@@ -1,3 +1,10 @@
+2009-03-05  Calum Benson <calum.benson@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	Redesigned Name Services tab in Location Prefs dialog.
+	Still needs some layout love, but should be good enough
+	to allow implementation to commence...	
+
 2009-03-02  Darren Kenny  <darren.kenny@sun.com>
 
 	* Makefile.am:
