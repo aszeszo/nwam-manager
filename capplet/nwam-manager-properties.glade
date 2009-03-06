@@ -28,7 +28,10 @@
                     <property name="items" translatable="yes">Connection Status
 Network Profile
 ---
+Automatic Profile
 Wired (hme0)
+---
+User Profile
 Wired (hme1)
 Wireless (bcm0)</property>
                   </widget>
@@ -108,7 +111,7 @@ Wireless (bcm0)</property>
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="xalign">0</property>
-                            <property name="label" translatable="yes">Custom</property>
+                            <property name="label" translatable="yes">User</property>
                           </widget>
                           <packing>
                             <property name="left_attach">2</property>
@@ -265,7 +268,6 @@ Wireless (bcm0)</property>
                         </child>
                         <child>
                           <widget class="GtkExpander" id="expander2">
-                            <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="spacing">3</property>
@@ -361,13 +363,14 @@ Wireless (bcm0)</property>
                 <child>
                   <widget class="GtkVBox" id="network_profile_vbox">
                     <property name="visible">True</property>
+                    <property name="spacing">6</property>
                     <child>
                       <widget class="GtkAlignment" id="alignment10">
                         <property name="visible">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                         <property name="xscale">0.94999998807907104</property>
                         <child>
-                          <widget class="GtkHBox" id="profile_name_hbox1">
+                          <widget class="GtkHBox" id="profile_name_hbox">
                             <property name="visible">True</property>
                             <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                             <property name="spacing">6</property>
@@ -376,7 +379,7 @@ Wireless (bcm0)</property>
                                 <property name="visible">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="xalign">0</property>
-                                <property name="label" translatable="yes">_Profile:</property>
+                                <property name="label" translatable="yes">Active _Profile:</property>
                                 <property name="use_underline">True</property>
                               </widget>
                               <packing>
@@ -384,28 +387,14 @@ Wireless (bcm0)</property>
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkComboBox" id="profile_name_combo1">
+                              <widget class="GtkComboBox" id="profile_name_combo">
                                 <property name="visible">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="items" translatable="yes">Automatic
-Custom</property>
+User</property>
                               </widget>
                               <packing>
                                 <property name="position">1</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <widget class="GtkButton" id="profile_edit_btn">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="label" translatable="yes">gtk-edit</property>
-                                <property name="use_stock">True</property>
-                                <property name="response_id">0</property>
-                              </widget>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="position">2</property>
                               </packing>
                             </child>
                           </widget>
@@ -419,12 +408,11 @@ Custom</property>
                     <child>
                       <widget class="GtkAlignment" id="alignment11">
                         <property name="visible">True</property>
-                        <property name="top_padding">12</property>
+                        <property name="top_padding">6</property>
+                        <property name="bottom_padding">12</property>
                         <child>
-                          <widget class="GtkLabel" id="label78">
+                          <widget class="GtkHSeparator" id="hseparator2">
                             <property name="visible">True</property>
-                            <property name="xalign">0</property>
-                            <property name="label" translatable="yes">Select connections to enable, and sort by connection priority:</property>
                           </widget>
                         </child>
                       </widget>
@@ -435,12 +423,107 @@ Custom</property>
                       </packing>
                     </child>
                     <child>
+                      <widget class="GtkHBox" id="edit_profile_name_hbox">
+                        <property name="visible">True</property>
+                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                        <property name="spacing">6</property>
+                        <child>
+                          <widget class="GtkLabel" id="label37">
+                            <property name="visible">True</property>
+                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="xalign">0</property>
+                            <property name="label" translatable="yes">_View/Edit Profile:</property>
+                            <property name="use_underline">True</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkComboBox" id="edit_profile_name_combo">
+                            <property name="visible">True</property>
+                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                            <property name="items" translatable="yes">Automatic
+Custom</property>
+                          </widget>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="position">1</property>
+                          </packing>
+                        </child>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <widget class="GtkLabel" id="label78">
+                        <property name="visible">True</property>
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">Select connections to enable, and sort by connection priority:</property>
+                      </widget>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                    <child>
                       <widget class="GtkTable" id="connection_list_table">
                         <property name="visible">True</property>
                         <property name="n_rows">2</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">6</property>
                         <property name="row_spacing">12</property>
+                        <child>
+                          <widget class="GtkHBox" id="hbox5">
+                            <property name="visible">True</property>
+                            <property name="spacing">3</property>
+                            <child>
+                              <widget class="GtkLabel" id="activation_mode_lbl">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">_Selected connection:</property>
+                                <property name="use_underline">True</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkComboBox" id="connection_activation_combo">
+                                <property name="visible">True</property>
+                                <property name="items" translatable="yes">Always active
+Never active
+Only one connection may be active
+One or more connections may be active
+All connections must be active</property>
+                              </widget>
+                              <packing>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </widget>
+                          <packing>
+                            <property name="top_attach">1</property>
+                            <property name="bottom_attach">2</property>
+                            <property name="y_options">GTK_FILL</property>
+                          </packing>
+                        </child>
+                        <child>
+                          <widget class="GtkScrolledWindow" id="network_profile_scrolledwindow">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+                            <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
+                            <property name="shadow_type">GTK_SHADOW_IN</property>
+                            <child>
+                              <widget class="Custom" id="network_profile_table">
+                                <property name="visible">True</property>
+                              </widget>
+                            </child>
+                          </widget>
+                        </child>
                         <child>
                           <widget class="GtkVButtonBox" id="vbuttonbox3">
                             <property name="visible">True</property>
@@ -528,90 +611,41 @@ Custom</property>
                                 <property name="position">3</property>
                               </packing>
                             </child>
+                            <child>
+                              <widget class="GtkHSeparator" id="hseparator1">
+                                <property name="visible">True</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">4</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <widget class="GtkButton" id="profile_edit_btn">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="label" translatable="yes">Connections...</property>
+                                <property name="response_id">0</property>
+                              </widget>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="position">5</property>
+                              </packing>
+                            </child>
                           </widget>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
                             <property name="bottom_attach">2</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <widget class="GtkScrolledWindow" id="network_profile_scrolledwindow">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-                            <property name="vscrollbar_policy">GTK_POLICY_AUTOMATIC</property>
-                            <property name="shadow_type">GTK_SHADOW_IN</property>
-                            <child>
-                              <widget class="Custom" id="network_profile_table">
-                                <property name="visible">True</property>
-                              </widget>
-                            </child>
-                          </widget>
-                        </child>
-                        <child>
-                          <widget class="GtkHBox" id="hbox4">
-                            <property name="visible">True</property>
-                            <property name="spacing">12</property>
-                            <child>
-                              <widget class="GtkHBox" id="hbox5">
-                                <property name="visible">True</property>
-                                <property name="spacing">3</property>
-                                <child>
-                                  <widget class="GtkLabel" id="activation_mode_lbl">
-                                    <property name="visible">True</property>
-                                    <property name="xalign">0</property>
-                                    <property name="label" translatable="yes">_Selected connection:</property>
-                                    <property name="use_underline">True</property>
-                                  </widget>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                  </packing>
-                                </child>
-                                <child>
-                                  <widget class="GtkComboBox" id="connection_activation_combo">
-                                    <property name="visible">True</property>
-                                    <property name="items" translatable="yes">Always active
-Activated by rules
-Never active
-Only one connection may be active
-One or more connections may be active
-All connections must be active</property>
-                                  </widget>
-                                  <packing>
-                                    <property name="expand">False</property>
-                                    <property name="position">1</property>
-                                  </packing>
-                                </child>
-                              </widget>
-                            </child>
-                            <child>
-                              <widget class="GtkButton" id="connection_rules_btn">
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="can_focus">True</property>
-                                <property name="receives_default">True</property>
-                                <property name="label" translatable="yes">Edit _Rules...</property>
-                                <property name="use_underline">True</property>
-                                <property name="response_id">0</property>
-                              </widget>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                          </widget>
-                          <packing>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
                             <property name="x_options">GTK_FILL</property>
-                            <property name="y_options">GTK_SHRINK</property>
                           </packing>
                         </child>
                       </widget>
                       <packing>
                         <property name="padding">12</property>
-                        <property name="position">2</property>
+                        <property name="position">4</property>
                       </packing>
                     </child>
                   </widget>
@@ -2406,6 +2440,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkEntry" id="dns_domain_entry">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="text" translatable="yes">(optional)</property>
                               </widget>
@@ -2418,6 +2453,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkEntry" id="dns_servers_entry">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="text" translatable="yes">(required)</property>
                               </widget>
@@ -2432,6 +2468,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkEntry" id="nis_servers_entry">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="text" translatable="yes">(optional)</property>
                               </widget>
@@ -2446,6 +2483,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkLabel" id="label29">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">D_omain:</property>
                                 <property name="use_underline">True</property>
@@ -2460,6 +2498,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkLabel" id="label31">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Ser_vers:</property>
                                 <property name="use_underline">True</property>
@@ -2476,6 +2515,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkLabel" id="label32">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Sear_ch:</property>
                                 <property name="use_underline">True</property>
@@ -2492,6 +2532,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkLabel" id="label33">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Domain:</property>
                               </widget>
@@ -2507,6 +2548,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkLabel" id="label45">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">(enter below)</property>
                               </widget>
@@ -2521,6 +2563,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkLabel" id="label47">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">S_ervers:</property>
                                 <property name="use_underline">True</property>
@@ -2537,6 +2580,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkLabel" id="label48">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Domain:</property>
                               </widget>
@@ -2552,6 +2596,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkLabel" id="label49">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">(enter below)</property>
                               </widget>
@@ -2572,6 +2617,9 @@ From configuration (PAC) file</property>
                                 <property name="response_id">0</property>
                                 <property name="draw_indicator">True</property>
                               </widget>
+                              <packing>
+                                <property name="x_options">GTK_FILL</property>
+                              </packing>
                             </child>
                             <child>
                               <widget class="GtkRadioButton" id="dns_dhcp_rb">
@@ -2586,6 +2634,7 @@ From configuration (PAC) file</property>
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
+                                <property name="x_options">GTK_FILL</property>
                               </packing>
                             </child>
                             <child>
@@ -2602,6 +2651,7 @@ From configuration (PAC) file</property>
                               <packing>
                                 <property name="left_attach">2</property>
                                 <property name="right_attach">3</property>
+                                <property name="x_options">GTK_FILL</property>
                               </packing>
                             </child>
                             <child>
@@ -2616,6 +2666,7 @@ From configuration (PAC) file</property>
                               <packing>
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
+                                <property name="x_options">GTK_FILL</property>
                               </packing>
                             </child>
                             <child>
@@ -2633,6 +2684,7 @@ From configuration (PAC) file</property>
                                 <property name="right_attach">2</property>
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
+                                <property name="x_options">GTK_FILL</property>
                               </packing>
                             </child>
                             <child>
@@ -2651,11 +2703,13 @@ From configuration (PAC) file</property>
                                 <property name="right_attach">3</property>
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
+                                <property name="x_options">GTK_FILL</property>
                               </packing>
                             </child>
                             <child>
                               <widget class="GtkEntry" id="dns_search_entry">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="text" translatable="yes">(optional)</property>
                               </widget>
@@ -2727,6 +2781,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkEntry" id="default_domain_entry">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                               </widget>
                               <packing>
@@ -2738,6 +2793,7 @@ From configuration (PAC) file</property>
                             <child>
                               <widget class="GtkLabel" id="label27">
                                 <property name="visible">True</property>
+                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">De_fault domain:</property>
                                 <property name="use_underline">True</property>
@@ -2754,6 +2810,7 @@ From configuration (PAC) file</property>
                                 <child>
                                   <widget class="GtkLabel" id="label28">
                                     <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
                                     <property name="xalign">1</property>
                                     <property name="label" translatable="yes">&lt;i&gt;&lt;small&gt;Used by manual NIS and LDAP configurations&lt;/small&gt;&lt;/i&gt;</property>
                                     <property name="use_markup">True</property>
@@ -3964,7 +4021,6 @@ PEAP/MSCHAPv2</property>
                         <child>
                           <widget class="GtkButton" id="vpn_rules_btn">
                             <property name="visible">True</property>
-                            <property name="sensitive">False</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">True</property>
                             <property name="label" translatable="yes">Edit _Rules...</property>
@@ -4016,7 +4072,6 @@ PEAP/MSCHAPv2</property>
                         <child>
                           <widget class="GtkButton" id="vpn_remove_btn">
                             <property name="visible">True</property>
-                            <property name="sensitive">False</property>
                             <property name="can_focus">True</property>
                             <property name="can_default">True</property>
                             <property name="label">gtk-remove</property>
@@ -4125,7 +4180,6 @@ PEAP/MSCHAPv2</property>
                             <child>
                               <widget class="GtkLabel" id="start_cmd_lbl">
                                 <property name="visible">True</property>
-                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Start _Command:</property>
                                 <property name="use_underline">True</property>
@@ -4139,7 +4193,6 @@ PEAP/MSCHAPv2</property>
                             <child>
                               <widget class="GtkLabel" id="stop_cmd_lbl">
                                 <property name="visible">True</property>
-                                <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Stop Co_mmand:</property>
                                 <property name="use_underline">True</property>
@@ -4155,7 +4208,6 @@ PEAP/MSCHAPv2</property>
                             <child>
                               <widget class="GtkEntry" id="start_cmd_entry">
                                 <property name="visible">True</property>
-                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">●</property>
                               </widget>
@@ -4168,7 +4220,6 @@ PEAP/MSCHAPv2</property>
                             <child>
                               <widget class="GtkEntry" id="stop_cmd_entry">
                                 <property name="visible">True</property>
-                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="invisible_char">●</property>
                               </widget>
@@ -4183,7 +4234,6 @@ PEAP/MSCHAPv2</property>
                             <child>
                               <widget class="GtkButton" id="browse_start_cmd_btn">
                                 <property name="visible">True</property>
-                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="response_id">0</property>
                                 <child>
@@ -4232,7 +4282,6 @@ PEAP/MSCHAPv2</property>
                             <child>
                               <widget class="GtkButton" id="browse_stop_cmd_entry">
                                 <property name="visible">True</property>
-                                <property name="sensitive">False</property>
                                 <property name="can_focus">True</property>
                                 <property name="response_id">0</property>
                                 <child>

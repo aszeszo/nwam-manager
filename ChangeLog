@@ -1,3 +1,9 @@
+2009-03-06  Calum Benson  <calum.benson@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Modify Network Profile view to match latest UI spec.
+
 2009-03-05  Calum Benson <calum.benson@sun.com>
 
 	* capplet/nwam-manager-properties.glade:
