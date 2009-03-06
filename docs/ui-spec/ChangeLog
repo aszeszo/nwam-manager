@@ -1,3 +1,20 @@
+2009-03-06  Calum Benson  <calum.benson@sun.com>
+
+	* ChangeLog
+	* ui-spec-latest.tar.gz
+	* nwam-ui-spec.pages
+	* img/capplet/edit-profile.png
+	* img/capplet/env-name-services.png
+	* img/capplet/vpn-dlg-initial.png
+	* img/capplet/network-profile-prioritised-expand.png
+	* img/capplet/network-profile-noexpand.png
+	* img/capplet/vpn-dlg-adding.png
+	
+	Updates to spec to cover recent changes to Network Profile
+	view, VPN Applications dialog and domain name rules.  Still
+	need to update Name Services tab in Location Prefs dialog
+	before pushing to website.
+
 2009-01-29  Calum Benson  <calum.benson@sun.com>
 
 	* ui-spec-latest.tar.gz
