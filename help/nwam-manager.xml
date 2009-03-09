@@ -1,192 +1,274 @@
-<?xml version="1.0" standalone="no"?>
-<!DOCTYPE article PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
-"http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd"[
-  <!ENTITY legal SYSTEM "legal.xml">
-  <!ENTITY appversion "2.9.0">
-  <!ENTITY manualversion "2.9.0">
-  <!ENTITY date "October 2006">
-  <!ENTITY appname "NWAM Manager">
-  <!ENTITY app "<application>NWAM Manager</application>">
-<!-- replace version above with actual application version number -->
-<!--  Template Version: 1.0.1  (do not remove this line) -->
-]>
-
-<!-- =============Document Header ============================= -->
-
-<article id="index" lang="en"> <!-- please do not change the id -->
-
-  <articleinfo>
-    <title>&app; Manual V&manualversion;</title>
-    <copyright>
-      <year>2007</year>
-      <year>2008</year>
-      <holder>Sun Microsystems</holder>
-    </copyright>
-
-    <!-- translators: uncomment this:
-
-    <copyright>
-     <year>2000</year>
-     <holder>ME-THE-TRANSLATOR (Latin translation)</holder>
-    </copyright>
-
-    -->
-
-    <!-- An address can be added to the publisher information.  If a role is
-     not specified, the publisher/author is the same for all versions of the
-     document.  -->
-    <publisher>
-      <publishername> Sun Microsystems </publishername>
-    </publisher>
-
-    &legal;
-
-    <authorgroup>
-      <author role="maintainer">
-        <firstname>Stephanie</firstname>
-	<surname>Brucker</surname>
-	<affiliation>
-	  <address> <email>stephanie.brucker@sun.com</email> </address>
-        </affiliation>
-      </author>
-      <author>
-	<firstname>Darren</firstname>
-	<surname>Kenny</surname>
-	<affiliation>
-	  <address> <email>darren.kenny@sun.com</email> </address>
-	</affiliation>
-      </author>
-    </authorgroup>
-    <!-- do not put authorname in the header except in copyright - use
-         section "authors" below -->
-    <revhistory>
-      <revision>
-	<revnumber>&manualversion;</revnumber>
-	<date>&date;</date>
-	<revdescription>
-	  <para role="author">Darren Kenny</para>
-	  <para role="publisher">Sun Microsystems</para>
-	</revdescription>
-      </revision>
-    </revhistory>
-
-
-    <!-- this is version of manual, not application -->
-    <releaseinfo>
-      This is manual describes version &appversion; of &appname;
-    </releaseinfo>
-    <abstract role="description"><para>&app; provides a desktop presence for
-    NWAM</para></abstract>
-  </articleinfo>
-
-  <indexterm>
-    <primary>&appname;</primary>
-  </indexterm>
-  <indexterm>
-    <primary>network</primary>
-  </indexterm>
-  <indexterm>
-    <secondary>management</secondary>
-  </indexterm>
-
-  <!-- ============= Document Body ============================= -->
-
-  <!-- ============= Introduction ============================== -->
-
-  <sect1 id="intro">
-    <title>Introduction</title>
-    <para>
-        Put a paragraph about &app; here.
-    </para>
-    <para>
-        Next para here...
-    </para>
-  </sect1>
-
-  <!-- ============= Getting Started ==============================  -->
-  <sect1 id="gthumb-getting-started">
-  <title>Getting Started</title>
-  <para>
-    This section provides information on how to start &app;, and
-    describes the main window interface.
-  </para>
-  </sect1>
-
-  <!-- ============= Help menu item, applet menu ==============================  -->
-  <sect1 id="PANEL_APPLET">
-  <title>Help menu item, applet menu</title>
-    <para>
-      A paragraph about "Help menu item, applet menu"
-    </para>
-  </sect1>
-  <!-- ============= Network Preferences, Connection Status tab ==============================  -->
-  <sect1 id="PREF_CONN_STATUS">
-  <title>Network Preferences, Connection Status tab</title>
-    <para>
-      A paragraph about "Network Preferences, Connection Status tab"
-    </para>
-  </sect1>
-  <!-- ============= Network Preferences, Network Configuration tab ==============================  -->
-  <sect1 id="PREF_NET_CONFIG">
-  <title>Network Preferences, Network Configuration tab</title>
-    <para>
-      A paragraph about "Network Preferences, Network Configuration tab"
-    </para>
-  </sect1>
-  <!-- ============= Network Preferences, IP Address tab ==============================  -->
-  <sect1 id="PREF_IP_ADDR_TAB">
-  <title>Network Preferences, IP Address tab</title>
-    <para>
-      A paragraph about "Network Preferences, IP Address tab"
-    </para>
-  </sect1>
-  <!-- ============= Network Preferences, Wireless tab ==============================  -->
-  <sect1 id="PREF_WIFI_TAB">
-  <title>Network Preferences, Wireless tab</title>
-    <para>
-      A paragraph about "Network Preferences, Wireless tab"
-    </para>
-  </sect1>
-  <!-- ============= Location Preferences, Proxy tab ==============================  -->
-  <sect1 id="LOC_PROXY_TAB">
-  <title>Location Preferences, Proxy tab</title>
-    <para>
-      A paragraph about "Location Preferences, Proxy tab"
-    </para>
-  </sect1>
-  <!-- ============= Location Preferences, Rules tab ==============================  -->
-  <sect1 id="LOC_RULES_TAB">
-  <title>Location Preferences, Rules tab</title>
-    <para>
-      A paragraph about "Location Preferences, Rules tab"
-    </para>
-  </sect1>
-  <!-- ============= Location Preferences, Network Services tab ==============================  -->
-  <sect1 id="LOC_NET_SVC_TAB">
-  <title>Location Preferences, Network Services tab</title>
-    <para>
-      A paragraph about "Location Preferences, Network Services tab"
-    </para>
-  </sect1>
-  <!-- ============= Add/Edit/Join Wireless Network dialog ==============================  -->
-  <sect1 id="WIFI_EDIT_DIALOG">
-  <title>Add/Edit/Join Wireless Network dialog</title>
-    <para>
-      A paragraph about "Add/Edit/Join Wireless Network dialog"
-    </para>
-  </sect1>
-  <!-- ============= Choose Wireless Network dialog ==============================  -->
-  <sect1 id="WIFI_CHOICE_DIALOG">
-  <title>Choose Wireless Network dialog</title>
-    <para>
-      A paragraph about "Choose Wireless Network dialog"
-    </para>
-  </sect1>
-  <!-- ============= VPN Preferences dialog ==============================  -->
-  <sect1 id="VPN_PREF_DIALOG">
-  <title>VPN Preferences dialog</title>
-    <para>
-      A paragraph about "VPN Preferences dialog"
-    </para>
-  </sect1>
-</article>
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd">
+<book id="osnetautomagoh" label="fcs" lang="en"><title>OpenSolaris Network Auto-Magic Online Help</title>
+<bookinfo><authorgroup><author><firstname>Solaris</firstname>
+<surname>Publications</surname>
+</author>
+</authorgroup>
+<pubsnumber>820-5670-02</pubsnumber>
+<releaseinfo></releaseinfo>
+<pubdate>May 2009</pubdate>
+<publisher><publishername>Sun Microsystems, Inc.</publishername>
+</publisher>
+<copyright><year>2009</year>
+</copyright>
+<legalnotice><para>Sun Microsystems, Inc. has intellectual property rights relating to technology embodied in the product that is described in this document. In particular, and without limitation, these intellectual property rights may include one or more U.S. patents or pending patent applications in the U.S. and in other countries.</para>
+<para>U.S. Government Rights – Commercial software. Government users are subject to the Sun Microsystems, Inc. standard license agreement and applicable provisions of the FAR and its supplements.</para>
+<para>This distribution may include materials developed by third parties.</para>
+<para>Parts of the product may be derived from Berkeley BSD systems, licensed from the University of California. UNIX is a registered trademark in the U.S. and other countries, exclusively licensed through X/Open Company, Ltd.</para>
+<para>Sun, Sun Microsystems, the Sun logo, the Solaris logo, the Java Coffee Cup logo, docs.sun.com, Java, OpenSolaris, and Solaris are trademarks or registered trademarks of Sun Microsystems, Inc. or its subsidiaries in the U.S. and other countries. All SPARC trademarks are used under license and are trademarks or registered trademarks of SPARC International, Inc. in the U.S. and other countries. Products bearing SPARC trademarks are based upon an architecture developed by Sun Microsystems, Inc. PostScript is a trademark or registered trademark of Adobe Systems, Incorporated, which may be registered in certain jurisdictions.</para>
+<para>The OPEN LOOK and <trademark>Sun</trademark> Graphical User Interface was developed by Sun Microsystems, Inc. for its users and licensees. Sun acknowledges the pioneering efforts of Xerox in researching and developing the concept of visual or graphical user interfaces for the computer industry. Sun holds a non-exclusive license from Xerox to the Xerox Graphical User Interface, which license also covers Sun's licensees who implement OPEN LOOK GUIs and otherwise comply with Sun's written license agreements.</para>
+<para>Products covered by and information contained in this publication are controlled by U.S. Export Control laws and may be subject to the export or import laws in other countries. Nuclear, missile, chemical or biological weapons or nuclear maritime end uses or end users, whether direct or indirect, are strictly prohibited. Export or reexport to countries subject to U.S. embargo or to entities identified on U.S. export exclusion lists, including, but not limited to, the denied persons and specially designated nationals lists is strictly prohibited.</para>
+<para>DOCUMENTATION IS PROVIDED “AS IS” AND ALL EXPRESS OR IMPLIED CONDITIONS, REPRESENTATIONS AND WARRANTIES, INCLUDING ANY IMPLIED WARRANTY OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE OR NON-INFRINGEMENT, ARE DISCLAIMED, EXCEPT TO THE EXTENT THAT SUCH DISCLAIMERS ARE HELD TO BE LEGALLY INVALID.</para>
+<para lang="fr"></para>
+<para>Sun Microsystems, Inc. détient les droits de propriété intellectuelle relatifs à la technologie incorporée dans le produit qui est décrit dans ce document. En particulier, et ce sans limitation, ces droits de propriété intellectuelle peuvent inclure un ou plusieurs brevets américains ou des applications de brevet en attente aux Etats-Unis et dans d'autres pays.</para>
+<para>Cette distribution peut comprendre des composants développés par des tierces personnes.</para>
+<para>Certaines composants de ce produit peuvent être dérivées du logiciel Berkeley BSD, licenciés par l'Université de Californie. UNIX est une marque déposée aux Etats-Unis et dans d'autres pays; elle est licenciée exclusivement par X/Open Company, Ltd. </para>
+<para>Sun, Sun Microsystems, le logo Sun, le logo Solaris, le logo Java Coffee Cup, docs.sun.com, Java, OpenSolaris, et Solaris sont des marques de fabrique ou des marques déposées de Sun Microsystems, Inc., ou ses filiales, aux Etats-Unis et dans d'autres pays. Toutes les marques SPARC sont utilisées sous licence et sont des marques de fabrique ou des marques déposées de SPARC International, Inc. aux Etats-Unis et dans d'autres pays. Les produits portant les marques SPARC sont basés sur une architecture développée par Sun Microsystems, Inc. PostScript est une marque de fabrique d'Adobe Systems, Incorporated, laquelle pourrait ?`tre d?pos?e dans certaines juridictions.</para>
+<para>L'interface d'utilisation graphique OPEN LOOK et Sun a été développée par Sun Microsystems, Inc. pour ses utilisateurs et licenciés. Sun reconnaît les efforts de pionniers de Xerox pour la recherche et le développement du concept des interfaces d'utilisation visuelle ou graphique pour l'industrie de l'informatique. Sun détient une licence non exclusive de Xerox sur l'interface d'utilisation graphique Xerox, cette licence couvrant également les licenciés de Sun qui mettent en place l'interface d'utilisation graphique OPEN LOOK et qui, en outre, se conforment aux licences écrites de Sun.</para>
+<para>Les produits qui font l'objet de cette publication et les informations qu'il contient sont régis par la legislation américaine en matière de contrôle des exportations et peuvent être soumis au droit d'autres pays dans le domaine des exportations et importations. Les utilisations finales, ou utilisateurs finaux, pour des armes nucléaires, des missiles, des armes chimiques ou biologiques ou pour le nucléaire maritime, directement ou indirectement, sont strictement interdites. Les exportations ou réexportations vers des pays sous embargo des Etats-Unis, ou vers des entités figurant sur les listes d'exclusion d'exportation américaines, y compris, mais de manière non exclusive, la liste de personnes qui font objet d'un ordre de ne pas participer, d'une façon directe ou indirecte, aux exportations des produits ou des services qui sont régis par la legislation américaine en matière de contrôle des exportations et la liste de ressortissants spécifiquement designés, sont rigoureusement interdites.</para>
+<para>LA DOCUMENTATION EST FOURNIE "EN L'ETAT" ET TOUTES AUTRES CONDITIONS, DECLARATIONS ET GARANTIES EXPRESSES OU TACITES SONT FORMELLEMENT EXCLUES, DANS LA MESURE AUTORISEE PAR LA LOI APPLICABLE, Y COMPRIS NOTAMMENT TOUTE GARANTIE IMPLICITE RELATIVE A LA QUALITE MARCHANDE, A L'APTITUDE A UNE UTILISATION PARTICULIERE OU A L'ABSENCE DE CONTREFACON. </para>
+</legalnotice>
+</bookinfo>
+<chapter id="about-nwam"><title>Configuring Your Automatic Network Connection</title>
+<para>The Network Auto-Magic (NWAM) process simplifies network configuration tasks by automatically establishing a network connection at system startup. Using this feature, you can modify the currently active network connection and perform other network administration tasks, such as the following:</para>
+<itemizedlist><listitem><para>View status information about your network connection.</para>
+</listitem>
+<listitem><para>Set up an automatic or custom network profile.</para>
+</listitem>
+<listitem><para>Connect to your wireless network.</para>
+</listitem>
+<listitem><para>Switch to a different wireless network.</para>
+</listitem>
+<listitem><para>Change to a wired network connection.</para>
+</listitem>
+<listitem><para>Create a list of your favorite network connections.</para>
+</listitem>
+<listitem><para>Add, join, or edit a wireless network.</para>
+</listitem>
+<listitem><para>Manually configure your network.</para>
+</listitem>
+</itemizedlist>
+<sect1 id="giifs"><title>Key Network Components</title>
+<para>PLACEHOLDER INCLUDE BRIEF SUMMARY OF ALL COMPONENTS — TITLE SUBJECT TO CHANGE</para>
+</sect1>
+</chapter>
+<chapter id="nwstatus-icon"><title>About the Network Status Panel Icon</title>
+<para>This icon is shown in the desktop panel's notification area at all times. The icon is the primary method for viewing the status of your network and interacting with automatic network configuration processes. The Network Status panel icon is where informational messages about your network can be found and it's menu enables quick access to essential network functionality. </para>
+<para>The icon's appearance, which is described in the following figure, indicates the overall health of your network.</para>
+<para>INSERT GRAPHIC OF ICON WITH EMBLEMS (pg. 2 of UI document)</para>
+<para>To display a tooltip showing the name of the currently active location and the status of all enabled connections, hover your mouse over the icon. To configure a network location's properties, click the icon to open the <xref linkend="locationprefs-dialog"/> dialog.</para>
+<sect1 id="connection-names"><title>Connection Names</title>
+<para>Connection names use the format, <replaceable>Interface-Type</replaceable> (<emphasis>Link-Name</emphasis>), where:</para>
+<itemizedlist><listitem><para><replaceable>Interface-Type</replaceable> is “Wired N” for wired network interface cards (NICs) (where N is not shown for the first wired NIC, and N>=1 for subsequent NICs), or “Wireless N” for wireless NICs (where N is either not shown or >=1).</para>
+</listitem>
+<listitem><para><emphasis>Link-Name</emphasis> is the link's vanity name, for example <literal>net0</literal>, or the default device name, if the vanity name has not been defined.</para>
+</listitem>
+</itemizedlist>
+</sect1>
+<sect1 id="status-contxtmenu"><title>Working With the Network Status Panel Icon Context Menu</title>
+<para>To display the Network Status panel icon's context menu, right-click the panel icon.</para>
+<para>INSERT GRAPHIC??</para>
+</sect1>
+<sect1 id="status-notifications"><title>Network Status Notification Messages</title>
+<para>When a significant change in your network status occurs, a notification message is displayed. The message is displayed briefly and then disappears.</para>
+<para>The following table describes events that might occur, and the associated messages.</para>
+<para>INSERT TABLE WITH INFORMATION FROM PAGE 5.</para>
+<para>Clicking the xxx message...</para>
+<para>Clicking the xxx message...</para>
+<para>Clicking the xxx message...</para>
+</sect1>
+</chapter>
+<chapter id="nwprefs-dialog"><title>About the Network Preferences Dialog</title>
+<para>The Network Preferences dialog is where you can configure individual network connections and view the current state of each network connection. The window provides access to various views, from which you can switch by using the drop-down list that is located at the top of the window.</para>
+<para>You can access the <literal>Network Preferences</literal> dialog two ways:</para>
+<itemizedlist><listitem><para>By selecting Launch —> Administration —> Network</para>
+</listitem>
+<listitem><para>By selecting Network Preferences... from the <xref linkend="nwstatus-icon"/> panel icon's context menu.</para>
+</listitem>
+</itemizedlist>
+<para>The Network Preferences dialog contains a <literal>Show</literal> drop-down list, which comprises Connection Status, Network Profile, and a list of all of the connections that are defined in the current network profile. To switch views, select the view from the drop-down list. The default view is the Connection Status view.</para>
+<para>To switch to the <xref linkend="connectprop-view"/> view, select the connection name in the drop-down list or double-click the name while in the Connection Status view.</para>
+<para>The Connection Status view shows information about each enabled connection in the current profile (NCP), as configured in the <xref linkend="networkprofile-view"/> view. To display this view, select Connection Status view in the drop-down list of the Network Preferences dialog. Note that this view does not display disabled network connections.</para>
+<para>INSERT GRAPHIC ON PAGE 12?</para>
+<para>FINISH ADDING CONTENT</para>
+<para>See (xref to task sections).</para>
+<para>Network Profile view enables inspection, switching, and editing of the current NCP. There are two profiles to choose from, <emphasis>Automatic</emphasis> and <emphasis>Custom</emphasis>. To display this view, select Network Profile in the drop-down list of the Network Preferences dialog.</para>
+<para>INSERT GRAPHIC ON PAGE 13?</para>
+<para>FINISH ADDING CONTENT pages 14–16 or move the info???</para>
+<para>See (xref to task sections).</para>
+<para>To edit a network interfaces properties, select the interface in the drop-down list. A tabbed view appears, enabling you to edit the interface's properties.</para>
+<para>For all connection types, the first tab is the IP Address tab. The address choices are IPv4 or IPv6. For wireless connections, a Wireless tab is also displayed. Here, you can choose how the wireless interface connects to available networks.</para>
+<para><emphasis role="strong">Related Topics</emphasis></para>
+<para><xref linkend="viewstatus-info"/></para>
+<para>x</para>
+<para>x</para>
+<sect1 id="networkprefs-views"><title>Switching Views in the Network Preferences Dialog</title>
+<para>The following views are available...</para>
+<para>The Connection Properties view enables you to choose how the IP address for a specific network interface is obtained. For wireless interfaces, this view enables you to choose how and when wireless connections are automatically attempted. The network interface is selected from the <literal>Show</literal> drop-down list at the top of the Network Preferences dialog.</para>
+</sect1>
+</chapter>
+<chapter id="viewstatus-info"><title>Viewing Status Information About Your Network</title>
+<para>PLACEHOLDER FOR OVERVIEW INFO — insert information about where/what view this is done, connection status view...</para>
+<sect1 id="viewstatus-current"><title>To View Status Information About the Currently Active Network Connect</title>
+<para>x</para>
+</sect1>
+<sect1 id="viewstatus-all"><title>To View Status Information For Each Network Connection</title>
+<para>x</para>
+</sect1>
+<sect1 id="viewstatus-detailed"><title>To Obtain Detailed Information About the Currently Active Network Connection</title>
+<para>x</para>
+</sect1>
+</chapter>
+<chapter id="configure-network"><title>Configuring Your Network Interfaces</title>
+<para>OVERVIEW PLACEHOLDER — Put information about where this is done, what window, what view...</para>
+<sect1 id="connectwireless-startup"><title>To Connect to a Wireless Network at Startup</title>
+<para>x</para>
+</sect1>
+<sect1 id="changedefault-wireless"><title>To Change the Default Startup Network Connection for All Sessions </title>
+<para>x</para>
+</sect1>
+<sect1 id="chgwired-towireless"><title>To Change From a Wired Network to a Wireless Network </title>
+<para>x</para>
+</sect1>
+<sect1 id="chgwireless-towired"><title>To Change From a Wireless Network to a Wired Network</title>
+<para>x</para>
+</sect1>
+<sect1 id="chwireless-towireless"><title>To change From One Wireless Network to Another Wireless Network</title>
+<para>x</para>
+</sect1>
+<sect1 id="chgauto-tomanual"><title>To Change From an Automatic to a Manual Network Configuration</title>
+<para>x</para>
+</sect1>
+<sect1 id="chgmanual-toauto"><title>To Change From a Manual to an Automatic Network Configuration</title>
+<para>x</para>
+</sect1>
+<sect1 id="disable-wireless"><title>To Disable or Enable a Wireless Connection Using System Commands</title>
+<para>For systems that don't have a physical switch for doing this</para>
+</sect1>
+</chapter>
+<chapter id="profiles-overview"><title>Working With Network Configuration Profiles</title>
+<para>Done in Profile View — Add cross references to the Network Preferences dialog and to here from that section.</para>
+<sect1 id="profile-setup"><title>To Set Up a Network Configuration Profile</title>
+<para>x</para>
+</sect1>
+<sect1 id="ncpswitch-tocustom"><title>To Switch From an Automatic Network Configuration Profile to a Custom Network Configuration Profile</title>
+<para>x</para>
+</sect1>
+<sect1 id="ncpswitch-toauto"><title>To Switch From a Custom Network Configuration Profile to an Automatic Network Configuration Profile</title>
+<para>x</para>
+</sect1>
+<sect1 id="cond-activation"><title>PLACEHOLDER FOR CONDITIONAL ACTIVATION TASK</title>
+<para>Talk about conditional activation using new terminology?</para>
+</sect1>
+<sect1 id="reorder-connection"><title>To Re-Order Your Network Connection</title>
+<para>x</para>
+</sect1>
+<sect1 id="prioritygrps-create"><title>To Create or Delete Prioritized Network Groups</title>
+<para>x</para>
+</sect1>
+<sect1 id="rename-connection"><title>To Rename Network Connections</title>
+<para>x</para>
+</sect1>
+</chapter>
+<chapter id="connectprops-config"><title>Configuring Your Network Connection Properties</title>
+<para>PLACEHOLDER — insert information about Connection Properties view, etc? Other tasks?</para>
+<sect1 id="connectprops-dialog"><title>About the Connection Properties Dialog</title>
+<para>Not sure if this can be covered in the overview... maybe</para>
+</sect1>
+<sect1 id="connectprops-setupipv4"><title>To Set Up Automatically Assigned DHCP Connections (IPv4)</title>
+<para>Determine if this should stay as two separate topics for searching or can be combined.</para>
+</sect1>
+<sect1 id="connectprops-setupipv6"><title>To Set Up Automatically Assigned DHCP Connection (IPv6)</title>
+<para>x</para>
+</sect1>
+<sect1 id="assign-multipleip"><title>To Assign Multiple IP Address to Your Network</title>
+<para>x</para>
+<para>cross reference back to Network Preferences dialog.</para>
+</sect1>
+</chapter>
+<chapter id="nwlocations-overview"><title>Configuring Network Locations</title>
+<para>PLACEHOLDER — insert info and cross references to where this is done and what view.</para>
+<sect1 id="locationprefs-dialog"><title>About the Location Preferences Dialog</title>
+<para>x</para>
+</sect1>
+<sect1 id="location-confignew"><title>To Configure a New Network Location</title>
+<para>Make sure this task isn't covered elsewhere with a different name?</para>
+</sect1>
+<sect1 id="location-switch"><title>To Switch Network Locations</title>
+<para>INCLUDE INFO ON ACTIVATION MODES USING NEW TERMINOLOGY</para>
+</sect1>
+<sect1 id="location-remove"><title>To Remove a Network Location </title>
+<para>x</para>
+</sect1>
+<sect1 id="location-duplicate"><title>To Duplicate a Network Location </title>
+<para>x</para>
+</sect1>
+</chapter>
+<chapter id="locationprops-editing"><title>Editing a Network Location's Properties</title>
+<para>Discuss the three categories (Name Services, Security, Network Services...) in the overview, followed by tasks below.</para>
+<sect1 id="prefnamsvc-configother"><title>To Configure a Preferred Name Service From a Network Location Other than the Default</title>
+<para>x</para>
+</sect1>
+<sect1 id="disablefirewall-trusted"><title>To Disable a Firewall While Connected to a Trusted Network</title>
+<para>Is this the correct term, “a firewall”?</para>
+</sect1>
+<sect1 id="enablefirewall-public"><title>To Enable a Firewall While Connected to a Public Network</title>
+<para>x</para>
+</sect1>
+<sect1 id="locationprops-rules"><title>To Set Up Rules for Automatically Switching Network Locations</title>
+<para>x</para>
+</sect1>
+</chapter>
+<chapter id="addjoinedit-wireless"><title>Adding, Joining, or Editing Wireless Networks</title>
+<para>PLACEHOLDER</para>
+<sect1 id="addwireless-network"><title>To Add a Wireless Network</title>
+<para>PLACEHOLDER</para>
+</sect1>
+<sect1 id="joinwireless-network"><title>To Join a Wireless Network</title>
+<para>PLACEHOLDER</para>
+</sect1>
+<sect1 id="editwireless-network"><title>To Edit a Wireless Network</title>
+<para>PLACEHOLDER</para>
+</sect1>
+</chapter>
+<chapter id="wireless-chooser"><title>Working With the Wireless Chooser</title>
+<para>PLACEHOLDER (GR) – Include information about the dialog and what information is displayed.</para>
+<sect1 id="connect-usingchooser"><title>Using the Wireless Chooser to Connect to a Wireless Network</title>
+<para>PLACEHOLDER</para>
+</sect1>
+</chapter>
+<chapter id="vpn-overview"><title>Working With VPN Connections</title>
+<para>PLACEHOLDER</para>
+<sect1 id="aboutvpnprefs-dialog"><title>About the VPN Preferences dialog (GR)</title>
+<para>x</para>
+</sect1>
+<sect1 id="vpnconfig-new"><title>To Configure a VPN Connection (Cisco?)</title>
+<para>x</para>
+</sect1>
+<sect1 id="vpnconfig-usingsmf"><title>To Establish a VPN Connection Using the Service Management Facility</title>
+<para>x</para>
+</sect1>
+<sect1 id="vpnconfig-startstop"><title>To Start and Stop a VPN connection</title>
+<para>x</para>
+</sect1>
+<sect1 id="vpnconfig-rules"><title>To Set Up Rules for VPN connections</title>
+<para>x</para>
+</sect1>
+<sect1 id="vpnapplication-remove"><title>To Remove a VPN Application</title>
+<para>x</para>
+</sect1>
+<sect1 id="vpnconfig-outsidefirewall"><title>To Auto-Start a VPN Service From a System That Is Outside of a Firewall</title>
+<para>PLACEHOLDER</para>
+</sect1>
+</chapter>
+<chapter id="nwam-troubleshoot"><title>Troubleshooting Your Network Connection</title>
+<para>PLACEHOLDER</para>
+<sect1 id="ts-nowirelessdetected"><title>To Troubleshoot No Wireless Networks Detected Issues</title>
+<para>x</para>
+</sect1>
+<sect1 id="ts-errormsgs"><title>To Troubleshoot Error Messages</title>
+<para>x</para>
+</sect1>
+</chapter>
+</book>

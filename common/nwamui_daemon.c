@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* vim:set expandtab ts=4 shiftwidth=4: */
 /* 
- * Copyright 2007 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2007-2009 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  *
  * CDDL HEADER START
@@ -89,7 +89,7 @@ struct _NwamuiDaemonPrivate {
     nwamui_daemon_status_t       status;
     nwamui_daemon_event_cause_t  event_cause;
     GThread                     *nwam_events_gthread;
-    pthread_t                    nwam_tid;
+    gboolean                     nwam_init_done;
     gboolean                     communicate_change_to_daemon;
     guint                        wep_timeout_id;
     gboolean                     emit_wlan_changed_signals;
@@ -97,14 +97,14 @@ struct _NwamuiDaemonPrivate {
 };
 
 typedef struct _NwamuiEvent {
-    int e;	/* ui daemon event type */
-    nwam_events_msg_t *led;	/* daemon data */
+    int           e;	/* ui daemon event type */
+    nwam_event_t  nwamevent;	/* daemon data */
     NwamuiDaemon* daemon;
 } NwamuiEvent;
 
 static gboolean nwamd_event_handler(gpointer data);
 
-static NwamuiEvent* nwamui_event_new(NwamuiDaemon* daemon, int e, nwam_events_msg_t *led);
+static NwamuiEvent* nwamui_event_new(NwamuiDaemon* daemon, int e, nwam_event_t event);
 
 static void nwamui_event_free(NwamuiEvent *e);
 
@@ -126,7 +126,6 @@ static void nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self );
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* Default Callback Handlers */
-static int nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse);
 static void default_active_env_changed_signal_handler (NwamuiDaemon *self, GObject* data, gpointer user_data);
 static void default_active_ncp_changed_signal_handler (NwamuiDaemon *self, GObject* data, gpointer user_data);
 static void default_add_wifi_fav_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
@@ -405,6 +404,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     nwamui_wifi_essid_t    *ptr;
     NwamuiWifiNet          *wifi_net = NULL;
     NwamuiEnm              *new_enm = NULL;
+    nwam_error_t            nerr;
     
     self->prv = g_new0 (NwamuiDaemonPrivate, 1);
     
@@ -415,15 +415,14 @@ nwamui_daemon_init (NwamuiDaemon *self)
     self->prv->active_env = NULL;
     self->prv->active_ncp = NULL;
 
-    /* TODO: Register for Events here */
-    if (self->prv->nwam_tid == 0) {
-        nwam_events_register (nwam_events_callback, &(self->prv->nwam_tid));
+
+    if ( (nerr = nwam_events_init() ) != NWAM_SUCCESS ) {
+        g_warning("Failed to init nwam events: %s", nwam_strerror( nerr ) );
+        self->prv->nwam_init_done = FALSE;
     }
+    else {
+        self->prv->nwam_init_done = TRUE;
     
-#if 0
-    if ( libnwam_init(0) == -1 ) {
-        g_debug("NWAM Daemon doesn't appear to be running, errno = %s", strerror(errno) );
-    } else {
 		/*
 		 * according to the logic of nwam_events_thead, we can emit NWAMUI_DAEMON_INFO_ACTIVE
 		 * here, so we can populate all the info in nwamd_event_handler
@@ -434,8 +433,6 @@ nwamui_daemon_init (NwamuiDaemon *self)
 		  (GDestroyNotify) nwamui_event_free);
 
     }
-#endif /* 0 */
-
 	
     self->prv->nwam_events_gthread = g_thread_create(nwam_events_thread, g_object_ref(self), TRUE, &error);
     if( self->prv->nwam_events_gthread == NULL ) {
@@ -638,14 +635,13 @@ event_thread_running( void )
 static void
 nwamui_daemon_finalize (NwamuiDaemon *self)
 {
-    int retval;
-    int err;
+    int             retval;
+    int             err;
+    nwam_error_t    nerr;
     
     /* TODO - kill tid before destruct self */
-    if (self->prv->nwam_tid != 0 ) {
-        if ( (err = pthread_cancel(self->prv->nwam_tid))  != 0 ) {
-            g_warning("Error cancelling NWAM Event thread %d\n", err );
-        }
+    if (self->prv->nwam_init_done ) {
+        nwam_events_fini();
     }
 
     if ( self->prv->nwam_events_gthread != NULL ) {
@@ -1534,11 +1530,11 @@ dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon )
 }
 
 static NwamuiEvent*
-nwamui_event_new(NwamuiDaemon* daemon, int e, nwam_events_msg_t *led)
+nwamui_event_new(NwamuiDaemon* daemon, int e, nwam_event_t nwamevent)
 {
     NwamuiEvent *event = g_new(NwamuiEvent, 1);
     event->e = e;
-    event->led = led;
+    event->nwamevent = nwamevent;
     event->daemon = g_object_ref(daemon);
     return event;
 }
@@ -1548,8 +1544,8 @@ nwamui_event_free(NwamuiEvent *event)
 {
     g_object_unref(event->daemon);
     /* TODO: Can we free an event? */
-    if (event->led) {
-        free(event->led);
+    if (event->nwamevent) {
+        free(event->nwamevent);
     }
     g_free(event);
 }
@@ -1756,13 +1752,13 @@ nwamui_daemon_disable_dhcp_or_wep_key_timeout( NwamuiDaemon* self, NwamuiNcu* nc
     self->prv->wep_timeout_id = 0;
 }
 
-#ifdef PHASE_0_5
 static gboolean
 nwamd_event_handler(gpointer data)
 {
+#ifdef PHASE_0_5
     NwamuiEvent             *event = (NwamuiEvent *)data;
     NwamuiDaemon            *daemon = event->daemon;
-	libnwam_event_data_t    *led = event->led;
+	libnwam_event_data_t    *nwamevent = event->nwamevent;
     int                     err;
 
     daemon->prv->event_cause = NWAMUI_DAEMON_EVENT_CAUSE_NONE;
@@ -1793,8 +1789,8 @@ nwamd_event_handler(gpointer data)
         break;
     case NWAMUI_DAEMON_INFO_RAW:
     {
-        g_debug("NWAMUI_DAEMON_INFO_RAW led_type %d", led->led_type);
-        switch (led->led_type) {
+        g_debug("NWAMUI_DAEMON_INFO_RAW led_type %d", nwamevent->led_type);
+        switch (nwamevent->led_type) {
         case deInitial: {
 			/* should repopulate data here */
 			
@@ -1808,15 +1804,15 @@ nwamd_event_handler(gpointer data)
             break;
         case deInterfaceUp: {
             NwamuiNcu* ncu;
-            g_debug ("Interface %s is up with address %s/%d", led->led_interface, 
-              inet_ntoa(led->led_v4address), led->led_prefixlen );
+            g_debug ("Interface %s is up with address %s/%d", nwamevent->led_interface, 
+              inet_ntoa(nwamevent->led_v4address), nwamevent->led_prefixlen );
 
             daemon->prv->is_connected = TRUE;
 
-            ncu = get_ncu_by_device_name( daemon, led->led_interface );
-            nwamui_ncu_set_ipv4_address( ncu, inet_ntoa(led->led_v4address) );
+            ncu = get_ncu_by_device_name( daemon, nwamevent->led_interface );
+            nwamui_ncu_set_ipv4_address( ncu, inet_ntoa(nwamevent->led_v4address) );
             /* TODO - do we care about the pefix? */
-            /* nwamui_ncu_set_ipv4_subnet( ncu, led->led_prefixlen ); */
+            /* nwamui_ncu_set_ipv4_subnet( ncu, nwamevent->led_prefixlen ); */
 
             /* Directly deliver to upper consumers */
             g_signal_emit (daemon,
@@ -1830,13 +1826,13 @@ nwamd_event_handler(gpointer data)
         case deInterfaceDown: {
             NwamuiNcu* ncu;
             const char* reason = NULL;
-            nwamui_daemon_set_event_cause( daemon, convert_cause( led->led_cause ));
+            nwamui_daemon_set_event_cause( daemon, convert_cause( nwamevent->led_cause ));
             reason = nwamui_daemon_get_event_cause_string( daemon );
 
-            g_debug ("Interface %s is down, Reason '%s'", led->led_interface, reason );
+            g_debug ("Interface %s is down, Reason '%s'", nwamevent->led_interface, reason );
 
             /* Directly deliver to upper consumers */
-            ncu = get_ncu_by_device_name( daemon, led->led_interface );
+            ncu = get_ncu_by_device_name( daemon, nwamevent->led_interface );
             nwamui_ncu_set_ipv4_address( ncu, "" );
             g_signal_emit (daemon,
               nwamui_daemon_signals[S_NCU_DOWN],
@@ -1851,18 +1847,18 @@ nwamd_event_handler(gpointer data)
 
             nwamui_ncp_populate_ncu_list( ncp, G_OBJECT(daemon) );
 
-			g_debug("Interface %s added\n", led->led_interface);
+			g_debug("Interface %s added\n", nwamevent->led_interface);
         }
 			break;
 		case deInterfaceRemoved: {
             NwamuiNcp * ncp = nwamui_daemon_get_active_ncp( daemon );
 
-            nwamui_ncp_remove_ncu( ncp, led->led_interface );
-			g_debug("Interface %s removed\n", led->led_interface);
+            nwamui_ncp_remove_ncu( ncp, nwamevent->led_interface );
+			g_debug("Interface %s removed\n", nwamevent->led_interface);
         }
 			break;
         case deScanChange:
-            g_debug("New wireless networks found.", led->led_interface );
+            g_debug("New wireless networks found.", nwamevent->led_interface );
 
             /* Emit signals on found wlans */
             daemon->prv->emit_wlan_changed_signals = TRUE;
@@ -1872,7 +1868,7 @@ nwamd_event_handler(gpointer data)
             /* deScanChange or initial scan on daemon action will emit
              * signals */
             if (daemon->prv->emit_wlan_changed_signals) {
-                NwamuiNcu * ncu = get_ncu_by_device_name( daemon, led->led_interface );
+                NwamuiNcu * ncu = get_ncu_by_device_name( daemon, nwamevent->led_interface );
 
                 g_signal_emit (daemon,
                   nwamui_daemon_signals[DAEMON_INFO],
@@ -1887,31 +1883,31 @@ nwamd_event_handler(gpointer data)
             break;
 
         case deULPActivated: {
-            g_debug("User script '%s' activated", led->led_interface );
+            g_debug("User script '%s' activated", nwamevent->led_interface );
             g_signal_emit (daemon,
               nwamui_daemon_signals[DAEMON_INFO],
               0, /* details */
               NWAMUI_DAEMON_INFO_GENERIC,
               NULL,
-              g_strdup_printf(_("User script '%s' activated"), led->led_interface ));
+              g_strdup_printf(_("User script '%s' activated"), nwamevent->led_interface ));
         }
             break;
         case deULPDeactivated: {
-            g_debug("User script '%s' deactivated", led->led_interface );
+            g_debug("User script '%s' deactivated", nwamevent->led_interface );
             g_signal_emit (daemon,
               nwamui_daemon_signals[DAEMON_INFO],
               0, /* details */
               NWAMUI_DAEMON_INFO_GENERIC,
               NULL,
-              g_strdup_printf(_("User script '%s' deactivated"), led->led_interface ));
+              g_strdup_printf(_("User script '%s' deactivated"), nwamevent->led_interface ));
         }
             break;
         case deWlanConnectFail: {
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, led->led_interface );
+            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, nwamevent->led_interface );
             NwamuiWifiNet* wifi = NULL;
             gchar*          name = NULL;
 
-            g_debug("Wireless connection on  '%s' failed->", led->led_interface);
+            g_debug("Wireless connection on  '%s' failed->", nwamevent->led_interface);
             daemon->prv->is_connected = FALSE;
 
             g_assert(ncu);
@@ -1930,7 +1926,7 @@ nwamd_event_handler(gpointer data)
               0, /* details */
               NWAMUI_DAEMON_INFO_WLAN_CONNECT_FAILED,
               wifi,
-              g_strdup_printf("%s connection to wireless lan failed", name?name:led->led_interface));
+              g_strdup_printf("%s connection to wireless lan failed", name?name:nwamevent->led_interface));
 
             g_free(name);
 
@@ -1942,22 +1938,22 @@ nwamd_event_handler(gpointer data)
         }
             break;
         case deWlanDisconnect: {
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, led->led_interface );
+            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, nwamevent->led_interface );
             NwamuiWifiNet* wifi = nwamui_ncu_get_wifi_info(ncu);
 
             daemon->prv->is_connected = FALSE;
 
-            g_debug("Wireless network '%s' disconnected", led->led_wlan.wla_essid );
+            g_debug("Wireless network '%s' disconnected", nwamevent->led_wlan.wla_essid );
             g_assert(ncu);
 
             if ( wifi ) {
                 nwamui_wifi_net_set_status(wifi, NWAMUI_WIFI_STATUS_DISCONNECTED);
                 /* Do not reuse wifi net instance which will mess up menus */
-/*                 nwamui_wifi_net_set_from_wlan_attrs( wifi, &led->led_wlan  ); */
+/*                 nwamui_wifi_net_set_from_wlan_attrs( wifi, &nwamevent->led_wlan  ); */
                 nwamui_ncu_set_wifi_info(ncu, NULL);
             }
             else {
-                wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &led->led_wlan  );
+                wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &nwamevent->led_wlan  );
             }
 
             g_signal_emit (daemon,
@@ -1965,25 +1961,25 @@ nwamd_event_handler(gpointer data)
               0, /* details */
               NWAMUI_DAEMON_INFO_WLAN_DISCONNECTED,
               wifi,
-              g_strdup_printf("%s", led->led_wlan.wla_essid ));
+              g_strdup_printf("%s", nwamevent->led_wlan.wla_essid ));
 
             g_object_unref(wifi);
             g_object_unref(ncu);
         }
             break;
         case deWlanConnected: {
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, led->led_interface );
+            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, nwamevent->led_interface );
             NwamuiWifiNet* wifi = nwamui_ncu_get_wifi_info(ncu);
 
-            g_debug("Wireless network '%s' connected", led->led_wlan.wla_essid );
+            g_debug("Wireless network '%s' connected", nwamevent->led_wlan.wla_essid );
             g_assert(ncu);
 
             if ( wifi ) {
                 nwamui_wifi_net_set_status(wifi, NWAMUI_WIFI_STATUS_CONNECTED);
-                nwamui_wifi_net_set_from_wlan_attrs( wifi, &led->led_wlan  );
+                nwamui_wifi_net_set_from_wlan_attrs( wifi, &nwamevent->led_wlan  );
             }
             else {
-                wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &led->led_wlan  );
+                wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &nwamevent->led_wlan  );
                 nwamui_ncu_set_wifi_info(ncu, wifi);
             }
 
@@ -1997,7 +1993,7 @@ nwamd_event_handler(gpointer data)
               0, /* details */
               NWAMUI_DAEMON_INFO_WLAN_CONNECTED,
               wifi,
-              g_strdup_printf("%s", led->led_wlan.wla_essid ));
+              g_strdup_printf("%s", nwamevent->led_wlan.wla_essid ));
 
             g_object_unref(wifi);
             g_object_unref(ncu);
@@ -2005,11 +2001,11 @@ nwamd_event_handler(gpointer data)
             break;
 
         case deLLPSelected: {
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, led->led_interface );
+            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, nwamevent->led_interface );
             NwamuiNcp * ncp = nwamui_daemon_get_active_ncp( daemon );
             gchar*      name = NULL;
 
-            g_debug("Interface  '%s' selected.", led->led_interface);
+            g_debug("Interface  '%s' selected.", nwamevent->led_interface);
 
             g_assert(ncp && ncu);
 
@@ -2037,15 +2033,15 @@ nwamd_event_handler(gpointer data)
         }
             break;
         case deLLPUnselected: {
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, led->led_interface );
+            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, nwamevent->led_interface );
             NwamuiNcp * ncp = nwamui_daemon_get_active_ncp( daemon );
             NwamuiNcu * current_ncu = NULL;
             const char* reason = NULL;
             gchar*      name = NULL;
-            nwamui_daemon_set_event_cause( daemon, convert_cause( led->led_cause ));
+            nwamui_daemon_set_event_cause( daemon, convert_cause( nwamevent->led_cause ));
             reason = nwamui_daemon_get_event_cause_string( daemon );
 
-            g_debug("'%s' network interface unselected, Reason: '%s'", led->led_interface, reason);
+            g_debug("'%s' network interface unselected, Reason: '%s'", nwamevent->led_interface, reason);
 
             g_assert(ncp && ncu);
 
@@ -2077,7 +2073,7 @@ nwamd_event_handler(gpointer data)
             break;
 
         case deWlanKeyNeeded: {
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, led->led_interface );
+            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, nwamevent->led_interface );
             NwamuiNcp * ncp = nwamui_daemon_get_active_ncp( daemon );
             NwamuiNcu * current_ncu = NULL;
             NwamuiWifiNet *wifi = nwamui_ncu_get_wifi_info( ncu );
@@ -2094,17 +2090,17 @@ nwamd_event_handler(gpointer data)
             }
 
             if ( wifi == NULL ) {
-                wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &led->led_wlan );
+                wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &nwamevent->led_wlan );
                 nwamui_ncu_set_wifi_info( ncu, wifi );
             }
             else {
                 char* essid = nwamui_wifi_net_get_essid( wifi );
                 char* bssid = nwamui_wifi_net_get_bssid( wifi );
 
-                if( !( ( essid != NULL && strncmp( essid, led->led_wlan.wla_essid, strlen(essid) ) == 0 ) 
-                       && ( bssid != NULL && strncmp( bssid, led->led_wlan.wla_bssid, strlen(bssid) ) == 0 ) ) ) { 
+                if( !( ( essid != NULL && strncmp( essid, nwamevent->led_wlan.wla_essid, strlen(essid) ) == 0 ) 
+                       && ( bssid != NULL && strncmp( bssid, nwamevent->led_wlan.wla_bssid, strlen(bssid) ) == 0 ) ) ) { 
                     /* ESSID and BSSID are different, so we should update the ncu */
-                    NwamuiWifiNet* new_wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &led->led_wlan );
+                    NwamuiWifiNet* new_wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &nwamevent->led_wlan );
                     g_debug("deWlanKeyNeeded: WifiNets differ, replacing");
                     nwamui_ncu_set_wifi_info( ncu, new_wifi );
                     g_object_unref(wifi);
@@ -2126,7 +2122,7 @@ nwamd_event_handler(gpointer data)
         }
             break;
         case deWlanSelectionNeeded: {
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, led->led_interface );
+            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, nwamevent->led_interface );
             NwamuiNcp * ncp = nwamui_daemon_get_active_ncp( daemon );
             NwamuiNcu * current_ncu = NULL;
 
@@ -2170,7 +2166,7 @@ nwamd_event_handler(gpointer data)
               0, /* details */
               NWAMUI_DAEMON_INFO_UNKNOWN,
               NULL,
-              g_strdup_printf ("Unknown NWAM event type %d.", led->led_type));
+              g_strdup_printf ("Unknown NWAM event type %d.", nwamevent->led_type));
             break;
         }
     }
@@ -2181,20 +2177,22 @@ nwamd_event_handler(gpointer data)
         g_assert_not_reached();
     }
     
+#endif /* PHASE_0_5 */
     return FALSE;
 }
 
 
-#endif /* PHASE_0_5 */
 /**
  * nwam_events_callback:
  *
  * This callback is needed to be MT safe.
  */
 static int
-nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse)
+nwam_events_callback (nwam_event_t *msg, int size, int nouse)
 {
-    nwam_events_msg_t *idx;
+#if 0
+    /* This is not back to more like phase 0.5, so need to refactor again */
+    nwam_event_t *idx;
     NwamuiDaemon *self = nwamui_daemon_get_instance ();
     
     g_debug ("nwam_events_callback\n");
@@ -2265,7 +2263,7 @@ nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse)
               0, /* details */
               g_strdup_printf ("link %s is removed.", idx->data.removed.name));
             break;
-        case NWAM_EVENT_TYPE_SCAN_REPORT: {
+        case NWAM_EVENT_TYPE_WLAN_SCAN_REPORT: {
             nwam_events_wlan_t *wlans;
             int i;
             NwamuiWifiNet          *wifi_net = NULL;
@@ -2314,6 +2312,7 @@ nwam_events_callback (nwam_events_msg_t *msg, int size, int nouse)
     
     g_object_unref (self);
     
+#endif
     return 0;
 }
 
@@ -2331,14 +2330,14 @@ nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message )
 }
 
 extern void
-nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, nwam_events_msg_t* event )
+nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, nwam_event_t event )
 {
     gchar *vanity_name = NULL;
 
     g_return_if_fail( self != NULL && ncu != NULL && event != NULL );
 
-    if ( event->type != NWAM_EVENT_TYPE_SCAN_REPORT ) {
-        g_debug("Tried to emit wifi info from event != NWAM_EVENT_TYPE_SCAN_REPORT");
+    if ( event->type != NWAM_EVENT_TYPE_WLAN_SCAN_REPORT ) {
+        g_debug("Tried to emit wifi info from event != NWAM_EVENT_TYPE_WLAN_SCAN_REPORT");
         return;
     }
     
@@ -2426,14 +2425,14 @@ nwam_events_thread ( gpointer data )
     NwamuiDaemon           *daemon = NWAMUI_DAEMON( data );
 #if 0 
     /* TODO: Implement Event thread when NWAM supports it */
-	libnwam_event_data_t   *led = NULL;
+	libnwam_event_data_t   *nwamevent = NULL;
     int                     err;
 
     g_debug ("nwam_events_thread\n");
     
 	while (event_thread_running()) {
 		errno = 0;
-		if ((led = libnwam_wait_event()) == NULL) {
+		if ((nwamevent = libnwam_wait_event()) == NULL) {
 			err = errno;
 			g_debug("Event wait error: %s", strerror(errno));
 
@@ -2473,7 +2472,7 @@ nwam_events_thread ( gpointer data )
         
         g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
           nwamd_event_handler,
-          (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_RAW, led),
+          (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_RAW, nwamevent),
           (GDestroyNotify) nwamui_event_free);
     }
     

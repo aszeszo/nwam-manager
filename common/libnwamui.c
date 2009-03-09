@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* vim:set expandtab ts=4 shiftwidth=4: */
 /* 
- * Copyright 2007 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2007-2009 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  *
  * CDDL HEADER START
@@ -817,7 +817,7 @@ notification_area_ready ( GtkStatusIcon* status_icon )
     GdkAtom selection_atom;
     GdkDisplay *display;
     Display* xdisplay;
-    Window *manager_window;
+    Window manager_window;
     gboolean retval = FALSE;
     int i, screen_count;
     char buffer[256];
@@ -1066,7 +1066,7 @@ nwamui_util_convert_prefixlen_to_netmask_str( sa_family_t family, guint prefixle
 
     switch( family ) {
         case AF_INET:
-            netmask_str = g_strdup( inet_ntoa( sin->sin_addr ));
+            netmask_str = g_strdup( (char*)inet_ntoa( sin->sin_addr ));
             break;
         case AF_INET6:
             netmask_str = g_strdup_printf("%d", prefixlen);

@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* vim:set expandtab ts=4 shiftwidth=4: */
 /* 
- * Copyright 2007 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2007-2009 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  *
  * CDDL HEADER START
@@ -37,33 +37,36 @@
 #include "nwam_env_pref_dialog.h"
 #include "nwam_vpn_pref_dialog.h"
 #include "nwam_wireless_chooser.h"
-#include "nwam_pref_dialog.h"
+#include "net_pref_dialog.h"
 #include "nwam_location_dialog.h"
 #include "nwam_condition_vbox.h"
 
 /* Command-line options */
-static gboolean debug = FALSE;
-
-static gboolean     show_all_widgets = FALSE;
-//static gboolean     add_wireless_dialog = FALSE;
-static gchar        *add_wireless_dialog = NULL;
-static gboolean     env_pref_dialog = FALSE;
-static gboolean     location_dialog = FALSE;
+static gboolean     debug = FALSE;
+static gboolean     loc_pref_dialog = FALSE;
 static gboolean     vpn_pref_dialog = FALSE;
-static gboolean     nwam_pref_dialog = TRUE;
+static gboolean     net_pref_dialog = TRUE;
+
+#ifdef DEBUG_OPTS
+static gchar       *add_wireless_dialog = NULL;
+static gboolean     location_dialog = FALSE;
+static gboolean     show_all_widgets = FALSE;
 static gboolean     wireless_chooser = FALSE;
+#endif /* DEBUG_OPTS */
 
 static void debug_response_id( gint responseid );
 
 GOptionEntry application_options[] = {
+        { "loc-pref-dialog", 'l', 0, G_OPTION_ARG_NONE, &loc_pref_dialog, "Show 'Location Preferences' Dialog", NULL  },
+        { "net-pref-dialog", 'p', 0, G_OPTION_ARG_NONE, &net_pref_dialog, "Show 'Network Preferences' Dialog", NULL  },
+        { "vpn-pref-dialog", 'n', 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, "Show 'VPN Preferences' Dialog", NULL  },
         {"debug", 0, 0, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
+#ifdef DEBUG_OPTS
+        { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, "Show 'Wireless Network Chooser' Dialog", NULL  },
+        { "location-dialog", 'L', 0, G_OPTION_ARG_NONE, &location_dialog, "Show 'Location Dialog' Dialog", NULL  },
+        { "add-wireless-dialog", 'w', 0, G_OPTION_ARG_STRING, &add_wireless_dialog, "Show 'Add Wireless' Dialog", NULL  },
         { "show-all", 'a', 0, G_OPTION_ARG_NONE, &show_all_widgets, "Show all widgets", NULL  },
-        { "add-wireless-dialog", 'w', 0, G_OPTION_ARG_STRING, &add_wireless_dialog, "Show 'Add Wireless' Dialog only", NULL  },
-        { "env-pref-dialog", 'e', 0, G_OPTION_ARG_NONE, &env_pref_dialog, "Show 'Location Preferences' Dialog only", NULL  },
-        { "location-dialog", 'l', 0, G_OPTION_ARG_NONE, &location_dialog, "Show 'Location Dialog' Dialog only", NULL  },
-        { "nwam-pref-dialog", 'p', 0, G_OPTION_ARG_NONE, &nwam_pref_dialog, "Show 'Network Preferences' Dialog only", NULL  },
-        { "vpn-pref-dialog", 'n', 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, "Show 'VPN Preferences' Dialog only", NULL  },
-        { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, "Show 'Wireless Network Chooser' Dialog only", NULL  },
+#endif /* DEBUG_OPTS */
         { NULL }
 };
 
@@ -156,25 +159,15 @@ main(int argc, char** argv)
 
     glade_set_custom_handler(customwidgethandler, NULL);
 
-    if ( add_wireless_dialog ) {
-        capplet_dialog = NWAM_PREF_IFACE(nwam_wireless_dialog_new());
-        
-        if (*add_wireless_dialog != '\0') {
-            nwam_wireless_dialog_set_essid (NWAM_WIRELESS_DIALOG(capplet_dialog), add_wireless_dialog);
-        }
-        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
-        
-        debug_response_id( responseid );
-    }
-    else if( env_pref_dialog ) {
+    if( loc_pref_dialog ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_env_pref_dialog_new());
         
         gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }
-    else if( location_dialog ) {
-        capplet_dialog = NWAM_PREF_IFACE(nwam_location_dialog_new());
+    else if( net_pref_dialog ) {
+        capplet_dialog = NWAM_PREF_IFACE(nwam_capplet_dialog_new());
         
         gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
@@ -187,9 +180,27 @@ main(int argc, char** argv)
 
         debug_response_id( responseid );
     }
+#ifdef DEBUG_OPTS
     else if( wireless_chooser ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_wireless_chooser_new());
         
+        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
+        
+        debug_response_id( responseid );
+    }
+    else if( location_dialog ) {
+        capplet_dialog = NWAM_PREF_IFACE(nwam_location_dialog_new());
+        
+        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
+        
+        debug_response_id( responseid );
+    }
+    else if ( add_wireless_dialog ) {
+        capplet_dialog = NWAM_PREF_IFACE(nwam_wireless_dialog_new());
+        
+        if (*add_wireless_dialog != '\0') {
+            nwam_wireless_dialog_set_essid (NWAM_WIRELESS_DIALOG(capplet_dialog), add_wireless_dialog);
+        }
         gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
@@ -217,13 +228,7 @@ main(int argc, char** argv)
         }
         gtk_main();
     }
-    else if( nwam_pref_dialog ) {
-        capplet_dialog = NWAM_PREF_IFACE(nwam_capplet_dialog_new());
-        
-        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
-        
-        debug_response_id( responseid );
-    }
+#endif /* DEBUG_OPTS */
 
 /*
  *  Not needed since all the _run calls have own main-loop.

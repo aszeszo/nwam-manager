@@ -1,3 +1,59 @@
+2009-03-09  Darren Kenny  <darren.kenny@sun.com>
+
+	* AUTHORS:
+	  Add Calum
+	* capplet/main.c:
+	  Sanitize CLI arguments
+	* daemon/nwam-menu.c: 
+	  Update for sanitized arg names.
+	* common/libnwamui.c: 
+ 	  Fix some minor warnings.
+	* common/nwamui_daemon.c: 
+	  Fix some compile issues, still needs work for events.
+	* common/nwamui_ncu.c: 
+	  Fix some compile issues.
+
+	* capplet/capplet-utils.c, capplet/capplet-utils.h,
+	  capplet/nwam_condition_vbox.c, capplet/nwam_condition_vbox.h,
+	  capplet/nwam_conn_conf_ip_panel.c,
+	  capplet/nwam_conn_conf_ip_panel.h, capplet/nwam_conn_stat_panel.c,
+	  capplet/nwam_conn_stat_panel.h, capplet/nwam_env_pref_dialog.c,
+	  capplet/nwam_env_pref_dialog.h, capplet/nwam_env_svc.c,
+	  capplet/nwam_env_svc.h, capplet/nwam_location_dialog.c,
+	  capplet/nwam_location_dialog.h, capplet/nwam_net_conf_panel.c,
+	  capplet/nwam_net_conf_panel.h, capplet/nwam_pref_dialog.c,
+	  capplet/nwam_pref_dialog.h, capplet/nwam_proxy_password_dialog.c,
+	  capplet/nwam_proxy_password_dialog.h, capplet/nwam_rules_dialog.c,
+	  capplet/nwam_rules_dialog.h, capplet/nwam_tree_view.c,
+	  capplet/nwam_tree_view.h, capplet/nwam_vpn_pref_dialog.c,
+	  capplet/nwam_vpn_pref_dialog.h, capplet/nwam_wireless_chooser.c,
+	  capplet/nwam_wireless_chooser.h, capplet/nwam_wireless_dialog.c,
+	  capplet/nwam_wireless_dialog.h, common/libnwamui.h,
+	  common/nwam-menu-action-group.c, common/nwam-menu-action-group.h,
+	  common/nwam-menu-group.c, common/nwam-menu-group.h,
+	  common/nwam-menu-radio-action-group.c,
+	  common/nwam-menu-radio-action-group.h, common/nwam_pref_iface.c,
+	  common/nwam_pref_iface.h, common/nwamui_cond.c,
+	  common/nwamui_cond.h, common/nwamui_daemon.h, common/nwamui_enm.c,
+	  common/nwamui_enm.h, common/nwamui_env.c, common/nwamui_env.h,
+	  common/nwamui_ip.c, common/nwamui_ip.h, common/nwamui_ncp.c,
+	  common/nwamui_ncp.h, common/nwamui_ncu.h, common/nwamui_object.c,
+	  common/nwamui_object.h, common/nwamui_prof.c, common/nwamui_prof.h,
+	  common/nwamui_svc.c, common/nwamui_svc.h, common/nwamui_wifi_net.c,
+	  common/nwamui_wifi_net.h, daemon/main.c, daemon/notify.c,
+	  daemon/notify.h, daemon/nwam-enm-action.c, daemon/nwam-enm-action.h,
+	  daemon/nwam-enm-group.c, daemon/nwam-enm-group.h,
+	  daemon/nwam-env-action.c, daemon/nwam-env-action.h,
+	  daemon/nwam-env-group.c, daemon/nwam-env-group.h,
+	  daemon/nwam-menu.h, daemon/nwam-menuitem.c, daemon/nwam-menuitem.h,
+	  daemon/nwam-obj-proxy-iface.c, daemon/nwam-obj-proxy-iface.h,
+	  daemon/nwam-wifi-action.c, daemon/nwam-wifi-action.h,
+	  daemon/nwam-wifi-group.c, daemon/nwam-wifi-group.h,
+	  daemon/status_icon.c, daemon/status_icon.h, help/nwam-manager.xml,
+	  nwam_core/usr/include/inetcfg.h, nwam_core/usr/include/libnwam.h,
+	  nwam_core/usr/include/sys/mac.h, tests/main.c:
+	  Fix Copyright and CDDL Header issues.
+
 2009-03-06  Calum Benson  <calum.benson@sun.com>
 
 	* capplet/nwam-manager-properties.glade:

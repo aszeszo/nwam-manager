@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* vim:set expandtab ts=4 shiftwidth=4: */
 /* 
- * Copyright 2007 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2007-2009 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  *
  * CDDL HEADER START
@@ -647,7 +647,7 @@ on_activate_static_menuitems (GtkAction *action, gpointer data)
     } else if (first_char == *MENUTIEM_NAME_REFRESH_WIRELESS) {
         nwam_menu_recreate_wifi_menuitems(NWAM_MENU(data));
     } else if (first_char == *MENUITEM_NAME_ENV_PREF) {
-		argv = "-e";
+		argv = "-l";
     } else if (first_char == *MENUITEM_NAME_NET_PREF) {
 		argv = "-p";
     } else if (first_char == *MENUITEM_NAME_VPN_PREF) {
@@ -660,7 +660,7 @@ on_activate_static_menuitems (GtkAction *action, gpointer data)
         gtk_show_about_dialog (NULL, 
           "name", _("NWAM Manager"),
           "title", _("About NWAM Manager"),
-          "copyright", _("2007 Sun Microsystems, Inc  All rights reserved\nUse is subject to license terms."),
+          "copyright", _("2009 Sun Microsystems, Inc  All rights reserved\nUse is subject to license terms."),
           "website", _("http://www.sun.com/"),
           NULL);
     }

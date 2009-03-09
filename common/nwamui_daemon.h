@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* vim:set expandtab ts=4 shiftwidth=4: */
 /* 
- * Copyright 2007 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2007-2009 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  *
  * CDDL HEADER START
@@ -176,7 +176,7 @@ const char *                        nwamui_daemon_get_event_cause_string(NwamuiD
 
 extern void                         nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message );
 
-extern void                         nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, nwam_events_msg_t* event );
+extern void                         nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, nwam_event_t nwamevent );
 
 extern gboolean                     nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon );
 

@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* vim:set expandtab ts=4 shiftwidth=4: */
 /* 
- * Copyright 2007 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2007-2009 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  *
  * CDDL HEADER START
@@ -110,8 +110,7 @@ enum {
         PROP_ACTIVATION_MODE,
         PROP_ENABLED,
         PROP_PRIORITY_GROUP,
-        PROP_PRIORITY_GROUP_MODE,
-        PROP_CONDITIONS
+        PROP_PRIORITY_GROUP_MODE
 };
 
 static void nwamui_ncu_set_property ( GObject         *object,
@@ -398,12 +397,6 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                        NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE,
                                                        G_PARAM_READWRITE));
 
-    g_object_class_install_property (gobject_class,
-                                     PROP_CONDITIONS,
-                                     g_param_spec_pointer ("conditions",
-                                                          _("conditions"),
-                                                          _("conditions"),
-                                                          G_PARAM_READWRITE));
 }
 
 
@@ -741,17 +734,6 @@ nwamui_ncu_set_property ( GObject         *object,
                 self->prv->nwam_ncu_phys_modified = TRUE;
             }
 
-        case PROP_CONDITIONS: {
-                GList *conditions = g_value_get_pointer( value );
-                char  **condition_strs = NULL;
-                guint   len = 0;
-
-                condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
-                set_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_CONDITIONS, condition_strs, len );
-                self->prv->nwam_ncu_phys_modified = TRUE;
-            }
-            break;
-
         default: 
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -938,17 +920,6 @@ nwamui_ncu_get_property (GObject         *object,
                         get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_PRIORITY_MODE );
 
                 g_value_set_int( value, (gint)priority_group_mode );
-            }
-            break;
-        case PROP_CONDITIONS: {
-                gchar** condition_strs = get_nwam_ncu_string_array_prop( self->prv->nwam_ncu_phys, 
-                                                                         NWAM_NCU_PROP_CONDITIONS );
-
-                GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
-
-                g_value_set_pointer( value, conditions );
-
-                g_strfreev( condition_strs );
             }
             break;
         case PROP_AUTO_PUSH: {
@@ -2508,6 +2479,20 @@ get_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 }
 
 static gboolean
+prop_is_readonly( gchar* prop_name ) 
+{
+    boolean_t       read_only = B_FALSE;
+    nwam_error_t    nerr;
+
+    if ( (nerr = nwam_ncu_prop_read_only( prop_name, &read_only ) ) != NWAM_SUCCESS ) {
+        g_warning("Unable to get read-only status for ncu property %s: %s", prop_name, nwam_strerror(nerr) );
+        return FALSE;
+    }
+
+    return( (read_only == B_TRUE)?TRUE:FALSE );
+}
+
+static gboolean
 set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const gchar* str )
 {
     nwam_error_t        nerr;
@@ -2526,7 +2511,7 @@ set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const gc
         return retval;
     }
 
-    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+    if ( prop_is_readonly( prop_name ) ) {
         g_error("Attempting to set a read-only ncu property %s", prop_name );
         return retval;
     }
@@ -2536,7 +2521,7 @@ set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const gc
         return retval;
     }
 
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data, 0)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
         g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
     }
     else {
@@ -2630,7 +2615,7 @@ set_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, ch
         len = i;
     }
 
-    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+    if ( prop_is_readonly( prop_name ) ) {
         g_error("Attempting to set a read-only ncu property %s", prop_name );
         return retval;
     }
@@ -2640,7 +2625,7 @@ set_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, ch
         return retval;
     }
 
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data, 0)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
         g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
     }
     else {
@@ -2710,7 +2695,7 @@ set_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name, gboolea
         return retval;
     }
 
-    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+    if ( prop_is_readonly( prop_name ) ) {
         g_error("Attempting to set a read-only ncu property %s", prop_name );
         return retval;
     }
@@ -2720,7 +2705,7 @@ set_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name, gboolea
         return retval;
     }
 
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data, 0)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
         g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
     }
     else {
@@ -2787,7 +2772,7 @@ set_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name, guint64 
         return retval;
     }
 
-    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+    if ( prop_is_readonly( prop_name ) ) {
         g_error("Attempting to set a read-only ncu property %s", prop_name );
         return retval;
     }
@@ -2797,7 +2782,7 @@ set_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name, guint64 
         return retval;
     }
 
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data, 0)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
         g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
     }
     else {
@@ -2873,7 +2858,7 @@ set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name,
         return retval;
     }
 
-    if ( NWAM_NCU_PROP_READONLY( prop_name ) ) {
+    if ( prop_is_readonly( prop_name ) ) {
         g_error("Attempting to set a read-only ncu property %s", prop_name );
         return retval;
     }
@@ -2883,7 +2868,7 @@ set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name,
         return retval;
     }
 
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data, 0)) != NWAM_SUCCESS ) {
+    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
         g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
     }
     else {

@@ -873,6 +873,13 @@ extern nwam_error_t nwam_known_wlan_remove_from_known_wlan(const char *,
     const char *);
 
 /*
+ * Active WLAN definitions. Used to choose a WLAN/set a WLAN key.
+ */
+extern nwam_error_t nwam_wlan_select(const char *, const char *, const char *);
+extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
+    uint32_t, const char *);
+
+/*
  * Event notification definitions
  */
 #define	NWAM_EVENT_TYPE_NOOP			0
@@ -910,14 +917,21 @@ typedef struct {
 	uint32_t security_mode; /* a dladm_wlan_secmode_t */
 } nwam_event_wlan_t;
 
+/*
+ * Actions for nwamd to perform, used in conjunction with
+ * nwam_request_type_t in nwam_door_arg_t.
+ * Add string representations to nwam_action_to_string() in libnwam_util.c.
+ */
 typedef enum {
+	NWAM_ACTION_NONE = -1,
 	NWAM_ACTION_ADD,
 	NWAM_ACTION_REMOVE,
 	NWAM_ACTION_REFRESH,
 	NWAM_ACTION_REQUEST_STATE,
 	NWAM_ACTION_ENABLE,
 	NWAM_ACTION_DISABLE,
-	NWAM_ACTION_RENAME
+	NWAM_ACTION_RENAME,
+	NWAM_ACTION_DESTROY
 } nwam_action_t;
 
 typedef enum {
@@ -931,7 +945,8 @@ typedef enum {
 
 typedef struct nwam_event *nwam_event_t;
 struct nwam_event {
-	uint32_t type;
+	int type;
+	uint32_t size;
 
 	union {
 		struct {
@@ -995,14 +1010,18 @@ struct nwam_event {
 
 typedef int (*nwam_event_callback_t)(nwam_event_t);
 
-extern nwam_error_t nwam_events_init(nwam_event_callback_t);
+extern nwam_error_t nwam_events_init(void);
 extern void nwam_events_fini(void);
+extern nwam_error_t nwam_event_wait(nwam_event_t *);
+extern void nwam_event_free(nwam_event_t);
 extern nwam_error_t nwam_event_send(nwam_event_t);
 extern void nwam_event_send_fini(void);
+extern nwam_error_t nwam_event_queue_init(const char *);
+extern void nwam_event_queue_fini(const char *);
 
 /* Event-related string conversion functions */
 extern const char *nwam_action_to_string(nwam_action_t);
-extern const char *nwam_event_type_to_string(uint32_t);
+extern const char *nwam_event_type_to_string(int);
 extern const char *nwam_state_to_string(nwam_state_t);
 extern const char *nwam_object_type_to_string(nwam_object_type_t);
 

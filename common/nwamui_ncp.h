@@ -1,7 +1,7 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* vim:set expandtab ts=4 shiftwidth=4: */
 /* 
- * Copyright 2007 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2007-2009 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  *
  * CDDL HEADER START
@@ -82,6 +82,8 @@ extern  gboolean                nwamui_ncp_activate ( NwamuiNcp *self );
 extern  gchar*                  nwamui_ncp_get_name ( NwamuiNcp *self );
 
 extern gboolean                 nwamui_ncp_is_modifiable( NwamuiNcp *self);
+
+extern GList*                   nwamui_ncp_get_ncu_list( NwamuiNcp *self );
 
 extern	GtkListStore*           nwamui_ncp_get_ncu_list_store ( NwamuiNcp *self );
 
