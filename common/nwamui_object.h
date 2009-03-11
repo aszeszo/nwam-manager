@@ -52,20 +52,31 @@ struct _NwamuiObject
 	GObject                      object;
 };
 
+typedef    gchar*               (*nwamui_object_get_name_func_t)(NwamuiObject *object);
+typedef    void                 (*nwamui_object_set_name_func_t)(NwamuiObject *object, const gchar* name);
+typedef    GList*               (*nwamui_object_get_conditions_func_t)(NwamuiObject *object);
+typedef    void                 (*nwamui_object_set_conditions_func_t)(NwamuiObject *object, const GList* conditions);
+typedef    gint                 (*nwamui_object_get_activation_mode_func_t)(NwamuiObject *object);
+typedef    void                 (*nwamui_object_set_activation_mode_func_t)(NwamuiObject *object, gint activation_mode);
+typedef    gint                 (*nwamui_object_get_active_func_t)(NwamuiObject *object);
+typedef    void                 (*nwamui_object_set_active_func_t)(NwamuiObject *object, gboolean active);
+typedef    gboolean             (*nwamui_object_commit_func_t)(NwamuiObject *object);
+typedef    void                 (*nwamui_object_reload_func_t)(NwamuiObject *object);
+
 struct _NwamuiObjectClass
 {
-	GObjectClass                parent_class;
+	GObjectClass                                parent_class;
 
-    gchar*               (*get_name)(NwamuiObject *object);
-    void                 (*set_name)(NwamuiObject *object, const gchar* name);
-    GList*               (*get_conditions)(NwamuiObject *object);
-    void                 (*set_conditions)(NwamuiObject *object, const GList* conditions);
-    gint                 (*get_activation_mode)(NwamuiObject *object);
-    void                 (*set_activation_mode)(NwamuiObject *object, gint activation_mode);
-    gint                 (*get_active)(NwamuiObject *object);
-    void                 (*set_active)(NwamuiObject *object, gboolean active);
-    gboolean             (*commit)(NwamuiObject *object);
-    void                 (*reload)(NwamuiObject *object);
+    nwamui_object_get_name_func_t               get_name;
+    nwamui_object_set_name_func_t               set_name;
+    nwamui_object_get_conditions_func_t         get_conditions;
+    nwamui_object_set_conditions_func_t         set_conditions;
+    nwamui_object_get_activation_mode_func_t    get_activation_mode;
+    nwamui_object_set_activation_mode_func_t    set_activation_mode;
+    nwamui_object_get_active_func_t             get_active;
+    nwamui_object_set_active_func_t             set_active;
+    nwamui_object_commit_func_t                 commit;
+    nwamui_object_reload_func_t                 reload;
 };
 
 extern  GType               nwamui_object_get_type (void) G_GNUC_CONST;

@@ -36,6 +36,7 @@
 #include <glade/glade.h>
 #include <libgnome/libgnome.h>
 #include <string.h>
+#include <arpa/inet.h>
 #include <inet/ip.h>
 #include <inetcfg.h>
 #include <libscf.h>

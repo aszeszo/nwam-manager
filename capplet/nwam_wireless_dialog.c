@@ -33,6 +33,7 @@
 #include <glade/glade.h>
 #include <glib/gi18n.h>
 #include <strings.h>
+#include <sys/ethernet.h>
 
 #include "nwam_pref_iface.h"
 #include "nwam_wireless_dialog.h"
@@ -1064,8 +1065,20 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
                                 NULL);
                 }
                 else {
+                    NwamuiNcu *ncu = NULL;
+
+                    if ( self->prv->ncu != NULL ) {
+                        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+                        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
+
+                        ncu = nwamui_ncp_get_ncu_by_device_name(ncp, self->prv->ncu );
+
+                        g_object_unref(ncp);
+                        g_object_unref(daemon);
+                    }
+
                     self->prv->wifi_net = nwamui_wifi_net_new(
-                                self->prv->ncu,
+                                ncu,
                                 nwam_wireless_dialog_get_essid(self),
                                 nwam_wireless_dialog_get_security(self),
                                 nwam_wireless_dialog_get_bssid_list(self),

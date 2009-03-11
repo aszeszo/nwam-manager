@@ -172,16 +172,16 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     gobject_class->get_property = nwamui_ncu_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_ncu_finalize;
 
-    nwamuiobject_class->get_name = nwamui_ncu_get_vanity_name;
-    nwamuiobject_class->set_name = nwamui_ncu_set_vanity_name;
-    nwamuiobject_class->get_conditions = nwamui_ncu_get_selection_conditions;
-    nwamuiobject_class->set_conditions = nwamui_ncu_set_selection_conditions;
-    nwamuiobject_class->get_activation_mode = nwamui_ncu_get_activation_mode;
-    nwamuiobject_class->set_activation_mode = nwamui_ncu_set_activation_mode;
-    nwamuiobject_class->get_active = nwamui_ncu_get_active;
-    nwamuiobject_class->set_active = nwamui_ncu_set_active;
-    nwamuiobject_class->commit = nwamui_ncu_commit;
-    nwamuiobject_class->reload = nwamui_ncu_reload;
+    nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncu_get_vanity_name;
+    nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_ncu_set_vanity_name;
+    nwamuiobject_class->get_conditions = (nwamui_object_get_conditions_func_t)nwamui_ncu_get_selection_conditions;
+    nwamuiobject_class->set_conditions = (nwamui_object_set_conditions_func_t)nwamui_ncu_set_selection_conditions;
+    nwamuiobject_class->get_activation_mode = (nwamui_object_get_activation_mode_func_t)nwamui_ncu_get_activation_mode;
+    nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_ncu_set_activation_mode;
+    nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_ncu_get_active;
+    nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_ncu_set_active;
+    nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_ncu_commit;
+    nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_ncu_reload;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,

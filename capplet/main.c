@@ -37,9 +37,10 @@
 #include "nwam_env_pref_dialog.h"
 #include "nwam_vpn_pref_dialog.h"
 #include "nwam_wireless_chooser.h"
-#include "net_pref_dialog.h"
+#include "nwam_pref_dialog.h"
 #include "nwam_location_dialog.h"
 #include "nwam_condition_vbox.h"
+#include "capplet-utils.h"
 
 /* Command-line options */
 static gboolean     debug = FALSE;

@@ -74,14 +74,16 @@ enum {
     PROP_NAME=1,
     PROP_ACTIVE,
     PROP_ENABLED,
-    PROP_NAMESERVICE_DISCOVER,
     PROP_NAMESERVICES,
     PROP_NAMESERVICES_CONFIG_FILE,
-    PROP_DOMAINNAME,
+    PROP_DEFAULT_DOMAIN,
+    PROP_DNS_NAMESERVICE_CONFIG_SOURCE,
+    PROP_DNS_NAMESERVICE_DOMAIN,
     PROP_DNS_NAMESERVICE_SERVERS,
     PROP_DNS_NAMESERVICE_SEARCH,
+    PROP_NIS_NAMESERVICE_CONFIG_SOURCE,
     PROP_NIS_NAMESERVICE_SERVERS,
-    PROP_NISPLUS_NAMESERVICE_SERVERS,
+    PROP_LDAP_NAMESERVICE_CONFIG_SOURCE,
     PROP_LDAP_NAMESERVICE_SERVERS,
     PROP_HOSTS_FILE,
     PROP_NFSV4_DOMAIN,
@@ -184,16 +186,16 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     gobject_class->get_property = nwamui_env_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_env_finalize;
 
-    nwamuiobject_class->get_name = nwamui_env_get_name;
-    nwamuiobject_class->set_name = nwamui_env_set_name;
-    nwamuiobject_class->get_conditions = nwamui_env_get_conditions;
-    nwamuiobject_class->set_conditions = nwamui_env_set_conditions;
-    nwamuiobject_class->get_activation_mode = nwamui_env_get_activation_mode;
-    nwamuiobject_class->set_activation_mode = nwamui_env_set_activation_mode;
-    nwamuiobject_class->get_active = nwamui_env_get_enabled;
-    nwamuiobject_class->set_active = nwamui_env_set_enabled;
-    nwamuiobject_class->commit = nwamui_env_commit;
-    nwamuiobject_class->reload = nwamui_env_reload;
+    nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_env_get_name;
+    nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_env_set_name;
+    nwamuiobject_class->get_conditions = (nwamui_object_get_conditions_func_t)nwamui_env_get_conditions;
+    nwamuiobject_class->set_conditions = (nwamui_object_set_conditions_func_t)nwamui_env_set_conditions;
+    nwamuiobject_class->get_activation_mode = (nwamui_object_get_activation_mode_func_t)nwamui_env_get_activation_mode;
+    nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_env_set_activation_mode;
+    nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_env_get_enabled;
+    nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_env_set_enabled;
+    nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_env_commit;
+    nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_env_reload;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -231,14 +233,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_NAMESERVICE_DISCOVER,
-                                     g_param_spec_boolean ("nameservice_discover",
-                                                          _("nameservice_discover"),
-                                                          _("nameservice_discover"),
-                                                          FALSE,
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
                                      PROP_NAMESERVICES,
                                      g_param_spec_pointer ("nameservices",
                                                           _("nameservices"),
@@ -254,12 +248,30 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_DOMAINNAME,
-                                     g_param_spec_string ("domainname",
-                                                          _("domainname"),
-                                                          _("domainname"),
+                                     PROP_DEFAULT_DOMAIN,
+                                     g_param_spec_string ("default_domainname",
+                                                          _("default_domainname"),
+                                                          _("default_domainname"),
                                                           "",
                                                           G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_DNS_NAMESERVICE_DOMAIN,
+                                     g_param_spec_string ("dns_nameservice_domain",
+                                                          _("dns_nameservice_domain"),
+                                                          _("dns_nameservice_domain"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_DNS_NAMESERVICE_CONFIG_SOURCE,
+                                     g_param_spec_int ("dns_nameservice_config_source",
+                                                       _("dns_nameservice_config_source"),
+                                                       _("dns_nameservice_config_source"),
+                                                       NWAMUI_ENV_CONFIG_SOURCE_MANUAL,
+                                                       NWAMUI_ENV_CONFIG_SOURCE_LAST-1,
+                                                       NWAMUI_ENV_CONFIG_SOURCE_DHCP,
+                                                       G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_DNS_NAMESERVICE_SERVERS,
@@ -277,6 +289,16 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
+                                     PROP_NIS_NAMESERVICE_CONFIG_SOURCE,
+                                     g_param_spec_int ("nis_nameservice_config_source",
+                                                       _("nis_nameservice_config_source"),
+                                                       _("nis_nameservice_config_source"),
+                                                       NWAMUI_ENV_CONFIG_SOURCE_MANUAL,
+                                                       NWAMUI_ENV_CONFIG_SOURCE_LAST-1,
+                                                       NWAMUI_ENV_CONFIG_SOURCE_DHCP,
+                                                       G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
                                      PROP_NIS_NAMESERVICE_SERVERS,
                                      g_param_spec_pointer ("nis_nameservice_servers",
                                                           _("nis_nameservice_servers"),
@@ -284,11 +306,14 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_NISPLUS_NAMESERVICE_SERVERS,
-                                     g_param_spec_pointer ("nisplus_nameservice_servers",
-                                                          _("nisplus_nameservice_servers"),
-                                                          _("nisplus_nameservice_servers"),
-                                                          G_PARAM_READWRITE));
+                                     PROP_NIS_NAMESERVICE_CONFIG_SOURCE,
+                                     g_param_spec_int ("nis_nameservice_config_source",
+                                                       _("nis_nameservice_config_source"),
+                                                       _("nis_nameservice_config_source"),
+                                                       NWAMUI_ENV_CONFIG_SOURCE_MANUAL,
+                                                       NWAMUI_ENV_CONFIG_SOURCE_LAST-1,
+                                                       NWAMUI_ENV_CONFIG_SOURCE_DHCP,
+                                                       G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_LDAP_NAMESERVICE_SERVERS,
@@ -637,11 +662,6 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
-        case PROP_NAMESERVICE_DISCOVER: {
-                set_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_NAMESERVICE_DISCOVER, g_value_get_boolean( value ) );
-            }
-            break;
-
         case PROP_NAMESERVICES: {
                 GList*                  ns_list = (GList*)g_value_get_pointer( value );
                 guint64*                ns_array = NULL;
@@ -659,9 +679,14 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
-        case PROP_DOMAINNAME: {
-                set_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DOMAINNAME, 
+        case PROP_DEFAULT_DOMAIN: {
+                set_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DEFAULT_DOMAIN, 
                                           g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_DNS_NAMESERVICE_CONFIG_SOURCE: {
+                set_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_CONFIGSRC, g_value_get_int( value ) );
             }
             break;
 
@@ -679,6 +704,11 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
+        case PROP_NIS_NAMESERVICE_CONFIG_SOURCE: {
+                set_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_NIS_NAMESERVICE_CONFIGSRC, g_value_get_int( value ) );
+            }
+            break;
+
         case PROP_NIS_NAMESERVICE_SERVERS: {
                 GList*  ns_server = g_value_get_pointer( value );
                 gchar** ns_server_strs = nwamui_util_glist_to_strv( ns_server );
@@ -687,11 +717,8 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
-        case PROP_NISPLUS_NAMESERVICE_SERVERS: {
-                GList*  ns_server = g_value_get_pointer( value );
-                gchar** ns_server_strs = nwamui_util_glist_to_strv( ns_server );
-                set_nwam_loc_string_array_prop( self->prv->nwam_loc, NWAM_LOC_PROP_NISPLUS_NAMESERVICE_SERVERS, ns_server_strs, 0 );
-                g_strfreev(ns_server_strs);
+        case PROP_LDAP_NAMESERVICE_CONFIG_SOURCE: {
+                set_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_LDAP_NAMESERVICE_CONFIGSRC, g_value_get_int( value ) );
             }
             break;
 
@@ -942,12 +969,6 @@ nwamui_env_get_property (GObject         *object,
             }
             break;
 
-        case PROP_NAMESERVICE_DISCOVER: {
-                g_value_set_boolean( value, 
-                        get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_NAMESERVICE_DISCOVER ) );
-            }
-            break;
-
         case PROP_NAMESERVICES: {
                 guint       num_nameservices = 0;
                 guint64*    ns_64 = (guint64*)get_nwam_loc_uint64_array_prop(
@@ -964,13 +985,19 @@ nwamui_env_get_property (GObject         *object,
             }
             break;
 
-        case PROP_DOMAINNAME: {
-                gchar* str = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DOMAINNAME );
+        case PROP_DEFAULT_DOMAIN: {
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DEFAULT_DOMAIN );
                 g_value_set_string( value, str );
                 g_free(str);
             }
             break;
 
+        case PROP_DNS_NAMESERVICE_CONFIG_SOURCE: {
+                g_value_set_int( value, 
+                        (gint)get_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_CONFIGSRC ) );
+            }
+            break;
+            
         case PROP_DNS_NAMESERVICE_SERVERS: {
                 gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS );
                 g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
@@ -985,6 +1012,12 @@ nwamui_env_get_property (GObject         *object,
             }
             break;
 
+        case PROP_NIS_NAMESERVICE_CONFIG_SOURCE: {
+                g_value_set_int( value, 
+                        (gint)get_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_NIS_NAMESERVICE_CONFIGSRC ) );
+            }
+            break;
+            
         case PROP_NIS_NAMESERVICE_SERVERS: {
                 gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_NIS_NAMESERVICE_SERVERS );
                 g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
@@ -992,13 +1025,12 @@ nwamui_env_get_property (GObject         *object,
             }
             break;
 
-        case PROP_NISPLUS_NAMESERVICE_SERVERS: {
-                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_NISPLUS_NAMESERVICE_SERVERS );
-                g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
-                g_strfreev( strv );
+        case PROP_LDAP_NAMESERVICE_CONFIG_SOURCE: {
+                g_value_set_int( value, 
+                        (gint)get_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_LDAP_NAMESERVICE_CONFIGSRC ) );
             }
             break;
-
+            
         case PROP_LDAP_NAMESERVICE_SERVERS: {
                 gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_LDAP_NAMESERVICE_SERVERS );
                 g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
@@ -1063,14 +1095,14 @@ nwamui_env_get_property (GObject         *object,
             break;
 
         case PROP_SVCS_ENABLE: {
-                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS );
+                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_SVCS_ENABLE );
                 g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
                 g_strfreev( strv );
             }
             break;
 
         case PROP_SVCS_DISABLE: {
-                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS );
+                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_SVCS_DISABLE );
                 g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
                 g_strfreev( strv );
             }
@@ -1765,19 +1797,17 @@ populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t prv->nwam_loc )
     prv->enabled = get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED );
 
     /* Nameservice location properties */
-    prv->nameservice_discover = get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_NAMESERVICE_DISCOVER );
     nameservices = (nwam_nameservices_t*)get_nwam_loc_uint64_array_prop(
                                            prv->nwam_loc, NWAM_LOC_PROP_NAMESERVICES, &num_nameservices );
     prv->nameservices = convert_name_services_array_to_glist( nameservices, num_nameservices );
     prv->nameservices_config_file = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_NAMESERVICES_CONFIG_FILE );
-    prv->domainname = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DOMAINNAME );
+    prv->default_domainname = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DEFAULT_DOMAIN );
+    prv->dns_nameservice_domain = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_DOMAIN );
     prv->dns_nameservice_servers = nwamui_util_strv_to_glist(
             get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SERVERS ) );
     prv->dns_nameservice_search = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH );
     prv->nis_nameservice_servers = nwamui_util_strv_to_glist(
         get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_NIS_NAMESERVICE_SERVERS ) );
-    prv->nisplus_nameservice_servers = nwamui_util_strv_to_glist(
-        get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_NISPLUS_NAMESERVICE_SERVERS ) );
     prv->ldap_nameservice_servers = nwamui_util_strv_to_glist(
         get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_LDAP_NAMESERVICE_SERVERS ) );
 
@@ -1904,43 +1934,6 @@ nwamui_env_is_active (NwamuiEnv *self)
 }
 
 /** 
- * nwamui_env_set_nameservice_discover:
- * @nwamui_env: a #NwamuiEnv.
- * @nameservice_discover: Value to set nameservice_discover to.
- * 
- **/ 
-extern void
-nwamui_env_set_nameservice_discover (   NwamuiEnv *self,
-                              gboolean        nameservice_discover )
-{
-    g_return_if_fail (NWAMUI_IS_ENV (self));
-
-    g_object_set (G_OBJECT (self),
-                  "nameservice_discover", nameservice_discover,
-                  NULL);
-}
-
-/**
- * nwamui_env_get_nameservice_discover:
- * @nwamui_env: a #NwamuiEnv.
- * @returns: the nameservice_discover.
- *
- **/
-extern gboolean
-nwamui_env_get_nameservice_discover (NwamuiEnv *self)
-{
-    gboolean  nameservice_discover = FALSE; 
-
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), nameservice_discover);
-
-    g_object_get (G_OBJECT (self),
-                  "nameservice_discover", &nameservice_discover,
-                  NULL);
-
-    return( nameservice_discover );
-}
-
-/** 
  * nwamui_env_set_nameservices:
  * @nwamui_env: a #NwamuiEnv.
  * @nameservices: should be a GList of nwamui_env_nameservices_t nameservices.
@@ -2021,43 +2014,122 @@ nwamui_env_get_nameservices_config_file (NwamuiEnv *self)
 }
 
 /** 
- * nwamui_env_set_domainname:
+ * nwamui_env_set_default_domainname:
  * @nwamui_env: a #NwamuiEnv.
- * @domainname: Value to set domainname to.
+ * @default_domainname: Value to set default_domainname to.
  * 
  **/ 
 extern void
-nwamui_env_set_domainname (   NwamuiEnv *self,
-                              const gchar*  domainname )
+nwamui_env_set_default_domainname (   NwamuiEnv *self,
+                              const gchar*  default_domainname )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (domainname != NULL );
+    g_assert (default_domainname != NULL );
 
-    if ( domainname != NULL ) {
+    if ( default_domainname != NULL ) {
         g_object_set (G_OBJECT (self),
-                      "domainname", domainname,
+                      "default_domainname", default_domainname,
                       NULL);
     }
 }
 
 /**
- * nwamui_env_get_domainname:
+ * nwamui_env_get_default_domainname:
  * @nwamui_env: a #NwamuiEnv.
- * @returns: the domainname.
+ * @returns: the default_domainname.
  *
  **/
 extern gchar*
-nwamui_env_get_domainname (NwamuiEnv *self)
+nwamui_env_get_default_domainname (NwamuiEnv *self)
 {
-    gchar*  domainname = NULL; 
+    gchar*  default_domainname = NULL; 
 
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), domainname);
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), default_domainname);
 
     g_object_get (G_OBJECT (self),
-                  "domainname", &domainname,
+                  "default_domainname", &default_domainname,
                   NULL);
 
-    return( domainname );
+    return( default_domainname );
+}
+
+/** 
+ * nwamui_env_set_dns_nameservice_domain:
+ * @nwamui_env: a #NwamuiEnv.
+ * @dns_nameservice_domain: Value to set dns_nameservice_domain to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_dns_nameservice_domain (   NwamuiEnv *self,
+                              const gchar*  dns_nameservice_domain )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_assert (dns_nameservice_domain != NULL );
+
+    if ( dns_nameservice_domain != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "dns_nameservice_domain", dns_nameservice_domain,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_env_get_dns_nameservice_domain:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the dns_nameservice_domain.
+ *
+ **/
+extern gchar*
+nwamui_env_get_dns_nameservice_domain (NwamuiEnv *self)
+{
+    gchar*  dns_nameservice_domain = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), dns_nameservice_domain);
+
+    g_object_get (G_OBJECT (self),
+                  "dns_nameservice_domain", &dns_nameservice_domain,
+                  NULL);
+
+    return( dns_nameservice_domain );
+}
+
+/** 
+ * nwamui_env_set_dns_nameservice_config_source:
+ * @nwamui_env: a #NwamuiEnv.
+ * @dns_nameservice_config_source: Value to set dns_nameservice_config_source to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_dns_nameservice_config_source (   NwamuiEnv *self,
+                                                 nwamui_env_config_source_t        dns_nameservice_config_source )
+{
+    g_return_if_fail (NWAMUI_IS_ENV(self));
+    g_assert (dns_nameservice_config_source >= NWAMUI_ENV_CONFIG_SOURCE_MANUAL 
+              && dns_nameservice_config_source <= NWAMUI_COND_ACTIVATION_MODE_LAST );
+
+    g_object_set (G_OBJECT (self),
+                  "dns_nameservice_config_source", (gint)dns_nameservice_config_source,
+                  NULL);
+}
+
+/**
+ * nwamui_env_get_dns_nameservice_config_source:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the dns_nameservice_config_source.
+ *
+ **/
+extern nwamui_env_config_source_t
+nwamui_env_get_dns_nameservice_config_source (NwamuiEnv *self)
+{
+    gint  dns_nameservice_config_source = NWAMUI_ENV_CONFIG_SOURCE_DHCP; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), dns_nameservice_config_source);
+
+    g_object_get (G_OBJECT (self),
+                  "dns_nameservice_config_source", &dns_nameservice_config_source,
+                  NULL);
+
+    return( (nwamui_env_config_source_t)dns_nameservice_config_source );
 }
 
 /** 
@@ -2141,6 +2213,45 @@ nwamui_env_get_dns_nameservice_search (NwamuiEnv *self)
 }
 
 /** 
+ * nwamui_env_set_nis_nameservice_config_source:
+ * @nwamui_env: a #NwamuiEnv.
+ * @nis_nameservice_config_source: Value to set nis_nameservice_config_source to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_nis_nameservice_config_source (   NwamuiEnv *self,
+                                                 nwamui_env_config_source_t        nis_nameservice_config_source )
+{
+    g_return_if_fail (NWAMUI_IS_ENV(self));
+    g_assert (nis_nameservice_config_source >= NWAMUI_ENV_CONFIG_SOURCE_MANUAL 
+              && nis_nameservice_config_source <= NWAMUI_COND_ACTIVATION_MODE_LAST );
+
+    g_object_set (G_OBJECT (self),
+                  "nis_nameservice_config_source", (gint)nis_nameservice_config_source,
+                  NULL);
+}
+
+/**
+ * nwamui_env_get_nis_nameservice_config_source:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the nis_nameservice_config_source.
+ *
+ **/
+extern nwamui_env_config_source_t
+nwamui_env_get_nis_nameservice_config_source (NwamuiEnv *self)
+{
+    gint  nis_nameservice_config_source = NWAMUI_ENV_CONFIG_SOURCE_DHCP; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), nis_nameservice_config_source);
+
+    g_object_get (G_OBJECT (self),
+                  "nis_nameservice_config_source", &nis_nameservice_config_source,
+                  NULL);
+
+    return( (nwamui_env_config_source_t)nis_nameservice_config_source );
+}
+
+/** 
  * nwamui_env_set_nis_nameservice_servers:
  * @nwamui_env: a #NwamuiEnv.
  * @nis_nameservice_servers: Value to set nis_nameservice_servers to.
@@ -2181,43 +2292,42 @@ nwamui_env_get_nis_nameservice_servers (NwamuiEnv *self)
 }
 
 /** 
- * nwamui_env_set_nisplus_nameservice_servers:
+ * nwamui_env_set_ldap_nameservice_config_source:
  * @nwamui_env: a #NwamuiEnv.
- * @nisplus_nameservice_servers: Value to set nisplus_nameservice_servers to.
+ * @ldap_nameservice_config_source: Value to set ldap_nameservice_config_source to.
  * 
  **/ 
 extern void
-nwamui_env_set_nisplus_nameservice_servers (   NwamuiEnv *self,
-                              const GList*    nisplus_nameservice_servers )
+nwamui_env_set_ldap_nameservice_config_source (   NwamuiEnv *self,
+                                                 nwamui_env_config_source_t        ldap_nameservice_config_source )
 {
-    g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (nisplus_nameservice_servers != NULL );
+    g_return_if_fail (NWAMUI_IS_ENV(self));
+    g_assert (ldap_nameservice_config_source >= NWAMUI_ENV_CONFIG_SOURCE_MANUAL 
+              && ldap_nameservice_config_source <= NWAMUI_COND_ACTIVATION_MODE_LAST );
 
-    if ( nisplus_nameservice_servers != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "nisplus_nameservice_servers", nisplus_nameservice_servers,
-                      NULL);
-    }
+    g_object_set (G_OBJECT (self),
+                  "ldap_nameservice_config_source", (gint)ldap_nameservice_config_source,
+                  NULL);
 }
 
 /**
- * nwamui_env_get_nisplus_nameservice_servers:
+ * nwamui_env_get_ldap_nameservice_config_source:
  * @nwamui_env: a #NwamuiEnv.
- * @returns: the nisplus_nameservice_servers.
+ * @returns: the ldap_nameservice_config_source.
  *
  **/
-extern GList*  
-nwamui_env_get_nisplus_nameservice_servers (NwamuiEnv *self)
+extern nwamui_env_config_source_t
+nwamui_env_get_ldap_nameservice_config_source (NwamuiEnv *self)
 {
-    GList*    nisplus_nameservice_servers = NULL; 
+    gint  ldap_nameservice_config_source = NWAMUI_ENV_CONFIG_SOURCE_DHCP; 
 
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), nisplus_nameservice_servers);
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), ldap_nameservice_config_source);
 
     g_object_get (G_OBJECT (self),
-                  "nisplus_nameservice_servers", &nisplus_nameservice_servers,
+                  "ldap_nameservice_config_source", &ldap_nameservice_config_source,
                   NULL);
 
-    return( nisplus_nameservice_servers );
+    return( (nwamui_env_config_source_t)ldap_nameservice_config_source );
 }
 
 /** 
@@ -3731,8 +3841,6 @@ nwam_nameservices_enum_to_string(nwam_nameservices_t ns)
         return _("FILES");
 	case NWAM_NAMESERVICES_NIS:
         return _("NIS");
-	case NWAM_NAMESERVICES_NISPLUS:
-        return _("NISPLUS");
 	case NWAM_NAMESERVICES_LDAP:
         return _("LDAP");
     default:

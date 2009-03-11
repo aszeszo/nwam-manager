@@ -29,6 +29,7 @@
 #include <glade/glade.h>
 #include <glib/gi18n.h>
 #include <strings.h>
+#include <stdlib.h>
 
 #include "libnwamui.h"
 #include "nwam_pref_iface.h"
@@ -414,8 +415,9 @@ _cu_cond_combo_filter_visible_cb (GtkTreeModel *model,
             return value == NWAMUI_COND_FIELD_IP_ADDRESS;
         case NWAMUI_COND_OP_CONTAINS:
         case NWAMUI_COND_OP_DOES_NOT_CONTAIN:
-            return (value == NWAMUI_COND_FIELD_DOMAINNAME) ||
-              (value == NWAMUI_COND_FIELD_ESSID);
+            return (value == NWAMUI_COND_FIELD_ADV_DOMAIN) ||
+                   (value == NWAMUI_COND_FIELD_SYS_DOMAIN) ||
+                   (value == NWAMUI_COND_FIELD_ESSID);
         default:
             return FALSE;
         }
@@ -859,7 +861,7 @@ select_item_with_value( GtkComboBox*  combo, const gchar* value )
 
     if ( obj_name == NULL ) {
         if ( GTK_IS_COMBO_BOX_ENTRY( combo ) ) {
-            GtkEntry*   entry = gtk_bin_get_child( GTK_WIDGET(combo) );
+            GtkEntry*   entry = GTK_ENTRY(gtk_bin_get_child( GTK_BIN(combo) ));
 
             gtk_entry_set_text( entry, value );
         }
@@ -922,7 +924,7 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
         gtk_combo_box_set_active(GTK_COMBO_BOX(loc_combo), 0 );
         gtk_notebook_append_page( value_nb, GTK_WIDGET(loc_combo), NULL );
         /* VALUE_WIFI_COMBO_ENTRY_PAGE */
-		wifi_combo_entry = GTK_COMBO_BOX(_cu_wifi_combo_entry_new());
+		wifi_combo_entry = GTK_COMBO_BOX_ENTRY(_cu_wifi_combo_entry_new());
         gtk_notebook_append_page( value_nb, GTK_WIDGET(wifi_combo_entry), NULL );
     
         g_object_set(G_OBJECT(entry),
@@ -1011,7 +1013,7 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
             select_item_with_value( enm_combo, value );
         }
         else if (field == NWAMUI_COND_FIELD_ESSID ) {
-            GtkCombo *combo = GTK_COMBO_BOX_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_WIFI_COMBO_ENTRY));
+            GtkComboBox *combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_WIFI_COMBO_ENTRY));
             gtk_notebook_set_current_page( value_nb, VALUE_WIFI_COMBO_ENTRY_PAGE );
             /* Find match for ESSID in available list */
             select_item_with_value( GTK_COMBO_BOX(wifi_combo_entry), value );
@@ -1022,7 +1024,7 @@ table_conditon_new (NwamConditionVBox *self, NwamuiCond* cond )
         }
 	} else {
 		// default initialize box
-		_cu_cond_combo_filter_value (GTK_COMBO_BOX(combo1),
+		_cu_cond_combo_filter_value (GTK_WIDGET(combo1),
 		    NWAMUI_COND_FIELD_LAST);
 		gtk_entry_set_text (GTK_ENTRY(entry), "");
         gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
@@ -1171,7 +1173,7 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
 		    GtkComboBox            *ncu_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_NCU_COMBO));
 		    GtkComboBox            *enm_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_ENM_COMBO));
 		    GtkComboBox            *loc_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_LOC_COMBO));
-		    GtkComboBox            *wifi_combo_entry = GTK_COMBO_BOX_ENTRY(g_object_get_data(G_OBJECT(data), TABLE_ROW_WIFI_COMBO_ENTRY));
+		    GtkComboBox            *wifi_combo_entry = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_WIFI_COMBO_ENTRY));
             nwamui_cond_field_t     field;
             gchar*                  value;
             /*
@@ -1179,8 +1181,8 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
              * of the first combo and also update self to remove
              * < No conditions >.
              */
-            _cu_cond_combo_filter_value (GTK_COMBO_BOX(widget), index);
-            _cu_cond_combo_filter_value (combo2, index);
+            _cu_cond_combo_filter_value (GTK_WIDGET(widget), index);
+            _cu_cond_combo_filter_value (GTK_WIDGET(combo2), index);
             field = (nwamui_cond_field_t)index;
             nwamui_cond_set_field( cond, (nwamui_cond_field_t)index);
 
@@ -1289,7 +1291,11 @@ condition_value_changed_cb( GtkWidget* widget, gpointer data )
                 valid = TRUE;
             }
             break;
-        case NWAMUI_COND_FIELD_DOMAINNAME: {
+        case NWAMUI_COND_FIELD_ADV_DOMAIN: {
+                valid = TRUE;
+            }
+            break;
+        case NWAMUI_COND_FIELD_SYS_DOMAIN: {
                 valid = TRUE;
             }
             break;

@@ -285,8 +285,11 @@ map_condition_obj_to_field( nwam_condition_object_type_t condition_object )
         case NWAM_CONDITION_OBJECT_TYPE_IP_ADDRESS:
             field = NWAMUI_COND_FIELD_IP_ADDRESS;
             break;
-        case NWAM_CONDITION_OBJECT_TYPE_DOMAINNAME:
-            field = NWAMUI_COND_FIELD_DOMAINNAME;
+        case NWAM_CONDITION_OBJECT_TYPE_ADV_DOMAIN:
+            field = NWAMUI_COND_FIELD_ADV_DOMAIN;
+            break;
+        case NWAM_CONDITION_OBJECT_TYPE_SYS_DOMAIN:
+            field = NWAMUI_COND_FIELD_SYS_DOMAIN;
             break;
         case NWAM_CONDITION_OBJECT_TYPE_ESSID:
             field = NWAMUI_COND_FIELD_ESSID;
@@ -319,8 +322,11 @@ map_field_to_condition_obj( nwamui_cond_field_t field )
         case NWAMUI_COND_FIELD_IP_ADDRESS:
             condition_object = NWAM_CONDITION_OBJECT_TYPE_IP_ADDRESS;
             break;
-        case NWAMUI_COND_FIELD_DOMAINNAME:
-            condition_object = NWAM_CONDITION_OBJECT_TYPE_DOMAINNAME;
+        case NWAMUI_COND_FIELD_ADV_DOMAIN:
+            condition_object = NWAM_CONDITION_OBJECT_TYPE_ADV_DOMAIN;
+            break;
+        case NWAMUI_COND_FIELD_SYS_DOMAIN:
+            condition_object = NWAM_CONDITION_OBJECT_TYPE_SYS_DOMAIN;
             break;
         case NWAMUI_COND_FIELD_ESSID:
             condition_object = NWAM_CONDITION_OBJECT_TYPE_ESSID;
@@ -667,7 +673,8 @@ nwamui_cond_field_to_str( nwamui_cond_field_t field )
         case NWAMUI_COND_FIELD_ENM:          return(_("Running VPN Applications"));
         case NWAMUI_COND_FIELD_LOC:          return(_("Current Location"));
         case NWAMUI_COND_FIELD_IP_ADDRESS:   return(_("Any IP Address"));
-        case NWAMUI_COND_FIELD_DOMAINNAME:   return(_("Any Domain Name"));
+        case NWAMUI_COND_FIELD_ADV_DOMAIN:   return(_("Advertised Domain Name"));
+        case NWAMUI_COND_FIELD_SYS_DOMAIN:   return(_("System Domain Name"));
         case NWAMUI_COND_FIELD_ESSID:        return(_("Wireless Network Name"));
         case NWAMUI_COND_FIELD_BSSID:        return(_("Wireless network (BSSID)"));
         default:

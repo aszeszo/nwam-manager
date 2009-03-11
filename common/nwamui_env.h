@@ -88,6 +88,11 @@ typedef enum {
 	NWAMUI_ENV_NAMESERVICES_LAST /* Not to be used directly */
 } nwamui_env_nameservices_t;
 
+typedef enum {
+    NWAMUI_ENV_CONFIG_SOURCE_MANUAL,
+    NWAMUI_ENV_CONFIG_SOURCE_DHCP,
+    NWAMUI_ENV_CONFIG_SOURCE_LAST
+} nwamui_env_config_source_t;
 
 extern NwamuiEnv*           nwamui_env_new ( gchar* name );
 
@@ -114,10 +119,6 @@ extern void                 nwamui_env_set_enabled ( NwamuiEnv *self, gboolean e
 extern gboolean             nwamui_env_get_enabled ( NwamuiEnv *self );
 
 
-extern void                 nwamui_env_set_nameservice_discover ( NwamuiEnv *self, gboolean nameservice_discover );
-extern gboolean             nwamui_env_get_nameservice_discover ( NwamuiEnv *self );
-
-
 extern void                 nwamui_env_set_nameservices ( NwamuiEnv *self, const GList*   nameservices );
 extern GList*               nwamui_env_get_nameservices ( NwamuiEnv *self );
 
@@ -126,9 +127,16 @@ extern void                 nwamui_env_set_nameservices_config_file ( NwamuiEnv 
 extern gchar*               nwamui_env_get_nameservices_config_file ( NwamuiEnv *self );
 
 
-extern void                 nwamui_env_set_domainname ( NwamuiEnv *self, const gchar* domainname );
-extern gchar*               nwamui_env_get_domainname ( NwamuiEnv *self );
+extern void                 nwamui_env_set_default_domainname ( NwamuiEnv *self, const gchar* default_domainname );
+extern gchar*               nwamui_env_get_default_domainname ( NwamuiEnv *self );
 
+extern void                 nwamui_env_set_dns_nameservice_domain ( NwamuiEnv *self, const gchar* dns_nameservice_domain );
+extern gchar*               nwamui_env_get_dns_nameservice_domain ( NwamuiEnv *self );
+
+extern void                 nwamui_env_set_dns_nameservice_config_source (  NwamuiEnv *self,
+                                                                            nwamui_env_config_source_t dns_nameservice_config_source );
+extern nwamui_env_config_source_t
+                            nwamui_env_get_dns_nameservice_config_source (NwamuiEnv *self);
 
 extern void                 nwamui_env_set_dns_nameservice_servers ( NwamuiEnv *self, const GList*   dns_nameservice_servers );
 extern GList*               nwamui_env_get_dns_nameservice_servers ( NwamuiEnv *self );
@@ -138,13 +146,19 @@ extern void                 nwamui_env_set_dns_nameservice_search ( NwamuiEnv *s
 extern gchar*               nwamui_env_get_dns_nameservice_search ( NwamuiEnv *self );
 
 
+extern void                 nwamui_env_set_nis_nameservice_config_source (  NwamuiEnv *self,
+                                                                            nwamui_env_config_source_t nis_nameservice_config_source );
+extern nwamui_env_config_source_t
+                            nwamui_env_get_nis_nameservice_config_source (NwamuiEnv *self);
+
 extern void                 nwamui_env_set_nis_nameservice_servers ( NwamuiEnv *self, const GList*   nis_nameservice_servers );
 extern GList*               nwamui_env_get_nis_nameservice_servers ( NwamuiEnv *self );
 
 
-extern void                 nwamui_env_set_nisplus_nameservice_servers ( NwamuiEnv *self, const GList*   nisplus_nameservice_servers );
-extern GList*               nwamui_env_get_nisplus_nameservice_servers ( NwamuiEnv *self );
-
+extern void                 nwamui_env_set_ldap_nameservice_config_source (  NwamuiEnv *self,
+                                                                            nwamui_env_config_source_t ldap_nameservice_config_source );
+extern nwamui_env_config_source_t
+                            nwamui_env_get_ldap_nameservice_config_source (NwamuiEnv *self);
 
 extern void                 nwamui_env_set_ldap_nameservice_servers ( NwamuiEnv *self, const GList*   ldap_nameservice_servers );
 extern GList*               nwamui_env_get_ldap_nameservice_servers ( NwamuiEnv *self );

@@ -137,9 +137,6 @@ print_ns_list_and_free( gchar* obj_name, gchar *property, GList* ns_list )
                     case NWAM_NAMESERVICES_NIS:
                         str = "NWAM_NAMESERVICES_NIS";
                         break;
-                    case NWAM_NAMESERVICES_NISPLUS:
-                        str = "NWAM_NAMESERVICES_NISPLUS";
-                        break;
                     case NWAM_NAMESERVICES_LDAP:
                         str = "NWAM_NAMESERVICES_LDAP";
                         break;
@@ -392,6 +389,19 @@ test_ncp_gobject( void )
     g_object_unref(G_OBJECT(daemon));
 }
 
+static const gchar*
+config_source_to_str( nwamui_env_config_source_t src )
+{
+    switch( src ) {
+        case NWAMUI_ENV_CONFIG_SOURCE_DHCP:   
+            return("DHCP");
+        case NWAMUI_ENV_CONFIG_SOURCE_MANUAL:   
+            return("MANUAL");
+        default:
+            return("***UNKNOWN***");
+    }
+}
+
 static void
 process_env( gpointer data, gpointer user_data ) 
 {
@@ -401,15 +411,20 @@ process_env( gpointer data, gpointer user_data )
                 activation_mode  =  nwamui_env_get_activation_mode ( env );
     GList*      conditions  =  nwamui_env_get_conditions ( env );
     gboolean    enabled  =  nwamui_env_get_enabled ( env );
-    gboolean    nameservice_discover  =  nwamui_env_get_nameservice_discover ( env );
     GList*      nameservices  =  nwamui_env_get_nameservices ( env );
     gchar*      nameservices_config_file  =  nwamui_env_get_nameservices_config_file ( env );
-    gchar*      domainname  =  nwamui_env_get_domainname ( env );
+    gchar*      default_domainname  =  nwamui_env_get_default_domainname ( env );
+    nwamui_env_config_source_t
+                dns_config_source  =  nwamui_env_get_dns_nameservice_config_source ( env );
+    gchar*      dns_nameservice_domain  =  nwamui_env_get_dns_nameservice_domain ( env );
     GList*      dns_nameservice_servers  =  nwamui_env_get_dns_nameservice_servers ( env );
     gchar*      dns_nameservice_search  =  nwamui_env_get_dns_nameservice_search ( env );
     GList*      nameservice_servers  =  nwamui_env_get_nis_nameservice_servers ( env );
+    nwamui_env_config_source_t
+                nis_config_source  =  nwamui_env_get_nis_nameservice_config_source ( env );
     GList*      nis_nameservice_servers  =  nwamui_env_get_nis_nameservice_servers ( env );
-    GList*      nisplus_nameservice_servers  =  nwamui_env_get_nisplus_nameservice_servers ( env );
+    nwamui_env_config_source_t
+                ldap_config_source  =  nwamui_env_get_ldap_nameservice_config_source ( env );
     GList*      ldap_nameservice_servers  =  nwamui_env_get_ldap_nameservice_servers ( env );
     gchar*      hosts_file  =  nwamui_env_get_hosts_file ( env );
     gchar*      nfsv4_domain  =  nwamui_env_get_nfsv4_domain ( env );
@@ -427,14 +442,16 @@ process_env( gpointer data, gpointer user_data )
     indent += 4;
     printf("%-*sEnv name = %s\n", indent, "", name?name:"NULL" );
     printf("%-*sEnv enabled  = %s\n", indent, "", enabled ?"TRUE":"FALSE" );
-    printf("%-*sEnv nameservice_discover  = %s\n", indent, "", nameservice_discover ?"TRUE":"FALSE" );
     print_ns_list_and_free( "Env", "nameservices", nameservices );
     printf("%-*sEnv nameservices_config_file  = %s\n", indent, "", nameservices_config_file ?nameservices_config_file :"NULL" );
-    printf("%-*sEnv domainname  = %s\n", indent, "", domainname ?domainname :"NULL" );
+    printf("%-*sEnv default_domainname  = %s\n", indent, "", default_domainname ?default_domainname :"NULL" );
+    printf("%-*sEnv dns_nameservice_config_source  = %s\n", indent, "", config_source_to_str(dns_config_source));
+    printf("%-*sEnv dns_nameservice_domain  = %s\n", indent, "", dns_nameservice_domain ?dns_nameservice_domain :"NULL" );
     print_string_list_and_free( "Env", "dns_nameservice_servers", dns_nameservice_servers );
     printf("%-*sEnv dns_nameservice_search  = %s\n", indent, "", dns_nameservice_search ?dns_nameservice_search :"NULL" );
+    printf("%-*sEnv nis_nameservice_config_source  = %s\n", indent, "", config_source_to_str(nis_config_source));
     print_string_list_and_free( "Env", "nis_nameservice_servers", nis_nameservice_servers );
-    print_string_list_and_free( "Env", "nisplus_nameservice_servers", nisplus_nameservice_servers );
+    printf("%-*sEnv ldap_nameservice_config_source  = %s\n", indent, "", config_source_to_str(ldap_config_source));
     print_string_list_and_free( "Env", "ldap_nameservice_servers", ldap_nameservice_servers );
     printf("%-*sEnv hosts_file  = %s\n", indent, "", hosts_file ?hosts_file :"NULL" );
     printf("%-*sEnv nfsv4_domain  = %s\n", indent, "", nfsv4_domain ?nfsv4_domain :"NULL" );

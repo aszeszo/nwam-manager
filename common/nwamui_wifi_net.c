@@ -30,6 +30,7 @@
 #include <glib-object.h>
 #include <glib/gi18n.h>
 #include <strings.h>
+#include <stdlib.h>
 #include <errno.h>
 
 #include "libnwamui.h"
@@ -134,8 +135,8 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
     gobject_class->get_property = nwamui_wifi_net_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_wifi_net_finalize;
 
-    nwamuiobject_class->get_name = nwamui_wifi_net_get_essid;
-    nwamuiobject_class->set_name = nwamui_wifi_net_set_essid;
+    nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_wifi_net_get_essid;
+    nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_wifi_net_set_essid;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,

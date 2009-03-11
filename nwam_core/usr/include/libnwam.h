@@ -104,6 +104,7 @@ typedef enum {
 	NWAM_ENTITY_TYPE_MISMATCH,	/* Entity type mismatch */
 	NWAM_ENTITY_INVALID,		/* Validation of entity failed */
 	NWAM_ENTITY_INVALID_MEMBER,	/* Entity member invalid */
+	NWAM_ENTITY_INVALID_STATE,	/* Entity is not in appropriate state */
 	NWAM_ENTITY_INVALID_VALUE,	/* Validation of entity value failed */
 	NWAM_ENTITY_MISSING_MEMBER,	/* Required member is missing */
 	NWAM_ENTITY_NO_VALUE,		/* No value associated with entity */
@@ -234,7 +235,8 @@ typedef enum {
  *
  * ncu|enm|loc name is|is-not active
  * ip-address is|is-not|is-in-range|is-not-in-range ipaddr[/prefixlen]
- * domainname is|is-not|contains|does-not-contain string
+ * advertised-domain is|is-not|contains|does-not-contain string
+ * system-domain is|is-not|contains|does-not-contain string
  * essid is|is-not|contains|does-not-contain string
  * bssid is|is-not <string>
  */
@@ -260,7 +262,8 @@ typedef enum {
 	NWAM_CONDITION_OBJECT_TYPE_ENM,
 	NWAM_CONDITION_OBJECT_TYPE_LOC,
 	NWAM_CONDITION_OBJECT_TYPE_IP_ADDRESS,
-	NWAM_CONDITION_OBJECT_TYPE_DOMAINNAME,
+	NWAM_CONDITION_OBJECT_TYPE_ADV_DOMAIN,
+	NWAM_CONDITION_OBJECT_TYPE_SYS_DOMAIN,
 	NWAM_CONDITION_OBJECT_TYPE_ESSID,
 	NWAM_CONDITION_OBJECT_TYPE_BSSID
 } nwam_condition_object_type_t;
@@ -269,7 +272,8 @@ typedef enum {
 #define	NWAM_CONDITION_OBJECT_TYPE_ENM_STRING		"enm"
 #define	NWAM_CONDITION_OBJECT_TYPE_LOC_STRING		"loc"
 #define	NWAM_CONDITION_OBJECT_TYPE_IP_ADDRESS_STRING	"ip-address"
-#define	NWAM_CONDITION_OBJECT_TYPE_DOMAINNAME_STRING	"domainname"
+#define	NWAM_CONDITION_OBJECT_TYPE_ADV_DOMAIN_STRING	"advertised-domain"
+#define	NWAM_CONDITION_OBJECT_TYPE_SYS_DOMAIN_STRING	"system-domain"
 #define	NWAM_CONDITION_OBJECT_TYPE_ESSID_STRING		"essid"
 #define	NWAM_CONDITION_OBJECT_TYPE_BSSID_STRING		"bssid"
 
@@ -299,7 +303,8 @@ nwam_error_t nwam_condition_string_to_condition(const char *,
  *
  * Regarding the objects these conditions apply to:
  * - NCU, ENM and locations are most specific
- * - domainname is next
+ * - system-domain is next
+ * - advertised-domain is next
  * - IP address is next
  * - wireless BSSID is next
  * - wireless ESSID is least specific
@@ -323,8 +328,9 @@ nwam_error_t nwam_condition_rate(nwam_condition_object_type_t,
 			strcmp(name, NWAM_LOC_NAME_LEGACY) == 0)
 
 /* Forward definition */
-struct nwam_loc_handle;
-typedef struct nwam_loc_handle *nwam_loc_handle_t;
+struct nwam_handle;
+
+typedef struct nwam_handle *nwam_loc_handle_t;
 
 /* Location properties */
 
@@ -396,11 +402,9 @@ typedef enum {
 #define	NWAM_NCP_AUTOMATIC(name)	\
 			(strcmp(name, NWAM_NCP_NAME_AUTOMATIC) == 0)
 
-typedef struct nwam_ncp_handle *nwam_ncp_handle_t;
+typedef struct nwam_handle *nwam_ncp_handle_t;
 
-/* Forward definition */
-struct nwam_ncu_handle;
-typedef struct nwam_ncu_handle *nwam_ncu_handle_t;
+typedef struct nwam_handle *nwam_ncu_handle_t;
 
 typedef enum {
 	NWAM_NCU_TYPE_LINK,
@@ -502,9 +506,7 @@ typedef enum {
  * ENM definitions
  */
 
-/* Forward definition */
-struct nwam_enm_handle;
-typedef struct nwam_enm_handle *nwam_enm_handle_t;
+typedef struct nwam_handle *nwam_enm_handle_t;
 
 #define	NWAM_ENM_PROP_ACTIVATION_MODE	"activation-mode"
 #define	NWAM_ENM_PROP_CONDITIONS	"conditions"
@@ -521,9 +523,7 @@ typedef struct nwam_enm_handle *nwam_enm_handle_t;
  * Known Wireless LAN info (known WLAN) definitions.
  */
 
-/* Forward definition */
-struct nwam_known_wlan_handle;
-typedef struct nwam_known_wlan_handle *nwam_known_wlan_handle_t;
+typedef struct nwam_handle *nwam_known_wlan_handle_t;
 
 #define	NWAM_KNOWN_WLAN_PROP_BSSIDS	"bssids"
 #define	NWAM_KNOWN_WLAN_PROP_PRIORITY	"priority"
@@ -661,6 +661,10 @@ extern nwam_error_t nwam_ncu_copy(nwam_ncu_handle_t, const char *,
 
 /* Commit ncu changes to persistent storage */
 extern nwam_error_t nwam_ncu_commit(nwam_ncu_handle_t, uint64_t);
+
+/* activate/deactivate an individual NCU (must be part of the active NCP) */
+extern nwam_error_t nwam_ncu_enable(nwam_ncu_handle_t);
+extern nwam_error_t nwam_ncu_disable(nwam_ncu_handle_t);
 
 /* Validate ncu content */
 extern nwam_error_t nwam_ncu_validate(nwam_ncu_handle_t, const char **);

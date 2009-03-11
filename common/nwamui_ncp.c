@@ -118,8 +118,8 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
     klass->activate_ncu = default_activate_ncu_signal_handler;
     klass->deactivate_ncu = default_deactivate_ncu_signal_handler;
 
-    nwamuiobject_class->get_name = nwamui_ncp_get_name;
-    nwamuiobject_class->set_name = NULL;
+    nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncp_get_name;
+    nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)NULL;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,

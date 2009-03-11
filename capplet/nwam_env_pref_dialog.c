@@ -122,7 +122,8 @@ enum {
 enum {
     SVC_INFO = 0,
     NAMESERVICES_NAME,
-    DOMAIN_NAME,
+    DEFAULT_DOMAINNAME,
+    DNS_NAMESERVICE_DOMAIN,
     NAMESERVICES_ADDR,
 };
 
@@ -458,7 +459,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
             g_signal_connect(action,
               "activate", (GCallback)ns_menu_action_activate, (gpointer)self);
 
-            nwam_menu_group_add_item(prv->menugroup, action, FALSE);
+            nwam_menu_group_add_item(prv->menugroup, G_OBJECT(action), FALSE);
             g_object_unref(action);
         }
     }
@@ -604,7 +605,7 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
       nameservices_status_cb, (gpointer) self, NULL);
 
     g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
-      GINT_TO_POINTER (DOMAIN_NAME));
+      GINT_TO_POINTER (DEFAULT_DOMAINNAME));
 
 	/* column Server Addresses */
 	col = capplet_column_new(view,
@@ -772,12 +773,6 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     /*
      * Name Services Tab
      */
-    if (nwamui_env_get_nameservice_discover(current_env)) {
-        gtk_combo_box_set_active(prv->nameservices_config_combo, NWAMUI_NETSERVICE_AUTOMATIC);
-    } else {
-        gtk_combo_box_set_active(prv->nameservices_config_combo, NWAMUI_NETSERVICE_MANUAL);
-    }
-
     {
         GtkTreeModel *model;
         GtkTreeIter iter;
@@ -794,7 +789,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 
             /* Disable related menu */
             action_menu_group_set_visible(prv->menugroup,
-              nwam_nameservices_enum_to_string(i->data),
+              nwam_nameservices_enum_to_string((nwam_nameservices_t) i->data),
               FALSE);
         }
     }
@@ -804,7 +799,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 
         config_file = nwamui_env_get_nameservices_config_file(current_env);
         if (config_file) {
-            gtk_file_chooser_set_filename(prv->nsswitch_file_btn,
+            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn),
               config_file);
             g_free(config_file);
         }
@@ -818,7 +813,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         /* nat */
         config_file = nwamui_env_get_ipnat_config_file(current_env);
         if (config_file) {
-            gtk_file_chooser_set_filename(prv->nat_file_chooser,
+            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->nat_file_chooser),
               config_file);
             g_free(config_file);
         }
@@ -828,7 +823,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         /* ipfilter */
         config_file = nwamui_env_get_ipfilter_config_file(current_env);
         if (config_file) {
-            gtk_file_chooser_set_filename(prv->ipfilter_file_chooser,
+            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->ipfilter_file_chooser),
               config_file);
             g_free(config_file);
         }
@@ -838,7 +833,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         /* ipfilter v6 */
         config_file = nwamui_env_get_ipfilter_v6_config_file(current_env);
         if (config_file) {
-            gtk_file_chooser_set_filename(prv->ipfilter_v6_file_chooser,
+            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->ipfilter_v6_file_chooser),
               config_file);
             g_free(config_file);
         }
@@ -848,7 +843,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         /* ippool */
         config_file = nwamui_env_get_ippool_config_file(current_env);
         if (config_file) {
-            gtk_file_chooser_set_filename(prv->ippool_file_chooser,
+            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->ippool_file_chooser),
               config_file);
             g_free(config_file);
         }
@@ -858,7 +853,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         /* ike */
         config_file = nwamui_env_get_ike_config_file(current_env);
         if (config_file) {
-            gtk_file_chooser_set_filename(prv->ike_file_chooser,
+            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->ike_file_chooser),
               config_file);
             g_free(config_file);
         }
@@ -868,7 +863,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         /* ipsec policy */
         config_file = nwamui_env_get_ipsecpolicy_config_file(current_env);
         if (config_file) {
-            gtk_file_chooser_set_filename(prv->ipsec_policy_file_chooser,
+            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->ipsec_policy_file_chooser),
               config_file);
             g_free(config_file);
         }
@@ -1307,7 +1302,6 @@ nameservices_status_cb (GtkTreeViewColumn *tree_column,
         case NWAM_NAMESERVICES_DNS:
         case NWAM_NAMESERVICES_FILES:
         case NWAM_NAMESERVICES_NIS:
-        case NWAM_NAMESERVICES_NISPLUS:
         case NWAM_NAMESERVICES_LDAP:
             g_object_set(G_OBJECT(cell), "markup",
               nwam_nameservices_enum_to_string(ns), NULL);
@@ -1318,9 +1312,18 @@ nameservices_status_cb (GtkTreeViewColumn *tree_column,
         }
     }
     break;
-    case DOMAIN_NAME:
+    case DEFAULT_DOMAINNAME:
     {
-        gchar *name = nwamui_env_get_domainname(prv->selected_env);
+        gchar *name = nwamui_env_get_default_domainname(prv->selected_env);
+
+        g_object_set(G_OBJECT(cell), "markup", name, NULL);
+
+        g_free(name);
+    }
+    break;
+    case DNS_NAMESERVICE_DOMAIN:
+    {
+        gchar *name = nwamui_env_get_dns_nameservice_domain(prv->selected_env);
 
         g_object_set(G_OBJECT(cell), "markup", name, NULL);
 
@@ -1340,9 +1343,6 @@ nameservices_status_cb (GtkTreeViewColumn *tree_column,
             break;
         case NWAM_NAMESERVICES_NIS:
             list = nwamui_env_get_nis_nameservice_servers(prv->selected_env);
-            break;
-        case NWAM_NAMESERVICES_NISPLUS:
-            list = nwamui_env_get_nisplus_nameservice_servers(prv->selected_env);
             break;
         case NWAM_NAMESERVICES_LDAP:
             list = nwamui_env_get_ldap_nameservice_servers(prv->selected_env);
@@ -1461,14 +1461,10 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     /*
      * Name Services Tab
      */
-    if (gtk_combo_box_get_active(prv->nameservices_config_combo) == NWAMUI_NETSERVICE_AUTOMATIC) 
-        nwamui_env_set_nameservice_discover(current_env, TRUE);
-    else {
+    {
         gchar *config_file;
 
-        nwamui_env_set_nameservice_discover(current_env, FALSE);
-
-        config_file = gtk_file_chooser_get_filename(prv->nsswitch_file_btn);
+        config_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn));
         if (config_file) {
             nwamui_env_set_nameservices_config_file(current_env, config_file);
             g_free(config_file);
@@ -1483,7 +1479,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         gchar *config_file;
         /* nat */
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->nat_file_chooser)) &&
-          (config_file = gtk_file_chooser_get_filename(prv->nat_file_chooser))) {
+          (config_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->nat_file_chooser)))) {
             nwamui_env_set_ipnat_config_file(current_env, config_file);
             g_free(config_file);
         } else {
@@ -1491,7 +1487,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
 
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->ipfilter_file_chooser)) &&
-          (config_file = gtk_file_chooser_get_filename(prv->ipfilter_file_chooser))) {
+          (config_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->ipfilter_file_chooser)))) {
             nwamui_env_set_ipfilter_config_file(current_env, config_file);
             g_free(config_file);
         } else {
@@ -1499,7 +1495,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
 
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->ipfilter_v6_file_chooser)) &&
-          (config_file = gtk_file_chooser_get_filename(prv->ipfilter_v6_file_chooser))) {
+          (config_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->ipfilter_v6_file_chooser)))) {
             nwamui_env_set_ipfilter_v6_config_file(current_env, config_file);
             g_free(config_file);
         } else {
@@ -1507,7 +1503,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
 
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->ippool_file_chooser)) &&
-          (config_file = gtk_file_chooser_get_filename(prv->ippool_file_chooser))) {
+          (config_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->ippool_file_chooser)))) {
             nwamui_env_set_ippool_config_file(current_env, config_file);
             g_free(config_file);
         } else {
@@ -1515,7 +1511,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
 
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->ike_file_chooser)) &&
-          (config_file = gtk_file_chooser_get_filename(prv->ike_file_chooser))) {
+          (config_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->ike_file_chooser)))) {
             nwamui_env_set_ike_config_file(current_env, config_file);
             g_free(config_file);
         } else {
@@ -1523,7 +1519,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
 
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->ipsec_policy_file_chooser)) &&
-          (config_file = gtk_file_chooser_get_filename(prv->ipsec_policy_file_chooser))) {
+          (config_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->ipsec_policy_file_chooser)))) {
             nwamui_env_set_ipsecpolicy_config_file(current_env, config_file);
             g_free(config_file);
         } else {
@@ -1556,7 +1552,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     if (!nwamui_env_commit (NWAMUI_ENV (prv->selected_env))) {
         gchar *name = nwamui_env_get_name (NWAMUI_ENV (prv->selected_env));
         gchar *msg = g_strdup_printf (_("Committing %s faild..."), name);
-        nwamui_util_show_message (prv->env_pref_dialog,
+        nwamui_util_show_message (GTK_WINDOW(prv->env_pref_dialog),
           GTK_MESSAGE_ERROR,
           _("Commit ENV error"),
           msg);
@@ -1606,10 +1602,10 @@ combo_changed_strings_value(GtkComboBox* combo, gpointer user_data)
         default:
             break;
         }
-        gtk_widget_set_sensitive(prv->nameservices_table, manual);
-        gtk_widget_set_sensitive(prv->nameservice_add_btn, manual);
-        gtk_widget_set_sensitive(prv->nameservice_delete_btn, manual);
-        gtk_widget_set_sensitive(prv->nsswitch_file_btn, manual);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nameservices_table), manual);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nameservice_add_btn), manual);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nameservice_delete_btn), manual);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_file_btn), manual);
 	}
 }
 
