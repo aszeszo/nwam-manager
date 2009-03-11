@@ -1,3 +1,14 @@
+2009-03-11  Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+	* img/capplet/network-profile-prioritised-expand.png
+	* img/capplet/network-profile-noexpand.png
+	* img/capplet/network-profile-user.png
+	* img/capplet/network-profile-auto.png
+
+	More work on the Network Profile view.
+
 2009-03-09  Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
