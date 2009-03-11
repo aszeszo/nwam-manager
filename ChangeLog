@@ -1,3 +1,9 @@
+2009-03-11  Calum Benson  <calum.benson@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+
+	Changes to network profile view to match latest draft of UI spec.
+
 2009-03-11  Darren Kenny  <darren.kenny@sun.com>
 
 	* nwam_core/usr/include/libnwam.h:
