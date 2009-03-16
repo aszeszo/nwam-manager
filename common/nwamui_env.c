@@ -48,7 +48,11 @@ struct _NwamuiEnvPrivate {
     gboolean                    nwam_loc_modified;
     gboolean                    enabled; /* Cache state we we can "enable" on commit */
 
+    GtkListStore*               svcs_model;
+    GtkListStore*               sys_svcs_model;
+
     /* Not used for Phase 1 any more */
+#ifdef ENABLE_PROXY
     nwamui_env_proxy_type_t     proxy_type;
     gboolean                    use_http_proxy_for_all;
     gchar*                      proxy_pac_file;
@@ -65,8 +69,7 @@ struct _NwamuiEnvPrivate {
     gint                        proxy_socks_port;
     gchar*                      proxy_username;
     gchar*                      proxy_password;
-    GtkListStore*               svcs_model;
-    GtkListStore*               sys_svcs_model;
+#endif /* ENABLE_PROXY */
 
 };
 
@@ -98,6 +101,8 @@ enum {
     PROP_CONDITIONS,
     PROP_ACTIVATION_MODE,
     PROP_NWAM_ENV,
+    PROP_SVCS,
+#ifdef ENABLE_PROXY
     PROP_PROXY_TYPE,
     PROP_PROXY_PAC_FILE,
     PROP_USE_HTTP_PROXY_FOR_ALL,
@@ -113,8 +118,8 @@ enum {
     PROP_PROXY_GOPHER_PORT,
     PROP_PROXY_SOCKS_PORT,
     PROP_PROXY_USERNAME,
-    PROP_PROXY_PASSWORD,
-    PROP_SVCS
+    PROP_PROXY_PASSWORD
+#endif /* ENABLE_PROXY */
 };
 
 static void nwamui_env_set_property ( GObject         *object,
@@ -282,10 +287,9 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
 
     g_object_class_install_property (gobject_class,
                                      PROP_DNS_NAMESERVICE_SEARCH,
-                                     g_param_spec_string ("dns_nameservice_search",
+                                     g_param_spec_pointer ("dns_nameservice_search",
                                                           _("dns_nameservice_search"),
                                                           _("dns_nameservice_search"),
-                                                          "",
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -306,10 +310,10 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_NIS_NAMESERVICE_CONFIG_SOURCE,
-                                     g_param_spec_int ("nis_nameservice_config_source",
-                                                       _("nis_nameservice_config_source"),
-                                                       _("nis_nameservice_config_source"),
+                                     PROP_LDAP_NAMESERVICE_CONFIG_SOURCE,
+                                     g_param_spec_int ("ldap_nameservice_config_source",
+                                                       _("ldap_nameservice_config_source"),
+                                                       _("ldap_nameservice_config_source"),
                                                        NWAMUI_ENV_CONFIG_SOURCE_MANUAL,
                                                        NWAMUI_ENV_CONFIG_SOURCE_LAST-1,
                                                        NWAMUI_ENV_CONFIG_SOURCE_DHCP,
@@ -415,6 +419,15 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
 
 
+    g_object_class_install_property (gobject_class,
+                                     PROP_SVCS,
+                                     g_param_spec_object ("svcs",
+                                                          _("smf services"),
+                                                          _("smf services"),
+                                                          GTK_TYPE_TREE_MODEL,
+                                                          G_PARAM_READABLE));
+    
+#ifdef ENABLE_PROXY
     g_object_class_install_property (gobject_class,
                                      PROP_PROXY_TYPE,
                                      g_param_spec_int ("proxy_type",
@@ -554,15 +567,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           _("proxy_password"),
                                                           "",
                                                           G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_SVCS,
-                                     g_param_spec_object ("svcs",
-                                                          _("smf services"),
-                                                          _("smf services"),
-                                                          GTK_TYPE_TREE_MODEL,
-                                                          G_PARAM_READABLE));
-    
+#endif /* ENABLE_PROXY */
 }
 
 
@@ -575,6 +580,9 @@ nwamui_env_init (NwamuiEnv *self)
     self->prv->nwam_loc = NULL;
     self->prv->nwam_loc_modified = FALSE;
 
+    self->prv->svcs_model = gtk_list_store_new(SVC_N_COL, G_TYPE_OBJECT);
+
+#ifdef ENABLE_PROXY
     self->prv->proxy_type = NWAMUI_ENV_PROXY_TYPE_DIRECT;
     self->prv->use_http_proxy_for_all = FALSE;
     self->prv->proxy_pac_file = NULL;
@@ -591,7 +599,7 @@ nwamui_env_init (NwamuiEnv *self)
     self->prv->proxy_socks_port = 1080;
     self->prv->proxy_username = NULL;
     self->prv->proxy_password = NULL;
-    self->prv->svcs_model = gtk_list_store_new(SVC_N_COL, G_TYPE_OBJECT);
+#endif /* ENABLE_PROXY */
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
     /*
@@ -699,8 +707,11 @@ nwamui_env_set_property (   GObject         *object,
             break;
 
         case PROP_DNS_NAMESERVICE_SEARCH: {
-                set_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH, 
-                                          g_value_get_string( value ) );
+                GList*  ns_server = g_value_get_pointer( value );
+                gchar** ns_server_strs = nwamui_util_glist_to_strv( ns_server );
+                /* We may need to/from convert to , separated string?? */
+                set_nwam_loc_string_array_prop( self->prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH, ns_server_strs, 0 );
+                g_strfreev(ns_server_strs);
             }
             break;
 
@@ -794,6 +805,7 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
+#ifdef ENABLE_PROXY
         case PROP_PROXY_TYPE: {
                 self->prv->proxy_type = (nwamui_env_proxy_type_t)g_value_get_int( value );
             }
@@ -901,6 +913,7 @@ nwamui_env_set_property (   GObject         *object,
                 self->prv->proxy_password = g_strdup( g_value_get_string( value ) );
             }
             break;
+#endif /* ENABLE_PROXY */
 
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1006,9 +1019,10 @@ nwamui_env_get_property (GObject         *object,
             break;
 
         case PROP_DNS_NAMESERVICE_SEARCH: {
-                gchar* str = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH );
-                g_value_set_string( value, str );
-                g_free(str);
+                gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH );
+                /* We may need to/from convert to , separated string?? */
+                g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
+                g_strfreev( strv );
             }
             break;
 
@@ -1108,6 +1122,12 @@ nwamui_env_get_property (GObject         *object,
             }
             break;
 
+        case PROP_SVCS: {
+                g_value_set_object (value, self->prv->svcs_model);
+            }
+            break;
+
+#ifdef ENABLE_PROXY
         case PROP_PROXY_TYPE: {
                 g_value_set_int( value, (gint)self->prv->proxy_type );
             }
@@ -1187,11 +1207,7 @@ nwamui_env_get_property (GObject         *object,
                 g_value_set_string( value, self->prv->proxy_password );
             }
             break;
-
-        case PROP_SVCS: {
-                g_value_set_object (value, self->prv->svcs_model);
-            }
-            break;
+#endif /* ENABLE_PROXY */
             
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1315,6 +1331,7 @@ nwamui_env_clone( NwamuiEnv* self )
     
     g_object_set (G_OBJECT (new_env),
             "name", new_name,
+#ifdef ENABLE_PROXY
             "proxy_type", self->prv->proxy_type,
             "use_http_proxy_for_all", self->prv->use_http_proxy_for_all,
             "proxy_pac_file", self->prv->proxy_pac_file,
@@ -1329,6 +1346,7 @@ nwamui_env_clone( NwamuiEnv* self )
             "proxy_ftp_port", self->prv->proxy_ftp_port,
             "proxy_gopher_port", self->prv->proxy_gopher_port,
             "proxy_socks_port", self->prv->proxy_socks_port,
+#endif /* ENABLE_PROXY */
              NULL);
     
     g_free( new_name );
@@ -2180,7 +2198,7 @@ nwamui_env_get_dns_nameservice_servers (NwamuiEnv *self)
  **/ 
 extern void
 nwamui_env_set_dns_nameservice_search (   NwamuiEnv *self,
-                              const gchar*  dns_nameservice_search )
+                                          const GList*  dns_nameservice_search )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
     g_assert (dns_nameservice_search != NULL );
@@ -2195,13 +2213,13 @@ nwamui_env_set_dns_nameservice_search (   NwamuiEnv *self,
 /**
  * nwamui_env_get_dns_nameservice_search:
  * @nwamui_env: a #NwamuiEnv.
- * @returns: the dns_nameservice_search.
+ * @returns: the dns_nameservice_search list.
  *
  **/
-extern gchar*
+extern GList*
 nwamui_env_get_dns_nameservice_search (NwamuiEnv *self)
 {
-    gchar*  dns_nameservice_search = NULL; 
+    GList*  dns_nameservice_search = NULL; 
 
     g_return_val_if_fail (NWAMUI_IS_ENV (self), dns_nameservice_search);
 
@@ -2770,6 +2788,7 @@ nwamui_env_get_svcs_disable (NwamuiEnv *self)
     return( svcs_disable );
 }
 
+#ifdef ENABLE_PROXY
 /** 
  * nwamui_env_set_proxy_type:
  * @nwamui_env: a #NwamuiEnv.
@@ -3394,6 +3413,7 @@ nwamui_env_get_proxy_socks_port (NwamuiEnv *self)
 
     return( proxy_socks_port );
 }
+#endif /* ENABLE_PROXY */
 
 /** 
  * nwamui_env_set_activation_mode:
@@ -3724,6 +3744,7 @@ nwamui_env_finalize (NwamuiEnv *self)
         nwam_loc_free (self->prv->nwam_loc);
     }
     
+#ifdef ENABLE_PROXY
     if (self->prv->proxy_pac_file != NULL ) {
         g_free( self->prv->proxy_pac_file );
     }
@@ -3763,6 +3784,7 @@ nwamui_env_finalize (NwamuiEnv *self)
     if (self->prv->proxy_password != NULL ) {
         g_free( self->prv->proxy_password );
     }
+#endif /* ENABLE_PROXY */
 
     g_free (self->prv); 
     self->prv = NULL;

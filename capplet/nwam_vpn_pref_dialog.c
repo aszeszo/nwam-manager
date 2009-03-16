@@ -206,6 +206,9 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 
     nwamui_util_set_entry_smf_fmri_completion( GTK_ENTRY(prv->process_entry) );
 
+    /* Set title to include hostname */
+    nwamui_util_window_title_append_hostname( prv->vpn_pref_dialog );
+
 /* 	g_signal_connect(prv->start_cmd_entry, "changed", (GCallback)command_entry_changed, (gpointer)self); */
 /* 	g_signal_connect(prv->stop_cmd_entry, "changed", (GCallback)command_entry_changed, (gpointer)self); */
 /* 	g_signal_connect(prv->process_entry, "changed", (GCallback)command_entry_changed, (gpointer)self); */

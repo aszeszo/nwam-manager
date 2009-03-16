@@ -142,8 +142,8 @@ extern void                 nwamui_env_set_dns_nameservice_servers ( NwamuiEnv *
 extern GList*               nwamui_env_get_dns_nameservice_servers ( NwamuiEnv *self );
 
 
-extern void                 nwamui_env_set_dns_nameservice_search ( NwamuiEnv *self, const gchar* dns_nameservice_search );
-extern gchar*               nwamui_env_get_dns_nameservice_search ( NwamuiEnv *self );
+extern void                 nwamui_env_set_dns_nameservice_search ( NwamuiEnv *self, const GList* dns_nameservice_search );
+extern GList*               nwamui_env_get_dns_nameservice_search ( NwamuiEnv *self );
 
 
 extern void                 nwamui_env_set_nis_nameservice_config_source (  NwamuiEnv *self,
@@ -203,6 +203,7 @@ extern GList*               nwamui_env_get_svcs_enable ( NwamuiEnv *self );
 extern void                 nwamui_env_set_svcs_disable ( NwamuiEnv *self, const GList*   svcs_disable );
 extern GList*               nwamui_env_get_svcs_disable ( NwamuiEnv *self );
 
+#ifdef ENABLE_PROXY
 extern void                     nwamui_env_set_proxy_type ( NwamuiEnv *self, nwamui_env_proxy_type_t proxy_type );
 extern nwamui_env_proxy_type_t  nwamui_env_get_proxy_type ( NwamuiEnv *self );
 
@@ -257,6 +258,7 @@ extern gchar*               nwamui_env_get_proxy_username ( NwamuiEnv *self );
 
 extern void                 nwamui_env_set_proxy_password ( NwamuiEnv *self, const gchar* proxy_password );
 extern gchar*               nwamui_env_get_proxy_password ( NwamuiEnv *self );
+#endif /* ENABLE_PROXY */
 
 #if 0
 extern GtkTreeModel *       nwamui_env_get_svcs (NwamuiEnv *self);

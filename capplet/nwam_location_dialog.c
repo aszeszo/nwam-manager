@@ -324,6 +324,9 @@ nwam_location_dialog_init(NwamLocationDialog *self)
 
     self->prv->location_rules_btn = GTK_BUTTON(nwamui_util_glade_get_widget(LOCATION_RULES_BTN));
 
+    /* Set title to include hostname */
+    nwamui_util_window_title_append_hostname( self->prv->location_dialog );
+
     g_signal_connect(self->prv->location_rules_btn,
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
     g_signal_connect(self->prv->location_add_btn,

@@ -36,6 +36,8 @@
 #include <glade/glade.h>
 #include <libgnome/libgnome.h>
 #include <string.h>
+#include <unistd.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <inet/ip.h>
 #include <inetcfg.h>
@@ -1248,6 +1250,78 @@ nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry )
     gtk_entry_set_completion( entry, completion );
 
     return( TRUE );
+}
+
+extern void
+nwamui_util_window_title_append_hostname( GtkDialog* dialog )
+{
+    const gchar    *current_title = NULL;
+    gchar           hostname[MAXHOSTNAMELEN+1];
+    gchar          *new_title = NULL;
+
+    if ( dialog == NULL || !GTK_WINDOW(dialog)) {
+        return;
+    }
+    if ( gethostname(hostname, MAXHOSTNAMELEN) != 0 ) {
+        g_debug("gethostname returned error: %s", strerror( errno ) );
+        return;
+    }
+
+    hostname[MAXHOSTNAMELEN] = '\0'; /* Just in case */
+
+    current_title = gtk_window_get_title( GTK_WINDOW(dialog) );
+
+    new_title = g_strdup_printf(_("%s (%s )"), current_title?current_title:"", hostname);
+
+    gtk_window_set_title( GTK_WINDOW(dialog), new_title );
+
+    g_debug("Setting Window title: %s", new_title?new_title:"NULL" );
+
+    g_free( new_title );
+}
+
+#define LIST_DELIM  _(", \t\n")
+#define LIST_JOIN   _(",")
+
+/**
+ * Parses a list of strings, separated by space or comma into a GList of char*
+ **/
+extern GList*
+nwamui_util_parse_string_to_glist( const gchar* str )
+{
+    GList      *list = NULL;
+    gchar     **words = NULL;
+
+    words = g_strsplit_set(str, LIST_DELIM, 0 );
+
+    for( int i = 0; words && words[i] != NULL; i++ ) {
+        list = g_list_append( list, (gpointer)words[i] );
+    }
+                
+    /* Don't free words[] since memory is now in GList */
+
+    return( list );
+}
+
+extern gchar*
+nwamui_util_glist_to_comma_string( GList* list )
+{
+    GString*    g_str = g_string_new( "" );
+    GList*      item = g_list_first( list );
+    gboolean    first = TRUE;
+    
+    while ( item != NULL ) {
+        gchar* str = (gchar*)item->data;
+        if ( str != NULL ) {
+            if ( first ) {
+                g_str = g_string_append( g_str, LIST_JOIN );
+            }
+            g_str = g_string_append( g_str, str );
+            first = FALSE;
+        }
+        item = g_list_next( item );
+    }
+    return( g_string_free( g_str, FALSE ) );
 }
 
 extern FILE*

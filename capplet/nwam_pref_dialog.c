@@ -161,6 +161,9 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     g_object_unref( daemon );
     daemon = NULL;
 
+    /* Set title to include hostname */
+    nwamui_util_window_title_append_hostname( self->prv->capplet_dialog );
+
     /* Construct the Notebook Panels Handling objects. */
     self->prv->panel[PANEL_CONN_STATUS] = NWAM_PREF_IFACE(nwam_conn_status_panel_new( self ));
     self->prv->panel[PANEL_NET_PREF] = NWAM_PREF_IFACE(nwam_net_conf_panel_new(self));

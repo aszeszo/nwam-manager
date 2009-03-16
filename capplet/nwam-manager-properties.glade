@@ -2515,7 +2515,7 @@ From configuration (PAC) file</property>
                               </packing>
                             </child>
                             <child>
-                              <widget class="GtkCheckButton" id="nis_servicew_cb">
+                              <widget class="GtkCheckButton" id="nis_service_cb">
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="label" translatable="yes">_NIS</property>

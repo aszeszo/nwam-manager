@@ -30,27 +30,22 @@
 <para>LA DOCUMENTATION EST FOURNIE "EN L'ETAT" ET TOUTES AUTRES CONDITIONS, DECLARATIONS ET GARANTIES EXPRESSES OU TACITES SONT FORMELLEMENT EXCLUES, DANS LA MESURE AUTORISEE PAR LA LOI APPLICABLE, Y COMPRIS NOTAMMENT TOUTE GARANTIE IMPLICITE RELATIVE A LA QUALITE MARCHANDE, A L'APTITUDE A UNE UTILISATION PARTICULIERE OU A L'ABSENCE DE CONTREFACON. </para>
 </legalnotice>
 </bookinfo>
-<chapter id="about-nwam"><title>Configuring Your Automatic Network Connection</title>
-<para>The Network Auto-Magic (NWAM) process simplifies network configuration tasks by automatically establishing a network connection at system startup. Using this feature, you can modify the currently active network connection and perform other network administration tasks, such as the following:</para>
-<itemizedlist><listitem><para>View status information about your network connection.</para>
+<chapter id="about-nwam"><title>More About Specific Topics</title>
+<para>Use this online help to find out more about the Sun <trademark>Java</trademark> System Monitoring Console (console). Links in the application take you to pages in this help that provide more detailed information. You can navigate through this help by using links that appear within the text, or by using the following three tabs in the left pane: Table of Contents, Index, and Search.</para>
+<para>Use this online help to find out more about configuring your automatic network connection from the desktop. Links in the application take you to pages in this help that provide more detailed information. You can navigate through this help by using links that appear within the text or by clicking the various topics in the side pane.</para>
+<sect1 id="nwam-components"><title>Configuring Your Automatic Network Connection</title>
+<para>The Network Auto-Magic (NWAM) process simplifies and automates basic network configuration by automatically configuring and managing your wired and wireless networks. NWAM addresses basic Ethernet and WiFi configurations, and enables you to perform basic networking administration tasks, such as connecting to your wired or wireless network at startup. Using this feature, you can monitor information about the status of your current network connection and the overall health of your network. In addition, NWAM simplifies the more complex network configurations, such as system-wide network configuration profiles.</para>
+<para>INSERT MORE FROM DATASHEET THROUGHOUT</para>
+<para>You can also use the NWAM command line interface (CLI) to configure and manage your network. For more information about using the command line version of this application, see (xref to wiki).</para>
+<para>The NWAM GUI includes the following key components:</para>
+<itemizedlist><listitem><para><xref linkend="nwstatus-icon"/> panel icon</para>
 </listitem>
-<listitem><para>Set up an automatic or custom network profile.</para>
+<listitem><para><xref linkend="nwprefs-dialog"/> dialog</para>
 </listitem>
-<listitem><para>Connect to your wireless network.</para>
-</listitem>
-<listitem><para>Switch to a different wireless network.</para>
-</listitem>
-<listitem><para>Change to a wired network connection.</para>
-</listitem>
-<listitem><para>Create a list of your favorite network connections.</para>
-</listitem>
-<listitem><para>Add, join, or edit a wireless network.</para>
-</listitem>
-<listitem><para>Manually configure your network.</para>
+<listitem><para><xref linkend="locationprefs-dialog"/> dialog</para>
 </listitem>
 </itemizedlist>
-<sect1 id="giifs"><title>Key Network Components</title>
-<para>PLACEHOLDER INCLUDE BRIEF SUMMARY OF ALL COMPONENTS — TITLE SUBJECT TO CHANGE</para>
+<para>Each of these components allow you to ... contain multiple views, from which you can configure your network, configure profiles, manage network locations, and set preferences (FIX THIS!!).</para>
 </sect1>
 </chapter>
 <chapter id="nwstatus-icon"><title>About the Network Status Panel Icon</title>
@@ -79,6 +74,18 @@
 <para>Clicking the xxx message...</para>
 </sect1>
 </chapter>
+<chapter id="viewstatus-info"><title>Viewing Status Information About Your Network</title>
+<para>PLACEHOLDER FOR OVERVIEW INFO — insert information about where/what view this is done, connection status view...</para>
+<sect1 id="viewstatus-current"><title>To View Status Information About the Currently Active Network Connect</title>
+<para>x</para>
+</sect1>
+<sect1 id="viewstatus-all"><title>To View Status Information For Each Network Connection</title>
+<para>x</para>
+</sect1>
+<sect1 id="viewstatus-detailed"><title>To Obtain Detailed Information About the Currently Active Network Connection</title>
+<para>x</para>
+</sect1>
+</chapter>
 <chapter id="nwprefs-dialog"><title>About the Network Preferences Dialog</title>
 <para>The Network Preferences dialog is where you can configure individual network connections and view the current state of each network connection. The window provides access to various views, from which you can switch by using the drop-down list that is located at the top of the window.</para>
 <para>You can access the <literal>Network Preferences</literal> dialog two ways:</para>
@@ -103,24 +110,14 @@
 <para><xref linkend="viewstatus-info"/></para>
 <para>x</para>
 <para>x</para>
-<sect1 id="networkprefs-views"><title>Switching Views in the Network Preferences Dialog</title>
-<para>The following views are available...</para>
-<para>The Connection Properties view enables you to choose how the IP address for a specific network interface is obtained. For wireless interfaces, this view enables you to choose how and when wireless connections are automatically attempted. The network interface is selected from the <literal>Show</literal> drop-down list at the top of the Network Preferences dialog.</para>
+<sect1 id="networkprofile-view"><title>Network Profiles View</title>
+<para>x</para>
+</sect1>
+<sect1 id="connectprop-view"><title>Connection Properties View</title>
+<para>PLACEHOLDER NOT SURE ABOUT SECTION</para>
 </sect1>
 </chapter>
-<chapter id="viewstatus-info"><title>Viewing Status Information About Your Network</title>
-<para>PLACEHOLDER FOR OVERVIEW INFO — insert information about where/what view this is done, connection status view...</para>
-<sect1 id="viewstatus-current"><title>To View Status Information About the Currently Active Network Connect</title>
-<para>x</para>
-</sect1>
-<sect1 id="viewstatus-all"><title>To View Status Information For Each Network Connection</title>
-<para>x</para>
-</sect1>
-<sect1 id="viewstatus-detailed"><title>To Obtain Detailed Information About the Currently Active Network Connection</title>
-<para>x</para>
-</sect1>
-</chapter>
-<chapter id="configure-network"><title>Configuring Your Network Interfaces</title>
+<chapter id="configure-network"><title>Configuring Network Interfaces</title>
 <para>OVERVIEW PLACEHOLDER — Put information about where this is done, what window, what view...</para>
 <sect1 id="connectwireless-startup"><title>To Connect to a Wireless Network at Startup</title>
 <para>x</para>
@@ -171,7 +168,7 @@
 <para>x</para>
 </sect1>
 </chapter>
-<chapter id="connectprops-config"><title>Configuring Your Network Connection Properties</title>
+<chapter id="connectprops-config"><title>Configuring Network Connection Properties</title>
 <para>PLACEHOLDER — insert information about Connection Properties view, etc? Other tasks?</para>
 <sect1 id="connectprops-dialog"><title>About the Connection Properties Dialog</title>
 <para>Not sure if this can be covered in the overview... maybe</para>
@@ -187,7 +184,7 @@
 <para>cross reference back to Network Preferences dialog.</para>
 </sect1>
 </chapter>
-<chapter id="nwlocations-overview"><title>Configuring Network Locations</title>
+<chapter id="nwlocations-overview"><title>Configuring Locations</title>
 <para>PLACEHOLDER — insert info and cross references to where this is done and what view.</para>
 <sect1 id="locationprefs-dialog"><title>About the Location Preferences Dialog</title>
 <para>x</para>

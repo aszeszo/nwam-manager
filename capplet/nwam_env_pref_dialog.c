@@ -45,6 +45,30 @@
 /* Names of Widgets in Glade file */
 #define     ENV_PREF_DIALOG_NAME           "nwam_location_properties"
 #define     ENVIRONMENT_NOTEBOOK           "environment_notebook"
+#define     ENABLED_NETSERVICES_LIST       "enabled_netservices_list"
+#define     DISABLED_NETSERVICES_LIST      "disabled_netservices_list"
+#define     ADD_ENABLED_NETSERVICE_BTN     "add_enabled_netservice_btn"
+#define     DELETE_ENABLED_NETSERVICE_BTN  "delete_enabled_netservice_btn"
+#define     ADD_DISABLED_NETSERVICE_BTN    "add_disabled_netservice_btn"
+#define     DELETE_DISABLED_NETSERVICE_BTN "delete_disabled_netservice_btn"
+
+#define     NAMESERVICE_DNS_CHECK_BUTTON   "dns_service_cb"
+#define     NAMESERVICE_DNS_SERVERS_ENTRY  "dns_servers_entry"
+#define     NAMESERVICE_DNS_MANUAL_RB      "dns_manual_rb"
+#define     NAMESERVICE_DNS_DHCP_RB        "dns_dhcp_rb"
+#define     NAMESERVICE_DNS_SEARCH_ENTRY   "dns_search_entry"
+#define     NAMESERVICE_DNS_DOMAIN_ENTRY   "dns_domain_entry"
+#define     NAMESERVICE_NIS_CHECK_BUTTON   "nis_service_cb"
+#define     NAMESERVICE_NIS_SERVERS_ENTRY  "nis_servers_entry"
+#define     NAMESERVICE_NIS_MANUAL_RB      "nis_manual_rb"
+#define     NAMESERVICE_NIS_DHCP_RB        "nis_dhcp_rb"
+#define     NAMESERVICE_LDAP_CHECK_BUTTON  "ldap_service_cb"
+#define     NAMESERVICE_LDAP_SERVERS_ENTRY "ldap_servers_entry"
+#define     NAMMESERVICE_DEFAULT_DOMAIN    "default_domain_entry"
+#define     NSSWITCH_FILE_BTN              "nsswitch_file_btn"
+#define     NSSWITCH_DEFAULT_BTN           "nsswitch_default_btn"
+
+#ifdef ENABLE_PROXY
 #define     PROXY_CONFIG_COMBO             "proxy_config_combo"
 #define     PROXY_NOTEBOOK                 "proxy_notebook"
 #define     HTTP_NAME                      "http_name"
@@ -70,13 +94,7 @@
 #define     HTTPS_PROXY_PORT_LABEL         "https_proxy_port_label"
 #define     HTTP_PROXY_PORT_LABEL          "http_proxy_port_label"
 #define     FTP_PROXY_PORT_LABEL           "ftp_proxy_port_label"
-
-#define     ENABLED_NETSERVICES_LIST       "enabled_netservices_list"
-#define     DISABLED_NETSERVICES_LIST      "disabled_netservices_list"
-#define     ADD_ENABLED_NETSERVICE_BTN     "add_enabled_netservice_btn"
-#define     DELETE_ENABLED_NETSERVICE_BTN  "delete_enabled_netservice_btn"
-#define     ADD_DISABLED_NETSERVICE_BTN    "add_disabled_netservice_btn"
-#define     DELETE_DISABLED_NETSERVICE_BTN "delete_disabled_netservice_btn"
+#endif /* ENABLE_PROXY */
 
 #define     IPPOOL_CONFIG_CB               "ippool_config_cb"
 #define     NAT_CONFIG_CB                  "nat_config_cb"
@@ -91,11 +109,6 @@
 #define     IPSEC_POLICY_FILE_CHOOSER      "ipsec_policy_file_chooser"
 #define     IKE_FILE_CHOOSER               "ike_file_chooser"
 
-#define     NAMESERVICES_TABLE             "nameservices_table"
-#define     NAMESERVICES_CONFIG_COMBO      "nameservices_config_combo"
-#define     NAMESERVICE_ADD_BTN            "nameservice_add_btn"
-#define     NAMESERVICE_DELETE_BTN         "nameservice_delete_btn"
-#define     NSSWITCH_FILE_BTN              "nsswitch_file_btn"
 
 /* add fmri dialog */
 #define     ENTER_SERVICE_FMRI_DIALOG      "enter_service_fmri_dialog"
@@ -135,6 +148,8 @@ struct _NwamEnvPrefDialogPrivate {
     /* Widget Pointers */
     GtkDialog*                  env_pref_dialog;
     GtkNotebook*                environment_notebook;
+
+#ifdef ENABLE_PROXY
     GtkComboBox*                proxy_config_combo;
     GtkNotebook*                proxy_notebook;
     GtkEntry*                   http_name;
@@ -161,7 +176,28 @@ struct _NwamEnvPrefDialogPrivate {
     GtkLabel*                   https_proxy_port_label;
     GtkLabel*                   http_proxy_port_label;
     GtkLabel*                   ftp_proxy_port_label;
-    
+#endif /* ENABLE_PROXY */
+
+    GtkCheckButton*             dns_service_cb;                 
+    GtkEntry*                   dns_servers_entry;                          
+    GtkRadioButton*             dns_config_manual_rb;                           
+    GtkRadioButton*             dns_config_dhcp_rb;                         
+    GtkEntry*                   dns_search_entry;                           
+    GtkEntry*                   dns_domain_entry;                           
+                    
+    GtkCheckButton*             nis_service_cb;                 
+    GtkEntry*                   nis_servers_entry;                          
+    GtkRadioButton*             nis_config_manual_rb;                           
+    GtkRadioButton*             nis_config_dhcp_rb;                         
+                    
+    GtkCheckButton*             ldap_service_cb;                    
+    GtkEntry*                   ldap_servers_entry;                            
+                    
+    GtkEntry*                   default_domain_entry;                           
+
+    GtkFileChooserButton*       nsswitch_file_btn;
+    GtkButton*                  nsswitch_default_btn;
+
     GtkTreeView*                enabled_netservices_list;
     GtkTreeView*                disabled_netservices_list;
     GtkButton*                  add_enabled_netservice_btn;
@@ -182,12 +218,6 @@ struct _NwamEnvPrefDialogPrivate {
     GtkFileChooserButton*       ipsec_policy_file_chooser;
     GtkFileChooserButton*       ike_file_chooser;
 
-    GtkTreeView*                nameservices_table;
-    GtkComboBox*                nameservices_config_combo;
-    GtkButton*                  nameservice_add_btn;
-    GtkButton*                  nameservice_delete_btn;
-    GtkFileChooserButton*       nsswitch_file_btn;
-    NwamMenuGroup*              menugroup;
 
     /* add fmri dialog */
     GtkDialog*                  enter_service_fmri_dialog;
@@ -206,7 +236,9 @@ static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
 static void         nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self);
 
+#ifdef ENABLE_PROXY
 static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_proxy_type_t proxy_type );
+#endif /* ENABLE_PROXY */
 
 static void nwam_compose_tree_view (NwamEnvPrefDialog *self);
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
@@ -218,7 +250,9 @@ static void get_smf_service_name(const char *fmri, gchar **name_out, gboolean *v
 static void action_menu_group_set_visible(NwamMenuGroup *menugroup, const gchar *name, gboolean visible);
 
 /* Callbacks */
+#ifdef ENABLE_PROXY
 static void         proxy_config_changed_cb( GtkWidget* widget, gpointer data );
+#endif /* ENABLE_PROXY */
 
 static void         use_for_all_toggled(GtkToggleButton *togglebutton, gpointer user_data);
 
@@ -246,8 +280,6 @@ static void menu_pos_func(GtkMenu *menu,
   gint *y,
   gboolean *push_in,
   gpointer user_data);
-
-static void ns_menu_action_activate (GtkAction *action, gpointer user_data);
 
 static void default_svc_status_cb (GtkTreeViewColumn *tree_column,
                                    GtkCellRenderer *cell,
@@ -316,6 +348,8 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     /* Iniialise pointers to important widgets */
     prv->env_pref_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(ENV_PREF_DIALOG_NAME));
     prv->environment_notebook = GTK_NOTEBOOK(nwamui_util_glade_get_widget( ENVIRONMENT_NOTEBOOK ));
+
+#ifdef ENABLE_PROXY
     prv->proxy_config_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget( PROXY_CONFIG_COMBO ));
     prv->proxy_notebook = GTK_NOTEBOOK(nwamui_util_glade_get_widget( PROXY_NOTEBOOK ));
     prv->http_name = GTK_ENTRY(nwamui_util_glade_get_widget( HTTP_NAME ));
@@ -341,6 +375,30 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     prv->https_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTPS_PROXY_PORT_LABEL ));          
     prv->http_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( HTTP_PROXY_PORT_LABEL ));           
     prv->ftp_proxy_port_label = GTK_LABEL(nwamui_util_glade_get_widget( FTP_PROXY_PORT_LABEL ));            
+#endif /* ENABLE_PROXY */
+
+    /* Name Services Page */
+    prv->dns_service_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_DNS_CHECK_BUTTON));
+    prv->dns_servers_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_DNS_SERVERS_ENTRY));
+    prv->dns_config_manual_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_DNS_MANUAL_RB));
+    prv->dns_config_dhcp_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_DNS_DHCP_RB));
+    prv->dns_search_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_DNS_SEARCH_ENTRY));
+    prv->dns_domain_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_DNS_DOMAIN_ENTRY));
+                                                          
+    prv->nis_service_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_NIS_CHECK_BUTTON));
+    prv->nis_servers_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_NIS_SERVERS_ENTRY));
+    prv->nis_config_manual_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_NIS_MANUAL_RB));
+    prv->nis_config_dhcp_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_NIS_DHCP_RB));
+                                                          
+    prv->ldap_service_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_LDAP_CHECK_BUTTON));
+    prv->ldap_servers_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_LDAP_SERVERS_ENTRY));
+                                                          
+    prv->default_domain_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMMESERVICE_DEFAULT_DOMAIN));
+
+    prv->nsswitch_file_btn = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_FILE_BTN));
+    prv->nsswitch_default_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_DEFAULT_BTN));
+
+    /* Newtwork Services Page */
     prv->enabled_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( ENABLED_NETSERVICES_LIST ));
     prv->disabled_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( DISABLED_NETSERVICES_LIST ));
     prv->add_enabled_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_ENABLED_NETSERVICE_BTN ));
@@ -348,6 +406,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     prv->add_disabled_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_DISABLED_NETSERVICE_BTN ));
     prv->delete_disabled_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_DISABLED_NETSERVICE_BTN ));
 
+    /* Security Page */
     prv->ippool_config_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPPOOL_CONFIG_CB ));
     prv->nat_config_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( NAT_CONFIG_CB ));
     prv->ipf_v6_config_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPF_V6_CONFIG_CB ));
@@ -361,16 +420,13 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     prv->ipsec_policy_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( IPSEC_POLICY_FILE_CHOOSER ));
     prv->ike_file_chooser = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget( IKE_FILE_CHOOSER ));
 
-    prv->nameservices_table = GTK_TREE_VIEW(nwamui_util_glade_get_widget(NAMESERVICES_TABLE));
-    prv->nameservices_config_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(NAMESERVICES_CONFIG_COMBO));
-    prv->nameservice_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_ADD_BTN));
-    prv->nameservice_delete_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_DELETE_BTN));
-    prv->nsswitch_file_btn = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_FILE_BTN));
 
     /* Other useful pointer */
     prv->selected_env = NULL;
     prv->daemon = NWAMUI_DAEMON(nwamui_daemon_get_instance());
+#ifdef ENABLE_PROXY
     prv->proxy_password_dialog = NULL;
+#endif /* ENABLE_PROXY */
     
     /* add fmri dialog */
     prv->enter_service_fmri_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(ENTER_SERVICE_FMRI_DIALOG));
@@ -381,8 +437,9 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     /* Add Signal Handlers */
 	g_signal_connect(GTK_DIALOG(self->prv->env_pref_dialog), "response", (GCallback)response_cb, (gpointer)self);
 
+#ifdef ENABLE_PROXY
     g_signal_connect(GTK_BUTTON(prv->http_password_btn), "clicked", G_CALLBACK(http_password_button_clicked_cb), (gpointer)self);
-    
+
     g_signal_connect(GTK_COMBO_BOX(prv->proxy_config_combo), "changed", (GCallback)proxy_config_changed_cb, (gpointer)self);
     g_signal_connect(GTK_CHECK_BUTTON(prv->use_for_all_cb), "toggled", (GCallback)use_for_all_toggled, (gpointer)self);
     
@@ -402,6 +459,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     g_signal_connect( prv->socks_port_sbox, "value-changed", G_CALLBACK(port_changed_cb), (gpointer)self );
 
     g_signal_connect( prv->no_proxy_entry, "changed", G_CALLBACK(server_text_changed_cb), (gpointer)self );
+#endif /* ENABLE_PROXY */
 
 	g_signal_connect(prv->enter_service_fmri_dialog, "response", (GCallback)fmri_dialog_response_cb, (gpointer)self);
 
@@ -418,62 +476,10 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     g_signal_connect(prv->ipsec_policy_cb,
       "toggled", (GCallback)on_button_toggled, (gpointer)self);
 
-    capplet_compose_combo(prv->nameservices_config_combo,
-      G_TYPE_INT,
-      combo_cell_strings_value,
-      NULL,
-      combo_changed_strings_value,
-      (gpointer)self,
-      NULL);
-    {
-        GtkTreeModel      *model;
-        GtkTreeIter   iter;
-        int i;
-        GtkAction *action;
-
-        model = gtk_combo_box_get_model(prv->nameservices_config_combo);
-        /* Clean all */
-        gtk_list_store_clear(GTK_LIST_STORE(model));
-
-        /* Add entries for each selection item */
-        for (i = 0; i < NWAMUI_NETSERVICE_LAST; i++) {
-            gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-            gtk_list_store_set (GTK_LIST_STORE(model), &iter, 0, i, -1);
-        }
-
-        g_signal_connect(prv->nameservice_add_btn,
-          "clicked", G_CALLBACK(nameservices_button_clicked), (gpointer)self);
-        g_signal_connect(prv->nameservice_delete_btn,
-          "clicked", G_CALLBACK(nameservices_button_clicked), (gpointer)self);
-
-        prv->menugroup = nwam_menu_action_group_new(gtk_ui_manager_new(), NULL);
-
-        for (i = NWAM_NAMESERVICES_DNS; i <= NWAM_NAMESERVICES_LDAP; i++) {
-            if (i == NWAM_NAMESERVICES_FILES)
-                continue;
-            action = gtk_action_new(nwam_nameservices_enum_to_string(i),
-              nwam_nameservices_enum_to_string(i),
-              NULL, NULL);
-
-            g_object_set_data(G_OBJECT(action), "ns_type", (gpointer)i);
-            g_signal_connect(action,
-              "activate", (GCallback)ns_menu_action_activate, (gpointer)self);
-
-            nwam_menu_group_add_item(prv->menugroup, G_OBJECT(action), FALSE);
-            g_object_unref(action);
-        }
-    }
-
     {
         GtkTreeModel      *model;
 
         nwam_compose_tree_view (self);
-
-        /* Nameservices table */
-/* 		model = GTK_TREE_MODEL(gtk_list_store_new(3, G_TYPE_INT, G_TYPE_STRING, G_TYPE_STRING)); */
-		model = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_INT));
-        gtk_tree_view_set_model(prv->nameservices_table, model);
-		g_object_unref(model);
 
         /* Svc tables */
 		model = GTK_TREE_MODEL(gtk_list_store_new(1, G_TYPE_STRING));
@@ -499,11 +505,11 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 static void
 nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
 {
+#ifdef ENABLE_PROXY
     if ( self->prv->proxy_password_dialog != NULL ) {
         g_object_unref(G_OBJECT(self->prv->proxy_password_dialog));
     }
-
-    g_object_unref(self->prv->menugroup);
+#endif /* ENABLE_PROXY */
 
     g_object_unref(G_OBJECT(self->prv->env_pref_dialog ));
 
@@ -567,61 +573,6 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
 	GtkTreeView *view;
 
     /*
-     * compose the netservices table view
-     */
-    view = self->prv->nameservices_table;
-
-	g_object_set (G_OBJECT(view),
-		      "headers-clickable", FALSE,
-		      NULL);
-
-	/* column name */
-	col = capplet_column_new(view,
-      "title", _("Name service"),
-      NULL);
-
-    /* First cell */
-	cell = capplet_column_append_cell(col,
-      gtk_cell_renderer_text_new(), TRUE,
-      nameservices_status_cb, (gpointer) self, NULL);
-
-    g_object_set(cell, "editable", TRUE, NULL);
-    g_signal_connect (cell, "edited", 
-      G_CALLBACK(vanity_name_edited), (gpointer)self);
-    g_signal_connect (cell, "editing-started", 
-      G_CALLBACK(vanity_name_editing_started), (gpointer)self);
-
-    g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
-      GINT_TO_POINTER (NAMESERVICES_NAME));
-
-	/* column Domain */
-	col = capplet_column_new(view,
-      "title", _("Domain"),
-      NULL);
-
-    /* First cell */
-	cell = capplet_column_append_cell(col,
-      gtk_cell_renderer_text_new(), TRUE,
-      nameservices_status_cb, (gpointer) self, NULL);
-
-    g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
-      GINT_TO_POINTER (DEFAULT_DOMAINNAME));
-
-	/* column Server Addresses */
-	col = capplet_column_new(view,
-      "title", _("Server Addresses"),
-      NULL);
-
-    /* First cell */
-	cell = capplet_column_append_cell(col,
-      gtk_cell_renderer_text_new(), TRUE,
-      nameservices_status_cb, (gpointer) self, NULL);
-
-    g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM,
-      GINT_TO_POINTER (NAMESERVICES_ADDR));
-
-        
-    /*
      * compose the enabled netservices view
      */
     view = self->prv->enabled_netservices_list;
@@ -684,6 +635,19 @@ static void
 populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 {
     NwamEnvPrefDialogPrivate*   prv;
+    gchar*                      env_name;
+    GList*                      name_services = NULL;
+    gchar*                      default_domain = NULL;
+    gchar*                      dns_domain = NULL;
+    GList*                      dns_servers = NULL;
+    GList*                      dns_search = NULL;
+    nwamui_env_config_source_t  dns_configsrc;
+    GList*                      nis_servers = NULL;
+    nwamui_env_config_source_t  nis_configsrc;
+    GList*                      ldap_servers = NULL;
+    nwamui_env_config_source_t  ldap_configsrc;
+
+#ifdef ENABLE_PROXY
     gchar*      http_server;
     gint        http_port;
     gchar*      https_server;
@@ -696,8 +660,8 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     gint        socks_port;
     gchar*      no_proxy;
     gboolean    use_for_all;
-    gchar*      env_name;
     nwamui_env_proxy_type_t proxy_type;
+#endif /* ENABLE_PROXY */
     
     g_debug("populate_panels_from_env called");
     
@@ -710,6 +674,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     /*
      * Proxy Tab
      */
+#ifdef ENABLE_PROXY
     proxy_type = nwamui_env_get_proxy_type(current_env);
     switch ( proxy_type ) {
         case NWAMUI_ENV_PROXY_TYPE_DIRECT:
@@ -769,6 +734,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     gtk_spin_button_set_value(prv->socks_port_sbox, (gdouble)socks_port );
 
     gtk_entry_set_text(prv->no_proxy_entry, no_proxy?no_proxy:"");
+#endif /* ENABLE_PROXY */
 
     /*
      * Name Services Tab
@@ -781,6 +747,8 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 
         nameservices = nwamui_env_get_nameservices(current_env);
 
+#if 0
+        /* FIXME - Name services */
         model = gtk_tree_view_get_model(prv->nameservices_table);
 
         for (i = nameservices; i; i = i->next) {
@@ -792,6 +760,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
               nwam_nameservices_enum_to_string((nwam_nameservices_t) i->data),
               FALSE);
         }
+#endif
     }
 
     {
@@ -901,6 +870,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     }
 }
 
+#ifdef ENABLE_PROXY
 static void
 select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_proxy_type_t proxy_type )
 {
@@ -931,6 +901,7 @@ select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_proxy_type_t proxy_type 
             break;
     }
 }
+#endif /* ENABLE_PROXY */
 
 
 static void
@@ -959,6 +930,7 @@ show_env_cell_cb (GtkCellLayout *cell_layout,
 	}
 }
 
+#ifdef ENABLE_PROXY
 static void
 proxy_config_changed_cb( GtkWidget* widget, gpointer data )
 {
@@ -1127,6 +1099,7 @@ http_password_button_clicked_cb(GtkButton *button, gpointer  user_data)
             break;
     }
 }
+#endif /* ENABLE_PROXY */
 
 static void
 svc_button_clicked(GtkButton *button, gpointer  user_data)
@@ -1190,6 +1163,7 @@ svc_button_clicked(GtkButton *button, gpointer  user_data)
     }
 }
 
+#if 0
 static void
 nameservices_button_clicked(GtkButton *button, gpointer  user_data)
 {
@@ -1234,6 +1208,7 @@ nameservices_button_clicked(GtkButton *button, gpointer  user_data)
         }
     }
 }
+#endif /* 0 */
 
 static void
 default_svc_status_cb (GtkTreeViewColumn *tree_column,
@@ -1431,12 +1406,15 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
             gchar *name;
 
             name = nwamui_object_get_name(NWAMUI_OBJECT(prv->selected_env));
-			title = g_strdup_printf("Location Properties : %s", name);
+			title = g_strdup_printf(_("Location Properties : %s"), name);
 			g_object_set(prv->env_pref_dialog,
 			    "title", title,
 			    NULL);
 			g_free(name);
 			g_free(title);
+
+            /* Set title to include hostname */
+            nwamui_util_window_title_append_hostname( prv->env_pref_dialog );
 
             populate_panels_from_env(self, prv->selected_env);
 		}
@@ -1602,9 +1580,6 @@ combo_changed_strings_value(GtkComboBox* combo, gpointer user_data)
         default:
             break;
         }
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nameservices_table), manual);
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nameservice_add_btn), manual);
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nameservice_delete_btn), manual);
         gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_file_btn), manual);
 	}
 }
@@ -1876,6 +1851,7 @@ vanity_name_edited ( GtkCellRendererText *cell,
 {
 }
 
+#if 0
 static void
 vanity_name_editing_started (GtkCellRenderer *cell,
   GtkCellEditable *editable,
@@ -1939,6 +1915,7 @@ vanity_name_editing_started (GtkCellRenderer *cell,
 
     gtk_tree_path_free (path);
 }
+#endif /* 0 */
 
 static void
 menu_pos_func(GtkMenu *menu,
@@ -1966,32 +1943,5 @@ action_menu_group_set_visible(NwamMenuGroup *menugroup, const gchar *name, gbool
 
             gtk_action_set_visible(action, visible);
         }
-    }
-}
-
-static void
-ns_menu_action_activate (GtkAction *action, gpointer user_data)
-{
-	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(user_data);
-    GtkTreeModel *model;
-    GtkTreeIter iter;
-    GtkTreePath *path;
-
-	model = gtk_tree_view_get_model(prv->nameservices_table);
-    gtk_tree_view_get_cursor(prv->nameservices_table, &path, NULL);
-
-    if (path) {
-        gint ns;
-
-        ns = (gint)g_object_get_data(G_OBJECT(action), "ns_type");
-
-        gtk_tree_model_get_iter (model, &iter, path);
-
-        gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, ns, -1);
-
-        gtk_tree_path_free(path);
-
-        /* Disable related menu */
-        gtk_action_set_visible(action, FALSE);
     }
 }

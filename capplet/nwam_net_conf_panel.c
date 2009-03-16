@@ -44,14 +44,13 @@
 
 /* Names of Widgets in Glade file */
 #define NET_CONF_TREEVIEW               "network_profile_table"
-#define PROFILE_NAME_COMBO1             "profile_name_combo1"
+#define EDIT_PROFILE_NAME_COMBO             "edit_profile_name_combo"
 #define CONNECTION_MOVE_UP_BTN          "connection_move_up_btn"
 #define CONNECTION_MOVE_DOWN_BTN        "connection_move_down_btn"
 #define CONNECTION_RENAME_BTN           "connection_rename_btn"
 #define CONNECTION_GROUP_BTN            "connection_group_btn"
 #define ACTIVATION_MODE_LBL             "activation_mode_lbl"
 #define CONNECTION_ACTIVATION_COMBO     "connection_activation_combo"
-#define CONNECTION_RULES_BTN            "connection_rules_btn"
 
 #define TREEVIEW_COLUMN_NUM             "meta:column"
 
@@ -64,11 +63,10 @@ struct _NwamNetConfPanelPrivate {
     GtkButton*          connection_rename_btn;
     GtkButton*          connection_group_btn;
 
-    GtkComboBox*        profile_name_combo1;
+    GtkComboBox*        edit_profile_name_combo;
 
     GtkLabel*           activation_mode_lbl;
     GtkComboBox*        connection_activation_combo;
-    GtkButton*          connection_rules_btn;
 
 	/* Other Data */
     NwamCappletDialog*  pref_dialog;
@@ -421,7 +419,7 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
 	/* Iniialise pointers to important widgets */
 	self->prv->net_conf_treeview = GTK_TREE_VIEW(nwamui_util_glade_get_widget(NET_CONF_TREEVIEW));
 
-    self->prv->profile_name_combo1 = GTK_COMBO_BOX(nwamui_util_glade_get_widget(PROFILE_NAME_COMBO1));
+    self->prv->edit_profile_name_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(EDIT_PROFILE_NAME_COMBO));
 
     self->prv->connection_move_up_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_MOVE_UP_BTN));	
     self->prv->connection_move_down_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_MOVE_DOWN_BTN));	
@@ -430,7 +428,6 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
 
     self->prv->activation_mode_lbl = GTK_LABEL(nwamui_util_glade_get_widget(ACTIVATION_MODE_LBL));
     self->prv->connection_activation_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CONNECTION_ACTIVATION_COMBO));
-    self->prv->connection_rules_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_RULES_BTN));	
 
     g_signal_connect(self->prv->connection_move_up_btn,
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
@@ -440,15 +437,13 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
     g_signal_connect(self->prv->connection_group_btn,
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
-    g_signal_connect(self->prv->connection_rules_btn,
-      "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
 
     /* FIXME: How about zero ncp? */
-    capplet_compose_nwamui_obj_combo(GTK_COMBO_BOX(self->prv->profile_name_combo1), NWAM_PREF_IFACE(self));
+    capplet_compose_nwamui_obj_combo(GTK_COMBO_BOX(self->prv->edit_profile_name_combo), NWAM_PREF_IFACE(self));
 
-    gtk_widget_hide(GTK_WIDGET(self->prv->profile_name_combo1));
-    capplet_update_model_from_daemon(gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->profile_name_combo1)), daemon, NWAMUI_TYPE_NCP);
-    gtk_widget_show(GTK_WIDGET(self->prv->profile_name_combo1));
+    gtk_widget_hide(GTK_WIDGET(self->prv->edit_profile_name_combo));
+    capplet_update_model_from_daemon(gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->edit_profile_name_combo)), daemon, NWAMUI_TYPE_NCP);
+    gtk_widget_show(GTK_WIDGET(self->prv->edit_profile_name_combo));
 
     capplet_compose_combo(self->prv->connection_activation_combo,
       G_TYPE_INT,
@@ -540,12 +535,12 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 
         /* Update ncp combo first if the selected ncp isn't the same to what we
          * are refreshing */
-        combo_object = capplet_combo_get_active(prv->profile_name_combo1);
+        combo_object = capplet_combo_get_active(prv->edit_profile_name_combo);
         /* Safely unref */
         if (combo_object)
             g_object_unref(combo_object);
         if (combo_object != user_data) {
-            capplet_combo_set_active(prv->profile_name_combo1, NWAMUI_OBJECT(user_data));
+            capplet_combo_set_active(prv->edit_profile_name_combo, NWAMUI_OBJECT(user_data));
             /* Will trigger refresh again, so return */
             return;
         }
@@ -1167,14 +1162,6 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
                     gtk_tree_path_free(tpath);
                 }
-            } else if (button == (gpointer)prv->connection_rules_btn) {
-                static NwamPrefIFace *rules_dialog = NULL;
-
-                if (rules_dialog == NULL)
-                    rules_dialog = NWAM_PREF_IFACE(nwam_rules_dialog_new());
-
-                nwam_pref_refresh(rules_dialog, object, TRUE);
-                capplet_dialog_run(rules_dialog, button);
             }
             g_object_unref(object);
         }
@@ -1211,7 +1198,6 @@ update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection)
     gtk_widget_set_sensitive(prv->connection_move_down_btn, FALSE);
     gtk_widget_set_sensitive(prv->connection_rename_btn, FALSE);
     gtk_widget_set_sensitive(prv->connection_group_btn, FALSE);
-    gtk_widget_set_sensitive(prv->connection_rules_btn, FALSE);
     gtk_widget_set_sensitive(prv->connection_activation_combo, FALSE);
     gtk_button_set_label(prv->connection_group_btn, _("_Group"));
 
@@ -1245,7 +1231,6 @@ update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection)
         if (count_selected_rows == 1) {
             GtkTreePath *path = (GtkTreePath *)rows->data;
 
-            gtk_widget_set_sensitive(prv->connection_rules_btn, TRUE);
             gtk_widget_set_sensitive(prv->connection_activation_combo, TRUE);
 
             connection_activation_combo_changed_cb(prv->connection_activation_combo, (gpointer) self);
@@ -1538,10 +1523,8 @@ connection_activation_combo_changed_cb(GtkComboBox* combo, gpointer user_data)
         case 1:
         case 3:
         case 4:
-            gtk_widget_set_sensitive(prv->connection_rules_btn, TRUE);
             break;
         default:
-            gtk_widget_set_sensitive(prv->connection_rules_btn, FALSE);
             break;
         }
 	}

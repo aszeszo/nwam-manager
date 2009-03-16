@@ -221,6 +221,8 @@ extern gboolean                 nwamui_util_get_interface_address(  const char  
 
 extern gboolean                 nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry );
 
+extern void                     nwamui_util_window_title_append_hostname( GtkDialog* dialog );
+
 G_END_DECLS
 
 #endif	/* _libnwamui_H */

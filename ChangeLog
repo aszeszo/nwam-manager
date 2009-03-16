@@ -1,3 +1,39 @@
+2009-03-16  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	  Fix typo in the name of the nis_services_cb widget.
+	* capplet/nwam_env_pref_dialog.c:
+	  Start changes for nameservices, creating widget pointers, etc.
+	* capplet/nwam_location_dialog.c: 
+	  Add hostname to title.
+	* capplet/nwam_net_conf_panel.c: 
+	  Updates for latest glade file (widget rename and removal of rules
+	  button).
+	* capplet/nwam_pref_dialog.c: 
+	  Add hostname to title.
+	* capplet/nwam_vpn_pref_dialog.c: 
+	  Add hostname to title.
+	* common/libnwamui.c, common/libnwamui.h:
+	  Create function nwamui_util_window_title_append_hostname() to add
+	  hostname to window titles.  Functions to handle conversion between
+	  comma separated string to glist of strings and vice versa -
+	  nwamui_util_parse_string_to_glist(),
+	  nwamui_util_glist_to_comma_string().
+	* common/nwamui_env.h, common/nwamui_env.c:
+	  #ifdef out all the PROXY related code.
+	* help/nwam-manager.xml:
+	  Add outline help document from 2009-03-11.
+
+2009-03-16  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	  Add LDAP Servers text entry
+
+2009-03-16  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	  Fix some minor issue add title for Network Locations dialog.
+
 2009-03-11  Calum Benson  <calum.benson@sun.com>
 
 	* capplet/nwam-manager-properties.glade:
