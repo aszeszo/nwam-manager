@@ -1,3 +1,17 @@
+2009-03-18  Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+	* img/capplet/env-name-services.png
+	* img/capplet/connection-status.png
+	* img/capplet/connection-status-advanced.png
+
+	Update Name Services tab to include Servers field for LDAP
+	(per Glade file), hide the Advanced button from the 
+	Connection Status view, and replace inconsistent usage of
+	"Profile" and "Connection Profile" with "Network Profile" on 
+	panel menu and in Connection Status view.
+
 2009-03-11  Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
