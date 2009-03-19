@@ -41,15 +41,11 @@ G_BEGIN_DECLS
 
 typedef struct _NwamMenuItem			NwamMenuItem;
 typedef struct _NwamMenuItemClass		NwamMenuItemClass;
-typedef struct _NwamMenuItemPrivate		NwamMenuItemPrivate;
 
 struct _NwamMenuItem
 {
 	//GtkRadioMenuItem menu_item;
     GtkCheckMenuItem menu_item;
-
-	/*< private >*/
-	NwamMenuItemPrivate *prv;
 };
 
 struct _NwamMenuItemClass
@@ -76,6 +72,9 @@ GtkWidget* nwam_menu_item_get_widget (NwamMenuItem *self,
 #ifndef MAX_WIDGET_NUM
 #define MAX_WIDGET_NUM	2
 #endif
+
+/* Utils */
+extern void menu_item_set_label(GtkMenuItem *item, const gchar *label);
 
 G_END_DECLS
 

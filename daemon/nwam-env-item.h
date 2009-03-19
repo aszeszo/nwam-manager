@@ -24,37 +24,41 @@
  * CDDL HEADER END
  * 
  */
-#ifndef NWAM_ENM_GROUP_H
-#define NWAM_ENM_GROUP_H
+#ifndef NWAM_ENV_ITEM_H
+#define NWAM_ENV_ITEM_H
 
 #include <gtk/gtk.h>
-#include "nwam-menu-action-group.h"
+#include "nwam-menuitem.h"
+#include "libnwamui.h"
 
 G_BEGIN_DECLS
 
-#define NWAM_TYPE_ENM_GROUP      (nwam_enm_group_get_type ())
-#define NWAM_ENM_GROUP(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NWAM_TYPE_ENM_GROUP, NwamEnmGroup))
-#define NWAM_ENM_GROUP_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NWAM_TYPE_ENM_GROUP, NwamEnmGroupClass))
-#define NWAM_IS_ENM_GROUP(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NWAM_TYPE_ENM_GROUP))
-#define NWAM_IS_ENM_GROUP_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NWAM_TYPE_ENM_GROUP))
-#define NWAM_ENM_GROUP_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj), NWAM_TYPE_ENM_GROUP, NwamEnmGroupClass))
+#define NWAM_TYPE_ENV_ITEM            (nwam_env_item_get_type ())
+#define NWAM_ENV_ITEM(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), NWAM_TYPE_ENV_ITEM, NwamEnvItem))
+#define NWAM_ENV_ITEM_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), NWAM_TYPE_ENV_ITEM, NwamEnvItemClass))
+#define NWAM_IS_ENV_ITEM(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NWAM_TYPE_ENV_ITEM))
+#define NWAM_IS_ENV_ITEM_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), NWAM_TYPE_ENV_ITEM))
+#define NWAM_ENV_ITEM_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj), NWAM_TYPE_ENV_ITEM, NwamEnvItemClass))
 
-typedef struct _NwamEnmGroup        NwamEnmGroup;
-typedef struct _NwamEnmGroupClass   NwamEnmGroupClass;
+typedef struct _NwamEnvItem        NwamEnvItem;
+typedef struct _NwamEnvItemClass   NwamEnvItemClass;
 
-struct _NwamEnmGroup {
-	NwamMenuActionGroup parent;
+struct _NwamEnvItem
+{
+    NwamMenuItem parent;
 };
 
-struct _NwamEnmGroupClass {
-	NwamMenuActionGroupClass parent_class;
+struct _NwamEnvItemClass
+{
+    NwamMenuItemClass parent_class;
 };
 
-GType nwam_enm_group_get_type(void) G_GNUC_CONST;
+GType            nwam_env_item_get_type          (void) G_GNUC_CONST;
 
-NwamEnmGroup* nwam_enm_group_new(GtkUIManager *ui_manager,
-  const gchar *place_holder);
+extern GtkWidget *nwam_env_item_new(NwamuiEnv *env);
 
 G_END_DECLS
 
-#endif  /* NWAM_ENM_GROUP_H */
+#endif  /* NWAM_ENV_ITEM_H */
+
+

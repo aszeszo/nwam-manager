@@ -39,24 +39,21 @@ G_BEGIN_DECLS
 #define NWAM_MENU_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj), NWAM_TYPE_MENU, NwamMenuClass))
 
 typedef struct _NwamMenu        NwamMenu;
-typedef struct _NwamMenuPrivate NwamMenuPrivate;
 typedef struct _NwamMenuClass   NwamMenuClass;
 
 struct _NwamMenu
 {
-	GObject parent;
-	
-	/*< private >*/
-	NwamMenuPrivate *prv;
+	GtkMenu parent;
 };
 
 struct _NwamMenuClass {
-	GObjectClass parent_class;	
+	GtkMenuClass parent_class;	
 };
 
-extern NwamMenu * nwam_menu_new();
+GType            nwam_menu_get_type          (void) G_GNUC_CONST;
+
+extern GtkMenu* nwam_menu_new();
 extern void nwam_exec (const gchar *nwam_arg);
-GtkWidget *nwam_menu_get_statusicon_menu (NwamMenu *self);
 
 G_END_DECLS
 

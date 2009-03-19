@@ -55,9 +55,6 @@ libnwamui_la_SOURCES =		\
 	nwamui_cond.c \
 	nwamui_prof.c \
 	nwam_pref_iface.c	\
-	nwam-menu-group.c	\
-	nwam-menu-action-group.c	\
-	nwam-menu-radio-action-group.c	\
 	$(NULL)
 
 libnwamui_la_CPPFLAGS = \
@@ -75,9 +72,6 @@ gladedir   = $(datadir)/nwam-manager
 
 EXTRA_DIST = 		\
 	libnwamui.h \
-	nwam-menu-action-group.h \
-	nwam-menu-group.h \
-	nwam-menu-radio-action-group.h \
 	nwam_pref_iface.h \
 	nwam_ui_icons.h \
 	nwamui_cond.h \

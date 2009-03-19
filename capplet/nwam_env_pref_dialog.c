@@ -40,7 +40,6 @@
 #include "nwam_env_pref_dialog.h"
 #include "nwam_proxy_password_dialog.h"
 #include "capplet-utils.h"
-#include "nwam-menu-action-group.h"
 
 /* Names of Widgets in Glade file */
 #define     ENV_PREF_DIALOG_NAME           "nwam_location_properties"
@@ -247,7 +246,9 @@ static void fmri_dialog_response_cb( GtkWidget* widget, gint repsonseid, gpointe
 
 static void get_smf_service_name(const char *fmri, gchar **name_out, gboolean *valid_fmri );
 
+#if 0
 static void action_menu_group_set_visible(NwamMenuGroup *menugroup, const gchar *name, gboolean visible);
+#endif
 
 /* Callbacks */
 #ifdef ENABLE_PROXY
@@ -1829,6 +1830,7 @@ fmri_dialog_response_cb( GtkWidget* widget, gint repsonseid, gpointer data )
 }
 
 static void
+
 on_activate_static_menuitems (GtkAction *action, gpointer data)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
@@ -1930,6 +1932,7 @@ menu_pos_func(GtkMenu *menu,
     *push_in = FALSE;
 }
 
+#if 0
 static void
 action_menu_group_set_visible(NwamMenuGroup *menugroup, const gchar *name, gboolean visible)
 {
@@ -1945,3 +1948,4 @@ action_menu_group_set_visible(NwamMenuGroup *menugroup, const gchar *name, gbool
         }
     }
 }
+#endif

@@ -461,10 +461,10 @@ nwamui_util_get_network_status_icon( NwamuiNcu* ncu )
 
         if ( enabled_wired_icon == NULL ) { /* Load all icons */
 
-            enabled_wired_icon = get_pixbuf( NWAM_ICON_NETWORK_IDLE, FALSE );
+            enabled_wired_icon = get_pixbuf( NWAM_ICON_NETWORK_CONNECTED, FALSE );
 
             
-            enabled_wireless_icon = get_pixbuf( NWAM_ICON_NETWORK_IDLE, FALSE );
+            enabled_wireless_icon = get_pixbuf( NWAM_ICON_NETWORK_CONNECTED, FALSE );
             
             
             disabled_icon = get_pixbuf( NWAM_ICON_NETWORK_OFFLINE, FALSE );

@@ -32,14 +32,15 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 
-#include "nwam-enm-action.h"
+#include "nwam-enm-item.h"
 #include "nwam-obj-proxy-iface.h"
 #include "libnwamui.h"
 
+typedef struct _NwamEnmItemPrivate NwamEnmItemPrivate;
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj),   \
-        NWAM_TYPE_ENM_ACTION, NwamEnmActionPrivate))
+        NWAM_TYPE_ENM_ITEM, NwamEnmItemPrivate))
 
-struct _NwamEnmActionPrivate {
+struct _NwamEnmItemPrivate {
     NwamuiEnm *enm;
     gulong toggled_handler_id;
 };
@@ -52,17 +53,17 @@ enum {
 };
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
-static GObject* get_proxy(NwamEnmAction *self);
+static GObject* get_proxy(NwamEnmItem *self);
 
-static void nwam_enm_action_set_property (GObject         *object,
+static void nwam_enm_item_set_property (GObject         *object,
   guint            prop_id,
   const GValue    *value,
   GParamSpec      *pspec);
-static void nwam_enm_action_get_property (GObject         *object,
+static void nwam_enm_item_get_property (GObject         *object,
   guint            prop_id,
   GValue          *value,
   GParamSpec      *pspec);
-static void nwam_enm_action_finalize (NwamEnmAction *self);
+static void nwam_enm_item_finalize (NwamEnmItem *self);
 
 /* nwamui daemon signals */
 static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
@@ -70,13 +71,13 @@ static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 static void daemon_enm_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
 
 /* nwamui enm net signals */
-static void connect_enm_net_signals(NwamEnmAction *self, NwamuiEnm *enm);
-static void disconnect_enm_net_signals(NwamEnmAction *self, NwamuiEnm *enm);
-static void on_nwam_enm_toggled (GtkAction *action, gpointer data);
+static void connect_enm_net_signals(NwamEnmItem *self, NwamuiEnm *enm);
+static void disconnect_enm_net_signals(NwamEnmItem *self, NwamuiEnm *enm);
+static void on_nwam_enm_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 
-G_DEFINE_TYPE_EXTENDED(NwamEnmAction, nwam_enm_action,
-  GTK_TYPE_TOGGLE_ACTION, 0,
+G_DEFINE_TYPE_EXTENDED(NwamEnmItem, nwam_enm_item,
+  NWAM_TYPE_MENU_ITEM, 0,
   G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJ_PROXY_IFACE, nwam_obj_proxy_init))
 
 static void
@@ -87,17 +88,15 @@ nwam_obj_proxy_init(NwamObjProxyInterface *iface)
 }
 
 static void
-nwam_enm_action_class_init (NwamEnmActionClass *klass)
+nwam_enm_item_class_init (NwamEnmItemClass *klass)
 {
 	GObjectClass *gobject_class;
-	GtkActionClass *action_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
-	action_class = GTK_ACTION_CLASS (klass);
 
-	gobject_class->set_property = nwam_enm_action_set_property;
-	gobject_class->get_property = nwam_enm_action_get_property;
-	gobject_class->finalize = (void (*)(GObject*)) nwam_enm_action_finalize;
+	gobject_class->set_property = nwam_enm_item_set_property;
+	gobject_class->get_property = nwam_enm_item_get_property;
+	gobject_class->finalize = (void (*)(GObject*)) nwam_enm_item_finalize;
 	
 	g_object_class_install_property (gobject_class,
       PROP_ENM,
@@ -107,16 +106,13 @@ nwam_enm_action_class_init (NwamEnmActionClass *klass)
         NWAMUI_TYPE_ENM,
         G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
-	g_type_class_add_private (klass, sizeof (NwamEnmActionPrivate));
+	g_type_class_add_private (klass, sizeof (NwamEnmItemPrivate));
 }
 
 static void
-nwam_enm_action_init (NwamEnmAction *self)
+nwam_enm_item_init (NwamEnmItem *self)
 {
-    NwamEnmActionPrivate *prv = GET_PRIVATE(self);
-    GSList *group = NULL;
-
-	self->prv = prv;
+    NwamEnmItemPrivate *prv = GET_PRIVATE(self);
 
     /* nwamui ncp signals */
     {
@@ -138,31 +134,22 @@ nwam_enm_action_init (NwamEnmAction *self)
       "toggled", G_CALLBACK(on_nwam_enm_toggled), NULL);
 }
 
-NwamEnmAction *
-nwam_enm_action_new(NwamuiEnm *enm)
+GtkWidget*
+nwam_enm_item_new(NwamuiEnm *enm)
 {
-    NwamEnmAction *action;
-    gchar *menu_text = NULL;
+    GtkWidget *item;
 
-    menu_text = nwamui_enm_get_name(NWAMUI_ENM(enm));
-
-    action = g_object_new (NWAM_TYPE_ENM_ACTION,
-      "name", menu_text,
-      "label", menu_text,
-      "tooltip", NULL,
-      "stock-id", NULL,
+    item = g_object_new (NWAM_TYPE_ENM_ITEM,
       "enm", enm,
       NULL);
 
-    g_free(menu_text);
-
-    return action;
+    return item;
 }
 
 static void
-nwam_enm_action_finalize (NwamEnmAction *self)
+nwam_enm_item_finalize (NwamEnmItem *self)
 {
-    NwamEnmActionPrivate *prv = GET_PRIVATE(self);
+    NwamEnmItemPrivate *prv = GET_PRIVATE(self);
     int i;
 
     /* nwamui ncp signals */
@@ -181,17 +168,17 @@ nwam_enm_action_finalize (NwamEnmAction *self)
         g_object_unref(prv->enm);
     }
 
-	G_OBJECT_CLASS(nwam_enm_action_parent_class)->finalize(G_OBJECT (self));
+	G_OBJECT_CLASS(nwam_enm_item_parent_class)->finalize(G_OBJECT (self));
 }
 
 static void
-nwam_enm_action_set_property (GObject         *object,
+nwam_enm_item_set_property (GObject         *object,
   guint            prop_id,
   const GValue    *value,
   GParamSpec      *pspec)
 {
-	NwamEnmAction *self = NWAM_ENM_ACTION (object);
-    NwamEnmActionPrivate *prv = GET_PRIVATE(self);
+	NwamEnmItem *self = NWAM_ENM_ITEM (object);
+    NwamEnmItemPrivate *prv = GET_PRIVATE(self);
     GObject *obj = g_value_dup_object (value);
 
 	switch (prop_id) {
@@ -219,13 +206,13 @@ nwam_enm_action_set_property (GObject         *object,
 }
 
 static void
-nwam_enm_action_get_property (GObject         *object,
+nwam_enm_item_get_property (GObject         *object,
   guint            prop_id,
   GValue          *value,
   GParamSpec      *pspec)
 {
-	NwamEnmAction *self = NWAM_ENM_ACTION (object);
-    NwamEnmActionPrivate *prv = GET_PRIVATE(self);
+	NwamEnmItem *self = NWAM_ENM_ITEM (object);
+    NwamEnmItemPrivate *prv = GET_PRIVATE(self);
 
 	switch (prop_id)
 	{
@@ -239,14 +226,14 @@ nwam_enm_action_get_property (GObject         *object,
 }
 
 static void
-connect_enm_net_signals(NwamEnmAction *self, NwamuiEnm *enm)
+connect_enm_net_signals(NwamEnmItem *self, NwamuiEnm *enm)
 {
     g_signal_connect (enm, "notify::active",
       G_CALLBACK(on_nwam_enm_notify), (gpointer)self);
 }
 
 static void
-disconnect_enm_net_signals(NwamEnmAction *self, NwamuiEnm *enm)
+disconnect_enm_net_signals(NwamEnmItem *self, NwamuiEnm *enm)
 {
     g_signal_handlers_disconnect_matched(enm,
       G_SIGNAL_MATCH_DATA,
@@ -258,13 +245,13 @@ disconnect_enm_net_signals(NwamEnmAction *self, NwamuiEnm *enm)
 }
 
 static void
-on_nwam_enm_toggled (GtkAction *action, gpointer data)
+on_nwam_enm_toggled (GtkCheckMenuItem *item, gpointer data)
 {
-	NwamEnmAction *self = NWAM_ENM_ACTION (action);
-    NwamEnmActionPrivate *prv = GET_PRIVATE(self);
+	NwamEnmItem *self = NWAM_ENM_ITEM (item);
+    NwamEnmItemPrivate *prv = GET_PRIVATE(self);
 
     g_signal_handler_block(self, prv->toggled_handler_id);
-    gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(self), FALSE);
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE);
     g_signal_handler_unblock(self, prv->toggled_handler_id);
 
 	if (nwamui_enm_get_active(prv->enm)) {
@@ -277,8 +264,8 @@ on_nwam_enm_toggled (GtkAction *action, gpointer data)
 static void
 on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-	NwamEnmAction *self = NWAM_ENM_ACTION (data);
-    NwamEnmActionPrivate *prv = GET_PRIVATE(self);
+	NwamEnmItem *self = NWAM_ENM_ITEM (data);
+    NwamEnmItemPrivate *prv = GET_PRIVATE(self);
     gchar *m_name;
     gchar *new_text;
 
@@ -291,24 +278,21 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
     }
     g_object_set(self, "label", new_text, NULL);
 
+    menu_item_set_label(GTK_MENU_ITEM(self), new_text);
+
     g_free (new_text);
     g_free (m_name);
 }
 
-static void
-nwam_enm_action_set_label(NwamEnmAction *self, const gchar *label)
-{
-    g_object_set(self, "label", label, NULL);
-}
-
 static GObject*
-get_proxy(NwamEnmAction *self)
+get_proxy(NwamEnmItem *self)
 {
-    return G_OBJECT(self->prv->enm);
+    NwamEnmItemPrivate *prv = GET_PRIVATE(self);
+    return G_OBJECT(prv->enm);
 }
 
 NwamuiEnm *
-nwam_enm_action_get_enm (NwamEnmAction *self)
+nwam_enm_item_get_enm (NwamEnmItem *self)
 {
     NwamuiEnm *enm;
 
@@ -318,7 +302,7 @@ nwam_enm_action_get_enm (NwamEnmAction *self)
 }
 
 void
-nwam_enm_action_set_enm (NwamEnmAction *self, NwamuiEnm *enm)
+nwam_enm_item_set_enm (NwamEnmItem *self, NwamuiEnm *enm)
 {
     g_return_if_fail(NWAMUI_IS_ENM(enm));
 

@@ -1,3 +1,52 @@
+2009-03-19  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_env_pref_dialog.c: Comment out old menu group code.
+	* daemon/Makefile.am: Added missed *-item files.
+	* daemon/nwam-enm-item.c (nwam_enm_item_class_init),
+	(nwam_enm_item_new), (on_nwam_enm_toggled), (on_nwam_enm_notify),
+	(get_proxy):
+	* daemon/nwam-enm-item.h:
+	* daemon/nwam-env-item.c (nwam_env_item_class_init),
+	(nwam_env_item_new), (on_nwam_env_toggled), (on_nwam_env_notify),
+	(get_proxy):
+	* daemon/nwam-env-item.h:
+	Fixed bugs in switching to gtkmenuitem.
+	* daemon/nwam-menu.c (nwam_menu_class_init), (nwam_menu_init),
+	(nwam_menu_finalize), (nwam_menu_item_compare),
+	(nwam_menu_recreate_wifi_menuitems),
+	(nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_recreate_env_menuitems),
+	(nwam_menu_recreate_enm_menuitems),
+	(nwam_menu_create_static_menuitems), (nwam_menu_connect),
+	(on_activate_static_menuitems), (event_active_env_changed),
+	(event_daemon_status_changed), (event_daemon_info),
+	(nwam_menu_create_wifi_menuitems),
+	(nwam_menu_create_dynamic_menuitems), (nwam_menu_item_creator),
+	(nwam_menu_new), (nwam_menu_start_update_wifi_timer),
+	(nwam_menu_section_prepend), (nwam_menu_section_append),
+	(nwam_menu_section_insert_sort), (nwam_menu_section_sort),
+	(nwam_menu_section_delete), (menu_section_get_children),
+	(menu_foreach_by_name), (menu_foreach_by_proxy),
+	(menu_get_item_by_name), (menu_get_item_by_proxy):
+	Rework.
+	* daemon/nwam-menu.h:
+	* daemon/nwam-menuitem.c (nwam_menu_item_init),
+	(nwam_menu_item_activate), (menu_item_set_label):
+	* daemon/nwam-menuitem.h:
+	* daemon/nwam-ncu-item.c (nwam_ncu_item_class_init),
+	(nwam_ncu_item_new), (on_nwam_ncu_toggled), (on_nwam_ncu_notify),
+	(get_proxy):
+	* daemon/nwam-ncu-item.h:
+	* daemon/nwam-wifi-item.c (nwam_wifi_item_class_init),
+	(nwam_wifi_item_init), (nwam_wifi_item_new),
+	(on_nwam_wifi_toggled), (get_proxy), (wifi_net_notify):
+	* daemon/nwam-wifi-item.h:
+	* daemon/status_icon.c (status_icon_popup_cb):
+	Fixed bugs in switching to gtkmenuitem.
+	* daemon/nwam-*-action.[hc]: Rename to *-item.[hc] since we do not use
+	Action based widgets anymore.
+	* daemon/Makefile.am: Updated.
+
 2009-03-18  Calum Benson  <calum.benson@sun.com>
 
 	* capplet/nwam-manager-properties.glade:

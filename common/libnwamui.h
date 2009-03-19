@@ -102,7 +102,7 @@ typedef guint64 libnwam_diag_cause_t;
 #define  NWAM_ICON_EARTH_ERROR              "network-location-error"
 #define  NWAM_ICON_EARTH_WARNING            "network-location-warning"
 #define  NWAM_ICON_EARTH_CONNECTED          "network-location-connected"
-#define  NWAM_ICON_NETWORK_IDLE             "network-wired-connected"
+#define  NWAM_ICON_NETWORK_CONNECTED        "network-wired-connected"
 #define  NWAM_ICON_NETWORK_WARNING          "network-wired-warning"
 #define  NWAM_ICON_NETWORK_OFFLINE          "network-wired-error"
 #define  NWAM_ICON_WIRELESS_CONNECTED       "wireless-wireless-connected"

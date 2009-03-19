@@ -65,6 +65,7 @@ enum {
 	PROP_RWIDGET,
 };
 
+typedef struct _NwamMenuItemPrivate NwamMenuItemPrivate;
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAM_TYPE_MENU_ITEM, NwamMenuItemPrivate))
 
@@ -106,19 +107,19 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
 	check_menu_item_class->draw_indicator = nwam_menu_item_draw_indicator;
 
 	g_object_class_install_property (gobject_class,
-					 PROP_LWIDGET,
-					 g_param_spec_object ("left-widget",
-							      N_("Left widget, ref'd"),
-							      N_("Left widget, ref'd"),
-							      GTK_TYPE_WIDGET,
-							      G_PARAM_READWRITE));
+      PROP_LWIDGET,
+      g_param_spec_object ("left-widget",
+        N_("Left widget, ref'd"),
+        N_("Left widget, ref'd"),
+        GTK_TYPE_WIDGET,
+        G_PARAM_READWRITE));
 	g_object_class_install_property (gobject_class,
-					 PROP_RWIDGET,
-					 g_param_spec_object ("right-widget",
-							      N_("Right widget, ref'd"),
-							      N_("Right widget, ref'd"),
-							      GTK_TYPE_WIDGET,
-							      G_PARAM_READWRITE));
+      PROP_RWIDGET,
+      g_param_spec_object ("right-widget",
+        N_("Right widget, ref'd"),
+        N_("Right widget, ref'd"),
+        GTK_TYPE_WIDGET,
+        G_PARAM_READWRITE));
 
 	g_type_class_add_private (klass, sizeof (NwamMenuItemPrivate));
 }
@@ -128,8 +129,6 @@ nwam_menu_item_init (NwamMenuItem *self)
 {
     NwamMenuItemPrivate *prv = GET_PRIVATE(self);
     GSList *group = NULL;
-
-	self->prv = prv;
 
     /*
      * TODO - DISABLED because it was causing CRITICAL warnings...
@@ -632,4 +631,29 @@ nwam_menu_item_activate (GtkMenuItem *menu_item)
 {
     //g_debug("item 0x%p group: 0x%p", menu_item, gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM(menu_item)));
     (*GTK_MENU_ITEM_CLASS (nwam_menu_item_parent_class)->activate) (menu_item);
+}
+
+void
+menu_item_set_label(GtkMenuItem *item, const gchar *label)
+{
+    g_assert(GTK_IS_MENU_ITEM(item));
+#if 1
+    /* Only for gtk 2.14 */
+    GtkWidget *accel_label = gtk_bin_get_child(GTK_BIN(item));
+    if (accel_label == NULL) {
+        accel_label = g_object_new (GTK_TYPE_ACCEL_LABEL, NULL);
+        gtk_label_set_text_with_mnemonic (GTK_LABEL (accel_label), label);
+        gtk_misc_set_alignment (GTK_MISC (accel_label), 0.0, 0.5);
+
+        gtk_container_add (GTK_CONTAINER (item), accel_label);
+        gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (accel_label), item);
+        gtk_widget_show (accel_label);
+    }
+    g_assert(GTK_IS_LABEL(accel_label));
+    item = accel_label;
+#endif
+    g_object_set(item,
+      "use-underline", TRUE,
+      "label", label ? label : "",
+      NULL);
 }

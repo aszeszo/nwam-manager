@@ -408,7 +408,7 @@ event_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
         }
         body = g_string_free(gstr, FALSE);
 
-        nwam_notification_show_message (summary, body, NWAM_ICON_NETWORK_IDLE, NOTIFY_EXPIRES_DEFAULT);
+        nwam_notification_show_message (summary, body, NWAM_ICON_NETWORK_CONNECTED, NOTIFY_EXPIRES_DEFAULT);
         break;
     }
     case NWAMUI_NCU_TYPE_WIRELESS: {
@@ -784,7 +784,7 @@ status_icon_popup_cb(GtkStatusIcon *status_icon,
   gpointer user_data)
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(status_icon);
-	GtkWidget*     s_menu = nwam_menu_get_statusicon_menu (self->prv->menu);
+	GtkWidget*     s_menu = self->prv->menu;
 
 	/* TODO - handle dynamic menu, for now let's do nothing, if there's no menu. */
 	if ( s_menu != NULL ) {

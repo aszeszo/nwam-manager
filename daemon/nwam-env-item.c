@@ -32,15 +32,16 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 
-#include "nwam-env-action.h"
+#include "nwam-env-item.h"
 #include "nwam-obj-proxy-iface.h"
 #include "libnwamui.h"
 
 
+typedef struct _NwamEnvItemPrivate NwamEnvItemPrivate;
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj),   \
-        NWAM_TYPE_ENV_ACTION, NwamEnvActionPrivate))
+        NWAM_TYPE_ENV_ITEM, NwamEnvItemPrivate))
 
-struct _NwamEnvActionPrivate {
+struct _NwamEnvItemPrivate {
     NwamuiEnv *env;
     gulong toggled_handler_id;
 };
@@ -53,17 +54,17 @@ enum {
 };
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
-static GObject* get_proxy(NwamEnvAction *self);
+static GObject* get_proxy(NwamEnvItem *self);
 
-static void nwam_env_action_set_property (GObject         *object,
+static void nwam_env_item_set_property (GObject         *object,
   guint            prop_id,
   const GValue    *value,
   GParamSpec      *pspec);
-static void nwam_env_action_get_property (GObject         *object,
+static void nwam_env_item_get_property (GObject         *object,
   guint            prop_id,
   GValue          *value,
   GParamSpec      *pspec);
-static void nwam_env_action_finalize (NwamEnvAction *self);
+static void nwam_env_item_finalize (NwamEnvItem *self);
 
 /* nwamui daemon signals */
 static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
@@ -71,13 +72,13 @@ static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 static void daemon_env_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
 
 /* nwamui env net signals */
-static void connect_env_net_signals(NwamEnvAction *self, NwamuiEnv *env);
-static void disconnect_env_net_signals(NwamEnvAction *self, NwamuiEnv *env);
-static void on_nwam_env_toggled (GtkAction *action, gpointer data);
+static void connect_env_net_signals(NwamEnvItem *self, NwamuiEnv *env);
+static void disconnect_env_net_signals(NwamEnvItem *self, NwamuiEnv *env);
+static void on_nwam_env_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 
-G_DEFINE_TYPE_EXTENDED(NwamEnvAction, nwam_env_action,
-  GTK_TYPE_TOGGLE_ACTION, 0,
+G_DEFINE_TYPE_EXTENDED(NwamEnvItem, nwam_env_item,
+  NWAM_TYPE_MENU_ITEM, 0,
   G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJ_PROXY_IFACE, nwam_obj_proxy_init))
 
 static void
@@ -88,17 +89,15 @@ nwam_obj_proxy_init(NwamObjProxyInterface *iface)
 }
 
 static void
-nwam_env_action_class_init (NwamEnvActionClass *klass)
+nwam_env_item_class_init (NwamEnvItemClass *klass)
 {
 	GObjectClass *gobject_class;
-	GtkActionClass *action_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
-	action_class = GTK_ACTION_CLASS (klass);
 
-	gobject_class->set_property = nwam_env_action_set_property;
-	gobject_class->get_property = nwam_env_action_get_property;
-	gobject_class->finalize = (void (*)(GObject*)) nwam_env_action_finalize;
+	gobject_class->set_property = nwam_env_item_set_property;
+	gobject_class->get_property = nwam_env_item_get_property;
+	gobject_class->finalize = (void (*)(GObject*)) nwam_env_item_finalize;
 	
 	g_object_class_install_property (gobject_class,
       PROP_ENV,
@@ -108,16 +107,13 @@ nwam_env_action_class_init (NwamEnvActionClass *klass)
         NWAMUI_TYPE_ENV,
         G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
-	g_type_class_add_private (klass, sizeof (NwamEnvActionPrivate));
+	g_type_class_add_private (klass, sizeof (NwamEnvItemPrivate));
 }
 
 static void
-nwam_env_action_init (NwamEnvAction *self)
+nwam_env_item_init (NwamEnvItem *self)
 {
-    NwamEnvActionPrivate *prv = GET_PRIVATE(self);
-    GSList *group = NULL;
-
-	self->prv = prv;
+    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
 
     /* nwamui ncp signals */
     {
@@ -139,31 +135,22 @@ nwam_env_action_init (NwamEnvAction *self)
       "toggled", G_CALLBACK(on_nwam_env_toggled), NULL);
 }
 
-NwamEnvAction *
-nwam_env_action_new(NwamuiEnv *env)
+GtkWidget*
+nwam_env_item_new(NwamuiEnv *env)
 {
-    NwamEnvAction *action;
-    gchar *menu_text = NULL;
+    GtkWidget *item;
 
-    menu_text = nwamui_env_get_name(NWAMUI_ENV(env));
-
-    action = g_object_new (NWAM_TYPE_ENV_ACTION,
-      "name", menu_text,
-      "label", menu_text,
-      "tooltip", NULL,
-      "stock-id", NULL,
+    item = g_object_new (NWAM_TYPE_ENV_ITEM,
       "env", env,
       NULL);
 
-    g_free(menu_text);
-
-    return action;
+    return item;
 }
 
 static void
-nwam_env_action_finalize (NwamEnvAction *self)
+nwam_env_item_finalize (NwamEnvItem *self)
 {
-    NwamEnvActionPrivate *prv = GET_PRIVATE(self);
+    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
     int i;
 
     /* nwamui ncp signals */
@@ -182,17 +169,17 @@ nwam_env_action_finalize (NwamEnvAction *self)
         g_object_unref(prv->env);
     }
 
-	G_OBJECT_CLASS(nwam_env_action_parent_class)->finalize(G_OBJECT (self));
+	G_OBJECT_CLASS(nwam_env_item_parent_class)->finalize(G_OBJECT (self));
 }
 
 static void
-nwam_env_action_set_property (GObject         *object,
+nwam_env_item_set_property (GObject         *object,
 			     guint            prop_id,
 			     const GValue    *value,
 			     GParamSpec      *pspec)
 {
-	NwamEnvAction *self = NWAM_ENV_ACTION (object);
-    NwamEnvActionPrivate *prv = GET_PRIVATE(self);
+	NwamEnvItem *self = NWAM_ENV_ITEM (object);
+    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
     GObject *obj = g_value_dup_object (value);
 
 	switch (prop_id) {
@@ -220,13 +207,13 @@ nwam_env_action_set_property (GObject         *object,
 }
 
 static void
-nwam_env_action_get_property (GObject         *object,
+nwam_env_item_get_property (GObject         *object,
   guint            prop_id,
   GValue          *value,
   GParamSpec      *pspec)
 {
-	NwamEnvAction *self = NWAM_ENV_ACTION (object);
-    NwamEnvActionPrivate *prv = GET_PRIVATE(self);
+	NwamEnvItem *self = NWAM_ENV_ITEM (object);
+    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
 
 	switch (prop_id)
 	{
@@ -240,14 +227,14 @@ nwam_env_action_get_property (GObject         *object,
 }
 
 static void
-connect_env_net_signals(NwamEnvAction *self, NwamuiEnv *env)
+connect_env_net_signals(NwamEnvItem *self, NwamuiEnv *env)
 {
     g_signal_connect (G_OBJECT(env), "notify::active",
       G_CALLBACK(on_nwam_env_notify), (gpointer)self);
 }
 
 static void
-disconnect_env_net_signals(NwamEnvAction *self, NwamuiEnv *env)
+disconnect_env_net_signals(NwamEnvItem *self, NwamuiEnv *env)
 {
     g_signal_handlers_disconnect_matched(env,
       G_SIGNAL_MATCH_DATA,
@@ -259,14 +246,14 @@ disconnect_env_net_signals(NwamEnvAction *self, NwamuiEnv *env)
 }
 
 static void
-on_nwam_env_toggled (GtkAction *action, gpointer data)
+on_nwam_env_toggled (GtkCheckMenuItem *item, gpointer data)
 {
-	NwamEnvAction *self = NWAM_ENV_ACTION (action);
-    NwamEnvActionPrivate *prv = GET_PRIVATE(self);
+	NwamEnvItem *self = NWAM_ENV_ITEM (item);
+    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
     NwamuiDaemon *daemon = nwamui_daemon_get_instance ();
 
     g_signal_handler_block(self, prv->toggled_handler_id);
-    gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(self), FALSE);
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE);
     g_signal_handler_unblock(self, prv->toggled_handler_id);
 
 	if (!nwamui_daemon_is_active_env(daemon, prv->env)) {
@@ -278,26 +265,28 @@ on_nwam_env_toggled (GtkAction *action, gpointer data)
 static void
 on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-	NwamEnvAction *self = NWAM_ENV_ACTION (data);
-    NwamEnvActionPrivate *prv = GET_PRIVATE(self);
+	NwamEnvItem *self = NWAM_ENV_ITEM (data);
+    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
 
     g_debug("menuitem get env notify %s changed\n", (arg1 && arg1->name)?arg1->name:"NULL");
-}
 
-static void
-nwam_env_action_set_label(NwamEnvAction *self, const gchar *label)
-{
-    g_object_set(self, "label", label, NULL);
+    {
+        gchar *menu_text = NULL;
+        menu_text = nwamui_object_get_name(NWAMUI_OBJECT(prv->env));
+        menu_item_set_label(GTK_MENU_ITEM(self), menu_text);
+        g_free(menu_text);
+    }
 }
 
 static GObject*
-get_proxy(NwamEnvAction *self)
+get_proxy(NwamEnvItem *self)
 {
-    return G_OBJECT(self->prv->env);
+    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
+    return G_OBJECT(prv->env);
 }
 
 NwamuiEnv *
-nwam_env_action_get_env (NwamEnvAction *self)
+nwam_env_item_get_env (NwamEnvItem *self)
 {
     NwamuiEnv *env;
 
@@ -307,7 +296,7 @@ nwam_env_action_get_env (NwamEnvAction *self)
 }
 
 void
-nwam_env_action_set_env (NwamEnvAction *self, NwamuiEnv *env)
+nwam_env_item_set_env (NwamEnvItem *self, NwamuiEnv *env)
 {
     g_return_if_fail(NWAMUI_IS_ENV(env));
 

@@ -521,7 +521,6 @@ main( int argc, char* argv[] )
     GnomeProgram *program;
     GOptionContext *option_context;
     GnomeClient *client;
-    NwamuiDaemon* daemon;
     struct sigaction act;
     NwamuiProf* prof;
     
@@ -579,12 +578,13 @@ main( int argc, char* argv[] )
         g_thread_init(NULL);
     }
 
-    daemon = nwamui_daemon_get_instance ();
     
     /* nwamui preference signals */
     {
+        NwamuiDaemon* daemon;
         NwamuiProf* prof;
 
+        daemon = nwamui_daemon_get_instance ();
         prof = nwamui_prof_get_instance ();
         g_object_get (prof,
           "action_on_no_fav_networks", &prof_action_if_no_fav_networks,
@@ -603,7 +603,7 @@ main( int argc, char* argv[] )
 
         nwamui_prof_notify_begin (prof);
         g_object_unref (prof);
-
+        g_object_unref (daemon);
     }
 
     status_icon = GTK_STATUS_ICON(nwam_status_icon_new());
@@ -621,7 +621,6 @@ main( int argc, char* argv[] )
 
     nwam_notification_cleanup();
     g_object_unref(status_icon);
-    g_object_unref (daemon);
     g_object_unref (G_OBJECT (program));
     
     return 0;

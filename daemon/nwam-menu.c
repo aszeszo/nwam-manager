@@ -36,105 +36,179 @@
 
 #include "notify.h"
 #include "nwam-menu.h"
-#include "nwam-wifi-group.h"
-#include "nwam-wifi-action.h"
-#include "nwam-env-group.h"
-#include "nwam-enm-group.h"
 #include "libnwamui.h"
 #include "nwam-obj-proxy-iface.h"
 
+#include "nwam-menuitem.h"
+#include "nwam-wifi-item.h"
+#include "nwam-enm-item.h"
+#include "nwam-env-item.h"
+#include "nwam-ncu-item.h"
+
 #define DEBUG()	g_debug ("[[ %20s : %-4d ]]", __func__, __LINE__)
 
-/* Pop-up menu */
-#define NWAM_MANAGER_PROPERTIES "nwam-manager-properties"
-#define	NONCU	"No network interfaces detected"
-#define FALSENCU	"automatic"
-
-#define NWAMUI_ACTION_ROOT	"StatusIconMenuActions"
-#define NWAMUI_ROOT "StatusIconMenu"
-#define NWAMUI_PROOT "/"NWAMUI_ROOT
-#define MENUITEM_NAME_ENV_PREF "0_location_pref"
-#define MENUITEM_NAME_JOIN_WIRELESS "1_join_wireless"
-#define MENUITEM_NAME_NET_PREF "2_network_pref"
-#define MENUITEM_NAME_VPN_PREF "3_vpn_pref"
-#define MENUITEM_NAME_HELP "4_help"
-#define MENUTIEM_NAME_REFRESH_WIRELESS "5_refresh_wireless"
+typedef struct _NwamMenuPrivate NwamMenuPrivate;
+#define NWAM_MENU_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_MENU, NwamMenuPrivate))
 
 enum {
-	ID_GLOBAL = 0,
-	ID_WIFI,
-	ID_FAV_WIFI,
-	ID_ENV,
-	ID_VPN,
-	N_ID
+	SECTION_GLOBAL = 0,         /* Not really used */
+	SECTION_WIFI,
+	SECTION_LOC,
+	SECTION_ENM,
+	SECTION_NCU,
+	N_SECTION
 };
 
-static const gchar * dynamic_menuitem_inserting_path[N_ID] = {
-    NULL,			/* ID_GLOBAL, shouldn't be used */
-    NWAMUI_PROOT"/section_fav_ap_end",			/* ID_WIFI */
-	NWAMUI_PROOT"/addfavor",	/* ID_FAV_WIFI */
-    NWAMUI_PROOT"/location/section_location_end", /* ID_ENV */
-    NWAMUI_PROOT"/vpn/section_vpn_end",  /* ID_VPN */
-};
+typedef struct _ForeachData {
+	GtkTreeModelForeachFunc foreach_func;
+	gpointer user_data;
+	gpointer ret_data;
+} ForeachData;
 
 struct _NwamMenuPrivate {
-	GtkUIManager *ui_manager;
 	NwamuiDaemon *daemon;
-	guint uid[N_ID];
-	GtkActionGroup *group[N_ID];
 
 	gboolean has_wifi;
 	gboolean force_wifi_rescan_due_to_env_changed;
 	gboolean force_wifi_rescan;
-	gboolean change_from_daemon;
+
+    guint update_wifi_timer;
+
+	/* Each section is began with GtkSeparatorMenuItem, NULL means 0. We'd
+     * better record every separators even though we don't really use some of
+     * them. Must update it if Menu is re-design.
+     */
+    GtkWidget *section[N_SECTION];
 };
 
+#define STATIC_MENUITEM_ID "static_item_id"
+
+/* Pop-up menu */
+#define NWAM_MANAGER_PROPERTIES "nwam-manager-properties"
+#define	NONCU	"No network interfaces detected"
+
+enum {
+    MENUITEM_ENV_PREF,
+    MENUITEM_CONN_PROF,
+    MENUITEM_REFRESH_WLAN,
+    MENUITEM_JOIN_WLAN,
+    MENUITEM_VPN_PREF,
+    MENUITEM_NET_PREF,
+    MENUITEM_HELP,
+    MENUITEM_TEST,
+};
+
+/* GtkMenu MACROs, must define ITEM_VARNAME before use them. */
+#define MENU_APPEND_ITEM_BASE(menu, type, label, callback, user_data)   \
+    g_assert(GTK_IS_MENU_SHELL(menu));                                  \
+    ITEM_VARNAME = g_object_new(type, NULL);                            \
+    if (!g_type_is_a(type, GTK_TYPE_SEPARATOR_MENU_ITEM)) {             \
+        if (label)                                                      \
+            menu_item_set_label(GTK_MENU_ITEM(ITEM_VARNAME), label);    \
+        if (callback)                                                   \
+            g_signal_connect((ITEM_VARNAME),                            \
+              "activate", G_CALLBACK(callback), (gpointer)user_data);   \
+    }                                                                   \
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu), GTK_WIDGET(ITEM_VARNAME));
+#define menu_append_item(menu, type, label, callback, user_data)        \
+    {                                                                   \
+        MENU_APPEND_ITEM_BASE(menu, type, label, callback, user_data);  \
+    }
+#define menu_append_image_item(menu, label, img, callback, user_data)   \
+    {                                                                   \
+        MENU_APPEND_ITEM_BASE(menu, GTK_TYPE_IMAGE_MENU_ITEM,           \
+          label, callback, user_data);                                  \
+        gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(ITEM_VARNAME), \
+          GTK_WIDGET(GTK_IMAGE(img)));                                  \
+    }
+#define menu_append_stock_item(menu, label, stock, callback, user_data) \
+    {                                                                   \
+        MENU_APPEND_ITEM_BASE(menu, GTK_TYPE_IMAGE_MENU_ITEM,           \
+          label, callback, user_data);                                  \
+        gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(ITEM_VARNAME), \
+          gtk_image_new_from_stock(stock, GTK_ICON_SIZE_MENU));         \
+    }
+#define menu_append_item_with_submenu(menu, type, label, submenu)       \
+    {                                                                   \
+        g_assert(!g_type_is_a(type, GTK_TYPE_SEPARATOR_MENU_ITEM));     \
+        MENU_APPEND_ITEM_BASE(menu, type, label, NULL, NULL);           \
+        gtk_menu_item_set_submenu(GTK_MENU_ITEM(ITEM_VARNAME),          \
+          GTK_WIDGET(submenu));                                         \
+    }
+#define menu_append_separator(menu)                                 \
+    {                                                               \
+        MENU_APPEND_ITEM_BASE(menu, GTK_TYPE_SEPARATOR_MENU_ITEM,   \
+          NULL, NULL, NULL);                                        \
+    }
+#define menu_append_section_separator(self, menu, sec_id, is_first)     \
+    {                                                                   \
+        NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);             \
+        g_assert(GTK_IS_MENU_SHELL(menu));                              \
+        if (is_first)                                                   \
+            prv->section[sec_id] = GTK_WIDGET(menu);                    \
+        else {                                                          \
+            MENU_APPEND_ITEM_BASE(menu, GTK_TYPE_SEPARATOR_MENU_ITEM,   \
+              NULL, NULL, NULL);                                        \
+            prv->section[sec_id] = GTK_WIDGET(ITEM_VARNAME);            \
+        }                                                               \
+    }
+#define menu_remove_item(menu, item)                            \
+    {                                                           \
+        g_assert(GTK_IS_MENU(menu) && GTK_IS_MENU_ITEM(item));  \
+        gtk_container_remove(GTK_CONTAINER(menu), item);        \
+    }
+
+static glong update_wifi_timer_interval = 500;
+
 static void nwam_menu_finalize (NwamMenu *self);
-static void nwam_menu_create_static_menuitems (NwamMenu *self);
-static void nwam_menu_group_recreate(NwamMenu *self, int group_id,
-  const gchar *group_name);
 
 static void nwam_menu_connect (NwamMenu *self);
-/* 0.5 */
-static void nwam_menu_delete_ncu_menuitems(NwamMenu *self);
-static void nwam_menu_recreate_ncu_menuitems (NwamMenu *self);
-static void nwam_menu_create_ncu_menuitems (GObject *daemon, GObject *ncp, GObject *ncu, gpointer data);
-/* 1.0 */
-static void nwam_menu_delete_wifi_menuitems(NwamMenu *self);
+
+static void nwam_menu_start_update_wifi_timer(NwamMenu *self);
+static void nwam_menu_stop_update_wifi_timer(NwamMenu *self);
+static void nwam_menu_reset_update_wifi_timer(NwamMenu *self);
+
 static void nwam_menu_recreate_wifi_menuitems (NwamMenu *self);
+static void nwam_menu_recreate_ncu_menuitems (NwamMenu *self);
+static void nwam_menu_recreate_env_menuitems (NwamMenu *self);
+static void nwam_menu_recreate_enm_menuitems (NwamMenu *self);
+
 static void nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data);
-static void nwam_menu_create_env_menuitems (NwamMenu *self);
-static void nwam_menu_create_vpn_menuitems (NwamMenu *self);
+static void nwam_menu_create_static_menuitems (NwamMenu *self);
+static void nwam_menu_create_dynamic_menuitems (NwamMenu *self);
+static GtkWidget* nwam_menu_item_creator(NwamMenu *self, NwamuiObject *object);
 
 static void notification_listwireless_cb (NotifyNotification *n, gchar *action, gpointer data);
 
-/* utils */
+/* Utils */
 static void menus_set_automatic_label(NwamMenu *self, NwamuiNcu *ncu);
+static gint nwam_menu_item_compare(GtkWidget *a, GtkWidget *b);
 
-static void menus_set_action_visible(NwamMenu *self,
-  gint group_id,
-  const gchar* action_name,
-  gboolean visible);
+/* GtkMenu utils */
+static void menu_foreach_by_name(GtkWidget *widget, gpointer user_data);
+static void menu_foreach_by_proxy(GtkWidget *widget, gpointer user_data);
+static GtkMenuItem* menu_get_item_by_name(GtkMenu *menu, const gchar* name);
+static GtkMenuItem* menu_get_item_by_proxy(GtkMenu *menu, GObject* proxy);
+static void menu_section_get_positions(GtkMenu *menu,
+  GtkWidget *start_sep, GtkWidget *end_sep,
+  gint *ret_start_pos, gint *ret_end_pos);
+static void menu_section_get_children(GtkMenu *menu,
+  GtkWidget *start_sep, GtkWidget *end_sep,
+  GList **ret_children, gint *ret_start_pos);
 
-static void menus_set_action_sensitive(NwamMenu *self,
-  gint group_id,
-  const gchar* action_name,
-  gboolean sensitive);
-
-static void menus_set_toggle_action_active(NwamMenu *self,
-  gint group_id,
-  const gchar* action_name,
-  gboolean active);
-
-static GObject* nwam_menu_group_get_item_by_proxy(NwamMenuGroup *menugroup, GObject* proxy);
+/* NwamMenu section utils */
+static void nwam_menu_section_get_section_info(NwamMenu *self, gint sec_id,
+  GtkWidget **menu, GtkWidget **start_sep, GtkWidget **end_sep);
+static void nwam_menu_section_sort(NwamMenu *self, gint sec_id);
+static void nwam_menu_get_section_positions(NwamMenu *self, gint sec_id,
+  gint *ret_start_pos, gint *ret_end_pos);
+static void nwam_menu_section_insert_sort(NwamMenu *self, gint sec_id, GtkWidget *item);
+static void nwam_menu_section_append(NwamMenu *self, gint sec_id, GtkWidget *item);
+static void nwam_menu_section_prepend(NwamMenu *self, gint sec_id, GtkWidget *item);
+static void nwam_menu_section_delete(NwamMenu *self, gint sec_id);
 
 /* call back */
-/* Notification menuitem events */
-static void on_activate_static_menuitems (GtkAction *action, gpointer udata);
-
-/* NWAMUI object events */
-static void on_nwam_ncu_toggled (GtkAction *action, gpointer data);
-static void on_nwam_ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+static void on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data);
 
 /* nwamui daemon signals */
 static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
@@ -150,43 +224,7 @@ static void event_add_wifi_fav (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpoin
 static void connect_ncp_signals(GObject *self, NwamuiNcp *ncp);
 static void disconnect_ncp_signals(GObject *self, NwamuiNcp *ncp);
 
-G_DEFINE_TYPE (NwamMenu, nwam_menu, G_TYPE_OBJECT)
-
-static GtkActionEntry entries[] = {
-    { MENUITEM_NAME_ENV_PREF,
-      NULL, N_("Location Preferences..."), 
-      NULL, NULL,
-      G_CALLBACK(on_activate_static_menuitems) },
-    { MENUITEM_NAME_JOIN_WIRELESS,
-      NULL, N_("_Join Unlisted Wireless Network..."),
-      NULL, NULL,
-      G_CALLBACK(on_activate_static_menuitems) },
-    { MENUITEM_NAME_NET_PREF,
-      NULL, N_("Network Preferences..."),
-      NULL, NULL,
-      G_CALLBACK(on_activate_static_menuitems) },
-    { MENUITEM_NAME_VPN_PREF,
-      NULL, N_("VPN Preferences"),
-      NULL, NULL,
-      G_CALLBACK(on_activate_static_menuitems) },
-    { MENUTIEM_NAME_REFRESH_WIRELESS,
-      NULL, N_("Refresh Wireless Network"),
-      NULL, NULL,
-      G_CALLBACK(on_activate_static_menuitems) },
-    { "swtchenv",
-      NULL, N_("Switch Location"),
-      NULL, NULL, NULL },
-    { "vpn",
-      NULL, N_("VPN Applications"),
-      NULL, NULL, NULL },
-    { "location",
-      NULL, N_("Location"),
-      NULL, NULL, NULL },
-    { MENUITEM_NAME_HELP,
-      GTK_STOCK_HELP, N_("Help"),
-      NULL, NULL,
-      G_CALLBACK(on_activate_static_menuitems) }
-};
+G_DEFINE_TYPE (NwamMenu, nwam_menu, GTK_TYPE_MENU)
 
 static void
 nwam_menu_class_init (NwamMenuClass *klass)
@@ -195,46 +233,35 @@ nwam_menu_class_init (NwamMenuClass *klass)
 
 	gobject_class = G_OBJECT_CLASS (klass);
 	gobject_class->finalize = (void (*)(GObject*)) nwam_menu_finalize;
+
+	g_type_class_add_private (klass, sizeof (NwamMenuPrivate));
 }
 
 static void
 nwam_menu_init (NwamMenu *self)
 {
-	GError *error = NULL;
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
 
-	self->prv = g_new0 (NwamMenuPrivate, 1);
-	
 	/* ref daemon instance */
-	self->prv->daemon = nwamui_daemon_get_instance ();
+	prv->daemon = nwamui_daemon_get_instance ();
+
+    /* Must create static menus before connect to any signals. */
+    nwam_menu_create_static_menuitems (self);
+	nwam_menu_create_dynamic_menuitems (self);
 
     /* handle all daemon signals here */
-    connect_daemon_signals(G_OBJECT(self), self->prv->daemon);
+    connect_daemon_signals(G_OBJECT(self), prv->daemon);
 
-	self->prv->group[ID_GLOBAL] = gtk_action_group_new (NWAMUI_ACTION_ROOT);
-	gtk_action_group_set_translation_domain (self->prv->group[ID_GLOBAL], NULL);
-
-#if PHASE_1_0
     {
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
+        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
 
         connect_ncp_signals(G_OBJECT(self), ncp);
 
         g_object_unref(ncp);
     }
-#endif
-
-	self->prv->ui_manager = gtk_ui_manager_new ();
-
-    self->prv->change_from_daemon = FALSE;
-
-    nwam_menu_create_static_menuitems (self);
-	nwam_menu_create_env_menuitems (self);
-	nwam_menu_create_vpn_menuitems (self);
-    /* test code */
-    nwam_menu_recreate_wifi_menuitems (self);
 
     /* initially populate network info */
-    event_daemon_status_changed(self->prv->daemon,
+    event_daemon_status_changed(prv->daemon,
       NWAMUI_DAEMON_STATUS_ACTIVE,
       (gpointer) self);
 #if PHASE_1_0
@@ -245,12 +272,12 @@ nwam_menu_init (NwamMenu *self)
 static void
 nwam_menu_finalize (NwamMenu *self)
 {
-	g_object_unref (G_OBJECT(self->prv->ui_manager));
-	g_object_unref (G_OBJECT(self->prv->daemon));
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+	g_object_unref (G_OBJECT(prv->daemon));
 
 #if PHASE_1_0
     {
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
+        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
 
         disconnect_ncp_signals(G_OBJECT(self), ncp);
 
@@ -258,29 +285,8 @@ nwam_menu_finalize (NwamMenu *self)
     }
 #endif
 
-	/* TODO, release all the resources */
-
-	g_free(self->prv);
-	self->prv = NULL;
-	
 	G_OBJECT_CLASS(nwam_menu_parent_class)->finalize(G_OBJECT(self));
 }
-
-static GtkAction*
-menu_group_get_action_by_name(NwamMenu *self, gint group_id, const gchar* action_name)
-{
-    GtkAction *action = NULL;
-
-    g_assert(group_id >= ID_GLOBAL && group_id < N_ID);
-
-    if (self->prv->group[group_id]) {
-        action = gtk_action_group_get_action(self->prv->group[group_id],
-          action_name);
-    }
-
-    return action;
-}
-
 
 static void
 menus_set_automatic_label(NwamMenu *self, NwamuiNcu *ncu)
@@ -303,157 +309,41 @@ menus_set_automatic_label(NwamMenu *self, NwamuiNcu *ncu)
         automatic_label = g_strdup_printf(_("_Automatic Network Interface Selection "));
     }
 
-#if 0
-    {
-        GtkAction *action = menu_group_get_action_by_name(self, ID_NCU, FALSENCU);
-        g_object_set(action,
-          "label", automatic_label,
-          NULL);
-    }
-#endif
     g_free(automatic_label);
 }
 
-static void
-menus_set_action_visible(NwamMenu *self, gint group_id,
-  const gchar* action_name,
-  gboolean visible)
+static gint
+nwam_menu_item_compare(GtkWidget *a, GtkWidget *b)
 {
-    GtkAction *action = menu_group_get_action_by_name(self, group_id, action_name);
-
-    if (action) {
-        gtk_action_set_visible(action, visible);
-    }
-}
-
-static void
-menus_set_action_sensitive(NwamMenu *self, gint group_id,
-  const gchar* action_name,
-  gboolean sensitive)
-{
-    GtkAction *action = menu_group_get_action_by_name(self, group_id, action_name);
-
-    if (action) {
-        gtk_action_set_sensitive(action, sensitive);
-    }
-}
-
-static void
-menus_set_toggle_action_active(NwamMenu *self,
-  gint group_id,
-  const gchar* action_name,
-  gboolean active)
-{
-    GtkAction *action = menu_group_get_action_by_name(self, group_id, action_name);
-
-    if (action) {
-        g_return_if_fail(GTK_IS_TOGGLE_ACTION(action));
-        self->prv->change_from_daemon = TRUE;
-        gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), active);
-        self->prv->change_from_daemon = FALSE;
-    }
-}
-
-static void
-nwam_menu_group_recreate(NwamMenu *self,
-  int group_id,
-  const gchar *group_name)
-{
-    NwamMenuPrivate *prv = self->prv;
-
-	if (prv->uid[group_id] > 0) {
-		gtk_ui_manager_remove_ui (prv->ui_manager, prv->uid[group_id]);
-		gtk_ui_manager_remove_action_group (prv->ui_manager, prv->group[group_id]);
-	}
-	prv->uid[group_id] = gtk_ui_manager_new_merge_id (prv->ui_manager);
-	g_assert (prv->uid[group_id] > 0);
-	prv->group[group_id] = gtk_action_group_new (group_name);
-	gtk_action_group_set_translation_domain (prv->group[group_id], NULL);
-	gtk_ui_manager_insert_action_group (prv->ui_manager, prv->group[group_id], 0);
-    g_object_unref (G_OBJECT(prv->group[group_id]));
-}
-
-static void
-nwam_menu_delete_wifi_menuitems(NwamMenu *self)
-{
-	self->prv->has_wifi = FALSE;
-    if (self->prv->group[ID_WIFI]) {
-        g_object_unref(G_OBJECT(self->prv->group[ID_WIFI]));
-        self->prv->group[ID_WIFI] = NULL;
-    }
+    return 0;
 }
 
 static void
 nwam_menu_recreate_wifi_menuitems (NwamMenu *self)
 {
-    GtkAction *action;
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
 
-    nwam_menu_delete_wifi_menuitems(self);
-
-    DEBUG();	
-    self->prv->group[ID_WIFI] = nwam_wifi_group_new(self->prv->ui_manager,
-        dynamic_menuitem_inserting_path[ID_WIFI]);
+    nwam_menu_section_delete(self, SECTION_WIFI);
 
     /* set force rescan flag so that we can identify daemon scan wifi event */
-    self->prv->force_wifi_rescan = TRUE;
-}
-
-static void
-nwam_menu_delete_ncu_menuitems(NwamMenu *self)
-{
-#if 0
-    nwam_menu_group_recreate(self, ID_NCU, "ncu_action_group");
-#endif
-    /* disable "join wireless" menu item */
-    /* disable "manage known ap" menu item */
-    menus_set_action_visible(self, ID_GLOBAL, MENUITEM_NAME_JOIN_WIRELESS, FALSE);
+    prv->force_wifi_rescan = TRUE;
 }
 
 static void
 nwam_menu_recreate_ncu_menuitems (NwamMenu *self)
 {
-#if 0
-    NwamuiNcp* active_ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    NwamuiNcp* active_ncp = nwamui_daemon_get_active_ncp(prv->daemon);
     GtkTreeModel *model = NULL;
     GtkTreeIter iter;
-    GtkAction *action;
     nwamui_ncp_selection_mode_t selection_mode = nwamui_ncp_get_selection_mode( active_ncp );
 
     DEBUG();
 
-    nwam_menu_delete_ncu_menuitems(self);
-
-    {
-        /* default "automatic" */
-        const gchar *name = FALSENCU;
-
-        action = GTK_ACTION(gtk_radio_action_new (name,
-            "",
-            NULL,
-            NULL,
-            (gint)NULL));
-
-/* 		g_object_set_data(G_OBJECT(action), NWAMUI_OBJECT_DATA, NULL); */
-
-        g_object_unref (action);
-
-		gtk_ui_manager_add_ui (self->prv->ui_manager,
-          self->prv->uid[ID_NCU],
-          dynamic_menuitem_inserting_path[ID_NCU],
-          name, /* name */
-          name, /* action */
-          GTK_UI_MANAGER_MENUITEM,
-          TRUE);
-
-        if ( selection_mode == NWAMUI_NCP_SELECTION_MODE_AUTOMATIC ) {
-            self->prv->change_from_daemon = TRUE;
-            gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), TRUE);
-            self->prv->change_from_daemon = FALSE;
-        }
-
-        g_signal_connect (G_OBJECT (action), "activate",
-                          G_CALLBACK(on_nwam_ncu_toggled), (gpointer)self);
-    }
+    nwam_menu_section_delete(self, SECTION_NCU);
+    /* disable "join wireless" menu item */
+    /* disable "manage known ap" menu item */
+/*     gtk_widget_hide(MENUITEM_NAME_JOIN_WIRELESS); */
 
     model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store (active_ncp));
 
@@ -462,12 +352,12 @@ nwam_menu_recreate_ncu_menuitems (NwamMenu *self)
 
         do {
             NwamuiNcu *ncu;
+            GtkWidget *item;
 
             gtk_tree_model_get (model, &iter, 0, &ncu, -1);
-            nwam_menu_create_ncu_menuitems(G_OBJECT(self->prv->daemon),
-              G_OBJECT(active_ncp),
-              G_OBJECT(ncu),
-              self);
+
+            item = nwam_menu_item_creator(self, NWAMUI_OBJECT(ncu));
+
             switch (nwamui_ncu_get_ncu_type (ncu)) {
             case NWAMUI_NCU_TYPE_WIRELESS: {
                 /* enable "join wireless" menu item */
@@ -486,15 +376,14 @@ nwam_menu_recreate_ncu_menuitems (NwamMenu *self)
         /* enable "join wireless" menu item */
         /* enable "manage known ap" menu item */
         if (has_wireless_inf) {
-            menus_set_action_visible(self, ID_GLOBAL, MENUITEM_NAME_JOIN_WIRELESS, TRUE);
-            menus_set_action_visible(self, ID_GLOBAL, MENUITEM_NAME_MANAGE_KNOWN_AP, TRUE);
-
+/*             gtk_widget_show(MENUITEM_NAME_JOIN_WIRELESS); */
+/*             gtk_widget_show(MENUITEM_NAME_MANAGE_KNOWN_AP); */
         }
 
         /* initially populate network info */
         {
             NwamuiNcu *ncu = nwamui_ncp_get_active_ncu(active_ncp);
-            event_ncu_up(self->prv->daemon, ncu, (gpointer) self);
+/*             event_ncu_up(prv->daemon, ncu, (gpointer) self); */
             
             if (ncu) {
                 g_object_unref(ncu);
@@ -504,51 +393,136 @@ nwam_menu_recreate_ncu_menuitems (NwamMenu *self)
         g_object_unref(active_ncp);
 
 	} else {
+        GtkAction *action;
         /* no ncu */
+        /* TODO add to group */
         action = GTK_ACTION(gtk_action_new (NONCU, _(NONCU), NULL, NULL));
         gtk_action_set_sensitive (action, FALSE);
         g_object_unref (action);
-
-        gtk_ui_manager_add_ui (self->prv->ui_manager,
-          self->prv->uid[ID_NCU],
-          dynamic_menuitem_inserting_path[ID_NCU],
-          NONCU, /* name */
-          NONCU, /* action */
-          GTK_UI_MANAGER_MENUITEM,
-          TRUE);
     }
 
     g_object_unref(model);
-#endif
+}
+
+static void
+nwam_menu_recreate_env_menuitems (NwamMenu *self)
+{
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GList *env_list = nwamui_daemon_get_env_list(prv->daemon);
+    GList *idx = NULL;
+	GtkWidget* item = NULL;
+
+	for (idx = env_list; idx; idx = g_list_next(idx)) {
+        //nwam_menuitem_proxy_new(action, env_group);
+        item = nwam_menu_item_creator(self, NWAMUI_OBJECT(idx->data));
+	}
+    g_list_free(env_list);
+}
+
+static void
+nwam_menu_recreate_enm_menuitems (NwamMenu *self)
+{
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GList *enm_list = nwamui_daemon_get_enm_list(prv->daemon);
+	GList *idx = NULL;
+	GtkWidget* item = NULL;
+
+	for (idx = enm_list; idx; idx = g_list_next(idx)) {
+        //nwam_menuitem_proxy_new(action, vpn_group);
+        item = nwam_menu_item_creator(self, NWAMUI_OBJECT(idx->data));
+	}
+    g_list_free(enm_list);
 }
 
 static void
 nwam_menu_create_static_menuitems (NwamMenu *self)
 {
-    NwamMenuPrivate *prv = self->prv;
-    GError *error;
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GtkWidget *root_menu;
+    GtkWidget *sub_menu;
+    GtkWidget *menuitem;
 
-    nwam_menu_group_recreate(self, ID_GLOBAL, NWAMUI_ACTION_ROOT);
+#define ITEM_VARNAME menuitem
 
-    gtk_ui_manager_remove_ui(prv->ui_manager, prv->uid[ID_GLOBAL]);
+    /* Root menu. */
+    root_menu = GTK_WIDGET(self);
+    menu_append_section_separator(self, root_menu, SECTION_GLOBAL, TRUE);
 
-    if ((prv->uid[ID_GLOBAL] = gtk_ui_manager_add_ui_from_file(prv->ui_manager,
-          UIDATA,
-          &error)) != 0) {
-        gtk_action_group_add_actions (prv->group[ID_GLOBAL],
-          entries,
-          G_N_ELEMENTS (entries),
-          (gpointer) self);
-    } else {
-        g_error ("Can't find %s: %s", UIDATA, error->message);
-        g_error_free (error);
-    }
+    sub_menu = gtk_menu_new();
+    menu_append_section_separator(self, sub_menu, SECTION_LOC, TRUE);
+    menu_append_separator(sub_menu);
+
+    menu_append_item(sub_menu,
+      GTK_TYPE_MENU_ITEM, _("_Location Preferences..."),
+      on_activate_static_menuitems, self);
+    g_object_set_data(menuitem, STATIC_MENUITEM_ID, (gpointer)MENUITEM_ENV_PREF);
+    menu_append_item_with_submenu(root_menu,
+      GTK_TYPE_MENU_ITEM, _("_Location"), sub_menu);
+
+    sub_menu = gtk_menu_new();
+    menu_append_section_separator(self, sub_menu, SECTION_NCU, TRUE);
+    menu_append_separator(sub_menu);
+
+    menu_append_item(sub_menu,
+      GTK_TYPE_MENU_ITEM, _("_Connection Profile..."),
+      on_activate_static_menuitems, self);
+    g_object_set_data(menuitem, STATIC_MENUITEM_ID, (gpointer)MENUITEM_CONN_PROF);
+
+    menu_append_item_with_submenu(root_menu,
+      GTK_TYPE_MENU_ITEM, _("_Connections"), sub_menu);
+
+    menu_append_section_separator(self, root_menu, SECTION_WIFI, FALSE);
+
+    menu_append_separator(root_menu);
+
+    menu_append_item(root_menu,
+      GTK_TYPE_MENU_ITEM, _("_Refresh Wireless Networks"),
+      on_activate_static_menuitems, self);
+    g_object_set_data(menuitem, STATIC_MENUITEM_ID, (gpointer)MENUITEM_REFRESH_WLAN);
+
+    menu_append_item(root_menu,
+      GTK_TYPE_MENU_ITEM, _("_Join Unlisted Wireless Network..."),
+      on_activate_static_menuitems, self);
+    g_object_set_data(menuitem, STATIC_MENUITEM_ID, (gpointer)MENUITEM_JOIN_WLAN);
+
+    menu_append_separator(root_menu);
+
+    /* Sub_Menu */
+    sub_menu = gtk_menu_new();
+    menu_append_section_separator(self, sub_menu, SECTION_ENM, TRUE);
+
+    menu_append_separator(sub_menu);
+
+    menu_append_item(sub_menu,
+      GTK_TYPE_MENU_ITEM, _("_VPN Preferences..."),
+      on_activate_static_menuitems, self);
+    g_object_set_data(menuitem, STATIC_MENUITEM_ID, (gpointer)MENUITEM_VPN_PREF);
+    menu_append_item_with_submenu(root_menu,
+      GTK_TYPE_MENU_ITEM,_("_VPN Applications"), sub_menu);
+
+    menu_append_separator(root_menu);
+
+    menu_append_item(root_menu,
+      GTK_TYPE_MENU_ITEM, _("_Network Preferences..."),
+      on_activate_static_menuitems, self);
+    g_object_set_data(menuitem, STATIC_MENUITEM_ID, (gpointer)MENUITEM_NET_PREF);
+
+    menu_append_stock_item(root_menu,
+      _("_Help"), GTK_STOCK_HELP,
+      on_activate_static_menuitems, self);
+    g_object_set_data(menuitem, STATIC_MENUITEM_ID, (gpointer)MENUITEM_HELP);
+
+    menu_append_item(root_menu,
+      GTK_TYPE_MENU_ITEM, _("TeSt MeNu"),
+      on_activate_static_menuitems, self);
+    g_object_set_data(menuitem, STATIC_MENUITEM_ID, (gpointer)MENUITEM_TEST);
 }
 
 static void
 nwam_menu_connect (NwamMenu *self)
 {
-    NwamuiNcp* active_ncp = nwamui_daemon_get_active_ncp (self->prv->daemon);
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    NwamuiNcp* active_ncp = nwamui_daemon_get_active_ncp (prv->daemon);
     GtkTreeModel *model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_tree_store (active_ncp));
     NwamuiNcu *ncu;
     GtkTreeIter iter;
@@ -558,9 +532,9 @@ nwam_menu_connect (NwamMenu *self)
     if (gtk_tree_model_get_iter_first (model, &iter)) {
         do {
             gtk_tree_model_get (model, &iter, 0, &ncu, -1);
-            g_signal_connect (ncu, "notify",
-                              G_CALLBACK(on_nwam_ncu_notify_cb),
-                              (gpointer)self);
+/*             g_signal_connect (ncu, "notify", */
+/*                               G_CALLBACK(on_nwam_ncu_notify_cb), */
+/*                               (gpointer)self); */
             switch (nwamui_ncu_get_ncu_type (ncu)) {
             case NWAMUI_NCU_TYPE_WIRELESS: {
                 NwamuiWifiNet *wifi;
@@ -620,12 +594,22 @@ nwam_exec (const gchar *nwam_arg)
 }
 
 static void
-on_activate_static_menuitems (GtkAction *action, gpointer data)
+on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
 {
-    gchar first_char = *gtk_action_get_name(action);
+    NwamMenu *self = NWAM_MENU(user_data);
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
     gchar *argv = NULL;
+    gint menuitem_id = (gint)g_object_get_data(menuitem, STATIC_MENUITEM_ID);
 
-    if (first_char == *MENUITEM_NAME_JOIN_WIRELESS) {
+    switch (menuitem_id) {
+    case MENUITEM_ENV_PREF:
+		argv = "-l";
+        break;
+    case MENUITEM_CONN_PROF:
+    case MENUITEM_REFRESH_WLAN:
+        nwam_menu_recreate_wifi_menuitems(self);
+        break;
+    case MENUITEM_JOIN_WLAN:
 #if 0
         NwamMenu *self = NWAM_MENU(data);
         if (data) {
@@ -644,17 +628,26 @@ on_activate_static_menuitems (GtkAction *action, gpointer data)
         }
 #endif
         join_wireless(NULL);
-    } else if (first_char == *MENUTIEM_NAME_REFRESH_WIRELESS) {
-        nwam_menu_recreate_wifi_menuitems(NWAM_MENU(data));
-    } else if (first_char == *MENUITEM_NAME_ENV_PREF) {
-		argv = "-l";
-    } else if (first_char == *MENUITEM_NAME_NET_PREF) {
-		argv = "-p";
-    } else if (first_char == *MENUITEM_NAME_VPN_PREF) {
+        break;
+    case MENUITEM_VPN_PREF:
         argv = "-n";
-    } else if (first_char == *MENUITEM_NAME_HELP) {
+        break;
+    case MENUITEM_NET_PREF:
+		argv = "-p";
+        break;
+    case MENUITEM_HELP:
         nwamui_util_show_help ("");
-    } else {
+        break;
+    case MENUITEM_TEST: {
+        static gboolean flag = FALSE;
+        if (flag = !flag) {
+            nwam_menu_section_delete(self, SECTION_LOC);
+        } else {
+            nwam_menu_recreate_env_menuitems(self);
+        }
+    }
+        break;
+    default:
         g_assert_not_reached ();
         /* About */
         gtk_show_about_dialog (NULL, 
@@ -664,71 +657,8 @@ on_activate_static_menuitems (GtkAction *action, gpointer data)
           "website", _("http://www.sun.com/"),
           NULL);
     }
-
     if (argv) {
         nwam_exec(argv);
-    }
-}
-
-static void
-on_nwam_ncu_toggled (GtkAction *action, gpointer data)
-{
-    NwamMenu *self = NWAM_MENU (data);
-    NwamuiNcp* ncp = nwamui_daemon_get_active_ncp (self->prv->daemon);
-    NwamuiNcu* ncu;
-/*     NwamuiNcu* ncu = NWAMUI_NCU (g_object_get_data(G_OBJECT(action), NWAMUI_OBJECT_DATA)); */
-    gpointer ncu_value = (gpointer)gtk_radio_action_get_current_value(GTK_RADIO_ACTION(action));
-
-    g_object_get(action, "value", &ncu, NULL);
-
-    g_debug("action 0x%p ncu 0x%p ncu_value 0x%p", action, ncu, ncu_value);
-
-    /* If the toggle is generated by the daemon we don't want to proceed any
-     * more since it will tell the daemon to reconnected unnecessarily
-     */
-    if (!self->prv->change_from_daemon
-        && gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action))) {
-        if (ncu) {
-            gchar *name = nwamui_ncu_get_device_name(ncu);
-            g_debug("\n\tENABLE\tNcu\t 0x%p\t%s\n", ncu, name);
-            g_free(name);
-            nwamui_ncp_set_manual_ncu_selection(ncp, ncu);
-        } else {
-            nwamui_ncp_set_automatic_ncu_selection(ncp);
-        }
-    }
-    g_object_unref(ncp);
-}
-
-static void
-on_nwam_ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-	NwamMenu *self = NWAM_MENU (data);
-    NwamuiNcu *ncu;
-
-    DEBUG ();
-
-    ncu = NWAMUI_NCU(gobject);
-    switch (nwamui_ncu_get_ncu_type (ncu)) {
-    case NWAMUI_NCU_TYPE_WIRELESS:
-/*         if (g_ascii_strcasecmp(arg1->name, "wifi-info") == 0) { */
-/*             NwamuiWifiNet *wifi; */
-/*             GtkAction *action; */
-/*             gchar *m_name; */
-
-/*             wifi = nwamui_ncu_get_wifi_info (ncu); */
-/*             if (wifi) { */
-/*                 m_name = nwamui_wifi_net_get_bssid (wifi); */
-/*                 menus_set_toggle_action_active(self, ID_WIFI, m_name, TRUE); */
-/*                 g_free (m_name); */
-/*                 g_object_unref(wifi); */
-/*             } */
-/*         } */
-        break;
-    case NWAMUI_NCU_TYPE_WIRED:
-        break;
-    default:
-        g_assert_not_reached ();
     }
 }
 
@@ -771,6 +701,7 @@ static void
 event_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
 {
 	NwamMenu *self = NWAM_MENU (data);
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
     gchar *sname;
     gchar *summary, *body;
     NwamuiNcp* ncp;
@@ -788,7 +719,7 @@ event_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
 
     /* TODO - we should receive this signal iff change to env successfully */
     /* according to v1.5 P4 rescan wifi now */
-    self->prv->force_wifi_rescan_due_to_env_changed = TRUE;
+    prv->force_wifi_rescan_due_to_env_changed = TRUE;
     nwam_menu_recreate_wifi_menuitems (self);
 }
 
@@ -860,8 +791,7 @@ event_daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status,
     switch( status) {
     case NWAMUI_DAEMON_STATUS_ACTIVE:
         /* must call the following two functions to create menus initially */
-/*         nwam_menu_recreate_wifi_menuitems (self); */
-/*         nwamui_daemon_wifi_start_scan(self->prv->daemon); */
+/*         nwamui_daemon_wifi_start_scan(prv->daemon); */
 
         /* We don't need rescan wlans, because when daemon changes to active it
            will emulate wlan changed signal */
@@ -871,8 +801,8 @@ event_daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status,
 
         break;
     case NWAMUI_DAEMON_STATUS_INACTIVE:
-        nwam_menu_delete_wifi_menuitems(self);
-        nwam_menu_delete_ncu_menuitems(self);
+        nwam_menu_section_delete(self, SECTION_WIFI);
+        nwam_menu_section_delete(self, SECTION_NCU);
         break;
     default:
         g_assert_not_reached();
@@ -888,11 +818,11 @@ event_daemon_info (NwamuiDaemon* daemon,
   gpointer user_data)
 {
 	NwamMenu *self = NWAM_MENU (user_data);
-    GtkAction *action = NULL;
 
     switch (type) {
     case NWAMUI_DAEMON_INFO_WLAN_CHANGED:
-        nwam_menu_recreate_wifi_menuitems(self);
+        nwam_menu_stop_update_wifi_timer(self);
+        nwam_menu_start_update_wifi_timer(self);
         break;
     case NWAMUI_DAEMON_INFO_WLAN_CONNECTED:
     case NWAMUI_DAEMON_INFO_WLAN_DISCONNECTED:
@@ -910,66 +840,6 @@ notification_listwireless_cb (NotifyNotification *n, gchar *action, gpointer dat
 }
 
 /**
- * nwam_menu_create_ncu_menuitems:
- *
- * 0.5 only, create a menuitem for each network interface.
- */
-static void
-nwam_menu_create_ncu_menuitems (GObject *daemon, GObject *ncp, GObject *ncu, gpointer data)
-{
-#if 0
-	NwamMenu *self = NWAM_MENU (data);
-	GtkAction *action = NULL;
-    nwamui_ncp_selection_mode_t selection_mode = nwamui_ncp_get_selection_mode( NWAMUI_NCP(ncp) );
-
-    /* TODO - Make this more efficient */
-
-	if (ncu) {
-		gchar *name = NULL;
-        gchar *lbl_name = NULL;
-        gchar *type_str = NULL;
-		
-		name = nwamui_ncu_get_device_name(NWAMUI_NCU(ncu));
-		if ( nwamui_ncu_get_ncu_type(NWAMUI_NCU(ncu)) == NWAMUI_NCU_TYPE_WIRELESS ){
-            type_str = _("Wireless");
-        }
-        else {
-            type_str = _("Wired");
-        }
-        lbl_name = g_strdup_printf(_("Always Use %s Network Interface (%s)"), type_str, name);
-
-		action = GTK_ACTION(gtk_radio_action_new (name, lbl_name, NULL, NULL, (gint)ncu));
-/* 		g_object_set_data(G_OBJECT(action), NWAMUI_OBJECT_DATA, ncu); */
-        g_signal_connect (ncu, "notify",
-          G_CALLBACK(on_nwam_ncu_notify_cb), (gpointer)self);
-
-        if ( selection_mode == NWAMUI_NCP_SELECTION_MODE_MANUAL
-          && nwamui_ncu_get_active(NWAMUI_NCU(ncu)) ) {
-            self->prv->change_from_daemon = TRUE;
-            gtk_toggle_action_set_active(GTK_TOGGLE_ACTION(action), TRUE);
-            self->prv->change_from_daemon = FALSE;
-        }
-
-		g_object_unref (action);
-
-		/* menu */
-		gtk_ui_manager_add_ui (self->prv->ui_manager,
-          self->prv->uid[ID_NCU],
-          dynamic_menuitem_inserting_path[ID_NCU],
-          name, /* name */
-          name, /* action */
-          GTK_UI_MANAGER_MENUITEM,
-          TRUE);
-
-        g_signal_connect (G_OBJECT (action), "toggled",
-                          G_CALLBACK(on_nwam_ncu_toggled), (gpointer)self);
-		g_free(name);
-		g_free(lbl_name);
-    }
-#endif
-}
-
-/**
  * nwam_menu_create_wifi_menuitems:
  *
  * dynamically create a menuitem for wireless/wired and insert in to top
@@ -981,43 +851,32 @@ static void
 nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
 {
 	NwamMenu *self = NWAM_MENU (data);
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
     NwamuiNcp *ncp = NULL;
-	GtkAction *action = NULL;
+	GtkWidget *item = NULL;
     gboolean   has_many_wireless = FALSE;
 	
     /* TODO - Make this more efficient */
-    if (self == NULL || !self->prv->force_wifi_rescan) {
+    if (self == NULL || !prv->force_wifi_rescan) {
         return;
     }
 
-    ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
+    ncp = nwamui_daemon_get_active_ncp(prv->daemon);
     has_many_wireless = nwamui_ncp_has_many_wireless( ncp );
 
 	if (wifi) {
-		action = GTK_ACTION(nwam_wifi_action_new(NWAMUI_WIFI_NET(wifi)));
+		item = nwam_menu_item_creator(self, NWAMUI_OBJECT(wifi));
 
-		self->prv->has_wifi = TRUE;
-        // nwam_menuitem_proxy_new(action, self->prv->group[ID_WIFI]);
-
-        /* If the wifi net is connected, then it should be selected in the
-         * menus. Do this here since the active ncu could be NULL, yet still
-         * be connected, this will catch that case.
-         */
-
-        if (nwamui_wifi_net_get_status(NWAMUI_WIFI_NET(wifi)) == NWAMUI_WIFI_STATUS_CONNECTED) {
-            gtk_toggle_action_set_active(action, TRUE);
-        }
-
-		g_object_unref (action);
+		prv->has_wifi = TRUE;
 	} else {
         g_debug("----------- menu item creation is  over -------------");
 
         /* we must clear force rescan flag if it is */
-        if (self->prv->force_wifi_rescan) {
-            self->prv->force_wifi_rescan = FALSE;
+        if (prv->force_wifi_rescan) {
+            prv->force_wifi_rescan = FALSE;
         }
 
-        if (self->prv->has_wifi) {
+        if (prv->has_wifi) {
             NwamuiNcu *ncu = nwamui_ncp_get_active_ncu(ncp);
 
             if (ncu) {
@@ -1030,24 +889,12 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
                             gchar *name = nwamui_wifi_net_get_unique_name(wifi);
                             g_debug("======== enable wifi %s ===========", name);
                             g_free(name);
-
-                            gtk_toggle_action_set_active(nwam_menu_group_get_item_by_proxy(self->prv->group[ID_WIFI],
-                                wifi),
-                              TRUE);
                         }
                         g_object_unref(wifi);
                     }
                 }
                 g_object_unref(ncu);
             }
-        }
-
-        /* no wifi */
-        if (!self->prv->has_wifi) {
-            gtk_toggle_action_set_active(nwam_menu_group_get_item_by_proxy(self->prv->group[ID_WIFI],
-                NULL), TRUE);
-            gtk_action_set_sensitive(nwam_menu_group_get_item_by_proxy(self->prv->group[ID_WIFI],
-                NULL), FALSE);
         }
     }
     g_object_unref(ncp);
@@ -1077,56 +924,396 @@ disconnect_ncp_signals(GObject *self, NwamuiNcp *ncp)
 }
 
 static void
-nwam_menu_create_env_menuitems (NwamMenu *self)
+nwam_menu_create_dynamic_menuitems(NwamMenu *self)
 {
-    self->prv->group[ID_ENV] = nwam_env_group_new(self->prv->ui_manager,
-      dynamic_menuitem_inserting_path[ID_ENV]);
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+
+    nwam_menu_recreate_ncu_menuitems (self);
+    nwam_menu_recreate_env_menuitems (self);
+    nwam_menu_recreate_enm_menuitems (self);
+    nwam_menu_recreate_wifi_menuitems (self);
+}
+
+static GtkWidget*
+nwam_menu_item_creator(NwamMenu *self, NwamuiObject *object)
+{
+    GType type = G_OBJECT_TYPE(object);
+    GtkWidget *item;
+    gint sec_id;
+
+    {
+        gchar *name = nwamui_object_get_name(object);
+        g_debug("%s %s", __func__, name);
+        g_free(name);
+    }
+
+    if (type == NWAMUI_TYPE_NCU) {
+        sec_id = SECTION_NCU;
+        item = nwam_ncu_item_new(NWAMUI_NCU(object));
+    } else if (type == NWAMUI_TYPE_WIFI_NET) {
+        sec_id = SECTION_WIFI;
+        item = nwam_wifi_item_new(NWAMUI_WIFI_NET(object));
+	} else if (type == NWAMUI_TYPE_ENV) {
+        sec_id = SECTION_LOC;
+        item = nwam_env_item_new(NWAMUI_ENV(object));
+	} else if (type == NWAMUI_TYPE_ENM) {
+        sec_id = SECTION_ENM;
+        item = nwam_enm_item_new(NWAMUI_ENM(object));
+	} else {
+        sec_id = SECTION_GLOBAL;
+        item = NULL;
+		g_error("unknow supported get nwamui obj list");
+	}
+    nwam_menu_section_insert_sort(self, sec_id, item);
+    return item;
+}
+
+GtkMenu*
+nwam_menu_new ()
+{
+	return g_object_new (NWAM_TYPE_MENU, NULL);
+}
+
+static gboolean
+update_wifi_timer_func(gpointer user_data)
+{
+	NwamMenu *self = NWAM_MENU (user_data);
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+
+    /* TODO, scan wifi */
+    nwam_menu_recreate_wifi_menuitems(self);
+
+    return TRUE;
 }
 
 static void
-nwam_menu_create_vpn_menuitems(NwamMenu *self)
+nwam_menu_start_update_wifi_timer(NwamMenu *self)
 {
-    self->prv->group[ID_VPN] = nwam_enm_group_new(self->prv->ui_manager,
-      dynamic_menuitem_inserting_path[ID_VPN]);
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+
+    if (prv->update_wifi_timer > 0) {
+        g_source_remove(prv->update_wifi_timer);
+        prv->update_wifi_timer = 0;
+    }
+
+    prv->update_wifi_timer = g_timeout_add_full(G_PRIORITY_DEFAULT,
+      update_wifi_timer_interval,
+      update_wifi_timer_func,
+      (gpointer)self,
+      (GDestroyNotify)g_object_unref);
 }
 
-NwamMenu *
-nwam_menu_new ()
+static void
+nwam_menu_stop_update_wifi_timer(NwamMenu *self)
 {
-	return NWAM_MENU(g_object_new (NWAM_TYPE_MENU, NULL));
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+
+    if (prv->update_wifi_timer > 0) {
+        g_source_remove(prv->update_wifi_timer);
+        prv->update_wifi_timer = 0;
+    }
 }
 
-/* FIXME, need re-create menu magic */
-GtkWidget *
-nwam_menu_get_statusicon_menu (NwamMenu *self)
+static void
+nwam_menu_reset_update_wifi_timer(NwamMenu *self)
 {
-	/* icon index => menu root */
-	gtk_ui_manager_ensure_update (self->prv->ui_manager);
-#if 0
-	{
-		gchar *ui = gtk_ui_manager_get_ui (self->prv->ui_manager);
-		g_debug("\n%s\n", ui);
-		g_free (ui);
-	}
-#endif
-	return gtk_ui_manager_get_widget(self->prv->ui_manager, NWAMUI_PROOT);
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+
 }
 
-static GObject*
-nwam_menu_group_get_item_by_proxy(NwamMenuGroup *menugroup, GObject* proxy)
+static void
+nwam_menu_section_get_section_info(NwamMenu *self, gint sec_id,
+  GtkWidget **menu, GtkWidget **start_sep, GtkWidget **end_sep)
 {
-    GObject *item = NULL;
-    GList *actions;
-    GList *idx;
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
 
-    actions = nwam_menu_group_get_items(menugroup);
-    for(idx = actions; idx; idx = idx->next) {
-        if (nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(idx->data)) == proxy) {
-            item = G_OBJECT(idx->data);
-            break;
+    g_assert(menu);
+    g_assert(start_sep);
+
+    *start_sep = prv->section[sec_id];
+
+    g_assert(*start_sep);
+
+    if (GTK_IS_SEPARATOR_MENU_ITEM(*start_sep)) {
+        *menu = gtk_widget_get_parent(*start_sep);
+    } else if (GTK_IS_MENU(*start_sep)) {
+        *menu = *start_sep;
+        *start_sep = NULL;
+    } else
+        g_assert_not_reached();
+
+    if (end_sep)
+        *end_sep = NULL;
+}
+
+
+static void
+nwam_menu_section_prepend(NwamMenu *self, gint sec_id, GtkWidget *item)
+{
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GtkWidget *menu, *start_sep;
+    gint pos;
+
+    g_assert(GTK_IS_MENU_ITEM(item) && !GTK_IS_SEPARATOR_MENU_ITEM(item));
+
+    nwam_menu_section_get_section_info(self, sec_id, &menu, &start_sep, NULL);
+
+    menu_section_get_positions(GTK_MENU(menu),
+      start_sep, NULL,
+      &pos, NULL);
+
+    gtk_menu_shell_insert(GTK_MENU_SHELL(menu), item, pos);
+}
+
+static void
+nwam_menu_section_append(NwamMenu *self, gint sec_id, GtkWidget *item)
+{
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GtkWidget *menu, *start_sep;
+    gint pos;
+
+    g_assert(GTK_IS_MENU_ITEM(item) && !GTK_IS_SEPARATOR_MENU_ITEM(item));
+
+    nwam_menu_section_get_section_info(self, sec_id, &menu, &start_sep, NULL);
+
+    menu_section_get_positions(GTK_MENU(menu),
+      start_sep, NULL,
+      NULL, &pos);
+
+    gtk_menu_shell_insert(GTK_MENU_SHELL(menu), item, pos + 1);
+}
+
+static void
+nwam_menu_section_insert_sort(NwamMenu *self, gint sec_id, GtkWidget *item)
+{
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GtkWidget *menu, *start_sep;
+    GList *sorted, *i;
+    gint start_pos;
+
+    g_assert(GTK_IS_MENU_ITEM(item) && !GTK_IS_SEPARATOR_MENU_ITEM(item));
+
+    nwam_menu_section_get_section_info(self, sec_id, &menu, &start_sep, NULL);
+
+    /* Sorting */
+    menu_section_get_children(GTK_MENU(menu),
+      start_sep, NULL, &sorted, &start_pos);
+
+    if (sorted) {
+        sorted = g_list_sort(sorted, (GCompareFunc)nwam_menu_item_compare);
+
+        for (i = sorted; i; i = g_list_next(i)) {
+            if (item && nwam_menu_item_compare(item, GTK_WIDGET(i->data)) < 0) {
+                gtk_menu_shell_insert(GTK_MENU_SHELL(menu), item, start_pos++);
+                item = NULL;
+            }
+            gtk_menu_reorder_child(GTK_MENU(menu), GTK_WIDGET(i->data), start_pos++);
+        }
+        g_list_free(sorted);
+
+        if (item)
+            gtk_menu_shell_insert(GTK_MENU_SHELL(menu), item, start_pos++);
+    } else {
+        g_assert(start_pos == 0);
+        gtk_menu_shell_insert(GTK_MENU_SHELL(menu), item, start_pos);
+    }
+}
+
+static void
+nwam_menu_section_sort(NwamMenu *self, gint sec_id)
+{
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GtkWidget *menu, *start_sep;
+    GList *sorted, *i;
+    gint start_pos;
+
+    nwam_menu_section_get_section_info(self, sec_id, &menu, &start_sep, NULL);
+
+    /* Sorting */
+    menu_section_get_children(GTK_MENU(menu),
+      start_sep, NULL, &sorted, &start_pos);
+
+    if (sorted) {
+        sorted = g_list_sort(sorted, (GCompareFunc)nwam_menu_item_compare);
+
+        for (i = sorted; i; i = g_list_next(i)) {
+            gtk_menu_reorder_child(GTK_MENU(menu), GTK_WIDGET(i->data), start_pos++);
+        }
+        g_list_free(sorted);
+    }
+}
+
+static void
+nwam_menu_get_section_positions(NwamMenu *self, gint sec_id,
+  gint *ret_start_pos, gint *ret_end_pos)
+{
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GtkWidget *menu, *start_sep;
+
+    nwam_menu_section_get_section_info(self, sec_id, &menu, &start_sep, NULL);
+
+    menu_section_get_positions(GTK_MENU(menu),
+      start_sep, NULL,
+      ret_start_pos, ret_end_pos);
+}
+
+static void
+nwam_menu_section_delete(NwamMenu *self, gint sec_id)
+{
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GtkWidget *menu, *start_sep;
+    GList *children;
+
+    nwam_menu_section_get_section_info(self, sec_id, &menu, &start_sep, NULL);
+
+    /* Sorting */
+    menu_section_get_children(GTK_MENU(menu),
+      start_sep, NULL, &children, NULL);
+
+    while (children) {
+        menu_remove_item(menu, children->data);
+        children = g_list_delete_link(children, children);
+    }
+
+/*     gtk_widget_hide(start_sep); */
+}
+
+/* GtkMenu related */
+static void
+menu_section_get_children(GtkMenu *menu,
+  GtkWidget *start_sep, GtkWidget *end_sep,
+  GList **ret_children, gint *ret_start_pos)
+{
+    GList *children = gtk_container_get_children(GTK_CONTAINER(menu));
+    GList *i;
+    gint pos = 0;
+
+    g_assert(ret_children);
+
+    /* Delete left part. */
+    if (start_sep) {
+
+        for (i = NULL; children && i != children; pos++) {
+            if (children->data == (gpointer)start_sep) {
+                /* Point to the next to the start separator. */
+                i = g_list_next(children);
+            }
+            children = g_list_delete_link(children, children);
         }
     }
-    g_list_free(actions);
-    return item;
+
+    /* Return the start pos. */
+    if (ret_start_pos)
+        *ret_start_pos = pos;
+
+    /* Find the end separator. */
+    if (children) {
+
+        /* Find the right separator if it isn't passed. */
+        if (end_sep) {
+            for (i = children; i && i->data != (gpointer)end_sep; i = g_list_next(i)) {}
+        } else {
+            for (i = children; i && !GTK_IS_SEPARATOR_MENU_ITEM(i->data); i = g_list_next(i)) {}
+        }
+        /* Delete right part, i point to the right one. */
+        if (i) {
+            if (i == children) {
+                children = NULL;
+                g_debug("No sortable elements.");
+            } else {
+                g_list_previous(i)->next = NULL;
+            }
+            g_list_free(i);
+        }
+    } else
+        g_message("Sort menu out of range.");
+
+    /* Return found children, or NULL. */
+    *ret_children = children;
 }
+
+static void
+menu_section_get_positions(GtkMenu *menu,
+  GtkWidget *start_sep, GtkWidget *end_sep,
+  gint *ret_start_pos, gint *ret_end_pos)
+{
+    GList *children = gtk_container_get_children(GTK_CONTAINER(menu));
+
+    if (ret_start_pos) {
+        if (start_sep)
+            *ret_start_pos = g_list_index(children, start_sep);
+        else
+            *ret_start_pos = 0;
+    }
+
+    if (ret_end_pos) {
+        if (end_sep)
+            *ret_end_pos = g_list_index(children, end_sep);
+        else
+            *ret_end_pos = g_list_length(children) - 1;
+    }
+
+    g_list_free(children);
+}
+
+static void
+menu_foreach_by_name(GtkWidget *widget, gpointer user_data)
+{
+    ForeachData *data = (ForeachData *)user_data;
+    GtkWidget *label;
+
+    label = gtk_bin_get_child(GTK_BIN(widget));
+
+    g_assert(GTK_IS_LABEL(label));
+
+    if (g_ascii_strcasecmp(gtk_label_get_text(GTK_LABEL(label)),
+        (gchar*)data->user_data) == 0) {
+
+        g_assert(!data->ret_data);
+
+        data->ret_data = (gpointer)g_object_ref(widget);
+    }
+}
+
+static void
+menu_foreach_by_proxy(GtkWidget *widget, gpointer user_data)
+{
+    ForeachData *data = (ForeachData *)user_data;
+
+    g_assert(NWAM_IS_OBJ_PROXY_IFACE(widget));
+
+    if (nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(widget)) == (gpointer)data->user_data) {
+        
+        g_assert(!data->ret_data);
+
+        data->ret_data = (gpointer)g_object_ref(widget);
+    }
+}
+
+static GtkMenuItem*
+menu_get_item_by_name(GtkMenu *menu, const gchar* name)
+{
+    ForeachData data;
+
+    data.ret_data = NULL;
+    data.user_data = (gpointer)name;
+
+    gtk_container_foreach(GTK_CONTAINER(menu), menu_foreach_by_name, (gpointer)&data);
+
+    return (GtkMenuItem *)data.ret_data;
+}
+
+static GtkMenuItem*
+menu_get_item_by_proxy(GtkMenu *menu, GObject* proxy)
+{
+    ForeachData data;
+
+    data.ret_data = NULL;
+    data.user_data = (gpointer)proxy;
+
+    gtk_container_foreach(GTK_CONTAINER(menu), menu_foreach_by_proxy, (gpointer)&data);
+
+    return (GtkMenuItem *)data.ret_data;
+}
+
 

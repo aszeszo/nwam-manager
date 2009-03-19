@@ -28,7 +28,6 @@ AM_CPPFLAGS = \
 	-DNWAM_MANAGER_DATADIR=\""$(pkgdatadir)"\"			\
 	-DNWAM_MANAGER_LOCALEDIR=\""$(prefix)/$(DATADIRNAME)/locale"\"	\
 	-DGLADEDIR=\""$(gladedir)"\"			\
-	-DUIDATA=\""$(uidir)/$(ui_DATA)"\"			\
 	-DSYSCONFDIR=\"$(sysconfdir)\"				\
 	-DGCONF_CONFIG_SOURCE=\"$(GCONF_SCHEMA_CONFIG_SOURCE)\"	\
 	-DPRINTER_HELPER_PATH=\"$(libexecdir)\"			\
@@ -57,12 +56,10 @@ nwam_manager_SOURCES =		\
 	status_icon.c	\
 	nwam-menu.c	\
 	nwam-menuitem.c	\
-	nwam-wifi-action.c	\
-	nwam-env-action.c	\
-	nwam-enm-action.c	\
-	nwam-wifi-group.c	\
-	nwam-env-group.c	\
-	nwam-enm-group.c	\
+	nwam-wifi-item.c	\
+	nwam-env-item.c	\
+	nwam-enm-item.c	\
+	nwam-ncu-item.c	\
 	nwam-obj-proxy-iface.c	\
 	$(NULL)
 
@@ -101,21 +98,17 @@ install-data-local:
 endif
 
 uidir           = $(pkgdatadir)
-ui_DATA         = nwam-ui.xml
 
 EXTRA_DIST = 		\
 	notify.h	\
-	nwam-enm-action.h	\
-	nwam-enm-group.h	\
-	nwam-env-action.h	\
-	nwam-env-group.h	\
+	status_icon.h	\
 	nwam-menu.h	\
 	nwam-menuitem.h	\
+	nwam-wifi-item.h	\
+	nwam-env-item.h	\
+	nwam-enm-item.h	\
+	nwam-ncu-item.h	\
 	nwam-obj-proxy-iface.h	\
-	nwam-wifi-action.h	\
-	nwam-wifi-group.h	\
-	status_icon.h	\
-	$(ui_DATA)	\
 	$(schemas_in_files)	\
 	$(autosession_in_files)	\
 	$(NULL)
