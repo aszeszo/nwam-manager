@@ -641,7 +641,7 @@ nwam_status_icon_run(NwamStatusIcon *self)
 	/* ref daemon instance */
 	self->prv->daemon = nwamui_daemon_get_instance ();
     self->prv->current_status = NWAMUI_ENV_STATUS_CONNECTED;
-    self->prv->menu = nwam_menu_new();
+    self->prv->menu = g_object_ref_sink(nwam_menu_new());
 
     /* TODO - For Phase 1 */
     /* nwam_status_icon_set_activate_callback(status_icon_index, G_CALLBACK(activate_cb)); */
@@ -983,7 +983,7 @@ nwam_status_icon_finalize (NwamStatusIcon *self)
 /* 		self->prv->icon_stock_index = 0; */
     }
 
-    g_object_unref (G_OBJECT(self->prv->menu));
+    g_object_unref(self->prv->menu);
 
     disconnect_nwam_obj_signals(G_OBJECT(self), G_OBJECT(self->prv->daemon));
 	g_object_unref (G_OBJECT(self->prv->daemon));

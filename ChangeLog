@@ -1,3 +1,24 @@
+2009-03-20  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/nwam-menu.c (nwam_menu_init), (nwam_menu_finalize),
+	(nwam_menu_recreate_wifi_menuitems),
+	(nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_recreate_env_menuitems),
+	(nwam_menu_recreate_enm_menuitems),
+	(nwam_menu_create_static_menuitems),
+	(on_activate_static_menuitems), (daemon_ncu_down),
+	(daemon_ncu_create), (daemon_ncu_destroy),
+	(daemon_active_ncp_changed), (daemon_active_env_changed),
+	(daemon_add_wifi_fav), (daemon_remove_wifi_fav),
+	(connect_daemon_signals), (daemon_status_changed), (daemon_info),
+	(nwam_menu_create_wifi_menuitems), (nwam_menu_item_create),
+	(nwam_menu_item_delete), (nwam_menu_section_get_item_by_proxy):
+	Added code for adding/removing ncu/wifi menuitem. Fixed some build
+	warnings. Removed ununsed code. Renamed some functions.
+	
+	* daemon/status_icon.c (nwam_status_icon_run),
+	(nwam_status_icon_finalize): Fixed menu has only sink ref.
+
 2009-03-19  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_env_pref_dialog.c: Comment out old menu group code.
