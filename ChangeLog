@@ -1,3 +1,52 @@
+2009-03-23  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/libnwamui.c (nwamui_util_get_env_status_icon),
+	(nwamui_util_get_network_status_icon):
+	Part code for panel icons, trying to draw different icon for average
+	wireless strength.
+	* common/libnwamui.h:
+	Fixed some wrong stock id.
+	* daemon/main.c (join_wifi_not_in_fav), (join_any_fav_wifi),
+	(add_any_new_wifi_to_fav), (action_on_no_fav_networks), (main):
+	* daemon/nwam-menu.c (nwam_menu_class_init), (nwam_menu_init),
+	(nwam_menu_finalize), (nwam_menu_set_property),
+	(nwam_menu_get_property), (nwam_menu_item_compare),
+	(nwam_menu_new), (nwam_menu_section_remove_item),
+	(nwam_menu_section_set), (nwam_menu_section_delete):
+	* daemon/nwam-menu.h:
+	Refactor. Get rid of code for notify and nwamui object and move them to
+	status icon.
+	* daemon/nwam-menuitem.c (nwam_menu_item_new),
+	(nwam_menu_item_new_with_label), (menu_item_set_label):
+	Fixed some build warnings.
+	* daemon/status_icon.c (status_icon_wifi_key_needed),
+	(daemon_status_changed), (daemon_info), (daemon_wifi_key_needed),
+	(daemon_wifi_selection_needed), (daemon_ncu_up), (daemon_ncu_down),
+	(nwam_menu_create_wifi_menuitems), (daemon_ncu_create),
+	(daemon_ncu_destroy), (daemon_add_wifi_fav),
+	(daemon_remove_wifi_fav), (daemon_active_ncp_changed),
+	(daemon_active_env_changed), (connect_nwam_object_signals),
+	(disconnect_nwam_object_signals), (animation_panel_icon_timeout),
+	(trigger_animation_panel_icon), (nwam_status_icon_new),
+	(nwam_status_icon_run), (nwam_status_icon_set_activate_callback),
+	(nwam_status_icon_set_status), (nwam_status_icon_refresh_tooltip),
+	(nwam_status_icon_show_menu), (status_icon_popup_cb),
+	(status_icon_size_changed_cb), (ncp_deactivate_ncu),
+	(on_activate_static_menuitems), (update_wifi_timer_func),
+	(on_ncp_notify_cb), (notifyaction_wifi_key_need),
+	(notifyaction_popup_menus), (notification_listwireless),
+	(nwam_status_icon_class_init), (nwam_status_icon_init),
+	(nwam_status_icon_finalize), (nwam_menu_recreate_wifi_menuitems),
+	(nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_recreate_env_menuitems),
+	(nwam_menu_recreate_enm_menuitems),
+	(nwam_menu_start_update_wifi_timer),
+	(nwam_menu_stop_update_wifi_timer),
+	(nwam_menu_create_static_menuitems), (nwam_menu_item_create),
+	(nwam_menu_item_delete), (nwam_exec):
+	* daemon/status_icon.h:
+	Refactor. Manage menu logic here, centralizing nwamui object signals.
+
 2009-03-20  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/nwam-menu.c (nwam_menu_init), (nwam_menu_finalize),

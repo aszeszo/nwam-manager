@@ -38,15 +38,10 @@ G_BEGIN_DECLS
 #define NWAM_STATUS_ICON_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS((obj), NWAM_TYPE_STATUS_ICON, NwamStatusIconClass))
 
 typedef struct _NwamStatusIcon        NwamStatusIcon;
-typedef struct _NwamStatusIconPrivate NwamStatusIconPrivate;
 typedef struct _NwamStatusIconClass   NwamStatusIconClass;
 
-struct _NwamStatusIcon
-{
+struct _NwamStatusIcon {
 	GtkStatusIcon parent;
-	
-	/*< private >*/
-	NwamStatusIconPrivate *prv;
 };
 
 struct _NwamStatusIconClass {
@@ -55,22 +50,19 @@ struct _NwamStatusIconClass {
 
 GType nwam_status_icon_get_type(void) G_GNUC_CONST;
 
-extern void nwam_exec (const gchar *nwam_arg);
-
-typedef     void (*StatusIconCallback)(GObject *user_data);
-
-NwamStatusIcon* nwam_status_icon_new( void );
+GtkStatusIcon* nwam_status_icon_new( void );
 
 void nwam_status_icon_run(NwamStatusIcon *self);
 
 void nwam_status_icon_set_activate_callback(NwamStatusIcon *self,
-  const char* message, 
-  StatusIconCallback activate_cb,
-  GObject* user_data);
+  GCallback activate_cb, gpointer user_data);
 
 void nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, const gchar* reason );
 
 void nwam_status_icon_show_menu(NwamStatusIcon *self);
+
+/* Others */
+extern void nwam_exec (const gchar *nwam_arg);
 
 G_END_DECLS
 

@@ -37,7 +37,6 @@
 
 
 #include "status_icon.h"
-#include "notify.h"
 #include "libnwamui.h"
 
 /*
@@ -47,14 +46,12 @@
 #define	NET_AUTOCONF_AUTH	"solaris.network.autoconf"
 
 /* Command-line options */
-static gboolean debug = FALSE;
+gboolean debug = FALSE;
 
 static GOptionEntry option_entries[] = {
     {"debug", 0, 0, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
     {NULL}
 };
-
-static GtkStatusIcon *status_icon = NULL;
 
 #define NWAM_MANAGER_LOCK	"nwam-manager-lock"
 gint prof_action_if_no_fav_networks = NULL;
@@ -141,15 +138,6 @@ cleanup_and_exit(int sig, siginfo_t *sip, void *data)
     gtk_main_quit ();
 }
 
-static void
-on_blink_change(GtkStatusIcon *widget, 
-        gpointer data)
-{
-    gboolean blink = GPOINTER_TO_UINT(data);
-    g_debug("Set blinking %s", (blink) ? "on" : "off");
-    gtk_status_icon_set_blinking(GTK_STATUS_ICON(status_icon), blink);
-}
-
 static gboolean
 get_state(  GtkTreeModel *model,
             GtkTreePath *path,
@@ -233,15 +221,6 @@ update_tooltip(NwamuiDaemon* daemon, gint sicon_id, NwamuiNcu* ncu)
 }
 
 static void
-activate_cb ()
-{
-    /*
-    nwam_notification_show_message("This is the summary", "This is the body...\nPara1", NULL );
-    nwam_exec ("-e");
-    */
-}
-
-static void
 join_wifi_not_in_fav (NwamuiProf* prof, gboolean val, gpointer data)
 {
     NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
@@ -249,7 +228,7 @@ join_wifi_not_in_fav (NwamuiProf* prof, gboolean val, gpointer data)
     
     prof_ask_join_open_network = val;
     body = g_strdup_printf ("prof_ask_join_open_network = %d", prof_ask_join_open_network);
-    nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT);
+/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
     g_free (body);
 }
 
@@ -261,7 +240,7 @@ join_any_fav_wifi (NwamuiProf* prof, gboolean val, gpointer data)
 
     prof_ask_join_fav_network = val;
     body = g_strdup_printf ("prof_ask_join_fav_network = %d", prof_ask_join_fav_network);
-    nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT);
+/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
     g_free (body);
 }
 
@@ -273,7 +252,7 @@ add_any_new_wifi_to_fav (NwamuiProf* prof, gboolean val, gpointer data)
 
     prof_ask_add_to_fav = val;
     body = g_strdup_printf ("prof_ask_add_to_fav = %d", prof_ask_add_to_fav);
-    nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT);
+/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
     g_free (body);
 }
 
@@ -285,7 +264,7 @@ action_on_no_fav_networks (NwamuiProf* prof, gint val, gpointer data)
 
     prof_action_if_no_fav_networks = val;
     body = g_strdup_printf ("prof_action_if_no_fav_networks = %d", prof_action_if_no_fav_networks);
-    nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT);
+/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
     g_free (body);
 }
 
@@ -523,6 +502,8 @@ main( int argc, char* argv[] )
     GnomeClient *client;
     struct sigaction act;
     NwamuiProf* prof;
+    GtkStatusIcon *status_icon = NULL;
+
     
     option_context = g_option_context_new (PACKAGE);
 
@@ -586,12 +567,7 @@ main( int argc, char* argv[] )
 
         daemon = nwamui_daemon_get_instance ();
         prof = nwamui_prof_get_instance ();
-        g_object_get (prof,
-          "action_on_no_fav_networks", &prof_action_if_no_fav_networks,
-          "join_wifi_not_in_fav", &prof_ask_join_open_network,
-          "join_any_fav_wifi", &prof_ask_join_fav_network,
-          "add_any_new_wifi_to_fav", &prof_ask_add_to_fav,
-          NULL);
+
         g_signal_connect(prof, "join_wifi_not_in_fav",
           G_CALLBACK(join_wifi_not_in_fav), (gpointer) daemon);
         g_signal_connect(prof, "join_any_fav_wifi",
@@ -601,25 +577,32 @@ main( int argc, char* argv[] )
         g_signal_connect(prof, "action_on_no_fav_networks",
           G_CALLBACK(action_on_no_fav_networks), (gpointer) daemon);
 
+        g_object_get (prof,
+          "action_on_no_fav_networks", &prof_action_if_no_fav_networks,
+          "join_wifi_not_in_fav", &prof_ask_join_open_network,
+          "join_any_fav_wifi", &prof_ask_join_fav_network,
+          "add_any_new_wifi_to_fav", &prof_ask_add_to_fav,
+          NULL);
+
         nwamui_prof_notify_begin (prof);
         g_object_unref (prof);
         g_object_unref (daemon);
     }
 
-    status_icon = GTK_STATUS_ICON(nwam_status_icon_new());
-    nwam_notification_init(GTK_STATUS_ICON(status_icon));
-
     /* Setup function to be called after the mainloop has been created
      * this is to avoid confusion when calling gtk_main_iteration to get to
      * the point where the status icon's embedded flag is correctly set
      */
+    status_icon = nwam_status_icon_new();
     gtk_init_add(init_wait_for_embedding, (gpointer)status_icon);
+    if ( debug ) {
+        g_message("Show status icon initially on debug mode.");
+    }
 
     gtk_main();
 
     g_debug ("exiting...\n");
 
-    nwam_notification_cleanup();
     g_object_unref(status_icon);
     g_object_unref (G_OBJECT (program));
     

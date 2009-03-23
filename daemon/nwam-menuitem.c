@@ -244,7 +244,6 @@ nwam_menu_item_remove (GtkContainer   *container,
 GtkWidget*
 nwam_menu_item_new (void)
 {
-    g_debug ("nwam_menu_item_new");
 	return g_object_new (NWAM_TYPE_MENU_ITEM, NULL);
 }
 
@@ -259,10 +258,8 @@ GtkWidget*
 nwam_menu_item_new_with_label (const gchar *label)
 {
 	NwamMenuItem *nwam_menu_item;
-    g_debug ("nwam_menu_item_new_with_label");
 	nwam_menu_item = g_object_new (NWAM_TYPE_MENU_ITEM, NULL);
-
-    gtk_container_add (GTK_CONTAINER (nwam_menu_item), GTK_WIDGET(label));
+    menu_item_set_label(GTK_MENU_ITEM(nwam_menu_item), label);
 	return GTK_WIDGET(nwam_menu_item);
 }
 
@@ -646,7 +643,7 @@ menu_item_set_label(GtkMenuItem *item, const gchar *label)
         gtk_misc_set_alignment (GTK_MISC (accel_label), 0.0, 0.5);
 
         gtk_container_add (GTK_CONTAINER (item), accel_label);
-        gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (accel_label), item);
+        gtk_accel_label_set_accel_widget(GTK_ACCEL_LABEL (accel_label), GTK_WIDGET(item));
         gtk_widget_show (accel_label);
     }
     g_assert(GTK_IS_LABEL(accel_label));

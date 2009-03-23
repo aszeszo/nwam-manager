@@ -277,7 +277,6 @@ nwamui_util_copy_obj_list( GList*   obj_list )
     return( new_list );
 }
 
-static GtkStatusIcon*   status_icon = NULL;
 static gint             small_icon_size = -1;
 static gint             normal_icon_size = -1;
 static gint             theme_changed_id = -1;
@@ -357,6 +356,10 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
 {
     GdkPixbuf* icon = NULL;
     gint       size = -1;
+    gchar *stock_id = NULL;
+    gint activate_wired_num = 0;
+    gint activate_wireless_num = 0;
+    gint average_signal_strength = 0;
 
     if ( status_icon != NULL && 
          gtk_status_icon_is_embedded(status_icon)) {
@@ -365,21 +368,73 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
     else {
         return( NULL );
     }
+    {
+        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
+        GList *ncu_list;
+        NwamuiNcu *ncu;
 
+        g_object_unref(daemon);
+
+        ncu_list = nwamui_ncp_get_ncu_list(ncp);
+
+        while (ncu_list) {
+            ncu = NWAMUI_NCU(ncu_list->data);
+            ncu_list = g_list_delete_link(ncu_list, ncu_list);
+
+            switch(nwamui_ncu_get_ncu_type(ncu)) {
+            case NWAMUI_NCU_TYPE_WIRED:
+            case NWAMUI_NCU_TYPE_TUNNEL:
+                if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
+                    activate_wired_num++;
+                }
+                break;
+            case NWAMUI_NCU_TYPE_WIRELESS:
+                if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
+                    activate_wireless_num++;
+                    average_signal_strength += nwamui_ncu_get_wifi_signal_strength(ncu);
+                }
+                break;
+            default:
+                g_assert_not_reached();
+                break;
+            }
+        }
+        if (activate_wireless_num > 0)
+            average_signal_strength /= activate_wireless_num;
+    }
+    /* TODO, draw different icons according to average signal strength. */
     switch( env_status ) {
         case NWAMUI_ENV_STATUS_CONNECTED:
-            icon = get_pixbuf_with_size(NWAM_ICON_EARTH_CONNECTED, size);
+            if (activate_wireless_num > 0)
+                stock_id = NWAM_ICON_WIRELESS_CONNECTED;
+            else if (activate_wired_num > 0)
+                stock_id = NWAM_ICON_WIRED_CONNECTED;
+            else
+                stock_id = NWAM_ICON_EARTH_CONNECTED;
             break;
         case NWAMUI_ENV_STATUS_WARNING:
-            icon = get_pixbuf_with_size(NWAM_ICON_EARTH_WARNING, size);
+            if (activate_wireless_num > 0)
+                stock_id = NWAM_ICON_WIRELESS_WARNING;
+            else if (activate_wired_num > 0)
+                stock_id = NWAM_ICON_WIRED_WARNING;
+            else
+                stock_id = NWAM_ICON_EARTH_WARNING;
             break;
         case NWAMUI_ENV_STATUS_ERROR:
-            icon = get_pixbuf_with_size(NWAM_ICON_EARTH_ERROR, size);
+            if (activate_wireless_num > 0)
+                stock_id = NWAM_ICON_WIRELESS_ERROR;
+            else if (activate_wired_num > 0)
+                stock_id = NWAM_ICON_WIRED_ERROR;
+            else
+                stock_id = NWAM_ICON_EARTH_ERROR;
             break;
         default:
             g_assert_not_reached();
             break;
     }
+
+    icon = get_pixbuf_with_size(stock_id, size);
     
     return( icon );
 }
@@ -461,13 +516,13 @@ nwamui_util_get_network_status_icon( NwamuiNcu* ncu )
 
         if ( enabled_wired_icon == NULL ) { /* Load all icons */
 
-            enabled_wired_icon = get_pixbuf( NWAM_ICON_NETWORK_CONNECTED, FALSE );
+            enabled_wired_icon = get_pixbuf( NWAM_ICON_WIRED_CONNECTED, FALSE );
 
             
-            enabled_wireless_icon = get_pixbuf( NWAM_ICON_NETWORK_CONNECTED, FALSE );
+            enabled_wireless_icon = get_pixbuf( NWAM_ICON_WIRED_CONNECTED, FALSE );
             
             
-            disabled_icon = get_pixbuf( NWAM_ICON_NETWORK_OFFLINE, FALSE );
+            disabled_icon = get_pixbuf( NWAM_ICON_WIRED_ERROR, FALSE );
         }
         
         /* TODO - handle other status icon cases */

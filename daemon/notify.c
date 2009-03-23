@@ -176,7 +176,8 @@ on_notification_closed(NotifyNotification *n,
 }
 
 static NotifyNotification *
-get_notification( void ) {
+get_notification( void )
+{
     
     g_assert ( parent_status_icon != NULL );
 
@@ -299,7 +300,8 @@ notify_notification_adjust_first(GQueue *q)
 }
 
 static void
-notification_cleanup( void ) {
+notification_cleanup( void )
+{
     if ( notification != NULL ) {
         g_object_unref( parent_status_icon );
         notify_notification_close(notification, NULL); /* Close notification now! */
@@ -465,7 +467,6 @@ nwam_notification_init( GtkStatusIcon* status_icon )
     
     g_object_ref( status_icon );
     parent_status_icon = status_icon;
-    
 }
 
 const gchar*
