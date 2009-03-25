@@ -21,15 +21,18 @@
 icondir = $(datadir)/icons/hicolor/24x24/status
 
 icon_DATA =  \
-			network-location-connected.png \
-			network-location-error.png \
-			network-location-warning.png \
-			network-secure.png \
-			network-wired-connected.png \
-			network-wired-error.png \
-			network-wired-warning.png \
-			network-wireless-connected.png \
-			network-wireless-error.png \
-			network-wireless-warning.png
+	network-secure.png \
+	network-wired-connected.png \
+	network-wired-error.png \
+	network-wired-warning.png \
+	network-wireless-connected.png \
+	network-wireless-error.png \
+	network-wireless-warning.png	\
+	network-wireless-0-24.png	\
+	network-wireless-25-49.png	\
+	network-wireless-50-74.png	\
+	network-wireless-75-100.png	\
+	network-wireless-nosignal.png
+
 
 EXTRA_DIST = $(icon_DATA)

@@ -348,13 +348,40 @@ get_pixbuf( const gchar* stock_id, gboolean small )
     return (get_pixbuf_with_size( stock_id, small?small_icon_size:normal_icon_size ));
 }
 
+/* #define PIXBUF_COMPOSITE_NO_SCALE(src, dest)                            \ */
+/*     g_message("pixbuf composite < w, h > < %d, %d >, < sw, sh > < %lf, %lf >", \ */
+/*       gdk_pixbuf_get_width(dest),                                       \ */
+/*       gdk_pixbuf_get_height(dest),                                      \ */
+/*       (double)gdk_pixbuf_get_width(dest)/gdk_pixbuf_get_width(src),     \ */
+/*       (double)gdk_pixbuf_get_height(dest)/gdk_pixbuf_get_height(src));  \ */
+/*     gdk_pixbuf_composite(GDK_PIXBUF(src), GDK_PIXBUF(dest),             \ */
+/*       0, 0,                                                             \ */
+/*       gdk_pixbuf_get_width(dest),                                       \ */
+/*       gdk_pixbuf_get_height(dest),                                      \ */
+/*       (double)0.0, (double)0.0,                                         \ */
+/*       (double)gdk_pixbuf_get_width(dest)/gdk_pixbuf_get_width(src),     \ */
+/*       (double)gdk_pixbuf_get_height(dest)/gdk_pixbuf_get_height(src),   \ */
+/*       GDK_INTERP_NEAREST, 255) */
+
+#define PIXBUF_COMPOSITE_NO_SCALE(src, dest)                            \
+    gdk_pixbuf_composite(GDK_PIXBUF(src), GDK_PIXBUF(dest),             \
+      0, 0,                                                             \
+      MIN(gdk_pixbuf_get_width(src),gdk_pixbuf_get_width(dest)),        \
+      MIN(gdk_pixbuf_get_height(src),gdk_pixbuf_get_height(dest)),      \
+      (double)0.0, (double)0.0,                                         \
+      (double)10.2,                                                      \
+      (double)10.2,                                                      \
+      GDK_INTERP_BILINEAR, 0)
+
 /* 
  * Returns a GdkPixbuf that reflects the status of the environment
  */
 extern GdkPixbuf*
 nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status )
 {
-    GdkPixbuf* icon = NULL;
+    GdkPixbuf* inf_icon = NULL;
+    GdkPixbuf* net_status_icon = NULL;
+    GdkPixbuf* wireless_strength_icon = NULL;
     gint       size = -1;
     gchar *stock_id = NULL;
     gint activate_wired_num = 0;
@@ -362,7 +389,7 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
     gint average_signal_strength = 0;
 
     if ( status_icon != NULL && 
-         gtk_status_icon_is_embedded(status_icon)) {
+      gtk_status_icon_is_embedded(status_icon)) {
         size = gtk_status_icon_get_size( status_icon );
     }
     else {
@@ -400,43 +427,39 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
                 break;
             }
         }
-        if (activate_wireless_num > 0)
-            average_signal_strength /= activate_wireless_num;
     }
-    /* TODO, draw different icons according to average signal strength. */
+
+    if (activate_wireless_num > 0) {
+
+        average_signal_strength /= activate_wireless_num;
+        wireless_strength_icon = nwamui_util_get_wireless_strength_icon(average_signal_strength, FALSE);
+
+        inf_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_CONNECTED, size);
+/*         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, inf_icon); */
+        g_object_unref(wireless_strength_icon);
+    } else {
+        inf_icon = get_pixbuf_with_size(NWAM_ICON_WIRED_CONNECTED, size);
+    }
+
     switch( env_status ) {
         case NWAMUI_ENV_STATUS_CONNECTED:
-            if (activate_wireless_num > 0)
-                stock_id = NWAM_ICON_WIRELESS_CONNECTED;
-            else if (activate_wired_num > 0)
-                stock_id = NWAM_ICON_WIRED_CONNECTED;
-            else
-                stock_id = NWAM_ICON_EARTH_CONNECTED;
+            stock_id = NWAM_ICON_CONNECTED;
             break;
         case NWAMUI_ENV_STATUS_WARNING:
-            if (activate_wireless_num > 0)
-                stock_id = NWAM_ICON_WIRELESS_WARNING;
-            else if (activate_wired_num > 0)
-                stock_id = NWAM_ICON_WIRED_WARNING;
-            else
-                stock_id = NWAM_ICON_EARTH_WARNING;
+            stock_id = NWAM_ICON_WARNING;
             break;
         case NWAMUI_ENV_STATUS_ERROR:
-            if (activate_wireless_num > 0)
-                stock_id = NWAM_ICON_WIRELESS_ERROR;
-            else if (activate_wired_num > 0)
-                stock_id = NWAM_ICON_WIRED_ERROR;
-            else
-                stock_id = NWAM_ICON_EARTH_ERROR;
+            stock_id = NWAM_ICON_ERROR;
             break;
         default:
             g_assert_not_reached();
             break;
     }
+    net_status_icon = get_pixbuf_with_size(stock_id, size);
+/*     PIXBUF_COMPOSITE_NO_SCALE(net_status_icon, inf_icon); */
+    g_object_unref(net_status_icon);
 
-    icon = get_pixbuf_with_size(stock_id, size);
-    
-    return( icon );
+    return( inf_icon );
 }
 
 /* 

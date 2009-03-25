@@ -1,3 +1,55 @@
+2009-03-25  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c (main):
+	Refactor. Move those code elsewhere.
+	* common/libnwamui.c (nwamui_util_get_env_status_icon):
+	Part code for composing pixbufs, but it doens't work. So commentted out.
+	* common/libnwamui.h:
+	Update icons.
+	* configure.in:
+	Add Makefile.am for new icons.
+	* daemon/main.c:
+	Refactor. Move those code elsewhere.
+	* daemon/status_icon.c (daemon_status_changed), (daemon_info),
+	(daemon_wifi_selection_needed), (daemon_ncu_down), (join_wireless),
+	(update_tooltip), (nwam_status_icon_set_status),
+	(ncp_activate_ncu), (on_activate_static_menuitems),
+	(on_ncp_notify_cb):
+	Refactor, move some code from main.c to here.
+	* pixmaps/24x24/Makefile.am:
+	* pixmaps/24x24/emblems/Makefile.am:
+	* pixmaps/24x24/emblems/network-connected.png:
+	* pixmaps/24x24/emblems/network-error.png:
+	* pixmaps/24x24/emblems/network-warning.png:
+	* pixmaps/24x24/status/Makefile.am:
+	* pixmaps/24x24/status/network-location-connected.png:
+	* pixmaps/24x24/status/network-location-error.png:
+	* pixmaps/24x24/status/network-location-warning.png:
+	* pixmaps/24x24/status/network-wireless-0-24.png:
+	* pixmaps/24x24/status/network-wireless-25-49.png:
+	* pixmaps/24x24/status/network-wireless-50-74.png:
+	* pixmaps/24x24/status/network-wireless-75-100.png:
+	* pixmaps/24x24/status/network-wireless-nosignal.png:
+	* pixmaps/32x32/Makefile.am:
+	* pixmaps/32x32/emblems/Makefile.am:
+	* pixmaps/32x32/emblems/network-connected.png:
+	* pixmaps/32x32/emblems/network-error.png:
+	* pixmaps/32x32/emblems/network-warning.png:
+	* pixmaps/32x32/status/Makefile.am:
+	* pixmaps/32x32/status/network-location-connected.png:
+	* pixmaps/32x32/status/network-location-error.png:
+	* pixmaps/32x32/status/network-location-warning.png:
+	* pixmaps/32x32/status/network-wireless-0-24.png:
+	* pixmaps/32x32/status/network-wireless-25-49.png:
+	* pixmaps/32x32/status/network-wireless-50-74.png:
+	* pixmaps/32x32/status/network-wireless-75-100.png:
+	* pixmaps/32x32/status/network-wireless-nosignal.png:
+	* pixmaps/48x48/status/Makefile.am:
+	* pixmaps/48x48/status/network-location-connected.png:
+	* pixmaps/48x48/status/network-location-error.png:
+	* pixmaps/48x48/status/network-location-warning.png:
+	Add new icons and makefiles.
+
 2009-03-23  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/libnwamui.c (nwamui_util_get_env_status_icon),

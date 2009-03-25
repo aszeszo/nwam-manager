@@ -99,9 +99,10 @@ typedef guint64 libnwam_diag_cause_t;
 #define  NWAM_ICON_NETWORK_LOCATION         "network-location"
 
 /* Status icons */
-#define  NWAM_ICON_EARTH_ERROR              "network-location-error"
-#define  NWAM_ICON_EARTH_WARNING            "network-location-warning"
-#define  NWAM_ICON_EARTH_CONNECTED          "network-location-connected"
+#define  NWAM_ICON_CONNECTED          "network-connected"
+#define  NWAM_ICON_WARNING            "network-warning"
+#define  NWAM_ICON_ERROR              "network-error"
+
 #define  NWAM_ICON_WIRED_CONNECTED          "network-wired-connected"
 #define  NWAM_ICON_WIRED_WARNING            "network-wired-warning"
 #define  NWAM_ICON_WIRED_ERROR              "network-wired-error"
@@ -110,11 +111,19 @@ typedef guint64 libnwam_diag_cause_t;
 #define  NWAM_ICON_WIRELESS_ERROR           "network-wireless-error"
 
 /* Wireless strength icons */
+#if 0
 #define  NWAM_ICON_WIRELESS_STRENGTH_NONE   "network-wireless-signal-none"
 #define  NWAM_ICON_WIRELESS_STRENGTH_POOR   "network-wireless-signal-poor"
 #define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "network-wireless-signal-fair"
 #define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "network-wireless-signal-good"
 #define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT   "network-wireless-signal-good"
+#else
+#define  NWAM_ICON_WIRELESS_STRENGTH_NONE   "network-wireless-nosignal"
+#define  NWAM_ICON_WIRELESS_STRENGTH_POOR   "network-wireless-0-24"
+#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "network-wireless-25-49"
+#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "network-wireless-50-74"
+#define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT   "network-wireless-75-100"
+#endif
 
 #define  NWAM_ICON_NETWORK_SECURE           "network-secure"
 #define  NWAM_ICON_NETWORK_INSECURE         "network-insecure"

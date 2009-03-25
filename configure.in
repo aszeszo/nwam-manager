@@ -198,9 +198,11 @@ pixmaps/16x16/Makefile
 pixmaps/16x16/status/Makefile
 pixmaps/24x24/Makefile
 pixmaps/24x24/apps/Makefile
+pixmaps/24x24/emblems/Makefile
 pixmaps/24x24/status/Makefile
 pixmaps/32x32/Makefile
 pixmaps/32x32/apps/Makefile
+pixmaps/32x32/emblems/Makefile
 pixmaps/32x32/status/Makefile
 pixmaps/48x48/Makefile
 pixmaps/48x48/apps/Makefile

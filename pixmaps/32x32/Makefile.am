@@ -17,4 +17,4 @@
 # 
 # CDDL HEADER END
 #
-SUBDIRS = apps status
+SUBDIRS = apps emblems status

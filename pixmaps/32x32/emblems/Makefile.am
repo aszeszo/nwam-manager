@@ -17,4 +17,12 @@
 # 
 # CDDL HEADER END
 #
-SUBDIRS = apps emblems status
+
+icondir = $(datadir)/icons/hicolor/32x32/emblems
+
+icon_DATA =  \
+	network-connected.png	\
+	network-error.png	\
+	network-warning.png
+
+EXTRA_DIST = $(icon_DATA)
