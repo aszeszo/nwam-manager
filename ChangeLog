@@ -1,6 +1,15 @@
 2009-03-26  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/libnwamui.c (nwamui_util_get_env_status_icon),
+	(nwamui_util_get_wireless_strength_icon):
+	Use correct icons. Cache icons. Remove a debug code.
+	* common/libnwamui.h:
+	* daemon/notify.c:
+	Correct icons.
+
+2009-03-26  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/libnwamui.c (nwamui_util_get_env_status_icon),
 	(nwamui_util_get_wireless_strength_icon): Code for composing icons.
 
 2009-03-25  Lin Ma  <Lin.Ma@Sun.COM>

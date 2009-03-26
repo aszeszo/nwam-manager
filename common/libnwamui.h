@@ -95,8 +95,13 @@ typedef guint64 libnwam_diag_cause_t;
 #include "nwamui_daemon.h"
 #endif /* _NWAMUI_DAEMON_H */
 
-#define  NWAM_ICON_NETWORK_WIRELESS         "network-wireless"
+#if 0
 #define  NWAM_ICON_NETWORK_LOCATION         "network-location"
+#endif
+
+/* Device icons. */
+#define  NWAM_ICON_NETWORK_WIRELESS         "network-wireless"
+#define  NWAM_ICON_NETWORK_WIRED            "network-wired"
 
 /* Status icons */
 #define  NWAM_ICON_CONNECTED          "network-connected"

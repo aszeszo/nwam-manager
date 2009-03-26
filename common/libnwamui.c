@@ -49,11 +49,6 @@
 #define RENAME_ENVIRONMENT_ENTRY    "rename_environment_entry"
 
 #define PIXBUF_COMPOSITE_NO_SCALE(src, dest)                            \
-    g_message("pixbuf composite < w, h > < %d, %d >, < sw, sh > < %lf, %lf >", \
-      gdk_pixbuf_get_width(dest),                                       \
-      gdk_pixbuf_get_height(dest),                                      \
-      (double)gdk_pixbuf_get_width(dest)/gdk_pixbuf_get_width(src),     \
-      (double)gdk_pixbuf_get_height(dest)/gdk_pixbuf_get_height(src));  \
     gdk_pixbuf_composite(GDK_PIXBUF(src), GDK_PIXBUF(dest),             \
       0, 0,                                                             \
       gdk_pixbuf_get_width(dest),                                       \
@@ -61,7 +56,7 @@
       (double)0.0, (double)0.0,                                         \
       (double)gdk_pixbuf_get_width(dest)/gdk_pixbuf_get_width(src),     \
       (double)gdk_pixbuf_get_height(dest)/gdk_pixbuf_get_height(src),   \
-      GDK_INTERP_NEAREST, 255)
+      GDK_INTERP_NEAREST, 200)
 
 struct nwamui_wifi_essid {
     gchar*                          essid;
@@ -369,6 +364,7 @@ get_pixbuf( const gchar* stock_id, gboolean small )
 extern GdkPixbuf*
 nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status )
 {
+    static GdkPixbuf*   newwork_status_icons[NWAMUI_ENV_STATUS_LAST][NWAMUI_NCU_TYPE_LAST] = {NULL};
     GdkPixbuf* inf_icon = NULL;
     GdkPixbuf* net_status_icon = NULL;
     gint       size = -1;
@@ -376,6 +372,7 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
     gint activate_wired_num = 0;
     gint activate_wireless_num = 0;
     gint average_signal_strength = 0;
+    nwamui_ncu_type_t ncu_type;
 
     if ( status_icon != NULL && 
       gtk_status_icon_is_embedded(status_icon)) {
@@ -419,16 +416,23 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
     }
 
     if (activate_wireless_num > 0) {
-        average_signal_strength /= activate_wireless_num;
-        inf_icon = nwamui_util_get_wireless_strength_icon(average_signal_strength, FALSE);
+        ncu_type = NWAMUI_NCU_TYPE_WIRELESS;
     } else {
-        GdkPixbuf* temp_icon = NULL;
-        temp_icon = get_pixbuf_with_size(NWAM_ICON_WIRED_CONNECTED, size);
-        inf_icon = gdk_pixbuf_copy(temp_icon);
-        g_object_unref(temp_icon);
+        ncu_type = NWAMUI_NCU_TYPE_WIRED;
     }
 
-    switch( env_status ) {
+    if (newwork_status_icons[env_status][ncu_type] == NULL) {
+        if (activate_wireless_num > 0) {
+            average_signal_strength /= activate_wireless_num;
+            inf_icon = nwamui_util_get_wireless_strength_icon(average_signal_strength, FALSE);
+        } else {
+            GdkPixbuf* temp_icon = NULL;
+            temp_icon = get_pixbuf_with_size(NWAM_ICON_NETWORK_WIRED, size);
+            inf_icon = gdk_pixbuf_copy(temp_icon);
+            g_object_unref(temp_icon);
+        }
+
+        switch( env_status ) {
         case NWAMUI_ENV_STATUS_CONNECTED:
             stock_id = NWAM_ICON_CONNECTED;
             break;
@@ -441,12 +445,14 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
         default:
             g_assert_not_reached();
             break;
-    }
-    net_status_icon = get_pixbuf_with_size(stock_id, size);
-    PIXBUF_COMPOSITE_NO_SCALE(net_status_icon, inf_icon);
-    g_object_unref(net_status_icon);
+        }
+        net_status_icon = get_pixbuf_with_size(stock_id, size);
+        PIXBUF_COMPOSITE_NO_SCALE(net_status_icon, inf_icon);
+        g_object_unref(net_status_icon);
 
-    return( inf_icon );
+        newwork_status_icons[env_status][ncu_type] = inf_icon;
+    }
+    return(newwork_status_icons[env_status][ncu_type]);
 }
 
 /* 
@@ -623,7 +629,7 @@ nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_str
         GdkPixbuf* composed_icon = NULL;
 
         /* Basic interface icon. */
-        inf_icon = get_pixbuf(NWAM_ICON_WIRELESS_CONNECTED, small);
+        inf_icon = get_pixbuf(NWAM_ICON_NETWORK_WIRELESS, small);
 
         /* Compose icon. */
         composed_icon = gdk_pixbuf_copy(inf_icon);
