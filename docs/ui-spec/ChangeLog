@@ -1,3 +1,16 @@
+2009-03-24  Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+	* img/capplet/connection-status.png
+
+	Change Preferences>Location to Admin>Network Locations.
+	Change what happens if user inputs a CIDR (w.x.y.z/n) IP address.
+	Change condition text for location rules dialog.
+	Show wired icon on panel instead of old NWAM icon, if no wireless
+	interfaces present.
+	A couple of other doc cleanups that don't affect functionality.
+
 2009-03-18  Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
