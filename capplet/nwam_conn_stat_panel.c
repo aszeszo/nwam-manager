@@ -393,7 +393,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 	switch (gtk_tree_view_column_get_sort_column_id (col)) {
 	case CONNVIEW_ICON:
         if ( cell_num == 0 ) {
-            status_icon = nwamui_util_get_network_status_icon( ncu );
+            status_icon = nwamui_util_get_ncu_status_icon( ncu );
             g_object_set (G_OBJECT(renderer),
               "pixbuf", status_icon,
               NULL);

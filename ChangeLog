@@ -1,5 +1,17 @@
 2009-03-26  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_conn_stat_panel.c
+	(nwam_conn_status_update_status_cell_cb):
+	* common/libnwamui.c (nwamui_util_get_env_status_icon),
+	(nwamui_util_get_network_status_icon),
+	(nwamui_util_get_ncu_status_icon),
+	(nwamui_util_get_wireless_strength_icon):
+	* common/libnwamui.h:
+	get_ncu_network_status_icon becomes a base function. Fixed a typo.
+	Cache icons by size (currently only 24 and 48 pixels).
+
+2009-03-26  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/libnwamui.c (nwamui_util_get_env_status_icon),
 	(nwamui_util_get_wireless_strength_icon):
 	Use correct icons. Cache icons. Remove a debug code.

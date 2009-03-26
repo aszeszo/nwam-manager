@@ -193,7 +193,9 @@ extern void                     nwamui_util_free_obj_list( GList* obj_list );
 
 extern GList*                   nwamui_util_copy_obj_list( GList* obj_list );
 
-extern GdkPixbuf*               nwamui_util_get_network_status_icon( NwamuiNcu* ncu  );
+extern GdkPixbuf*               nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type, nwamui_wifi_signal_strength_t strength, nwamui_env_status_t net_status, gint size);
+
+extern GdkPixbuf*               nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu );
 
 extern const gchar*             nwamui_util_get_ncu_group_icon( NwamuiNcu* ncu  );
 
