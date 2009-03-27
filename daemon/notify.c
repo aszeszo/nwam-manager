@@ -41,6 +41,7 @@ static gint gconf_exp_time;
 
 #define NOTIFY_EXP_DEFAULT_FLAG	(NOTIFY_EXPIRES_DEFAULT)
 #define NOTIFY_EXP_ADJUSTED_FLAG	(NOTIFY_EXP_DEFAULT_FLAG - 1)
+#define NOTIFY_POLL_STATUS_ICON_INVISIBLE	(1000)
 
 
 typedef struct _msg
@@ -249,6 +250,18 @@ notify_notification_adjust_first(GQueue *q)
     msg *m;
 
     g_assert(adjust_source_id > 0);
+
+    /* Do not show notifications if status icon is invisible. */
+    if (!gtk_status_icon_get_visible(parent_status_icon)) {
+        adjust_source_id = g_timeout_add_full(G_PRIORITY_DEFAULT,
+          NOTIFY_POLL_STATUS_ICON_INVISIBLE,
+          (GSourceFunc)notify_notification_adjust_first,
+          (gpointer) q,
+          NULL);
+
+        return FALSE;
+    }
+
     if ((m = g_queue_peek_head(q)) == NULL) {
         adjust_source_id = 0;
         return FALSE;

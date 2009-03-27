@@ -227,6 +227,8 @@ extern GList*                   nwamui_util_strv_to_glist( gchar **strv );
 
 extern char**                   nwamui_util_glist_to_strv( GList *list );
 
+extern gchar*                   nwamui_util_encode_menu_label( gchar **modified_label );
+
 extern gchar*                   nwamui_util_convert_prefixlen_to_netmask_str( sa_family_t family, guint prefixlen );
 
 extern gboolean                 nwamui_util_get_interface_address(  const char  *ifname, 

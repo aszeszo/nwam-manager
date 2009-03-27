@@ -53,7 +53,7 @@ enum {
 };
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
-static GObject* get_proxy(NwamWifiItem *self);
+static GObject* get_proxy(NwamObjProxyIFace *iface);
 
 static void nwam_wifi_item_set_property (GObject         *object,
   guint            prop_id,
@@ -275,9 +275,9 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
 }
 
 static GObject*
-get_proxy(NwamWifiItem *self)
+get_proxy(NwamObjProxyIFace *iface)
 {
-    NwamWifiItemPrivate *prv = GET_PRIVATE(self);
+    NwamWifiItemPrivate *prv = GET_PRIVATE(iface);
     return G_OBJECT(prv->wifi);
 }
 
@@ -338,16 +338,6 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
 
     g_assert(self);
 
-    if (!arg1 || g_ascii_strcasecmp(arg1->name, "signal-strength") == 0) {
-          img = gtk_image_new_from_pixbuf (nwamui_util_get_wireless_strength_icon(nwamui_wifi_net_get_signal_strength(wifi), TRUE ));
-          nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), img, 0);
-    }
-
-    if (!arg1 || g_ascii_strcasecmp(arg1->name, "security") == 0) {
-          img = gtk_image_new_from_pixbuf (nwamui_util_get_network_security_icon(nwamui_wifi_net_get_security (wifi), TRUE )); 
-          nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), img, 1);
-    }
-
     {
         NwamuiDaemon* daemon = nwamui_daemon_get_instance();
         NwamuiNcp*    ncp = nwamui_daemon_get_active_ncp( daemon );
@@ -365,7 +355,13 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
         g_object_unref(daemon);
     }
 
-    if (!arg1 || g_ascii_strcasecmp(arg1->name, "status") == 0) {
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "signal-strength") == 0) {
+
+          img = gtk_image_new_from_pixbuf (nwamui_util_get_wireless_strength_icon(nwamui_wifi_net_get_signal_strength(wifi), TRUE ));
+          nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, img);
+
+    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "status") == 0) {
+
         g_signal_handler_block(self, prv->toggled_handler_id);
         switch (nwamui_wifi_net_get_status(wifi)) {
         case NWAMUI_WIFI_STATUS_CONNECTED:
@@ -378,6 +374,12 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
             break;
         }
         g_signal_handler_unblock(self, prv->toggled_handler_id);
+
+    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "security") == 0) {
+
+          img = gtk_image_new_from_pixbuf (nwamui_util_get_network_security_icon(nwamui_wifi_net_get_security (wifi), TRUE )); 
+          nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 1, img);
+
     }
 
 #if 0

@@ -1,3 +1,32 @@
+2009-03-27  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/libnwamui.h:
+	Added a missing declaration.
+	* daemon/notify.c (notify_notification_adjust_first):
+	Do not show notifications if status icon is invisible.
+	* daemon/nwam-enm-item.c (nwam_enm_item_init),
+	(on_nwam_enm_notify), (get_proxy):
+	* daemon/nwam-env-item.c (nwam_env_item_init),
+	(on_nwam_env_notify), (get_proxy):
+	* daemon/nwam-menuitem.c (nwam_menu_item_set_property),
+	(nwam_menu_item_set_widget):
+	* daemon/nwam-menuitem.h:
+	* daemon/nwam-ncu-item.c (on_nwam_ncu_notify), (get_proxy):
+	* daemon/nwam-wifi-item.c (get_proxy), (wifi_net_notify):
+	Show menuitems correctly according to spec1.8.2. Fixed some build
+	warnings.
+	* daemon/status_icon.c (daemon_status_changed),
+	(daemon_wifi_key_needed), (daemon_ncu_up), (daemon_ncu_down),
+	(daemon_active_ncp_changed), (nwam_status_icon_run),
+	(nwam_status_icon_set_status), (nwam_status_icon_refresh_tooltip),
+	(on_ncp_notify_cb), (nwam_status_icon_init),
+	(nwam_status_icon_finalize), (nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_recreate_env_menuitems),
+	(nwam_menu_recreate_enm_menuitems),
+	(nwam_menu_create_static_menuitems):
+	Code for the tooltip of the status icon. Cache static menuitems for
+	convenience. Added missed g_object_unref.
+
 2009-03-26  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_stat_panel.c

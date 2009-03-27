@@ -54,7 +54,7 @@ enum {
 };
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
-static GObject* get_proxy(NwamNcuItem *self);
+static GObject* get_proxy(NwamObjProxyIFace *iface);
 
 static void nwam_ncu_item_set_property (GObject         *object,
   guint            prop_id,
@@ -280,50 +280,39 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamNcuItem *self = NWAM_NCU_ITEM (data);
     NwamNcuItemPrivate *prv = GET_PRIVATE(self);
-    NwamuiNcu *ncu;
-    NwamuiNcp *ncp;
+    NwamuiObject *object = NWAMUI_OBJECT(gobject);
 
     g_debug("menuitem get ncu notify %s changed\n", (arg1 && arg1->name)?arg1->name:"NULL");
+    g_assert(NWAMUI_IS_NCU(object));
 
-    ncu = NWAMUI_NCU(gobject);
-    switch (nwamui_ncu_get_ncu_type (ncu)) {
-    case NWAMUI_NCU_TYPE_WIRELESS:
-/*         if (g_ascii_strcasecmp(arg1->name, "wifi-info") == 0) { */
-/*             NwamuiWifiNet *wifi; */
-/*             GtkAction *action; */
-/*             gchar *m_name; */
+/*     switch (nwamui_ncu_get_ncu_type (ncu)) { */
+/*     case NWAMUI_NCU_TYPE_WIRELESS: */
+/*         break; */
+/*     case NWAMUI_NCU_TYPE_WIRED: */
+/*         break; */
+/*     default: */
+/*         g_assert_not_reached (); */
+/*     } */
 
-/*             wifi = nwamui_ncu_get_wifi_info (ncu); */
-/*             if (wifi) { */
-/*                 m_name = nwamui_wifi_net_get_bssid (wifi); */
-/*                 menus_set_toggle_action_active(self, ID_WIFI, m_name, TRUE); */
-/*                 g_free (m_name); */
-/*                 g_object_unref(wifi); */
-/*             } */
-/*         } */
-        break;
-    case NWAMUI_NCU_TYPE_WIRED:
-        break;
-    default:
-        g_assert_not_reached ();
-    }
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "active") == 0) {
 
-#if 0
-    nwamui_ncp_selection_mode_t selection_mode = nwamui_ncp_get_selection_mode( NWAMUI_NCP(ncp) );
-
-    if ( selection_mode == NWAMUI_NCP_SELECTION_MODE_MANUAL
-      && nwamui_ncu_get_active(NWAMUI_NCU(ncu)) ) {
         g_signal_handler_block(self, prv->toggled_handler_id);
-        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE);
+        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self),
+          nwamui_object_get_active(object));
         g_signal_handler_unblock(self, prv->toggled_handler_id);
-    }
-#endif
+
+    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "enabled") == 0) {
+
+        gtk_widget_set_sensitive(GTK_WIDGET(self),
+          nwamui_ncu_get_enabled(NWAMUI_NCU(object)));
+
+    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "vanity_name") == 0) {
 		gchar *name = NULL;
         gchar *lbl_name = NULL;
         gchar *type_str = NULL;
 		
-		name = nwamui_ncu_get_device_name(NWAMUI_NCU(ncu));
-		if ( nwamui_ncu_get_ncu_type(NWAMUI_NCU(ncu)) == NWAMUI_NCU_TYPE_WIRELESS ){
+		name = nwamui_object_get_name(object);
+		if ( nwamui_ncu_get_ncu_type(NWAMUI_NCU(object)) == NWAMUI_NCU_TYPE_WIRELESS ){
             type_str = _("Wireless");
         }
         else {
@@ -331,16 +320,21 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         }
         lbl_name = g_strdup_printf(_("%s (%s)"), type_str, name);
 
+        /* If there is any underscores we need to replace them with two since
+         * otherwise it's interpreted as a mnemonic
+         */
+        lbl_name = nwamui_util_encode_menu_label( &lbl_name );
         menu_item_set_label(GTK_MENU_ITEM(self), lbl_name);
 
 		g_free(name);
 		g_free(lbl_name);
+    }
 }
 
 static GObject*
-get_proxy(NwamNcuItem *self)
+get_proxy(NwamObjProxyIFace *iface)
 {
-    NwamNcuItemPrivate *prv = GET_PRIVATE(self);
+    NwamNcuItemPrivate *prv = GET_PRIVATE(iface);
     return G_OBJECT(prv->ncu);
 }
 

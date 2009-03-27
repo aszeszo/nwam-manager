@@ -59,11 +59,8 @@ GType nwam_menu_item_get_type (void) G_GNUC_CONST;
 GtkWidget* nwam_menu_item_new (void);
 GtkWidget* nwam_menu_item_new_with_label (const gchar *label);
 
-void nwam_menu_item_set_widget (NwamMenuItem *self,
-			       GtkWidget *image,
-			       gint pos);
-GtkWidget* nwam_menu_item_get_widget (NwamMenuItem *self,
-				     gint pos);
+void nwam_menu_item_set_widget (NwamMenuItem *self, gint pos, GtkWidget *image);
+GtkWidget* nwam_menu_item_get_widget (NwamMenuItem *self, gint pos);
 
 /*
  * MAX_WIDGET_NUM:

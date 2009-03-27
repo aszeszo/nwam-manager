@@ -54,7 +54,7 @@ enum {
 };
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
-static GObject* get_proxy(NwamEnvItem *self);
+static GObject* get_proxy(NwamObjProxyIFace *iface);
 
 static void nwam_env_item_set_property (GObject         *object,
   guint            prop_id,
@@ -133,6 +133,9 @@ nwam_env_item_init (NwamEnvItem *self)
 
     prv->toggled_handler_id = g_signal_connect(self,
       "toggled", G_CALLBACK(on_nwam_env_toggled), NULL);
+
+    /* Must set it initially, because there are no check elsewhere. */
+    nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, gtk_label_new(""));
 }
 
 GtkWidget*
@@ -267,21 +270,64 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamEnvItem *self = NWAM_ENV_ITEM (data);
     NwamEnvItemPrivate *prv = GET_PRIVATE(self);
+    NwamuiObject *object = NWAMUI_OBJECT(gobject);
 
     g_debug("menuitem get env notify %s changed\n", (arg1 && arg1->name)?arg1->name:"NULL");
+    g_assert(NWAMUI_IS_ENV(object));
 
-    {
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "active") == 0) {
+
+        g_signal_handler_block(self, prv->toggled_handler_id);
+        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self),
+          nwamui_object_get_active(object));
+        g_signal_handler_unblock(self, prv->toggled_handler_id);
+
+    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
+        gchar *object_markup;
+        GtkWidget *label;
+
+        switch (nwamui_object_get_activation_mode(object)) {
+        case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+            object_markup = _("<b>%s</b>"), "M";
+            break;
+        case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
+            object_markup = _("<b>%s</b>"), "S";
+            break;
+        case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+            object_markup = _("<b>%s</b>"), "P";
+            break;
+        case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
+            object_markup = _("<b>%s</b>"), "C";
+            break;
+        case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
+            object_markup = _("<b>%s</b>"), "A";
+            break;
+        default:
+            g_assert_not_reached();
+            break;
+        }
+
+        label = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
+        g_assert(GTK_IS_LABEL(label));
+        gtk_label_set_markup(GTK_LABEL(label), object_markup);
+
+    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "name") == 0) {
+
         gchar *menu_text = NULL;
-        menu_text = nwamui_object_get_name(NWAMUI_OBJECT(prv->env));
+        menu_text = nwamui_object_get_name(object);
+        /* If there is any underscores we need to replace them with two since
+         * otherwise it's interpreted as a mnemonic
+         */
+        menu_text = nwamui_util_encode_menu_label( &menu_text );
         menu_item_set_label(GTK_MENU_ITEM(self), menu_text);
         g_free(menu_text);
     }
 }
 
 static GObject*
-get_proxy(NwamEnvItem *self)
+get_proxy(NwamObjProxyIFace *iface)
 {
-    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
+    NwamEnvItemPrivate *prv = GET_PRIVATE(iface);
     return G_OBJECT(prv->env);
 }
 

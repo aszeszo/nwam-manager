@@ -151,14 +151,14 @@ nwam_menu_item_set_property (GObject         *object,
 	switch (prop_id) {
 	case PROP_LWIDGET:
 	{
-        nwam_menu_item_set_widget (self,
-                                   GTK_WIDGET (g_value_get_object (value)), 0);
+        nwam_menu_item_set_widget (self, 0,
+          GTK_WIDGET (g_value_get_object (value)));
 	}
 	break;
 	case PROP_RWIDGET:
 	{
-        nwam_menu_item_set_widget (self,
-                                   GTK_WIDGET (g_value_get_object (value)), 0);
+        nwam_menu_item_set_widget (self, 0,
+          GTK_WIDGET (g_value_get_object (value)));
 	}
 	break;
 	default:
@@ -274,8 +274,8 @@ nwam_menu_item_new_with_label (const gchar *label)
  **/ 
 void
 nwam_menu_item_set_widget (NwamMenuItem *self,
-			  GtkWidget *widget,
-			  gint pos)
+  gint pos,
+  GtkWidget *widget)
 {
     NwamMenuItemPrivate *prv = GET_PRIVATE(self);
 

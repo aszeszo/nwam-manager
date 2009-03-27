@@ -53,7 +53,7 @@ enum {
 };
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
-static GObject* get_proxy(NwamEnmItem *self);
+static GObject* get_proxy(NwamObjProxyIFace *iface);
 
 static void nwam_enm_item_set_property (GObject         *object,
   guint            prop_id,
@@ -132,6 +132,9 @@ nwam_enm_item_init (NwamEnmItem *self)
 
     prv->toggled_handler_id = g_signal_connect(self,
       "toggled", G_CALLBACK(on_nwam_enm_toggled), NULL);
+
+    /* Must set it initially, because there are no check elsewhere. */
+    nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, gtk_label_new(""));
 }
 
 GtkWidget*
@@ -266,28 +269,70 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamEnmItem *self = NWAM_ENM_ITEM (data);
     NwamEnmItemPrivate *prv = GET_PRIVATE(self);
-    gchar *m_name;
-    gchar *new_text;
+    NwamuiObject *object = NWAMUI_OBJECT(gobject);
 
-    m_name = nwamui_enm_get_name (prv->enm);
+    g_debug("menuitem get enm notify %s changed\n", (arg1 && arg1->name)?arg1->name:"NULL");
+    g_assert(NWAMUI_IS_ENM(object));
 
-    if (nwamui_enm_get_active (prv->enm)) {
-        new_text = g_strconcat (_("Stop "), m_name, NULL);
-    } else {
-        new_text = g_strconcat (_("Start "), m_name, NULL);
+    if (!arg1 ||
+      g_ascii_strcasecmp(arg1->name, "active") == 0 ||
+      g_ascii_strcasecmp(arg1->name, "name") == 0) {
+        gchar *m_name;
+        gchar *new_text;
+
+        m_name = nwamui_object_get_name(object);
+
+        if (nwamui_object_get_active(object)) {
+            new_text = g_strconcat(_("Stop "), m_name, NULL);
+        } else {
+            new_text = g_strconcat(_("Start "), m_name, NULL);
+        }
+        g_object_set(self, "label", new_text, NULL);
+
+        /* If there is any underscores we need to replace them with two since
+         * otherwise it's interpreted as a mnemonic
+         */
+        new_text = nwamui_util_encode_menu_label( &new_text );
+        menu_item_set_label(GTK_MENU_ITEM(self), new_text);
+
+        g_free (new_text);
+        g_free (m_name);
+
+    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
+        gchar *object_markup;
+        GtkWidget *label;
+
+        switch (nwamui_object_get_activation_mode(object)) {
+        case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+            object_markup = _("<b>%s</b>"), "M";
+            break;
+        case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
+            object_markup = _("<b>%s</b>"), "S";
+            break;
+        case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+            object_markup = _("<b>%s</b>"), "P";
+            break;
+        case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
+            object_markup = _("<b>%s</b>"), "C";
+            break;
+        case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
+            object_markup = _("<b>%s</b>"), "A";
+            break;
+        default:
+            g_assert_not_reached();
+            break;
+        }
+
+        label = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
+        g_assert(GTK_IS_LABEL(label));
+        gtk_label_set_markup(GTK_LABEL(label), object_markup);
     }
-    g_object_set(self, "label", new_text, NULL);
-
-    menu_item_set_label(GTK_MENU_ITEM(self), new_text);
-
-    g_free (new_text);
-    g_free (m_name);
 }
 
 static GObject*
-get_proxy(NwamEnmItem *self)
+get_proxy(NwamObjProxyIFace *iface)
 {
-    NwamEnmItemPrivate *prv = GET_PRIVATE(self);
+    NwamEnmItemPrivate *prv = GET_PRIVATE(iface);
     return G_OBJECT(prv->enm);
 }
 
