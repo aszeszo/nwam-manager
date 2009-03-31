@@ -287,7 +287,6 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         } else {
             new_text = g_strconcat(_("Start "), m_name, NULL);
         }
-        g_object_set(self, "label", new_text, NULL);
 
         /* If there is any underscores we need to replace them with two since
          * otherwise it's interpreted as a mnemonic
@@ -298,25 +297,27 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         g_free (new_text);
         g_free (m_name);
 
-    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
+    }
+
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
         gchar *object_markup;
         GtkWidget *label;
 
         switch (nwamui_object_get_activation_mode(object)) {
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-            object_markup = _("<b>%s</b>"), "M";
+            object_markup = _("<b>M</b>");
             break;
         case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
-            object_markup = _("<b>%s</b>"), "S";
+            object_markup = _("<b>S</b>");
             break;
         case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
-            object_markup = _("<b>%s</b>"), "P";
+            object_markup = _("<b>P</b>");
             break;
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
-            object_markup = _("<b>%s</b>"), "C";
+            object_markup = _("<b>C</b>");
             break;
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
-            object_markup = _("<b>%s</b>"), "A";
+            object_markup = _("<b>A</b>");
             break;
         default:
             g_assert_not_reached();

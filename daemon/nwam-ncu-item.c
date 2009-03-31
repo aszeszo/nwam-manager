@@ -301,12 +301,16 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
           nwamui_object_get_active(object));
         g_signal_handler_unblock(self, prv->toggled_handler_id);
 
-    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "enabled") == 0) {
+    }
+
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "enabled") == 0) {
 
         gtk_widget_set_sensitive(GTK_WIDGET(self),
           nwamui_ncu_get_enabled(NWAMUI_NCU(object)));
 
-    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "vanity_name") == 0) {
+    }
+
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "vanity_name") == 0) {
 		gchar *name = NULL;
         gchar *lbl_name = NULL;
         gchar *type_str = NULL;

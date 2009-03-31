@@ -47,12 +47,11 @@ struct _NwamMenu
 };
 
 struct _NwamMenuClass {
-	GtkMenuClass parent_class;	
+	GtkMenuClass parent_class;
+    void (*get_section_index)(NwamMenu *self, GtkWidget *w, gint *index);
 };
 
 GType            nwam_menu_get_type          (void) G_GNUC_CONST;
-
-extern GtkWidget* nwam_menu_new(gint n_sections);
 
 /* GtkMenu MACROs, must define ITEM_VARNAME before use them. */
 #define MENU_APPEND_ITEM_BASE(menu, type, label, callback, user_data)   \
@@ -65,7 +64,7 @@ extern GtkWidget* nwam_menu_new(gint n_sections);
             g_signal_connect((ITEM_VARNAME),                            \
               "activate", G_CALLBACK(callback), (gpointer)user_data);   \
     }                                                                   \
-    gtk_menu_shell_append(GTK_MENU_SHELL(menu), GTK_WIDGET(ITEM_VARNAME));
+    ADD_MENU_ITEM(GTK_MENU_SHELL(menu), GTK_WIDGET(ITEM_VARNAME));
 #define menu_append_item(menu, type, label, callback, user_data)        \
     {                                                                   \
         MENU_APPEND_ITEM_BASE(menu, type, label, callback, user_data);  \
@@ -96,29 +95,54 @@ extern GtkWidget* nwam_menu_new(gint n_sections);
         MENU_APPEND_ITEM_BASE(menu, GTK_TYPE_SEPARATOR_MENU_ITEM,   \
           NULL, NULL, NULL);                                        \
     }
-#define menu_append_section_separator(nwam_menu, menu, sec_id, is_first) \
+#define START_MENU_SECTION_SEPARATOR(nwam_menu, sec_id, has_sep)        \
     {                                                                   \
         GtkWidget *sec_widget;                                          \
         g_assert(NWAM_IS_MENU(nwam_menu));                              \
-        g_assert(GTK_IS_MENU_SHELL(menu));                              \
-        if (is_first)                                                   \
-            sec_widget = GTK_WIDGET(menu);                              \
-        else {                                                          \
-            MENU_APPEND_ITEM_BASE(menu, GTK_TYPE_SEPARATOR_MENU_ITEM,   \
+        if (has_sep) {                                                  \
+            MENU_APPEND_ITEM_BASE(nwam_menu, GTK_TYPE_SEPARATOR_MENU_ITEM, \
               NULL, NULL, NULL);                                        \
             sec_widget = GTK_WIDGET(ITEM_VARNAME);                      \
+        } else {                                                        \
+            sec_widget = GTK_WIDGET(nwam_menu);                         \
         }                                                               \
-        nwam_menu_section_set(NWAM_MENU(nwam_menu), sec_id,             \
+        nwam_menu_section_set_left(NWAM_MENU(nwam_menu), sec_id,        \
           GTK_WIDGET(sec_widget));                                      \
     }
+#define END_MENU_SECTION_SEPARATOR(nwam_menu, sec_id, has_sep)          \
+    {                                                                   \
+        GtkWidget *sec_widget;                                          \
+        g_assert(NWAM_IS_MENU(nwam_menu));                              \
+        if (has_sep) {                                                  \
+            MENU_APPEND_ITEM_BASE(nwam_menu, GTK_TYPE_SEPARATOR_MENU_ITEM, \
+              NULL, NULL, NULL);                                        \
+            sec_widget = GTK_WIDGET(ITEM_VARNAME);                      \
+        } else {                                                        \
+            sec_widget = NULL;                                          \
+        }                                                               \
+        nwam_menu_section_set_right(NWAM_MENU(nwam_menu), sec_id,       \
+          GTK_WIDGET(sec_widget));                                      \
+    }
+#define ADD_MENU_ITEM(menu, item)                               \
+    {                                                           \
+        g_assert(GTK_IS_MENU(menu) && GTK_IS_MENU_ITEM(item));  \
+        gtk_menu_shell_append(GTK_MENU_SHELL(menu), item);      \
+        gtk_widget_show(GTK_WIDGET(item));                      \
+    }
+#define REMOVE_MENU_ITEM(menu, item)                            \
+    {                                                           \
+        g_assert(GTK_IS_MENU(menu) && GTK_IS_MENU_ITEM(item));  \
+        gtk_container_remove(GTK_CONTAINER(menu), item);        \
+    }
+
+
+extern GtkWidget* nwam_menu_new(gint n_sections);
 
 /* NwamMenu section utils */
-extern void nwam_menu_section_set(NwamMenu *self, gint sec_id, GtkWidget *w);
+extern void nwam_menu_section_set_left(NwamMenu *self, gint sec_id, GtkWidget *w);
+extern void nwam_menu_section_set_right(NwamMenu *self, gint sec_id, GtkWidget *w);
+extern void nwam_menu_section_set_visible(NwamMenu *self, gint sec_id, gboolean visible);
 extern void nwam_menu_section_sort(NwamMenu *self, gint sec_id);
-extern void nwam_menu_section_insert_sort(NwamMenu *self, gint sec_id, GtkWidget *item);
-extern void nwam_menu_section_append(NwamMenu *self, gint sec_id, GtkWidget *item);
-extern void nwam_menu_section_prepend(NwamMenu *self, gint sec_id, GtkWidget *item);
-extern void nwam_menu_section_remove_item(NwamMenu *self, gint sec_id, GtkWidget *item);
 extern void nwam_menu_section_delete(NwamMenu *self, gint sec_id);
 extern GtkWidget *nwam_menu_section_get_item_by_proxy(NwamMenu *self, gint sec_id, GObject* proxy);
 

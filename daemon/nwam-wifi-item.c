@@ -360,7 +360,9 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
           img = gtk_image_new_from_pixbuf (nwamui_util_get_wireless_strength_icon(nwamui_wifi_net_get_signal_strength(wifi), TRUE ));
           nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, img);
 
-    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "status") == 0) {
+    }
+
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "status") == 0) {
 
         g_signal_handler_block(self, prv->toggled_handler_id);
         switch (nwamui_wifi_net_get_status(wifi)) {
@@ -375,7 +377,9 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
         }
         g_signal_handler_unblock(self, prv->toggled_handler_id);
 
-    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "security") == 0) {
+    }
+
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "security") == 0) {
 
           img = gtk_image_new_from_pixbuf (nwamui_util_get_network_security_icon(nwamui_wifi_net_get_security (wifi), TRUE )); 
           nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 1, img);

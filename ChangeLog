@@ -1,3 +1,39 @@
+2009-03-31  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/libnwamui.c (marshal_VOID__OBJECT_POINTER):
+	* common/libnwamui.h:
+	New marshal for NwamMenu class.
+	* daemon/nwam-enm-item.c (on_nwam_enm_notify):
+	* daemon/nwam-env-item.c (on_nwam_env_notify):
+	* daemon/nwam-ncu-item.c (on_nwam_ncu_notify):
+	* daemon/nwam-wifi-item.c (wifi_net_notify):
+	Fixed those menu item show as separator menuitems.
+	* daemon/nwam-menu.c (nwam_menu_class_init), (nwam_menu_finalize),
+	(nwam_menu_set_property), (nwam_menu_get_property),
+	(nwam_menu_real_add), (nwam_menu_real_remove),
+	(nwam_menu_real_insert), (default_get_section_index),
+	(nwam_menu_item_compare), (nwam_menu_new),
+	(menu_section_get_menu_widget), (menu_section_get_left_widget),
+	(menu_section_set_left_widget), (menu_section_get_right_widget),
+	(menu_section_set_right_widget), (menu_section_new),
+	(menu_section_delete), (menu_section_get_children_num),
+	(menu_section_has_child), (menu_section_get_children),
+	(menu_section_get_positions), (menu_section_increase_children),
+	(menu_section_decrease_children), (nwam_menu_section_set_left),
+	(nwam_menu_section_set_right), (nwam_menu_section_set_visible),
+	(nwam_menu_section_sort), (nwam_menu_get_section_positions),
+	(nwam_menu_section_delete), (nwam_menu_section_get_item_by_proxy):
+	* daemon/nwam-menu.h:
+	Totally hide structure NwamSection, show/hide section automatically.
+	It still isn't good since all nwammenus share global nwamsections.
+	* daemon/status_icon.c (daemon_status_changed),
+	(nwam_status_icon_run), (nwam_status_icon_refresh_tooltip),
+	(status_icon_popup_cb), (on_activate_static_menuitems),
+	(nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_create_static_menuitems), (nwam_menu_item_create),
+	(nwam_menu_item_delete), (nwam_menu_get_section_index):
+	Only use NwamMenu and update accordingly. Fix show/hide menu.
+
 2009-03-27  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/libnwamui.h:

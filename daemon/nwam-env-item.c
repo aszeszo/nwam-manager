@@ -282,25 +282,27 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
           nwamui_object_get_active(object));
         g_signal_handler_unblock(self, prv->toggled_handler_id);
 
-    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
+    }
+
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
         gchar *object_markup;
         GtkWidget *label;
 
         switch (nwamui_object_get_activation_mode(object)) {
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-            object_markup = _("<b>%s</b>"), "M";
+            object_markup = _("<b>M</b>");
             break;
         case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
-            object_markup = _("<b>%s</b>"), "S";
+            object_markup = _("<b>S</b>");
             break;
         case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
-            object_markup = _("<b>%s</b>"), "P";
+            object_markup = _("<b>P</b>");
             break;
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
-            object_markup = _("<b>%s</b>"), "C";
+            object_markup = _("<b>C</b>");
             break;
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
-            object_markup = _("<b>%s</b>"), "A";
+            object_markup = _("<b>A</b>");
             break;
         default:
             g_assert_not_reached();
@@ -311,7 +313,9 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         g_assert(GTK_IS_LABEL(label));
         gtk_label_set_markup(GTK_LABEL(label), object_markup);
 
-    } else if (!arg1 || g_ascii_strcasecmp(arg1->name, "name") == 0) {
+    }
+
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "name") == 0) {
 
         gchar *menu_text = NULL;
         menu_text = nwamui_object_get_name(object);
