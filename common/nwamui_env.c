@@ -227,7 +227,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           _("active"),
                                                           _("active"),
                                                           FALSE,
-                                                          G_PARAM_READABLE));
+                                                          G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_ENABLED,
@@ -665,6 +665,35 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
+        case PROP_ACTIVE: {
+                /* Activate immediately */
+                nwamui_cond_activation_mode_t activation_mode;
+
+                activation_mode = (nwamui_cond_activation_mode_t)
+                    get_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
+
+                if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL ) {
+                    nwam_state_t    state = NWAM_STATE_OFFLINE;
+
+                    nwam_loc_get_state( self->prv->nwam_loc, &state );
+
+                    gboolean active = g_value_get_boolean( value );
+                    if ( state != NWAM_STATE_ONLINE && active ) {
+                        nwam_error_t nerr;
+                        if ( (nerr = nwam_loc_enable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
+                            g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
+                        }
+                    }
+                    else if ( state != NWAM_STATE_OFFLINE  ) {
+                        nwam_error_t nerr;
+                        if ( (nerr = nwam_loc_disable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
+                            g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
+                        }
+                    }
+                }
+            }
+            break;
+
         case PROP_ENABLED: {
                 prv->enabled = g_value_get_boolean( value );
             }
@@ -689,6 +718,12 @@ nwamui_env_set_property (   GObject         *object,
 
         case PROP_DEFAULT_DOMAIN: {
                 set_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DEFAULT_DOMAIN, 
+                                          g_value_get_string( value ) );
+            }
+            break;
+
+        case PROP_DNS_NAMESERVICE_DOMAIN: {
+                set_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_DOMAIN, 
                                           g_value_get_string( value ) );
             }
             break;
@@ -971,8 +1006,19 @@ nwamui_env_get_property (GObject         *object,
             break;
 
         case PROP_ACTIVE: {
+                gboolean active = FALSE;
+                if ( self->prv->nwam_loc ) {
+                    nwam_state_t    state = NWAM_STATE_OFFLINE;
+
+                    nwam_loc_get_state( self->prv->nwam_loc, &state );
+                    if ( state == NWAM_STATE_ONLINE ) {
+                        active = TRUE;
+                    }
+                }
+                g_value_set_boolean( value, active );
+
                 /* Get current state of enabled */
-                g_value_set_boolean( value, get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED ) );
+                /* g_value_set_boolean( value, get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED ) ); */
             }
             break;
 
@@ -1000,6 +1046,13 @@ nwamui_env_get_property (GObject         *object,
 
         case PROP_DEFAULT_DOMAIN: {
                 gchar* str = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DEFAULT_DOMAIN );
+                g_value_set_string( value, str );
+                g_free(str);
+            }
+            break;
+
+        case PROP_DNS_NAMESERVICE_DOMAIN: {
+                gchar* str = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_DOMAIN );
                 g_value_set_string( value, str );
                 g_free(str);
             }
@@ -1950,6 +2003,24 @@ nwamui_env_is_active (NwamuiEnv *self)
 
     return( active );
 }
+
+/** 
+ * nwamui_env_set_active:
+ * @nwamui_env: a #NwamuiEnv.
+ * @active: Immediately activates/deactivates the env.
+ * 
+ **/ 
+extern void
+nwamui_env_set_active (   NwamuiEnv *self,
+                          gboolean        active )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+
+    g_object_set (G_OBJECT (self),
+                  "active", active,
+                  NULL);
+}
+
 
 /** 
  * nwamui_env_set_nameservices:
@@ -3722,6 +3793,13 @@ nwamui_env_commit( NwamuiEnv* self )
         if ( self->prv->enabled ) {
             nwam_error_t nerr;
             if ( (nerr = nwam_loc_enable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
+                g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
+                return (FALSE);
+            }
+        }
+        else {
+            nwam_error_t nerr;
+            if ( (nerr = nwam_loc_disable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
                 g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
                 return (FALSE);
             }

@@ -106,7 +106,6 @@ enum {
         PROP_V4ADDRESSES,
         PROP_V6ADDRESSES,
         PROP_WIFI_INFO,
-        PROP_RULES_ENABLED,
         PROP_ACTIVATION_MODE,
         PROP_ENABLED,
         PROP_PRIORITY_GROUP,
@@ -174,8 +173,8 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
 
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncu_get_vanity_name;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_ncu_set_vanity_name;
-    nwamuiobject_class->get_conditions = (nwamui_object_get_conditions_func_t)nwamui_ncu_get_selection_conditions;
-    nwamuiobject_class->set_conditions = (nwamui_object_set_conditions_func_t)nwamui_ncu_set_selection_conditions;
+    nwamuiobject_class->get_conditions = NULL;
+    nwamuiobject_class->set_conditions = NULL;
     nwamuiobject_class->get_activation_mode = (nwamui_object_get_activation_mode_func_t)nwamui_ncu_get_activation_mode;
     nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_ncu_set_activation_mode;
     nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_ncu_get_active;
@@ -492,7 +491,55 @@ nwamui_ncu_set_property ( GObject         *object,
             }
             break;
         case PROP_ACTIVE: {
-                self->prv->active = g_value_get_boolean( value );
+                nwamui_cond_activation_mode_t activation_mode;
+
+                activation_mode = (nwamui_cond_activation_mode_t)
+                                    get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE );
+                
+                if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL ) {
+                    nwam_state_t    state = NWAM_STATE_OFFLINE;
+
+                    nwam_ncu_get_state( self->prv->nwam_ncu_phys, &state );
+
+                    /* Activate immediately */
+                    gboolean active = g_value_get_boolean( value );
+                    if ( state != NWAM_STATE_ONLINE && active ) {
+                        nwam_error_t nerr;
+                        if ( self->prv->nwam_ncu_phys) {
+                            if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
+                                g_warning("Failed to enable ncu_phys due to error: %s", nwam_strerror(nerr));
+                            }
+                        }
+                        if ( self->prv->nwam_ncu_ip) {
+                            if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
+                                g_warning("Failed to enable ncu_ip due to error: %s", nwam_strerror(nerr));
+                            }
+                        }
+                        if ( self->prv->nwam_ncu_iptun) {
+                            if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
+                                g_warning("Failed to enable ncu_iptun due to error: %s", nwam_strerror(nerr));
+                            }
+                        }
+                    }
+                    else if ( state != NWAM_STATE_OFFLINE  ) {
+                        nwam_error_t nerr;
+                        if ( self->prv->nwam_ncu_ip) {
+                            if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
+                                g_warning("Failed to disable ncu_ip due to error: %s", nwam_strerror(nerr));
+                            }
+                        }
+                        if ( self->prv->nwam_ncu_iptun) {
+                            if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
+                                g_warning("Failed to disable ncu_iptun due to error: %s", nwam_strerror(nerr));
+                            }
+                        }
+                        if ( self->prv->nwam_ncu_phys) {
+                            if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
+                                g_warning("Failed to disable ncu_phys due to error: %s", nwam_strerror(nerr));
+                            }
+                        }
+                    }
+                }
             }
             break;
         case PROP_MTU: {
@@ -772,7 +819,25 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
         case PROP_ACTIVE: {
-                g_value_set_boolean(value, self->prv->active);
+                gboolean active = FALSE;
+                if ( self->prv->nwam_ncu_phys ) {
+                    nwam_state_t    state = NWAM_STATE_OFFLINE;
+
+                    nwam_ncu_get_state( self->prv->nwam_ncu_phys, &state );
+                    if ( state == NWAM_STATE_ONLINE ) {
+                        state = NWAM_STATE_OFFLINE;
+                        if ( self->prv->nwam_ncu_ip ) {
+                            nwam_ncu_get_state( self->prv->nwam_ncu_ip, &state );
+                        }
+                        else if ( self->prv->nwam_ncu_iptun ) {
+                            nwam_ncu_get_state( self->prv->nwam_ncu_iptun, &state );
+                        }
+                        if ( state == NWAM_STATE_ONLINE ) {
+                            active = TRUE;
+                        }
+                    }
+                }
+                g_value_set_boolean( value, active );
             }
             break;
         case PROP_SPEED: {
@@ -2381,46 +2446,6 @@ nwamui_ncu_get_priority_group_mode (NwamuiNcu *self)
     return( (nwamui_cond_priority_group_mode_t)priority_group_mode );
 }
 
-
-/** 
- * nwamui_ncu_set_selection_conditions:
- * @nwamui_ncu: a #NwamuiNcu.
- * @selected_ncus: A GList of NCUs that are to be checked.
- * 
- **/ 
-extern void
-nwamui_ncu_set_selection_conditions( NwamuiNcu*                   self,
-                                     GList*                       conditions )
-{
-    g_return_if_fail (NWAMUI_IS_NCU (self));
-
-    g_object_set (G_OBJECT (self),
-              "conditions", conditions,
-              NULL);
-    
-}
-
-/** 
- * nwamui_ncu_get_selection_conditions:
- * @nwamui_ncu: a #NwamuiNcu.
- * returns: A GList of conditions that are to be checked.
- * 
- **/ 
-extern GList*
-nwamui_ncu_get_selection_conditions( NwamuiNcu* self )
-{
-    GList*  conditions = NULL;
-
-    g_return_val_if_fail (NWAMUI_IS_NCU (self), conditions );
-
-    g_object_get (G_OBJECT (self),
-              "conditions", &conditions,
-              NULL);
-    
-    return( conditions );
-}
-
-
 static void
 nwamui_ncu_finalize (NwamuiNcu *self)
 {
@@ -2479,7 +2504,7 @@ get_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 }
 
 static gboolean
-prop_is_readonly( gchar* prop_name ) 
+prop_is_readonly( const char* prop_name ) 
 {
     boolean_t       read_only = B_FALSE;
     nwam_error_t    nerr;

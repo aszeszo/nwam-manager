@@ -354,15 +354,16 @@ nwamui_enm_get_property (   GObject         *object,
         break;
 
         case PROP_ACTIVE: {
-                /* TODO: Get the active (currently running) state from daemon */
-                gboolean enabled = FALSE;
-                if (self->prv->nwam_enm != NULL) {
-                    enabled = get_nwam_enm_boolean_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ENABLED ); 
+                gboolean active = FALSE;
+                if ( self->prv->nwam_enm ) {
+                    nwam_state_t    state = NWAM_STATE_OFFLINE;
+
+                    nwam_enm_get_state( self->prv->nwam_enm, &state );
+                    if ( state == NWAM_STATE_ONLINE ) {
+                        active = TRUE;
+                    }
                 }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
-                g_value_set_boolean( value, enabled );
+                g_value_set_boolean( value, active );
         }
         break;
 

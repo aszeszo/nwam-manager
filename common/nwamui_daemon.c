@@ -450,18 +450,6 @@ nwamui_daemon_init (NwamuiDaemon *self)
         }
     }
 
-    /* FIXME: Assume first NCP is the active until we can determine otherwise
-     * using the API */
-    if ( self->prv->active_ncp == NULL && self->prv->ncp_list  != NULL ) {
-        GList* first_element = g_list_first( self->prv->ncp_list );
-
-
-        if ( first_element != NULL && first_element->data != NULL )  {
-            self->prv->active_ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(first_element->data)));
-        }
-        
-    }
-
     self->prv->env_list = NULL;
     {
         nwam_error_t nerr;
@@ -542,18 +530,10 @@ nwamui_daemon_set_property ( GObject         *object,
 
                 ncp = NWAMUI_NCP(g_value_dup_object( value ));
 
-                /* TODO - I presume that keep the prev active ncp if failded */
-                /* FIXME: For demo, always set active_ncp! */
-                if (1 || nwamui_ncp_activate (ncp) ) {
-                    self->prv->active_ncp = ncp;
-                    
-                    g_signal_emit (self,
-                      nwamui_daemon_signals[ACTIVE_NCP_CHANGED],
-                      0, /* details */
-                      self->prv->active_ncp );
-                } else {
-                    /* TODO - We should tell user we are failed */
-                }
+                /* Assume that activating, will cause signal to say other was
+                 * deactivated too.
+                 */
+                nwamui_ncp_set_active(ncp, TRUE);
             }
             break;
         case PROP_STATUS: {
@@ -2632,6 +2612,10 @@ nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
     
     new_env = nwamui_env_new_with_handle (env);
         
+    if ( nwamui_env_is_active( new_env ) ) {
+        prv->active_env = NWAMUI_ENV(g_object_ref(new_env));
+    }
+
     prv->env_list = g_list_append(prv->env_list, (gpointer)new_env);
 
     return(0);
@@ -2658,17 +2642,22 @@ nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data)
 static int
 nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
 {
-    char *name;
-    nwam_error_t nerr;
-    NwamuiNcp* new_ncp;
+    char           *name;
+    nwam_error_t    nerr;
+    NwamuiNcp      *new_ncp;
     
     NwamuiDaemonPrivate *prv = NWAMUI_DAEMON(data)->prv;
 
     g_debug ("nwam_ncp_walker_cb 0x%p", ncp);
     
     new_ncp = nwamui_ncp_new_with_handle (ncp);
+
+    if ( nwamui_ncp_is_active( new_ncp ) ) {
+        prv->active_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
+    }
         
     prv->ncp_list = g_list_append(prv->ncp_list, (gpointer)new_ncp);
+
 
     return(0);
 }

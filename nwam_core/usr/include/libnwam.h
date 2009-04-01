@@ -210,7 +210,11 @@ typedef enum {
 #define	NWAM_STATE_DEGRADED_STRING	"degraded"
 #define	NWAM_STATE_DISABLED_STRING	"disabled"
 
-/* XXX finish aux state */
+/*
+ * In the future, aux state will be used to signify supplemental
+ * reasons why an object is in a particular state (e.g. "script failed",
+ * "disabled by administrator", "waiting for DHCP response").
+ */
 typedef enum {
 	NWAM_AUX_STATE_TO_DO
 } nwam_aux_state_t;
@@ -666,6 +670,9 @@ extern nwam_error_t nwam_ncu_commit(nwam_ncu_handle_t, uint64_t);
 extern nwam_error_t nwam_ncu_enable(nwam_ncu_handle_t);
 extern nwam_error_t nwam_ncu_disable(nwam_ncu_handle_t);
 
+/* Get state of NCU from nwamd */
+extern nwam_error_t nwam_ncu_get_state(nwam_ncu_handle_t, nwam_state_t *);
+
 /* Validate ncu content */
 extern nwam_error_t nwam_ncu_validate(nwam_ncu_handle_t, const char **);
 
@@ -706,6 +713,9 @@ extern nwam_error_t nwam_ncu_get_read_only(nwam_ncu_handle_t, boolean_t *);
 
 /* Get the read-only value for a particular NCU property */
 extern nwam_error_t nwam_ncu_prop_read_only(const char *, boolean_t *);
+
+/* Get whether the NCU has manual activation-mode or not */
+extern nwam_error_t nwam_ncu_is_manual(nwam_ncu_handle_t, boolean_t *);
 
 /* ENM functions */
 /*
@@ -895,7 +905,7 @@ extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
 #define	NWAM_EVENT_TYPE_WLAN_SCAN_REPORT	6
 #define	NWAM_EVENT_TYPE_WLAN_NEED_CHOICE	7
 #define	NWAM_EVENT_TYPE_WLAN_NEED_KEY		8
-#define	NWAM_EVENT_TYPE_WLAN_CONNECT_FAILED	9
+#define	NWAM_EVENT_TYPE_WLAN_CONNECTION_REPORT	9
 #define	NWAM_EVENT_TYPE_IF_ACTION		10
 #define	NWAM_EVENT_TYPE_IF_STATE		11
 #define	NWAM_EVENT_TYPE_LINK_ACTION		12
@@ -919,6 +929,7 @@ typedef struct {
 	char bssid[NWAM_MAX_NAME_LEN];
 	char signal_strength[NWAM_MAX_NAME_LEN];
 	uint32_t security_mode; /* a dladm_wlan_secmode_t */
+	uint32_t channel; /* a dladm_wlan_channel_t */
 } nwam_event_wlan_t;
 
 /*
@@ -973,11 +984,13 @@ struct nwam_event {
 		/*
 		 * wlan_info stores both scan results and the single
 		 * WLAN we require a key for in the case of _WLAN_NEED_KEY
-		 * events.  For _WLAN_CONNECT_FAILED events, it stores
-		 * the WLAN the connection failed to.
+		 * events.  For _WLAN_CONNECTION_REPORT events, it stores
+		 * the WLAN the connection succeeded/failed for, indicating
+		 * success/failure using the 'connected' boolean.
 		 */
 		struct {
 			char name[NWAM_MAX_NAME_LEN];
+			boolean_t connected;
 			uint16_t num_wlans;
 			nwam_event_wlan_t wlans[1];
 			/*
@@ -1012,12 +1025,16 @@ struct nwam_event {
 	} data;
 };
 
-typedef int (*nwam_event_callback_t)(nwam_event_t);
-
+/* NWAM client functions, used to register/unregister and receive events */
 extern nwam_error_t nwam_events_init(void);
 extern void nwam_events_fini(void);
 extern nwam_error_t nwam_event_wait(nwam_event_t *);
 extern void nwam_event_free(nwam_event_t);
+
+/*
+ * NWAM daemon functions, used to send, stop sending, initialize or finish
+ * event IPC.
+ */
 extern nwam_error_t nwam_event_send(nwam_event_t);
 extern void nwam_event_send_fini(void);
 extern nwam_error_t nwam_event_queue_init(const char *);

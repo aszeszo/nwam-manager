@@ -46,6 +46,7 @@ static NwamuiNcp       *instance        = NULL;
 enum {
     PROP_NWAM_NCP = 1,
     PROP_NAME,
+    PROP_ACTIVE,
     PROP_NCU_LIST,
     PROP_NCU_TREE_STORE,
     PROP_NCU_LIST_STORE,
@@ -135,6 +136,14 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
                                                           _("Name of the NCP"),
                                                           _("Name of the NCP"),
                                                           "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_ACTIVE,
+                                     g_param_spec_boolean("active",
+                                                         _("active"),
+                                                         _("active"),
+                                                          FALSE,
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -280,6 +289,26 @@ nwamui_ncp_set_property (   GObject         *object,
             }
             break;
 
+        case PROP_ACTIVE: {
+                /* Activate immediately */
+                nwam_state_t    state = NWAM_STATE_OFFLINE;
+
+                nwam_ncp_get_state( self->prv->nwam_ncp, &state );
+
+                gboolean active = g_value_get_boolean( value );
+                if ( state != NWAM_STATE_ONLINE && active ) {
+                    nwam_error_t nerr;
+                    if ( (nerr = nwam_ncp_enable (self->prv->nwam_ncp)) != NWAM_SUCCESS ) {
+                        g_warning("Failed to enable ncpation due to error: %s", nwam_strerror(nerr));
+                    }
+                }
+                else {
+                    g_warning("Cannot disable an NCP, enable another one to do this");
+                }
+            }
+            break;
+
+
         case PROP_ACTIVE_NCU: {
                 NwamuiNcu* ncu = NWAMUI_NCU( g_value_dup_object( value ) );
 
@@ -342,6 +371,19 @@ nwamui_ncp_get_property (   GObject         *object,
     switch (prop_id) {
         case PROP_NAME: {
                 g_value_set_string( value, self->prv->name );
+            }
+            break;
+        case PROP_ACTIVE: {
+                gboolean active = FALSE;
+                if ( self->prv->nwam_ncp ) {
+                    nwam_state_t    state = NWAM_STATE_OFFLINE;
+
+                    nwam_ncp_get_state( self->prv->nwam_ncp, &state );
+                    if ( state == NWAM_STATE_ONLINE ) {
+                        active = TRUE;
+                    }
+                }
+                g_value_set_boolean( value, active );
             }
             break;
         case PROP_ACTIVE_NCU: {
@@ -443,13 +485,6 @@ nwamui_ncp_get_nwam_handle( NwamuiNcp* self )
     return (self->prv->nwam_ncp);
 }
 
-extern  gboolean
-nwamui_ncp_activate ( NwamuiNcp *self ) 
-{
-    /* TODO: Activate and NCP */
-    g_error("nwamui_ncp_activate : not yet implemented");
-}
-
 /** 
  * nwamui_ncp_set_name:
  * @nwamui_ncp: a #NwamuiNcp.
@@ -488,6 +523,43 @@ nwamui_ncp_get_name ( NwamuiNcp *self )
                   NULL);
 
     return( name );
+}
+
+/**
+ * nwamui_ncp_is_active:
+ * @nwamui_ncp: a #NwamuiNcp.
+ * @returns: TRUE if the ncp is online.
+ *
+ **/
+extern gboolean
+nwamui_ncp_is_active( NwamuiNcp* self )
+{
+    gboolean is_active = FALSE;
+
+    g_return_val_if_fail( NWAMUI_IS_NCP(self), is_active );
+
+    g_object_get (G_OBJECT (self),
+                  "active", &is_active,
+                  NULL);
+
+    return( is_active );
+}
+
+/** 
+ * nwamui_ncp_set_active:
+ * @nwamui_ncp: a #NwamuiEnv.
+ * @active: Immediately activates/deactivates the ncp.
+ * 
+ **/ 
+extern void
+nwamui_ncp_set_active (   NwamuiNcp *self,
+                          gboolean        active )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+
+    g_object_set (G_OBJECT (self),
+                  "active", active,
+                  NULL);
 }
 
 /**

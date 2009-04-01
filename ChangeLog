@@ -1,3 +1,30 @@
+2009-04-01  Darren Kenny  <darren.kenny@sun.com>
+
+	* nwam_core/usr/include/libdladm.h, nwam_core/usr/include/libnwam.h,
+	  nwam_core/usr/include/sys/dld.h, nwam_core/usr/include/sys/dlpi.h,
+	  nwam_core/usr/include/sys/mac.h:
+	  Update headers to latest from NWAM repo.
+	* capplet/nwam_env_pref_dialog.c: 
+	  Clean up code a little and remove some warnings.
+	* common/nwamui_daemon.c: 
+	  Gather active state of objects from their active property.
+	* common/nwamui_enm.c: 
+	  Determine active state from NWAM.
+	* common/nwamui_env.c, common/nwamui_env.h:
+	  Get active state from NWAM, and use enable/disable functions to
+	  immediately activate/deactivate the obj when setting the active
+	  property.
+	* common/nwamui_ncu.c, common/nwamui_ncu.h:
+	  Get active state from NWAM, and use enable/disable functions to
+	  immediately activate/deactivate the obj when setting the active
+	  property.
+	* common/nwamui_ncp.c, common/nwamui_ncp.h:
+	  Get active state from NWAM, and use enable function to immediately
+	  activate the obj when setting the active property.
+	* tests/main.c: 
+	  Update to print the active state, and also handle NCU correctly when
+	  printing conditions (since it doesn't have any).
+
 2009-03-31  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/libnwamui.c (marshal_VOID__OBJECT_POINTER):

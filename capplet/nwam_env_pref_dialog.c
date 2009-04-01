@@ -116,17 +116,6 @@
 #define TREEVIEW_COLUMN_NUM             "meta:column"
 
 enum {
-    NWAMUI_NETSERVICE_AUTOMATIC = 0,
-    NWAMUI_NETSERVICE_MANUAL,
-    NWAMUI_NETSERVICE_LAST
-};
-
-static const gchar *combo_contents[NWAMUI_NETSERVICE_LAST] = {
-    N_("Automatic"),
-    N_("Manual"),
-};
-
-enum {
     PROXY_MANUAL_PAGE = 0, 
     PROXY_PAC_PAGE 
 };
@@ -293,14 +282,6 @@ static void nameservices_status_cb (GtkTreeViewColumn *tree_column,
                                    GtkTreeModel *tree_model,
                                    GtkTreeIter *iter,
                                    gpointer data);
-
-static void combo_cell_strings_value(GtkCellLayout *cell_layout,
-  GtkCellRenderer   *renderer,
-  GtkTreeModel      *model,
-  GtkTreeIter       *iter,
-  gpointer           data);
-
-static void combo_changed_strings_value(GtkComboBox* combo, gpointer user_data);
 
 static void on_button_toggled(GtkToggleButton *button, gpointer user_data);
 
@@ -1550,42 +1531,6 @@ help(NwamPrefIFace *iface, gpointer user_data)
 }
 
 static void
-combo_cell_strings_value(GtkCellLayout *cell_layout,
-    GtkCellRenderer   *renderer,
-    GtkTreeModel      *model,
-    GtkTreeIter       *iter,
-    gpointer           data)
-{
-    gint row_data;
-	gtk_tree_model_get(model, iter, 0, &row_data, -1);
-    g_object_set(G_OBJECT(renderer), "text", combo_contents[row_data], NULL);
-}
-
-static void 
-combo_changed_strings_value(GtkComboBox* combo, gpointer user_data)
-{
-	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(user_data);
-	GtkTreeIter iter;
-    gboolean manual = FALSE;
-
-	if (gtk_combo_box_get_active_iter(combo, &iter)) {
-        gint row_data;
-		gtk_tree_model_get(gtk_combo_box_get_model(combo), &iter, 0, &row_data, -1);
-		switch (row_data) {
-        case NWAMUI_NETSERVICE_AUTOMATIC:
-            manual = FALSE;
-            break;
-        case NWAMUI_NETSERVICE_MANUAL:
-            manual = TRUE;
-            break;
-        default:
-            break;
-        }
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_file_btn), manual);
-	}
-}
-
-static void
 on_button_toggled(GtkToggleButton *button, gpointer user_data)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(user_data);
@@ -1785,7 +1730,7 @@ fmri_dialog_response_cb( GtkWidget* widget, gint repsonseid, gpointer data )
         break;
     case GTK_RESPONSE_APPLY:
     case GTK_RESPONSE_OK: {
-        gchar *svc;
+        const gchar *svc;
         gchar *svc_name;
 
         svc = gtk_entry_get_text(prv->smf_fmri_entry);
@@ -1805,7 +1750,7 @@ fmri_dialog_response_cb( GtkWidget* widget, gint repsonseid, gpointer data )
                 break;
             }
         }
-        nwamui_util_show_message(widget,
+        nwamui_util_show_message(GTK_WINDOW(widget),
           GTK_MESSAGE_ERROR,
           _("Invalid Service FMRI"), 
           _("Either the service FMRI you entered was not in a valid\nformat, or the service does not exist. Please try again"));

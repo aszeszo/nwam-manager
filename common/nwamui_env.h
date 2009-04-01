@@ -89,8 +89,8 @@ typedef enum {
 } nwamui_env_nameservices_t;
 
 typedef enum {
-    NWAMUI_ENV_CONFIG_SOURCE_MANUAL,
-    NWAMUI_ENV_CONFIG_SOURCE_DHCP,
+    NWAMUI_ENV_CONFIG_SOURCE_MANUAL = NWAM_CONFIGSRC_MANUAL,
+    NWAMUI_ENV_CONFIG_SOURCE_DHCP   = NWAM_CONFIGSRC_DHCP,
     NWAMUI_ENV_CONFIG_SOURCE_LAST
 } nwamui_env_config_source_t;
 

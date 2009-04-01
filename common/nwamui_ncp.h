@@ -77,9 +77,11 @@ extern  NwamuiNcp*              nwamui_ncp_new_with_handle (nwam_ncp_handle_t nc
 
 extern nwam_ncp_handle_t        nwamui_ncp_get_nwam_handle( NwamuiNcp* self );
 
-extern  gboolean                nwamui_ncp_activate ( NwamuiNcp *self );
+extern gchar*                   nwamui_ncp_get_name ( NwamuiNcp *self );
 
-extern  gchar*                  nwamui_ncp_get_name ( NwamuiNcp *self );
+extern void                     nwamui_ncp_set_active ( NwamuiNcp *self, gboolean active );
+
+extern gboolean                 nwamui_ncp_is_active( NwamuiNcp* self );
 
 extern gboolean                 nwamui_ncp_is_modifiable( NwamuiNcp *self);
 

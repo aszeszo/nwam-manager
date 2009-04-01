@@ -186,7 +186,7 @@ print_conditions( GObject* obj )
     if ( NWAMUI_IS_NCU(obj) ) {
         obj_name = "NwamuiNcu";
         activation_mode = nwamui_ncu_get_activation_mode( NWAMUI_NCU(obj) );
-        cond_list = nwamui_ncu_get_selection_conditions( NWAMUI_NCU(obj) );
+        cond_list = NULL; /* Don't have conditions for NCU */
     }
     else if ( NWAMUI_IS_ENV(obj) ) {
         obj_name = "NwamuiEnv";
@@ -320,8 +320,6 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     printf("%-*sNcu ipv6_address = %s\n", indent, "", ipv6_address?ipv6_address:"NULL" );
     printf("%-*sNcu ipv6_prefix = %s\n", indent, "", ipv6_prefix?ipv6_prefix:"NULL" );
 
-    print_conditions( G_OBJECT(ncu) );
-
     indent -= 4;
 
     if ( vname != NULL )
@@ -351,10 +349,11 @@ process_ncp( gpointer data, gpointer user_data )
     NwamuiNcp       *ncp = NWAMUI_NCP(data);
     
     if ( ncp != NULL ) {
-        gchar * name = nwamui_ncp_get_name( ncp );
+        gchar      *name = nwamui_ncp_get_name( ncp );
+        gboolean    active = nwamui_ncp_is_active( ncp );
 
         printf("%-*s-------------------------------------------------------------\n", indent, "");
-        printf("%-*sProcessing ncp : %s\n", indent, "", name );
+        printf("%-*sProcessing ncp : %s (%s)\n", indent, "", name, active?"ACTIVE":"inactive" );
         printf("%-*s-------------------------------------------------------------\n", indent, "");
 
         indent +=4;
@@ -410,6 +409,7 @@ process_env( gpointer data, gpointer user_data )
     nwamui_cond_activation_mode_t
                 activation_mode  =  nwamui_env_get_activation_mode ( env );
     GList*      conditions  =  nwamui_env_get_conditions ( env );
+    gboolean    active  =  nwamui_env_is_active ( env );
     gboolean    enabled  =  nwamui_env_get_enabled ( env );
     GList*      nameservices  =  nwamui_env_get_nameservices ( env );
     gchar*      nameservices_config_file  =  nwamui_env_get_nameservices_config_file ( env );
@@ -441,6 +441,7 @@ process_env( gpointer data, gpointer user_data )
     printf("%-*s*************************************************************\n", indent, "");
     indent += 4;
     printf("%-*sEnv name = %s\n", indent, "", name?name:"NULL" );
+    printf("%-*sEnv active  = %s\n", indent, "", active ?"TRUE":"FALSE" );
     printf("%-*sEnv enabled  = %s\n", indent, "", enabled ?"TRUE":"FALSE" );
     print_ns_list_and_free( "Env", "nameservices", nameservices );
     printf("%-*sEnv nameservices_config_file  = %s\n", indent, "", nameservices_config_file ?nameservices_config_file :"NULL" );
