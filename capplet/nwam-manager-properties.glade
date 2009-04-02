@@ -4,7 +4,7 @@
 <glade-interface>
   <widget class="GtkDialog" id="nwam_capplet">
     <property name="title" translatable="yes">Network Preferences</property>
-    <property name="icon">network-idle.png</property>
+    <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
@@ -1811,7 +1811,7 @@ Do not connect
   </widget>
   <widget class="GtkDialog" id="nwam_location_properties">
     <property name="title" translatable="yes">Location Properties : %s</property>
-    <property name="icon">network-idle.png</property>
+    <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
@@ -3419,7 +3419,7 @@ Disable these services when this location is active:</property>
   <widget class="GtkDialog" id="add_wireless_network">
     <property name="title" translatable="yes">Add Wireless Network</property>
     <property name="resizable">False</property>
-    <property name="icon">network-idle.png</property>
+    <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
     <property name="skip_taskbar_hint">True</property>
     <property name="has_separator">False</property>
@@ -3899,7 +3899,7 @@ PEAP/MSCHAPv2</property>
   </widget>
   <widget class="GtkDialog" id="connect_wireless_network">
     <property name="title" translatable="yes">Connect to Wireless Network</property>
-    <property name="icon">network-idle.png</property>
+    <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
@@ -4025,7 +4025,7 @@ PEAP/MSCHAPv2</property>
   </widget>
   <widget class="GtkDialog" id="vpn_config">
     <property name="title" translatable="yes">VPN Applications</property>
-    <property name="icon">network-idle.png</property>
+    <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
@@ -4819,7 +4819,7 @@ Enter username and password for http://$HOST:$PORT
     <property name="title" translatable="yes">Location Properties : &lt;location name&gt;</property>
     <property name="modal">True</property>
     <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
-    <property name="icon">network-idle.png</property>
+    <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
     <property name="skip_taskbar_hint">True</property>
     <property name="transient_for">nwam_location_properties</property>
@@ -4946,7 +4946,7 @@ Enter username and password for http://$HOST:$PORT
     <property name="border_width">5</property>
     <property name="title" translatable="yes">Network Locations</property>
     <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
-    <property name="icon">network-idle.png</property>
+    <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
@@ -5181,7 +5181,7 @@ activated by system</property>
     <property name="border_width">5</property>
     <property name="title" translatable="yes">SMF Service</property>
     <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
-    <property name="icon">network-idle.png</property>
+    <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_NORMAL</property>
     <property name="skip_taskbar_hint">True</property>
     <property name="transient_for">nwam_location_properties</property>
@@ -5285,7 +5285,7 @@ system/system-log:default
     <property name="border_width">5</property>
     <property name="modal">True</property>
     <property name="window_position">GTK_WIN_POS_CENTER_ON_PARENT</property>
-    <property name="icon">network-idle.png</property>
+    <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">GDK_WINDOW_TYPE_HINT_DIALOG</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">

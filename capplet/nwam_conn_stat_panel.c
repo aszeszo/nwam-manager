@@ -373,39 +373,58 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 				 GtkTreeIter       *iter,
 				 gpointer           data)
 {
-    gint                    cell_num = (gint)data;  /* Number of cell in column */
-	gchar                  *stockid = NULL;
-    NwamuiNcu*              ncu = NULL;
-    nwamui_ncu_type_t       ncu_type;
-    gchar*                  ncu_text = NULL;
-    gchar*                  ncu_markup = NULL;
-    gboolean                ncu_status;
-    gboolean                ncu_is_dhcp;
-    gchar*                  ncu_ipv4_addr = NULL;
-    GdkPixbuf              *status_icon;
-    gchar*                  info_string = NULL;
+    gint                            cell_num = (gint)data;  /* Number of cell in column */
+	gchar                          *stockid = NULL;
+    NwamuiNcu*                      ncu = NULL;
+    nwamui_ncu_type_t               ncu_type;
+    gchar*                          ncu_text = NULL;
+    gchar*                          ncu_markup = NULL;
+    gboolean                        ncu_status;
+    gboolean                        ncu_is_dhcp;
+    gchar*                          ncu_ipv4_addr = NULL;
+    GdkPixbuf                      *status_icon;
+    gchar*                          info_string = NULL;
+    nwamui_wifi_signal_strength_t   strength = NWAMUI_WIFI_STRENGTH_NONE;
+    gint                            icon_size, dummy;
+
+    if ( !gtk_icon_size_lookup(GTK_ICON_SIZE_LARGE_TOOLBAR, &icon_size, &dummy) ) {
+        icon_size=24;
+    }
 
 	gtk_tree_model_get(model, iter, 0, &ncu, -1);
 
     ncu_type = nwamui_ncu_get_ncu_type(ncu);
-    ncu_status = nwamui_ncu_get_active(ncu);
+
+    /* Get REAL interface status rather than what NWAM says */
+    switch( nwamui_ncu_get_connection_state( ncu ) ) {
+        case NWAMUI_STATE_CONNECTED:
+        case NWAMUI_STATE_CONNECTED_ESSID: 
+            ncu_status = TRUE;
+            break;
+        default:
+            ncu_status = FALSE;
+            break;
+    }
         
 	switch (gtk_tree_view_column_get_sort_column_id (col)) {
 	case CONNVIEW_ICON:
-        if ( cell_num == 0 ) {
-            status_icon = nwamui_util_get_ncu_status_icon( ncu );
+        if( cell_num == 0 && ncu_type != NWAMUI_NCU_TYPE_WIRELESS ) {
+            status_icon = nwamui_util_get_network_status_icon(ncu_type, strength, 
+                    ncu_status?NWAMUI_ENV_STATUS_CONNECTED : NWAMUI_ENV_STATUS_ERROR,
+                    icon_size);
+
             g_object_set (G_OBJECT(renderer),
               "pixbuf", status_icon,
               NULL);
-            g_object_unref(G_OBJECT(status_icon));
         }
-        else if( cell_num > 0 && ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-            status_icon = nwamui_util_get_wireless_strength_icon( 
-                nwamui_ncu_get_wifi_signal_strength(ncu), FALSE );
+        else if( cell_num == 0 && ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+            status_icon = nwamui_util_get_network_status_icon(ncu_type, strength, 
+                    ncu_status?NWAMUI_ENV_STATUS_CONNECTED : NWAMUI_ENV_STATUS_ERROR,
+                    icon_size);
+
             g_object_set (G_OBJECT(renderer),
               "pixbuf", status_icon,
               NULL);
-            g_object_unref(G_OBJECT(status_icon));
         }
         else {
             g_object_set (G_OBJECT(renderer),

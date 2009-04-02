@@ -25,12 +25,16 @@ install-data-local:
 	@-if test -z "$(DESTDIR)"; then \
 		echo "Updating Gtk icon cache."; \
 		$(gtk_update_icon_cache); \
+		$(gtk_update_hicolor_icon_cache); \
 	else \
 		echo "*** Icon cache not updated.  After install, run this:"; \
 		echo "***   $(gtk_update_icon_cache)"; \
+		echo "***   $(gtk_update_hicolor_icon_cache)"; \
 	fi
 
-gtk_update_icon_cache = /usr/bin/gtk-update-icon-cache -f -t $(icondir)
+gtk_update_icon_cache = /usr/bin/gtk-update-icon-cache -f -t $(icondir) 
+gtk_update_hicolor_icon_cache = /usr/bin/gtk-update-icon-cache -f -t $(datadir)/icons/hicolor
+						
 
 icondir   = $(datadir)/$(PACKAGE)/icons
 

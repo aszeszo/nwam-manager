@@ -1,3 +1,18 @@
+2009-04-02  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	  Fix icon reference.
+	* capplet/nwam_conn_stat_panel.c:
+	  Make it look more like it should - only one icon, and use real
+	  system connection status rather than NWAM's apparent one (which says
+	  on-line when it's not).
+	* common/libnwamui.c: 
+	  Remove code that was making all ncu_types be wireless causing an
+	  incorrect icon to be generated for wireless icons, if wired was seen
+	  first.
+	* pixmaps/Makefile.am:
+	  Add call to update icon cache for hicolor theme too.
+
 2009-04-01  Darren Kenny  <darren.kenny@sun.com>
 
 	* nwam_core/usr/include/libdladm.h, nwam_core/usr/include/libnwam.h,

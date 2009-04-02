@@ -505,7 +505,6 @@ nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
             temp_icon = get_pixbuf_with_size(NWAM_ICON_NETWORK_WIRED, size);
             inf_icon = gdk_pixbuf_copy(temp_icon);
             g_object_unref(temp_icon);
-            ncu_type = NWAMUI_NCU_TYPE_WIRELESS;
         }
             break;
         case NWAMUI_NCU_TYPE_WIRELESS:
