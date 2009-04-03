@@ -248,6 +248,10 @@ extern gboolean                 nwamui_util_set_entry_smf_fmri_completion( GtkEn
 
 extern void                     nwamui_util_window_title_append_hostname( GtkDialog* dialog );
 
+extern GList*                   nwamui_util_parse_string_to_glist( const gchar* str );
+
+extern gchar*                   nwamui_util_glist_to_comma_string( GList* list );
+
 G_END_DECLS
 
 #endif	/* _libnwamui_H */

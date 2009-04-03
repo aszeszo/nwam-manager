@@ -1,3 +1,13 @@
+2009-04-03  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/libnwamui.h:
+	  Add functions in .c file but not in header to handle conversion
+	  between GList of str and comma separated list, and vice versa.
+	* capplet/nwam_env_pref_dialog.c: 
+	  Make the Name Services Tab work...
+	* common/nwamui_env.h:
+	  Fix issue where nameservices were out of sync with libnwam.
+
 2009-04-02  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.glade:
