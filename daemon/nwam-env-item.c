@@ -55,6 +55,7 @@ enum {
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
 static GObject* get_proxy(NwamObjProxyIFace *iface);
+static void refresh(NwamObjProxyIFace *iface);
 
 static void nwam_env_item_set_property (GObject         *object,
   guint            prop_id,
@@ -85,6 +86,7 @@ static void
 nwam_obj_proxy_init(NwamObjProxyInterface *iface)
 {
     iface->get_proxy = get_proxy;
+    iface->refresh = refresh;
     iface->delete_notify = NULL;
 }
 
@@ -200,7 +202,7 @@ nwam_env_item_set_property (GObject         *object,
             connect_env_net_signals(self, prv->env);
 
             /* initializing */
-            on_nwam_env_notify(G_OBJECT(prv->env), NULL, (gpointer)self);
+            nwam_obj_proxy_refresh(NWAM_OBJ_PROXY_IFACE(self));
         }
         break;
 	default:
@@ -333,6 +335,15 @@ get_proxy(NwamObjProxyIFace *iface)
 {
     NwamEnvItemPrivate *prv = GET_PRIVATE(iface);
     return G_OBJECT(prv->env);
+}
+
+static void
+refresh(NwamObjProxyIFace *iface)
+{
+    NwamEnvItem *self = NWAM_ENV_ITEM(iface);
+    NwamEnvItemPrivate *prv = GET_PRIVATE(iface);
+
+    on_nwam_env_notify(G_OBJECT(prv->env), NULL, (gpointer)self);
 }
 
 NwamuiEnv *

@@ -85,6 +85,16 @@ nwam_obj_proxy_get_proxy(NwamObjProxyIFace *self)
 }
 
 extern void
+nwam_obj_proxy_refresh(NwamObjProxyIFace *self)
+{
+    NwamObjProxyInterface *iface = NWAM_GET_OBJ_PROXY_INTERFACE(self);
+
+    g_return_if_fail(self != NULL);
+
+    iface->refresh(self);
+}
+
+extern void
 nwam_obj_proxy_delete_notify(NwamObjProxyIFace *self)
 {
     NwamObjProxyInterface *iface = NWAM_GET_OBJ_PROXY_INTERFACE(self);

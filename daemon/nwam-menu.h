@@ -144,6 +144,8 @@ extern void nwam_menu_section_set_right(NwamMenu *self, gint sec_id, GtkWidget *
 extern void nwam_menu_section_set_visible(NwamMenu *self, gint sec_id, gboolean visible);
 extern void nwam_menu_section_sort(NwamMenu *self, gint sec_id);
 extern void nwam_menu_section_delete(NwamMenu *self, gint sec_id);
+extern void nwam_menu_section_foreach(NwamMenu *self, gint sec_id, GFunc func, gpointer user_data);
+
 extern GtkWidget *nwam_menu_section_get_item_by_proxy(NwamMenu *self, gint sec_id, GObject* proxy);
 
 G_END_DECLS

@@ -54,6 +54,7 @@ enum {
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
 static GObject* get_proxy(NwamObjProxyIFace *iface);
+static void refresh(NwamObjProxyIFace *iface);
 
 static void nwam_wifi_item_set_property (GObject         *object,
   guint            prop_id,
@@ -84,6 +85,7 @@ static void
 nwam_obj_proxy_init(NwamObjProxyInterface *iface)
 {
     iface->get_proxy = get_proxy;
+    iface->refresh = refresh;
     iface->delete_notify = NULL;
 }
 
@@ -196,7 +198,7 @@ nwam_wifi_item_set_property (GObject         *object,
             connect_wifi_net_signals(self, prv->wifi);
 
             /* initializing */
-            wifi_net_notify(G_OBJECT(prv->wifi), NULL, (gpointer)self);
+            nwam_obj_proxy_refresh(NWAM_OBJ_PROXY_IFACE(self));
         }
         break;
 	default:
@@ -239,7 +241,7 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
      * wifi_net_notify to update self? */
     g_signal_handler_block(self, prv->toggled_handler_id);
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE);
-    g_signal_handler_block(self, prv->toggled_handler_id);
+    g_signal_handler_unblock(self, prv->toggled_handler_id);
 
 /*     g_debug("******** toggled %s ***** status %s ***** wifi 0x%p ****", */
 /*       gtk_action_get_name(item), */
@@ -279,6 +281,15 @@ get_proxy(NwamObjProxyIFace *iface)
 {
     NwamWifiItemPrivate *prv = GET_PRIVATE(iface);
     return G_OBJECT(prv->wifi);
+}
+
+static void
+refresh(NwamObjProxyIFace *iface)
+{
+    NwamWifiItem *self = NWAM_WIFI_ITEM(iface);
+    NwamWifiItemPrivate *prv = GET_PRIVATE(iface);
+
+    wifi_net_notify(G_OBJECT(prv->wifi), NULL, (gpointer)self);
 }
 
 NwamuiWifiNet *

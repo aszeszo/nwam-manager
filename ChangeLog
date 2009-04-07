@@ -1,3 +1,32 @@
+2009-04-07  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/nwam-obj-proxy-iface.c (nwam_obj_proxy_refresh):
+	* daemon/nwam-obj-proxy-iface.h:
+	Added a new interface for refreshing menuitem by nwamui object.
+	* daemon/nwam-enm-item.c (nwam_obj_proxy_init),
+	(nwam_enm_item_set_property), (refresh):
+	* daemon/nwam-env-item.c (nwam_obj_proxy_init),
+	(nwam_env_item_set_property), (refresh):
+	* daemon/nwam-ncu-item.c (nwam_obj_proxy_init),
+	(nwam_ncu_item_set_property), (refresh):
+	* daemon/nwam-wifi-item.c (nwam_obj_proxy_init),
+	(nwam_wifi_item_set_property), (on_nwam_wifi_toggled), (refresh):
+	Update nwam menu item according to the new interface. Fixed a nit of
+	nwam-wifi-item around block/unblock 'toggled' signal.
+	* daemon/nwam-menu.c (nwam_menu_section_set_visible),
+	(nwam_menu_section_foreach):
+	* daemon/nwam-menu.h:
+	New function for foreach menuitem section.
+	* daemon/status_icon.c (daemon_status_changed),
+	(nwam_menu_create_wifi_menuitems), (daemon_active_ncp_changed),
+	(connect_nwam_object_signals), (nwam_status_icon_run),
+	(on_ncp_notify), (on_ncp_notify_many_wireless),
+	(nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_create_static_menuitems), (nwam_menu_get_section_index):
+	Fixed refresh wifi menu items according to ncp 'many_wireless' signal.
+	Add a menuitem for no ncu case. Disable nwam menu when daemon is
+	inactive.
+
 2009-04-03  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/libnwamui.h:

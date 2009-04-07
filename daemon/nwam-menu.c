@@ -604,7 +604,6 @@ nwam_menu_section_set_visible(NwamMenu *self, gint sec_id, gboolean visible)
     GtkWidget *menu = menu_section_get_menu_widget(&prvsection[sec_id]);
     GtkWidget *lw = menu_section_get_left_widget(&prvsection[sec_id]);
     GtkWidget *rw = menu_section_get_right_widget(&prvsection[sec_id]);
-    GList *sorted, *i;
     void (*func)(GtkWidget*);
 
     if (visible)
@@ -612,15 +611,8 @@ nwam_menu_section_set_visible(NwamMenu *self, gint sec_id, gboolean visible)
     else
         func = gtk_widget_hide;
 
-    /* Sorting */
-    menu_section_get_children(&prvsection[sec_id], &sorted, NULL);
+    nwam_menu_section_foreach(self, sec_id, (GFunc)func, NULL);
 
-    if (sorted) {
-        for (i = sorted; i; i = g_list_next(i)) {
-                func(GTK_WIDGET(i->data));
-        }
-        g_list_free(sorted);
-    }
     if (lw)
         func(lw);
     if (rw)
@@ -670,6 +662,24 @@ nwam_menu_section_delete(NwamMenu *self, gint sec_id)
     while (children) {
         REMOVE_MENU_ITEM(menu, children->data);
         children = g_list_delete_link(children, children);
+    }
+}
+
+void
+nwam_menu_section_foreach(NwamMenu *self, gint sec_id, GFunc func, gpointer user_data)
+{
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GtkWidget *menu = menu_section_get_menu_widget(&prvsection[sec_id]);
+    GList *children;
+
+    if (func) {
+        /* Sorting */
+        menu_section_get_children(&prvsection[sec_id], &children, NULL);
+
+        while (children) {
+            func(children->data, user_data);
+            children = g_list_delete_link(children, children);
+        }
     }
 }
 

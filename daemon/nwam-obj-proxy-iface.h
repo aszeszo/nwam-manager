@@ -46,12 +46,14 @@ struct _NwamObjProxyInterface {
 	GTypeInterface parent;
 
 	GObject* (*get_proxy) (NwamObjProxyIFace *self);
+	void (*refresh) (NwamObjProxyIFace *self);
 	void (*delete_notify) (NwamObjProxyIFace *self);
 };
 
 extern GType nwam_obj_proxy_iface_get_type (void) G_GNUC_CONST;
 
 extern GObject* nwam_obj_proxy_get_proxy(NwamObjProxyIFace *self);
+extern void nwam_obj_proxy_refresh(NwamObjProxyIFace *self);
 extern void nwam_obj_proxy_delete_notify(NwamObjProxyIFace *self);
 
 G_END_DECLS
