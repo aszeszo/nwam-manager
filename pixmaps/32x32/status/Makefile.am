@@ -31,7 +31,13 @@ icon_DATA =  \
 	network-wireless-25-49.png	\
 	network-wireless-50-74.png	\
 	network-wireless-75-100.png	\
-	network-wireless-nosignal.png
+	network-wireless-nosignal.png	\
+	activation-mode-conditional.png	\
+	activation-mode-manual.png	\
+	activation-mode-system.png	\
+	priority-group-1.png	\
+	priority-group-2.png	\
+	priority-group-3.png
 
 
 EXTRA_DIST = $(icon_DATA)

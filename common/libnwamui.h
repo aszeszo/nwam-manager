@@ -133,6 +133,17 @@ typedef guint64 libnwam_diag_cause_t;
 #define  NWAM_ICON_NETWORK_SECURE           "network-secure"
 #define  NWAM_ICON_NETWORK_INSECURE         "network-insecure"
 
+/* Condition icons */
+#define  NWAM_ICON_COND_ACT_MODE_SYSTEM      "activation-mode-system"
+#define  NWAM_ICON_COND_ACT_MODE_MANUAL      "activation-mode-manual"
+#define  NWAM_ICON_COND_ACT_MODE_PRIORITIZED GTK_STOCK_YES
+#define  NWAM_ICON_COND_ACT_MODE_CONDITIONAL_ALL "activation-mode-conditional"
+#define  NWAM_ICON_COND_ACT_MODE_CONDITIONAL_ANY "activation-mode-conditional"
+
+#define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_EXCLUSIVE  "priority-group-1"
+#define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_SHARED     "priority-group-2"
+#define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_ALL        "priority-group-3"
+
 /* TODO test icons */
 #define  NWAM_ICON_NCU_STATUS_ENABLED       GTK_STOCK_YES
 #define  NWAM_ICON_NCU_STATUS_DISABLED      GTK_STOCK_NO

@@ -27,6 +27,12 @@ icon_DATA =  \
 	network-wired-warning.png \
 	network-wireless-connected.png \
 	network-wireless-error.png \
-	network-wireless-warning.png
+	network-wireless-warning.png	\
+	activation-mode-conditional.png	\
+	activation-mode-manual.png	\
+	activation-mode-system.png	\
+	priority-group-1.png	\
+	priority-group-2.png	\
+	priority-group-3.png
 
 EXTRA_DIST = $(icon_DATA)

@@ -1,3 +1,30 @@
+2009-04-16  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/libnwamui.c (nwamui_util_get_ncu_group_icon),
+	(nwamui_util_get_active_mode_icon):
+	* common/libnwamui.h:
+	* pixmaps/16x16/status/Makefile.am:
+	* pixmaps/16x16/status/activation-mode-conditional.png:
+	* pixmaps/16x16/status/activation-mode-manual.png:
+	* pixmaps/16x16/status/activation-mode-system.png:
+	* pixmaps/16x16/status/priority-group-1.png:
+	* pixmaps/16x16/status/priority-group-2.png:
+	* pixmaps/16x16/status/priority-group-3.png:
+	* pixmaps/32x32/status/Makefile.am:
+	* pixmaps/32x32/status/activation-mode-conditional.png:
+	* pixmaps/32x32/status/activation-mode-manual.png:
+	* pixmaps/32x32/status/activation-mode-system.png:
+	* pixmaps/32x32/status/priority-group-1.png:
+	* pixmaps/32x32/status/priority-group-2.png:
+	* pixmaps/32x32/status/priority-group-3.png:
+	* pixmaps/48x48/status/Makefile.am:
+	* pixmaps/48x48/status/activation-mode-conditional.png:
+	* pixmaps/48x48/status/activation-mode-manual.png:
+	* pixmaps/48x48/status/activation-mode-system.png:
+	* pixmaps/48x48/status/priority-group-1.png:
+	* pixmaps/48x48/status/priority-group-2.png:
+	* pixmaps/48x48/status/priority-group-3.png: Use new icons.
+
 2009-04-07  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/nwam-obj-proxy-iface.c (nwam_obj_proxy_refresh):

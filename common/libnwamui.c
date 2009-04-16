@@ -555,11 +555,11 @@ nwamui_util_get_ncu_group_icon( NwamuiNcu* ncu  )
 {
     switch (nwamui_ncu_get_priority_group_mode(ncu)) {
     case NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE:
-        return GTK_STOCK_YES;
+        return NWAM_ICON_COND_PRIORITY_GROUP_MODE_EXCLUSIVE;
     case NWAMUI_COND_PRIORITY_GROUP_MODE_SHARED:
-        return GTK_STOCK_NO;
+        return NWAM_ICON_COND_PRIORITY_GROUP_MODE_SHARED;
     case NWAMUI_COND_PRIORITY_GROUP_MODE_ALL:
-        return GTK_STOCK_STOP;
+        return NWAM_ICON_COND_PRIORITY_GROUP_MODE_ALL;
     default:
         g_assert_not_reached();
         return NULL;
@@ -571,15 +571,15 @@ nwamui_util_get_active_mode_icon( NwamuiObject *object  )
 {
     switch (nwamui_object_get_activation_mode(object)) {
     case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-        return GTK_STOCK_GO_FORWARD;
+        return NWAM_ICON_COND_ACT_MODE_MANUAL;
     case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
-        return GTK_STOCK_GO_BACK;
+        return NWAM_ICON_COND_ACT_MODE_SYSTEM;
     case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
-        return GTK_STOCK_GO_UP;
+        return NWAM_ICON_COND_ACT_MODE_PRIORITIZED;
     case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
-        return GTK_STOCK_GO_DOWN;
+        return NWAM_ICON_COND_ACT_MODE_CONDITIONAL_ANY;
     case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
-        return GTK_STOCK_GO_DOWN;
+        return NWAM_ICON_COND_ACT_MODE_CONDITIONAL_ALL;
     default:
         g_assert_not_reached();
         break;
