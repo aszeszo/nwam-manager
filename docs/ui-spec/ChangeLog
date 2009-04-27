@@ -1,3 +1,12 @@
+2009-04-27  Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+	* img/capplet/locations-new.png
+	* img/capplet/vpn-dlg-adding.png
+
+	Incorporate final activation state icons from Bruce.
+
 2009-04-06  Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
