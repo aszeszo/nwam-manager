@@ -163,8 +163,10 @@ extern void                 nwamui_env_set_ldap_nameservice_servers ( NwamuiEnv 
 extern GList*               nwamui_env_get_ldap_nameservice_servers ( NwamuiEnv *self );
 
 
+#ifndef _DISABLE_HOSTS_FILE
 extern void                 nwamui_env_set_hosts_file ( NwamuiEnv *self, const gchar* hosts_file );
 extern gchar*               nwamui_env_get_hosts_file ( NwamuiEnv *self );
+#endif /* _DISABLE_HOSTS_FILE */
 
 
 extern void                 nwamui_env_set_nfsv4_domain ( NwamuiEnv *self, const gchar* nfsv4_domain );

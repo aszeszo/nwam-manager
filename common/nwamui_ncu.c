@@ -1099,7 +1099,8 @@ populate_iptun_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 static void
 populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 {
-    nwam_ip_version_t   ip_version;
+    nwam_ip_version_t  *ip_version = NULL;
+    guint               ip_version_num = NULL;
     guint               ipv4_addrsrc_num = 0;
     nwam_addrsrc_t*     ipv4_addrsrc = NULL;
     gchar**             ipv4_addr = NULL;
@@ -1107,85 +1108,89 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     nwam_addrsrc_t*     ipv6_addrsrc =  NULL;
     gchar**             ipv6_addr = NULL;
     
-    ip_version = (nwam_ip_version_t)get_nwam_ncu_uint64_prop(nwam_ncu, NWAM_NCU_PROP_IP_VERSION );
+    ip_version = (nwam_ip_version_t*)get_nwam_ncu_uint64_array_prop( nwam_ncu, 
+                                                                     NWAM_NCU_PROP_IP_VERSION, 
+                                                                     &ip_version_num );
 
     g_object_freeze_notify(G_OBJECT(ncu->prv->v4addresses));
     g_object_freeze_notify(G_OBJECT(ncu->prv->v6addresses));
 
     gtk_list_store_clear(ncu->prv->v4addresses);
-    if ( (ip_version == NWAM_IP_VERSION_IPV4) || (ip_version == NWAM_IP_VERSION_ALL) )  {
-        char**  ptr;
-        ipv4_addrsrc = (nwam_addrsrc_t*)get_nwam_ncu_uint64_array_prop( nwam_ncu, 
-                                                                        NWAM_NCU_PROP_IPV4_ADDRSRC, 
-                                                                        &ipv4_addrsrc_num );
-
-        ipv4_addr = get_nwam_ncu_string_array_prop(nwam_ncu, NWAM_NCU_PROP_IPV4_ADDR );
-
-        /* Populate the v4addresses member */
-        g_debug( "ipv4_addrsrc_num = %u", ipv4_addrsrc_num );
-        ptr = ipv4_addr;
-
-        for( int i = 0; i < ipv4_addrsrc_num; i++ ) {
-            NwamuiIp*   ip = nwamui_ip_new( ncu, 
-                                            ((ptr != NULL)?(*ptr):(NULL)), 
-                                            "", 
-                                            FALSE, 
-                                            ipv4_addrsrc[i] == NWAM_ADDRSRC_DHCP,
-                                            ipv4_addrsrc[i] == NWAM_ADDRSRC_AUTOCONF,
-                                            ipv4_addrsrc[i] == NWAM_ADDRSRC_STATIC);
-
-            GtkTreeIter iter;
-
-            g_signal_handlers_block_by_func(G_OBJECT(ncu->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
-            gtk_list_store_insert(ncu->prv->v4addresses, &iter, 0 );
-            gtk_list_store_set(ncu->prv->v4addresses, &iter, 0, ip, -1 );
-            g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
-
-            if ( i == 0 ) {
-                ncu->prv->ipv4_primary_ip = NWAMUI_IP(g_object_ref(ip));
-            }
-        }
-    }
 
     ncu->prv->ipv6_active = FALSE;
     gtk_list_store_clear(ncu->prv->v6addresses);
 
-    if ( (ip_version == NWAM_IP_VERSION_IPV6) || (ip_version == NWAM_IP_VERSION_ALL) )  {
-        char**  ptr;
+    for ( int ip_n = 0; ip_n < ip_version_num; ip_n++ ) {
+        if (ip_version[ip_n] == NWAM_IP_VERSION_IPV4) {
+            char**  ptr;
+            ipv4_addrsrc = (nwam_addrsrc_t*)get_nwam_ncu_uint64_array_prop( nwam_ncu, 
+                                                                            NWAM_NCU_PROP_IPV4_ADDRSRC, 
+                                                                            &ipv4_addrsrc_num );
 
-        ipv6_addrsrc = (nwam_addrsrc_t*)get_nwam_ncu_uint64_array_prop( nwam_ncu, 
-                                                                        NWAM_NCU_PROP_IPV6_ADDRSRC, 
-                                                                        &ipv6_addrsrc_num );
-        
-        ipv6_addr = get_nwam_ncu_string_array_prop(nwam_ncu, NWAM_NCU_PROP_IPV6_ADDR );
+            ipv4_addr = get_nwam_ncu_string_array_prop(nwam_ncu, NWAM_NCU_PROP_IPV4_ADDR );
 
-        /* Populate the v6addresses member */
-        g_debug( "ipv6_addrsrc_num = %u", ipv6_addrsrc_num );
-        ptr = ipv6_addr;
+            /* Populate the v4addresses member */
+            g_debug( "ipv4_addrsrc_num = %u", ipv4_addrsrc_num );
+            ptr = ipv4_addr;
 
-        for( int i = 0; i < ipv6_addrsrc_num; i++ ) {
-            NwamuiIp*   ip = nwamui_ip_new( ncu, 
-                                            ((ptr != NULL)?(*ptr):(NULL)), 
-                                            "", 
-                                            TRUE, 
-                                            ipv6_addrsrc[i] == NWAM_ADDRSRC_DHCPV6,
-                                            ipv6_addrsrc[i] == NWAM_ADDRSRC_AUTOCONF,
-                                            ipv6_addrsrc[i] == NWAM_ADDRSRC_STATIC);
+            for( int i = 0; i < ipv4_addrsrc_num; i++ ) {
+                NwamuiIp*   ip = nwamui_ip_new( ncu, 
+                                                ((ptr != NULL)?(*ptr):(NULL)), 
+                                                "", 
+                                                FALSE, 
+                                                ipv4_addrsrc[i] == NWAM_ADDRSRC_DHCP,
+                                                ipv4_addrsrc[i] == NWAM_ADDRSRC_AUTOCONF,
+                                                ipv4_addrsrc[i] == NWAM_ADDRSRC_STATIC);
 
-            GtkTreeIter iter;
+                GtkTreeIter iter;
 
-            g_signal_handlers_block_by_func(G_OBJECT(ncu->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
-            gtk_list_store_insert(ncu->prv->v6addresses, &iter, 0 );
-            gtk_list_store_set(ncu->prv->v6addresses, &iter, 0, ip, -1 );
-            g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
+                g_signal_handlers_block_by_func(G_OBJECT(ncu->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
+                gtk_list_store_insert(ncu->prv->v4addresses, &iter, 0 );
+                gtk_list_store_set(ncu->prv->v4addresses, &iter, 0, ip, -1 );
+                g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
 
-            if ( i == 0 ) {
-                ncu->prv->ipv6_primary_ip = NWAMUI_IP(g_object_ref(ip));
+                if ( i == 0 ) {
+                    ncu->prv->ipv4_primary_ip = NWAMUI_IP(g_object_ref(ip));
+                }
             }
         }
+        else if (ip_version[ip_n] == NWAM_IP_VERSION_IPV6) {
+            char**  ptr;
 
-        if ( ipv6_addrsrc_num > 0 ) {
-            ncu->prv->ipv6_active = TRUE;
+            ipv6_addrsrc = (nwam_addrsrc_t*)get_nwam_ncu_uint64_array_prop( nwam_ncu, 
+                                                                            NWAM_NCU_PROP_IPV6_ADDRSRC, 
+                                                                            &ipv6_addrsrc_num );
+            
+            ipv6_addr = get_nwam_ncu_string_array_prop(nwam_ncu, NWAM_NCU_PROP_IPV6_ADDR );
+
+            /* Populate the v6addresses member */
+            g_debug( "ipv6_addrsrc_num = %u", ipv6_addrsrc_num );
+            ptr = ipv6_addr;
+
+            for( int i = 0; i < ipv6_addrsrc_num; i++ ) {
+                NwamuiIp*   ip = nwamui_ip_new( ncu, 
+                                                ((ptr != NULL)?(*ptr):(NULL)), 
+                                                "", 
+                                                TRUE, 
+                                                ipv6_addrsrc[i] == NWAM_ADDRSRC_DHCP,
+                                                ipv6_addrsrc[i] == NWAM_ADDRSRC_AUTOCONF,
+                                                ipv6_addrsrc[i] == NWAM_ADDRSRC_STATIC);
+
+                GtkTreeIter iter;
+
+                g_signal_handlers_block_by_func(G_OBJECT(ncu->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
+                gtk_list_store_insert(ncu->prv->v6addresses, &iter, 0 );
+                gtk_list_store_set(ncu->prv->v6addresses, &iter, 0, ip, -1 );
+                g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
+
+                if ( i == 0 ) {
+                    ncu->prv->ipv6_primary_ip = NWAMUI_IP(g_object_ref(ip));
+                }
+            }
+
+            if ( ipv6_addrsrc_num > 0 ) {
+                ncu->prv->ipv6_active = TRUE;
+            }
         }
     }
 

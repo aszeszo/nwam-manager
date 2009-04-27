@@ -34,6 +34,7 @@
 extern "C" {
 #endif
 
+#include <bsm/adt.h>
 #include <net/if.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -143,6 +144,12 @@ typedef enum {
 nwam_error_t nwam_backend_init(void);
 void nwam_backend_fini(void);
 
+/*
+ * create audit session, report event, end session
+ */
+void nwam_record_audit_event(const ucred_t *, au_event_t, char *, char *,
+    int, int);
+
 /* Holds values of various types for getting and setting of properties */
 /* Forward definition */
 struct nwam_value;
@@ -189,14 +196,16 @@ const char *nwam_strerror(nwam_error_t);
  */
 typedef enum {
 	NWAM_STATE_UNINITIALIZED = 0x0,
-	NWAM_STATE_OFFLINE = 0x1,
-	NWAM_STATE_ONLINE = 0x2,
-	NWAM_STATE_MAINTENANCE = 0x4,
-	NWAM_STATE_DEGRADED = 0x8,
-	NWAM_STATE_DISABLED = 0x10
+	NWAM_STATE_INITIALIZED = 0x1,
+	NWAM_STATE_OFFLINE = 0x2,
+	NWAM_STATE_ONLINE = 0x4,
+	NWAM_STATE_MAINTENANCE = 0x8,
+	NWAM_STATE_DEGRADED = 0x10,
+	NWAM_STATE_DISABLED = 0x20
 } nwam_state_t;
 
 #define	NWAM_STATE_ANY	(NWAM_STATE_UNINITIALIZED | \
+			NWAM_STATE_INITIALIZED | \
 			NWAM_STATE_OFFLINE | \
 			NWAM_STATE_ONLINE | \
 			NWAM_STATE_MAINTENANCE | \
@@ -204,6 +213,7 @@ typedef enum {
 			NWAM_STATE_DISABLED)
 
 #define	NWAM_STATE_UNINITIALIZED_STRING	"uninitialized"
+#define	NWAM_STATE_INITIALIZED_STRING	"initialized"
 #define	NWAM_STATE_OFFLINE_STRING	"offline"
 #define	NWAM_STATE_ONLINE_STRING	"online"
 #define	NWAM_STATE_MAINTENANCE_STRING	"maintenance"
@@ -375,9 +385,6 @@ typedef enum {
 #define	NWAM_LOC_PROP_LDAP_NAMESERVICE_SERVERS	"ldap-nameservice-servers"
 #define	NWAM_LOC_PROP_DEFAULT_DOMAIN		"default-domain"
 
-/* Path to hosts/ipnodes database */
-#define	NWAM_LOC_PROP_HOSTS_FILE		"hosts-file"
-
 /* NFSv4 domain */
 #define	NWAM_LOC_PROP_NFSV4_DOMAIN		"nfsv4-domain"
 
@@ -442,23 +449,19 @@ typedef enum {
 
 typedef enum {
 	NWAM_IP_VERSION_IPV4,
-	NWAM_IP_VERSION_IPV6,
-	NWAM_IP_VERSION_ALL
+	NWAM_IP_VERSION_IPV6
 } nwam_ip_version_t;
 
 #define	NWAM_IP_VERSION_IPV4_STRING	"ipv4"
 #define	NWAM_IP_VERSION_IPV6_STRING	"ipv6"
-#define	NWAM_IP_VERSION_ALL_STRING	"all"
 
 typedef enum {
 	NWAM_ADDRSRC_DHCP,
-	NWAM_ADDRSRC_DHCPV6,
 	NWAM_ADDRSRC_AUTOCONF,
 	NWAM_ADDRSRC_STATIC
 } nwam_addrsrc_t;
 
 #define	NWAM_ADDRSRC_DHCP_STRING	"dhcp"
-#define	NWAM_ADDRSRC_DHCPV6_STRING	"dhcpv6"
 #define	NWAM_ADDRSRC_AUTOCONF_STRING	"autoconf"
 #define	NWAM_ADDRSRC_STATIC_STRING	"static"
 
@@ -887,8 +890,9 @@ extern nwam_error_t nwam_known_wlan_remove_from_known_wlan(const char *,
     const char *);
 
 /*
- * Active WLAN definitions. Used to choose a WLAN/set a WLAN key.
+ * Active WLAN definitions. Used to scan WLANs/choose a WLAN/set a WLAN key.
  */
+extern nwam_error_t nwam_wlan_scan(const char *);
 extern nwam_error_t nwam_wlan_select(const char *, const char *, const char *);
 extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
     uint32_t, const char *);
@@ -1045,6 +1049,19 @@ extern const char *nwam_action_to_string(nwam_action_t);
 extern const char *nwam_event_type_to_string(int);
 extern const char *nwam_state_to_string(nwam_state_t);
 extern const char *nwam_object_type_to_string(nwam_object_type_t);
+
+/* SCF helper functions */
+extern int lookup_boolean_property(const char *, const char *, const char *,
+    boolean_t *);
+extern int lookup_count_property(const char *, const char *, const char *,
+    uint64_t *);
+extern int lookup_string_property(const char *, const char *, const char *,
+    char **);
+
+extern int set_boolean_property(const char *, const char *, const char *,
+    boolean_t);
+extern int set_string_property(const char *, const char *, const char *,
+    const char *);
 
 #ifdef	__cplusplus
 }

@@ -88,7 +88,9 @@ enum {
     PROP_NIS_NAMESERVICE_SERVERS,
     PROP_LDAP_NAMESERVICE_CONFIG_SOURCE,
     PROP_LDAP_NAMESERVICE_SERVERS,
+#ifndef _DISABLE_HOSTS_FILE
     PROP_HOSTS_FILE,
+#endif /* _DISABLE_HOSTS_FILE */
     PROP_NFSV4_DOMAIN,
     PROP_IPFILTER_CONFIG_FILE,
     PROP_IPFILTER_V6_CONFIG_FILE,
@@ -326,6 +328,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           _("ldap_nameservice_servers"),
                                                           G_PARAM_READWRITE));
 
+#ifndef _DISABLE_HOSTS_FILE
     g_object_class_install_property (gobject_class,
                                      PROP_HOSTS_FILE,
                                      g_param_spec_string ("hosts_file",
@@ -333,6 +336,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           _("hosts_file"),
                                                           "",
                                                           G_PARAM_READWRITE));
+#endif /* _DISABLE_HOSTS_FILE */
 
     g_object_class_install_property (gobject_class,
                                      PROP_NFSV4_DOMAIN,
@@ -776,11 +780,13 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
+#ifndef _DISABLE_HOSTS_FILE
         case PROP_HOSTS_FILE: {
                 set_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_HOSTS_FILE, 
                                           g_value_get_string( value ) );
             }
             break;
+#endif /* _DISABLE_HOSTS_FILE */
 
         case PROP_NFSV4_DOMAIN: {
                 set_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_NFSV4_DOMAIN, 
@@ -1105,12 +1111,14 @@ nwamui_env_get_property (GObject         *object,
             }
             break;
 
+#ifndef _DISABLE_HOSTS_FILE
         case PROP_HOSTS_FILE: {
                 gchar* str = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_HOSTS_FILE );
                 g_value_set_string( value, str );
                 g_free(str);
             }
             break;
+#endif /* _DISABLE_HOSTS_FILE */
 
         case PROP_NFSV4_DOMAIN: {
                 gchar* str = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_NFSV4_DOMAIN );
@@ -2459,6 +2467,7 @@ nwamui_env_get_ldap_nameservice_servers (NwamuiEnv *self)
     return( ldap_nameservice_servers );
 }
 
+#ifndef _DISABLE_HOSTS_FILE
 /** 
  * nwamui_env_set_hosts_file:
  * @nwamui_env: a #NwamuiEnv.
@@ -2498,6 +2507,7 @@ nwamui_env_get_hosts_file (NwamuiEnv *self)
 
     return( hosts_file );
 }
+#endif /* _DISABLE_HOSTS_FILE */
 
 /** 
  * nwamui_env_set_nfsv4_domain:

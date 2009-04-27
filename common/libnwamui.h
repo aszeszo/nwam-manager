@@ -95,6 +95,12 @@ typedef guint64 libnwam_diag_cause_t;
 #include "nwamui_daemon.h"
 #endif /* _NWAMUI_DAEMON_H */
 
+/* Disable handling of HOST_FILE since it was removed from location
+ * at the end of PHASE 1 work
+ */
+#define _DISABLE_HOSTS_FILE  (1)
+
+
 #if 0
 #define  NWAM_ICON_NETWORK_LOCATION         "network-location"
 #endif

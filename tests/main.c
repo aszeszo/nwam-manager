@@ -418,7 +418,7 @@ process_env( gpointer data, gpointer user_data )
                 dns_config_source  =  nwamui_env_get_dns_nameservice_config_source ( env );
     gchar*      dns_nameservice_domain  =  nwamui_env_get_dns_nameservice_domain ( env );
     GList*      dns_nameservice_servers  =  nwamui_env_get_dns_nameservice_servers ( env );
-    gchar*      dns_nameservice_search  =  nwamui_env_get_dns_nameservice_search ( env );
+    GList*      dns_nameservice_search  =  nwamui_env_get_dns_nameservice_search ( env );
     GList*      nameservice_servers  =  nwamui_env_get_nis_nameservice_servers ( env );
     nwamui_env_config_source_t
                 nis_config_source  =  nwamui_env_get_nis_nameservice_config_source ( env );
@@ -426,7 +426,9 @@ process_env( gpointer data, gpointer user_data )
     nwamui_env_config_source_t
                 ldap_config_source  =  nwamui_env_get_ldap_nameservice_config_source ( env );
     GList*      ldap_nameservice_servers  =  nwamui_env_get_ldap_nameservice_servers ( env );
+#ifndef _DISABLE_HOSTS_FILE
     gchar*      hosts_file  =  nwamui_env_get_hosts_file ( env );
+#endif /* _DISABLE_HOSTS_FILE */
     gchar*      nfsv4_domain  =  nwamui_env_get_nfsv4_domain ( env );
     gchar*      ipfilter_config_file  =  nwamui_env_get_ipfilter_config_file ( env );
     gchar*      ipfilter_v6_config_file  =  nwamui_env_get_ipfilter_v6_config_file ( env );
@@ -449,12 +451,14 @@ process_env( gpointer data, gpointer user_data )
     printf("%-*sEnv dns_nameservice_config_source  = %s\n", indent, "", config_source_to_str(dns_config_source));
     printf("%-*sEnv dns_nameservice_domain  = %s\n", indent, "", dns_nameservice_domain ?dns_nameservice_domain :"NULL" );
     print_string_list_and_free( "Env", "dns_nameservice_servers", dns_nameservice_servers );
-    printf("%-*sEnv dns_nameservice_search  = %s\n", indent, "", dns_nameservice_search ?dns_nameservice_search :"NULL" );
+    print_string_list_and_free( "Env", "dns_nameservice_search", dns_nameservice_search );
     printf("%-*sEnv nis_nameservice_config_source  = %s\n", indent, "", config_source_to_str(nis_config_source));
     print_string_list_and_free( "Env", "nis_nameservice_servers", nis_nameservice_servers );
     printf("%-*sEnv ldap_nameservice_config_source  = %s\n", indent, "", config_source_to_str(ldap_config_source));
     print_string_list_and_free( "Env", "ldap_nameservice_servers", ldap_nameservice_servers );
+#ifndef _DISABLE_HOSTS_FILE
     printf("%-*sEnv hosts_file  = %s\n", indent, "", hosts_file ?hosts_file :"NULL" );
+#endif /* _DISABLE_HOSTS_FILE */
     printf("%-*sEnv nfsv4_domain  = %s\n", indent, "", nfsv4_domain ?nfsv4_domain :"NULL" );
     printf("%-*sEnv ipfilter_config_file  = %s\n", indent, "", ipfilter_config_file ?ipfilter_config_file :"NULL" );
     printf("%-*sEnv ipfilter_v6_config_file  = %s\n", indent, "", ipfilter_v6_config_file ?ipfilter_v6_config_file :"NULL" );
