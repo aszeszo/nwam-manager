@@ -176,14 +176,14 @@ nwam_pref_iface_combo_changed_cb(GtkComboBox *combo, gpointer user_data)
 void
 capplet_compose_nwamui_obj_treeview(GtkTreeView *treeview)
 {
-        GtkTreeModel *model;
+    GtkTreeModel *model;
 
-        model = gtk_tree_view_get_model(treeview);
-        if (model == NULL) {
+    model = gtk_tree_view_get_model(treeview);
+    if (model == NULL) {
 		model = GTK_TREE_MODEL(gtk_list_store_new(1, NWAMUI_TYPE_OBJECT));
 		gtk_tree_view_set_model(treeview, model);
 		g_object_unref(model);
-        }
+    }
 }
 
 void

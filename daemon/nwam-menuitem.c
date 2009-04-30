@@ -34,47 +34,65 @@
 
 #include "nwam-menuitem.h"
 
+static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
+static GObject* get_proxy(NwamObjProxyIFace *iface);
+static void refresh(NwamObjProxyIFace *iface);
+
 static void nwam_menu_item_set_property (GObject         *object,
-					 guint            prop_id,
-					 const GValue    *value,
-					 GParamSpec      *pspec);
+  guint            prop_id,
+  const GValue    *value,
+  GParamSpec      *pspec);
 static void nwam_menu_item_get_property (GObject         *object,
-					 guint            prop_id,
-					 GValue          *value,
-					 GParamSpec      *pspec);
+  guint            prop_id,
+  GValue          *value,
+  GParamSpec      *pspec);
 static void nwam_menu_item_size_request (GtkWidget        *widget, 
-                                         GtkRequisition   *requisition); 
+  GtkRequisition   *requisition); 
 static void nwam_menu_item_size_allocate (GtkWidget        *widget, 
-                                          GtkAllocation    *allocation);
+  GtkAllocation    *allocation);
 static void nwam_menu_item_toggle_size_request (GtkMenuItem *menu_item,
-                                                 gint        *requisition);
+  gint        *requisition);
 static void nwam_menu_item_activate (GtkMenuItem *menu_item);
 static void nwam_menu_item_forall (GtkContainer   *container,
-                                   gboolean    include_internals,
-                                   GtkCallback     callback,
-                                   gpointer        callback_data);
+  gboolean    include_internals,
+  GtkCallback     callback,
+  gpointer        callback_data);
 static void nwam_menu_item_remove (GtkContainer   *container,
-                                   GtkWidget *child);
-static void nwam_menu_item_draw_indicator  (NwamMenuItem      *self,
-					GdkRectangle          *area);
+  GtkWidget *child);
+static void nwam_menu_item_draw_indicator(GtkCheckMenuItem *check_menu_item,
+  GdkRectangle *area);
 static void nwam_menu_item_finalize (NwamMenuItem *self);
+
+static void nwam_menu_item_connect_object(NwamMenuItem *self, GObject *object);
+static void nwam_menu_item_disconnect_object(NwamMenuItem *self, GObject *object);
+static void nwam_menu_item_sync_object(NwamMenuItem *self, GObject *object);
 
 enum {
 	PROP_ZERO,
+	PROP_OBJECT,
 	PROP_LWIDGET,
 	PROP_RWIDGET,
 };
 
 typedef struct _NwamMenuItemPrivate NwamMenuItemPrivate;
-#define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
-	NWAM_TYPE_MENU_ITEM, NwamMenuItemPrivate))
+#define NWAM_MENU_ITEM_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), NWAM_TYPE_MENU_ITEM, NwamMenuItemPrivate))
 
 struct _NwamMenuItemPrivate {
 	GtkWidget *w[MAX_WIDGET_NUM];
+    GObject *object;
 };
 
-//G_DEFINE_TYPE (NwamMenuItem, nwam_menu_item, GTK_TYPE_RADIO_MENU_ITEM)
-G_DEFINE_TYPE (NwamMenuItem, nwam_menu_item, GTK_TYPE_CHECK_MENU_ITEM)
+G_DEFINE_TYPE_EXTENDED(NwamMenuItem, nwam_menu_item, GTK_TYPE_CHECK_MENU_ITEM,
+  0,
+  G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJ_PROXY_IFACE, nwam_obj_proxy_init))
+
+static void
+nwam_obj_proxy_init(NwamObjProxyInterface *iface)
+{
+    iface->get_proxy = get_proxy;
+    iface->refresh = refresh;
+    iface->delete_notify = NULL;
+}
 
 static void
 nwam_menu_item_class_init (NwamMenuItemClass *klass)
@@ -106,6 +124,20 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
 
 	check_menu_item_class->draw_indicator = nwam_menu_item_draw_indicator;
 
+    klass->connect_object = nwam_menu_item_connect_object;
+    klass->disconnect_object = nwam_menu_item_disconnect_object;
+    klass->sync_object = nwam_menu_item_sync_object;
+
+	g_type_class_add_private (klass, sizeof (NwamMenuItemPrivate));
+
+	g_object_class_install_property (gobject_class,
+      PROP_OBJECT,
+      g_param_spec_object ("object",
+        N_("object"),
+        N_("object"),
+        G_TYPE_OBJECT,
+        G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+
 	g_object_class_install_property (gobject_class,
       PROP_LWIDGET,
       g_param_spec_object ("left-widget",
@@ -113,6 +145,7 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
         N_("Left widget, ref'd"),
         GTK_TYPE_WIDGET,
         G_PARAM_READWRITE));
+
 	g_object_class_install_property (gobject_class,
       PROP_RWIDGET,
       g_param_spec_object ("right-widget",
@@ -121,13 +154,12 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
         GTK_TYPE_WIDGET,
         G_PARAM_READWRITE));
 
-	g_type_class_add_private (klass, sizeof (NwamMenuItemPrivate));
 }
 
 static void
 nwam_menu_item_init (NwamMenuItem *self)
 {
-    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     GSList *group = NULL;
 
     /*
@@ -145,22 +177,40 @@ nwam_menu_item_set_property (GObject         *object,
 			     GParamSpec      *pspec)
 {
 	NwamMenuItem *self = NWAM_MENU_ITEM (object);
-    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
 
-    g_assert (GTK_IS_WIDGET (g_value_get_object (value)));
 	switch (prop_id) {
+	case PROP_OBJECT: {
+        GObject *object = g_value_get_object(value);
+
+        if (prv->object != (gpointer)object) {
+            if (prv->object) {
+                /* Handle disconnect object proxy */
+                NWAM_MENU_ITEM_GET_CLASS(self)->disconnect_object(self, prv->object);
+                g_object_unref(prv->object);
+            }
+            if ((prv->object = object) != NULL) {
+                g_object_ref(prv->object);
+
+                /* Handle connect object proxy */
+                NWAM_MENU_ITEM_GET_CLASS(self)->connect_object(self, prv->object);
+                /* Initializing */
+                NWAM_MENU_ITEM_GET_CLASS(self)->sync_object(self, prv->object);
+            } else {
+                /* Todo reset all. */
+                nwam_menu_item_sync_object(self, NULL);
+            }
+        }
+    }
+        break;
 	case PROP_LWIDGET:
-	{
         nwam_menu_item_set_widget (self, 0,
           GTK_WIDGET (g_value_get_object (value)));
-	}
-	break;
+        break;
 	case PROP_RWIDGET:
-	{
-        nwam_menu_item_set_widget (self, 0,
+        nwam_menu_item_set_widget (self, 1,
           GTK_WIDGET (g_value_get_object (value)));
-	}
-	break;
+        break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -174,10 +224,13 @@ nwam_menu_item_get_property (GObject         *object,
                                   GParamSpec      *pspec)
 {
 	NwamMenuItem *self = NWAM_MENU_ITEM (object);
-    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
 
 	switch (prop_id)
 	{
+	case PROP_OBJECT:
+		g_value_set_object (value, (GObject*) prv->object);
+		break;
 	case PROP_LWIDGET:
 		g_value_set_object (value, (GObject*) prv->w[0]);
 		break;
@@ -197,7 +250,7 @@ nwam_menu_item_forall (GtkContainer   *container,
                             gpointer        callback_data)
 {
 	NwamMenuItem *self = NWAM_MENU_ITEM (container);
-    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     int i;
 
     //g_debug ("foreach container 0x%p", container);
@@ -218,7 +271,7 @@ nwam_menu_item_remove (GtkContainer   *container,
                        GtkWidget *child)
 {
 	NwamMenuItem *self = NWAM_MENU_ITEM (container);
-    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     int i;
 
     for (i = 0; i < MAX_WIDGET_NUM; i++) {
@@ -235,6 +288,42 @@ nwam_menu_item_remove (GtkContainer   *container,
     }
 }
 
+static void
+nwam_menu_item_connect_object(NwamMenuItem *self, GObject *object)
+{
+}
+
+static void
+nwam_menu_item_disconnect_object(NwamMenuItem *self, GObject *object)
+{
+}
+
+static void
+nwam_menu_item_sync_object(NwamMenuItem *self, GObject *object)
+{
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
+    if (object == NULL) {
+        g_object_set(self, "label", "(NULL)", NULL);
+        nwam_menu_item_set_widget (self, 0, NULL);
+        nwam_menu_item_set_widget (self, 1, NULL);
+    }
+}
+
+static GObject*
+get_proxy(NwamObjProxyIFace *iface)
+{
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(iface);
+    return (GObject *)prv->object;
+}
+
+static void
+refresh(NwamObjProxyIFace *iface)
+{
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(iface);
+
+    NWAM_MENU_ITEM_GET_CLASS(iface)->sync_object(NWAM_MENU_ITEM(iface), prv->object);
+}
+
 /**
  * nwam_menu_item_new:
  * @returns: a new #NwamMenuItem.
@@ -245,6 +334,20 @@ GtkWidget*
 nwam_menu_item_new (void)
 {
 	return g_object_new (NWAM_TYPE_MENU_ITEM, NULL);
+}
+
+/**
+ * nwam_menu_item_new_with_object:
+ * @returns: a new #NwamMenuItem.
+ *
+ * Creates a new #NwamMenuItem with an empty label.
+ **/
+GtkWidget*
+nwam_menu_item_new_with_object(GObject *object)
+{
+	return g_object_new (NWAM_TYPE_MENU_ITEM,
+      "object", object,
+      NULL);
 }
 
 /**
@@ -277,7 +380,7 @@ nwam_menu_item_set_widget (NwamMenuItem *self,
   gint pos,
   GtkWidget *widget)
 {
-    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
 
 	g_return_if_fail (NWAM_IS_MENU_ITEM (self));
 	g_assert (pos >= 0 && pos < MAX_WIDGET_NUM);
@@ -310,7 +413,7 @@ GtkWidget*
 nwam_menu_item_get_widget (NwamMenuItem *self,
 			  gint pos)
 {
-    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
 
 	g_return_val_if_fail (NWAM_IS_MENU_ITEM (self), NULL);
 	g_assert (pos >= 0 && pos < MAX_WIDGET_NUM);
@@ -321,7 +424,14 @@ nwam_menu_item_get_widget (NwamMenuItem *self,
 static void
 nwam_menu_item_finalize (NwamMenuItem *self)
 {
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
 /*     g_debug ("nwam_menu_item_finalize"); */
+
+    if (prv->object) {
+        NWAM_MENU_ITEM_GET_CLASS(self)->disconnect_object(self, prv->object);
+
+        g_object_unref(prv->object);
+    }
 
 	G_OBJECT_CLASS(nwam_menu_item_parent_class)->finalize(G_OBJECT (self));
 }
@@ -331,7 +441,7 @@ nwam_menu_item_toggle_size_request (GtkMenuItem *menu_item,
                                     gint        *requisition)
 {
     NwamMenuItem *self = NWAM_MENU_ITEM (menu_item);
-    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     GtkPackDirection pack_dir; 
 
     //g_debug ("nwam_menu_item_toggle_size_request 0x%p", self);
@@ -376,7 +486,7 @@ nwam_menu_item_size_request (GtkWidget      *widget,
                              GtkRequisition *requisition) 
 {
     NwamMenuItem *self = NWAM_MENU_ITEM (widget); 
-    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     gint i = 0;
     gint child_width = 0; 
     gint child_height = 0; 
@@ -424,7 +534,7 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
                               GtkAllocation *allocation) 
 { 
     NwamMenuItem *self = NWAM_MENU_ITEM (widget); 
-    NwamMenuItemPrivate *prv = GET_PRIVATE(self);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     GtkPackDirection pack_dir; 
     guint toggle_spacing;
     guint toggle_size;
@@ -550,16 +660,17 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
 }
 
 static void
-nwam_menu_item_draw_indicator  (NwamMenuItem      *self,
-				GdkRectangle          *area)
+nwam_menu_item_draw_indicator(GtkCheckMenuItem *check_menu_item,
+  GdkRectangle *area)
 {
+    NwamMenuItem *self = NWAM_MENU_ITEM(check_menu_item);
     GtkWidget *widget; 
     GtkStateType state_type; 
     GtkShadowType shadow_type; 
     gint x, y; 
  
     if (GTK_WIDGET_DRAWABLE (self))
-    { 
+    {
         guint offset; 
         guint toggle_size; 
         guint toggle_spacing; 
@@ -634,12 +745,11 @@ void
 menu_item_set_label(GtkMenuItem *item, const gchar *label)
 {
     g_assert(GTK_IS_MENU_ITEM(item));
-#if 1
+#if 0
     /* Only for gtk 2.14 */
     GtkWidget *accel_label = gtk_bin_get_child(GTK_BIN(item));
     if (accel_label == NULL) {
         accel_label = g_object_new (GTK_TYPE_ACCEL_LABEL, NULL);
-        gtk_label_set_text_with_mnemonic (GTK_LABEL (accel_label), label);
         gtk_misc_set_alignment (GTK_MISC (accel_label), 0.0, 0.5);
 
         gtk_container_add (GTK_CONTAINER (item), accel_label);
@@ -653,4 +763,22 @@ menu_item_set_label(GtkMenuItem *item, const gchar *label)
       "use-underline", TRUE,
       "label", label ? label : "",
       NULL);
+}
+
+void
+menu_item_set_markup(GtkMenuItem *item, const gchar *label)
+{
+    GtkWidget *accel_label = gtk_bin_get_child(GTK_BIN(item));
+
+    g_assert(GTK_IS_MENU_ITEM(item));
+
+    if (accel_label == NULL) {
+        accel_label = g_object_new (GTK_TYPE_ACCEL_LABEL, NULL);
+        gtk_misc_set_alignment (GTK_MISC (accel_label), 0.0, 0.5);
+
+        gtk_container_add (GTK_CONTAINER (item), accel_label);
+        gtk_accel_label_set_accel_widget(GTK_ACCEL_LABEL (accel_label), GTK_WIDGET(item));
+        gtk_widget_show (accel_label);
+    }
+    gtk_label_set_markup(GTK_LABEL (accel_label), label);
 }

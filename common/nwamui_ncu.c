@@ -3318,6 +3318,7 @@ get_kstat_uint64 (const gchar *device, const gchar* stat_name, uint64_t *rval )
 
     if ((kn = kstat_data_lookup (ksp, (char*)stat_name )) != NULL) {
         *rval = kn->value.ui64;
+        kstat_close (kc);
         return( TRUE );
     }
 

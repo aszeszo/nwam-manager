@@ -1,3 +1,63 @@
+2009-04-30  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_ncu.c (get_kstat_uint64):
+	* daemon/Makefile.am:
+	* daemon/nwam-enm-item.c (nwam_enm_item_class_init),
+	(nwam_enm_item_new), (nwam_enm_item_finalize),
+	(nwam_enm_item_set_property), (nwam_enm_item_get_property),
+	(connect_enm_signals), (disconnect_enm_signals), (sync_enm),
+	(on_nwam_enm_toggled), (nwam_enm_item_get_enm),
+	(nwam_enm_item_set_enm):
+	* daemon/nwam-env-item.c (nwam_env_item_class_init),
+	(nwam_env_item_new), (nwam_env_item_finalize),
+	(nwam_env_item_set_property), (nwam_env_item_get_property),
+	(connect_env_signals), (disconnect_env_signals), (sync_env),
+	(on_nwam_env_toggled), (nwam_env_item_get_env),
+	(nwam_env_item_set_env):
+	* daemon/nwam-menu.c:
+	* daemon/nwam-menuitem.c (nwam_obj_proxy_init),
+	(nwam_menu_item_class_init), (nwam_menu_item_init),
+	(nwam_menu_item_set_property), (nwam_menu_item_get_property),
+	(nwam_menu_item_forall), (nwam_menu_item_remove),
+	(nwam_menu_item_connect_object),
+	(nwam_menu_item_disconnect_object), (nwam_menu_item_sync_object),
+	(get_proxy), (refresh), (nwam_menu_item_new_with_object),
+	(nwam_menu_item_set_widget), (nwam_menu_item_get_widget),
+	(nwam_menu_item_finalize), (nwam_menu_item_toggle_size_request),
+	(nwam_menu_item_size_request), (nwam_menu_item_size_allocate),
+	(nwam_menu_item_draw_indicator), (menu_item_set_label),
+	(menu_item_set_markup):
+	* daemon/nwam-menuitem.h:
+	* daemon/nwam-ncu-item.c (nwam_ncu_item_class_init),
+	(nwam_ncu_item_new), (nwam_ncu_item_finalize),
+	(nwam_ncu_item_set_property), (nwam_ncu_item_get_property),
+	(sync_ncu), (nwam_ncu_item_get_ncu), (nwam_ncu_item_set_ncu):
+	* daemon/nwam-ncu-item.h:
+	* daemon/nwam-wifi-item.c (nwam_wifi_item_class_init),
+	(nwam_wifi_item_new), (nwam_wifi_item_finalize),
+	(nwam_wifi_item_set_property), (nwam_wifi_item_get_property),
+	(on_nwam_wifi_toggled), (nwam_wifi_item_get_wifi),
+	(nwam_wifi_item_set_wifi), (sync_wifi_net):
+	* daemon/status_icon.c (daemon_status_changed),
+	(daemon_wifi_key_needed), (daemon_ncu_up), (daemon_ncu_down),
+	(daemon_ncu_create), (daemon_ncu_destroy),
+	(daemon_active_ncp_changed), (daemon_active_env_changed),
+	(nwam_status_icon_run), (nwam_status_icon_set_status),
+	(nwam_status_icon_show_menu), (status_icon_popup),
+	(status_icon_size_changed), (status_icon_query_tooltip),
+	(tooltip_treeview_cell), (on_activate_static_menuitems),
+	(nwam_status_icon_init), (nwam_status_icon_finalize):
+	* daemon/status_icon_tooltip.c (nwam_tooltip_widget_class_init),
+	(nwam_tooltip_widget_init), (nwam_tooltip_widget_finalize),
+	(tooltip_treeview_cell), (nwam_compose_tree_view),
+	(nwam_tooltip_widget_update_env), (nwam_tooltip_widget_update_ncp),
+	(nwam_tooltip_widget_add_ncu), (nwam_tooltip_widget_remove_ncu),
+	(env_notify_tooltip), (ncp_notify_tooltip), (ncu_notify_tooltip),
+	(nwam_tooltip_widget_new):
+	* daemon/status_icon_tooltip.h:
+	Refactor nwam_menu_item, so it could be used in status icon tooltip.
+	bugzilla#576091 will cause segfault for custom tooltip, should fix it.
+
 2009-04-27  Darren Kenny  <darren.kenny@sun.com>
 
 	* pixmaps/32x32/status/activation-mode-manual.png,

@@ -33,7 +33,6 @@
 #include <glib/gi18n.h>
 
 #include "nwam-ncu-item.h"
-#include "nwam-obj-proxy-iface.h"
 #include "libnwamui.h"
 
 
@@ -42,20 +41,12 @@ typedef struct _NwamNcuItemPrivate NwamNcuItemPrivate;
         NWAM_TYPE_NCU_ITEM, NwamNcuItemPrivate))
 
 struct _NwamNcuItemPrivate {
-    NwamuiNcu *ncu;
     gulong toggled_handler_id;
 };
 
 enum {
 	PROP_ZERO,
-	PROP_NCU,
-	PROP_LWIDGET,
-	PROP_RWIDGET,
 };
-
-static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
-static GObject* get_proxy(NwamObjProxyIFace *iface);
-static void refresh(NwamObjProxyIFace *iface);
 
 static void nwam_ncu_item_set_property (GObject         *object,
   guint            prop_id,
@@ -70,45 +61,32 @@ static void nwam_ncu_item_finalize (NwamNcuItem *self);
 /* nwamui daemon signals */
 static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
-static void daemon_ncu_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
 
 /* nwamui ncu net signals */
 static void connect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu);
 static void disconnect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu);
+static void sync_ncu(NwamNcuItem *self, NwamuiNcu *ncu);
 static void on_nwam_ncu_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 
-G_DEFINE_TYPE_EXTENDED(NwamNcuItem, nwam_ncu_item,
-  GTK_TYPE_CHECK_MENU_ITEM, 0,
-  G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJ_PROXY_IFACE, nwam_obj_proxy_init))
-
-static void
-nwam_obj_proxy_init(NwamObjProxyInterface *iface)
-{
-    iface->get_proxy = get_proxy;
-    iface->refresh = refresh;
-    iface->delete_notify = NULL;
-}
+G_DEFINE_TYPE(NwamNcuItem, nwam_ncu_item, NWAM_TYPE_MENU_ITEM)
 
 static void
 nwam_ncu_item_class_init (NwamNcuItemClass *klass)
 {
 	GObjectClass *gobject_class;
+    NwamMenuItemClass *nwam_menu_item_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
-
 	gobject_class->set_property = nwam_ncu_item_set_property;
 	gobject_class->get_property = nwam_ncu_item_get_property;
 	gobject_class->finalize = (void (*)(GObject*)) nwam_ncu_item_finalize;
-	
-	g_object_class_install_property (gobject_class,
-      PROP_NCU,
-      g_param_spec_object ("ncu",
-        N_("NwamuiNcu instance"),
-        N_("NwamuiNcu instance"),
-        NWAMUI_TYPE_NCU,
-        G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
+    nwam_menu_item_class = NWAM_MENU_ITEM_CLASS(klass);
+    nwam_menu_item_class->connect_object = connect_ncu_signals;
+    nwam_menu_item_class->disconnect_object = disconnect_ncu_signals;
+    nwam_menu_item_class->sync_object = sync_ncu;
+	
 	g_type_class_add_private (klass, sizeof (NwamNcuItemPrivate));
 }
 
@@ -143,7 +121,7 @@ nwam_ncu_item_new(NwamuiNcu *ncu)
     NwamNcuItem *item;
 
     item = g_object_new (NWAM_TYPE_NCU_ITEM,
-      "ncu", ncu,
+      "object", ncu,
       NULL);
 
     return GTK_WIDGET(item);
@@ -166,11 +144,6 @@ nwam_ncu_item_finalize (NwamNcuItem *self)
         g_object_unref(daemon);
     }
 
-    if (prv->ncu) {
-        disconnect_ncu_signals(self, prv->ncu);
-        g_object_unref(prv->ncu);
-    }
-
 	G_OBJECT_CLASS(nwam_ncu_item_parent_class)->finalize(G_OBJECT (self));
 }
 
@@ -185,23 +158,6 @@ nwam_ncu_item_set_property (GObject         *object,
     GObject *obj = g_value_dup_object (value);
 
 	switch (prop_id) {
-	case PROP_NCU:
-        if (prv->ncu != NWAMUI_NCU(obj)) {
-            if (prv->ncu) {
-                /* remove signal callback */
-                disconnect_ncu_signals(self, prv->ncu);
-
-                g_object_unref(prv->ncu);
-            }
-            prv->ncu = NWAMUI_NCU(obj);
-
-            /* connect signal callback */
-            connect_ncu_signals(self, prv->ncu);
-
-            /* initializing */
-            nwam_obj_proxy_refresh(NWAM_OBJ_PROXY_IFACE(self));
-        }
-        break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -219,9 +175,6 @@ nwam_ncu_item_get_property (GObject         *object,
 
 	switch (prop_id)
 	{
-	case PROP_NCU:
-		g_value_set_object (value, (GObject*) prv->ncu);
-		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -245,6 +198,12 @@ disconnect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu)
       NULL,
       NULL,
       (gpointer)self);
+}
+
+static void
+sync_ncu(NwamNcuItem *self, NwamuiNcu *ncu)
+{
+    on_nwam_ncu_notify(G_OBJECT(ncu), NULL, (gpointer)self);
 }
 
 static void
@@ -337,28 +296,12 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
     }
 }
 
-static GObject*
-get_proxy(NwamObjProxyIFace *iface)
-{
-    NwamNcuItemPrivate *prv = GET_PRIVATE(iface);
-    return G_OBJECT(prv->ncu);
-}
-
-static void
-refresh(NwamObjProxyIFace *iface)
-{
-    NwamNcuItem *self = NWAM_NCU_ITEM(iface);
-    NwamNcuItemPrivate *prv = GET_PRIVATE(iface);
-
-    on_nwam_ncu_notify(G_OBJECT(prv->ncu), NULL, (gpointer)self);
-}
-
 NwamuiNcu *
 nwam_ncu_item_get_ncu (NwamNcuItem *self)
 {
     NwamuiNcu *ncu;
 
-    g_object_get(self, "ncu", &ncu, NULL);
+    g_object_get(self, "object", &ncu, NULL);
 
     return ncu;
 }
@@ -368,7 +311,7 @@ nwam_ncu_item_set_ncu (NwamNcuItem *self, NwamuiNcu *ncu)
 {
     g_return_if_fail(NWAMUI_IS_NCU(ncu));
 
-    g_object_set(self, "ncu", ncu, NULL);
+    g_object_set(self, "object", ncu, NULL);
 }
 
 static void 

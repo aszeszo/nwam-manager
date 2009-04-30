@@ -465,6 +465,12 @@ nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type, gboolean
     }
     if ( open_icon == NULL ) {
         open_icon = get_pixbuf(NWAM_ICON_NETWORK_INSECURE, small);
+        if (!open_icon)
+            open_icon = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
+              TRUE,
+              8,
+              24,
+              24);
     }
 
     switch (sec_type) {

@@ -33,7 +33,6 @@
 #include <glib/gi18n.h>
 
 #include "nwam-enm-item.h"
-#include "nwam-obj-proxy-iface.h"
 #include "libnwamui.h"
 
 typedef struct _NwamEnmItemPrivate NwamEnmItemPrivate;
@@ -41,20 +40,12 @@ typedef struct _NwamEnmItemPrivate NwamEnmItemPrivate;
         NWAM_TYPE_ENM_ITEM, NwamEnmItemPrivate))
 
 struct _NwamEnmItemPrivate {
-    NwamuiEnm *enm;
     gulong toggled_handler_id;
 };
 
 enum {
 	PROP_ZERO,
-	PROP_ENM,
-	PROP_LWIDGET,
-	PROP_RWIDGET,
 };
-
-static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
-static GObject* get_proxy(NwamObjProxyIFace *iface);
-static void refresh(NwamObjProxyIFace *iface);
 
 static void nwam_enm_item_set_property (GObject         *object,
   guint            prop_id,
@@ -69,45 +60,32 @@ static void nwam_enm_item_finalize (NwamEnmItem *self);
 /* nwamui daemon signals */
 static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
-static void daemon_enm_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
 
 /* nwamui enm net signals */
-static void connect_enm_net_signals(NwamEnmItem *self, NwamuiEnm *enm);
-static void disconnect_enm_net_signals(NwamEnmItem *self, NwamuiEnm *enm);
+static void connect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm);
+static void disconnect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm);
+static void sync_enm(NwamEnmItem *self, NwamuiEnm *enm);
 static void on_nwam_enm_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 
-G_DEFINE_TYPE_EXTENDED(NwamEnmItem, nwam_enm_item,
-  NWAM_TYPE_MENU_ITEM, 0,
-  G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJ_PROXY_IFACE, nwam_obj_proxy_init))
-
-static void
-nwam_obj_proxy_init(NwamObjProxyInterface *iface)
-{
-    iface->get_proxy = get_proxy;
-    iface->refresh = refresh;
-    iface->delete_notify = NULL;
-}
+G_DEFINE_TYPE(NwamEnmItem, nwam_enm_item, NWAM_TYPE_MENU_ITEM)
 
 static void
 nwam_enm_item_class_init (NwamEnmItemClass *klass)
 {
 	GObjectClass *gobject_class;
+    NwamMenuItemClass *nwam_menu_item_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
-
 	gobject_class->set_property = nwam_enm_item_set_property;
 	gobject_class->get_property = nwam_enm_item_get_property;
 	gobject_class->finalize = (void (*)(GObject*)) nwam_enm_item_finalize;
-	
-	g_object_class_install_property (gobject_class,
-      PROP_ENM,
-      g_param_spec_object ("enm",
-        N_("NwamuiEnm instance"),
-        N_("Wireless AP"),
-        NWAMUI_TYPE_ENM,
-        G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
+    nwam_menu_item_class = NWAM_MENU_ITEM_CLASS(klass);
+    nwam_menu_item_class->connect_object = connect_enm_signals;
+    nwam_menu_item_class->disconnect_object = disconnect_enm_signals;
+    nwam_menu_item_class->sync_object = sync_enm;
+	
 	g_type_class_add_private (klass, sizeof (NwamEnmItemPrivate));
 }
 
@@ -145,7 +123,7 @@ nwam_enm_item_new(NwamuiEnm *enm)
     GtkWidget *item;
 
     item = g_object_new (NWAM_TYPE_ENM_ITEM,
-      "enm", enm,
+      "object", enm,
       NULL);
 
     return item;
@@ -168,11 +146,6 @@ nwam_enm_item_finalize (NwamEnmItem *self)
         g_object_unref(daemon);
     }
 
-    if (prv->enm) {
-        disconnect_enm_net_signals(self, prv->enm);
-        g_object_unref(prv->enm);
-    }
-
 	G_OBJECT_CLASS(nwam_enm_item_parent_class)->finalize(G_OBJECT (self));
 }
 
@@ -187,23 +160,6 @@ nwam_enm_item_set_property (GObject         *object,
     GObject *obj = g_value_dup_object (value);
 
 	switch (prop_id) {
-	case PROP_ENM:
-        if (prv->enm != NWAMUI_ENM(obj)) {
-            if (prv->enm) {
-                /* remove signal callback */
-                disconnect_enm_net_signals(self, prv->enm);
-
-                g_object_unref(prv->enm);
-            }
-            prv->enm = NWAMUI_ENM(obj);
-
-            /* connect signal callback */
-            connect_enm_net_signals(self, prv->enm);
-
-            /* initializing */
-            nwam_obj_proxy_refresh(NWAM_OBJ_PROXY_IFACE(self));
-        }
-        break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -221,9 +177,6 @@ nwam_enm_item_get_property (GObject         *object,
 
 	switch (prop_id)
 	{
-	case PROP_ENM:
-		g_value_set_object (value, (GObject*) prv->enm);
-		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -231,14 +184,14 @@ nwam_enm_item_get_property (GObject         *object,
 }
 
 static void
-connect_enm_net_signals(NwamEnmItem *self, NwamuiEnm *enm)
+connect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm)
 {
     g_signal_connect (enm, "notify::active",
       G_CALLBACK(on_nwam_enm_notify), (gpointer)self);
 }
 
 static void
-disconnect_enm_net_signals(NwamEnmItem *self, NwamuiEnm *enm)
+disconnect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm)
 {
     g_signal_handlers_disconnect_matched(enm,
       G_SIGNAL_MATCH_DATA,
@@ -250,19 +203,26 @@ disconnect_enm_net_signals(NwamEnmItem *self, NwamuiEnm *enm)
 }
 
 static void
+sync_enm(NwamEnmItem *self, NwamuiEnm *enm)
+{
+    on_nwam_enm_notify(G_OBJECT(enm), NULL, (gpointer)self);
+}
+
+static void
 on_nwam_enm_toggled (GtkCheckMenuItem *item, gpointer data)
 {
 	NwamEnmItem *self = NWAM_ENM_ITEM (item);
     NwamEnmItemPrivate *prv = GET_PRIVATE(self);
+    NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self)));
 
     g_signal_handler_block(self, prv->toggled_handler_id);
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE);
     g_signal_handler_unblock(self, prv->toggled_handler_id);
 
-	if (nwamui_enm_get_active(prv->enm)) {
-		nwamui_enm_set_active(prv->enm, FALSE);
+	if (nwamui_object_get_active(object)) {
+		nwamui_object_set_active(object, FALSE);
 	} else {
-		nwamui_enm_set_active (prv->enm, TRUE);
+		nwamui_object_set_active (object, TRUE);
     }
 }
 
@@ -332,28 +292,12 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
     }
 }
 
-static GObject*
-get_proxy(NwamObjProxyIFace *iface)
-{
-    NwamEnmItemPrivate *prv = GET_PRIVATE(iface);
-    return G_OBJECT(prv->enm);
-}
-
-static void
-refresh(NwamObjProxyIFace *iface)
-{
-    NwamEnmItem *self = NWAM_ENM_ITEM(iface);
-    NwamEnmItemPrivate *prv = GET_PRIVATE(iface);
-
-    on_nwam_enm_notify(G_OBJECT(prv->enm), NULL, (gpointer)self);
-}
-
 NwamuiEnm *
 nwam_enm_item_get_enm (NwamEnmItem *self)
 {
     NwamuiEnm *enm;
 
-    g_object_get(self, "enm", &enm, NULL);
+    g_object_get(self, "object", &enm, NULL);
 
     return enm;
 }
@@ -363,7 +307,7 @@ nwam_enm_item_set_enm (NwamEnmItem *self, NwamuiEnm *enm)
 {
     g_return_if_fail(NWAMUI_IS_ENM(enm));
 
-    g_object_set(self, "enm", enm, NULL);
+    g_object_set(self, "object", enm, NULL);
 }
 
 static void 

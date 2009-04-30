@@ -28,6 +28,7 @@
 #define NWAM_MENU_ITEM_H
 
 #include <gtk/gtk.h>
+#include "nwam-obj-proxy-iface.h"
 
 G_BEGIN_DECLS
 
@@ -44,19 +45,21 @@ typedef struct _NwamMenuItemClass		NwamMenuItemClass;
 
 struct _NwamMenuItem
 {
-	//GtkRadioMenuItem menu_item;
     GtkCheckMenuItem menu_item;
 };
 
 struct _NwamMenuItemClass
 {
-	//GtkRadioMenuItemClass parent_class;
     GtkCheckMenuItemClass parent_class;
+    void (*connect_object)(NwamMenuItem *self, GObject *object);
+    void (*disconnect_object)(NwamMenuItem *self, GObject *object);
+    void (*sync_object)(NwamMenuItem *self, GObject *object);
 };
 
 
 GType nwam_menu_item_get_type (void) G_GNUC_CONST;
 GtkWidget* nwam_menu_item_new (void);
+GtkWidget* nwam_menu_item_new_with_object(GObject *object);
 GtkWidget* nwam_menu_item_new_with_label (const gchar *label);
 
 void nwam_menu_item_set_widget (NwamMenuItem *self, gint pos, GtkWidget *image);
@@ -72,6 +75,7 @@ GtkWidget* nwam_menu_item_get_widget (NwamMenuItem *self, gint pos);
 
 /* Utils */
 extern void menu_item_set_label(GtkMenuItem *item, const gchar *label);
+extern void menu_item_set_markup(GtkMenuItem *item, const gchar *label);
 
 G_END_DECLS
 

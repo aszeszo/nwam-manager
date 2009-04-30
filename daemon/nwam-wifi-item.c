@@ -34,7 +34,6 @@
 
 #include "nwam-menuitem.h"
 #include "nwam-wifi-item.h"
-#include "nwam-obj-proxy-iface.h"
 #include "libnwamui.h"
 
 typedef struct _NwamWifiItemPrivate NwamWifiItemPrivate;
@@ -42,19 +41,13 @@ typedef struct _NwamWifiItemPrivate NwamWifiItemPrivate;
         NWAM_TYPE_WIFI_ITEM, NwamWifiItemPrivate))
 
 struct _NwamWifiItemPrivate {
-    NwamuiWifiNet *wifi;
 	NwamuiDaemon *daemon;
     gulong toggled_handler_id;
 };
 
 enum {
 	PROP_ZERO,
-	PROP_WIFI,
 };
-
-static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
-static GObject* get_proxy(NwamObjProxyIFace *iface);
-static void refresh(NwamObjProxyIFace *iface);
 
 static void nwam_wifi_item_set_property (GObject         *object,
   guint            prop_id,
@@ -69,44 +62,32 @@ static void nwam_wifi_item_finalize (NwamWifiItem *self);
 /* nwamui daemon signals */
 static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
-static void daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
 
 /* nwamui wifi net signals */
 static void connect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi);
 static void disconnect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi);
+static void sync_wifi_net(NwamWifiItem *self, NwamuiWifiNet *wifi_net);
+
 static void on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data);
 static void wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
-G_DEFINE_TYPE_EXTENDED(NwamWifiItem, nwam_wifi_item,
-  NWAM_TYPE_MENU_ITEM, 0,
-  G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJ_PROXY_IFACE, nwam_obj_proxy_init))
-
-static void
-nwam_obj_proxy_init(NwamObjProxyInterface *iface)
-{
-    iface->get_proxy = get_proxy;
-    iface->refresh = refresh;
-    iface->delete_notify = NULL;
-}
+G_DEFINE_TYPE(NwamWifiItem, nwam_wifi_item, NWAM_TYPE_MENU_ITEM)
 
 static void
 nwam_wifi_item_class_init (NwamWifiItemClass *klass)
 {
 	GObjectClass *gobject_class;
+    NwamMenuItemClass *nwam_menu_item_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
-
 	gobject_class->set_property = nwam_wifi_item_set_property;
 	gobject_class->get_property = nwam_wifi_item_get_property;
 	gobject_class->finalize = (void (*)(GObject*)) nwam_wifi_item_finalize;
 	
-	g_object_class_install_property (gobject_class,
-      PROP_WIFI,
-      g_param_spec_object ("wifi",
-        N_("NwamuiWifiNet instance"),
-        N_("Wireless AP"),
-        NWAMUI_TYPE_WIFI_NET,
-        G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+    nwam_menu_item_class = NWAM_MENU_ITEM_CLASS(klass);
+    nwam_menu_item_class->connect_object = connect_wifi_net_signals;
+    nwam_menu_item_class->disconnect_object = disconnect_wifi_net_signals;
+    nwam_menu_item_class->sync_object = sync_wifi_net;
 
 	g_type_class_add_private (klass, sizeof (NwamWifiItemPrivate));
 }
@@ -143,7 +124,7 @@ nwam_wifi_item_new(NwamuiWifiNet *wifi)
   gchar *path = NULL;
 
   item = g_object_new (NWAM_TYPE_WIFI_ITEM,
-    "wifi", wifi,
+    "object", wifi,
     NULL);
 
   return GTK_WIDGET(item);
@@ -165,11 +146,6 @@ nwam_wifi_item_finalize (NwamWifiItem *self)
         g_object_unref(daemon);
     }
 
-    if (prv->wifi) {
-        disconnect_wifi_net_signals(self, prv->wifi);
-        g_object_unref(prv->wifi);
-    }
-
 	G_OBJECT_CLASS(nwam_wifi_item_parent_class)->finalize(G_OBJECT (self));
 }
 
@@ -184,23 +160,6 @@ nwam_wifi_item_set_property (GObject         *object,
     GObject *obj = g_value_dup_object (value);
 
 	switch (prop_id) {
-	case PROP_WIFI:
-        if (prv->wifi != NWAMUI_WIFI_NET(obj)) {
-            if (prv->wifi) {
-                /* remove signal callback */
-                disconnect_wifi_net_signals(self, prv->wifi);
-
-                g_object_unref(prv->wifi);
-            }
-            prv->wifi = NWAMUI_WIFI_NET(obj);
-
-            /* connect signal callback */
-            connect_wifi_net_signals(self, prv->wifi);
-
-            /* initializing */
-            nwam_obj_proxy_refresh(NWAM_OBJ_PROXY_IFACE(self));
-        }
-        break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -218,9 +177,6 @@ nwam_wifi_item_get_property (GObject         *object,
 
 	switch (prop_id)
 	{
-	case PROP_WIFI:
-		g_value_set_object (value, (GObject*) prv->wifi);
-		break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -234,7 +190,7 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
     NwamWifiItemPrivate *prv = GET_PRIVATE(self);
     NwamuiNcp* ncp = nwamui_daemon_get_active_ncp (prv->daemon);
     NwamuiNcu *ncu = NULL;
-    NwamuiWifiNet *wifi = prv->wifi;
+    NwamuiWifiNet *wifi = NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self)));
     gchar *name;
 
     /* Should we temporary set active to false for self, and wait for
@@ -276,28 +232,12 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
     g_object_unref(ncp);
 }
 
-static GObject*
-get_proxy(NwamObjProxyIFace *iface)
-{
-    NwamWifiItemPrivate *prv = GET_PRIVATE(iface);
-    return G_OBJECT(prv->wifi);
-}
-
-static void
-refresh(NwamObjProxyIFace *iface)
-{
-    NwamWifiItem *self = NWAM_WIFI_ITEM(iface);
-    NwamWifiItemPrivate *prv = GET_PRIVATE(iface);
-
-    wifi_net_notify(G_OBJECT(prv->wifi), NULL, (gpointer)self);
-}
-
 NwamuiWifiNet *
 nwam_wifi_item_get_wifi (NwamWifiItem *self)
 {
     NwamuiWifiNet *wifi;
 
-    g_object_get(self, "wifi", &wifi, NULL);
+    g_object_get(self, "object", &wifi, NULL);
 
     return wifi;
 }
@@ -307,7 +247,7 @@ nwam_wifi_item_set_wifi (NwamWifiItem *self, NwamuiWifiNet *wifi)
 {
     g_return_if_fail(NWAMUI_IS_WIFI_NET(wifi));
 
-    g_object_set(self, "wifi", wifi, NULL);
+    g_object_set(self, "object", wifi, NULL);
 }
 
 static void 
@@ -337,6 +277,12 @@ disconnect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi)
       NULL,
       (gpointer)wifi_net_notify,
       NULL);
+}
+
+static void
+sync_wifi_net(NwamWifiItem *self, NwamuiWifiNet *wifi)
+{
+    wifi_net_notify(G_OBJECT(wifi), NULL, (gpointer)self);
 }
 
 static void 

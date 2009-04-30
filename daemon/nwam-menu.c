@@ -33,8 +33,8 @@
 #include <glib/gprintf.h>
 #include <glib/gi18n.h>
 
+#include "nwam-menuitem.h"
 #include "nwam-menu.h"
-#include "nwam-obj-proxy-iface.h"
 #include "libnwamui.h"
 
 extern gboolean debug;

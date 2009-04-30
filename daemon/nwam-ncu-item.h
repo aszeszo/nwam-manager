@@ -45,12 +45,12 @@ typedef struct _NwamNcuItemClass   NwamNcuItemClass;
 
 struct _NwamNcuItem
 {
-    GtkCheckMenuItem parent;
+    NwamMenuItem parent;
 };
 
 struct _NwamNcuItemClass
 {
-    GtkCheckMenuItemClass parent_class;
+    NwamMenuItemClass parent_class;
 };
 
 GType            nwam_ncu_item_get_type          (void) G_GNUC_CONST;

@@ -54,6 +54,7 @@ nwam_manager_SOURCES =		\
 	main.c			\
 	notify.c	\
 	status_icon.c	\
+	status_icon_tooltip.c	\
 	nwam-menu.c	\
 	nwam-menuitem.c	\
 	nwam-wifi-item.c	\
@@ -102,6 +103,7 @@ uidir           = $(pkgdatadir)
 EXTRA_DIST = 		\
 	notify.h	\
 	status_icon.h	\
+	status_icon_tooltip.h	\
 	nwam-menu.h	\
 	nwam-menuitem.h	\
 	nwam-wifi-item.h	\
