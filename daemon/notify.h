@@ -46,7 +46,7 @@ void nwam_notification_init( GtkStatusIcon* status_icon );
  */
 void nwam_notification_show_message( const gchar* summary,
   const gchar* body,
-  const gchar* icon,
+  const GdkPixbuf* icon,
   gint timeout );
 
 /* 
@@ -56,7 +56,7 @@ void nwam_notification_show_message( const gchar* summary,
  */
 void nwam_notification_show_message_with_action (const gchar* summary,
   const gchar* body,
-  const gchar* icon,
+  const GdkPixbuf* icon,
   const gchar* action,
   const gchar* label,
   NotifyActionCallback callback,
@@ -73,6 +73,8 @@ void nwam_notification_cleanup( void );
  * Returns a string containing the last status message sent.
  */
 const gchar* nwam_notification_get_status_msg( void );
+
+void nwam_notification_set_default_icon(GdkPixbuf *pixbuf);
 
 G_END_DECLS
 

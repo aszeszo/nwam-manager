@@ -30,7 +30,7 @@
 
 static NotifyNotification*   notification           = NULL;
 static GtkStatusIcon*        parent_status_icon     = NULL;
-static gchararray            default_icon           = NWAM_ICON_NETWORK_WIRED;
+static GdkPixbuf            *default_icon           = NULL;
 static GQueue                msg_q                  = G_QUEUE_INIT;
 static gchar                *last_message           = NULL;
 
@@ -49,7 +49,7 @@ typedef struct _msg
     NotifyNotification *n;
     gchar *summary;
     gchar *body;
-    gchar *icon;
+    GdkPixbuf* icon;
     gchar *action;
     gchar *label;
     NotifyActionCallback cb;
@@ -62,7 +62,7 @@ typedef struct _msg
 static msg *nwam_notification_msg_new(NotifyNotification *n,
   const gchar *summary,
   const gchar *body,
-  const gchar *icon,
+  const GdkPixbuf* icon,
   const gchar *action,
   const gchar *label,
   NotifyActionCallback callback,
@@ -92,7 +92,7 @@ static msg *
 nwam_notification_msg_new(NotifyNotification *n,
   const gchar *summary,
   const gchar *body,
-  const gchar *icon,
+  const GdkPixbuf* icon,
   const gchar *action,
   const gchar *label,
   NotifyActionCallback callback,
@@ -105,7 +105,8 @@ nwam_notification_msg_new(NotifyNotification *n,
     m->n = n;
     m->summary = g_strdup(summary);
     m->body = g_strdup(body);
-    m->icon = g_strdup(icon);
+    if (icon)
+        m->icon = g_object_ref(icon);
     m->action = g_strdup(action);
     m->label = g_strdup(label);
     m->cb = callback;
@@ -122,7 +123,8 @@ nwam_notification_msg_free(msg *m)
     set_last_message(m->summary, m->body);
     g_free(m->summary);
     g_free(m->body);
-    g_free(m->icon);
+    if (m->icon)
+        g_object_unref(m->icon);
     g_free(m->action);
     g_free(m->label);
     g_free(m);
@@ -185,7 +187,7 @@ get_notification( void )
     if ( notification == NULL ) {
         notify_init( PACKAGE );
         
-        notification = notify_notification_new_with_status_icon(" ", " ", default_icon, parent_status_icon  );
+        notification = notify_notification_new_with_status_icon(" ", " ", NULL, parent_status_icon  );
 
         g_signal_connect(notification, "closed",
           G_CALLBACK(on_notification_closed),
@@ -350,8 +352,11 @@ nwam_notification_show_nth_message(GQueue *q, guint nth)
         const gchar* real_label = m->label;
         gint timeout = 0;
 
-        notify_notification_update(m->n, m->summary, m->body,
-          ((m->icon!=NULL) ? (m->icon) : (default_icon)));
+        notify_notification_update(m->n, m->summary, m->body, NULL);
+/*           ((m->icon!=NULL) ? (m->icon) : (default_icon))); */
+        if (m->icon || default_icon)
+            notify_notification_set_icon_from_pixbuf(m->n,
+              ((m->icon!=NULL) ? (m->icon) : (default_icon)));
 
         if (m->cb) {
             if (m->action == NULL || *(m->action) == '\0') {
@@ -413,7 +418,7 @@ nwam_notification_show_message_cb(GQueue *q)
 void
 nwam_notification_show_message(const gchar* summary,
   const gchar* body,
-  const gchar* icon,
+  const GdkPixbuf* icon,
   gint timeout)
 {
     NotifyNotification  *n = get_notification();
@@ -439,7 +444,7 @@ nwam_notification_show_message(const gchar* summary,
 void
 nwam_notification_show_message_with_action (const gchar* summary,
   const gchar* body,
-  const gchar* icon,
+  const GdkPixbuf* icon,
   const gchar* action,
   const gchar* label,
   NotifyActionCallback callback,
@@ -504,3 +509,16 @@ set_last_message( const gchar* summary, const gchar* body )
         last_message = g_strdup_printf(_("  %s"), summary );
     }
 }
+
+void
+nwam_notification_set_default_icon(GdkPixbuf *pixbuf)
+{
+    g_debug("%s: pixbuf 0x%p", __func__, pixbuf);
+
+    if (default_icon)
+        g_object_unref(default_icon);
+
+    if ((default_icon = pixbuf) != NULL)
+        g_object_ref(default_icon);
+}
+

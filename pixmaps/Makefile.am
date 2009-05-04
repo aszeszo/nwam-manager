@@ -38,11 +38,11 @@ gtk_update_hicolor_icon_cache = /usr/bin/gtk-update-icon-cache -f -t $(datadir)/
 icondir   = $(datadir)/$(PACKAGE)/icons
 
 icon_DATA = \
+	network-idle.png \
 	$(NULL)
 
 # 	earth-info.png \
 # 	earth-normal.png \
-# 	network-idle.png \
 # 	network-offline.png \
 # 	network-wireless.png \
 # 	wireless-strength-0-24.png \

@@ -106,55 +106,48 @@ typedef guint64 libnwam_diag_cause_t;
 #endif
 
 /* Device icons. */
-#define  NWAM_ICON_NETWORK_WIRELESS         "network-wireless"
-#define  NWAM_ICON_NETWORK_WIRED            "network-wired"
+#define  NWAM_ICON_NETWORK_WIRELESS "network-wireless"
+#define  NWAM_ICON_NETWORK_WIRED    "network-wired"
 
 /* Status icons */
-#define  NWAM_ICON_CONNECTED          "network-connected"
-#define  NWAM_ICON_WARNING            "network-warning"
-#define  NWAM_ICON_ERROR              "network-error"
+#define  NWAM_ICON_CONNECTED "nwam-connected"
+#define  NWAM_ICON_WARNING   "nwam-warning"
+#define  NWAM_ICON_ERROR     "nwam-error"
 
-#define  NWAM_ICON_WIRED_CONNECTED          "network-wired-connected"
-#define  NWAM_ICON_WIRED_WARNING            "network-wired-warning"
-#define  NWAM_ICON_WIRED_ERROR              "network-wired-error"
-#define  NWAM_ICON_WIRELESS_CONNECTED       "network-wireless-connected"
-#define  NWAM_ICON_WIRELESS_WARNING         "network-wireless-warning"
-#define  NWAM_ICON_WIRELESS_ERROR           "network-wireless-error"
-
-/* Wireless strength icons */
+/* Wireless strength icons, do we really need both parts? */
 #if 0
-#define  NWAM_ICON_WIRELESS_STRENGTH_NONE   "network-wireless-signal-none"
-#define  NWAM_ICON_WIRELESS_STRENGTH_POOR   "network-wireless-signal-poor"
-#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "network-wireless-signal-fair"
-#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "network-wireless-signal-good"
-#define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT   "network-wireless-signal-good"
+#define  NWAM_ICON_WIRELESS_STRENGTH_NONE      "network-wireless-signal-none"
+#define  NWAM_ICON_WIRELESS_STRENGTH_POOR      "network-wireless-signal-poor"
+#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR      "network-wireless-signal-fair"
+#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD      "network-wireless-signal-good"
+#define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT "network-wireless-signal-good"
 #else
-#define  NWAM_ICON_WIRELESS_STRENGTH_NONE   "network-wireless-nosignal"
-#define  NWAM_ICON_WIRELESS_STRENGTH_POOR   "network-wireless-0-24"
-#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR   "network-wireless-25-49"
-#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD   "network-wireless-50-74"
-#define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT   "network-wireless-75-100"
+#define  NWAM_ICON_WIRELESS_STRENGTH_NONE      "nwam-wireless-nosignal"
+#define  NWAM_ICON_WIRELESS_STRENGTH_POOR      "nwam-wireless-0-24"
+#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR      "nwam-wireless-25-49"
+#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD      "nwam-wireless-50-74"
+#define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT "nwam-wireless-75-100"
 #endif
 
-#define  NWAM_ICON_NETWORK_SECURE           "network-secure"
-#define  NWAM_ICON_NETWORK_INSECURE         "network-insecure"
+#define  NWAM_ICON_NETWORK_SECURE   "network-secure"
+#define  NWAM_ICON_NETWORK_INSECURE "network-insecure"
 
 /* Condition icons */
-#define  NWAM_ICON_COND_ACT_MODE_SYSTEM      "activation-mode-system"
-#define  NWAM_ICON_COND_ACT_MODE_MANUAL      "activation-mode-manual"
-#define  NWAM_ICON_COND_ACT_MODE_PRIORITIZED GTK_STOCK_YES
-#define  NWAM_ICON_COND_ACT_MODE_CONDITIONAL_ALL "activation-mode-conditional"
-#define  NWAM_ICON_COND_ACT_MODE_CONDITIONAL_ANY "activation-mode-conditional"
+#define  NWAM_ICON_COND_ACT_MODE_SYSTEM          "nwam-activation-system"
+#define  NWAM_ICON_COND_ACT_MODE_MANUAL          "nwam-activation-manual"
+#define  NWAM_ICON_COND_ACT_MODE_PRIORITIZED     GTK_STOCK_YES
+#define  NWAM_ICON_COND_ACT_MODE_CONDITIONAL_ALL "nwam-activation-conditional"
+#define  NWAM_ICON_COND_ACT_MODE_CONDITIONAL_ANY "nwam-activation-conditional"
 
-#define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_EXCLUSIVE  "priority-group-1"
-#define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_SHARED     "priority-group-2"
-#define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_ALL        "priority-group-3"
+#define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_EXCLUSIVE "priority-group-1"
+#define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_SHARED    "priority-group-2"
+#define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_ALL       "priority-group-3"
 
 /* TODO test icons */
-#define  NWAM_ICON_NCU_STATUS_ENABLED       GTK_STOCK_YES
-#define  NWAM_ICON_NCU_STATUS_DISABLED      GTK_STOCK_NO
-#define  NWAM_ICON_NCU_STATUS_CONDITIONAL   GTK_STOCK_STOP
-#define  NWAM_ICON_NCU_STATUS_PRIORITIZED   GTK_STOCK_GO_FORWARD
+#define  NWAM_ICON_NCU_STATUS_ENABLED     GTK_STOCK_YES
+#define  NWAM_ICON_NCU_STATUS_DISABLED    GTK_STOCK_NO
+#define  NWAM_ICON_NCU_STATUS_CONDITIONAL GTK_STOCK_STOP
+#define  NWAM_ICON_NCU_STATUS_PRIORITIZED GTK_STOCK_GO_FORWARD
 
 /* if no favorite networks are available, what should we do ? */
 enum 
@@ -227,7 +220,7 @@ extern const gchar*             nwamui_util_get_active_mode_icon( NwamuiObject *
 
 extern GdkPixbuf*               nwamui_util_get_network_type_icon( nwamui_ncu_type_t ncu_type );
 
-extern GdkPixbuf*               nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status );
+extern GdkPixbuf*               nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status, gint force_size );
 
 extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength,
                                                                         gboolean small);

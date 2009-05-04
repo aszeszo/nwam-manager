@@ -360,22 +360,24 @@ get_pixbuf( const gchar* stock_id, gboolean small )
 
 /* 
  * Returns a GdkPixbuf that reflects the status of the environment
+ * If force_size equals 0, uses the size of status icon.
  */
 extern GdkPixbuf*
-nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status )
+nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status, gint force_size )
 {
-    gint       size = -1;
     gint activate_wired_num = 0;
     gint activate_wireless_num = 0;
     gint average_signal_strength = 0;
     nwamui_ncu_type_t ncu_type;
 
-    if ( status_icon != NULL && 
-      gtk_status_icon_is_embedded(status_icon)) {
-        size = gtk_status_icon_get_size( status_icon );
-    }
-    else {
-        return( NULL );
+    if (force_size == 0) {
+        if (status_icon != NULL && 
+          gtk_status_icon_is_embedded(status_icon)) {
+            force_size = gtk_status_icon_get_size( status_icon );
+        }
+        else {
+            return( NULL );
+        }
     }
     {
         NwamuiDaemon *daemon = nwamui_daemon_get_instance();
@@ -421,7 +423,7 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
     return nwamui_util_get_network_status_icon(ncu_type, 
       average_signal_strength,
       env_status,
-      size);
+      force_size);
 }
 
 /* 

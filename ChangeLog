@@ -1,5 +1,26 @@
 2009-05-04  Lin Ma  <Lin.Ma@Sun.COM>
 
+	reviewed by: <delete if not using a buddy>
+
+	* common/libnwamui.c (nwamui_util_get_env_status_icon):
+	* common/libnwamui.h:
+	* daemon/notify.c (nwam_notification_msg_new),
+	(nwam_notification_msg_free), (get_notification),
+	(nwam_notification_show_nth_message),
+	(nwam_notification_show_message),
+	(nwam_notification_show_message_with_action),
+	(nwam_notification_set_default_icon):
+	* daemon/notify.h:
+	* daemon/status_icon.c (daemon_status_changed), (daemon_info),
+	(daemon_wifi_selection_needed), (daemon_ncu_up), (daemon_ncu_down),
+	(animation_panel_icon_timeout), (trigger_animation_panel_icon),
+	(nwam_status_icon_set_status), (status_icon_size_changed),
+	(ncp_activate_ncu):
+	* daemon/status_icon.h:
+	* pixmaps/Makefile.am:
+
+2009-05-04  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* daemon/Makefile.am: New file for tooltip widget which represent nwamui
 	object.
 	* daemon/nwam-enm-item.c (nwam_enm_item_class_init),

@@ -298,12 +298,11 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
         if (gtk_status_icon_get_visible(GTK_STATUS_ICON(self))) {
 
             /* On intial run with NWAM disabled the icon won't be visible */
-            nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_ERROR, 
-              _("Automatic network configuration daemon is unavailable.") );
+            nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_ERROR);
 		
             status_str=_("Automatic network configuration daemon is unavailable.");
             body_str=  _("For further information please run\n\"svcs -xv nwam\" in a terminal.");
-            nwam_notification_show_message(status_str, body_str, NWAM_ICON_WIRED_ERROR, NOTIFY_EXPIRES_DEFAULT);
+            nwam_notification_show_message(status_str, body_str, NULL, NOTIFY_EXPIRES_DEFAULT);
             need_report_daemon_error = TRUE;
 
         }
@@ -338,7 +337,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
         if ( NWAMUI_IS_WIFI_NET( obj ) ) {
             gchar *essid = nwamui_wifi_net_get_display_string(NWAMUI_WIFI_NET(obj), FALSE);
             msg = g_strdup_printf(_("Connected to wireless network '%s'"), essid, NULL);
-            nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_CONNECTED, msg );
+            nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_CONNECTED);
             nwam_notification_show_message (msg, essid, NULL, NOTIFY_EXPIRES_DEFAULT );
             g_free(essid);
             g_free(msg);
@@ -365,19 +364,19 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
                 gchar *summary  = g_strdup_printf (_("Disconnected from Wireless Network '%s'"), essid);
                 gchar *body     = g_strdup_printf(_("%s\nClick here to join another wireless network."),
                                          nwamui_daemon_get_event_cause_string(daemon) );
+                /* Only change status if it's the active_ncu */
+                if ( is_active_ncu ) {
+                    nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING);
+                }
+
                 nwam_notification_show_message_with_action(summary, body,
-                  NWAM_ICON_WIRED_WARNING,
+                  NULL,
                   NULL,	/* action */
                   NULL,	/* label */
                   notifyaction_popup_menus,
                   (gpointer)self,
                   NULL,
                   NOTIFY_EXPIRES_DEFAULT);
-
-                /* Only change status if it's the active_ncu */
-                if ( is_active_ncu ) {
-                    nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, summary );
-                }
 
                 g_free(summary);
                 g_free(body);
@@ -421,9 +420,9 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
             }
 
             if ( show_message ) {
+                nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING);
                 nwam_notification_show_message (_("Automatic Network Configuration Daemon"), 
                                                  (gchar *)data, NULL, NOTIFY_EXPIRES_DEFAULT);
-                nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, (gchar*)data );
             }
         }
         break;
@@ -485,12 +484,11 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
         g_free(name);
 
         if ( active_ncu ) {
-            nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, 
-                                        _("Right-click to select wireless network") );
+            nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING);
         }
 
         nwam_notification_show_message_with_action(summary, body,
-          NWAM_ICON_WIRED_WARNING,
+          NULL,
           NULL,	/* action */
           NULL,	/* label */
           notifyaction_popup_menus,
@@ -520,6 +518,9 @@ daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
         addr = nwamui_ncu_get_ipv6_address (ncu);
     }
 
+	/* set status to "CONNECTED" */
+	nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_CONNECTED);
+
     switch (nwamui_ncu_get_ncu_type (ncu)) {
     case NWAMUI_NCU_TYPE_WIRED: {
         GString *gstr = g_string_new("");
@@ -531,7 +532,8 @@ daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
         }
         body = g_string_free(gstr, FALSE);
 
-        nwam_notification_show_message (summary, body, NWAM_ICON_WIRED_CONNECTED, NOTIFY_EXPIRES_DEFAULT);
+        nwam_notification_show_message (summary, body, 
+          nwamui_util_get_ncu_status_icon(ncu), NOTIFY_EXPIRES_DEFAULT);
         break;
     }
     case NWAMUI_NCU_TYPE_WIRELESS: {
@@ -568,9 +570,6 @@ daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
         g_assert_not_reached ();
     }
 
-	/* set status to "CONNECTED" */
-	nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_CONNECTED, summary );
-
     g_free (sname);
     g_free (ifname);
     g_free (addr);
@@ -594,6 +593,9 @@ daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
 
     /* Only show this information, if it's the active_ncu */
     if ( ncu == active_ncu ) {
+        /* set status to "WARNING", only relevant if it's the active ncu */
+        nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING);
+
         switch (nwamui_ncu_get_ncu_type (ncu)) {
         case NWAMUI_NCU_TYPE_WIRED: {
                 gchar *body = NULL;
@@ -602,7 +604,7 @@ daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
                 if ( nwamui_daemon_get_event_cause(daemon) != NWAMUI_DAEMON_EVENT_CAUSE_NONE ) {
                     body = g_strdup_printf("Reason: %s",nwamui_daemon_get_event_cause_string(daemon));
                 }
-                nwam_notification_show_message (summary, body, NWAM_ICON_WIRED_WARNING, NOTIFY_EXPIRES_DEFAULT);
+                nwam_notification_show_message (summary, body, NULL, NOTIFY_EXPIRES_DEFAULT);
                 g_free(body);
             }
             break;
@@ -613,7 +615,7 @@ daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
                 if ( nwamui_daemon_get_event_cause(daemon) != NWAMUI_DAEMON_EVENT_CAUSE_NONE ) {
                     body = g_strdup_printf("Reason: %s",nwamui_daemon_get_event_cause_string(daemon));
                 }
-                nwam_notification_show_message (summary, body, NWAM_ICON_WIRED_WARNING, NOTIFY_EXPIRES_DEFAULT);
+                nwam_notification_show_message (summary, body, NULL, NOTIFY_EXPIRES_DEFAULT);
                 g_free(body);
             }
             break;
@@ -621,8 +623,6 @@ daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
             g_assert_not_reached ();
         }
 
-        /* set status to "WARNING", only relevant if it's the active ncu */
-        nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, summary );
     }
 
     if ( active_ncu != NULL ) {
@@ -940,7 +940,8 @@ animation_panel_icon_timeout (gpointer user_data)
 
 	gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
       nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self),
-		(nwamui_env_status_t)(++prv->icon_stock_index)%NWAMUI_ENV_STATUS_LAST));
+		(nwamui_env_status_t)(++prv->icon_stock_index)%NWAMUI_ENV_STATUS_LAST,
+        0));
 	return TRUE;
 }
 
@@ -970,7 +971,7 @@ trigger_animation_panel_icon (GConfClient *client,
 		prv->animation_icon_update_timeout_id = 0;
 		/* reset everything of animation_panel_icon here */
 		gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self), 
-          nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), nwamui_daemon_get_status(prv->daemon)));
+          nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), nwamui_daemon_get_status(prv->daemon), 0));
 		prv->icon_stock_index = 0;
 	}
 }
@@ -1051,13 +1052,15 @@ nwam_status_icon_set_activate_callback(NwamStatusIcon *self,
 }
 
 void
-nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, const gchar* reason )
+nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status)
 {
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
     prv->current_status = env_status;
 
+    nwam_notification_set_default_icon(nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status, 48));
+
     gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
-      nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status));
+      nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status, 0));
 }
 
 void
@@ -1098,7 +1101,7 @@ status_icon_size_changed(GtkStatusIcon *status_icon, gint size, gpointer user_da
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(status_icon);
 
     gtk_status_icon_set_from_pixbuf(status_icon, 
-      nwamui_util_get_env_status_icon(status_icon, prv->current_status ));
+      nwamui_util_get_env_status_icon(status_icon, prv->current_status, 0));
     return TRUE;
 }
 
@@ -1135,8 +1138,9 @@ ncp_activate_ncu (NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer user_data)
 
         name = nwamui_ncu_get_vanity_name(ncu);
         summary = g_strdup_printf(_("Activating %s network interface..."), name);
-        nwam_notification_show_message(summary, NULL, NWAM_ICON_WIRED_WARNING, NOTIFY_EXPIRES_DEFAULT);
-        nwam_status_icon_set_status(sicon, NWAMUI_ENV_STATUS_WARNING, NULL );
+        nwam_status_icon_set_status(sicon, NWAMUI_ENV_STATUS_WARNING);
+
+        nwam_notification_show_message(summary, NULL, NULL, NOTIFY_EXPIRES_DEFAULT);
 
         g_free(name);
         g_free(summary);
