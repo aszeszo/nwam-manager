@@ -35,8 +35,8 @@
 #include "nwam-menuitem.h"
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
-static GObject* get_proxy(NwamObjProxyIFace *iface);
-static void refresh(NwamObjProxyIFace *iface);
+static GObject* nwam_menu_item_get_proxy(NwamObjProxyIFace *iface);
+static void nwam_menu_item_refresh(NwamObjProxyIFace *iface);
 
 static void nwam_menu_item_set_property (GObject         *object,
   guint            prop_id,
@@ -63,9 +63,10 @@ static void nwam_menu_item_draw_indicator(GtkCheckMenuItem *check_menu_item,
   GdkRectangle *area);
 static void nwam_menu_item_finalize (NwamMenuItem *self);
 
-static void nwam_menu_item_connect_object(NwamMenuItem *self, GObject *object);
-static void nwam_menu_item_disconnect_object(NwamMenuItem *self, GObject *object);
-static void nwam_menu_item_sync_object(NwamMenuItem *self, GObject *object);
+static void default_connect_object(NwamMenuItem *self, GObject *object);
+static void default_disconnect_object(NwamMenuItem *self, GObject *object);
+static void default_sync_object(NwamMenuItem *self, GObject *object);
+static gint default_compare(NwamMenuItem *self, NwamMenuItem *other);
 
 enum {
 	PROP_ZERO,
@@ -89,8 +90,8 @@ G_DEFINE_TYPE_EXTENDED(NwamMenuItem, nwam_menu_item, GTK_TYPE_CHECK_MENU_ITEM,
 static void
 nwam_obj_proxy_init(NwamObjProxyInterface *iface)
 {
-    iface->get_proxy = get_proxy;
-    iface->refresh = refresh;
+    iface->get_proxy = nwam_menu_item_get_proxy;
+    iface->refresh = nwam_menu_item_refresh;
     iface->delete_notify = NULL;
 }
 
@@ -124,17 +125,18 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
 
 	check_menu_item_class->draw_indicator = nwam_menu_item_draw_indicator;
 
-    klass->connect_object = nwam_menu_item_connect_object;
-    klass->disconnect_object = nwam_menu_item_disconnect_object;
-    klass->sync_object = nwam_menu_item_sync_object;
+    klass->connect_object = default_connect_object;
+    klass->disconnect_object = default_disconnect_object;
+    klass->sync_object = default_sync_object;
+    klass->compare = default_compare;
 
 	g_type_class_add_private (klass, sizeof (NwamMenuItemPrivate));
 
 	g_object_class_install_property (gobject_class,
       PROP_OBJECT,
-      g_param_spec_object ("object",
-        N_("object"),
-        N_("object"),
+      g_param_spec_object ("proxy-object",
+        N_("proxy-object"),
+        N_("proxy-object"),
         G_TYPE_OBJECT,
         G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
@@ -198,7 +200,7 @@ nwam_menu_item_set_property (GObject         *object,
                 NWAM_MENU_ITEM_GET_CLASS(self)->sync_object(self, prv->object);
             } else {
                 /* Todo reset all. */
-                nwam_menu_item_sync_object(self, NULL);
+                default_sync_object(self, NULL);
             }
         }
     }
@@ -289,17 +291,17 @@ nwam_menu_item_remove (GtkContainer   *container,
 }
 
 static void
-nwam_menu_item_connect_object(NwamMenuItem *self, GObject *object)
+default_connect_object(NwamMenuItem *self, GObject *object)
 {
 }
 
 static void
-nwam_menu_item_disconnect_object(NwamMenuItem *self, GObject *object)
+default_disconnect_object(NwamMenuItem *self, GObject *object)
 {
 }
 
 static void
-nwam_menu_item_sync_object(NwamMenuItem *self, GObject *object)
+default_sync_object(NwamMenuItem *self, GObject *object)
 {
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     if (object == NULL) {
@@ -309,15 +311,21 @@ nwam_menu_item_sync_object(NwamMenuItem *self, GObject *object)
     }
 }
 
+static gint
+default_compare(NwamMenuItem *self, NwamMenuItem *other)
+{
+    return 0;
+}
+
 static GObject*
-get_proxy(NwamObjProxyIFace *iface)
+nwam_menu_item_get_proxy(NwamObjProxyIFace *iface)
 {
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(iface);
     return (GObject *)prv->object;
 }
 
 static void
-refresh(NwamObjProxyIFace *iface)
+nwam_menu_item_refresh(NwamObjProxyIFace *iface)
 {
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(iface);
 
@@ -346,7 +354,7 @@ GtkWidget*
 nwam_menu_item_new_with_object(GObject *object)
 {
 	return g_object_new (NWAM_TYPE_MENU_ITEM,
-      "object", object,
+      "proxy-object", object,
       NULL);
 }
 
@@ -782,3 +790,10 @@ menu_item_set_markup(GtkMenuItem *item, const gchar *label)
     }
     gtk_label_set_markup(GTK_LABEL (accel_label), label);
 }
+
+gint
+nwam_menu_item_compare(NwamMenuItem *self, NwamMenuItem *other)
+{
+    return NWAM_MENU_ITEM_GET_CLASS(self)->compare(NWAM_MENU_ITEM(self), NWAM_MENU_ITEM(other));
+}
+

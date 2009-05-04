@@ -98,7 +98,7 @@ static void nwam_menu_real_insert(GtkMenuShell *menu_shell,
 static void default_get_section_index(NwamMenu *self, GtkWidget *w, gint *index);
 
 /* Utils */
-static gint nwam_menu_item_compare(GtkWidget *a, GtkWidget *b);
+static gint menu_item_compare(GtkWidget *a, GtkWidget *b);
 
 /* GtkMenu utils */
 static void menu_foreach_by_name(GtkWidget *widget, gpointer user_data);
@@ -183,7 +183,8 @@ nwam_menu_finalize (NwamMenu *self)
 {
     NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
 
-    g_free(prvsection);
+    /* Ref count is correct here, or we just leave this leak.  */
+/*     g_free(prvsection); */
 
 	G_OBJECT_CLASS(nwam_menu_parent_class)->finalize(G_OBJECT(self));
 }
@@ -250,12 +251,11 @@ nwam_menu_real_remove(GtkContainer *container, GtkWidget *widget)
       widget, (gpointer)&index);
 
     if (debug) {
-        g_debug("%s got index %d", __func__, index);
         if (NWAM_IS_OBJ_PROXY_IFACE(widget)) {
             NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(widget)));
             gchar *name = nwamui_object_get_name(object);
             g_assert(!GTK_IS_SEPARATOR(widget));
-            g_debug("%s \"%s\"\n", __func__, name);
+            g_debug("%s: \"%s\" got index %d", __func__, name, index);
             g_free(name);
         }
     }
@@ -285,12 +285,11 @@ nwam_menu_real_insert(GtkMenuShell *menu_shell,
       child, (gpointer)&index);
 
     if (debug) {
-        g_debug("%s got index %d position %d", __func__, index, position);
         if (NWAM_IS_OBJ_PROXY_IFACE(child)) {
             NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(child)));
             gchar *name = nwamui_object_get_name(object);
             g_assert(!GTK_IS_SEPARATOR(child));
-            g_debug("%s \"%s\"\n", __func__, name);
+            g_debug("%s: \"%s\" got index %d position %d", __func__, name, index, position);
             g_free(name);
         }
     }
@@ -308,10 +307,10 @@ nwam_menu_real_insert(GtkMenuShell *menu_shell,
         menu_section_get_children(&prvsection[index], &sorted, &start_pos);
 
         if (sorted) {
-            sorted = g_list_sort(sorted, (GCompareFunc)nwam_menu_item_compare);
+            sorted = g_list_sort(sorted, (GCompareFunc)menu_item_compare);
 
             for (i = sorted; i; i = g_list_next(i)) {
-                if (child && nwam_menu_item_compare(child, GTK_WIDGET(i->data)) < 0) {
+                if (child && menu_item_compare(child, GTK_WIDGET(i->data)) < 0) {
                     GTK_MENU_SHELL_CLASS(nwam_menu_parent_class)->insert(GTK_MENU_SHELL(menu), child, start_pos++);
                     child = NULL;
                 }
@@ -338,8 +337,10 @@ default_get_section_index(NwamMenu *self, GtkWidget *w, gint *index)
 }
 
 static gint
-nwam_menu_item_compare(GtkWidget *a, GtkWidget *b)
+menu_item_compare(GtkWidget *a, GtkWidget *b)
 {
+    if (NWAM_IS_MENU_ITEM(a) && NWAM_IS_MENU_ITEM(b))
+        return nwam_menu_item_compare(NWAM_MENU_ITEM(a), NWAM_MENU_ITEM(b));
     return 0;
 }
 
@@ -631,7 +632,7 @@ nwam_menu_section_sort(NwamMenu *self, gint sec_id)
     menu_section_get_children(&prvsection[sec_id], &sorted, &start_pos);
 
     if (sorted) {
-        sorted = g_list_sort(sorted, (GCompareFunc)nwam_menu_item_compare);
+        sorted = g_list_sort(sorted, (GCompareFunc)menu_item_compare);
 
         for (i = sorted; i; i = g_list_next(i)) {
             gtk_menu_reorder_child(GTK_MENU(menu), GTK_WIDGET(i->data), start_pos++);

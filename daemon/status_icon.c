@@ -129,12 +129,6 @@ static void disconnect_nwam_object_signals(GObject *self, GObject *obj);
 static void join_wireless(NwamuiWifiNet *wifi);
 
 /* call back */
-static void tooltip_treeview_cell (GtkTreeViewColumn *col,
-  GtkCellRenderer   *renderer,
-  GtkTreeModel      *model,
-  GtkTreeIter       *iter,
-  gpointer           data);
-
 static void on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data);
 static void status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object);
 
@@ -1062,8 +1056,6 @@ nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, const gchar* 
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
     prv->current_status = env_status;
 
-    DEBUG();
-
     gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
       nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status));
 }
@@ -1210,71 +1202,6 @@ ncp_deactivate_ncu (NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer user_data)
             g_object_unref(wifi);
         }
     }
-}
-
-static void
-tooltip_treeview_cell (GtkTreeViewColumn *col,
-  GtkCellRenderer   *renderer,
-  GtkTreeModel      *model,
-  GtkTreeIter       *iter,
-  gpointer           data)
-{
-    gint          cell_num = (gint)data; /* Number of cell in column */
-    NwamuiObject *object;
-    GType         type;
-    GtkWidget    *item;
-	GString      *gstr;
-    gchar        *name;
-
-	gtk_tree_model_get(model, iter, 0, &object, -1);
-
-    if (!object)
-        return;
-
-    gstr = g_string_new("");
-    type = G_OBJECT_TYPE(object);
-
-    name = nwamui_object_get_name(object);
-
-	if (type == NWAMUI_TYPE_NCU) {
-        if (cell_num == 0) {
-        } else {
-            gchar *state = nwamui_ncu_get_connection_state_detail_string(NWAMUI_NCU(object));
-            switch (nwamui_ncu_get_ncu_type(NWAMUI_NCU(object))) {
-            case NWAMUI_NCU_TYPE_WIRELESS:
-                g_string_append_printf(gstr, _("<b>Wireless (%s):</b> %s"),
-                  name, state);
-                break;
-            case NWAMUI_NCU_TYPE_WIRED:
-            case NWAMUI_NCU_TYPE_TUNNEL:
-                g_string_append_printf(gstr, _("<b>Wired (%s):</b> %s"),
-                  name, state);
-                break;
-            default:
-                g_assert_not_reached ();
-            }
-            g_free(state);
-            g_object_set(renderer, "markup", gstr->str, NULL);
-        }
-	} else if (type == NWAMUI_TYPE_ENV) {
-        if (cell_num == 0) {
-        } else {
-            g_string_append_printf(gstr, _("<b>Location:</b> %s"), name);
-            g_object_set(renderer, "markup", gstr->str, NULL);
-        }
-	} else if (type == NWAMUI_TYPE_NCP) {
-        if (cell_num == 0) {
-        } else {
-            g_string_append_printf(gstr, _("<b>Network Profile:</b> %s"), name);
-            g_object_set(renderer, "markup", gstr->str, NULL);
-        }
-/* 	} else if (type == NWAMUI_TYPE_WIFI_NET) { */
-/* 	} else if (type == NWAMUI_TYPE_ENM) { */
-/* 	} else { */
-	}
-    g_string_free(gstr, TRUE);
-    g_free(name);
-    g_object_unref(object);
 }
 
 static void
@@ -1671,7 +1598,7 @@ nwam_menu_item_create(NwamMenu *self, NwamuiObject *object)
     GType type = G_OBJECT_TYPE(object);
     GtkWidget *item;
 
-    {
+    if (debug) {
         gchar *name = nwamui_object_get_name(object);
         g_debug("%s %s", __func__, name);
         g_free(name);
@@ -1700,7 +1627,7 @@ nwam_menu_item_delete(NwamMenu *self, NwamuiObject *object)
     GtkWidget *item;
     gint sec_id;
 
-    {
+    if (debug) {
         gchar *name = nwamui_object_get_name(object);
         g_debug("%s %s", __func__, name);
         g_free(name);
@@ -1716,7 +1643,6 @@ nwam_menu_item_delete(NwamMenu *self, NwamuiObject *object)
         sec_id = SECTION_ENM;
  	} else {
         sec_id = SECTION_GLOBAL;
- 		g_error("%s unknown nwamui object", __func__);
  	}
 
     item = nwam_menu_section_get_item_by_proxy(self, sec_id, G_OBJECT(object));
@@ -1741,7 +1667,6 @@ nwam_menu_get_section_index(NwamMenu *self, GtkWidget *child, gint *index, gpoin
         *index = SECTION_NCU;
 	} else {
         *index = -1;
-		g_debug("%s unknown nwamui object", __func__);
 	}
 }
 

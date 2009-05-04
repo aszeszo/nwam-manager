@@ -47,6 +47,8 @@ nwam_obj_proxy_iface_class_init (gpointer g_class, gpointer g_class_data)
 	NwamObjProxyInterface *self = (NwamObjProxyInterface *)g_class;
 
 	self->get_proxy = NULL;
+    self->refresh = NULL;
+    self->delete_notify = NULL;
 }
 
 GType

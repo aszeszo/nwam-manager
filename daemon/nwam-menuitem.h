@@ -54,6 +54,7 @@ struct _NwamMenuItemClass
     void (*connect_object)(NwamMenuItem *self, GObject *object);
     void (*disconnect_object)(NwamMenuItem *self, GObject *object);
     void (*sync_object)(NwamMenuItem *self, GObject *object);
+    gint (*compare)(NwamMenuItem *self, NwamMenuItem *other);
 };
 
 
@@ -76,6 +77,7 @@ GtkWidget* nwam_menu_item_get_widget (NwamMenuItem *self, gint pos);
 /* Utils */
 extern void menu_item_set_label(GtkMenuItem *item, const gchar *label);
 extern void menu_item_set_markup(GtkMenuItem *item, const gchar *label);
+extern gint nwam_menu_item_compare(NwamMenuItem *self, NwamMenuItem *other);
 
 G_END_DECLS
 

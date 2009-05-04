@@ -78,8 +78,8 @@ nwam_env_item_class_init (NwamEnvItemClass *klass)
     NwamMenuItemClass *nwam_menu_item_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
-	gobject_class->set_property = nwam_env_item_set_property;
-	gobject_class->get_property = nwam_env_item_get_property;
+/* 	gobject_class->set_property = nwam_env_item_set_property; */
+/* 	gobject_class->get_property = nwam_env_item_get_property; */
 	gobject_class->finalize = (void (*)(GObject*)) nwam_env_item_finalize;
 	
     nwam_menu_item_class = NWAM_MENU_ITEM_CLASS(klass);
@@ -124,7 +124,7 @@ nwam_env_item_new(NwamuiEnv *env)
     GtkWidget *item;
 
     item = g_object_new (NWAM_TYPE_ENV_ITEM,
-      "object", env,
+      "proxy-object", env,
       NULL);
 
     return item;
@@ -158,7 +158,6 @@ nwam_env_item_set_property (GObject         *object,
 {
 	NwamEnvItem *self = NWAM_ENV_ITEM (object);
     NwamEnvItemPrivate *prv = GET_PRIVATE(self);
-    GObject *obj = g_value_dup_object (value);
 
 	switch (prop_id) {
 	default:
@@ -176,8 +175,7 @@ nwam_env_item_get_property (GObject         *object,
 	NwamEnvItem *self = NWAM_ENV_ITEM (object);
     NwamEnvItemPrivate *prv = GET_PRIVATE(self);
 
-	switch (prop_id)
-	{
+	switch (prop_id) {
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -234,7 +232,6 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
     NwamEnvItemPrivate *prv = GET_PRIVATE(self);
     NwamuiObject *object = NWAMUI_OBJECT(gobject);
 
-    g_debug("menuitem get env notify %s changed\n", (arg1 && arg1->name)?arg1->name:"NULL");
     g_assert(NWAMUI_IS_ENV(object));
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "active") == 0) {
@@ -295,7 +292,7 @@ nwam_env_item_get_env (NwamEnvItem *self)
 {
     NwamuiEnv *env;
 
-    g_object_get(self, "object", &env, NULL);
+    g_object_get(self, "proxy-object", &env, NULL);
 
     return env;
 }
@@ -305,7 +302,7 @@ nwam_env_item_set_env (NwamEnvItem *self, NwamuiEnv *env)
 {
     g_return_if_fail(NWAMUI_IS_ENV(env));
 
-    g_object_set(self, "object", env, NULL);
+    g_object_set(self, "proxy-object", env, NULL);
 }
 
 static void 

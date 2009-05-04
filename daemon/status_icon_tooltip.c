@@ -35,6 +35,7 @@
 
 #include "libnwamui.h"
 #include "status_icon_tooltip.h"
+#include "nwam-tooltip-widget.h"
 
 #include "nwam-menuitem.h"
 #include "nwam-wifi-item.h"
@@ -52,9 +53,7 @@ struct _NwamTooltipWidgetPrivate {
     GtkTreeView *tooltip_treeview;
 #else
     GtkWidget *env_widget;
-    NwamuiObject *env;
     GtkWidget *ncp_widget;
-    NwamuiObject *ncp;
 #endif
 };
 
@@ -71,11 +70,6 @@ static void tooltip_treeview_cell (GtkTreeViewColumn *col,
   GtkTreeModel      *model,
   GtkTreeIter       *iter,
   gpointer           data);
-
-/* nwamui object signals */
-static void env_notify_tooltip(GObject *gobject, GParamSpec *arg1, gpointer user_data);
-static void ncp_notify_tooltip(GObject *gobject, GParamSpec *arg1, gpointer user_data);
-static void ncu_notify_tooltip(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
 G_DEFINE_TYPE(NwamTooltipWidget, nwam_tooltip_widget, GTK_TYPE_VBOX)
 
@@ -120,17 +114,15 @@ nwam_tooltip_widget_init (NwamTooltipWidget *self)
 
 #else
 
-    prv->env_widget = nwam_menu_item_new();
+    prv->env_widget = nwam_object_tooltip_widget_new(NULL);
     gtk_widget_show(prv->env_widget);
     gtk_box_pack_start(GTK_BOX(self), prv->env_widget, TRUE, TRUE, 1);
 
-    prv->ncp_widget = nwam_menu_item_new();
+    prv->ncp_widget = nwam_object_tooltip_widget_new(NULL);
     gtk_widget_show(prv->ncp_widget);
     gtk_box_pack_start(GTK_BOX(self), prv->ncp_widget, TRUE, TRUE, 1);
 
 #endif
-/*     gtk_tooltip_widget_set_visible(GTK_TOOLTIP_WIDGET(self), FALSE); */
-/*     gtk_widget_show_all(GTK_WIDGET(self)); */
 }
 
 static void
@@ -138,8 +130,6 @@ nwam_tooltip_widget_finalize (NwamTooltipWidget *self)
 {
 	NwamTooltipWidgetPrivate *prv = NWAM_TOOLTIP_WIDGET_GET_PRIVATE(self);
 
-    g_debug("%s", __func__);
-    g_assert_not_reached();
 	G_OBJECT_CLASS(nwam_tooltip_widget_parent_class)->finalize(G_OBJECT(self));
 }
 
@@ -270,25 +260,7 @@ nwam_tooltip_widget_update_env(NwamTooltipWidget *self, NwamuiObject *object)
     gtk_tree_model_iter_nth_child(model, &iter, NULL, 0);
     gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, object, -1);
 #else
-    if (prv->env) {
-        g_signal_handlers_disconnect_matched(prv->env,
-          G_SIGNAL_MATCH_DATA,
-          0,
-          NULL,
-          NULL,
-          NULL,
-          (gpointer)prv->env_widget);
-/*         gtk_label_set_markup(GTK_LABEL(prv->env_widget), ""); */
-        menu_item_set_markup(GTK_MENU_ITEM(prv->env_widget), "");
-        prv->env = NULL;
-    }
-
-    if (object) {
-        env_notify_tooltip(G_OBJECT(object), NULL, (gpointer)prv->env_widget);
-        g_signal_connect(object, "notify",
-          G_CALLBACK(env_notify_tooltip), (gpointer)prv->env_widget);
-        prv->env = object;
-    }
+    g_object_set(prv->env_widget, "proxy-object", object, NULL);
 #endif
 }
 
@@ -329,24 +301,7 @@ nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *object)
 #else
     GList *w_list;
 
-    if (prv->ncp) {
-        g_signal_handlers_disconnect_matched(prv->ncp,
-          G_SIGNAL_MATCH_DATA,
-          0,
-          NULL,
-          NULL,
-          NULL,
-          (gpointer)prv->ncp_widget);
-        menu_item_set_markup(GTK_MENU_ITEM(prv->ncp_widget), "");
-        prv->ncp = NULL;
-    }
-
-    if (object) {
-        ncp_notify_tooltip(G_OBJECT(object), NULL, (gpointer)prv->ncp_widget);
-        g_signal_connect(object, "notify",
-          G_CALLBACK(ncp_notify_tooltip), (gpointer)prv->ncp_widget);
-        prv->ncp = object;
-    }
+    g_object_set(prv->ncp_widget, "proxy-object", object, NULL);
 
     w_list = gtk_container_get_children(GTK_CONTAINER(self));
     g_assert(w_list);
@@ -356,20 +311,7 @@ nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *object)
     ncu_num = g_list_length(w_list);
 
     for (; ncu_list && w_list; ) {
-        NwamuiObject *object = (NwamuiObject*)g_object_get_data(G_OBJECT(w_list->data), TOOLTIP_WIDGET_DATA);
-        
-        g_signal_handlers_disconnect_matched(object,
-          G_SIGNAL_MATCH_DATA,
-          0,
-          NULL,
-          NULL,
-          NULL,
-          w_list->data);
-
-        g_object_set_data(G_OBJECT(ncu_list->data), TOOLTIP_WIDGET_DATA, w_list->data);
-        ncu_notify_tooltip(G_OBJECT(ncu_list->data), NULL, (gpointer)w_list->data);
-        g_signal_connect(NWAMUI_NCU(ncu_list->data), "notify",
-          G_CALLBACK(ncu_notify_tooltip), w_list->data);
+        g_object_set(w_list->data, "proxy-object", ncu_list->data, NULL);
 
         ncu_list = g_list_delete_link(ncu_list, ncu_list);
         w_list = g_list_delete_link(w_list, w_list);
@@ -379,16 +321,6 @@ nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *object)
         ncu_list = g_list_delete_link(ncu_list, ncu_list);
     }
     for (; w_list; ) {
-        NwamuiObject *object = (NwamuiObject*)g_object_get_data(G_OBJECT(w_list->data), TOOLTIP_WIDGET_DATA);
-        
-        g_signal_handlers_disconnect_matched(object,
-          G_SIGNAL_MATCH_DATA,
-          0,
-          NULL,
-          NULL,
-          NULL,
-          w_list->data);
-
         g_assert(w_list->data != prv->env_widget && w_list->data != prv->ncp_widget);
         gtk_container_remove(GTK_CONTAINER(self), GTK_WIDGET(w_list->data));
         w_list = g_list_delete_link(w_list, w_list);
@@ -410,15 +342,9 @@ nwam_tooltip_widget_add_ncu(NwamTooltipWidget *self, NwamuiObject *object)
     gtk_list_store_append(GTK_LIST_STORE(model), &iter);
     gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, object, -1);
 #else
-    if (object) {
-        GtkWidget *label = nwam_menu_item_new_with_object(G_OBJECT(object));
-        gtk_widget_show(label);
-        gtk_box_pack_start(GTK_BOX(self), label, TRUE, TRUE, 1);
-        g_object_set_data(G_OBJECT(label), TOOLTIP_WIDGET_DATA, (gpointer)object);
-        ncu_notify_tooltip(G_OBJECT(object), NULL, (gpointer)label);
-        g_signal_connect(object, "notify",
-          G_CALLBACK(ncu_notify_tooltip), (gpointer)label);
-    }
+    GtkWidget *label = nwam_object_tooltip_widget_new(G_OBJECT(object));
+    gtk_widget_show(label);
+    gtk_box_pack_start(GTK_BOX(self), label, TRUE, TRUE, 1);
 #endif
 }
 
@@ -452,17 +378,9 @@ nwam_tooltip_widget_remove_ncu(NwamTooltipWidget *self, NwamuiObject *object)
     w_list = gtk_container_get_children(GTK_CONTAINER(self));
 
     for (; w_list;) {
-        NwamuiObject *old = (NwamuiObject*)g_object_get_data(G_OBJECT(w_list->data), TOOLTIP_WIDGET_DATA);
+        NwamuiObject *old = (NwamuiObject*)nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(w_list->data));
         
         if (old == (gpointer)object) {
-            g_signal_handlers_disconnect_matched(object,
-              G_SIGNAL_MATCH_DATA,
-              0,
-              NULL,
-              NULL,
-              NULL,
-              w_list->data);
-
             g_assert(w_list->data != prv->env_widget && w_list->data != prv->ncp_widget);
             gtk_container_remove(GTK_CONTAINER(self), GTK_WIDGET(w_list->data));
 
@@ -472,70 +390,6 @@ nwam_tooltip_widget_remove_ncu(NwamTooltipWidget *self, NwamuiObject *object)
     }
     g_list_free(w_list);
 #endif
-}
-
-static void
-env_notify_tooltip(GObject *gobject, GParamSpec *arg1, gpointer user_data)
-{
-    NwamuiObject *object = NWAMUI_OBJECT(gobject);
-    GtkWidget    *label = GTK_WIDGET(user_data);
-	gchar        *str;
-    gchar        *name;
-
-    name = nwamui_object_get_name(object);
-
-    str = g_strdup_printf(_("<b>Location:</b> %s"), name);
-    menu_item_set_markup(GTK_MENU_ITEM(label), str);
-
-    g_free(str);
-    g_free(name);
-}
-
-static void
-ncp_notify_tooltip(GObject *gobject, GParamSpec *arg1, gpointer user_data)
-{
-    NwamuiObject *object = NWAMUI_OBJECT(gobject);
-    GtkWidget    *label = GTK_WIDGET(user_data);
-	gchar        *str;
-    gchar        *name;
-
-    name = nwamui_object_get_name(object);
-
-    str = g_strdup_printf(_("<b>Network Profile:</b> %s"), name);
-    menu_item_set_markup(GTK_MENU_ITEM(label), str);
-
-    g_free(str);
-    g_free(name);
-}
-
-static void
-ncu_notify_tooltip(GObject *gobject, GParamSpec *arg1, gpointer user_data)
-{
-    NwamuiObject *object = NWAMUI_OBJECT(gobject);
-    GtkWidget    *label  = GTK_WIDGET(user_data);
-	gchar        *str;
-    gchar        *name;
-    gchar        *state;
-
-    name = nwamui_object_get_name(object);
-    state = nwamui_ncu_get_connection_state_detail_string(NWAMUI_NCU(object));
-
-    switch (nwamui_ncu_get_ncu_type(NWAMUI_NCU(object))) {
-    case NWAMUI_NCU_TYPE_WIRELESS:
-        str = g_strdup_printf(_("<b>Wireless (%s):</b> %s"), name, state);
-        break;
-    case NWAMUI_NCU_TYPE_WIRED:
-    case NWAMUI_NCU_TYPE_TUNNEL:
-        str = g_strdup_printf(_("<b>Wired (%s):</b> %s"), name, state);
-        break;
-    default:
-        g_assert_not_reached ();
-    }
-    menu_item_set_markup(GTK_MENU_ITEM(label), str);
-
-    g_free(str);
-    g_free(state);
-    g_free(name);
 }
 
 GtkWidget*

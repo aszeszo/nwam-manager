@@ -1,3 +1,62 @@
+2009-05-04  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/Makefile.am: New file for tooltip widget which represent nwamui
+	object.
+	* daemon/nwam-enm-item.c (nwam_enm_item_class_init),
+	(nwam_enm_item_new), (nwam_enm_item_set_property),
+	(nwam_enm_item_get_property), (on_nwam_enm_notify),
+	(nwam_enm_item_get_enm), (nwam_enm_item_set_enm):
+	* daemon/nwam-env-item.c (nwam_env_item_class_init),
+	(nwam_env_item_new), (nwam_env_item_set_property),
+	(nwam_env_item_get_property), (on_nwam_env_notify),
+	(nwam_env_item_get_env), (nwam_env_item_set_env):
+	* daemon/nwam-ncu-item.c (nwam_ncu_item_class_init),
+	(nwam_ncu_item_new), (nwam_ncu_item_set_property),
+	(nwam_ncu_item_get_property), (menu_ncu_item_compare),
+	(connect_ncu_signals), (sync_ncu), (on_nwam_ncu_toggled),
+	(on_nwam_ncu_notify), (nwam_ncu_item_get_ncu),
+	(nwam_ncu_item_set_ncu):
+	Set sensitive according to its property.
+	* daemon/nwam-wifi-item.c (nwam_wifi_item_class_init),
+	(nwam_wifi_item_new), (nwam_wifi_item_set_property),
+	(nwam_wifi_item_get_property), (nwam_wifi_item_get_wifi),
+	(nwam_wifi_item_set_wifi), (menu_wifi_item_compare):
+	* daemon/nwam-menuitem.c (nwam_obj_proxy_init),
+	(nwam_menu_item_class_init), (nwam_menu_item_set_property),
+	(default_connect_object), (default_disconnect_object),
+	(default_sync_object), (default_compare),
+	(nwam_menu_item_get_proxy), (nwam_menu_item_refresh),
+	(nwam_menu_item_new_with_object), (nwam_menu_item_compare):
+	* daemon/nwam-menuitem.h:
+	Refactor nwam-menu-item, implement nwam-obj-proxy-iface there, and
+	update all its descendants. Add compare virtual function in order to
+	support sorting. And cleaned code.
+	* daemon/nwam-menu.c (nwam_menu_finalize), (nwam_menu_real_remove),
+	(nwam_menu_real_insert), (menu_item_compare),
+	(nwam_menu_section_sort):
+	Support sort menu items, e.g. ncu, wifi items. Fix a nit that any object
+	finilizing will destroy the global section data.
+	* daemon/nwam-obj-proxy-iface.c (nwam_obj_proxy_iface_class_init):
+	Add lines for default interfaces are NULL.
+	* daemon/nwam-tooltip-widget.c
+	(nwam_object_tooltip_widget_class_init),
+	(nwam_object_tooltip_widget_init),
+	(nwam_object_tooltip_widget_new),
+	(nwam_object_tooltip_widget_finalize),
+	(nwam_object_tooltip_widget_set_property),
+	(nwam_object_tooltip_widget_get_property), (connect_object),
+	(disconnect_object), (sync_object), (nwam_object_notify):
+	* daemon/nwam-tooltip-widget.h:
+	New object which inherits nwam-menu-item, can't be activated, could be
+	show in a tooltip. Could supports icons.
+	* daemon/status_icon.c (nwam_status_icon_set_status),
+	(nwam_menu_item_create), (nwam_menu_item_delete),
+	(nwam_menu_get_section_index): Clean code.
+	* daemon/status_icon_tooltip.c (nwam_tooltip_widget_init),
+	(nwam_tooltip_widget_finalize), (nwam_tooltip_widget_update_env),
+	(nwam_tooltip_widget_update_ncp), (nwam_tooltip_widget_add_ncu),
+	(nwam_tooltip_widget_remove_ncu): Use the new tooltip widget.
+
 2009-04-30  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_ncu.c (get_kstat_uint64):

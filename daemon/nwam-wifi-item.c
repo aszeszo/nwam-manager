@@ -64,6 +64,7 @@ static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 
 /* nwamui wifi net signals */
+static gint menu_wifi_item_compare(NwamMenuItem *self, NwamMenuItem *other);
 static void connect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi);
 static void disconnect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi);
 static void sync_wifi_net(NwamWifiItem *self, NwamuiWifiNet *wifi_net);
@@ -80,14 +81,15 @@ nwam_wifi_item_class_init (NwamWifiItemClass *klass)
     NwamMenuItemClass *nwam_menu_item_class;
 
 	gobject_class = G_OBJECT_CLASS (klass);
-	gobject_class->set_property = nwam_wifi_item_set_property;
-	gobject_class->get_property = nwam_wifi_item_get_property;
+/* 	gobject_class->set_property = nwam_wifi_item_set_property; */
+/* 	gobject_class->get_property = nwam_wifi_item_get_property; */
 	gobject_class->finalize = (void (*)(GObject*)) nwam_wifi_item_finalize;
 	
     nwam_menu_item_class = NWAM_MENU_ITEM_CLASS(klass);
     nwam_menu_item_class->connect_object = connect_wifi_net_signals;
     nwam_menu_item_class->disconnect_object = disconnect_wifi_net_signals;
     nwam_menu_item_class->sync_object = sync_wifi_net;
+    nwam_menu_item_class->compare = menu_wifi_item_compare;
 
 	g_type_class_add_private (klass, sizeof (NwamWifiItemPrivate));
 }
@@ -124,7 +126,7 @@ nwam_wifi_item_new(NwamuiWifiNet *wifi)
   gchar *path = NULL;
 
   item = g_object_new (NWAM_TYPE_WIFI_ITEM,
-    "object", wifi,
+    "proxy-object", wifi,
     NULL);
 
   return GTK_WIDGET(item);
@@ -157,7 +159,6 @@ nwam_wifi_item_set_property (GObject         *object,
 {
 	NwamWifiItem *self = NWAM_WIFI_ITEM (object);
     NwamWifiItemPrivate *prv = GET_PRIVATE(self);
-    GObject *obj = g_value_dup_object (value);
 
 	switch (prop_id) {
 	default:
@@ -175,8 +176,7 @@ nwam_wifi_item_get_property (GObject         *object,
 	NwamWifiItem *self = NWAM_WIFI_ITEM (object);
     NwamWifiItemPrivate *prv = GET_PRIVATE(self);
 
-	switch (prop_id)
-	{
+	switch (prop_id) {
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -237,7 +237,7 @@ nwam_wifi_item_get_wifi (NwamWifiItem *self)
 {
     NwamuiWifiNet *wifi;
 
-    g_object_get(self, "object", &wifi, NULL);
+    g_object_get(self, "proxy-object", &wifi, NULL);
 
     return wifi;
 }
@@ -247,7 +247,20 @@ nwam_wifi_item_set_wifi (NwamWifiItem *self, NwamuiWifiNet *wifi)
 {
     g_return_if_fail(NWAMUI_IS_WIFI_NET(wifi));
 
-    g_object_set(self, "object", wifi, NULL);
+    g_object_set(self, "proxy-object", wifi, NULL);
+}
+
+static gint
+menu_wifi_item_compare(NwamMenuItem *self, NwamMenuItem *other)
+{
+    gint ret;
+
+    ret = nwamui_wifi_net_get_speed(NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self)))) - nwamui_wifi_net_get_speed(NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other))));
+
+    if (ret == 0)
+        ret = nwamui_wifi_net_compare(NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))), NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other))));
+
+    return ret;
 }
 
 static void 

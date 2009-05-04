@@ -55,6 +55,7 @@ nwam_manager_SOURCES =		\
 	notify.c	\
 	status_icon.c	\
 	status_icon_tooltip.c	\
+	nwam-tooltip-widget.c	\
 	nwam-menu.c	\
 	nwam-menuitem.c	\
 	nwam-wifi-item.c	\
@@ -104,6 +105,7 @@ EXTRA_DIST = 		\
 	notify.h	\
 	status_icon.h	\
 	status_icon_tooltip.h	\
+	nwam-tooltip-widget.h	\
 	nwam-menu.h	\
 	nwam-menuitem.h	\
 	nwam-wifi-item.h	\
