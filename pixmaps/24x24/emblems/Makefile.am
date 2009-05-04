@@ -21,8 +21,8 @@
 icondir = $(datadir)/icons/hicolor/24x24/emblems
 
 icon_DATA =  \
-	network-connected.png	\
-	network-error.png	\
-	network-warning.png
+	nwam-connected.png	\
+	nwam-error.png	\
+	nwam-warning.png
 
 EXTRA_DIST = $(icon_DATA)

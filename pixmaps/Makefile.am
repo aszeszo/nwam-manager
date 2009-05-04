@@ -34,21 +34,22 @@ install-data-local:
 
 gtk_update_icon_cache = /usr/bin/gtk-update-icon-cache -f -t $(icondir) 
 gtk_update_hicolor_icon_cache = /usr/bin/gtk-update-icon-cache -f -t $(datadir)/icons/hicolor
-						
 
 icondir   = $(datadir)/$(PACKAGE)/icons
 
 icon_DATA = \
-	earth-info.png \
-	earth-normal.png \
-	network-idle.png \
-	network-offline.png \
-	network-wireless.png \
-	wireless-strength-0-24.png \
-	wireless-strength-25-49.png \
-	wireless-strength-50-74.png \
-	wireless-strength-75-100.png \
-	wireless-fragile.png
+	$(NULL)
+
+# 	earth-info.png \
+# 	earth-normal.png \
+# 	network-idle.png \
+# 	network-offline.png \
+# 	network-wireless.png \
+# 	wireless-strength-0-24.png \
+# 	wireless-strength-25-49.png \
+# 	wireless-strength-50-74.png \
+# 	wireless-strength-75-100.png \
+# 	wireless-fragile.png
 
 EXTRA_DIST = 		\
 	$(icon_DATA) \

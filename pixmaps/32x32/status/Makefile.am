@@ -21,20 +21,14 @@
 icondir = $(datadir)/icons/hicolor/32x32/status
 
 icon_DATA =  \
-	network-wired-connected.png \
-	network-wired-error.png \
-	network-wired-warning.png \
-	network-wireless-connected.png \
-	network-wireless-error.png \
-	network-wireless-warning.png	\
-	network-wireless-0-24.png	\
-	network-wireless-25-49.png	\
-	network-wireless-50-74.png	\
-	network-wireless-75-100.png	\
-	network-wireless-nosignal.png	\
-	activation-mode-conditional.png	\
-	activation-mode-manual.png	\
-	activation-mode-system.png	\
+	nwam-wireless-0-24.png	\
+	nwam-wireless-25-49.png	\
+	nwam-wireless-50-74.png	\
+	nwam-wireless-75-100.png	\
+	nwam-wireless-nosignal.png	\
+	nwam-activation-conditional.png	\
+	nwam-activation-manual.png	\
+	nwam-activation-system.png	\
 	priority-group-1.png	\
 	priority-group-2.png	\
 	priority-group-3.png
