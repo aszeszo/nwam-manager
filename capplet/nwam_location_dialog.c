@@ -345,6 +345,7 @@ nwam_location_dialog_init(NwamLocationDialog *self)
 
     self->prv->location_activation_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(LOCATION_ACTIVATION_COMBO));
     capplet_compose_combo(self->prv->location_activation_combo,
+      GTK_TYPE_LIST_STORE,
       G_TYPE_INT,
       location_activation_combo_cell_cb,
       NULL,

@@ -1,5 +1,25 @@
 2009-05-05  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/capplet-utils.c (capplet_compose_nwamui_obj_combo),
+	(capplet_model_foreach_find_object), (capplet_model_find_object),
+	(capplet_model_remove_object), (capplet_compose_combo),
+	(capplet_tree_store_move_object),
+	(capplet_tree_store_merge_children),
+	(capplet_tree_store_exclude_children):
+	* capplet/capplet-utils.h:
+	* capplet/nwam_location_dialog.c (nwam_location_dialog_init):
+	* capplet/nwam_net_conf_panel.c (nwam_net_conf_panel_init):
+	* capplet/nwam_pref_dialog.c (nwam_capplet_dialog_init), (refresh),
+	(show_combo_cell_cb), (show_comob_add), (show_comob_remove),
+	(update_show_combo_from_ncp):
+	Net Pref: show-combo shows all NCPs and NCUs.
+	* daemon/nwam-tooltip-widget.c (nwam_object_notify):
+	Fixed to show the correct ncu status.
+	* daemon/status_icon.c (update_wifi_timer_func):
+	Notification - Wifi Signal Monitor/Poll for updates (partial)
+
+2009-05-05  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/libnwamui.c (nwamui_util_get_ncu_status_icon):
 	* daemon/notify.c (nwam_notification_set_default_icon):
 	* daemon/nwam-menuitem.c (nwam_menu_item_class_init),

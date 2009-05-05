@@ -41,12 +41,13 @@ void
 capplet_compose_nwamui_obj_combo(GtkComboBox *combo, NwamPrefIFace *iface)
 {
 	capplet_compose_combo(combo,
-	    G_TYPE_OBJECT,
-	    nwamui_object_name_cell,
-	    NULL,
-	    nwam_pref_iface_combo_changed_cb,
-	    (gpointer)iface,
-	    NULL);
+      GTK_TYPE_LIST_STORE,
+      G_TYPE_OBJECT,
+      nwamui_object_name_cell,
+      NULL,
+      nwam_pref_iface_combo_changed_cb,
+      (gpointer)iface,
+      NULL);
 }
 
 static gboolean
@@ -58,15 +59,17 @@ capplet_model_foreach_find_object(GtkTreeModel *model,
 	CappletForeachData *data = (CappletForeachData *)user_data;
 	GObject *object;
 
-        gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
 
-        if (object == data->user_data) {
-		data->ret_data = (gpointer)gtk_tree_iter_copy(iter);
-        }
+    if (object == data->user_data) {
+        *(GtkTreeIter *)data->ret_data = *iter;
+        /* Stop flag. */
+        data->user_data = NULL;
+    }
 	if (object)
 		g_object_unref(object);
 
-	return data->ret_data != NULL;
+	return data->user_data == NULL;
 }
 
 void
@@ -81,33 +84,33 @@ capplet_list_foreach_merge_to_model(gpointer data, gpointer user_data)
 	g_object_unref(data);
 }
 
-GtkTreeIter *
-capplet_model_find_object(GtkTreeModel *model, GObject *object)
+gboolean
+capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *iter)
 {
 	CappletForeachData data;
 
+    g_return_val_if_fail(object, FALSE);
+
 	data.user_data = (gpointer)object;
-	data.ret_data = NULL;
+	data.ret_data = iter;
 
 	gtk_tree_model_foreach(model,
-	    capplet_model_foreach_find_object,
-	    (gpointer)&data);
+      capplet_model_foreach_find_object,
+      (gpointer)&data);
 
-	return data.ret_data;
+	return data.user_data == NULL;
 }
 
 void
 capplet_model_remove_object(GtkTreeModel *model, GObject *object)
 {
-	GtkTreeIter *iter = capplet_model_find_object(model, object);
+	GtkTreeIter iter;
 
-	if (iter) {
+	if (capplet_model_find_object(model, object, &iter)) {
 		if (GTK_IS_LIST_STORE(model))
-			gtk_list_store_remove(GTK_LIST_STORE(model), iter);
+			gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
 		else
-			gtk_tree_store_remove(GTK_TREE_STORE(model), iter);
-
-		gtk_tree_iter_free(iter);
+			gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
 	}
 }
 
@@ -196,12 +199,13 @@ capplet_list_store_add(GtkTreeModel *model, NwamuiObject *object)
 
 void
 capplet_compose_combo(GtkComboBox *combo,
-    GType type,
-    GtkCellLayoutDataFunc layout_func,
-    GtkTreeViewRowSeparatorFunc separator_func,
-    GCallback changed_func,
-    gpointer user_data,
-    GDestroyNotify destroy)
+  GType tree_store_type,
+  GType type,
+  GtkCellLayoutDataFunc layout_func,
+  GtkTreeViewRowSeparatorFunc separator_func,
+  GCallback changed_func,
+  gpointer user_data,
+  GDestroyNotify destroy)
 {
 	GtkCellRenderer *renderer;
 	GtkTreeModel      *model;
@@ -209,7 +213,13 @@ capplet_compose_combo(GtkComboBox *combo,
 	if (type != G_TYPE_STRING) {
 		g_return_if_fail(layout_func);
 
-		model = GTK_TREE_MODEL(gtk_list_store_new(1, type));
+        if (tree_store_type == GTK_TYPE_LIST_STORE)
+            model = GTK_TREE_MODEL(gtk_list_store_new(1, type));
+        else if (tree_store_type == GTK_TYPE_TREE_STORE)
+            model = GTK_TREE_MODEL(gtk_tree_store_new(1, type));
+        else
+            g_assert_not_reached();
+
 		gtk_combo_box_set_model(GTK_COMBO_BOX(combo), model);
 		g_object_unref(model);
 
@@ -417,9 +427,15 @@ capplet_tree_store_move_object(GtkTreeModel *model,
 	NwamuiObject *object;
 	gtk_tree_model_get(GTK_TREE_MODEL(model), source, 0, &object, -1);
 	gtk_tree_store_set(GTK_TREE_STORE(model), target, 0, object, -1);
-	g_object_unref(object);
+    if (object)
+        g_object_unref(object);
 }
 
+/**
+ * capplet_tree_store_merge_children:
+ * @func is used to iterate the moved item, its return code is ignored.
+ * Move source children to the target.
+ */
 void
 capplet_tree_store_merge_children(GtkTreeStore *model,
     GtkTreeIter *target,
@@ -450,8 +466,7 @@ capplet_tree_store_merge_children(GtkTreeStore *model,
 		} while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter));
 	} else {
 		gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, target, NULL);
-		capplet_tree_store_move_object(GTK_TREE_MODEL(model),
-		    &iter, source);
+		capplet_tree_store_move_object(GTK_TREE_MODEL(model), &iter, source);
 
 		if (func)
 			func(GTK_TREE_MODEL(model), NULL, &iter, user_data);
@@ -461,6 +476,11 @@ capplet_tree_store_merge_children(GtkTreeStore *model,
 	gtk_tree_store_remove(GTK_TREE_STORE(model), source);
 }
 
+/**
+ * capplet_tree_store_exclude_children:
+ * @func is used to iterate the moved item, its return code is ignored.
+ * Make the children become their parent's siblings.
+ */
 void
 capplet_tree_store_exclude_children(GtkTreeStore *model,
     GtkTreeIter *source,
@@ -491,8 +511,7 @@ capplet_tree_store_exclude_children(GtkTreeStore *model,
 		if (gtk_tree_model_iter_parent(GTK_TREE_MODEL(model), &target, source)) {
 
 			gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, NULL, &target);
-			capplet_tree_store_move_object(GTK_TREE_MODEL(model),
-			    &iter, source);
+			capplet_tree_store_move_object(GTK_TREE_MODEL(model), &iter, source);
 
 			if (func)
 				func(GTK_TREE_MODEL(model), NULL, &iter, user_data);

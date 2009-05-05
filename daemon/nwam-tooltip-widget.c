@@ -197,7 +197,7 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
     name = nwamui_object_get_name(object);
 
 	if (type == NWAMUI_TYPE_NCU) {
-        gchar *state = nwamui_ncu_get_connection_state_detail_string(NWAMUI_NCU(object));
+        gchar *state = nwamui_ncu_get_connection_state_string(NWAMUI_NCU(object));
         switch (nwamui_ncu_get_ncu_type(NWAMUI_NCU(object))) {
         case NWAMUI_NCU_TYPE_WIRELESS:
             g_string_append_printf(gstr, _("<b>Wireless (%s):</b> %s"),

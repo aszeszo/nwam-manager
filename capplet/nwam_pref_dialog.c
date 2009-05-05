@@ -35,6 +35,7 @@
 
 #include <libnwamui.h>
 
+#include "capplet-utils.h"
 #include "nwam_pref_iface.h"
 #include "nwam_pref_dialog.h"
 #include "nwam_conn_conf_ip_panel.h"
@@ -80,7 +81,6 @@ static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 static void nwam_capplet_dialog_finalize(NwamCappletDialog *self);
 
 /* Callbacks */
-void show_comob_add (GtkComboBox* combo, GObject*  obj);
 static void show_combo_cell_cb (GtkCellLayout *cell_layout,
   GtkCellRenderer   *renderer,
   GtkTreeModel      *model,
@@ -97,7 +97,9 @@ static void refresh_clicked_cb( GtkButton *button, gpointer data );
 
 
 /* Utility Functions */
-static void     update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp );
+static void show_comob_add (GtkComboBox* combo, GObject*  obj);
+static void show_comob_remove (GtkComboBox* combo, GObject*  obj);
+static void update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp ); /* Unused */
 
 
 G_DEFINE_TYPE_EXTENDED (NwamCappletDialog,
@@ -171,19 +173,16 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
 
     /* Change Model */
 	capplet_compose_combo(self->prv->show_combo,
+      GTK_TYPE_TREE_STORE,
       G_TYPE_OBJECT,
       show_combo_cell_cb,
       show_combo_separator_cb,
       show_changed_cb,
-      (gpointer)self);
+      (gpointer)self,
+      NULL);
 
 	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_CONN_STATUS]));
 	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_NET_PREF])); 
-	show_comob_add (self->prv->show_combo, NULL); /* Separator */
-
-    update_show_combo_from_ncp( self->prv->show_combo, self->prv->active_ncp );
-                
-    gtk_combo_box_set_active (GTK_COMBO_BOX(self->prv->show_combo), 0);
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
     g_signal_connect(GTK_DIALOG(self->prv->capplet_dialog), "response", (GCallback)response_cb, (gpointer)self);
@@ -192,6 +191,10 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     g_signal_connect(btn, "clicked", (GCallback)refresh_clicked_cb, (gpointer)self);
 
     /* default select "Connection Status" */
+    gtk_combo_box_set_active (GTK_COMBO_BOX(self->prv->show_combo), 0);
+
+    /* Initial */
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
 }
 
 
@@ -276,6 +279,20 @@ static gboolean
 refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
 	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(iface);
+    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+    GList* ncp_list;
+    /* Refresh show-combo */
+    ncp_list = nwamui_daemon_get_ncp_list(daemon);
+    g_object_unref(daemon);
+
+    gtk_widget_hide(GTK_WIDGET(self->prv->show_combo));
+    for (; ncp_list;) {
+        show_comob_remove(self->prv->show_combo, G_OBJECT(ncp_list->data));
+        show_comob_add(self->prv->show_combo, G_OBJECT(ncp_list->data));
+        ncp_list = g_list_delete_link(ncp_list, ncp_list);
+    }
+    gtk_widget_show(GTK_WIDGET(self->prv->show_combo));
+
     /* Refresh children */
     show_changed_cb(GTK_WIDGET(NWAM_CAPPLET_DIALOG(self)->prv->show_combo), (gpointer)self);
 }
@@ -493,22 +510,36 @@ show_combo_cell_cb (GtkCellLayout *cell_layout,
 	
 	if (NWAMUI_IS_NCU (row_data)) {
 		text = nwamui_ncu_get_display_name(NWAMUI_NCU(row_data));
-		g_object_set (G_OBJECT(renderer), "text", text, NULL);
+		g_object_set(renderer,
+          "text", text,
+          "sensitive", TRUE,
+          NULL);
 		g_free (text);
-        g_object_unref(row_data);
-		return;
-	}
-	
-	if (NWAM_IS_CONN_STATUS_PANEL (row_data)) {
+	} else if (NWAMUI_IS_OBJECT (row_data)) {
+        gchar *markup;
+		text = nwamui_object_get_name(NWAMUI_OBJECT(row_data));
+        markup = g_strdup_printf("<b><i>%s</i></b>", text);
+		g_object_set(renderer,
+          "markup", markup,
+          "sensitive", FALSE,
+          NULL);
+		g_free (text);
+		g_free (markup);
+    } else if (NWAM_IS_CONN_STATUS_PANEL (row_data)) {
 		text = _("Connection Status");
-	} 
-	else if (NWAM_IS_NET_CONF_PANEL( row_data )) {
+		g_object_set(renderer,
+          "text", text,
+          "sensitive", TRUE,
+          NULL);
+	} else if (NWAM_IS_NET_CONF_PANEL( row_data )) {
 		text = _("Network Profile");
-	}
-	else {
+		g_object_set(renderer,
+          "text", text,
+          "sensitive", TRUE,
+          NULL);
+	} else {
 		g_assert_not_reached();
 	}
-	g_object_set (G_OBJECT(renderer), "text", text, NULL);
     g_object_unref(row_data);
 }
 
@@ -533,14 +564,67 @@ refresh_clicked_cb( GtkButton *button, gpointer data )
 /*
  * Utility functions.
  */
-void
-show_comob_add (GtkComboBox* combo, GObject*  obj)
+static void
+show_comob_add(GtkComboBox* combo, GObject*  obj)
 {
 	GtkTreeIter iter;
 	GtkTreeModel *model = gtk_combo_box_get_model(combo);
-	
-	gtk_list_store_append (GTK_LIST_STORE(model), &iter);
-	gtk_list_store_set (GTK_LIST_STORE(model), &iter, 0, obj, -1);
+
+    gtk_tree_store_append (GTK_TREE_STORE(model), &iter, NULL);
+
+    if (NWAMUI_IS_NCP(obj)) {
+        GList *ncu_list;
+        /* Make the previous line become a separator. */
+        gtk_tree_store_append (GTK_TREE_STORE(model), &iter, NULL);
+        gtk_tree_store_set (GTK_TREE_STORE(model), &iter, 0, obj, -1);
+        ncu_list = nwamui_ncp_get_ncu_list(NWAMUI_NCP(obj));
+        for (; ncu_list;) {
+            gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
+            gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, ncu_list->data, -1);
+            ncu_list = g_list_delete_link(ncu_list, ncu_list);
+        }
+    } else {
+        gtk_tree_store_set (GTK_TREE_STORE(model), &iter, 0, obj, -1);
+    }
+}
+
+static void
+show_comob_remove(GtkComboBox* combo, GObject*  obj)
+{
+	GtkTreeModel *model = gtk_combo_box_get_model(combo);
+	GtkTreeIter parent;
+    GObject *data;
+
+    if (capplet_model_find_object(model, obj, &parent)) {
+        /* If it is NCP, remove child NCUs. */
+        if (NWAMUI_IS_NCP(obj)) {
+            GtkTreeIter iter;
+            GtkTreePath *path;
+
+            /* Delete the separator. */
+            path = gtk_tree_model_get_path(model, &parent);
+            if (gtk_tree_path_prev(path)) {
+                gtk_tree_model_get_iter(model, &iter, path);
+                gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
+            }
+            gtk_tree_path_free(path);
+
+            /* Delete NCUs. */
+            if(gtk_tree_store_remove(GTK_TREE_STORE(model), &parent))
+                do {
+                    gtk_tree_model_get(model, &parent, 0, &data, -1);
+                    if (data)
+                        g_object_unref(G_OBJECT(data));
+                    else
+                        break;
+                } while (gtk_tree_store_remove(GTK_TREE_STORE(model), &parent));
+
+
+        } else {
+            /* Remove whatever it is. */
+            gtk_tree_store_remove(GTK_TREE_STORE(model), &parent);
+        }
+    }
 }
 
 static gboolean
@@ -571,12 +655,8 @@ update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp )
 	GtkTreeModel   *model = NULL;
 	gboolean        has_next;
 	
-    if ( ncp == NULL ) {
-        return;
-    }
-
 	g_return_if_fail( combo != NULL && ncp != NULL );
-	
+
 	/* Update list of connections in "show_combo" */
 	model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo));
 	
@@ -586,7 +666,7 @@ update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp )
 	/* Remove items 3 and later ( 0 = Connect Status; 1 = Network configuration; 2 = Separator ) */
 	if (gtk_tree_model_get_iter_from_string(model, &iter, "3")) {
 		do {
-			has_next = gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+			has_next = gtk_tree_store_remove(GTK_LIST_STORE(model), &iter);
 		} while (has_next);
 	}
 	/* Now Add Entries for NCP Enabled NCUs */

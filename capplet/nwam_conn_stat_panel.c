@@ -455,7 +455,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
                 g_free( ncu_text );
 		break;
                 
-        case CONNVIEW_STATUS:
+    case CONNVIEW_STATUS:
         ncu_text = nwamui_ncu_get_connection_state_string( ncu );
 		g_object_set (G_OBJECT(renderer),
 			"text", ncu_text,

@@ -446,6 +446,7 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     gtk_widget_show(GTK_WIDGET(self->prv->edit_profile_name_combo));
 
     capplet_compose_combo(self->prv->connection_activation_combo,
+      GTK_TYPE_LIST_STORE,
       G_TYPE_INT,
       connection_activation_combo_cell_cb,
       NULL,

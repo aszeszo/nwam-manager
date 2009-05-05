@@ -41,12 +41,13 @@ void capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon,
 void capplet_compose_nwamui_obj_treeview(GtkTreeView *treeview);
 
 void capplet_compose_combo(GtkComboBox *combo,
-    GType type,
-    GtkCellLayoutDataFunc layout_func,
-    GtkTreeViewRowSeparatorFunc separator_func,
-    GCallback changed_func,
-    gpointer user_data,
-    GDestroyNotify destroy);
+  GType tree_store_type,
+  GType type,
+  GtkCellLayoutDataFunc layout_func,
+  GtkTreeViewRowSeparatorFunc separator_func,
+  GCallback changed_func,
+  gpointer user_data,
+  GDestroyNotify destroy);
 
 void capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class);
 gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
@@ -87,6 +88,7 @@ gint capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix);
 
 gchar* capplet_get_original_name(const gchar *prefix, const gchar *name);
 
+gboolean capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *iter);
 
 /* Column and renderer */
 GtkTreeViewColumn *capplet_column_new(GtkTreeView *treeview, ...);

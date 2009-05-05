@@ -1275,8 +1275,12 @@ update_wifi_timer_func(gpointer user_data)
 	NwamStatusIcon *self = NWAM_STATUS_ICON (user_data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
-    /* TODO, scan wifi */
-    nwam_menu_recreate_wifi_menuitems(self);
+    /* Update wifi */
+    if (!GTK_WIDGET_VISIBLE(prv->menu)) {
+        nwam_menu_section_foreach(NWAM_MENU(prv->menu), SECTION_WIFI,
+          (GFunc)nwam_obj_proxy_refresh, NULL);
+        nwam_menu_section_sort(NWAM_MENU(prv->menu), SECTION_WIFI);
+    }
 
     return TRUE;
 }
