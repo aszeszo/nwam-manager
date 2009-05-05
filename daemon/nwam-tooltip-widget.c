@@ -63,6 +63,7 @@ static void connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object);
 static void disconnect_object(NwamObjectTooltipWidget *self, NwamuiObject *object);
 static void sync_object(NwamObjectTooltipWidget *self, NwamuiObject *object);
 static void nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
+static void nwam_ncu_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
 G_DEFINE_TYPE(NwamObjectTooltipWidget, nwam_object_tooltip_widget, NWAM_TYPE_MENU_ITEM)
 
@@ -151,6 +152,10 @@ connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object)
 	if (type == NWAMUI_TYPE_NCU) {
         g_signal_connect (G_OBJECT(object), "notify::vanity_name",
           G_CALLBACK(nwam_object_notify), (gpointer)self);
+        g_signal_connect (G_OBJECT(object), "notify::active",
+          G_CALLBACK(nwam_ncu_notify), (gpointer)self);
+
+        nwam_ncu_notify(G_OBJECT(object), NULL, (gpointer)self);
     } else {
         g_signal_connect (G_OBJECT(object), "notify::name",
           G_CALLBACK(nwam_object_notify), (gpointer)self);
@@ -219,3 +224,14 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
     g_string_free(gstr, TRUE);
     g_free(name);
 }
+
+static void
+nwam_ncu_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
+{
+    GtkImage *img = gtk_image_new_from_pixbuf(nwamui_util_get_ncu_status_icon(NWAMUI_NCU(gobject)));
+
+    nwam_menu_item_set_widget(NWAM_MENU_ITEM(user_data),
+      0,
+      img);
+}
+

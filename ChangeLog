@@ -1,3 +1,19 @@
+2009-05-05  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/libnwamui.c (nwamui_util_get_ncu_status_icon):
+	* daemon/notify.c (nwam_notification_set_default_icon):
+	* daemon/nwam-menuitem.c (nwam_menu_item_class_init),
+	(nwam_menu_item_init), (nwam_menu_item_forall),
+	(nwam_menu_item_add), (nwam_menu_item_remove),
+	(nwam_menu_item_parent_set), (default_sync_object),
+	(nwam_menu_item_set_widget), (nwam_menu_item_toggle_size_request),
+	(nwam_menu_item_size_request), (nwam_menu_item_size_allocate),
+	(nwam_menu_item_activate):
+	* daemon/nwam-tooltip-widget.c (connect_object), (nwam_ncu_notify):
+	Fixed nwam-menu-item requests/allocates child widgets both in menu
+	and tooltip.
+	Cleaned some debug messages.
+
 2009-05-04  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/libnwamui.c (nwamui_util_get_env_status_icon):

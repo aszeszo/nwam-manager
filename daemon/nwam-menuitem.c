@@ -57,11 +57,17 @@ static void nwam_menu_item_forall (GtkContainer   *container,
   gboolean    include_internals,
   GtkCallback     callback,
   gpointer        callback_data);
+static void nwam_menu_item_add (GtkContainer   *container,
+  GtkWidget *child);
 static void nwam_menu_item_remove (GtkContainer   *container,
   GtkWidget *child);
 static void nwam_menu_item_draw_indicator(GtkCheckMenuItem *check_menu_item,
   GdkRectangle *area);
 static void nwam_menu_item_finalize (NwamMenuItem *self);
+
+static void nwam_menu_item_parent_set(GtkWidget *widget,
+  GtkObject *old_parent,
+  gpointer   user_data);
 
 static void default_connect_object(NwamMenuItem *self, GObject *object);
 static void default_disconnect_object(NwamMenuItem *self, GObject *object);
@@ -81,6 +87,7 @@ typedef struct _NwamMenuItemPrivate NwamMenuItemPrivate;
 struct _NwamMenuItemPrivate {
 	GtkWidget *w[MAX_WIDGET_NUM];
     GObject *object;
+    gboolean has_toolge_space;
 };
 
 G_DEFINE_TYPE_EXTENDED(NwamMenuItem, nwam_menu_item, GTK_TYPE_CHECK_MENU_ITEM,
@@ -115,7 +122,8 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
 	gobject_class->finalize = (void (*)(GObject*)) nwam_menu_item_finalize;
 
 	container_class->forall = nwam_menu_item_forall;
-    container_class->remove = nwam_menu_item_remove;
+/*     container_class->add = nwam_menu_item_add; */
+/*     container_class->remove = nwam_menu_item_remove; */
 
     widget_class->size_allocate = nwam_menu_item_size_allocate;
 	widget_class->size_request = nwam_menu_item_size_request;
@@ -170,6 +178,8 @@ nwam_menu_item_init (NwamMenuItem *self)
     group = g_slist_prepend (NULL, self);
     gtk_radio_menu_item_set_group (self, group);
     */
+    g_signal_connect (self, "parent-set",
+      G_CALLBACK(nwam_menu_item_parent_set), NULL);
 }
 
 static void
@@ -255,9 +265,9 @@ nwam_menu_item_forall (GtkContainer   *container,
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     int i;
 
-    //g_debug ("foreach container 0x%p", container);
+/*     g_debug ("foreach container 0x%p", container); */
 
-	(*GTK_CONTAINER_CLASS (nwam_menu_item_parent_class)->forall) (container,
+	GTK_CONTAINER_CLASS(nwam_menu_item_parent_class)->forall(container,
 									   include_internals,
 									   callback,
 									   callback_data);
@@ -269,25 +279,26 @@ nwam_menu_item_forall (GtkContainer   *container,
 }
 
 static void
-nwam_menu_item_remove (GtkContainer   *container,
-                       GtkWidget *child)
+nwam_menu_item_add (GtkContainer *container, GtkWidget *child)
 {
-	NwamMenuItem *self = NWAM_MENU_ITEM (container);
-    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
-    int i;
+}
 
-    for (i = 0; i < MAX_WIDGET_NUM; i++) {
-        if (prv->w[i] == child) {
-            gtk_widget_unparent (child);
-            prv->w[i] = NULL;
-            if (GTK_WIDGET_VISIBLE (container) && GTK_WIDGET_VISIBLE (child))
-                gtk_widget_queue_resize (GTK_WIDGET (container));
-            return;
-        }
-    }
-    if (i == MAX_WIDGET_NUM) {
-        (*GTK_CONTAINER_CLASS (nwam_menu_item_parent_class)->remove) (container, child);
-    }
+static void
+nwam_menu_item_remove (GtkContainer *container, GtkWidget *child)
+{
+}
+
+static void nwam_menu_item_parent_set(GtkWidget *widget,
+  GtkObject *old_parent,
+  gpointer   user_data)
+{
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(widget);
+
+    if (GTK_IS_MENU(widget->parent) ||
+      GTK_IS_MENU_BAR(widget->parent))
+        prv->has_toolge_space = TRUE;
+    else
+        prv->has_toolge_space = FALSE;
 }
 
 static void
@@ -303,12 +314,12 @@ default_disconnect_object(NwamMenuItem *self, GObject *object)
 static void
 default_sync_object(NwamMenuItem *self, GObject *object)
 {
-    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
-    if (object == NULL) {
-        g_object_set(self, "label", "(NULL)", NULL);
-        nwam_menu_item_set_widget (self, 0, NULL);
-        nwam_menu_item_set_widget (self, 1, NULL);
-    }
+/*     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self); */
+/*     if (object == NULL) { */
+/*         g_object_set(self, "label", "(NULL)", NULL); */
+/*         nwam_menu_item_set_widget (self, 0, NULL); */
+/*         nwam_menu_item_set_widget (self, 1, NULL); */
+/*     } */
 }
 
 static gint
@@ -391,13 +402,17 @@ nwam_menu_item_set_widget (NwamMenuItem *self,
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
 
 	g_return_if_fail (NWAM_IS_MENU_ITEM (self));
+	g_return_if_fail (GTK_IS_WIDGET (widget));
 	g_assert (pos >= 0 && pos < MAX_WIDGET_NUM);
 
     if (widget == prv->w[pos])
         return;
 
     if (prv->w[pos]) {
-        gtk_container_remove (GTK_CONTAINER(self), prv->w[pos]);
+        gtk_widget_unparent (prv->w[pos]);
+        prv->w[pos] = NULL;
+        if (GTK_WIDGET_VISIBLE(self) && GTK_WIDGET_VISIBLE(prv->w[pos]))
+            gtk_widget_queue_resize (GTK_WIDGET(self));
     }
     prv->w[pos] = widget;
 
@@ -405,7 +420,7 @@ nwam_menu_item_set_widget (NwamMenuItem *self,
         return;
 
     gtk_widget_set_parent (widget, GTK_WIDGET (self));
-    //gtk_widget_queue_resize (GTK_WIDGET (self));
+    gtk_widget_queue_resize (GTK_WIDGET (self));
     gtk_widget_show (widget);
 }
 
@@ -452,28 +467,19 @@ nwam_menu_item_toggle_size_request (GtkMenuItem *menu_item,
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     GtkPackDirection pack_dir; 
 
-    //g_debug ("nwam_menu_item_toggle_size_request 0x%p", self);
+	GTK_MENU_ITEM_CLASS(nwam_menu_item_parent_class)->toggle_size_request(menu_item, requisition);
+
     if (GTK_IS_MENU_BAR (GTK_WIDGET(self)->parent)) 
         pack_dir = gtk_menu_bar_get_child_pack_direction (GTK_MENU_BAR (GTK_WIDGET(self)->parent)); 
     else 
         pack_dir = GTK_PACK_DIRECTION_LTR; 
 
-	(*GTK_MENU_ITEM_CLASS(nwam_menu_item_parent_class)->toggle_size_request) (menu_item, requisition);
-
     if (prv->w[0])
     { 
         GtkRequisition child_requisition; 
+        guint toggle_spacing;
 
-        gtk_widget_get_child_requisition (prv->w[0],
-                                           &child_requisition);
-
-#if 0
-        g_debug ("w0, [%d,%d] [%d,%d]",
-                 prv->w[0]->allocation.x,
-                 prv->w[0]->allocation.y,
-                 prv->w[0]->allocation.width,
-                 prv->w[0]->allocation.height);
-#endif
+        gtk_widget_size_request(prv->w[0], &child_requisition);
 
         if (pack_dir == GTK_PACK_DIRECTION_LTR || 
             pack_dir == GTK_PACK_DIRECTION_RTL) 
@@ -486,7 +492,13 @@ nwam_menu_item_toggle_size_request (GtkMenuItem *menu_item,
             if (child_requisition.height > 0) 
                 *requisition += child_requisition.height; 
         } 
-    } 
+
+        /* Add other toggle-spacing */
+/*         gtk_widget_style_get (GTK_WIDGET (menu_item), */
+/*           "toggle-spacing", &toggle_spacing, */
+/*           NULL); */
+/*         *requisition += toggle_spacing; */
+    }
 }
 
 static void 
@@ -500,40 +512,33 @@ nwam_menu_item_size_request (GtkWidget      *widget,
     gint child_height = 0; 
     GtkPackDirection pack_dir; 
    
+    GTK_WIDGET_CLASS (nwam_menu_item_parent_class)->size_request(widget, requisition); 
+
     if (GTK_IS_MENU_BAR (widget->parent)) 
         pack_dir = gtk_menu_bar_get_child_pack_direction (GTK_MENU_BAR (widget->parent)); 
     else 
         pack_dir = GTK_PACK_DIRECTION_LTR; 
  
-    (*GTK_WIDGET_CLASS (nwam_menu_item_parent_class)->size_request) (widget, requisition); 
-    for (i = 0; i < MAX_WIDGET_NUM; i++) {
+    i = prv->has_toolge_space ? 1 : 0;
+
+    for (; i < MAX_WIDGET_NUM; i++) {
         if (prv->w[i])
         { 
             GtkRequisition child_requisition; 
        
-            gtk_widget_size_request (prv->w[i], 
-                                     &child_requisition); 
+            gtk_widget_size_request(prv->w[i], &child_requisition); 
  
-#if 0
-            g_debug ("w[%d], [%d,%d] [%d,%d]", i,
-                     prv->w[i]->allocation.x,
-                     prv->w[i]->allocation.y,
-                     prv->w[i]->allocation.width,
-                     prv->w[i]->allocation.height);
-#endif
-
             child_width = child_requisition.width; 
             child_height = child_requisition.height; 
-        } 
 
-        if (pack_dir == GTK_PACK_DIRECTION_LTR || pack_dir == GTK_PACK_DIRECTION_RTL) {
-            requisition->height = MAX (requisition->height, child_height); 
-            requisition->width += child_width;
-        }
-        else {
-            requisition->height += child_height;
-            requisition->width = MAX (requisition->width, child_width); 
-        }
+            if (pack_dir == GTK_PACK_DIRECTION_LTR || pack_dir == GTK_PACK_DIRECTION_RTL) {
+                requisition->height = MAX (requisition->height, child_height); 
+                requisition->width += child_width;
+            } else {
+                requisition->height += child_height;
+                requisition->width = MAX (requisition->width, child_width); 
+            }
+        } 
     }
 } 
 
@@ -545,66 +550,84 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     GtkPackDirection pack_dir; 
     guint toggle_spacing;
-    guint toggle_size;
-    gint i = 0;
+    gint x, y, offset; 
+    GtkRequisition child_requisition; 
+    GtkAllocation child_allocation; 
+    gint i;
    
     if (GTK_IS_MENU_BAR (widget->parent)) 
         pack_dir = gtk_menu_bar_get_child_pack_direction (GTK_MENU_BAR (widget->parent)); 
     else 
         pack_dir = GTK_PACK_DIRECTION_LTR; 
    
-    (*GTK_WIDGET_CLASS (nwam_menu_item_parent_class)->size_allocate) (widget, allocation); 
-
     gtk_widget_style_get (widget, 
-                          "toggle-spacing", &toggle_spacing, 
-                          NULL); 
-    toggle_size = GTK_MENU_ITEM (self)->toggle_size; 
+      "toggle-spacing", &toggle_spacing, 
+      NULL);
+ 
+    /* Hack for tooltip widget, give a space for the first icon. */
+    if (!prv->has_toolge_space) {
+        if (prv->w[0]) { 
+            gtk_widget_size_request(prv->w[0], &child_requisition);
+
+            if (pack_dir == GTK_PACK_DIRECTION_LTR || 
+              pack_dir == GTK_PACK_DIRECTION_RTL) { 
+                if (child_requisition.width > 0) 
+                    GTK_MENU_ITEM(self)->toggle_size = child_requisition.width; 
+            } else { 
+                if (child_requisition.height > 0) 
+                    GTK_MENU_ITEM(self)->toggle_size = child_requisition.height; 
+            } 
+        }
+    }
+
+    GTK_WIDGET_CLASS(nwam_menu_item_parent_class)->size_allocate(widget, allocation);
 
     i = 0;
     if (prv->w[i])
     { 
-        gint x, y, offset; 
-        GtkRequisition child_requisition; 
-        GtkAllocation child_allocation; 
         guint horizontal_padding;
         guint indicator_size;
+        gint n_hpaddings = 1;
  
         gtk_widget_style_get (widget, 
-                              "horizontal-padding", &horizontal_padding, 
-                              "indicator-size", &indicator_size,
-                              NULL); 
-       
-        gtk_widget_get_child_requisition (prv->w[i],
-                                          &child_requisition); 
+          "horizontal-padding", &horizontal_padding, 
+          "indicator-size", &indicator_size,
+          NULL); 
+
+        gtk_widget_get_child_requisition (prv->w[i], &child_requisition); 
  
+        /* Hack for tooltip widget, give a space for the first icon. */
+        if (!prv->has_toolge_space) {
+            indicator_size = 0;
+            n_hpaddings = 0;
+        }
+       
         if (pack_dir == GTK_PACK_DIRECTION_LTR || 
-            pack_dir == GTK_PACK_DIRECTION_RTL) 
+          pack_dir == GTK_PACK_DIRECTION_RTL) 
         { 
             offset = GTK_CONTAINER (self)->border_width + 
-                widget->style->xthickness; 
+              widget->style->xthickness; 
            
             if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
-                (pack_dir == GTK_PACK_DIRECTION_LTR)) 
-                x = offset + horizontal_padding + indicator_size +
-                    horizontal_padding;
+              (pack_dir == GTK_PACK_DIRECTION_LTR)) 
+                x = offset + (horizontal_padding<<n_hpaddings) + indicator_size;
             else 
                 x = widget->allocation.width - offset - horizontal_padding - 
-                    indicator_size - child_requisition.width;
+                  indicator_size - child_requisition.width;
            
             y = (widget->allocation.height - child_requisition.height) / 2; 
         } 
         else 
         { 
             offset = GTK_CONTAINER (self)->border_width +
-                widget->style->ythickness;
+              widget->style->ythickness;
            
             if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
-                (pack_dir == GTK_PACK_DIRECTION_TTB)) 
-                y = offset + horizontal_padding + indicator_size +
-                    horizontal_padding;
+              (pack_dir == GTK_PACK_DIRECTION_TTB)) 
+                y = offset + (horizontal_padding<<n_hpaddings) + indicator_size;
             else 
                 y = widget->allocation.height - offset - horizontal_padding - 
-                    indicator_size - child_requisition.height;
+                  indicator_size - child_requisition.height;
  
             x = (widget->allocation.width - child_requisition.width) / 2; 
         } 
@@ -614,57 +637,55 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
         child_allocation.x = widget->allocation.x + MAX (x, 0); 
         child_allocation.y = widget->allocation.y + MAX (y, 0); 
  
-        gtk_widget_size_allocate (prv->w[i], &child_allocation); 
-    } 
+        gtk_widget_size_allocate (prv->w[i], &child_allocation);
 
-    if (prv->w[1])
-    { 
-        gint x, y, offset; 
-        GtkRequisition child_requisition; 
-        GtkAllocation child_allocation; 
- 
-        gtk_widget_get_child_requisition (prv->w[1],
-                                          &child_requisition); 
- 
-        if (pack_dir == GTK_PACK_DIRECTION_LTR || 
-            pack_dir == GTK_PACK_DIRECTION_RTL) 
+    }
+
+    for (i = 1; i < MAX_WIDGET_NUM; i++) {
+        if (prv->w[i])
         { 
-            offset = GTK_CONTAINER (self)->border_width + 
-                widget->style->xthickness;
+            gtk_widget_get_child_requisition (prv->w[i], &child_requisition); 
+ 
+            if (pack_dir == GTK_PACK_DIRECTION_LTR || 
+              pack_dir == GTK_PACK_DIRECTION_RTL) 
+            { 
+                offset = GTK_CONTAINER (self)->border_width + 
+                  widget->style->xthickness;
            
-            if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
-                (pack_dir == GTK_PACK_DIRECTION_LTR)) 
-                x = widget->allocation.width - offset -
-                    toggle_spacing - 
-                    child_requisition.width;
+                if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
+                  (pack_dir == GTK_PACK_DIRECTION_LTR)) 
+                    x = widget->allocation.width - offset -
+                      toggle_spacing - 
+                      child_requisition.width;
+                else 
+                    x = offset + toggle_spacing;
+
+                y = (widget->allocation.height - child_requisition.height) / 2; 
+            } 
             else 
-                x = offset + toggle_spacing;
-
-            y = (widget->allocation.height - child_requisition.height) / 2; 
-        } 
-        else 
-        { 
-            offset = GTK_CONTAINER (self)->border_width + 
-                widget->style->ythickness + prv->w[1]->style->ythickness;
+            { 
+                offset = GTK_CONTAINER (self)->border_width + 
+                  widget->style->ythickness + prv->w[i]->style->ythickness;
            
-            if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
-                (pack_dir == GTK_PACK_DIRECTION_TTB)) 
-                y = widget->allocation.height - offset -
-                    toggle_spacing -
-                    child_requisition.height;
-            else
-                y = offset + toggle_spacing;
+                if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
+                  (pack_dir == GTK_PACK_DIRECTION_TTB)) 
+                    y = widget->allocation.height - offset -
+                      toggle_spacing -
+                      child_requisition.height;
+                else
+                    y = offset + toggle_spacing;
  
-            x = (widget->allocation.width - child_requisition.width) / 2; 
-        } 
+                x = (widget->allocation.width - child_requisition.width) / 2; 
+            } 
        
-        child_allocation.width = child_requisition.width; 
-        child_allocation.height = child_requisition.height; 
-        child_allocation.x = widget->allocation.x + MAX (x, 0); 
-        child_allocation.y = widget->allocation.y + MAX (y, 0); 
+            child_allocation.width = child_requisition.width; 
+            child_allocation.height = child_requisition.height; 
+            child_allocation.x = widget->allocation.x + MAX (x, 0); 
+            child_allocation.y = widget->allocation.y + MAX (y, 0); 
  
-        gtk_widget_size_allocate (prv->w[1], &child_allocation); 
-    } 
+            gtk_widget_size_allocate (prv->w[i], &child_allocation); 
+        } 
+    }
 }
 
 static void
@@ -745,8 +766,8 @@ nwam_menu_item_draw_indicator(GtkCheckMenuItem *check_menu_item,
 static void
 nwam_menu_item_activate (GtkMenuItem *menu_item)
 {
-    //g_debug("item 0x%p group: 0x%p", menu_item, gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM(menu_item)));
-    (*GTK_MENU_ITEM_CLASS (nwam_menu_item_parent_class)->activate) (menu_item);
+/*     g_debug("item 0x%p group: 0x%p", menu_item, gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM(menu_item))); */
+    GTK_MENU_ITEM_CLASS(nwam_menu_item_parent_class)->activate(menu_item);
 }
 
 void

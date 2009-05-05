@@ -513,8 +513,6 @@ set_last_message( const gchar* summary, const gchar* body )
 void
 nwam_notification_set_default_icon(GdkPixbuf *pixbuf)
 {
-    g_debug("%s: pixbuf 0x%p", __func__, pixbuf);
-
     if (default_icon)
         g_object_unref(default_icon);
 

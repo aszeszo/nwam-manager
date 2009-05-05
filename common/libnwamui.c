@@ -555,7 +555,7 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu )
     ncu_type = nwamui_ncu_get_ncu_type(ncu);
     strength = nwamui_ncu_get_wifi_signal_strength(ncu);
     /* Hardcode icon size 48. */
-    return nwamui_util_get_network_status_icon(ncu_type, strength, nwamui_ncu_get_active(ncu) ? NWAMUI_ENV_STATUS_CONNECTED : NWAMUI_ENV_STATUS_ERROR, 48);
+    return nwamui_util_get_network_status_icon(ncu_type, strength, nwamui_ncu_get_active(ncu) ? NWAMUI_ENV_STATUS_CONNECTED : NWAMUI_ENV_STATUS_ERROR, 24);
 }
        
 extern const gchar*
