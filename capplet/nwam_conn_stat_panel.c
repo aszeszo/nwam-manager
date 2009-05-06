@@ -99,9 +99,6 @@ static void nwam_conn_status_conn_view_row_activated_cb (GtkTreeView *tree_view,
 static void repair_clicked_cb( GtkButton *button, gpointer data );
 static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
-static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
-static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
-static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 

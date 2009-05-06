@@ -55,6 +55,8 @@ enum {
 	N_PANELS
 };
 
+#define NWAM_CAPPLET_DIALOG_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_CAPPLET_DIALOG, NwamCappletDialogPrivate))
+
 struct _NwamCappletDialogPrivate {
 	/* Widget Pointers */
 	GtkDialog*                  capplet_dialog;
@@ -126,6 +128,8 @@ nwam_capplet_dialog_class_init(NwamCappletDialogClass *klass)
 	
 	/* Override Some Function Pointers */
 	gobject_class->finalize = (void (*)(GObject*)) nwam_capplet_dialog_finalize;
+
+	g_type_class_add_private(klass, sizeof(NwamCappletDialogPrivate));
 }
 
 static void
@@ -134,7 +138,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     GtkButton      *btn = NULL;
     NwamuiDaemon   *daemon = NULL;
 
-    self->prv = g_new0(NwamCappletDialogPrivate, 1);
+    self->prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(self);
     
     /* Iniialise pointers to important widgets */
     self->prv->capplet_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(CAPPLET_DIALOG_NAME));
@@ -184,7 +188,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
 	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_CONN_STATUS]));
 	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_NET_PREF])); 
 
-    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
+    g_signal_connect(self, "notify", (GCallback)object_notify_cb, NULL);
     g_signal_connect(GTK_DIALOG(self->prv->capplet_dialog), "response", (GCallback)response_cb, (gpointer)self);
     
     btn = GTK_BUTTON(nwamui_util_glade_get_widget(CAPPLET_DIALOG_REFRESH_BUTTON));
@@ -259,7 +263,6 @@ nwam_capplet_dialog_finalize(NwamCappletDialog *self)
 	
     g_list_foreach(self->prv->ncp_list, nwamui_util_obj_unref, NULL );
 
-	g_free(self->prv);
 	self->prv = NULL;
 	
 	G_OBJECT_CLASS(nwam_capplet_dialog_parent_class)->finalize(G_OBJECT(self));
@@ -278,23 +281,37 @@ nwam_capplet_dialog_finalize(NwamCappletDialog *self)
 static gboolean
 refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
+    NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(iface);
 	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(iface);
     NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+    GtkTreeIter iter;
+    GObject *obj;
     GList* ncp_list;
+
+    /* Remember the active object and select it later. */
+    obj = capplet_combo_get_active_object(GTK_COMBO_BOX(prv->show_combo));
+    g_assert(obj);
+    
     /* Refresh show-combo */
     ncp_list = nwamui_daemon_get_ncp_list(daemon);
     g_object_unref(daemon);
 
-    gtk_widget_hide(GTK_WIDGET(self->prv->show_combo));
+    gtk_widget_hide(GTK_WIDGET(prv->show_combo));
     for (; ncp_list;) {
-        show_comob_remove(self->prv->show_combo, G_OBJECT(ncp_list->data));
-        show_comob_add(self->prv->show_combo, G_OBJECT(ncp_list->data));
+        /* TODO need be more efficient. */
+        show_comob_remove(prv->show_combo, G_OBJECT(ncp_list->data));
+        show_comob_add(prv->show_combo, G_OBJECT(ncp_list->data));
         ncp_list = g_list_delete_link(ncp_list, ncp_list);
     }
-    gtk_widget_show(GTK_WIDGET(self->prv->show_combo));
 
     /* Refresh children */
-    show_changed_cb(GTK_WIDGET(NWAM_CAPPLET_DIALOG(self)->prv->show_combo), (gpointer)self);
+    capplet_combo_set_active_object(GTK_COMBO_BOX(prv->show_combo), obj);
+
+    gtk_widget_show(GTK_WIDGET(prv->show_combo));
+
+    g_object_unref(obj);
+
+/*     show_changed_cb(GTK_COMBO_BOX(prv->show_combo), (gpointer)self); */
 }
 
 static gboolean
@@ -404,11 +421,9 @@ show_changed_cb( GtkWidget* widget, gpointer data )
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(widget));
 
     /* Get selected NCU and update IP Panel with this information */
-    if ( gtk_combo_box_get_active_iter(GTK_COMBO_BOX(widget), &iter ) ) {
-        gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &obj, -1);
-
-    } else {
-        g_assert_not_reached();
+    if ((obj = capplet_combo_get_active_object(GTK_COMBO_BOX(widget))) == NULL) {
+        /* Caused by updating the content of show combo. */
+        return;
     }
 
     /* Track the previously selected ncu so that we can know when to validate
@@ -424,6 +439,7 @@ show_changed_cb( GtkWidget* widget, gpointer data )
     if (type == NWAM_TYPE_CONN_STATUS_PANEL) {
         idx = 0;
     } else if (type == NWAM_TYPE_NET_CONF_PANEL) {
+        user_data = g_object_ref(self->prv->active_ncp);
         idx = 1;
     } else if (type == NWAMUI_TYPE_NCU) {
         self->prv->selected_ncu = NWAMUI_NCU(g_object_ref(obj));

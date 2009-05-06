@@ -44,7 +44,8 @@
 
 /* Names of Widgets in Glade file */
 #define NET_CONF_TREEVIEW               "network_profile_table"
-#define EDIT_PROFILE_NAME_COMBO             "edit_profile_name_combo"
+#define PROFILE_NAME_COMBO              "profile_name_combo"
+#define EDIT_PROFILE_NAME_COMBO         "edit_profile_name_combo"
 #define CONNECTION_MOVE_UP_BTN          "connection_move_up_btn"
 #define CONNECTION_MOVE_DOWN_BTN        "connection_move_down_btn"
 #define CONNECTION_RENAME_BTN           "connection_rename_btn"
@@ -63,6 +64,7 @@ struct _NwamNetConfPanelPrivate {
     GtkButton*          connection_rename_btn;
     GtkButton*          connection_group_btn;
 
+    GtkComboBox*        profile_name_combo;
     GtkComboBox*        edit_profile_name_combo;
 
     GtkLabel*           activation_mode_lbl;
@@ -217,7 +219,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
-	iface->apply = NULL;
+	iface->apply = apply;
 	iface->help = help;
     iface->dialog_run = NULL;
 }
@@ -419,6 +421,7 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
 	/* Iniialise pointers to important widgets */
 	self->prv->net_conf_treeview = GTK_TREE_VIEW(nwamui_util_glade_get_widget(NET_CONF_TREEVIEW));
 
+    self->prv->profile_name_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(PROFILE_NAME_COMBO));
     self->prv->edit_profile_name_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(EDIT_PROFILE_NAME_COMBO));
 
     self->prv->connection_move_up_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONNECTION_MOVE_UP_BTN));	
@@ -438,11 +441,28 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     g_signal_connect(self->prv->connection_group_btn,
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
 
+    /* Active Profile combo. */
+	capplet_compose_combo(GTK_COMBO_BOX(self->prv->profile_name_combo),
+      GTK_TYPE_LIST_STORE,
+      G_TYPE_OBJECT,
+      nwamui_object_name_cell,
+      NULL,
+      NULL,
+      (gpointer)self,
+      NULL);
+
+    gtk_widget_hide(GTK_WIDGET(self->prv->profile_name_combo));
+    capplet_update_model_from_daemon(gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->profile_name_combo)), daemon, NWAMUI_TYPE_NCP);
+    gtk_widget_show(GTK_WIDGET(self->prv->profile_name_combo));
+
     /* FIXME: How about zero ncp? */
     capplet_compose_nwamui_obj_combo(GTK_COMBO_BOX(self->prv->edit_profile_name_combo), NWAM_PREF_IFACE(self));
 
     gtk_widget_hide(GTK_WIDGET(self->prv->edit_profile_name_combo));
-    capplet_update_model_from_daemon(gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->edit_profile_name_combo)), daemon, NWAMUI_TYPE_NCP);
+/*     capplet_update_model_from_daemon(gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->edit_profile_name_combo)), daemon, NWAMUI_TYPE_NCP); */
+    /* Reuse active profile combo model */
+    gtk_combo_box_set_model(GTK_COMBO_BOX(self->prv->edit_profile_name_combo),
+      gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->profile_name_combo)));
     gtk_widget_show(GTK_WIDGET(self->prv->edit_profile_name_combo));
 
     capplet_compose_combo(self->prv->connection_activation_combo,
@@ -525,23 +545,30 @@ static gboolean
 refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
     NwamNetConfPanel*    self = NWAM_NET_CONF_PANEL( iface );
-    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(self);
+    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(iface);
     NwamuiObject *combo_object;
-
-    g_assert(NWAM_IS_NET_CONF_PANEL(iface));
 
 	/* data could be null or prv->selected_ncp */
     if (user_data != NULL) {
         GtkTreeModel *model;
 
+        {
+            NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+            NwamuiNcp *active_ncp = nwamui_daemon_get_active_ncp(daemon);
+            /* Update active ncp combo. */
+            capplet_combo_set_active_object(prv->profile_name_combo, G_OBJECT(active_ncp));
+            g_object_unref(active_ncp);
+            g_object_unref(daemon);
+        }
+
         /* Update ncp combo first if the selected ncp isn't the same to what we
          * are refreshing */
-        combo_object = capplet_combo_get_active(prv->edit_profile_name_combo);
+        combo_object = (NwamuiObject *)capplet_combo_get_active_object(prv->edit_profile_name_combo);
         /* Safely unref */
         if (combo_object)
             g_object_unref(combo_object);
         if (combo_object != user_data) {
-            capplet_combo_set_active(prv->edit_profile_name_combo, NWAMUI_OBJECT(user_data));
+            capplet_combo_set_active_object(prv->edit_profile_name_combo, G_OBJECT(user_data));
             /* Will trigger refresh again, so return */
             return;
         }
@@ -566,6 +593,26 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     }
 
     return( TRUE );
+}
+
+static gboolean
+apply(NwamPrefIFace *iface, gpointer user_data)
+{
+    NwamNetConfPanel*    self = NWAM_NET_CONF_PANEL( iface );
+    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(iface);
+    NwamuiObject *combo_object;
+
+    {
+        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+        NwamuiNcp *active_ncp = nwamui_daemon_get_active_ncp(daemon);
+        /* Set active ncp combo. */
+        combo_object = capplet_combo_get_active_object(prv->profile_name_combo);
+        nwamui_daemon_set_active_ncp(daemon, NWAMUI_NCP(combo_object));
+
+        g_object_unref(combo_object);
+        g_object_unref(active_ncp);
+        g_object_unref(daemon);
+    }
 }
 
 static gboolean

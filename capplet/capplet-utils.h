@@ -52,9 +52,9 @@ void capplet_compose_combo(GtkComboBox *combo,
 void capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class);
 gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
 
-gboolean capplet_model_get_iter(GtkTreeModel *model, NwamuiObject *object, GtkTreeIter *iter);
-NwamuiObject *capplet_combo_get_active(GtkComboBox *combo);
-void capplet_combo_set_active(GtkComboBox *combo, NwamuiObject *object);
+gboolean capplet_model_get_iter(GtkTreeModel *model, GObject *object, GtkTreeIter *iter);
+GObject *capplet_combo_get_active_object(GtkComboBox *combo);
+gboolean capplet_combo_set_active_object(GtkComboBox *combo, GObject *object);
 
 gboolean capplet_tree_view_commit_object(NwamTreeView *self, NwamuiObject *object, gpointer user_data);
 

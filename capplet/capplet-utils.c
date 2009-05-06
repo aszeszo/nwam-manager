@@ -25,8 +25,10 @@
  * 
  */
 
+#include <stdlib.h>
 #include <gdk/gdkkeysyms.h>
 #include <glib/gi18n.h>
+
 #include "capplet-utils.h"
 
 typedef struct _CappletForeachData {
@@ -45,7 +47,7 @@ capplet_compose_nwamui_obj_combo(GtkComboBox *combo, NwamPrefIFace *iface)
       G_TYPE_OBJECT,
       nwamui_object_name_cell,
       NULL,
-      nwam_pref_iface_combo_changed_cb,
+      (GCallback)nwam_pref_iface_combo_changed_cb,
       (gpointer)iface,
       NULL);
 }
@@ -166,14 +168,12 @@ static void
 nwam_pref_iface_combo_changed_cb(GtkComboBox *combo, gpointer user_data)
 {
 	GtkTreeIter iter;
+    GObject *obj;
 
-	if (gtk_combo_box_get_active_iter(combo, &iter)) {
-		GObject *obj;
-		gtk_tree_model_get(gtk_combo_box_get_model(combo), &iter, 0, &obj, -1);
-		g_assert(G_IS_OBJECT(obj));
-		nwam_pref_refresh(NWAM_PREF_IFACE(user_data), obj, FALSE);
-		g_object_unref(obj);
-	}
+    obj = capplet_combo_get_active_object(combo);
+    g_assert(G_IS_OBJECT(obj));
+    nwam_pref_refresh(NWAM_PREF_IFACE(user_data), obj, FALSE);
+    g_object_unref(obj);
 }
 
 void
@@ -341,7 +341,7 @@ capplet_column_new(GtkTreeView *treeview, ...)
 	va_start(args, treeview);
 	attribute = va_arg(args, gchar *);
 	if (attribute)
-		g_object_set_valist(col, attribute, args);
+		g_object_set_valist(G_OBJECT(col), attribute, args);
 	va_end (args);
 
 	gtk_tree_view_append_column (treeview, col);
@@ -365,13 +365,13 @@ tree_model_find_object_cb(GtkTreeModel *model,
   gpointer user_data)
 {
 	CappletForeachData *data = (CappletForeachData*)user_data;
-	NwamuiObject *obj;
+	GObject *obj;
 
 	gtk_tree_model_get(model, iter, 0, &obj, -1);
 	/* Safely unref */
 	g_object_unref(obj);
 
-	if (obj == data->user_data) {
+	if (obj == (gpointer)data->user_data) {
 		GtkTreeIter *iter_ret = (GtkTreeIter*)data->ret_data;
 
 		*iter_ret = *iter;
@@ -382,7 +382,7 @@ tree_model_find_object_cb(GtkTreeModel *model,
 }
 
 gboolean
-capplet_model_get_iter(GtkTreeModel *model, NwamuiObject *object, GtkTreeIter *iter)
+capplet_model_get_iter(GtkTreeModel *model, GObject *object, GtkTreeIter *iter)
 {
 	CappletForeachData data;
 
@@ -390,19 +390,19 @@ capplet_model_get_iter(GtkTreeModel *model, NwamuiObject *object, GtkTreeIter *i
 	data.ret_data = (gpointer)iter;
 
 	gtk_tree_model_foreach(model,
-	    tree_model_find_object_cb,
-	    (gpointer)&data);
+      tree_model_find_object_cb,
+      (gpointer)&data);
 
 	return data.ret_data == NULL;
 }
 
-NwamuiObject *
-capplet_combo_get_active(GtkComboBox *combo)
+GObject *
+capplet_combo_get_active_object(GtkComboBox *combo)
 {
 	GtkTreeIter iter;
 
 	if (gtk_combo_box_get_active_iter(combo, &iter)) {
-		NwamuiObject *object;
+		GObject *object;
 		gtk_tree_model_get(gtk_combo_box_get_model(combo), &iter,
 		    0, &object, -1);
 		return object;
@@ -410,13 +410,16 @@ capplet_combo_get_active(GtkComboBox *combo)
 	return NULL;
 }
 
-void
-capplet_combo_set_active(GtkComboBox *combo, NwamuiObject *object)
+gboolean
+capplet_combo_set_active_object(GtkComboBox *combo, GObject *object)
 {
 	GtkTreeIter iter;
 
-	if (capplet_model_get_iter(gtk_combo_box_get_model(combo), object, &iter))
+	if (capplet_model_get_iter(gtk_combo_box_get_model(combo), object, &iter)) {
 		gtk_combo_box_set_active_iter(combo, &iter);
+        return TRUE;
+    }
+    return FALSE;
 }
 
 void
@@ -657,8 +660,8 @@ capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix)
 	CappletForeachData data;
 	gint max;
 
-	data.user_data = prefix;
-	data.ret_data = &max;
+	data.user_data = (gpointer)prefix;
+	data.ret_data = (gpointer)&max;
 
 	gtk_tree_model_foreach(model,
 	    capplet_model_find_max_name_suffix,

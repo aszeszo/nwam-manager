@@ -1,3 +1,22 @@
+2009-05-06  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (capplet_compose_nwamui_obj_combo),
+	(nwam_pref_iface_combo_changed_cb), (capplet_column_new),
+	(tree_model_find_object_cb), (capplet_model_get_iter),
+	(capplet_combo_get_active_object),
+	(capplet_combo_set_active_object), (capplet_get_max_name_num):
+	* capplet/capplet-utils.h:
+	Rename some function name, fix build warnings.
+	* capplet/nwam_conn_stat_panel.c:
+	Remove dup function declarations.
+	* capplet/nwam_net_conf_panel.c (nwam_pref_init),
+	(nwam_net_conf_panel_init), (refresh), (apply):
+	Net Pref: Add active profile combo.
+	* capplet/nwam_pref_dialog.c (nwam_capplet_dialog_class_init),
+	(nwam_capplet_dialog_init), (nwam_capplet_dialog_finalize),
+	(refresh), (show_changed_cb):
+	Pass the active ncp to net conf panel when selecting in show combo.
+
 2009-05-05  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (capplet_compose_nwamui_obj_combo),
