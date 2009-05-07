@@ -2240,7 +2240,6 @@ nwamui_env_set_dns_nameservice_servers (   NwamuiEnv *self,
                               const GList*    dns_nameservice_servers )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (dns_nameservice_servers != NULL );
 
     if ( dns_nameservice_servers != NULL ) {
         g_object_set (G_OBJECT (self),
@@ -2280,7 +2279,6 @@ nwamui_env_set_dns_nameservice_search (   NwamuiEnv *self,
                                           const GList*  dns_nameservice_search )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (dns_nameservice_search != NULL );
 
     if ( dns_nameservice_search != NULL ) {
         g_object_set (G_OBJECT (self),
@@ -2359,7 +2357,6 @@ nwamui_env_set_nis_nameservice_servers (   NwamuiEnv *self,
                               const GList*    nis_nameservice_servers )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (nis_nameservice_servers != NULL );
 
     if ( nis_nameservice_servers != NULL ) {
         g_object_set (G_OBJECT (self),
@@ -2438,7 +2435,6 @@ nwamui_env_set_ldap_nameservice_servers (   NwamuiEnv *self,
                               const GList*    ldap_nameservice_servers )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (ldap_nameservice_servers != NULL );
 
     if ( ldap_nameservice_servers != NULL ) {
         g_object_set (G_OBJECT (self),
@@ -2800,7 +2796,6 @@ nwamui_env_set_svcs_enable (   NwamuiEnv *self,
                               const GList*    svcs_enable )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (svcs_enable != NULL );
 
     if ( svcs_enable != NULL ) {
         g_object_set (G_OBJECT (self),
@@ -2840,7 +2835,6 @@ nwamui_env_set_svcs_disable (   NwamuiEnv *self,
                               const GList*    svcs_disable )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (svcs_disable != NULL );
 
     if ( svcs_disable != NULL ) {
         g_object_set (G_OBJECT (self),

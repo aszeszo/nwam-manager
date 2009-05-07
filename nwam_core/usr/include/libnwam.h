@@ -111,7 +111,8 @@ typedef enum {
 	NWAM_ENTITY_NO_VALUE,		/* No value associated with entity */
 	NWAM_ENTITY_MULTIPLE_VALUES,	/* Multiple values for entity */
 	NWAM_ENTITY_READ_ONLY,		/* Entity is marked read only */
-	NWAM_ENTITY_NOT_MANUAL,		/* Entity cannot be manually enabled */
+	NWAM_ENTITY_NOT_DESTROYABLE,	/* Entity cannot be destroyed */
+	NWAM_ENTITY_NOT_MANUAL,	/* Entity cannot be manually enabled/disabled */
 	NWAM_WALK_HALTED,		/* Callback function returned nonzero */
 	NWAM_ERROR_BIND,		/* Could not bind to backend */
 	NWAM_ERROR_BACKEND_INIT,	/* Could not initialize backend */
@@ -893,7 +894,8 @@ extern nwam_error_t nwam_known_wlan_remove_from_known_wlan(const char *,
  * Active WLAN definitions. Used to scan WLANs/choose a WLAN/set a WLAN key.
  */
 extern nwam_error_t nwam_wlan_scan(const char *);
-extern nwam_error_t nwam_wlan_select(const char *, const char *, const char *);
+extern nwam_error_t nwam_wlan_select(const char *, const char *, const char *,
+    boolean_t);
 extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
     uint32_t, const char *);
 
@@ -914,6 +916,7 @@ extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
 #define	NWAM_EVENT_TYPE_IF_STATE		11
 #define	NWAM_EVENT_TYPE_LINK_ACTION		12
 #define	NWAM_EVENT_TYPE_LINK_STATE		13
+#define	NWAM_EVENT_MAX				NWAM_EVENT_TYPE_LINK_STATE
 
 #define	NWAM_EVENT_STATUS_OK			0
 #define	NWAM_EVENT_STATUS_NOT_HANDLED		1
@@ -1049,19 +1052,6 @@ extern const char *nwam_action_to_string(nwam_action_t);
 extern const char *nwam_event_type_to_string(int);
 extern const char *nwam_state_to_string(nwam_state_t);
 extern const char *nwam_object_type_to_string(nwam_object_type_t);
-
-/* SCF helper functions */
-extern int lookup_boolean_property(const char *, const char *, const char *,
-    boolean_t *);
-extern int lookup_count_property(const char *, const char *, const char *,
-    uint64_t *);
-extern int lookup_string_property(const char *, const char *, const char *,
-    char **);
-
-extern int set_boolean_property(const char *, const char *, const char *,
-    boolean_t);
-extern int set_string_property(const char *, const char *, const char *,
-    const char *);
 
 #ifdef	__cplusplus
 }

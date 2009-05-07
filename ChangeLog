@@ -1,3 +1,23 @@
+2009-05-07  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.glade:
+	  Add names to some labels so we can set sensitivity.
+	* capplet/nwam_env_pref_dialog.c:
+	  Fix some issues on Nameservices tab.
+	* common/nwamui_daemon.c: 
+	  Handle some basic events - still a few more to to.
+	* common/nwamui_env.c: 
+	  Update for nameservices.
+	* common/nwamui_ncp.c: 
+	  Fix a bug in nwam_ncu_walker_cb where it was not removing found NCUs
+	  from the removal tempoary list.
+	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c: 
+	  Add functions to populate a NwamuiWifiNet from a nwam_wifi_info_t -
+	  nwamui_wifi_net_update_from_wlan_t and nwamui_wifi_net_new_from_wlan_t.
+	* nwam_core/usr/include/libdlflow.h,  nwam_core/usr/include/libnwam.h,
+	  nwam_core/usr/include/sys/mac.h:
+	  Update headers from latest NWAM Core sources.
+
 2009-05-06  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (capplet_compose_nwamui_obj_combo),

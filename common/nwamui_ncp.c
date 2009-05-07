@@ -907,7 +907,7 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
          * Remove from temp_ncu_list, which is being used to find NCUs that
          * have been removed from the system.
          */
-        ncp->prv->temp_ncu_list = g_list_remove( ncp->prv->temp_ncu_list, ncu );
+        ncp->prv->temp_ncu_list = g_list_remove( ncp->prv->temp_ncu_list, new_ncu );
 
         g_object_unref(new_ncu);
         free(name);

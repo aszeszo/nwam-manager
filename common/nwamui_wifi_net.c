@@ -750,6 +750,85 @@ nwamui_wifi_net_new_with_handle(    NwamuiNcu                       *ncu,
     return(self);
 }
 
+extern gboolean
+nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self, 
+                                        nwam_event_wlan_t               *wlan )
+{
+    if ( wlan != NULL ) {
+        const gchar*                    essid = wlan->essid;
+        nwamui_wifi_security_t          security;
+        GList                          *bssid_list;
+        nwamui_wifi_bss_type_t          bss_type;
+        nwamui_wifi_signal_strength_t   signal_strength;
+        gint                            channel;
+        
+        bssid_list = nwamui_wifi_net_get_bssid_list( self );
+        if ( wlan->bssid != NULL ) {
+            /* Merge list */
+            GList *match = g_list_find_custom( bssid_list, 
+                                wlan->bssid, (GCompareFunc)strcmp );
+            if ( match == NULL ) {
+                bssid_list = g_list_append( bssid_list, 
+                            g_strdup(wlan->bssid) );
+            }
+        }
+        security = nwamui_wifi_net_security_map (
+                        wlan->security_mode);
+        channel = nwamui_wifi_net_security_map (
+                        wlan->channel);
+        /* FIXME: Get this from libnwam */
+        bss_type = NWAMUI_WIFI_BSS_TYPE_AUTO;
+
+        signal_strength = nwamui_wifi_net_strength_map(wlan->signal_strength);
+
+        if ( self != NULL ) {
+            g_object_set (G_OBJECT (self),
+                            "essid", essid,
+                            "security", security,
+                            "bssid_list", bssid_list,
+                            "bss_type", bss_type,
+                            "security", security,
+                            "channel", channel,
+                            "signal_strength", signal_strength,
+                            NULL);
+            
+            /* Not modified by user */
+            self->prv->modified = FALSE;
+        }
+        return( TRUE );
+    }
+
+    return( FALSE );
+}
+
+/**
+ * nwamui_wifi_net_new_from_wlan_t:
+ *
+ * @returns: a new #NwamuiWifiNet.
+ *
+ * Creates a new #NwamuiWifiNet from a nwam_event_wlan_t
+ **/
+extern  NwamuiWifiNet*
+nwamui_wifi_net_new_from_wlan_t(    NwamuiNcu                       *ncu,
+                                    nwam_event_wlan_t               *wlan )
+{
+    NwamuiWifiNet*  self = NULL;
+    
+    self = NWAMUI_WIFI_NET(g_object_new (NWAMUI_TYPE_WIFI_NET, NULL));
+
+    if ( ! nwamui_wifi_net_update_from_wlan_t( self, wlan ) ) {
+        g_object_unref(self);
+        return( NULL );
+    }
+
+    if ( ncu != NULL ) {
+        self->prv->ncu = NWAMUI_NCU(g_object_ref(ncu));
+    }
+
+    return(self);
+}
+
+
 /** 
  * Compare WifiNet objects, returns values like strcmp().
  */

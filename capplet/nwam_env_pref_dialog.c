@@ -51,22 +51,32 @@
 #define     ADD_DISABLED_NETSERVICE_BTN    "add_disabled_netservice_btn"
 #define     DELETE_DISABLED_NETSERVICE_BTN "delete_disabled_netservice_btn"
 
-#define     NAMESERVICE_FILES_CHECK_BUTTON "files_service_cb"
-#define     NAMESERVICE_DNS_CHECK_BUTTON   "dns_service_cb"
-#define     NAMESERVICE_DNS_SERVERS_ENTRY  "dns_servers_entry"
-#define     NAMESERVICE_DNS_MANUAL_RB      "dns_manual_rb"
-#define     NAMESERVICE_DNS_DHCP_RB        "dns_dhcp_rb"
-#define     NAMESERVICE_DNS_SEARCH_ENTRY   "dns_search_entry"
-#define     NAMESERVICE_DNS_DOMAIN_ENTRY   "dns_domain_entry"
-#define     NAMESERVICE_NIS_CHECK_BUTTON   "nis_service_cb"
-#define     NAMESERVICE_NIS_SERVERS_ENTRY  "nis_servers_entry"
-#define     NAMESERVICE_NIS_MANUAL_RB      "nis_manual_rb"
-#define     NAMESERVICE_NIS_DHCP_RB        "nis_dhcp_rb"
-#define     NAMESERVICE_LDAP_CHECK_BUTTON  "ldap_service_cb"
-#define     NAMESERVICE_LDAP_SERVERS_ENTRY "ldap_servers_entry"
-#define     NAMMESERVICE_DEFAULT_DOMAIN    "default_domain_entry"
-#define     NSSWITCH_FILE_BTN              "nsswitch_file_btn"
-#define     NSSWITCH_DEFAULT_BTN           "nsswitch_default_btn"
+#define     NAMESERVICE_FILES_CHECK_BUTTON              "files_service_cb"
+#define     NAMESERVICE_DNS_CHECK_BUTTON                "dns_service_cb"
+#define     NAMESERVICE_DNS_MANUAL_RB                   "dns_manual_rb"
+#define     NAMESERVICE_DNS_DHCP_RB                     "dns_dhcp_rb"
+#define     NAMESERVICE_DNS_DOMAIN_ENTRY                "dns_domain_entry"
+#define     NAMESERVICE_DNS_DOMAIN_ENTRY_LABEL          "dns_domain_entry_label"
+#define     NAMESERVICE_DNS_SEARCH_ENTRY                "dns_search_entry"
+#define     NAMESERVICE_DNS_SEARCH_ENTRY_LABEL          "dns_search_entry_label"
+#define     NAMESERVICE_DNS_SERVERS_ENTRY               "dns_servers_entry"
+#define     NAMESERVICE_DNS_SERVERS_ENTRY_LABEL         "dns_servers_entry_label"
+#define     NAMESERVICE_NIS_DOMAIN_LABEL                "nis_domain_label"
+#define     NAMESERVICE_NIS_DOMAIN_LABEL_LABEL          "nis_domain_label_label"
+#define     NAMESERVICE_NIS_CHECK_BUTTON                "nis_service_cb"
+#define     NAMESERVICE_NIS_SERVERS_ENTRY               "nis_servers_entry"
+#define     NAMESERVICE_NIS_SERVERS_ENTRY_LABEL         "nis_servers_entry_label"
+#define     NAMESERVICE_NIS_MANUAL_RB                   "nis_manual_rb"
+#define     NAMESERVICE_NIS_DHCP_RB                     "nis_dhcp_rb"
+#define     NAMESERVICE_LDAP_CHECK_BUTTON               "ldap_service_cb"
+#define     NAMESERVICE_LDAP_DOMAIN_LABEL                "ldap_domain_label"
+#define     NAMESERVICE_LDAP_DOMAIN_LABEL_LABEL          "ldap_domain_label_label"
+#define     NAMESERVICE_LDAP_SERVERS_ENTRY              "ldap_servers_entry"
+#define     NAMESERVICE_LDAP_SERVERS_ENTRY_LABEL        "ldap_servers_entry_label"
+#define     NAMMESERVICE_DEFAULT_DOMAIN                 "default_domain_entry"
+#define     NAMMESERVICE_DEFAULT_DOMAIN_LABEL           "default_domain_entry_label"
+#define     NSSWITCH_FILE_BTN                           "nsswitch_file_btn"
+#define     NSSWITCH_DEFAULT_BTN                        "nsswitch_default_btn"
 
 #ifdef ENABLE_PROXY
 #define     PROXY_CONFIG_COMBO             "proxy_config_combo"
@@ -170,20 +180,30 @@ struct _NwamEnvPrefDialogPrivate {
     GtkCheckButton*             files_service_cb;
     GtkCheckButton*             dns_service_cb;                 
     GtkEntry*                   dns_servers_entry;                          
+    GtkLabel*                   dns_servers_entry_label;                           
     GtkRadioButton*             dns_config_manual_rb;                           
     GtkRadioButton*             dns_config_dhcp_rb;                         
     GtkEntry*                   dns_search_entry;                           
+    GtkLabel*                   dns_search_entry_label;                           
     GtkEntry*                   dns_domain_entry;                           
+    GtkLabel*                   dns_domain_entry_label;                           
                     
     GtkCheckButton*             nis_service_cb;                 
     GtkEntry*                   nis_servers_entry;                          
+    GtkLabel*                   nis_servers_entry_label;                          
+    GtkLabel*                   nis_domain_label;                          
+    GtkLabel*                   nis_domain_label_label;                          
     GtkRadioButton*             nis_config_manual_rb;                           
     GtkRadioButton*             nis_config_dhcp_rb;                         
                     
     GtkCheckButton*             ldap_service_cb;                    
+    GtkLabel*                   ldap_domain_label;                          
+    GtkLabel*                   ldap_domain_label_label;                          
     GtkEntry*                   ldap_servers_entry;                            
+    GtkLabel*                   ldap_servers_entry_label;                            
                     
     GtkEntry*                   default_domain_entry;                           
+    GtkLabel*                   default_domain_entry_label;                           
 
     guint                       num_nameservices; 
     GtkFileChooserButton*       nsswitch_file_btn;
@@ -376,21 +396,31 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 
     prv->files_service_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_FILES_CHECK_BUTTON));
     prv->dns_service_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_DNS_CHECK_BUTTON));
-    prv->dns_servers_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_DNS_SERVERS_ENTRY));
     prv->dns_config_manual_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_DNS_MANUAL_RB));
     prv->dns_config_dhcp_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_DNS_DHCP_RB));
-    prv->dns_search_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_DNS_SEARCH_ENTRY));
     prv->dns_domain_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_DNS_DOMAIN_ENTRY));
+    prv->dns_domain_entry_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMESERVICE_DNS_DOMAIN_ENTRY_LABEL));
+    prv->dns_search_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_DNS_SEARCH_ENTRY));
+    prv->dns_search_entry_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMESERVICE_DNS_SEARCH_ENTRY_LABEL));
+    prv->dns_servers_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_DNS_SERVERS_ENTRY));
+    prv->dns_servers_entry_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMESERVICE_DNS_SERVERS_ENTRY_LABEL));
                                                           
     prv->nis_service_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_NIS_CHECK_BUTTON));
     prv->nis_servers_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_NIS_SERVERS_ENTRY));
+    prv->nis_servers_entry_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMESERVICE_NIS_SERVERS_ENTRY_LABEL));
+    prv->nis_domain_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMESERVICE_NIS_DOMAIN_LABEL));
+    prv->nis_domain_label_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMESERVICE_NIS_DOMAIN_LABEL_LABEL));
     prv->nis_config_manual_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_NIS_MANUAL_RB));
     prv->nis_config_dhcp_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_NIS_DHCP_RB));
                                                           
     prv->ldap_service_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(NAMESERVICE_LDAP_CHECK_BUTTON));
     prv->ldap_servers_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMESERVICE_LDAP_SERVERS_ENTRY));
+    prv->ldap_servers_entry_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMESERVICE_LDAP_SERVERS_ENTRY_LABEL));
+    prv->ldap_domain_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMESERVICE_LDAP_DOMAIN_LABEL));
+    prv->ldap_domain_label_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMESERVICE_LDAP_DOMAIN_LABEL_LABEL));
                                                           
     prv->default_domain_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMMESERVICE_DEFAULT_DOMAIN));
+    prv->default_domain_entry_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMMESERVICE_DEFAULT_DOMAIN_LABEL));
 
     prv->nsswitch_file_btn = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_FILE_BTN));
     prv->nsswitch_default_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_DEFAULT_BTN));
@@ -601,6 +631,57 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 }
 
 static void
+block_nameservices_signals( NwamEnvPrefDialog* self, gboolean block )
+{
+    NwamEnvPrefDialogPrivate*   prv = self?self->prv:NULL;
+
+    if ( self == NULL ) {
+        return;
+    }
+
+    if ( block ) {
+        g_signal_handlers_block_by_func(prv->files_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
+
+        g_signal_handlers_block_by_func(prv->dns_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->dns_config_manual_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->dns_config_dhcp_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->dns_servers_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->dns_search_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->dns_domain_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+
+        g_signal_handlers_block_by_func(prv->nis_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->nis_config_manual_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->nis_config_dhcp_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->nis_servers_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+
+        g_signal_handlers_block_by_func(prv->ldap_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->ldap_servers_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+
+        g_signal_handlers_block_by_func(prv->default_domain_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+    }
+    else {
+        g_signal_handlers_unblock_by_func(prv->files_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
+
+        g_signal_handlers_unblock_by_func(prv->dns_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->dns_config_manual_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->dns_config_dhcp_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->dns_servers_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->dns_search_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->dns_domain_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+
+        g_signal_handlers_unblock_by_func(prv->nis_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->nis_config_manual_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->nis_config_dhcp_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->nis_servers_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+
+        g_signal_handlers_unblock_by_func(prv->ldap_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->ldap_servers_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+
+        g_signal_handlers_unblock_by_func(prv->default_domain_entry, (gpointer)on_ns_text_changed, (gpointer)self);
+    }
+}
+
+static void
 nwam_compose_tree_view (NwamEnvPrefDialog *self)
 {
 	GtkTreeViewColumn *col;
@@ -773,6 +854,9 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     /*
      * Name Services Tab
      */
+        
+    block_nameservices_signals( self, TRUE );
+
     nameservices = nwamui_env_get_nameservices(current_env);
 
     for (GList* elem = g_list_first(nameservices);
@@ -808,6 +892,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         GList*                      dns_servers = NULL;
         GList*                      dns_search = NULL;
         nwamui_env_config_source_t  dns_configsrc;
+        gboolean                    sensitive;
 
         dns_configsrc = nwamui_env_get_dns_nameservice_config_source( current_env );
         dns_domain = nwamui_env_get_dns_nameservice_domain( current_env );
@@ -816,10 +901,24 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 
         if ( dns_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL ) {
             gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->dns_config_manual_rb), TRUE );
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), sensitive );
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), sensitive );
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), sensitive );
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), sensitive );
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), sensitive );
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), sensitive );
+            sensitive = TRUE;
         }
         else {
             gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->dns_config_dhcp_rb), TRUE );
+            sensitive = FALSE;
         }
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), sensitive );
 
         if ( dns_servers != NULL ) {
             gchar* str = nwamui_util_glist_to_comma_string( dns_servers );
@@ -847,16 +946,23 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     if ( nis ) {
         GList*                      nis_servers = NULL;
         nwamui_env_config_source_t  nis_configsrc;
+        gboolean                    sensitive;
 
         nis_configsrc = nwamui_env_get_nis_nameservice_config_source( current_env );
         nis_servers = nwamui_env_get_nis_nameservice_servers( current_env );
 
         if ( nis_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL ) {
             gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->nis_config_manual_rb), TRUE );
+            sensitive = TRUE;
         }
         else {
             gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->nis_config_dhcp_rb), TRUE );
+            sensitive = FALSE;
         }
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), sensitive );
 
         if ( nis_servers != NULL ) {
             gchar* str = nwamui_util_glist_to_comma_string( nis_servers );
@@ -894,14 +1000,14 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_manual_rb), dns );
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_dhcp_rb), dns );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), dns );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), dns );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), dns );
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_manual_rb), nis );
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_dhcp_rb), nis );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), nis );
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry), ldap );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry), TRUE );
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry_label), ldap );
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label), ldap );
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label_label), ldap );
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry_label), nis || ldap );
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry), nis || ldap );
     
     config_file = nwamui_env_get_nameservices_config_file(current_env);
     if (config_file) {
@@ -909,6 +1015,8 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
           config_file);
         g_free(config_file);
     }
+
+    block_nameservices_signals( self, FALSE );
 
     /*
      * Security Tab
@@ -1244,13 +1352,13 @@ on_ns_source_toggled(GtkToggleButton *togglebutton, gpointer user_data)
     NwamEnvPrefDialog          *self = NWAM_ENV_PREF_DIALOG(user_data);
 	NwamEnvPrefDialogPrivate   *prv = GET_PRIVATE(user_data);
     gboolean                    active = gtk_toggle_button_get_active(togglebutton);
+    gboolean                    sensitive = FALSE;
+    nwamui_env_config_source_t  config_source;
 
 	if ( togglebutton == (GtkToggleButton*)prv->dns_config_manual_rb ||
 	     togglebutton == (GtkToggleButton*)prv->dns_config_dhcp_rb ) {
         /* Only act upon the active selection */
         if (active) {
-            nwamui_env_config_source_t config_source;
-
             if ( togglebutton == (GtkToggleButton*)prv->dns_config_manual_rb ) {
                 config_source = NWAMUI_ENV_CONFIG_SOURCE_MANUAL;
             }
@@ -1259,13 +1367,19 @@ on_ns_source_toggled(GtkToggleButton *togglebutton, gpointer user_data)
             }
             nwamui_env_set_dns_nameservice_config_source (  prv->selected_env, config_source );
         }
+        sensitive = (active && config_source == NWAMUI_ENV_CONFIG_SOURCE_MANUAL);
+
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), sensitive );
     }
     else if ( togglebutton == (GtkToggleButton*)prv->nis_config_manual_rb ||
 	          togglebutton == (GtkToggleButton*)prv->nis_config_dhcp_rb ) {
         /* Only act upon the active selection */
         if (active) {
-            nwamui_env_config_source_t config_source;
-
             if ( togglebutton == (GtkToggleButton*)prv->nis_config_manual_rb ) {
                 config_source = NWAMUI_ENV_CONFIG_SOURCE_MANUAL;
             }
@@ -1274,6 +1388,12 @@ on_ns_source_toggled(GtkToggleButton *togglebutton, gpointer user_data)
             }
             nwamui_env_set_nis_nameservice_config_source (  prv->selected_env, config_source );
         }
+        sensitive = (active && config_source == NWAMUI_ENV_CONFIG_SOURCE_MANUAL);
+
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), sensitive );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), sensitive );
     }
 
 }
@@ -1384,18 +1504,24 @@ on_ns_selection_toggled(GtkToggleButton *togglebutton, gpointer user_data)
     if ( dns ) {
         gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_manual_rb), active );
         gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_dhcp_rb), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), active );
     }
     else if ( nis ) {
         gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_manual_rb), active );
         gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_dhcp_rb), active );
         gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), active );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), active );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), active );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), active );
     }
     else if (ldap ) {
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry), active );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry_label), active );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label), active );
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label_label), active );
     }
+
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry_label), (nis || ldap) && active );
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry), (nis || ldap) && active );
 }
 
 static void
