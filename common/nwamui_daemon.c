@@ -30,6 +30,7 @@
 #include <libnwam.h>
 #include <glib-object.h>
 #include <glib/gi18n.h>
+#include <unistd.h>
 #include <strings.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -1987,6 +1988,70 @@ nwamd_event_handler(gpointer data)
 
             }
             break;
+        case NWAM_EVENT_TYPE_WLAN_NEED_CHOICE: {
+                const gchar*    device = nwamevent->data.wlan_info.name;
+                NwamuiNcu *     ncu = get_ncu_by_device_name( daemon, NULL, device );
+
+                g_debug("No suitable wireless networks found, selection needed.");
+
+                if (daemon->prv->emit_wlan_changed_signals) {
+                    g_signal_emit (daemon,
+                      nwamui_daemon_signals[DAEMON_INFO],
+                      0, /* details */
+                      NWAMUI_DAEMON_INFO_WLAN_CHANGED,
+                      NULL,
+                      g_strdup_printf(_("New wireless networks found.")));
+
+                    dispatch_wifi_scan_events_from_event( daemon, nwamevent );
+                }
+
+                g_signal_emit (daemon,
+                  nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
+                  0, /* details */
+                  ncu );
+
+                g_object_unref(ncu);
+            }
+            break;
+
+        case NWAM_EVENT_TYPE_WLAN_NEED_KEY: {
+                const gchar*    device = nwamevent->data.wlan_info.name;
+                NwamuiNcu*      ncu = get_ncu_by_device_name( daemon, NULL, device );
+                NwamuiWifiNet*  wifi = nwamui_ncu_get_wifi_info( ncu );
+
+
+                if ( wifi == NULL ) {
+                    wifi = nwamui_wifi_net_new_from_wlan_t( ncu, 
+                                                &(nwamevent->data.wlan_info.wlans[0]));
+                    nwamui_ncu_set_wifi_info( ncu, wifi );
+                }
+                else {
+                    char* essid = nwamui_wifi_net_get_essid( wifi );
+
+                    if( essid == NULL ||
+                        strncmp( essid, nwamevent->data.wlan_info.wlans[0].essid, strlen(essid) ) != 0) {
+                        /* ESSIDs are different, so we should update the ncu */
+                        NwamuiWifiNet* new_wifi = nwamui_wifi_net_new_from_wlan_t( ncu, 
+                                                &(nwamevent->data.wlan_info.wlans[0]));
+
+                        g_debug("deWlanKeyNeeded: WifiNets differ, replacing");
+                        nwamui_ncu_set_wifi_info( ncu, new_wifi );
+                        g_object_unref(wifi);
+                        wifi = new_wifi;
+                    }
+
+                    g_free(essid);
+                }
+
+                g_assert(wifi);
+
+                g_signal_emit (daemon,
+                  nwamui_daemon_signals[WIFI_KEY_NEEDED],
+                  0, /* details */
+                  wifi );
+                g_object_unref(ncu);
+            }
+            break;
 
 #ifdef _NEVER
         /* FIXME: Don't see an equivalent event in Phase 1... */
@@ -2093,90 +2158,6 @@ nwamd_event_handler(gpointer data)
         }
             break;
 
-        case deWlanKeyNeeded: {
-            NwamuiNcp * ncp = nwamui_daemon_get_active_ncp( daemon );
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, ncp, nwamevent->led_interface );
-            NwamuiNcu * current_ncu = NULL;
-            NwamuiWifiNet *wifi = nwamui_ncu_get_wifi_info( ncu );
-
-
-            current_ncu = nwamui_ncp_get_active_ncu(ncp);
-
-            if (current_ncu) {
-                /* Remove current timeout */
-                nwamui_daemon_disable_dhcp_or_wep_key_timeout( daemon, current_ncu );
-
-                g_object_unref(current_ncu);
-            }
-
-            if ( wifi == NULL ) {
-                wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &nwamevent->led_wlan );
-                nwamui_ncu_set_wifi_info( ncu, wifi );
-            }
-            else {
-                char* essid = nwamui_wifi_net_get_essid( wifi );
-                char* bssid = nwamui_wifi_net_get_bssid( wifi );
-
-                if( !( ( essid != NULL && strncmp( essid, nwamevent->led_wlan.wla_essid, strlen(essid) ) == 0 ) 
-                       && ( bssid != NULL && strncmp( bssid, nwamevent->led_wlan.wla_bssid, strlen(bssid) ) == 0 ) ) ) { 
-                    /* ESSID and BSSID are different, so we should update the ncu */
-                    NwamuiWifiNet* new_wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &nwamevent->led_wlan );
-                    g_debug("deWlanKeyNeeded: WifiNets differ, replacing");
-                    nwamui_ncu_set_wifi_info( ncu, new_wifi );
-                    g_object_unref(wifi);
-                    wifi = new_wifi;
-                }
-
-                g_free(essid);
-                g_free(bssid);
-            }
-
-            g_assert(wifi);
-
-            g_signal_emit (daemon,
-              nwamui_daemon_signals[WIFI_KEY_NEEDED],
-              0, /* details */
-              wifi );
-            g_object_unref(ncu);
-            g_object_unref(ncp);
-        }
-            break;
-        case deWlanSelectionNeeded: {
-            NwamuiNcp * ncp = nwamui_daemon_get_active_ncp( daemon );
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, ncp, nwamevent->led_interface );
-            NwamuiNcu * current_ncu = NULL;
-
-            g_debug("No suitable wireless networks found, selection needed.");
-
-            current_ncu = nwamui_ncp_get_active_ncu(ncp);
-
-            if (current_ncu) {
-                /* Remove current timeout */
-                nwamui_daemon_disable_dhcp_or_wep_key_timeout( daemon, current_ncu );
-
-                g_object_unref(current_ncu);
-            }
-
-            if (daemon->prv->emit_wlan_changed_signals) {
-                g_signal_emit (daemon,
-                  nwamui_daemon_signals[DAEMON_INFO],
-                  0, /* details */
-                  NWAMUI_DAEMON_INFO_WLAN_CHANGED,
-                  NULL,
-                  g_strdup_printf(_("New wireless networks found.")));
-
-                dispatch_wifi_scan_events_from_event( daemon, nwamevent );
-            }
-
-            g_signal_emit (daemon,
-              nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
-              0, /* details */
-              ncu );
-
-            g_object_unref(ncu);
-            g_object_unref(ncp);
-        }
-            break;
 #endif /* TODO _EVENTS */
         default:
             /* Directly deliver to upper consumers */

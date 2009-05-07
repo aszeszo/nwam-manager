@@ -1,5 +1,10 @@
 2009-05-07  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_daemon.c:
+	  Handle the wifi selection and key events.
+
+2009-05-07  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam-manager-properties.glade:
 	  Add names to some labels so we can set sensitivity.
 	* capplet/nwam_env_pref_dialog.c:
