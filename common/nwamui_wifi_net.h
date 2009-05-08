@@ -217,7 +217,7 @@ extern nwamui_wifi_security_t       nwamui_wifi_net_security_map ( uint32_t _sec
 
 extern nwamui_wifi_signal_strength_t nwamui_wifi_net_strength_map (const gchar *strength);
 
-extern nwamui_wifi_bss_type_t        nwamui_wifi_net_bss_type_map (const gchar *bss_type);
+extern nwamui_wifi_bss_type_t       nwamui_wifi_net_bss_type_map( uint32_t _bsstype );
 G_END_DECLS
         
 #endif	/* _NWAMUI_WIFI_NET_H */

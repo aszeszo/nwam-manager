@@ -774,6 +774,41 @@ nwamui_daemon_wifi_start_scan(NwamuiDaemon *self)
 }
 
 /**
+ * nwamui_daemon_get_ncp_by_name:
+ * @self: NwamuiDaemon*
+ * @name: String
+ *
+ * @returns: NwamuiNcp reference
+ *
+ * Looks up an NCP by name
+ *
+ **/
+extern NwamuiNcp*
+nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name )
+{
+    NwamuiNcp*  ncp = NULL;
+
+    g_assert( NWAMUI_IS_DAEMON( self ) );
+
+    g_return_val_if_fail( NWAMUI_IS_DAEMON(self) && name != NULL, ncp );
+
+    for( GList* item = g_list_first( self->prv->ncp_list ); 
+         item != NULL;
+         item = g_list_next( item ) ) {
+        if ( item->data != NULL && NWAMUI_IS_NCP(item->data) ) {
+            NwamuiNcp* tmp_ncp = NWAMUI_NCP(item->data);
+            gchar*     ncp_name = nwamui_ncp_get_name( tmp_ncp );
+
+            if ( strncmp( name, ncp_name, strlen(name) ) == 0 ) {
+                ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(tmp_ncp)));
+                break;
+            }
+        }
+    }
+    return(ncp);
+}
+
+/**
  * nwamui_daemon_get_current_ncp_name:
  * @self: NwamuiDaemon*
  *
@@ -1748,7 +1783,6 @@ nwamd_event_handler(gpointer data)
     case NWAMUI_DAEMON_INFO_UNKNOWN:
     case NWAMUI_DAEMON_INFO_ERROR:
     case NWAMUI_DAEMON_INFO_INACTIVE:
-        nwamui_ncp_set_active_ncu( daemon->prv->active_ncp, NULL );
         nwamui_daemon_set_status(daemon, NWAMUI_DAEMON_STATUS_INACTIVE);
         nwamui_ncp_populate_ncu_list(daemon->prv->active_ncp, G_OBJECT(daemon));
         break;
@@ -1873,8 +1907,66 @@ nwamd_event_handler(gpointer data)
                             nwamevent->data.object_action.action );
                     break;
                 case NWAM_ACTION_ENABLE:
-                    if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_ENM ) {
-                        g_debug("ENM enabled", 
+                    if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_NCP ) {
+                        NwamuiNcp *ncp;
+
+                        g_debug("NCP %s Enabled",
+                                nwamevent->data.object_action.name );
+            
+                        ncp = nwamui_daemon_get_ncp_by_name( daemon,
+                                nwamevent->data.object_action.name );
+
+                        if ( ncp != NULL ) {
+                            /* Don't use nwamui_ncp_set_active() since it will
+                             * actually cause a switch again...
+                             */
+                            if ( daemon->prv->active_ncp != NULL ) {
+                                g_object_unref(G_OBJECT(daemon->prv->active_ncp));
+                            }
+
+                            daemon->prv->active_ncp = NWAMUI_NCP(g_object_ref( ncp ));
+
+                            g_signal_emit (daemon,
+                              nwamui_daemon_signals[ACTIVE_NCP_CHANGED],
+                              0, /* details */
+                              ncp );
+
+                            g_object_unref(ncp);
+                        }
+                        else {
+                            g_error("Couldn't find NCP object for '%s'", nwamevent->data.object_action.name );
+                        }
+                    }
+                    else if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_NCU ) {
+                        NwamuiNcu *ncu;
+
+                        g_debug("NCU %s Enabled",
+                                nwamevent->data.object_action.name );
+            
+                        ncu = get_ncu_by_device_name( daemon, NULL,
+                                                      nwamevent->data.object_action.name );
+
+                        if ( ncu != NULL ) {
+                            if ( !nwamui_ncu_has_modifications( ncu ) ) {
+                                nwamui_ncu_reload( ncu );
+                            }
+
+                            g_signal_emit (daemon,
+                              nwamui_daemon_signals[DAEMON_INFO],
+                              0, /* details */
+                              NWAMUI_DAEMON_INFO_NCU_SELECTED,
+                              ncu,
+                              g_strdup_printf(_("%s network interface enabled."), 
+                                  nwamui_ncu_get_vanity_name( ncu )));
+
+                            g_object_unref(ncu);
+                        }
+                        else {
+                            g_error("Couldn't find NCU object for '%s'", nwamevent->data.object_action.name );
+                        }
+                    }
+                    else if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_ENM ) {
+                        g_debug("ENM %s enabled", 
                                 nwamevent->data.object_action.name );
                         g_signal_emit (daemon,
                           nwamui_daemon_signals[DAEMON_INFO],
@@ -1886,9 +1978,29 @@ nwamd_event_handler(gpointer data)
                     }
                     break;
                 case NWAM_ACTION_DISABLE:
-                    if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_ENM ) {
-                        g_debug("ENM disabled", 
+                    if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_NCU ) {
+                        NwamuiNcu *ncu;
+
+                        g_debug("NCU %s disabled",
                                 nwamevent->data.object_action.name );
+            
+                        ncu = get_ncu_by_device_name( daemon, NULL,
+                                                      nwamevent->data.object_action.name );
+
+                        if ( ncu != NULL ) { 
+                            if ( !nwamui_ncu_has_modifications( ncu ) ) {
+                                nwamui_ncu_reload( ncu );
+                            }
+                            g_object_unref(ncu);
+                        }
+                        else {
+                            g_error("Couldn't find NCU object for '%s'", nwamevent->data.object_action.name );
+                        }
+                    }
+                    else if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_ENM ) {
+                        g_debug("ENM %s disabled", 
+                                nwamevent->data.object_action.name );
+
                         g_signal_emit (daemon,
                           nwamui_daemon_signals[DAEMON_INFO],
                           0, /* details */

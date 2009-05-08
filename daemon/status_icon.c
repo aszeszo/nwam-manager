@@ -583,16 +583,9 @@ daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
     gchar *sname = NULL;
     gchar *summary = NULL;
-    NwamuiNcp*  active_ncp = nwamui_daemon_get_active_ncp( daemon );
-    NwamuiNcu*  active_ncu = NULL;
     
-    if ( active_ncp != NULL && NWAMUI_NCP( active_ncp ) ) {
-        active_ncu = nwamui_ncp_get_active_ncu( active_ncp );
-        g_object_unref(active_ncp);
-    }
-
-    /* Only show this information, if it's the active_ncu */
-    if ( ncu == active_ncu ) {
+    /* Only show this information, if it's an active ncu */
+    if ( nwamui_ncu_get_active(ncu)  ) {
         /* set status to "WARNING", only relevant if it's the active ncu */
         nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING);
 
@@ -623,10 +616,6 @@ daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
             g_assert_not_reached ();
         }
 
-    }
-
-    if ( active_ncu != NULL ) {
-        g_object_unref(active_ncu);
     }
 
     g_free (sname);
@@ -668,6 +657,8 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
             prv->force_wifi_rescan = FALSE;
         }
 
+        /* Comment out, since it doesn't actually do anything here
+         *
         if (prv->has_wifi) {
             NwamuiNcu *ncu = nwamui_ncp_get_active_ncu(ncp);
 
@@ -688,6 +679,7 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
                 g_object_unref(ncu);
             }
         }
+        */
     }
     g_object_unref(ncp);
 }
@@ -1597,7 +1589,7 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
     CACHE_STATIC_MENUITEMS(self, MENUITEM_NONCU);
 
 #undef ITEM_VARNAME
-#undef CACHE_STATIC_MENUITEMS(self, id)
+#undef CACHE_STATIC_MENUITEMS
 }
 
 static GtkWidget*

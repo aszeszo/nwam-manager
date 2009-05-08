@@ -776,8 +776,7 @@ nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self,
                         wlan->security_mode);
         channel = nwamui_wifi_net_security_map (
                         wlan->channel);
-        /* FIXME: Get this from libnwam */
-        bss_type = NWAMUI_WIFI_BSS_TYPE_AUTO;
+        bss_type = nwamui_wifi_net_bss_type_map( wlan->bsstype );
 
         signal_strength = nwamui_wifi_net_strength_map(wlan->signal_strength);
 
@@ -1547,7 +1546,6 @@ nwamui_wifi_net_get_priority (NwamuiWifiNet *self)
     return( priority );
 }
 
-
 extern nwamui_wifi_security_t
 nwamui_wifi_net_security_map ( uint32_t _sec_mode )
 {
@@ -1588,16 +1586,18 @@ nwamui_wifi_net_strength_map (const gchar *strength)
 }
 
 extern nwamui_wifi_bss_type_t
-nwamui_wifi_net_bss_type_map (const gchar *bss_type)
+nwamui_wifi_net_bss_type_map( uint32_t _bsstype )
 {
-    if ( g_ascii_strcasecmp( bss_type, "bss" ) == 0 ) {
-        return NWAMUI_WIFI_BSS_TYPE_AP;
-    }
-    else if ( g_ascii_strcasecmp( bss_type, "ibss" ) == 0 ) {
-        return NWAMUI_WIFI_BSS_TYPE_ADHOC;
-    }
-    else {
-        return NWAMUI_WIFI_BSS_TYPE_AUTO;
+    /* Is really a dladm_wlan_secmode_t */
+    dladm_wlan_bsstype_t bsstype = (dladm_wlan_bsstype_t)_bsstype;
+    switch( bsstype ) {
+        case DLADM_WLAN_BSSTYPE_BSS:
+            return NWAMUI_WIFI_BSS_TYPE_AP;
+        case DLADM_WLAN_BSSTYPE_IBSS:
+            return NWAMUI_WIFI_BSS_TYPE_ADHOC;
+        case DLADM_WLAN_BSSTYPE_ANY:
+        default:
+            return NWAMUI_WIFI_BSS_TYPE_AUTO;
     }
 }
 

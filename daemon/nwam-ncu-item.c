@@ -101,16 +101,9 @@ nwam_ncu_item_init (NwamNcuItem *self)
     /* nwamui ncp signals */
     {
         NwamuiDaemon *daemon = nwamui_daemon_get_instance ();
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
-        NwamuiNcu *ncu = nwamui_ncp_get_active_ncu(ncp);
 
         connect_daemon_signals(G_OBJECT(self), daemon);
 
-        if (ncu) {
-            g_object_unref(ncu);
-        }
-
-        g_object_unref(ncp);
         g_object_unref(daemon);
     }
 

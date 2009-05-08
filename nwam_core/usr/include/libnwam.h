@@ -58,21 +58,21 @@ extern "C" {
 
 /* nwam flags used for selecting ncu type for walk */
 #define	NWAM_FLAG_NCU_TYPE_LINK		0x00000001ULL << 32
-#define	NWAM_FLAG_NCU_TYPE_IP		0x00000002ULL << 32
+#define	NWAM_FLAG_NCU_TYPE_INTERFACE	0x00000002ULL << 32
 #define	NWAM_FLAG_NCU_TYPE_ALL		(NWAM_FLAG_NCU_TYPE_LINK | \
-					NWAM_FLAG_NCU_TYPE_IP)
+					NWAM_FLAG_NCU_TYPE_INTERFACE)
 
 /* nwam flags used for selecting ncu class for walk */
-#define	NWAM_FLAG_NCU_CLASS_PHYS	0x00000100ULL << 32
-#define	NWAM_FLAG_NCU_CLASS_IPTUN	0x00000200ULL << 32
-#define	NWAM_FLAG_NCU_CLASS_IP		0x00010000ULL << 32
-#define	NWAM_FLAG_NCU_CLASS_ALL_LINK	(NWAM_FLAG_NCU_CLASS_PHYS | \
-					NWAM_FLAG_NCU_CLASS_IPTUN)
-#define	NWAM_FLAG_NCU_CLASS_ALL_IP	NWAM_FLAG_NCU_CLASS_IP
-#define	NWAM_FLAG_NCU_CLASS_ALL		(NWAM_FLAG_NCU_CLASS_ALL_IP | \
+#define	NWAM_FLAG_NCU_CLASS_PHYS		0x00000100ULL << 32
+#define	NWAM_FLAG_NCU_CLASS_IPTUN		0x00000200ULL << 32
+#define	NWAM_FLAG_NCU_CLASS_IP			0x00010000ULL << 32
+#define	NWAM_FLAG_NCU_CLASS_ALL_LINK		(NWAM_FLAG_NCU_CLASS_PHYS | \
+						NWAM_FLAG_NCU_CLASS_IPTUN)
+#define	NWAM_FLAG_NCU_CLASS_ALL_INTERFACE	NWAM_FLAG_NCU_CLASS_IP
+#define	NWAM_FLAG_NCU_CLASS_ALL		(NWAM_FLAG_NCU_CLASS_ALL_INTERFACE | \
 					NWAM_FLAG_NCU_CLASS_ALL_LINK)
-#define	NWAM_FLAG_NCU_TYPE_CLASS_ALL	(NWAM_FLAG_NCU_CLASS_ALL | \
-					NWAM_FLAG_NCU_TYPE_ALL)
+#define	NWAM_FLAG_NCU_TYPE_CLASS_ALL		(NWAM_FLAG_NCU_CLASS_ALL | \
+						NWAM_FLAG_NCU_TYPE_ALL)
 
 /* flags used for selecting activation for walk */
 #define	NWAM_FLAG_ACTIVATION_MODE_MANUAL		0x000000001ULL << 32
@@ -420,12 +420,12 @@ typedef struct nwam_handle *nwam_ncu_handle_t;
 
 typedef enum {
 	NWAM_NCU_TYPE_LINK,
-	NWAM_NCU_TYPE_IP,
+	NWAM_NCU_TYPE_INTERFACE,
 	NWAM_NCU_TYPE_ANY
 } nwam_ncu_type_t;
 
 #define	NWAM_NCU_TYPE_LINK_STRING	"link"
-#define	NWAM_NCU_TYPE_IP_STRING		"ip"
+#define	NWAM_NCU_TYPE_INTERFACE_STRING	"interface"
 
 typedef enum {
 	NWAM_NCU_CLASS_PHYS,
@@ -937,6 +937,7 @@ typedef struct {
 	char signal_strength[NWAM_MAX_NAME_LEN];
 	uint32_t security_mode; /* a dladm_wlan_secmode_t */
 	uint32_t channel; /* a dladm_wlan_channel_t */
+	uint32_t bsstype; /* a dladm_wlan_bsstype_t */
 } nwam_event_wlan_t;
 
 /*

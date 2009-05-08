@@ -1,3 +1,25 @@
+2009-05-08  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c: 
+	  Handle events for object enable/disable (NCP and NCU).
+	  Add nwamui_daemon_get_ncp_by_name() function.
+	* common/nwamui_ncp.c, common/nwamui_ncp.h:
+	  Remove references to an Active NCU - there is no single item like
+	  this any more for Phase 1.
+	* daemon/nwam-enm-item.c, daemon/nwam-env-item.c,
+	  daemon/nwam-ncu-item.c, daemon/nwam-wifi-item.c,
+	  daemon/status_icon.c:
+	  Remove references to active_ncu
+	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c: 
+	  Change nwamui_wifi_net_bss_type_map() to take a dladm type rather
+	  than a string and then convert the value passed in the
+	  nwam_wlan_info_t structure to get the bsstype.
+	* common/nwamui_ncu.c: 
+	  Set the modified flags using a function, to allow easier tracking
+	  down of issues set_modified_flag()
+	* nwam_core/usr/include/libnwam.h:
+	  Update to latest libnwam.h to get bsstype.
+
 2009-05-07  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_daemon.c:

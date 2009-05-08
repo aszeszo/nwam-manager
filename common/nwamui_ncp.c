@@ -66,7 +66,6 @@ static guint nwamui_ncp_signals[LAST_SIGNAL] = { 0, 0 };
 struct _NwamuiNcpPrivate {
         nwam_ncp_handle_t           nwam_ncp;
         gchar*                      name;
-        NwamuiNcu*                  active_ncu;
         nwamui_ncp_selection_mode_t selection_mode;
         gint                        num_wireless;
 
@@ -169,13 +168,6 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
                                                           GTK_TYPE_LIST_STORE,
                                                           G_PARAM_READABLE));
 
-    g_object_class_install_property (gobject_class,
-                                     PROP_ACTIVE_NCU,
-                                     g_param_spec_object ("active_ncu",
-                                                          _("Active NCU"),
-                                                          _("Active NCU"),
-                                                          NWAMUI_TYPE_NCU,
-                                                          G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_SELECTION_MODE,
@@ -308,48 +300,6 @@ nwamui_ncp_set_property (   GObject         *object,
             }
             break;
 
-
-        case PROP_ACTIVE_NCU: {
-                NwamuiNcu* ncu = NWAMUI_NCU( g_value_dup_object( value ) );
-
-                if ( self->prv->active_ncu != ncu ) {
-                    if ( self->prv->active_ncu != NULL ) {
-
-                        g_signal_emit (self,
-                          nwamui_ncp_signals[S_DEACTIVATE_NCU],
-                          0, /* details */
-                          self->prv->active_ncu);
-
-                        nwamui_ncu_set_active( self->prv->active_ncu, FALSE );
-
-                        g_object_unref( self->prv->active_ncu );
-                    }
-                    if ( (self->prv->active_ncu = ncu) != NULL ) {
-                        gchar* device_name = nwamui_ncu_get_device_name( ncu );
-
-                        nwamui_prof_set_active_interface( nwamui_prof_get_instance(), device_name );
-                        g_free( device_name );
-
-                        nwamui_ncu_set_active( self->prv->active_ncu, TRUE );
-
-                        g_signal_emit (self,
-                          nwamui_ncp_signals[S_ACTIVATE_NCU],
-                          0, /* details */
-                          self->prv->active_ncu);
-                    }
-                    else {
-                        nwamui_prof_set_active_interface( nwamui_prof_get_instance(), "" );
-
-                        self->prv->active_ncu = NULL;
-
-                        g_signal_emit (self,
-                          nwamui_ncp_signals[S_ACTIVATE_NCU],
-                          0, /* details */
-                          self->prv->active_ncu);
-                    }
-                }
-            }
-            break;
         case PROP_SELECTION_MODE: {
                 self->prv->selection_mode = g_value_get_int( value );
             }
@@ -384,10 +334,6 @@ nwamui_ncp_get_property (   GObject         *object,
                     }
                 }
                 g_value_set_boolean( value, active );
-            }
-            break;
-        case PROP_ACTIVE_NCU: {
-                g_value_set_object( value, self->prv->active_ncu );
             }
             break;
         case PROP_NCU_LIST: {
@@ -681,49 +627,6 @@ nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer 
     g_return_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL); 
     
     gtk_tree_model_foreach( GTK_TREE_MODEL(self->prv->ncu_tree_store), func, user_data );
-}
-
-/**
- * nwamui_ncp_get_active_ncu
- * 
- * Returns a pointer to the active NCU - for Phase 0.5 there can be only one.
- *
- **/
-extern  NwamuiNcu*
-nwamui_ncp_get_active_ncu( NwamuiNcp *self )
-{
-    NwamuiNcu   *ncu = NULL;
-    
-    g_return_val_if_fail (NWAMUI_IS_NCP (self), ncu);
-
-    g_object_get (G_OBJECT (self),
-                  "active_ncu", &ncu,
-                  NULL);
-    
-    g_debug("nwamui_ncp_get_active_ncu: self->prv->active_ncu =  0x%08X", self->prv->active_ncu );
-    g_debug("nwamui_ncp_get_active_ncu: returning 0x%08X", ncu );
-    return( ncu );
-}
-
-/**
- * nwamui_ncp_set_active_ncu
- * 
- * Sets the active NCU - for Phase 0.5 there can be only one.
- *
- **/
-extern  void
-nwamui_ncp_set_active_ncu( NwamuiNcp *self, NwamuiNcu* ncu )
-{
-    g_return_if_fail (NWAMUI_IS_NCP(self));
-
-    if (ncu != self->prv->active_ncu) {
-
-        g_assert ( ncu == NULL || NWAMUI_IS_NCU( ncu ));
-
-        g_object_set (G_OBJECT (self),
-                      "active_ncu", ncu,
-                      NULL);
-    }
 }
 
 /**

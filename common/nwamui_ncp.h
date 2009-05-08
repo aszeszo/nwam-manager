@@ -91,10 +91,6 @@ extern	GtkListStore*           nwamui_ncp_get_ncu_list_store ( NwamuiNcp *self )
 
 extern	GtkTreeStore*           nwamui_ncp_get_ncu_tree_store ( NwamuiNcp *self );
 
-extern  NwamuiNcu*              nwamui_ncp_get_active_ncu( NwamuiNcp *self );
-
-extern  void                    nwamui_ncp_set_active_ncu( NwamuiNcp *self, NwamuiNcu* ncu );
-
 extern  NwamuiNcu*              nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name );
 
 extern  void                    nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data );
