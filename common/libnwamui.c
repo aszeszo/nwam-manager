@@ -43,7 +43,14 @@
 #include <inetcfg.h>
 #include <libscf.h>
 
+#define USE_GLADE 1
+
+#ifdef USE_GLADE
 #define NWAM_MANAGER_PROPERTIES_GLADE_FILE  "nwam-manager-properties.glade"
+#else /* Use GtkBuilder */
+#define NWAM_MANAGER_PROPERTIES_UI_FILE  "nwam-manager-properties.ui"
+#endif
+
 
 #define NWAM_ENVIRONMENT_RENAME     "nwam_environment_rename"
 #define RENAME_ENVIRONMENT_ENTRY    "rename_environment_entry"
@@ -69,6 +76,7 @@ struct nwamui_wifi_essid {
 typedef struct nwamui_wifi_essid nwamui_wifi_essid_t;
 
 
+#ifdef USE_GLADE
 /* Load the Glade file and maintain a single reference */
 static GladeXML *glade_xml_tree = NULL;
 
@@ -157,6 +165,109 @@ nwamui_util_glade_get_widget( const gchar* widget_name )
     return widget;
 }
         
+#else /* Use GtkBuilder */
+
+/* Load the GtkBuilder file and maintain a single reference */
+static GtkBuilder *gtk_builder = NULL;
+
+static GtkBuilder* 
+get_gtk_builder( void ) {
+    static const gchar *build_datadir = NWAM_MANAGER_DATADIR;
+
+    if ( gtk_builder == NULL ) {
+        GtkBuilder  *new_builder = gtk_builder_new();
+        const gchar * const *sys_data_dirs;
+        const gchar *ui_file;
+        gint         i;
+
+        sys_data_dirs = g_get_system_data_dirs ();
+        if ( g_file_test(build_datadir, G_FILE_TEST_EXISTS|G_FILE_TEST_IS_DIR) ) {
+            gchar      *ui_file;
+
+            /* First try with the package name in the path */
+            ui_file = g_build_filename (build_datadir, PACKAGE, NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
+            g_debug("Attempting to load : %s", ui_file);
+            if ( (gtk_builder_add_from_file(new_builder, ui_file, NULL )) != 0 ) {
+                g_debug("Found gtk builder file at : %s", ui_file );
+                gtk_builder = new_builder;
+            }
+            g_free (ui_file);
+            if ( gtk_builder == NULL ) {
+                /* Now try without it */
+                ui_file = g_build_filename (build_datadir, NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
+                g_debug("Attempting to load : %s", ui_file);
+                if ( (gtk_builder_add_from_file(new_builder, ui_file, NULL )) != 0 ) {
+                    g_debug("Found gtk builder file at : %s", ui_file );
+                    gtk_builder = new_builder;
+                }
+                g_free (ui_file);
+            }
+        }
+        if (gtk_builder == NULL ) {
+            for (i = 0; sys_data_dirs[i] != NULL; i++) {
+                gchar *ui_file;
+                /* First try with the package name in the path */
+                ui_file = g_build_filename (sys_data_dirs[i], PACKAGE, NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
+                g_debug("Attempting to load : %s", ui_file);
+                if ( (gtk_builder_add_from_file(new_builder, ui_file, NULL )) != 0 ) {
+                    g_debug("Found gtk builder file at : %s", ui_file );
+                    gtk_builder = new_builder;
+                    g_free (ui_file);
+                    break;
+                }
+                g_free (ui_file);
+                /* Now try without it */
+                ui_file = g_build_filename (sys_data_dirs[i], NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
+                g_debug("Attempting to load : %s", ui_file);
+                if ( (gtk_builder_add_from_file(new_builder, ui_file, NULL )) != 0 ) {
+                    g_debug("Found gtk builder file at : %s", ui_file );
+                    gtk_builder = new_builder;
+                    g_free (ui_file);
+                    break;
+                }
+            }
+        }
+
+        if ( gtk_builder == NULL ) {
+            g_error("Error locating UI file %s", NWAM_MANAGER_PROPERTIES_UI_FILE );
+            g_object_unref( new_builder );
+        }
+    }
+    return gtk_builder;
+}
+
+/**
+ * nwamui_util_glade_get_widget:
+ * @widget_name: name of the widget to load.
+ * @returns: the widget loaded from the GktBuilder file.
+ *
+ * (The glade name is kept for code compatibility, for now)
+ **/
+extern GtkWidget*
+nwamui_util_glade_get_widget( const gchar* widget_name ) 
+{
+    GtkBuilder* builder;;
+    GtkWidget*  widget;
+
+    g_assert( widget_name != NULL );
+    
+    g_return_val_if_fail( widget_name != NULL, NULL );
+    
+    builder = get_gtk_builder();
+    g_return_val_if_fail( builder != NULL, NULL );
+    
+    widget = GTK_WIDGET(gtk_builder_get_object(builder, widget_name ));
+    
+    if ( widget == NULL )
+        g_error("Failed to get widget by name %s", widget_name );
+    
+    g_assert( widget != NULL );
+    
+    return widget;
+}
+        
+#endif /* USE_GLADE */
+
 /**
  * nwamui_util_wifi_sec_to_string:
  * @wireless_sec: a #nwamui_wifi_security_t.

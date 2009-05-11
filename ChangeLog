@@ -1,3 +1,14 @@
+2009-05-11  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.ui:
+	  Convert glade file to GtkBuilder format.
+	  All Custom widgets were made GtkTreeView.
+	* common/libnwamui.c: j
+	  Add functions to use GtkBuilder instead of glade file.
+	  Currently default is to use Glade, this is based on the #define of
+	  USE_GLADE in this file, the reason being that NwamTreeView doesn't
+	  seem to correctly inherit from GtkTreeView, causing a SEGV.
+
 2009-05-08  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_daemon.c: 
