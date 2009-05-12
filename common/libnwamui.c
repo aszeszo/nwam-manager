@@ -43,9 +43,9 @@
 #include <inetcfg.h>
 #include <libscf.h>
 
-#define USE_GLADE 1
+#define USE_GLADE 0
 
-#ifdef USE_GLADE
+#if USE_GLADE
 #define NWAM_MANAGER_PROPERTIES_GLADE_FILE  "nwam-manager-properties.glade"
 #else /* Use GtkBuilder */
 #define NWAM_MANAGER_PROPERTIES_UI_FILE  "nwam-manager-properties.ui"
@@ -76,7 +76,7 @@ struct nwamui_wifi_essid {
 typedef struct nwamui_wifi_essid nwamui_wifi_essid_t;
 
 
-#ifdef USE_GLADE
+#if USE_GLADE
 /* Load the Glade file and maintain a single reference */
 static GladeXML *glade_xml_tree = NULL;
 
@@ -260,8 +260,6 @@ nwamui_util_glade_get_widget( const gchar* widget_name )
     
     if ( widget == NULL )
         g_error("Failed to get widget by name %s", widget_name );
-    
-    g_assert( widget != NULL );
     
     return widget;
 }
@@ -500,6 +498,8 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
 
         ncu_list = nwamui_ncp_get_ncu_list(ncp);
 
+        g_object_unref(ncp);
+
         while (ncu_list) {
             ncu = NWAMUI_NCU(ncu_list->data);
             ncu_list = g_list_delete_link(ncu_list, ncu_list);
@@ -608,13 +608,16 @@ nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
   nwamui_env_status_t net_status,
   gint size)
 {
-    static GdkPixbuf*   network_status_icons[NWAMUI_ENV_STATUS_LAST][NWAMUI_NCU_TYPE_LAST][2] = {NULL};
+    static GdkPixbuf*   network_status_icons[NWAMUI_ENV_STATUS_LAST][NWAMUI_NCU_TYPE_LAST][4] = {NULL};
     GdkPixbuf* inf_icon = NULL;
     GdkPixbuf* net_status_icon = NULL;
     gchar *stock_id = NULL;
-    gint icon_size = size <= 24 ? 0 : 1;
+    gint icon_size;
 
-    size = (size <= 24 ? 24 : 48);
+    if (size <= 16) {size = 16; icon_size = 0;}
+    else if (size <= 24) {size = 24; icon_size = 1;}
+    else if (size <= 32) {size = 32; icon_size = 2;}
+    else {size = 48; icon_size = 3;}
 
     if (network_status_icons[net_status][ncu_type][icon_size] == NULL) {
         switch(ncu_type) {
@@ -627,7 +630,7 @@ nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
         }
             break;
         case NWAMUI_NCU_TYPE_WIRELESS:
-            inf_icon = nwamui_util_get_wireless_strength_icon(strength, FALSE);
+            inf_icon = nwamui_util_get_wireless_strength_icon_with_size(strength, size);
             break;
         default:
             g_assert_not_reached();
@@ -751,6 +754,75 @@ nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_str
 
         composed_icon = gdk_pixbuf_copy(inf_icon);
         wireless_strength_icon = get_pixbuf(NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT, small);
+        PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
+        g_object_unref(wireless_strength_icon);
+
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT][icon_size]= composed_icon;
+
+        g_object_unref(inf_icon);
+    }
+
+    return( GDK_PIXBUF(g_object_ref( G_OBJECT(enabled_wireless_icons[signal_strength][icon_size]) )) );
+}
+
+extern GdkPixbuf*
+nwamui_util_get_wireless_strength_icon_with_size( nwamui_wifi_signal_strength_t signal_strength, gint size)
+{
+    static GdkPixbuf*   enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_LAST][4];
+    gint icon_size;
+
+    if (size <= 16) {size = 16; icon_size = 0;}
+    else if (size <= 24) {size = 24; icon_size = 1;}
+    else if (size <= 32) {size = 32; icon_size = 2;}
+    else {size = 48; icon_size = 3;}
+
+    if ( enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] == NULL ) {
+        GdkPixbuf* inf_icon = NULL;
+        GdkPixbuf* wireless_strength_icon = NULL;
+        GdkPixbuf* composed_icon = NULL;
+
+        /* Basic interface icon. */
+/*         inf_icon = gdk_pixbuf_new(GDK_COLORSPACE_RGB, */
+/*           TRUE, */
+/*           8, */
+/*           24, */
+/*           24); */
+
+        inf_icon = get_pixbuf_with_size(NWAM_ICON_NETWORK_WIRELESS, size);
+/*         size = (size - 16)/2 + 16; */
+
+        /* Compose icon. */
+        composed_icon = gdk_pixbuf_copy(inf_icon);
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_STRENGTH_NONE, size);
+        PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
+        g_object_unref(wireless_strength_icon);
+
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] = composed_icon;
+          
+        composed_icon = gdk_pixbuf_copy(inf_icon);
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_STRENGTH_POOR, size);
+        PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
+        g_object_unref(wireless_strength_icon);
+
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_WEAK][icon_size] = composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_WEAK][icon_size] = g_object_ref(composed_icon);
+
+        composed_icon = gdk_pixbuf_copy(inf_icon);
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_STRENGTH_FAIR, size);
+        PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
+        g_object_unref(wireless_strength_icon);
+
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD][icon_size] = composed_icon;
+
+        composed_icon = gdk_pixbuf_copy(inf_icon);
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_STRENGTH_GOOD, size);
+        PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
+        g_object_unref(wireless_strength_icon);
+
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_GOOD][icon_size]= composed_icon;
+
+        composed_icon = gdk_pixbuf_copy(inf_icon);
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT, size);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 

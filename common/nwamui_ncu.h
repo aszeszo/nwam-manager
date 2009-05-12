@@ -181,6 +181,8 @@ extern nwamui_cond_priority_group_mode_t
                             nwamui_ncu_get_priority_group_mode ( NwamuiNcu *self );
 
 
+extern nwamui_wifi_signal_strength_t nwamui_ncu_get_signal_strength_from_dladm( NwamuiNcu* self );
+
 extern const gchar*         nwamui_ncu_get_signal_strength_string( NwamuiNcu* self );
 
 extern nwamui_connection_state_t

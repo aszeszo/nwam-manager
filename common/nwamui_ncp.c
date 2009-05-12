@@ -52,7 +52,7 @@ enum {
     PROP_NCU_LIST_STORE,
     PROP_ACTIVE_NCU,
     PROP_SELECTION_MODE,
-    PROP_MANY_WIRELESS
+    PROP_WIRELESS_LINK_NUM
 };
 
 enum {
@@ -67,7 +67,7 @@ struct _NwamuiNcpPrivate {
         nwam_ncp_handle_t           nwam_ncp;
         gchar*                      name;
         nwamui_ncp_selection_mode_t selection_mode;
-        gint                        num_wireless;
+        gint                        wireless_link_num;
 
         GList*                      ncu_list;
         GtkTreeStore*               ncu_tree_store;
@@ -180,12 +180,14 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_MANY_WIRELESS,
-                                     g_param_spec_boolean("many_wireless",
-                                                         _("many_wireless"),
-                                                         _("many_wireless"),
-                                                          FALSE,
-                                                          G_PARAM_READABLE));
+                                     PROP_WIRELESS_LINK_NUM,
+                                     g_param_spec_int("wireless_link_num",
+                                                      _("wireless_link_num"),
+                                                      _("wireless_link_num"),
+                                                      0,
+                                                      G_MAXINT,
+                                                      0,
+                                                      G_PARAM_READABLE));
 
     /* Create some signals */
     nwamui_ncp_signals[S_ACTIVATE_NCU] =   
@@ -225,7 +227,7 @@ nwamui_ncp_init ( NwamuiNcp *self)
     self->prv->ncu_list_store = NULL;
 
     self->prv->selection_mode = NWAMUI_NCP_SELECTION_MODE_AUTOMATIC;
-    self->prv->num_wireless = 0;
+    self->prv->wireless_link_num = 0;
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
@@ -352,8 +354,8 @@ nwamui_ncp_get_property (   GObject         *object,
                 g_value_set_int( value, self->prv->selection_mode );
             }
             break;
-        case PROP_MANY_WIRELESS: {
-                g_value_set_boolean( value, self->prv->num_wireless > 1 );
+        case PROP_WIRELESS_LINK_NUM: {
+                g_value_set_int( value, self->prv->wireless_link_num );
             }
             break;
         default:
@@ -711,8 +713,8 @@ nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu )
             gtk_tree_store_remove(GTK_TREE_STORE(self->prv->ncu_tree_store), &iter);
 
             if ( nwamui_ncu_get_ncu_type( _ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
-                self->prv->num_wireless--;
-                g_object_notify(G_OBJECT(self), "many_wireless" );
+                self->prv->wireless_link_num--;
+                g_object_notify(G_OBJECT(self), "wireless_link_num" );
             }
 
             g_object_unref(_ncu);
@@ -915,9 +917,9 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
         g_signal_connect(self->prv->ncu_tree_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), self );
     }
 
-    if ( self->prv->num_wireless != _num_wireless ) {
-        self->prv->num_wireless = _num_wireless;
-        g_object_notify(G_OBJECT (self), "many_wireless" );
+    if ( self->prv->wireless_link_num != _num_wireless ) {
+        self->prv->wireless_link_num = _num_wireless;
+        g_object_notify(G_OBJECT (self), "wireless_link_num" );
     }
 
 #if 0
@@ -925,7 +927,7 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
     libnwam_llp_t      *llp, *origllp;
     uint_t              nllp, orignllp;
     nwamui_ncp_selection_mode_t  selection_mode = NWAMUI_NCP_SELECTION_MODE_AUTOMATIC;
-    gint                num_wireless = 0; /* Count wireless i/fs */
+    gint                wireless_link_num = 0; /* Count wireless i/fs */
 
     if ( self->prv->ncu_tree_store  == NULL ) {
         self->prv->ncu_tree_store = gtk_tree_store_new ( 1, NWAMUI_TYPE_NCU);
@@ -959,7 +961,7 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
         case IF_WIRELESS:
             tstr = "wireless";
             ncu_type = NWAMUI_NCU_TYPE_WIRELESS;
-            num_wireless++;
+            wireless_link_num++;
             break;
         case IF_TUN:
             tstr = "tun";
@@ -1060,9 +1062,9 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
                       NULL);
     }
 
-    if ( self->prv->num_wireless != num_wireless ) {
-        self->prv->num_wireless = num_wireless;
-        g_object_notify(G_OBJECT (self), "many_wireless" );
+    if ( self->prv->wireless_link_num != wireless_link_num ) {
+        self->prv->wireless_link_num = wireless_link_num;
+        g_object_notify(G_OBJECT (self), "wireless_link_num" );
     }
 #endif
 }
@@ -1123,15 +1125,15 @@ nwamui_ncp_get_selection_mode( NwamuiNcp* self )
     return( mode );
 }
 
-extern gboolean
-nwamui_ncp_has_many_wireless( NwamuiNcp* self )
+extern gint
+nwamui_ncp_get_wireless_link_num( NwamuiNcp* self )
 {
     gboolean many_wireless = FALSE;
 
     g_return_val_if_fail( NWAMUI_IS_NCP(self), many_wireless );
 
     g_object_get (G_OBJECT (self),
-                  "many_wireless", &many_wireless,
+                  "wireless_link_num", &many_wireless,
                   NULL);
 
     return( many_wireless );

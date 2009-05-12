@@ -222,8 +222,9 @@ extern GdkPixbuf*               nwamui_util_get_network_type_icon( nwamui_ncu_ty
 
 extern GdkPixbuf*               nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status, gint force_size );
 
-extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength,
-                                                                        gboolean small);
+extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength, gboolean small);
+
+extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon_with_size( nwamui_wifi_signal_strength_t signal_strength, gint size);
 
 extern GdkPixbuf*               nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type,
                                                                         gboolean small);

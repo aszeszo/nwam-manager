@@ -107,7 +107,7 @@ extern void                     nwamui_ncp_set_automatic_ncu_selection( NwamuiNc
 
 extern nwamui_ncp_selection_mode_t  nwamui_ncp_get_selection_mode( NwamuiNcp* self );
 
-extern gboolean                  nwamui_ncp_has_many_wireless( NwamuiNcp* self );
+extern gint                     nwamui_ncp_get_wireless_link_num( NwamuiNcp* self );
 
 G_END_DECLS
 

@@ -36,7 +36,7 @@
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
 static GObject* nwam_menu_item_get_proxy(NwamObjProxyIFace *iface);
-static void nwam_menu_item_refresh(NwamObjProxyIFace *iface);
+static void nwam_menu_item_refresh(NwamObjProxyIFace *iface, gpointer user_data);
 
 static void nwam_menu_item_set_property (GObject         *object,
   guint            prop_id,
@@ -71,7 +71,7 @@ static void nwam_menu_item_parent_set(GtkWidget *widget,
 
 static void default_connect_object(NwamMenuItem *self, GObject *object);
 static void default_disconnect_object(NwamMenuItem *self, GObject *object);
-static void default_sync_object(NwamMenuItem *self, GObject *object);
+static void default_sync_object(NwamMenuItem *self, GObject *object, gpointer user_data);
 static gint default_compare(NwamMenuItem *self, NwamMenuItem *other);
 
 enum {
@@ -79,6 +79,7 @@ enum {
 	PROP_OBJECT,
 	PROP_LWIDGET,
 	PROP_RWIDGET,
+	PROP_DRAW_INDICATOR,
 };
 
 typedef struct _NwamMenuItemPrivate NwamMenuItemPrivate;
@@ -87,7 +88,8 @@ typedef struct _NwamMenuItemPrivate NwamMenuItemPrivate;
 struct _NwamMenuItemPrivate {
 	GtkWidget *w[MAX_WIDGET_NUM];
     GObject *object;
-    gboolean has_toolge_space;
+    gboolean draw_indicator;
+    gboolean has_toggle_space;
 };
 
 G_DEFINE_TYPE_EXTENDED(NwamMenuItem, nwam_menu_item, GTK_TYPE_CHECK_MENU_ITEM,
@@ -164,6 +166,14 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
         GTK_TYPE_WIDGET,
         G_PARAM_READWRITE));
 
+	g_object_class_install_property (gobject_class,
+      PROP_DRAW_INDICATOR,
+      g_param_spec_boolean ("draw-indicator",
+        N_("Draw indicator"),
+        N_("Draw indicator"),
+        TRUE,
+        G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
+
 }
 
 static void
@@ -207,10 +217,10 @@ nwam_menu_item_set_property (GObject         *object,
                 /* Handle connect object proxy */
                 NWAM_MENU_ITEM_GET_CLASS(self)->connect_object(self, prv->object);
                 /* Initializing */
-                NWAM_MENU_ITEM_GET_CLASS(self)->sync_object(self, prv->object);
+                NWAM_MENU_ITEM_GET_CLASS(self)->sync_object(self, prv->object, NULL);
             } else {
                 /* Todo reset all. */
-                default_sync_object(self, NULL);
+                default_sync_object(self, NULL, NULL);
             }
         }
     }
@@ -222,6 +232,9 @@ nwam_menu_item_set_property (GObject         *object,
 	case PROP_RWIDGET:
         nwam_menu_item_set_widget (self, 1,
           GTK_WIDGET (g_value_get_object (value)));
+        break;
+	case PROP_DRAW_INDICATOR:
+        prv->draw_indicator = g_value_get_boolean(value);
         break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -249,6 +262,9 @@ nwam_menu_item_get_property (GObject         *object,
 	case PROP_RWIDGET:
 		g_value_set_object (value, (GObject*) prv->w[1]);
 		break;
+	case PROP_DRAW_INDICATOR:
+        g_value_set_boolean(value, prv->draw_indicator);
+        break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -296,9 +312,9 @@ static void nwam_menu_item_parent_set(GtkWidget *widget,
 
     if (GTK_IS_MENU(widget->parent) ||
       GTK_IS_MENU_BAR(widget->parent))
-        prv->has_toolge_space = TRUE;
+        prv->has_toggle_space = TRUE;
     else
-        prv->has_toolge_space = FALSE;
+        prv->has_toggle_space = FALSE;
 }
 
 static void
@@ -312,14 +328,8 @@ default_disconnect_object(NwamMenuItem *self, GObject *object)
 }
 
 static void
-default_sync_object(NwamMenuItem *self, GObject *object)
+default_sync_object(NwamMenuItem *self, GObject *object, gpointer user_data)
 {
-/*     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self); */
-/*     if (object == NULL) { */
-/*         g_object_set(self, "label", "(NULL)", NULL); */
-/*         nwam_menu_item_set_widget (self, 0, NULL); */
-/*         nwam_menu_item_set_widget (self, 1, NULL); */
-/*     } */
 }
 
 static gint
@@ -336,11 +346,11 @@ nwam_menu_item_get_proxy(NwamObjProxyIFace *iface)
 }
 
 static void
-nwam_menu_item_refresh(NwamObjProxyIFace *iface)
+nwam_menu_item_refresh(NwamObjProxyIFace *iface, gpointer user_data)
 {
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(iface);
 
-    NWAM_MENU_ITEM_GET_CLASS(iface)->sync_object(NWAM_MENU_ITEM(iface), prv->object);
+    NWAM_MENU_ITEM_GET_CLASS(iface)->sync_object(NWAM_MENU_ITEM(iface), prv->object, user_data);
 }
 
 /**
@@ -467,7 +477,15 @@ nwam_menu_item_toggle_size_request (GtkMenuItem *menu_item,
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     GtkPackDirection pack_dir; 
 
-	GTK_MENU_ITEM_CLASS(nwam_menu_item_parent_class)->toggle_size_request(menu_item, requisition);
+    GTK_MENU_ITEM_CLASS(nwam_menu_item_parent_class)->toggle_size_request(menu_item, requisition);
+
+    if (!prv->draw_indicator) {
+        guint indicator_size;
+        gtk_widget_style_get (menu_item, 
+          "indicator-size", &indicator_size,
+          NULL);
+        *requisition -= indicator_size;
+    }
 
     if (GTK_IS_MENU_BAR (GTK_WIDGET(self)->parent)) 
         pack_dir = gtk_menu_bar_get_child_pack_direction (GTK_MENU_BAR (GTK_WIDGET(self)->parent)); 
@@ -519,7 +537,7 @@ nwam_menu_item_size_request (GtkWidget      *widget,
     else 
         pack_dir = GTK_PACK_DIRECTION_LTR; 
  
-    i = prv->has_toolge_space ? 1 : 0;
+    i = prv->has_toggle_space ? 1 : 0;
 
     for (; i < MAX_WIDGET_NUM; i++) {
         if (prv->w[i])
@@ -565,7 +583,7 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
       NULL);
  
     /* Hack for tooltip widget, give a space for the first icon. */
-    if (!prv->has_toolge_space) {
+    if (!prv->has_toggle_space) {
         if (prv->w[0]) { 
             gtk_widget_size_request(prv->w[0], &child_requisition);
 
@@ -597,7 +615,7 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
         gtk_widget_get_child_requisition (prv->w[i], &child_requisition); 
  
         /* Hack for tooltip widget, give a space for the first icon. */
-        if (!prv->has_toolge_space) {
+        if (!prv->has_toggle_space || !prv->draw_indicator) {
             indicator_size = 0;
             n_hpaddings = 0;
         }
@@ -693,12 +711,13 @@ nwam_menu_item_draw_indicator(GtkCheckMenuItem *check_menu_item,
   GdkRectangle *area)
 {
     NwamMenuItem *self = NWAM_MENU_ITEM(check_menu_item);
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     GtkWidget *widget; 
     GtkStateType state_type; 
     GtkShadowType shadow_type; 
     gint x, y; 
  
-    if (GTK_WIDGET_DRAWABLE (self))
+    if (GTK_WIDGET_DRAWABLE (self) && prv->draw_indicator)
     {
         guint offset; 
         guint toggle_size; 

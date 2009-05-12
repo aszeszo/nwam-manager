@@ -53,7 +53,7 @@ struct _NwamMenuItemClass
     GtkCheckMenuItemClass parent_class;
     void (*connect_object)(NwamMenuItem *self, GObject *object);
     void (*disconnect_object)(NwamMenuItem *self, GObject *object);
-    void (*sync_object)(NwamMenuItem *self, GObject *object);
+    void (*sync_object)(NwamMenuItem *self, GObject *object, gpointer user_data);
     gint (*compare)(NwamMenuItem *self, NwamMenuItem *other);
 };
 

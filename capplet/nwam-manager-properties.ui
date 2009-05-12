@@ -318,7 +318,7 @@
                         <property name="vscrollbar_policy">never</property>
                         <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkTreeView" id="connection_status_table">
+                          <object class="NwamTreeView" id="connection_status_table">
                             <property name="visible">True</property>
                           </object>
                         </child>
@@ -773,7 +773,7 @@ Choose which connections are enabled in this profile:</property>
                             <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">in</property>
                             <child>
-                              <object class="GtkTreeView" id="network_profile_table">
+                              <object class="NwamTreeView" id="network_profile_table">
                                 <property name="visible">True</property>
                               </object>
                             </child>
@@ -4421,7 +4421,7 @@ Disable these services when this location is active:</property>
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">in</property>
                         <child>
-                          <object class="GtkTreeView" id="vpn_apps_list">
+                          <object class="NwamTreeView" id="vpn_apps_list">
                             <property name="visible">True</property>
                           </object>
                         </child>
@@ -5364,7 +5364,7 @@ Enter username and password for http://$HOST:$PORT
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">in</property>
                 <child>
-                  <object class="GtkTreeView" id="location_tree">
+                  <object class="NwamTreeView" id="location_tree">
                     <property name="visible">True</property>
                   </object>
                 </child>

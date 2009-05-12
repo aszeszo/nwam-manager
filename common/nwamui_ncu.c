@@ -2941,33 +2941,28 @@ set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name,
     return( retval );
 }
 
-/*
- * NCU Status Messages - read directly from system, not from NWAM 
- */
-
-/* Get signal percent from system */
-extern const gchar*
-nwamui_ncu_get_signal_strength_string( NwamuiNcu* self )
+extern nwamui_wifi_signal_strength_t
+nwamui_ncu_get_signal_strength_from_dladm( NwamuiNcu* self )
 {
     dladm_handle_t          handle;
     datalink_id_t           linkid;
     dladm_wlan_linkattr_t	attr;
-    const gchar*            signal_str = _("None");
+    nwamui_wifi_signal_strength_t signal = NWAMUI_WIFI_STRENGTH_LAST;
     
-    g_return_val_if_fail( NWAMUI_IS_NCU( self ), signal_str );
+    g_return_val_if_fail( NWAMUI_IS_NCU( self ), signal );
 
     if ( self->prv->ncu_type != NWAMUI_NCU_TYPE_WIRELESS ) {
-        return( signal_str );
+        return( signal );
     }
 
     if ( dladm_open( &handle ) != DLADM_STATUS_OK ) {
         g_warning("Error creating dladm handle" );
-        return( signal_str );
+        return( signal );
     }
     if ( dladm_name2info( handle, self->prv->device_name, &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
         dladm_close( handle );
         g_warning("Unable to map device to linkid");
-        return( signal_str );
+        return( signal );
     }
     else {
         dladm_status_t status = dladm_wlan_get_linkattr(handle, linkid, &attr);
@@ -2979,19 +2974,19 @@ nwamui_ncu_get_signal_strength_string( NwamuiNcu* self )
                  attr.la_wlan_attr.wa_valid & DLADM_WLAN_ATTR_STRENGTH ) {
                 switch ( attr.la_wlan_attr.wa_strength ) {
                     case DLADM_WLAN_STRENGTH_VERY_WEAK:
-                        signal_str = nwamui_wifi_net_convert_strength_to_string(NWAMUI_WIFI_STRENGTH_VERY_WEAK);
+                        signal = NWAMUI_WIFI_STRENGTH_VERY_WEAK;
                         break;
                     case DLADM_WLAN_STRENGTH_WEAK:
-                        signal_str = nwamui_wifi_net_convert_strength_to_string(NWAMUI_WIFI_STRENGTH_WEAK);
+                        signal = NWAMUI_WIFI_STRENGTH_WEAK;
                         break;
                     case DLADM_WLAN_STRENGTH_GOOD:
-                        signal_str = nwamui_wifi_net_convert_strength_to_string(NWAMUI_WIFI_STRENGTH_GOOD);
+                        signal = NWAMUI_WIFI_STRENGTH_GOOD;
                         break;
                     case DLADM_WLAN_STRENGTH_VERY_GOOD:
-                        signal_str = nwamui_wifi_net_convert_strength_to_string(NWAMUI_WIFI_STRENGTH_VERY_GOOD);
+                        signal = NWAMUI_WIFI_STRENGTH_VERY_GOOD;
                         break;
                     case DLADM_WLAN_STRENGTH_EXCELLENT:
-                        signal_str = nwamui_wifi_net_convert_strength_to_string(NWAMUI_WIFI_STRENGTH_EXCELLENT);
+                        signal = NWAMUI_WIFI_STRENGTH_EXCELLENT;
                         break;
                     default:
                         break;
@@ -3002,6 +2997,23 @@ nwamui_ncu_get_signal_strength_string( NwamuiNcu* self )
 
     dladm_close( handle );
     
+    return( signal );
+}
+
+/*
+ * NCU Status Messages - read directly from system, not from NWAM 
+ */
+
+/* Get signal percent from system */
+extern const gchar*
+nwamui_ncu_get_signal_strength_string( NwamuiNcu* self )
+{
+    const gchar*            signal_str = _("None");
+    
+    g_return_val_if_fail( NWAMUI_IS_NCU( self ), signal_str );
+
+    signal_str = nwamui_wifi_net_convert_strength_to_string(nwamui_ncu_get_signal_strength_from_dladm(self));
+
     return( signal_str );
 }
 

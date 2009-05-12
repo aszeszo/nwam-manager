@@ -54,7 +54,7 @@ typedef struct _NwamStatusIconPrivate NwamStatusIconPrivate;
 
 #define	NONCU	"No network interfaces detected"
 
-static glong                    update_wifi_timer_interval = 500;
+static glong                    update_wifi_timer_interval = 5*1000;
 
 enum {
 	SECTION_GLOBAL = 0,         /* Not really used */
@@ -247,6 +247,7 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
 
     switch( status) {
     case NWAMUI_DAEMON_STATUS_ACTIVE: {
+        nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING);
         gtk_status_icon_set_visible(GTK_STATUS_ICON(self), TRUE);
         prv->enable_pop_up_menu = TRUE;
 
@@ -400,9 +401,6 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
                 nwam_notification_show_message (_("Automatic Network Configuration Daemon"), 
                                                  (gchar *)data, NULL, NOTIFY_EXPIRES_DEFAULT);
             }
-
-            nwam_menu_stop_update_wifi_timer(self);
-            nwam_menu_start_update_wifi_timer(self);
         }
         break;
     case NWAMUI_DAEMON_INFO_WLAN_CONNECT_FAILED: {
@@ -451,7 +449,7 @@ daemon_wifi_key_needed (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer user
           (GCallback)status_icon_wifi_key_needed, G_OBJECT(wifi) );
 
         nwam_notification_show_message_with_action(summary, body,
-          NWAM_ICON_NETWORK_WIRELESS,
+          NULL,
           NULL,	/* action */
           NULL,	/* label */
           notifyaction_wifi_key_need,
@@ -560,7 +558,7 @@ daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
 
         body = g_string_free(gstr, FALSE);
 
-        nwam_notification_show_message (summary, body, NWAM_ICON_NETWORK_WIRELESS, NOTIFY_EXPIRES_DEFAULT);
+        nwam_notification_show_message (summary, body, NULL, NOTIFY_EXPIRES_DEFAULT);
         if ( wifi ) {
             g_object_unref(wifi);
         }
@@ -751,6 +749,8 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
     gchar *summary, *body;
 
     if (prv->active_ncp) {
+        nwam_menu_stop_update_wifi_timer(self);
+
         disconnect_nwam_object_signals(G_OBJECT(self), G_OBJECT(prv->active_ncp));
         g_object_unref(prv->active_ncp);
     }
@@ -773,6 +773,8 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
         nwam_menu_recreate_ncu_menuitems(self);
 
         nwam_tooltip_widget_update_ncp(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->active_ncp));
+
+        nwam_menu_start_update_wifi_timer(self);
     } else {
         /* Update related menus here. */
         /* Disable wireless interface related menu items */
@@ -1174,7 +1176,7 @@ ncp_deactivate_ncu (NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer user_data)
                       (GCallback)status_icon_wifi_key_needed, G_OBJECT(wifi) );
 
                     nwam_notification_show_message_with_action(summary, body,
-                      NWAM_ICON_NETWORK_WIRELESS,
+                      NULL,
                       NULL,	/* action */
                       NULL,	/* label */
                       notifyaction_wifi_key_need,
@@ -1266,12 +1268,37 @@ update_wifi_timer_func(gpointer user_data)
 {
 	NwamStatusIcon *self = NWAM_STATUS_ICON (user_data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    GList *ncu_list;
+    NwamuiNcu *ncu;
+    NwamuiWifiNet *wifi_net;
 
-    /* Update wifi */
-    if (!GTK_WIDGET_VISIBLE(prv->menu)) {
-        nwam_menu_section_foreach(NWAM_MENU(prv->menu), SECTION_WIFI,
-          (GFunc)nwam_obj_proxy_refresh, NULL);
-        nwam_menu_section_sort(NWAM_MENU(prv->menu), SECTION_WIFI);
+    /* TODO, it is required only the ncp has at least one active wireless link. */
+    if (nwamui_ncp_get_wireless_link_num(prv->active_ncp) > 0) {
+        ncu_list = nwamui_ncp_get_ncu_list(prv->active_ncp);
+
+        while (ncu_list) {
+            ncu = NWAMUI_NCU(ncu_list->data);
+            ncu_list = g_list_delete_link(ncu_list, ncu_list);
+
+            switch(nwamui_ncu_get_ncu_type(ncu)) {
+            case NWAMUI_NCU_TYPE_WIRED:
+            case NWAMUI_NCU_TYPE_TUNNEL:
+                break;
+            case NWAMUI_NCU_TYPE_WIRELESS:
+                /* Trigger all related ui widgets. */
+                if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
+                    nwamui_wifi_signal_strength_t signal_strength;
+                    signal_strength = nwamui_ncu_get_signal_strength_from_dladm(ncu);
+                    wifi_net = nwamui_ncu_get_wifi_info(ncu);
+                    nwamui_wifi_net_set_signal_strength(wifi_net, signal_strength);
+                }
+                break;
+            default:
+                g_assert_not_reached();
+                break;
+            }
+        }
+        nwam_status_icon_set_status(self, prv->current_status);
     }
 
     return TRUE;
@@ -1355,6 +1382,8 @@ static void
 nwam_status_icon_finalize (NwamStatusIcon *self)
 {
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+
+    nwam_menu_stop_update_wifi_timer(self);
 
     nwam_notification_cleanup();
 

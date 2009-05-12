@@ -67,7 +67,7 @@ static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 static gint menu_ncu_item_compare(NwamMenuItem *self, NwamMenuItem *other);
 static void connect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu);
 static void disconnect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu);
-static void sync_ncu(NwamNcuItem *self, NwamuiNcu *ncu);
+static void sync_ncu(NwamNcuItem *self, NwamuiNcu *ncu, gpointer user_data);
 static void on_nwam_ncu_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -205,7 +205,7 @@ disconnect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu)
 }
 
 static void
-sync_ncu(NwamNcuItem *self, NwamuiNcu *ncu)
+sync_ncu(NwamNcuItem *self, NwamuiNcu *ncu, gpointer user_data)
 {
     NwamNcuItemPrivate *prv = GET_PRIVATE(self);
 

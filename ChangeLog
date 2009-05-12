@@ -1,3 +1,45 @@
+2009-05-12  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam-manager-properties.ui: User NwamTreeView for some widgets
+	* common/libnwamui.c (nwamui_util_glade_get_widget),
+	(nwamui_util_get_env_status_icon),
+	(nwamui_util_get_network_status_icon),
+	(nwamui_util_get_wireless_strength_icon),
+	(nwamui_util_get_wireless_strength_icon_with_size):
+	* common/libnwamui.h:
+	Update macros. Add new function to cache common icon size like 16,32.
+	* common/nwamui_ncp.c (nwamui_ncp_class_init), (nwamui_ncp_init),
+	(nwamui_ncp_get_property), (nwamui_ncp_remove_ncu),
+	(nwamui_ncp_populate_ncu_list), (nwamui_ncp_get_wireless_link_num):
+	* common/nwamui_ncp.h:
+	Change many_wireless to wireless_link_num.
+	* common/nwamui_ncu.c (nwamui_ncu_get_signal_strength_from_dladm),
+	(nwamui_ncu_get_signal_strength_string):
+	* common/nwamui_ncu.h:
+	Update to get signal from dladm.
+	* daemon/nwam-menuitem.c (nwam_menu_item_class_init),
+	(nwam_menu_item_set_property), (nwam_menu_item_get_property),
+	(nwam_menu_item_parent_set), (default_sync_object),
+	(nwam_menu_item_refresh), (nwam_menu_item_toggle_size_request),
+	(nwam_menu_item_size_request), (nwam_menu_item_size_allocate),
+	(nwam_menu_item_draw_indicator):
+	* daemon/nwam-menuitem.h:
+	Added new property to show indicator. Update refresh function.
+	* daemon/nwam-enm-item.c (nwam_enm_item_new), (sync_enm):
+	Use show-indicator property to fix the wrong icon position on pop menu.
+	* daemon/nwam-env-item.c (sync_env):
+	* daemon/nwam-ncu-item.c (sync_ncu):
+	* daemon/nwam-obj-proxy-iface.c (nwam_obj_proxy_refresh):
+	* daemon/nwam-obj-proxy-iface.h:
+	* daemon/nwam-tooltip-widget.c (sync_object), (nwam_ncu_notify):
+	* daemon/nwam-wifi-item.c (sync_wifi_net), (wifi_net_notify):
+	Update refresh function, allows a user data.
+	* daemon/status_icon.c (daemon_status_changed), (daemon_info),
+	(daemon_wifi_key_needed), (daemon_ncu_up),
+	(daemon_active_ncp_changed), (ncp_deactivate_ncu),
+	(update_wifi_timer_func), (nwam_status_icon_finalize):
+	Enable updating the signal icon of active wireless links.
+
 2009-05-11  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/Makefile.am:

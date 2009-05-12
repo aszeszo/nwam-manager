@@ -87,13 +87,13 @@ nwam_obj_proxy_get_proxy(NwamObjProxyIFace *self)
 }
 
 extern void
-nwam_obj_proxy_refresh(NwamObjProxyIFace *self)
+nwam_obj_proxy_refresh(NwamObjProxyIFace *self, gpointer user_data)
 {
     NwamObjProxyInterface *iface = NWAM_GET_OBJ_PROXY_INTERFACE(self);
 
     g_return_if_fail(self != NULL);
 
-    iface->refresh(self);
+    iface->refresh(self, user_data);
 }
 
 extern void

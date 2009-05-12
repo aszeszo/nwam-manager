@@ -67,7 +67,7 @@ static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 static gint menu_wifi_item_compare(NwamMenuItem *self, NwamMenuItem *other);
 static void connect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi);
 static void disconnect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi);
-static void sync_wifi_net(NwamWifiItem *self, NwamuiWifiNet *wifi_net);
+static void sync_wifi_net(NwamWifiItem *self, NwamuiWifiNet *wifi_net, gpointer user_data);
 
 static void on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data);
 static void wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data);
@@ -288,7 +288,7 @@ disconnect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi)
 }
 
 static void
-sync_wifi_net(NwamWifiItem *self, NwamuiWifiNet *wifi)
+sync_wifi_net(NwamWifiItem *self, NwamuiWifiNet *wifi, gpointer user_data)
 {
     wifi_net_notify(G_OBJECT(wifi), NULL, (gpointer)self);
 }
@@ -307,7 +307,7 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
         NwamuiDaemon* daemon = nwamui_daemon_get_instance();
         NwamuiNcp*    ncp = nwamui_daemon_get_active_ncp( daemon );
 
-        gchar *label = nwamui_wifi_net_get_display_string(wifi, nwamui_ncp_has_many_wireless( ncp ));
+        gchar *label = nwamui_wifi_net_get_display_string(wifi, nwamui_ncp_get_wireless_link_num( ncp ) > 1);
 
         /* If there is any underscores we need to replace them with two since
          * otherwise it's interpreted as a mnemonic

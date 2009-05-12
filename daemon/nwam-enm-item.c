@@ -64,7 +64,7 @@ static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 /* nwamui enm net signals */
 static void connect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm);
 static void disconnect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm);
-static void sync_enm(NwamEnmItem *self, NwamuiEnm *enm);
+static void sync_enm(NwamEnmItem *self, NwamuiEnm *enm, gpointer user_data);
 static void on_nwam_enm_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -117,6 +117,7 @@ nwam_enm_item_new(NwamuiEnm *enm)
 
     item = g_object_new (NWAM_TYPE_ENM_ITEM,
       "proxy-object", enm,
+      "draw-indicator", FALSE,
       NULL);
 
     return item;
@@ -194,7 +195,7 @@ disconnect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm)
 }
 
 static void
-sync_enm(NwamEnmItem *self, NwamuiEnm *enm)
+sync_enm(NwamEnmItem *self, NwamuiEnm *enm, gpointer user_data)
 {
     on_nwam_enm_notify(G_OBJECT(enm), NULL, (gpointer)self);
 }

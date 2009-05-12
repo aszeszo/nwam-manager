@@ -65,7 +65,7 @@ static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 /* nwamui env net signals */
 static void connect_env_signals(NwamEnvItem *self, NwamuiEnv *env);
 static void disconnect_env_signals(NwamEnvItem *self, NwamuiEnv *env);
-static void sync_env(NwamEnvItem *self, NwamuiEnv *env);
+static void sync_env(NwamEnvItem *self, NwamuiEnv *env, gpointer user_data);
 static void on_nwam_env_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -195,7 +195,7 @@ disconnect_env_signals(NwamEnvItem *self, NwamuiEnv *env)
 }
 
 static void
-sync_env(NwamEnvItem *self, NwamuiEnv *env)
+sync_env(NwamEnvItem *self, NwamuiEnv *env, gpointer user_data)
 {
     on_nwam_env_notify(G_OBJECT(env), NULL, (gpointer)self);
 }
