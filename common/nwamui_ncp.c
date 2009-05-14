@@ -1174,7 +1174,8 @@ ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
               &iter);
             gtk_tree_path_free(path);
         }
-        g_object_unref(ncu);
+        if ( ncu )
+            g_object_unref(ncu);
     }
 }
 

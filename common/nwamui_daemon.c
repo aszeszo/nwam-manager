@@ -722,6 +722,9 @@ trigger_scan_if_wireless(  GtkTreeModel *model,
 	
   	gtk_tree_model_get(model, iter, 0, &ncu, -1);
 
+    if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
+        return( FALSE );
+    }
     g_assert( NWAMUI_IS_NCU(ncu) );
     
 	name = nwamui_ncu_get_device_name (ncu);

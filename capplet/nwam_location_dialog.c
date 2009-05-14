@@ -277,8 +277,8 @@ nwam_compose_tree_view (NwamLocationDialog *self)
 
     /* Mode column */
 	col = capplet_column_new(view, NULL);
-	cell = capplet_column_append_cell(col, gtk_cell_renderer_text_new(), FALSE,
-	    nwamui_object_active_mode_text_cell, NULL, NULL);
+	cell = capplet_column_append_cell(col, gtk_cell_renderer_pixbuf_new(), FALSE,
+	    nwamui_object_active_mode_pixbuf_cell, NULL, NULL);
 
     g_object_set_data (G_OBJECT (col), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (LOCVIEW_MODE));
 

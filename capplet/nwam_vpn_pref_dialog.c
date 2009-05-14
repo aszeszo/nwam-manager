@@ -307,8 +307,8 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
     /* Mode column */
 	col = capplet_column_new(view, NULL);
 	renderer = capplet_column_append_cell(col,
-      gtk_cell_renderer_text_new(), FALSE,
-      nwamui_object_active_mode_text_cell, NULL, NULL);
+      gtk_cell_renderer_pixbuf_new(), FALSE,
+      nwamui_object_active_mode_pixbuf_cell, NULL, NULL);
 
 	/* column APP_NAME */
 	col = capplet_column_new(view,

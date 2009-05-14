@@ -1,3 +1,18 @@
+2009-05-14  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/capplet-utils.h, capplet/capplet-utils.c: 
+	  Render pixbuf for activation_mode, not text string.
+	* capplet/nwam_location_dialog.c: 
+	  Render pixmap for activation mode.
+	* capplet/nwam_vpn_pref_dialog.c: 
+	  Render pixmap for activation mode.
+	* common/nwamui_daemon.c, common/nwamui_ncp.c: 
+	  Handle NULL or non-NCU objects.
+	* capplet/nwam_net_conf_panel.c: 
+	  Fix several casting warnings.
+	  Re-arrange view of NCUs to match UI Spec. Still need to implement
+	  the events, etc.
+
 2009-05-12  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam-manager-properties.ui: User NwamTreeView for some widgets

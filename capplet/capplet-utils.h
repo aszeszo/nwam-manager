@@ -108,10 +108,14 @@ void nwamui_object_name_cell_edited ( GtkCellRendererText *cell,
     const gchar         *new_text,
     gpointer             data);
 
-void nwamui_object_active_mode_text_cell (GtkTreeViewColumn *col,
+void nwamui_object_active_mode_pixbuf_cell (GtkTreeViewColumn *col,
     GtkCellRenderer   *renderer,
     GtkTreeModel      *model,
     GtkTreeIter       *iter,
     gpointer           data);
+
+void capplet_tree_store_move_object(GtkTreeModel *model,
+    GtkTreeIter *target,
+    GtkTreeIter *source);
 
 #endif /* _CAPPLET_UTILS_H */

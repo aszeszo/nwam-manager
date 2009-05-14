@@ -294,7 +294,7 @@ nwamui_object_name_cell_edited ( GtkCellRendererText *cell,
 }
 
 void
-nwamui_object_active_mode_text_cell (GtkTreeViewColumn *col,
+nwamui_object_active_mode_pixbuf_cell (GtkTreeViewColumn *col,
   GtkCellRenderer   *renderer,
   GtkTreeModel      *model,
   GtkTreeIter       *iter,
@@ -305,30 +305,11 @@ nwamui_object_active_mode_text_cell (GtkTreeViewColumn *col,
     
     gtk_tree_model_get(model, iter, 0, &object, -1);
     
-    switch (nwamui_object_get_activation_mode(object)) {
-    case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-            object_markup= g_strdup_printf(_("<b>%s</b>"), "M");
-            break;
-    case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
-            object_markup= g_strdup_printf(_("<b>%s</b>"), "S");
-            break;
-    case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
-            object_markup= g_strdup_printf(_("<b>%s</b>"), "P");
-            break;
-    case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
-            object_markup= g_strdup_printf(_("<b>%s</b>"), "C");
-            break;
-    case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
-            object_markup= g_strdup_printf(_("<b>%s</b>"), "A");
-            break;
-    default:
-            g_assert_not_reached();
-            break;
-    }
-    g_object_set(G_OBJECT(renderer),
-	"markup", object_markup,
-	NULL);
-    g_free( object_markup );
+    g_object_set(renderer,
+      "icon-name", nwamui_util_get_active_mode_icon(object),
+      NULL);
+
+    return;
 }
 
 GtkTreeViewColumn *
@@ -456,7 +437,7 @@ capplet_tree_store_merge_children(GtkTreeStore *model,
 
 	/* If source doesn't have children, then we move it */
 	if (gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &s_iter, source)) {
-		do {
+		/* do { */
 			/* Take care if there are customer monitoring
 			 * row-add/delete signals */
 			gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, target, NULL);
@@ -466,7 +447,7 @@ capplet_tree_store_merge_children(GtkTreeStore *model,
 			if (func)
 				func(GTK_TREE_MODEL(model), NULL, &iter, user_data);
 
-		} while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter));
+		/* } while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter)); */
 	} else {
 		gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, target, NULL);
 		capplet_tree_store_move_object(GTK_TREE_MODEL(model), &iter, source);
