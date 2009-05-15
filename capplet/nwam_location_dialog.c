@@ -303,7 +303,7 @@ nwam_compose_tree_view (NwamLocationDialog *self)
 	g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (LOCVIEW_NAME));
 
     /* Model */
-    capplet_compose_nwamui_obj_treeview(view);
+    CAPPLET_COMPOSE_NWAMUI_OBJECT_LIST_VIEW(view);
 }
 
 static void
@@ -930,7 +930,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         g_assert(name);
 
         object = NWAMUI_OBJECT(nwamui_env_new(name) );
-        capplet_list_store_add(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
+        CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
         g_free(name);
         g_object_unref(object);
 
@@ -989,7 +989,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             object = NWAMUI_OBJECT(nwamui_env_clone( env ));
             nwamui_object_set_name(object, name);
 
-            capplet_list_store_add(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
+            CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
 
             g_free(name);
             g_free(prefix);

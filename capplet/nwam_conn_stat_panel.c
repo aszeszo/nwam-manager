@@ -113,7 +113,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
-	iface->apply = NULL;
+	iface->apply = apply;
 	iface->help = help;
     iface->dialog_run = NULL;
 }
@@ -301,6 +301,12 @@ nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog)
     return( self );
 }
 
+static void
+nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
+{
+	G_OBJECT_CLASS(nwam_conn_status_panel_parent_class)->finalize(G_OBJECT(self));
+}
+
 /**
  * refresh:
  *
@@ -345,13 +351,10 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     return(TRUE);
 }
 
-static void
-nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
+static gboolean
+apply(NwamPrefIFace *iface, gpointer user_data)
 {
-	G_OBJECT_CLASS(nwam_conn_status_panel_parent_class)->finalize(G_OBJECT(self));
 }
-
-/* Callbacks */
 
 /**
  * help:
@@ -363,6 +366,7 @@ help(NwamPrefIFace *iface, gpointer user_data)
     nwamui_util_show_help ("");
 }
 
+/* Callbacks */
 static void
 nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 				 GtkCellRenderer   *renderer,

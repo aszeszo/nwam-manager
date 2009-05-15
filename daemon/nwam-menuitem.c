@@ -273,23 +273,23 @@ nwam_menu_item_get_property (GObject         *object,
 
 static void
 nwam_menu_item_forall (GtkContainer   *container,
-                            gboolean    include_internals,
-                            GtkCallback     callback,
-                            gpointer        callback_data)
+  gboolean    include_internals,
+  GtkCallback     callback,
+  gpointer        callback_data)
 {
 	NwamMenuItem *self = NWAM_MENU_ITEM (container);
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     int i;
 
-/*     g_debug ("foreach container 0x%p", container); */
-
 	GTK_CONTAINER_CLASS(nwam_menu_item_parent_class)->forall(container,
-									   include_internals,
-									   callback,
-									   callback_data);
-    for (i = 0; i < MAX_WIDGET_NUM; i++) {
-        if (prv->w[i]) {
-            (*callback) (prv->w[i], callback_data);
+      include_internals,
+      callback,
+      callback_data);
+    if (include_internals) {
+        for (i = 0; i < MAX_WIDGET_NUM; i++) {
+            if (prv->w[i]) {
+                (*callback) (prv->w[i], callback_data);
+            }
         }
     }
 }

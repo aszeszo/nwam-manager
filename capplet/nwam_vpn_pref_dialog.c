@@ -362,7 +362,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       (gpointer) self,
       NULL);
 
-    capplet_compose_nwamui_obj_treeview(view);
+    CAPPLET_COMPOSE_NWAMUI_OBJECT_LIST_VIEW(view);
 }
 
 /* FIXME, if update failed, popup dialog and return FALSE */
@@ -723,7 +723,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
         g_assert(name);
 
         object = NWAMUI_OBJECT(nwamui_enm_new(name) );
-        capplet_list_store_add(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(self->prv->view))), object);
+        CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(self->prv->view))), object);
         g_free(name);
         g_object_unref(object);
 

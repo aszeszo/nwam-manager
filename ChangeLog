@@ -1,3 +1,34 @@
+2009-05-15  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/nwam-menuitem.c (nwam_menu_item_forall):
+	Fixed forall always include internal widgets.
+	* capplet/capplet-utils.c (capplet_model_foreach_find_object),
+	(capplet_list_foreach_merge_to_list_store),
+	(capplet_list_foreach_merge_to_tree_store),
+	(capplet_model_find_object), (capplet_model_1_level_foreach),
+	(capplet_update_model_from_daemon),
+	(capplet_combo_set_active_object):
+	* capplet/capplet-utils.h:
+	Removed dup functions. Change some small functions to Macros.
+	* capplet/nwam_conn_stat_panel.c (nwam_pref_init),
+	(nwam_conn_status_panel_finalize), (apply):
+	* capplet/nwam_location_dialog.c (nwam_compose_tree_view),
+	(on_button_clicked):
+	* capplet/nwam_vpn_pref_dialog.c (nwam_compose_tree_view),
+	(vpn_pref_clicked_cb):
+	Updated due to capplet-utils changes.
+	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),
+	(nwam_net_conf_panel_init), (refresh), (apply),
+	(nwam_net_conf_update_status_cell_cb), (update_widgets),
+	(ncp_build_group_index), (ncp_build_group),
+	(ncu_pri_group_get_index), (ncu_pri_group_find_iter_gt),
+	(ncu_pri_group_get_iter), (ncu_pri_treeview_add):
+	Do not use the ncu tree store of a ncp anymore, update tree mode each
+	time ncp changes.
+	Showing ncu condition view is merged. Update buttons function is 
+	partially done.
+	TODO: Update buttons; update buttons behavior; and save back.
+
 2009-05-14  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/capplet-utils.h, capplet/capplet-utils.c: 

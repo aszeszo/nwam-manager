@@ -37,21 +37,6 @@ typedef struct _CappletForeachData {
 	gpointer ret_data;
 } CappletForeachData;
 
-static void nwam_pref_iface_combo_changed_cb(GtkComboBox* combo, gpointer user_data);
-
-void
-capplet_compose_nwamui_obj_combo(GtkComboBox *combo, NwamPrefIFace *iface)
-{
-	capplet_compose_combo(combo,
-      GTK_TYPE_LIST_STORE,
-      G_TYPE_OBJECT,
-      nwamui_object_name_cell,
-      NULL,
-      (GCallback)nwam_pref_iface_combo_changed_cb,
-      (gpointer)iface,
-      NULL);
-}
-
 static gboolean
 capplet_model_foreach_find_object(GtkTreeModel *model,
     GtkTreePath *path,
@@ -66,32 +51,39 @@ capplet_model_foreach_find_object(GtkTreeModel *model,
     if (object == data->user_data) {
         *(GtkTreeIter *)data->ret_data = *iter;
         /* Stop flag. */
-        data->user_data = NULL;
+        data->ret_data = NULL;
     }
 	if (object)
 		g_object_unref(object);
 
-	return data->user_data == NULL;
+	return data->ret_data == NULL;
 }
 
 void
-capplet_list_foreach_merge_to_model(gpointer data, gpointer user_data)
+capplet_list_foreach_merge_to_list_store(gpointer data, gpointer user_data)
 {
-	GtkTreeModel *model = (GtkTreeModel *)user_data;
-	GtkTreeIter   iter;
-
-	gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-	gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, G_OBJECT(data), -1);
-
+    CAPPLET_LIST_STORE_ADD(user_data, data);
 	g_object_unref(data);
 }
 
+void
+capplet_list_foreach_merge_to_tree_store(gpointer data, gpointer user_data)
+{
+    CAPPLET_LIST_STORE_ADD(user_data, NULL, data);
+	g_object_unref(data);
+}
+
+/*
+ * capplet_model_find_object:
+ * @object: Could be null
+ * @iter: output var
+ */
 gboolean
 capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *iter)
 {
 	CappletForeachData data;
 
-    g_return_val_if_fail(object, FALSE);
+    g_return_val_if_fail(iter, FALSE);
 
 	data.user_data = (gpointer)object;
 	data.ret_data = iter;
@@ -100,7 +92,20 @@ capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *ite
       capplet_model_foreach_find_object,
       (gpointer)&data);
 
-	return data.user_data == NULL;
+	return data.ret_data == NULL;
+}
+
+gboolean
+capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, CappletTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter)
+{
+    gboolean valid;
+    for (valid = gtk_tree_model_iter_children(model, iter, parent);
+         valid;
+         valid = gtk_tree_model_iter_next(model, iter)) {
+        if ((CappletTreeModelForeachFunc*)func(model, iter, user_data))
+            return TRUE;
+    }
+    return FALSE;
 }
 
 void
@@ -135,7 +140,7 @@ capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon, GTyp
 		g_error("unknow supported get nwamui obj list");
 	}
 
-	g_list_foreach(obj_list, capplet_list_foreach_merge_to_model, (gpointer)model);
+	g_list_foreach(obj_list, capplet_list_foreach_merge_to_list_store, (gpointer)model);
 	g_list_free(obj_list);
 }
 
@@ -164,7 +169,7 @@ nwamui_object_name_cell (GtkCellLayout *cell_layout,
 	g_free (text);
 }
 
-static void
+void
 nwam_pref_iface_combo_changed_cb(GtkComboBox *combo, gpointer user_data)
 {
 	GtkTreeIter iter;
@@ -174,27 +179,6 @@ nwam_pref_iface_combo_changed_cb(GtkComboBox *combo, gpointer user_data)
     g_assert(G_IS_OBJECT(obj));
     nwam_pref_refresh(NWAM_PREF_IFACE(user_data), obj, FALSE);
     g_object_unref(obj);
-}
-
-void
-capplet_compose_nwamui_obj_treeview(GtkTreeView *treeview)
-{
-    GtkTreeModel *model;
-
-    model = gtk_tree_view_get_model(treeview);
-    if (model == NULL) {
-		model = GTK_TREE_MODEL(gtk_list_store_new(1, NWAMUI_TYPE_OBJECT));
-		gtk_tree_view_set_model(treeview, model);
-		g_object_unref(model);
-    }
-}
-
-void
-capplet_list_store_add(GtkTreeModel *model, NwamuiObject *object)
-{
-	GtkTreeIter iter;
-	gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-	gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, object, -1);
 }
 
 void
@@ -339,44 +323,6 @@ capplet_column_append_cell(GtkTreeViewColumn *col,
 	return cell;
 }
 
-static gboolean
-tree_model_find_object_cb(GtkTreeModel *model,
-  GtkTreePath *path,
-  GtkTreeIter *iter,
-  gpointer user_data)
-{
-	CappletForeachData *data = (CappletForeachData*)user_data;
-	GObject *obj;
-
-	gtk_tree_model_get(model, iter, 0, &obj, -1);
-	/* Safely unref */
-	g_object_unref(obj);
-
-	if (obj == (gpointer)data->user_data) {
-		GtkTreeIter *iter_ret = (GtkTreeIter*)data->ret_data;
-
-		*iter_ret = *iter;
-
-		data->ret_data = NULL;
-	}
-	return data->ret_data == NULL;
-}
-
-gboolean
-capplet_model_get_iter(GtkTreeModel *model, GObject *object, GtkTreeIter *iter)
-{
-	CappletForeachData data;
-
-	data.user_data = (gpointer)object;
-	data.ret_data = (gpointer)iter;
-
-	gtk_tree_model_foreach(model,
-      tree_model_find_object_cb,
-      (gpointer)&data);
-
-	return data.ret_data == NULL;
-}
-
 GObject *
 capplet_combo_get_active_object(GtkComboBox *combo)
 {
@@ -396,7 +342,7 @@ capplet_combo_set_active_object(GtkComboBox *combo, GObject *object)
 {
 	GtkTreeIter iter;
 
-	if (capplet_model_get_iter(gtk_combo_box_get_model(combo), object, &iter)) {
+	if (capplet_model_find_object(gtk_combo_box_get_model(combo), object, &iter)) {
 		gtk_combo_box_set_active_iter(combo, &iter);
         return TRUE;
     }

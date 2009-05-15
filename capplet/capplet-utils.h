@@ -34,12 +34,58 @@
 
 #include "nwam_tree_view.h"
 
-void capplet_compose_nwamui_obj_combo(GtkComboBox *combo, NwamPrefIFace *iface);
+/* Misc. */
+void capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class);
+gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
 
-void capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon, GType type);
+#define CAPPLET_COMPOSE_NWAMUI_OBJECT_COMBO(combo, iface)   \
+    {                                                       \
+        capplet_compose_combo(GTK_COMBO_BOX(combo),         \
+          GTK_TYPE_LIST_STORE,                              \
+          G_TYPE_OBJECT,                                    \
+          (GtkCellLayoutDataFunc)nwamui_object_name_cell,   \
+          NULL,                                             \
+          (GCallback)nwam_pref_iface_combo_changed_cb,      \
+          (gpointer)NWAM_PREF_IFACE(iface),                 \
+          NULL);                                            \
+    }
+#define CAPPLET_COMPOSE_NWAMUI_OBJECT_LIST_VIEW(treeview)               \
+    {                                                                   \
+        GtkTreeModel *model;                                            \
+                                                                        \
+        model = gtk_tree_view_get_model(GTK_TREE_VIEW(treeview));       \
+        if (model == NULL) {                                            \
+            model = (GtkTreeModel *)gtk_list_store_new(1, NWAMUI_TYPE_OBJECT); \
+            gtk_tree_view_set_model(treeview, model);                   \
+            g_object_unref(model);                                      \
+        }                                                               \
+    }
+#define CAPPLET_COMPOSE_NWAMUI_OBJECT_TREE_VIEW(treeview)               \
+    {                                                                   \
+        GtkTreeModel *model;                                            \
+                                                                        \
+        model = gtk_tree_view_get_model(GTK_TREE_VIEW(treeview));       \
+        if (model == NULL) {                                            \
+            model = (GtkTreeModel *)gtk_tree_store_new(1, NWAMUI_TYPE_OBJECT); \
+            gtk_tree_view_set_model(treeview, model);                   \
+            g_object_unref(model);                                      \
+        }                                                               \
+    }
+#define CAPPLET_LIST_STORE_ADD(model, object)                           \
+    {                                                                   \
+        GtkTreeIter iter;                                               \
+        gtk_list_store_append(GTK_LIST_STORE(model), &iter);            \
+        gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, object, -1); \
+    }
+#define CAPPLET_TREE_STORE_ADD(model, parent, object)                   \
+    {                                                                   \
+        GtkTreeIter iter;                                               \
+        gtk_tree_store_append(GTK_TREE_STORE(model), &iter, parent);    \
+        gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, object, -1); \
+    }
 
-void capplet_compose_nwamui_obj_treeview(GtkTreeView *treeview);
 
+/* Combo utils. */
 void capplet_compose_combo(GtkComboBox *combo,
   GType tree_store_type,
   GType type,
@@ -49,14 +95,15 @@ void capplet_compose_combo(GtkComboBox *combo,
   gpointer user_data,
   GDestroyNotify destroy);
 
-void capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class);
-gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
+void nwam_pref_iface_combo_changed_cb(GtkComboBox* combo, gpointer user_data);
 
-gboolean capplet_model_get_iter(GtkTreeModel *model, GObject *object, GtkTreeIter *iter);
 GObject *capplet_combo_get_active_object(GtkComboBox *combo);
 gboolean capplet_combo_set_active_object(GtkComboBox *combo, GObject *object);
 
 gboolean capplet_tree_view_commit_object(NwamTreeView *self, NwamuiObject *object, gpointer user_data);
+
+/* Tree model */
+void capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon, GType type);
 
 void capplet_tree_store_merge_children(GtkTreeStore *model,
     GtkTreeIter *target,
@@ -68,29 +115,25 @@ void capplet_tree_store_exclude_children(GtkTreeStore *model,
     GtkTreeModelForeachFunc func,
     gpointer user_data);
 
-gboolean capplet_tree_view_expand_row(GtkTreeView *treeview,
-    GtkTreeIter *iter,
-    gboolean open_all);
-gboolean capplet_tree_view_collapse_row(GtkTreeView *treeview,
-    GtkTreeIter *iter);
-
-void capplet_list_foreach_merge_to_model(gpointer data, gpointer user_data);
-
-GList* capplet_model_to_list(GtkTreeModel *model);
-
-void capplet_list_store_add(GtkTreeModel *model, NwamuiObject *object);
-
-void capplet_reset_increasable_name(GObject *object);
-
-gchar* capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GObject *object);
-
-gint capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix);
-
-gchar* capplet_get_original_name(const gchar *prefix, const gchar *name);
+typedef gboolean (*CappletTreeModelForeachFunc)(GtkTreeModel *model, GtkTreeIter *iter, gpointer user_data);
 
 gboolean capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *iter);
 
-/* Column and renderer */
+gboolean capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, CappletTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter);
+
+void capplet_list_foreach_merge_to_list_store(gpointer data, gpointer store);
+void capplet_list_foreach_merge_to_tree_store(gpointer data, gpointer store);
+
+GList* capplet_model_to_list(GtkTreeModel *model);
+
+/* Tree view, column and renderer */
+gboolean capplet_tree_view_expand_row(GtkTreeView *treeview,
+    GtkTreeIter *iter,
+    gboolean open_all);
+
+gboolean capplet_tree_view_collapse_row(GtkTreeView *treeview,
+    GtkTreeIter *iter);
+
 GtkTreeViewColumn *capplet_column_new(GtkTreeView *treeview, ...);
 
 GtkCellRenderer *capplet_column_append_cell(GtkTreeViewColumn *col,
@@ -117,5 +160,14 @@ void nwamui_object_active_mode_pixbuf_cell (GtkTreeViewColumn *col,
 void capplet_tree_store_move_object(GtkTreeModel *model,
     GtkTreeIter *target,
     GtkTreeIter *source);
+
+/* Increasable name. */
+void capplet_reset_increasable_name(GObject *object);
+
+gchar* capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GObject *object);
+
+gint capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix);
+
+gchar* capplet_get_original_name(const gchar *prefix, const gchar *name);
 
 #endif /* _CAPPLET_UTILS_H */
