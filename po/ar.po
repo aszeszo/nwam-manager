@@ -8,32 +8,32 @@ msgstr ""
        "Project-Id-Version: nwam-manager HEAD\n"
        "Report-Msgid-Bugs-To: \n"
        "POT-Creation-Date: 2008-10-01 12:57+0900\n"
-       "PO-Revision-Date: 2000-01-01 12:57+0900\n"
-       "Last-Translator: desktop-discuss@opensolaris.org\n"
-       "Language-Team: desktop-discuss@opensolaris.org\n"
+       "PO-Revision-Date: 2009-03-28 12:57+0900\n"
+       "Last-Translator: Hosam Al Ali <a.hosam@gmail.com>\n"
+       "Language-Team: Arabic OpenSolaris Group<g11n-ar-discuss@opensolaris.org>\n"
        "MIME-Version: 1.0\n"
        "Content-Type: text/plain; charset=UTF-8\n"
        "Content-Transfer-Encoding: 8bit\n"
 
 #: ../capplet/nwam-manager-properties.glade.h:1
 msgid "<small><i><b>Example:</b> 12:34:56:78:9A:BC</i></small>"
-msgstr "<small><i><b>Příklad:</b> 12:34:56:78:9A:BC</i></small>"
+msgstr "<small><i><b>Example:</b> 12:34:56:78:9A:BC</i></small>"
 
 #: ../capplet/nwam-manager-properties.glade.h:2
 msgid "Add Wireless Network"
-msgstr "Přidat bezdrátovou síť"
+msgstr "إضافة شبكة لاسلكية "
 
 #: ../capplet/nwam-manager-properties.glade.h:3
 msgid "Certificate _File:"
-msgstr "_Soubor s certifikátem:"
+msgstr "ملف_الشهادة :"
 
 #: ../capplet/nwam-manager-properties.glade.h:4
 msgid "Co_nfirm Password:"
-msgstr "Po_tvrdit heslo:"
+msgstr "تأكيد_كلمة المرور :"
 
 #: ../capplet/nwam-manager-properties.glade.h:5
 msgid "Favorite Wireless Networks"
-msgstr "Oblíbené Bezdrátové sítě"
+msgstr "الشبكات اللاسلكية المفضلة "
 
 #: ../capplet/nwam-manager-properties.glade.h:6
 msgid ""
@@ -45,7 +45,7 @@ msgstr ""
 
 #: ../capplet/nwam-manager-properties.glade.h:8
 msgid "Network Interface Priority"
-msgstr "Network Interface Priority"
+msgstr "أولوية كروت الشبكة "
 
 #: ../capplet/nwam-manager-properties.glade.h:9
 msgid ""
@@ -55,7 +55,7 @@ msgid ""
 "WPA Personal (PSK)\n"
 "WPA Enterprise (Radius)"
 msgstr ""
-       "žádné\n"
+       "None\n"
        "WEP Hex\n"
        "WEP ASCII\n"
        "WPA Personal (PSK)\n"
@@ -72,188 +72,188 @@ msgstr "WPA/2"
 
 #: ../capplet/nwam-manager-properties.glade.h:16
 msgid "_Add to list of favorite networks on successful connection"
-msgstr "_Přidat do seznamu oblíbených úspěšně připojených sítí"
+msgstr "_النجاح بإضافة إتصال الى الشبكة ضمن قائمة الشبكات المفضلة "
 
 #: ../capplet/nwam-manager-properties.glade.h:17
 msgid "_BSSID (optional):"
-msgstr "_BSSID (volitelně):"
+msgstr "_BSSID (إختياري):"
 
 #: ../capplet/nwam-manager-properties.glade.h:18
 msgid "_Configuration:"
-msgstr "_Konfigurace:"
+msgstr "_إعدادات"
 
 #: ../capplet/nwam-manager-properties.glade.h:19
 msgid "_More Options"
-msgstr "_Více možností"
+msgstr "_خيارات إضافية "
 
 #: ../capplet/nwam-manager-properties.glade.h:20
 msgid "_Network name (ESSID):"
-msgstr "_Jméno sítě (ESSID):"
+msgstr "_إسم الشبكة (ESSID)"
 
 #: ../capplet/nwam-manager-properties.glade.h:21
 msgid "_Password:"
-msgstr "_Heslo:"
+msgstr "_كلمة المرور "
 
 #: ../capplet/nwam-manager-properties.glade.h:22
 msgid "_Security type:"
-msgstr "_Typ zabezpečení:"
+msgstr "_نوع الأمان :"
 
 #: ../capplet/nwam-manager-properties.glade.h:23
 msgid "_Show passwords while typing"
-msgstr "_Ukázat heslo při psaní"
+msgstr "_أظهر كلمة المرور وقت الكتابة "
 
 #: ../capplet/nwam-manager-properties.glade.h:24
 msgid "_Username:"
-msgstr "_Uživatelské jméno:"
+msgstr "_إسم المستخدم "
 
 #: ../capplet/nwam_fav_networks_dialog.c:159
 msgid "Network Name (ESSID)"
-msgstr "Jméno sítě (ESSID)"
+msgstr "إسم الشبكة (ESSID)"
 
 #: ../capplet/nwam_fav_networks_dialog.c:180
 msgid "Access Point (BSSID)"
-msgstr "Místo připojení (BSSID)"
+msgstr "Access Point (BSSID)"
 
 #: ../capplet/nwam_wireless_dialog.c:150
 msgid "Wireless NCU"
-msgstr "Wireless NCU"
+msgstr "لاسلكي (NCU)"
 
 #: ../capplet/nwam_wireless_dialog.c:151
 msgid "The Wireless NCU that the dialog is to work with."
-msgstr "The Wireless NCU that the dialog is to work with."
+msgstr "NCU اللاسلكي يتحاور للعمل مع "
 
 #: ../capplet/nwam_wireless_dialog.c:158
 msgid "Wireless ESSID"
-msgstr "ESSID bezdrátové sítě"
+msgstr "لاسلكي ESSID"
 
 #: ../capplet/nwam_wireless_dialog.c:159
 msgid "The Wireless ESSID to connect to."
-msgstr "Připojit se k bezdrátové síti ESSID"
+msgstr "اللاسلكي ESSID للإتصال ب"
 
 #: ../capplet/nwam_wireless_dialog.c:165
 msgid "Wireless Security Type"
-msgstr "Typ zabezpečení bezdrátové sítě"
+msgstr "أدخل نوع الأمن للشبكة للاسلكية "
 
 #: ../capplet/nwam_wireless_dialog.c:166
 msgid "The Wireless security (None/WEP/WPA)."
-msgstr "Zabezpečení bezdrátové sítě (žádné/WEP/WPA)."
+msgstr "أمن الشبكةاللاسلي (None/WEP/WPA)."
 
 #: ../capplet/nwam_wireless_dialog.c:173
 msgid "Wireless Security Key"
-msgstr "Klíč zabezpečení bezdrátové sítě"
+msgstr "مفتاح امن الشبكة اللاسلكية "
 
 #: ../capplet/nwam_wireless_dialog.c:174
 msgid "The Wireless security key."
-msgstr "Bezpečnostní klíč bezdrátové sítě."
+msgstr "مفتاح امن الشبكة اللاسلكية "
 
 #: ../capplet/nwam_wireless_dialog.c:180
 msgid "WPA Username"
-msgstr "Uživatelské jméno pro WPA"
+msgstr "WPA إسم المستخدم"
 
 #: ../capplet/nwam_wireless_dialog.c:181
 msgid "The Username to use for a WPA connection."
-msgstr "Uživatelské jméno pro připojení pomocí WPA"
+msgstr "إسم المستخدم لإسنعمال إتصال WPA"
 
 #: ../capplet/nwam_wireless_dialog.c:187
 msgid "WPA Password"
-msgstr "Heslo pro WPA"
+msgstr " كلمة مرور WPA"
 
 #: ../capplet/nwam_wireless_dialog.c:188
 msgid "The Password to use for a WPA connection."
-msgstr "Heslo pro připojení pomocí WPA"
+msgstr "كلمة المرور لإستعمال تصال WPA"
 
 #: ../capplet/nwam_wireless_dialog.c:194
 msgid "WPA Config Type"
-msgstr "Typ konfigurace pro WPA"
+msgstr "نوع إعدادات WPA"
 
 #: ../capplet/nwam_wireless_dialog.c:195
 msgid "The type of WPA Connection (Automatic or TTLS-PAP)"
-msgstr "Typ WPA připojení (Automatické nebo TTLS-PAP)"
+msgstr "نوع إتصال WPA (Automatic or TTLS-PAP)"
 
 #: ../capplet/nwam_wireless_dialog.c:203
 msgid "WPA Cert File"
-msgstr "Soubor s certifikátem pro WPA"
+msgstr "WPA ملف الشهادة "
 
 #: ../capplet/nwam_wireless_dialog.c:204
 msgid "The Certificate File to use for WPA."
-msgstr "Soubor s certifikátem pro připojení pomocí WPA"
+msgstr "ملف الشهادة للإستعمال مع WPA"
 
 #: ../capplet/nwam_wireless_dialog.c:210
 msgid "Wireless BSSID"
-msgstr "BSSID bezdrátové sítě"
+msgstr "لاسلكي BSSID"
 
 #: ../capplet/nwam_wireless_dialog.c:211
 msgid "The Wireless AP BSSID to connect to."
-msgstr "Připojit se k BSSID bezdrátové sítě"
+msgstr "الشبكة اللاسلكية AP BSSID للإتصال ب "
 
 #: ../capplet/nwam_wireless_dialog.c:217
 msgid "Wireless Network is Transient"
-msgstr "Bezdrátová síť je přechodná"
+msgstr "الشبكة اللاسلكية العابرة "
 
 #: ../capplet/nwam_wireless_dialog.c:218
 msgid "This Wireless Network shouldn't be remembered on permanently"
-msgstr "Tato bezdrátová síť by neměla být zapamatována na trvalo"
+msgstr "يجب عدم تذكر الشبكة اللاسلكيةبشكل دائم"
 
 #: ../capplet/nwam_wireless_dialog.c:1077
 msgid ""
 "The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
 msgstr ""
-       "Jméno bezdrátové sítě (ESSID) obsahuje neplatné (non-ASCII) znaky."
+       "خطأ بإسم الشبكة اللاسلكية (ESSID) (non-ASCII) characters."
 
 #: ../capplet/nwam_wireless_dialog.c:1082
 msgid "The Wireless network name (ESSID) should not be blank."
-msgstr "Jméno bezdrátové sítě (ESSID) by nemělo být prázdné."
+msgstr "إسم الشبكة اللاسلكية (ESSID) لايجب ان يترك فارغا "
 
 #: ../capplet/nwam_wireless_dialog.c:1093
 msgid "Wireless AP (BSSID) is not a valid address"
-msgstr "AP (BSSID) bezdrátové sítě není platná adresa"
+msgstr "AP للشبكة اللاسلكية (BSSID) خطأ بعنوانه "
 
 #. Different, so FALSE
 #: ../capplet/nwam_wireless_dialog.c:1114
 msgid "Keys entered are different"
-msgstr "Vložené klíče se liší"
+msgstr "المفتاح المدخل مختلف "
 
 #. All other conditions, FALSE
 #: ../capplet/nwam_wireless_dialog.c:1136
 msgid "Invalid data entered"
-msgstr "Byla vložena neplatná data"
+msgstr "خطأ بالبيانات المدخلة "
 
 #: ../capplet/nwam_wireless_dialog.c:1208
 msgid "Validation Failed."
-msgstr "Potvrzení selhalo."
+msgstr "فشل المصادقة"
 
 #: ../capplet/nwam_net_priority_dialog.c:157 ../daemon/main.c:508
 msgid "Network Interface"
-msgstr "Síťové rozhraní"
+msgstr "كرت الشبكة "
 
 #: ../capplet/nwam_net_priority_dialog.c:371
 msgid "Enabled"
-msgstr "Povoleno"
+msgstr "تفعيل "
 
 #: ../capplet/nwam_net_priority_dialog.c:371
 msgid "Disabled"
-msgstr "Zakázáno"
+msgstr "تعطيل "
 
 #: ../daemon/nwam-manager.schemas.in.h:1 ../common/nwamui_prof.c:141
 #: ../common/nwamui_prof.c:142
 msgid "Adding any new network to your favorites list"
-msgstr "Přidávím novou síť do Vašich oblíbených sítí"
+msgstr "إضافة أي شبكة الى قائمة الشبكات المفضلة "
 
 #: ../daemon/nwam-manager.schemas.in.h:2 ../common/nwamui_prof.c:125
 #: ../common/nwamui_prof.c:126
 msgid "Joining an open network that is not in your favorites list"
-msgstr "Připojuji se otevřené sítě, která není na Vašem seznamu oblíbených sítí"
+msgstr "إتصال بالشبكةالمفتوحة التي لم تدرج ضمن قائمة الشبكات المفضلة "
 
 #: ../daemon/nwam-manager.schemas.in.h:3 ../common/nwamui_prof.c:133
 #: ../common/nwamui_prof.c:134
 msgid "Joining any favorite network"
-msgstr "Připojuji se k oblíbené síti"
+msgstr "إتصال بأي شبكة مفضلة "
 
 #: ../daemon/nwam-manager.schemas.in.h:4
 msgid ""
 "The default timeout of notification in milliseconds, must greater than zero."
 msgstr ""
-       "Výchozí časová prodleva upozornění v milisekundách musí být větší než nula."
+       "المهلة الإفتراضية لإعلامي بوحدة من قيمة milliseconds, , يجب أن تكون أكبر من الصفر "
 
 #: ../daemon/nwam-manager.schemas.in.h:5
 msgid "add_any_new_wifi_to_fav"
@@ -297,15 +297,15 @@ msgstr "%s"
 
 #: ../daemon/nwam-action.c:103
 msgid "NwamuiWifiNet instance"
-msgstr "instance NwamuiWifiNet"
+msgstr "NwamuiWifiNet نسخة"
 
 #: ../daemon/nwam-action.c:104
 msgid "Wireless AP"
-msgstr "AP bezdrátové sítě"
+msgstr "AP الشبكة اللاسكلية "
 
 #: ../daemon/main.c:58
 msgid "Enable debugging messages"
-msgstr "Povolit ladící zprávy"
+msgstr "تفعيل رسائل تصحيح الأخطاء "
 
 #: ../daemon/main.c:150
 #, c-format
@@ -314,7 +314,7 @@ msgid ""
 "Wired (%s): %s"
 msgstr ""
        "\n"
-       "Drátové (%s): %s"
+       "Wired (%s): %s"
 
 #: ../daemon/main.c:153
 #, c-format
@@ -323,44 +323,44 @@ msgid ""
 "Wireless (%s): %s"
 msgstr ""
        "\n"
-       "Bezdrátové (%s): %s"
+       "Wireless (%s): %s"
 
 #: ../daemon/main.c:196
 #, c-format
 msgid "Wireless (%s) network interface is active."
-msgstr "Rozhraní bezdrátové sítě (%s) je aktivní."
+msgstr "الشبكة اللاسلكية (%s) كرت الشبكة مفعل "
 
 #: ../daemon/main.c:199
 #, c-format
 msgid "Wired (%s) network interface is active."
-msgstr "Rozhraní drátové sítě (%s) je aktivní."
+msgstr "الشبكة السلكية (%s) كرت الشبكة مفعل "
 
 #: ../daemon/main.c:205
 #, c-format
 msgid "No network interface is active."
-msgstr "Žádné rozhraní sítě není aktivní."
+msgstr "لا يوجد كرت شبكة مفعل "
 
 #: ../daemon/main.c:254 ../daemon/main.c:256
 msgid "Automatic network configuration daemon is unavailable."
-msgstr "Démon pro automatickou konfiguraci sítě není dostupný."
+msgstr "الإعدادات الإفتراضية للشكبة غير متوفرة "
 
 #: ../daemon/main.c:257
 msgid ""
 "For further information please run\n"
 "\"svcs -xv nwam\" in a terminal."
 msgstr ""
-       "Pro více informací spusťte v terminálu\n"
-       "\"svcs -xv nwam\" "
+       "لمزيد من المعلومات نفذ الأمر التالي من خلال الشيل "
+       "n\"svcs -xv nwam\""
 
 #: ../daemon/main.c:319 ../daemon/main.c:523
 #, c-format
 msgid "Connected to wireless network '%s'"
-msgstr "Připojeno k bezdrátové síti '%s'"
+msgstr "الإتصال بالشبكة اللاسلكية '%s'"
 
 #: ../daemon/main.c:344
 #, c-format
 msgid "Disconnected from Wireless Network '%s'"
-msgstr "Odpojeno od bezdrátové sítě '%s'"
+msgstr "قطع الإتصال بالشبكة اللاسلكية '%s'"
 
 #: ../daemon/main.c:345
 #, c-format
@@ -369,26 +369,26 @@ msgid ""
 "Click here to join another wireless network."
 msgstr ""
        "%s\n"
-       "Klikněte zde pro připojení jiné bezdrátové sítě"
+       "إضغط للإتصال بشبكة لاسلكية أخرى "
 
 #: ../daemon/main.c:380 ../daemon/main.c:405
 msgid "Automatic Network Configuration Daemon"
-msgstr "Démon pro automatickou konfiguraci bezdrátové sítě"
+msgstr "أعدادات الشبكة بشكل أتوماتيكي  "
 
 #: ../daemon/main.c:426
 #, c-format
 msgid "'%s' requires authentication"
-msgstr "'%s' požaduje ověření"
+msgstr "'%s' يتطلب توثيق  "
 
 #: ../daemon/main.c:428
 #, c-format
 msgid "Click here to enter the wireless network key."
-msgstr "Klikněte zde pro přidání klíče bezdrátové sítě"
+msgstr "إضغط هنا لإدخال مفتاح الشبكة اللاسلكية "
 
 #: ../daemon/main.c:460
 #, c-format
 msgid "Wireless networks available"
-msgstr "Bezdrátová síť je dostupná"
+msgstr "الشبكة اللاسلكية متوفرة "
 
 #: ../daemon/main.c:461
 #, c-format
@@ -396,17 +396,17 @@ msgid ""
 "Right-click the icon to connect \n"
 "%s network interface to an available network."
 msgstr ""
-       "Klikněte pravým tlačítkem na ikonu připojit\n"
-       "k síťovému rozhraní %s dostupné sítě."
+       "إضغط باليمين على أيقونة إتصال "
+       "\n %s كرت الشبكة لتفعيل الشكبة وتصبح متوفرة "
 
 #: ../daemon/main.c:467
 msgid "Right-click to select wireless network"
-msgstr "Klikněte pravým tlačítkem pro výběr bezdrátové sítě"
+msgstr "إضغط باليمين لإختيار الشبكة اللاسلكية "
 
 #: ../daemon/main.c:507 ../daemon/main.c:528
 #, c-format
 msgid "%s network interface is connected."
-msgstr "%s rozhraní sítě je připojeno"
+msgstr "%s كرت الشبكة متصل "
 
 #: ../daemon/main.c:508 ../daemon/main.c:531
 #, c-format
@@ -424,15 +424,15 @@ msgstr ""
 
 #: ../daemon/main.c:510
 msgid "Network Address"
-msgstr "Síťová adresa"
+msgstr "عنوان الشبكة "
 
 #: ../daemon/main.c:531
 msgid "Interface"
-msgstr "Rozhraní"
+msgstr "واجهة "
 
 #: ../daemon/main.c:533
 msgid "Address"
-msgstr "Adresa"
+msgstr "عنوان "
 
 #: ../daemon/main.c:536
 #, c-format
@@ -445,22 +445,22 @@ msgstr ""
 
 #: ../daemon/main.c:536
 msgid "Signal Strength"
-msgstr "Síla signálu"
+msgstr "قوة الإشارة"
 
 #: ../daemon/main.c:581 ../daemon/main.c:592
 #, c-format
 msgid "%s disconnected from network."
-msgstr "%s odpojeno od sítě"
+msgstr "%s قطع الإتصال مع الشبكة "
 
 #: ../daemon/main.c:628
 #, c-format
 msgid "Activating %s network interface..."
-msgstr "Aktivuji %s síťové rozhraní..."
+msgstr "تفعيل %s كرت الشبكة "
 
 #: ../daemon/main.c:663
 #, c-format
 msgid "Failed to connect to wireless network '%s'. %s"
-msgstr "Připojení k bezdrátové síti '%s'. %s selhalo"
+msgstr "فشل بالإتصال بالشبكة اللاسلكية '%s'.%s"
 
 #: ../daemon/main.c:665
 msgid ""
@@ -469,62 +469,62 @@ msgid ""
 "\n"
 "Click here to re-enter the wireless key."
 msgstr ""
-       "DHCP server neodpovídá nebo \n"
-       "jste zadali špatný klíč bezdrátové sítě."
+       "لا توجد أي إجابة من مخدم DHCP أو \n ممكن أن تكون قد أدخلت مفتاح شبكة لاسلكية خطأ \n"
+       "\n"
        "Click here to re-enter the wireless key."
 
 #: ../daemon/main.c:844
 msgid "There are no wireless network interfaces"
-msgstr "Nejsou zde žádná rozhraní bezdrátové sítě"
+msgstr "لايوجد كرت شبكة لاسلكي "
 
 #: ../daemon/main.c:935
 msgid "No wireless network interfaces available"
-msgstr "Nejsou dostupné žádné bezdrátové sítě"
+msgstr "لايوجد كرت شبكة لاسلكي متوفر "
 
 #: ../daemon/nwam-menu.c:188
 msgid "_Edit Network Interface Priorities..."
-msgstr "_Upravit vlastnosti síťového rozhraní..."
+msgstr "_تحرير أولوية كرت الشبكة "
 
 #: ../daemon/nwam-menu.c:192
 msgid "_Join Unlisted Wireless Network..."
-msgstr "_Připojit se k bezdrátové síti, která není na seznamu..."
+msgstr "_إتصال بشبكة لاسلكية غير مدرجة "
 
 #: ../daemon/nwam-menu.c:196
 msgid "_Manage Favorite Wireless Networks..."
-msgstr "_Spravovat oblíbené bezdrátové sítě..."
+msgstr "_إدارة الشبكات اللاسلكية المفضلة "
 
 #: ../daemon/nwam-menu.c:273 ../daemon/nwam-menu.c:1047
 #: ../common/nwamui_ncp.c:583
 msgid "Wireless"
-msgstr "Bezdrátová síť"
+msgstr "لاسلكي "
 
 #: ../daemon/nwam-menu.c:276 ../daemon/nwam-menu.c:1050
 #: ../common/nwamui_ncp.c:583
 msgid "Wired"
-msgstr "Drátová síť"
+msgstr "سلكي "
 
 #: ../daemon/nwam-menu.c:278
 #, c-format
 msgid "_Automatic Network Interface Selection - Current: %s (%s)"
-msgstr "_Automatický výběr síťového rozhraní - současné: %s (%s)"
+msgstr "_ أختيار كرت الشبكة بشكل أتوماتيكي- Current: %s (%s)"
 
 #: ../daemon/nwam-menu.c:282
 #, c-format
 msgid "_Automatic Network Interface Selection "
-msgstr "_Automatický výběr síťového rozhraní "
+msgstr "_ أختيار كرت الشبكة بشكل أتوماتيكي "
 
 #: ../daemon/nwam-menu.c:665
 msgid "NWAM Manager"
-msgstr "Správce NWAM"
+msgstr "إدارة NWAM"
 
 #: ../daemon/nwam-menu.c:666
 msgid "About NWAM Manager"
-msgstr "O Správci NWAM"
+msgstr "حول إدارة NWAM"
 
 #: ../daemon/nwam-menu.c:889
 #, c-format
 msgid "Wireless network '%s' added to favorites"
-msgstr "Bezdrátová síť '%s' byla přidána do oblíbených"
+msgstr "الشبكة اللاسلكية '%s' أضيفت الى المفضلة "
 
 #: ../daemon/nwam-menu.c:891
 #, c-format
@@ -532,21 +532,19 @@ msgid ""
 "Click here to view or edit your list of favorite\n"
 "wireless networks."
 msgstr ""
-       "Klikněte zde pro náhled nebo editaci seznamu oblíbených\n"
-       "bezdrátových sítí."
+       "إضغط هنا لتحرير قائمة المفضلة \n الشبكات اللاسلكية "
 
 #: ../daemon/nwam-menu.c:1052
 #, c-format
 msgid "Always Use %s Network Interface (%s)"
-msgstr "Vždy použít síťové rozhraní %s (%s)"
+msgstr "دائما إستعمل %s كرت الشبكة (%s)"
 
 #: ../daemon/notify.c:487
 #, c-format
 msgid ""
 "  %s\n"
 "    %s"
-msgstr ""
-       "  %s\n"
+msgstr "  %s\n"
        "    %s"
 
 #: ../daemon/notify.c:490
@@ -556,28 +554,28 @@ msgstr "  %s"
 
 #: ../common/nwamui_ncu.c:149 ../common/nwamui_ncu.c:150
 msgid "vanity_name"
-msgstr "vanity_name"
+msgstr "إسم_زائف "
 
 #: ../common/nwamui_ncu.c:157 ../common/nwamui_ncu.c:158
 msgid "device_name"
-msgstr "device_name"
+msgstr "إسم_الجهاز"
 
 #: ../common/nwamui_ncu.c:165 ../common/nwamui_ncu.c:166
 msgid "phy_address"
-msgstr "phy_address"
+msgstr "phy_عنوان "
 
 #: ../common/nwamui_ncu.c:173 ../common/nwamui_ncu.c:174
 msgid "ncu_type"
-msgstr "ncu_type"
+msgstr "نوع_ncu"
 
 #: ../common/nwamui_ncu.c:183 ../common/nwamui_ncu.c:184
 msgid "active"
-msgstr "aktivní"
+msgstr "تفعيل "
 
 #: ../common/nwamui_ncu.c:191 ../common/nwamui_ncu.c:192
 #: ../common/nwamui_wifi_net.c:173 ../common/nwamui_wifi_net.c:174
 msgid "speed"
-msgstr "rychlost"
+msgstr "سرعة "
 
 #: ../common/nwamui_ncu.c:201 ../common/nwamui_ncu.c:202
 msgid "ipv4_auto_conf"
@@ -585,7 +583,7 @@ msgstr "ipv4_auto_conf"
 
 #: ../common/nwamui_ncu.c:210 ../common/nwamui_ncu.c:211
 msgid "ipv4_address"
-msgstr "ipv4_address"
+msgstr "ipv4_عنوان"
 
 #: ../common/nwamui_ncu.c:218 ../common/nwamui_ncu.c:219
 msgid "ipv4_subnet"
@@ -621,27 +619,27 @@ msgstr "v6addresses"
 
 #: ../common/nwamui_ncu.c:283 ../common/nwamui_ncu.c:284
 msgid "Wi-Fi configuration information."
-msgstr "Informace o konfiguraci Wi-Fi"
+msgstr "Wi-Fi معلومات الإعدادات"
 
 #: ../common/nwamui_ncu.c:291 ../common/nwamui_ncu.c:292
 msgid "rules_enabled"
-msgstr "rules_enabled"
+msgstr "تفعيل_الشروط"
 
 #: ../common/nwamui_ncu.c:299 ../common/nwamui_ncu.c:300
 msgid "rules_ncus"
-msgstr "rules_ncus"
+msgstr "شروط_ncus"
 
 #: ../common/nwamui_ncu.c:306 ../common/nwamui_ncu.c:307
 msgid "rules_ncu_state"
-msgstr "rules_ncu_state"
+msgstr "شروط_ncu_state"
 
 #: ../common/nwamui_ncu.c:316 ../common/nwamui_ncu.c:317
 msgid "rules_action"
-msgstr "rules_action"
+msgstr "شروط_action"
 
 #: ../common/nwamui_ncu.c:326 ../common/nwamui_ncu.c:327
 msgid "priority"
-msgstr "priorita"
+msgstr "أولوية "
 
 #: ../common/nwamui_ncu.c:924 ../common/nwamui_ncp.c:582
 #, c-format
@@ -658,15 +656,15 @@ msgstr "WEP ASCII"
 
 #: ../common/libnwamui.c:155
 msgid "WPA Personal(PSK)"
-msgstr "WPA Personal(PSK)"
+msgstr "WPA شخصي(PSK)"
 
 #: ../common/libnwamui.c:156
 msgid "WPA Enterprise (Radius)"
-msgstr "WPA Enterprise (Radius)"
+msgstr "WPA متقدم (Radius)"
 
 #: ../common/libnwamui.c:157
 msgid "None"
-msgstr "Žádný"
+msgstr "لا شئ"
 
 #: ../common/libnwamui.c:174 ../common/libnwamui.c:175
 msgid "WPA"
@@ -674,7 +672,7 @@ msgstr "WPA"
 
 #: ../common/libnwamui.c:176
 msgid "Open"
-msgstr "Open"
+msgstr "مفتوح"
 
 #: ../common/libnwamui.c:192
 msgid "LEAP"
@@ -687,84 +685,84 @@ msgstr "PEAP/MSCHAPv2"
 #. fall through
 #: ../common/libnwamui.c:195
 msgid "Automatic"
-msgstr "Automatické"
+msgstr "أتوماتيكي "
 
 #: ../common/libnwamui.c:469
 msgid "Could not display help"
-msgstr "Nelze zobrazit nápovědu"
+msgstr "لايمكن عرض المساعدة "
 
 #: ../common/libnwamui.c:551
 msgid "This operation cannot be undone."
-msgstr "Tuto operaci nelze vzít zpět."
+msgstr "هذا النظام لايمكن التراجع  "
 
 #: ../common/nwamui_prof.c:149 ../common/nwamui_prof.c:150
 msgid "The action if no favorite networks are available"
-msgstr "Akce, pokud oblíbená síť není k dispozici"
+msgstr "نفذ إذا لم يكن يوجد شبكة مفضلة "
 
 #: ../common/nwamui_prof.c:159 ../common/nwamui_prof.c:160
 #: ../common/nwamui_prof.c:167 ../common/nwamui_prof.c:168
 msgid "Active Interface"
-msgstr "Aktivní rozhraní"
+msgstr "تقعيل الواجهة الشبكية "
 
 #: ../common/nwamui_wifi_net.c:111 ../common/nwamui_wifi_net.c:112
 msgid "NCU that AP is seen on"
-msgstr "NCU that AP is seen on"
+msgstr "NCU AP يظهر أنه مفعل "
 
 #: ../common/nwamui_wifi_net.c:119 ../common/nwamui_wifi_net.c:120
 msgid "Wifi Network ESSID"
-msgstr "ESSID bezdrátové sítě"
+msgstr "Wifi شبكة ESSID"
 
 #: ../common/nwamui_wifi_net.c:127 ../common/nwamui_wifi_net.c:128
 msgid "Wifi Network BSSID"
-msgstr "BSSID bezdrátové sítě"
+msgstr "Wifi شبكة BSSID"
 
 #: ../common/nwamui_wifi_net.c:135 ../common/nwamui_wifi_net.c:136
 msgid "Wifi Network Status"
-msgstr "Stav Wifi sítě"
+msgstr "Wifi حالة الشبكة "
 
 #: ../common/nwamui_wifi_net.c:144 ../common/nwamui_wifi_net.c:145
 msgid "Wifi Network Security"
-msgstr "Bezpečnost Wifi sítě"
+msgstr "Wifi أمن الشبكة "
 
 #: ../common/nwamui_wifi_net.c:153 ../common/nwamui_wifi_net.c:154
 msgid "Wifi Network Signal Strength"
-msgstr "Síla signálu Wifi sítě"
+msgstr "Wifi قوة إشارة الشبكة  "
 
 #: ../common/nwamui_wifi_net.c:163
 msgid "Wifi BSS Type"
-msgstr "BSS typ Wifi"
+msgstr "Wifi نوع BSS"
 
 #: ../common/nwamui_wifi_net.c:164
 msgid "Wifi BSS Type (AP or AD-HOC)"
-msgstr "BSS typ Wifi (AP nebo AD-HOC)"
+msgstr "Wifi نوع BSS(AP or AD-HOC)"
 
 #: ../common/nwamui_wifi_net.c:183 ../common/nwamui_wifi_net.c:184
 msgid "mode"
-msgstr "mód"
+msgstr "النمط"
 
 #: ../common/nwamui_wifi_net.c:191 ../common/nwamui_wifi_net.c:192
 msgid "Wifi WPA Configuration Type"
-msgstr "Typ WPA konfigurace Wifi sítě"
+msgstr "Wifi WPA نوع إعدادات "
 
 #: ../common/nwamui_wifi_net.c:202 ../common/nwamui_wifi_net.c:203
 msgid "Wifi WEP Password"
-msgstr "Heslo k WEP Wifi síti"
+msgstr "Wifi WPA كلمة المرور "
 
 #: ../common/nwamui_wifi_net.c:210 ../common/nwamui_wifi_net.c:211
 msgid "Wifi WPA Username"
-msgstr "Uživatelské jméno k WPA Wifi síti"
+msgstr "Wifi WPA إسم المستخدم "
 
 #: ../common/nwamui_wifi_net.c:218 ../common/nwamui_wifi_net.c:219
 msgid "Wifi WPA Password"
-msgstr "Heslo k WPA Wifi síti"
+msgstr "Wifi WPA كلمة المرور "
 
 #: ../common/nwamui_wifi_net.c:226 ../common/nwamui_wifi_net.c:227
 msgid "Wifi WPA Certificate File Path"
-msgstr "Cesta k souboru s certifikátem WPA Wifi sítě"
+msgstr "Wifi WPA مسار ملف التوثيق "
 
 #: ../common/nwamui_wifi_net.c:652
 msgid "Failed to initiate connection to wireless network."
-msgstr "Inicializace připojení k bezdrátové síti selhala."
+msgstr "فشل التحقق من الإتصال بالشبكة اللاسلكية "
 
 #: ../common/nwamui_wifi_net.c:763
 #, c-format
@@ -774,95 +772,95 @@ msgstr "[%s] "
 #: ../common/nwamui_wifi_net.c:771
 #, c-format
 msgid " (Computer-to-Computer)"
-msgstr " (Počítač-Počítač)"
+msgstr " (Computer-to-Computer)"
 
 #: ../common/nwamui_daemon.c:161 ../common/nwamui_daemon.c:162
 msgid "status"
-msgstr "stav"
+msgstr "حالة "
 
 #: ../common/nwamui_daemon.c:171 ../common/nwamui_daemon.c:172
 msgid "event_cause"
-msgstr "event_cause"
+msgstr "سبب_الحدث"
 
 #: ../common/nwamui_daemon.c:1031 ../common/nwamui_daemon.c:1049
 msgid "unknown"
-msgstr "neznámý"
+msgstr "غير معروف "
 
 #: ../common/nwamui_daemon.c:1034
 msgid "DHCP down"
-msgstr "DHCP down"
+msgstr "DHCP مطفأ "
 
 #: ../common/nwamui_daemon.c:1035
 msgid "DHCP timed out"
-msgstr "DHCP timed out"
+msgstr "DHCP إنتهاء وقت "
 
 #: ../common/nwamui_daemon.c:1036
 msgid "Cable disconnected"
-msgstr "Síťový kabel byl odpojen"
+msgstr "الكبل مقطوع "
 
 #: ../common/nwamui_daemon.c:1037
 msgid "User changed priority"
-msgstr "Uživatel změnil prioritu"
+msgstr "تغير أولوية المستخدم "
 
 #: ../common/nwamui_daemon.c:1038
 msgid "Higher priority, cable connected"
-msgstr "Vyšší priorita, připojeno kabelem"
+msgstr "أعلى أولوية , الكبل متصل "
 
 #: ../common/nwamui_daemon.c:1039
 msgid "Scan done on higher-priority wireless network interface"
-msgstr "Skenování dokončeno na vyšší prioritě rozhraní bezdrátové sítě"
+msgstr "الفحص تم على الأولوية الأعلى لواجهة الشبكة اللاسلكية"
 
 #: ../common/nwamui_daemon.c:1040
 msgid "Periodic scan shows wireless network gone."
-msgstr "Pravidelné skenování ukazuje, že bezdrátová síť již není k dispozici"
+msgstr "تكرر الفحص يظهر الشبكات اللاسلكية "
 
 #: ../common/nwamui_daemon.c:1041
 msgid "Periodic scan shows very weak signal on wireless network"
-msgstr "Pravidelné skenování ukazuje velmi slabý signál bezdrátové sítě"
+msgstr "تكرر الفحص يظهر الإشارة الضعيفة على الشبكة اللاسلكية "
 
 #: ../common/nwamui_daemon.c:1042
 msgid "All network interfaces but one going down"
-msgstr "All network interfaces but one going down"
+msgstr "كل الواجهات الشبكة ولكن واحدة تفشل "
 
 #: ../common/nwamui_daemon.c:1043
 msgid "Another network interface is already active"
-msgstr "Jiné síťové rozhraní je nyní aktivní"
+msgstr "واجهة شبكة أخرى مفعلة "
 
 #: ../common/nwamui_daemon.c:1044
 msgid "NWAM Daemon is shutting down"
-msgstr "Démon NWAM se vypíná"
+msgstr "NWAM Daemon هو مطفأ "
 
 #: ../common/nwamui_daemon.c:1045
 msgid "Different AP selected"
-msgstr "Zvoleno jiné AP"
+msgstr "إختيار AP مختلف "
 
 #: ../common/nwamui_daemon.c:1046
 msgid "Hardware removed"
-msgstr "Hardware byl odstraněn"
+msgstr "Hardware مزال "
 
 #: ../common/nwamui_daemon.c:1047
 msgid "none"
-msgstr "žádný"
+msgstr "لاشي "
 
 #: ../common/nwamui_daemon.c:1415 ../common/nwamui_daemon.c:1703
 #, c-format
 msgid "New wireless networks found."
-msgstr "Nalezena nová bezdrátová síť"
+msgstr "وجود شبكة لاسلكية جديدة"
 
 #: ../common/nwamui_daemon.c:1429
 #, c-format
 msgid "User script '%s' activated"
-msgstr "Uživatelský skript '%s' byl aktivován"
+msgstr "Script المستخدم '%s' مفعل "
 
 #: ../common/nwamui_daemon.c:1439
 #, c-format
 msgid "User script '%s' deactivated"
-msgstr "Uživatelský skript '%s' byl deaktivován"
+msgstr "Script المستخدم '%s' غير مفعل   "
 
 #: ../common/nwamui_daemon.c:1564
 #, c-format
 msgid "%s network interface is up."
-msgstr "%s síťové rozhraní je připojeno."
+msgstr "%s كرت الشبكة مشغل "
 
 #: ../common/nwamui_daemon.c:1603
 #, c-format
@@ -870,18 +868,17 @@ msgid ""
 "%s network interface brought down\n"
 "Reason: %s"
 msgstr ""
-       "%s síťové rozhraní spadlo\n"
-       "Důvod: %s"
+       "%s كرت الشبكة مطفأ \n ,السبب: %s"
 
 #: ../common/nwamui_daemon.c:1785
 #, c-format
 msgid "%s network interface failed to start DHCP request."
-msgstr "%s síťové rozhraní selhalo při startu DHCP požadavku."
+msgstr "%s فشل كرت الشبكة بطلب من مخدم DHCP"
 
 #: ../common/nwamui_daemon.c:1795
 #, c-format
 msgid "%s network interface failed to get response from DHCP request."
-msgstr "%s síťové rozhraní selhalo při získávání odpovědy od DHCP požadavku"
+msgstr "%s فشل كرت الشبكة بإستلام الرد من مخدم DHCP"
 
 #: ../common/nwamui_ip.c:89 ../common/nwamui_ip.c:90
 msgid "is_v6"
@@ -889,7 +886,7 @@ msgstr "is_v6"
 
 #: ../common/nwamui_ip.c:97 ../common/nwamui_ip.c:98
 msgid "address"
-msgstr "adresa"
+msgstr "عنوان "
 
 #: ../common/nwamui_ip.c:105 ../common/nwamui_ip.c:106
 msgid "subnet_prefix"
@@ -897,20 +894,20 @@ msgstr "subnet_prefix"
 
 #: ../common/nwamui_ncp.c:112 ../common/nwamui_ncp.c:113
 msgid "Name of the NCP"
-msgstr "Název NCP"
+msgstr "إسم NCP"
 
 #: ../common/nwamui_ncp.c:120 ../common/nwamui_ncp.c:121
 msgid "List of NCUs in the NCP"
-msgstr "Seznam všech NCU v NCP"
+msgstr "قائمة NCU من خلال NCP"
 
 #: ../common/nwamui_ncp.c:128 ../common/nwamui_ncp.c:129
 msgid "Active NCU"
-msgstr "Aktivní NCU"
+msgstr "تفعيل NCU"
 
 #: ../common/nwamui_ncp.c:136 ../common/nwamui_ncp.c:137
 msgid "selection_mode"
-msgstr "selection_mode"
+msgstr "حالة الإختيار "
 
 #: ../common/nwamui_ncp.c:146 ../common/nwamui_ncp.c:147
 msgid "many_wireless"
-msgstr "many_wireless"
+msgstr "عدة شبكات لاسلكية "

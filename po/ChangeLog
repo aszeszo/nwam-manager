@@ -1,3 +1,8 @@
+2009-05-15  Harry Fu <harry.fu@sun.com>
+
+	* ar.po nl.po: Added new .po files.
+	* cs.po hu.po pl.po: Updated translations.
+
 2009-05-07  Darren Kenny  <darren.kenny@sun.com>
 
 	* Makefile.in.in:
