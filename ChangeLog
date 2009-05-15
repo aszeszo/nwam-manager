@@ -1,3 +1,10 @@
+2009-05-15  Darren Kenny  <darren.kenny@sun.com>
+
+	* nwam_core/usr/include/libnwam.h, nwam_core/usr/include/sys/mac.h:
+	  Update to most recent headers.
+	* common/nwamui_wifi_net.c, common/nwamui_wifi_net.h:
+	  Fix rename of nwam_event_wlan_t to nwam_wlan_t
+
 2009-05-15  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/nwam-menuitem.c (nwam_menu_item_forall):

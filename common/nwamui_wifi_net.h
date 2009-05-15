@@ -125,10 +125,10 @@ extern  NwamuiWifiNet*              nwamui_wifi_net_new_with_handle(    struct _
                                                                         nwam_known_wlan_handle_t         handle );
 
 extern  NwamuiWifiNet*              nwamui_wifi_net_new_from_wlan_t(    struct _NwamuiNcu                       *ncu,
-                                                                        nwam_event_wlan_t               *wlan );
+                                                                        nwam_wlan_t               *wlan );
 
 extern gboolean                     nwamui_wifi_net_update_from_wlan_t( NwamuiWifiNet*      self, 
-                                                                        nwam_event_wlan_t*  wlan );
+                                                                        nwam_wlan_t*  wlan );
 
 extern gboolean                     nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_t  handle );
 

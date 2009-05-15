@@ -883,17 +883,35 @@ extern nwam_error_t nwam_known_wlan_get_default_proplist(const char ***,
     uint_t *);
 
 /* Add a bssid to the known WLANs */
-extern nwam_error_t nwam_known_wlan_add_to_known_wlan(const char *,
-    const char *);
+extern nwam_error_t nwam_known_wlan_add_to_known_wlans(const char *,
+    const char *, const char *);
 
 /* Remove a bssid from known WLANs */
-extern nwam_error_t nwam_known_wlan_remove_from_known_wlan(const char *,
-    const char *);
+extern nwam_error_t nwam_known_wlan_remove_from_known_wlans(const char *,
+    const char *, const char *);
+
+/*
+ * nwam_wlan_t is used for scan/need choice events and by
+ * nwam_wlan_get_scan_results().
+ */
+typedef struct {
+	char essid[NWAM_MAX_NAME_LEN];
+	char bssid[NWAM_MAX_NAME_LEN];
+	char signal_strength[NWAM_MAX_NAME_LEN];
+	uint32_t security_mode; /* a dladm_wlan_secmode_t */
+	uint32_t channel; /* a dladm_wlan_channel_t */
+	uint32_t bsstype; /* a dladm_wlan_bsstype_t */
+	boolean_t have_key;
+	boolean_t selected;
+	boolean_t connected;
+} nwam_wlan_t;
 
 /*
  * Active WLAN definitions. Used to scan WLANs/choose a WLAN/set a WLAN key.
  */
 extern nwam_error_t nwam_wlan_scan(const char *);
+extern nwam_error_t nwam_wlan_get_scan_results(const char *, uint_t *,
+    nwam_wlan_t **);
 extern nwam_error_t nwam_wlan_select(const char *, const char *, const char *,
     boolean_t);
 extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
@@ -930,15 +948,6 @@ extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
 #define	NWAM_EVENT_REQUEST_KEY			2
 
 #define	NWAM_NAMESIZE		32 /* LIFNAMSIZ, _LIFNAMSIZ, IFNAMESIZ ... */
-
-typedef struct {
-	char essid[NWAM_MAX_NAME_LEN];
-	char bssid[NWAM_MAX_NAME_LEN];
-	char signal_strength[NWAM_MAX_NAME_LEN];
-	uint32_t security_mode; /* a dladm_wlan_secmode_t */
-	uint32_t channel; /* a dladm_wlan_channel_t */
-	uint32_t bsstype; /* a dladm_wlan_bsstype_t */
-} nwam_event_wlan_t;
 
 /*
  * Actions for nwamd to perform, used in conjunction with
@@ -1000,7 +1009,7 @@ struct nwam_event {
 			char name[NWAM_MAX_NAME_LEN];
 			boolean_t connected;
 			uint16_t num_wlans;
-			nwam_event_wlan_t wlans[1];
+			nwam_wlan_t wlans[1];
 			/*
 			 * space may be allocated by user here for the
 			 * number of wlans

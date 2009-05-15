@@ -752,7 +752,7 @@ nwamui_wifi_net_new_with_handle(    NwamuiNcu                       *ncu,
 
 extern gboolean
 nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self, 
-                                        nwam_event_wlan_t               *wlan )
+                                        nwam_wlan_t               *wlan )
 {
     if ( wlan != NULL ) {
         const gchar*                    essid = wlan->essid;
@@ -805,11 +805,11 @@ nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self,
  *
  * @returns: a new #NwamuiWifiNet.
  *
- * Creates a new #NwamuiWifiNet from a nwam_event_wlan_t
+ * Creates a new #NwamuiWifiNet from a nwam_wlan_t
  **/
 extern  NwamuiWifiNet*
 nwamui_wifi_net_new_from_wlan_t(    NwamuiNcu                       *ncu,
-                                    nwam_event_wlan_t               *wlan )
+                                    nwam_wlan_t               *wlan )
 {
     NwamuiWifiNet*  self = NULL;
     
