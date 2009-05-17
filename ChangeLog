@@ -1,3 +1,13 @@
+2009-05-17  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_net_conf_panel.c: 
+	  Added initial enable buttons elements, but not handled by event
+	  callback yet.
+	  Added create_group_object() and update_ncu_like_group() to handle
+	  creation of a group object, and for when moving an ncu, allowing you
+	  to update an NCU to match the values stored in the group object.
+	  Haven't used them yet though... 
+
 2009-05-15  Darren Kenny  <darren.kenny@sun.com>
 
 	* nwam_core/usr/include/libnwam.h, nwam_core/usr/include/sys/mac.h:
