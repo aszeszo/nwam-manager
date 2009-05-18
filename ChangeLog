@@ -1,5 +1,17 @@
 2009-05-18  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/capplet-utils.c:
+	* capplet/capplet-utils.h:
+	* capplet/nwam_net_conf_panel.c (refresh),
+	(nwam_net_conf_update_status_cell_cb),
+	(capplet_tree_store_cp_children), (on_button_clicked),
+	(ncu_pri_group_get_path), (ncu_pri_group_get_iter),
+	(ncu_pri_treeview_add):
+	New group is partially done.
+	TODO, group id is increasing infinitely.
+
+2009-05-18  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/capplet-utils.c (capplet_tree_store_move_children):
 	* capplet/capplet-utils.h:
 	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),

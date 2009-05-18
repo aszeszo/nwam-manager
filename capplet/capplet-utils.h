@@ -77,23 +77,47 @@ gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
         gtk_list_store_append(GTK_LIST_STORE(model), &iter);            \
         gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, object, -1); \
     }
-#define CAPPLET_TREE_STORE_ADD(model, parent, object)                   \
+#define CAPPLET_TREE_STORE_ADD(model, parent, object, iter)             \
     {                                                                   \
-        GtkTreeIter iter;                                               \
-        gtk_tree_store_append(GTK_TREE_STORE(model), &iter, parent);    \
-        gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, object, -1); \
+        gtk_tree_store_append(GTK_TREE_STORE(model), iter, parent);     \
+        gtk_tree_store_set(GTK_TREE_STORE(model), iter, 0, object, -1); \
     }
-#define CAPPLET_TREE_STORE_INSET_BEFORE(model, parent, sibling, object) \
+#define TREE_STORE_INSET_BEFORE(model, parent, sibling, object, iter)   \
     {                                                                   \
-        GtkTreeIter iter;                                               \
-        gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, parent, sibling); \
-        gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, object, -1); \
+        gtk_tree_store_insert_before(GTK_TREE_STORE(model), iter, parent, sibling); \
+        gtk_tree_store_set(GTK_TREE_STORE(model), iter, 0, object, -1); \
     }
-#define CAPPLET_TREE_STORE_INSET_AFTER(model, parent, sibling, object) \
+#define TREE_STORE_INSET_AFTER(model, parent, sibling, object, iter)    \
     {                                                                   \
-        GtkTreeIter iter;                                               \
-        gtk_tree_store_insert_after(GTK_TREE_STORE(model), &iter, parent, sibling); \
-        gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, object, -1); \
+        gtk_tree_store_insert_after(GTK_TREE_STORE(model), iter, parent, sibling); \
+        gtk_tree_store_set(GTK_TREE_STORE(model), iter, 0, object, -1); \
+    }
+#define TREE_STORE_CP_OBJECT(model, target, source)                     \
+    {                                                                   \
+        NwamuiObject *object;                                           \
+        gtk_tree_model_get(GTK_TREE_MODEL(model), source, 0, &object, -1); \
+        gtk_tree_store_set(GTK_TREE_STORE(model), target, 0, object, -1); \
+        if (object)                                                     \
+            g_object_unref(object);                                     \
+    }
+#define TREE_STORE_MOVE_OBJECT(model, target, source)                   \
+    {                                                                   \
+        TREE_STORE_CP_OBJECT(model, target, source);                    \
+        gtk_tree_store_remove(GTK_TREE_STORE(model), source);           \
+    }
+#define TREE_STORE_CP_OBJECT_AFTER(model, source, parent, sibling, iter) \
+    {                                                                   \
+        gtk_tree_store_insert_after(GTK_TREE_STORE(model), iter, parent, sibling); \
+        TREE_STORE_CP_OBJECT(model, iter, source);                      \
+    }
+
+#define TREE_VIEW_EXPAND_ROW(treeview, iter)                            \
+    {                                                                   \
+        GtkTreePath *path;                                              \
+        path = gtk_tree_model_get_path(gtk_tree_view_get_model(GTK_TREE_VIEW(treeview)), \
+          &parent);                                                     \
+        gtk_tree_view_expand_row(GTK_TREE_VIEW(treeview), path, TRUE);  \
+        gtk_tree_path_free(path);                                       \
     }
 
 /* Combo utils. */
