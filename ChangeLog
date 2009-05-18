@@ -1,3 +1,13 @@
+2009-05-18  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),
+	(refresh), (nwam_net_conf_update_status_cell_cb),
+	(on_button_clicked), (selection_func), (update_widgets),
+	(ncu_pri_group_get_hash), (ncu_pri_group_get_path),
+	(ncu_pri_group_get_iter), (ncu_pri_group_update):
+	Fixed group id is increasing infinitely by using ncu_pri_group_update
+	to collapse group id.
+
 2009-05-18  Darren Kenny  <darren.kenny@sun.com>
 
 	* Makefile.am, autogen.sh, configure.in, help/Makefile.am,
