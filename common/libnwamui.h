@@ -95,6 +95,10 @@ typedef guint64 libnwam_diag_cause_t;
 #include "nwamui_daemon.h"
 #endif /* _NWAMUI_DAEMON_H */
 
+#ifndef _HELP_REFS_H 
+#include "help_refs.h"
+#endif /* _HELP_REFS_H  */
+
 /* Disable handling of HOST_FILE since it was removed from location
  * at the end of PHASE 1 work
  */
@@ -229,7 +233,7 @@ extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon_with_size
 extern GdkPixbuf*               nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type,
                                                                         gboolean small);
 
-extern void                     nwamui_util_show_help( gchar* link_name );
+extern void                     nwamui_util_show_help( const gchar* link_name );
 
 extern gchar*                   nwamui_util_rename_dialog_run(GtkWindow* parent_window, const gchar* title, const gchar* current_name);
 

@@ -629,7 +629,7 @@ static gboolean
 help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamVPNPrefDialog: Help");
-    nwamui_util_show_help ("");
+    nwamui_util_show_help (HELP_REF_VPN_CONFIGURING);
 }
 
 /* call backs */

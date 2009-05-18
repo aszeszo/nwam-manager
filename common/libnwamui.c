@@ -838,11 +838,11 @@ nwamui_util_get_wireless_strength_icon_with_size( nwamui_wifi_signal_strength_t 
  * Shows Help Dialog - the link_name refers to either the anchor or sectionid in the help file.
  */
 extern void
-nwamui_util_show_help( gchar* link_name )
+nwamui_util_show_help( const gchar* link_name )
 {
   GError *error = NULL;
   
-  gnome_help_display("nwam-manager", link_name, &error);
+  gnome_help_display(PACKAGE, (link_name?link_name:""), &error);
   
   if (error) {
     GtkWidget *dialog;

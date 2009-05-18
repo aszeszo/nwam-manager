@@ -815,7 +815,7 @@ static gboolean
 help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamConnConfIPPanel: Help");
-    nwamui_util_show_help ("");
+    nwamui_util_show_help (HELP_REF_CONNECTPROPS_CONFIG);
 }
 
 /**

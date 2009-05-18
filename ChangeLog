@@ -1,3 +1,22 @@
+2009-05-18  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/help_refs.h:
+	  Header file containing a generated list of all HELP document
+	  references.
+	* scripts/extract_help_tags.pl:
+	  Script to generate the help_refs.h file from a help file.
+	* capplet/nwam-manager-properties.glade:
+	* capplet/nwam-manager-properties.ui:
+	  Add Help button to the Location dialog.
+	* capplet/nwam_conn_conf_ip_panel.c, capplet/nwam_conn_stat_panel.c,
+	  capplet/nwam_env_pref_dialog.c, capplet/nwam_location_dialog.c,
+	  capplet/nwam_net_conf_panel.c, capplet/nwam_vpn_pref_dialog.c: 
+	  Make sure that Help buttons link to appropriate locations is Help
+	  document.
+	* common/libnwamui.c, common/libnwamui.h:
+	  Make help function handle a NULL location, and add help_refs to
+	  libnwamui.h header file.
+
 2009-05-18  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),

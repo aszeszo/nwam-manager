@@ -171,7 +171,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
 	iface->apply = apply;
-	iface->help = NULL;
+	iface->help = help;
     iface->dialog_run = dialog_run;
 }
 
@@ -616,6 +616,19 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     }
 
 }
+
+/**
+ * help:
+ *
+ * Help #NwamLocationDialog
+ **/
+static gboolean
+help(NwamPrefIFace *iface, gpointer user_data)
+{
+    g_debug ("NwamLocationDialog: Help");
+    nwamui_util_show_help (HELP_REF_LOCATIONPREFS_DIALOG);
+}
+
 
 static void
 nwam_location_dialog_finalize(NwamLocationDialog *self)
@@ -1117,6 +1130,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
             stop_emission = FALSE;
 			break;
 		case GTK_RESPONSE_HELP:
+			g_debug("GTK_RESPONSE_HELP");
             nwam_pref_help (NWAM_PREF_IFACE(data), NULL);
             stop_emission = TRUE;
 			break;

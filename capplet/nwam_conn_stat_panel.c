@@ -67,6 +67,7 @@ struct _NwamConnStatusPanelPrivate {
     NwamuiDaemon*       daemon;
     NwamLocationDialog* location_dialog;
 	NwamVPNPrefDialog*  vpn_dialog;
+
 };
 
 enum {
@@ -363,7 +364,7 @@ static gboolean
 help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamConnStatusPanel: Help");
-    nwamui_util_show_help ("");
+    nwamui_util_show_help (HELP_REF_CONNECTSTATUS_VIEW);
 }
 
 /* Callbacks */

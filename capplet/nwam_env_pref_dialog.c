@@ -2008,6 +2008,8 @@ help(NwamPrefIFace *iface, gpointer user_data)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
     g_debug("NwamEnvPrefDialog help");
+
+    nwamui_util_show_help (HELP_REF_LOCATION_EDIT);
 }
 
 static void
