@@ -83,7 +83,18 @@ gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
         gtk_tree_store_append(GTK_TREE_STORE(model), &iter, parent);    \
         gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, object, -1); \
     }
-
+#define CAPPLET_TREE_STORE_INSET_BEFORE(model, parent, sibling, object) \
+    {                                                                   \
+        GtkTreeIter iter;                                               \
+        gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, parent, sibling); \
+        gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, object, -1); \
+    }
+#define CAPPLET_TREE_STORE_INSET_AFTER(model, parent, sibling, object) \
+    {                                                                   \
+        GtkTreeIter iter;                                               \
+        gtk_tree_store_insert_after(GTK_TREE_STORE(model), &iter, parent, sibling); \
+        gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, object, -1); \
+    }
 
 /* Combo utils. */
 void capplet_compose_combo(GtkComboBox *combo,

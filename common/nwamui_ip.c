@@ -275,6 +275,7 @@ nwamui_ip_get_property (GObject         *object,
                                                         &address, NULL, NULL );
 
                     g_value_set_string( value, address );
+                    g_free(address);
                 }
                 else {
                     g_value_set_string( value, self->prv->address );

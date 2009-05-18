@@ -1,3 +1,19 @@
+2009-05-18  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (capplet_tree_store_move_children):
+	* capplet/capplet-utils.h:
+	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),
+	(nwam_net_conf_panel_init), (refresh),
+	(nwam_net_conf_panel_finalize),
+	(nwam_net_conf_update_status_cell_cb), (on_button_clicked),
+	(selection_func), (update_widgets), (create_group_object),
+	(update_ncu_like_group), (ncu_pri_group_get_index),
+	(ncu_pri_group_find_iter_gt), (ncu_pri_group_get_iter),
+	(ncu_pri_treeview_add):
+	* common/nwamui_ip.c (nwamui_ip_get_property):
+	Merged, correct update_widgets, but not sure if move up/down could 
+	allows mixed grup/ncus.
+
 2009-05-17  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_net_conf_panel.c: 

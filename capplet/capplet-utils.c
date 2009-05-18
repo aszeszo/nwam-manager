@@ -458,6 +458,50 @@ capplet_tree_store_exclude_children(GtkTreeStore *model,
 	}
 }
 
+/**
+ * capplet_tree_store_move_children:
+ * @func is used to iterate the moved item, its return code is ignored.
+ * Move source children to the target.
+ */
+void
+capplet_tree_store_move_children(GtkTreeStore *model,
+    GtkTreeIter *target,
+    GtkTreeIter *source,
+    GtkTreeModelForeachFunc func,
+    gpointer user_data)
+{
+	GtkTreeIter t_iter;
+	GtkTreeIter s_iter;
+	GtkTreeIter iter;
+
+	if (!gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &t_iter, target)) {
+		/* Think about the target position? */
+        t_iter = *target;
+	}
+
+	/* If source doesn't have children, then we move it */
+	if (gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &s_iter, source)) {
+		do {
+			/* Take care if there are customer monitoring
+			 * row-add/delete signals */
+            gtk_tree_store_move_before(GTK_TREE_STORE(model), &iter, &t_iter);
+
+			if (func)
+				func(GTK_TREE_MODEL(model), NULL, &iter, user_data);
+
+		} while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter));
+	} else {
+		gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, target, NULL);
+		capplet_tree_store_move_object(GTK_TREE_MODEL(model), &iter, source);
+
+		if (func)
+			func(GTK_TREE_MODEL(model), NULL, &iter, user_data);
+
+	}
+	/* Remove the parent */
+	gtk_tree_store_remove(GTK_TREE_STORE(model), source);
+}
+
 gboolean
 capplet_tree_view_expand_row(GtkTreeView *treeview,
     GtkTreeIter *iter,
