@@ -1,0 +1,10 @@
+<?xml version="1.0" standalone="no"?>
+<omf>
+  <resource>
+    <subject category="GNOME|Applications|System Tools"/>
+    <type>manual</type>
+    <relation seriesid="08757de1-b50d-ec17-763b-697b94a3a43a30"/>
+    <rights type="CDDL" license.version="1.0" holder="Sun Microsystems"/>
+  </resource>
+</omf>
+

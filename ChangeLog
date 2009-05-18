@@ -1,3 +1,24 @@
+2009-05-18  Darren Kenny  <darren.kenny@sun.com>
+
+	* Makefile.am, autogen.sh, configure.in, help/Makefile.am,
+	  help/nwam-manager.omf.in, help/nwam-manager.xml,
+	  help/C/graphics/condition-location.png,
+	  help/C/graphics/connection-properties-ipv4.png,
+	  help/C/graphics/connection-properties-wireless.png,
+	  help/C/graphics/connection-status.png,
+	  help/C/graphics/locationprefs-dialog.png,
+	  help/C/graphics/manual-location.png,
+	  help/C/graphics/nwprofile-auto.png,
+	  help/C/graphics/nwprofile-user.png,
+	  help/C/graphics/nwstatus-context-menu.png,
+	  help/C/graphics/panel-all-disconnect.png,
+	  help/C/graphics/panel-some-disconnect.png,
+	  help/C/graphics/panel-wired-connect.png,
+	  help/C/graphics/panel-wireless-connect.png,
+	  help/C/graphics/system-location.png, help/C/graphics/vpn-dialog.png,
+	  help/C/graphics/wireless-chooser.png, help/C/nwam-manager.xml:
+	  Integrate final OLH document, still needs to be linked to UI.
+
 2009-05-18  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c:

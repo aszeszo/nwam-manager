@@ -2,10 +2,13 @@ AC_PREREQ(2.54)
 AC_INIT([nwam-manager], [1.0], [null])
 
 AC_CONFIG_SRCDIR([daemon])
+AC_CONFIG_MACRO_DIR([m4])
 
 AM_INIT_AUTOMAKE
 AM_CONFIG_HEADER(config.h)
 AM_MAINTAINER_MODE
+
+GNOME_DOC_INIT
 
 dnl make sure we keep ACLOCAL_FLAGS around for maintainer builds to work
 AC_SUBST(ACLOCAL_AMFLAGS, "\${ACLOCAL_FLAGS}")
@@ -192,6 +195,7 @@ common/Makefile
 tests/Makefile
 daemon/Makefile
 capplet/Makefile
+help/Makefile
 po/Makefile.in
 pixmaps/Makefile
 pixmaps/16x16/Makefile

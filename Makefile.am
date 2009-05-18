@@ -18,7 +18,7 @@
 # CDDL HEADER END
 #
 
-SUBDIRS = common tests capplet daemon po pixmaps
+SUBDIRS = common tests capplet daemon po pixmaps help
 
 NWAM_CORE_INCS = \
 		nwam_core/usr/include/inetcfg.h \
@@ -46,14 +46,20 @@ NWAM_CORE_INCS = \
 
 EXTRA_DIST =			\
 		${NWAM_CORE_INCS} \
+		m4 \
         intltool-extract.in	\
         intltool-merge.in	\
         intltool-update.in	\
+		gnome-doc-utils.make \
 		SUNWnwam-manager.spec	\
 		nwam-manager.spec
 
 DISTCLEANFILES =		\
         intltool-extract	\
         intltool-merge		\
-        intltool-update
+        intltool-update \
+		gnome-doc-utils.make
+
+DISTCHECK_CONFIGURE_FLAGS= \
+	--disable-scrollkeeper
 
