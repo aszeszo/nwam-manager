@@ -1,5 +1,10 @@
 2009-05-19  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam-manager-properties.ui: Added a new dialog for edit
+	connections dialog.
+
+2009-05-19  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_net_conf_panel.c (refresh), (ref_ncu_group_node),
 	(handle_ncu_group_node), (on_button_clicked): Added new functions.
 	ref_ncu_group_node is to get the reference of the parent of a row or
