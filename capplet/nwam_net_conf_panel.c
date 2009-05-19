@@ -1070,11 +1070,10 @@ nwam_net_pref_rule_ncu_enabled_toggled_cb  (    GtkCellRendererToggle *cell_rend
 
 /**
  * capplet_tree_store_move_children:
- * @func is used to iterate the moved item, its return code is ignored.
- * Move source children to the target.
+ * Note only move children. If source has children, then move it, else move source.
  */
 void
-capplet_tree_store_cp_children(GtkTreeStore *model,
+capplet_tree_store_move_children(GtkTreeStore *model,
     GtkTreeIter *target,
     GtkTreeIter *source,
     GtkTreeModelForeachFunc func,
@@ -1098,7 +1097,7 @@ capplet_tree_store_cp_children(GtkTreeStore *model,
 
                 TREE_STORE_CP_OBJECT_AFTER(model, &s_iter, target, &t_iter, &temp_iter);
             }
-		} while (gtk_tree_model_iter_next(GTK_TREE_STORE(model), &s_iter));
+		} while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter));
 	} else {
         if (!gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &t_iter, target)) {
             /* Think about the target position? */
@@ -1108,6 +1107,7 @@ capplet_tree_store_cp_children(GtkTreeStore *model,
 
             TREE_STORE_CP_OBJECT_AFTER(model, source, target, &t_iter, &temp_iter);
         }
+        gtk_tree_store_remove(GTK_TREE_STORE(model), source);
     }
 }
 
@@ -1118,7 +1118,6 @@ on_button_clicked(GtkButton *button, gpointer user_data)
     NwamNetConfPanelPrivate*  prv           = GET_PRIVATE(self);
     GtkTreeSelection         *selection     = gtk_tree_view_get_selection(prv->net_conf_treeview);
     GtkTreeModel*             model;
-    GtkTreeIter               iter;
     gint                      count_selected_rows;
     GList*                    rows;
     gint                      on_group_num  = prv->on_group_num;
@@ -1132,10 +1131,9 @@ on_button_clicked(GtkButton *button, gpointer user_data)
     rows = gtk_tree_selection_get_selected_rows(selection, &model);
 
     if (count_selected_rows > 0) {
-        GtkTreePath *path = (GtkTreePath *)rows->data;
-
-        gtk_tree_model_get_iter(model, &iter, path);
+        /* Group button */
         if (button == (gpointer)prv->connection_group_btn) {
+
             GList *i;
             GList *rowrefs = NULL;
             GtkTreeIter parent;
@@ -1149,68 +1147,90 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
             if (is_new_group) {
                 gint group_id;
-                GtkTreeIter new_parent;
 
                 /* New group */
-                ncu_pri_group_get_iter(model, ALWAYS_OFF_GROUP_ID, 0, &parent);
-
-/*                 g_debug("\nnew group id: %d\n", ALWAYS_OFF_GROUP_ID - 1); */
-                ncu_pri_group_get_iter(model, ALWAYS_OFF_GROUP_ID - 1, NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE, &new_parent);
+                ncu_pri_group_get_iter(model, ALWAYS_OFF_GROUP_ID - 1, NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE, &parent);
                 ncu_pri_group_update(model);
-
-                for (i = rowrefs; i; i = g_list_next(i)) {
-                    GtkTreeIter iter;
-                    GtkTreePath *path;
-                    gboolean is_group = FALSE;
-                    GtkTreeRowReference *group_rr = NULL;
-
-                    path = gtk_tree_row_reference_get_path((GtkTreeRowReference*)i->data);
-                    /* Monitor the group node. */
-                    if (gtk_tree_path_get_depth(path) == 2) {
-                        GtkTreePath *parent_path = gtk_tree_path_copy(path);
-                        gtk_tree_path_up(parent_path);
-                        group_rr = gtk_tree_row_reference_new(model, parent_path);
-                        gtk_tree_path_free(parent_path);
-                    }
-
-                    gtk_tree_model_get_iter(model, &iter, path);
-
-                    capplet_tree_store_cp_children(GTK_TREE_STORE(model),
-                      &new_parent,
-                      &iter,
-                      NULL,
-                      NULL);
-
-                    gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
-
-                    if (group_rr) {
-                        if (gtk_tree_path_compare(gtk_tree_row_reference_get_path(group_rr), ncu_pri_group_get_path(model, ALWAYS_ON_GROUP_ID)) == 0) {
-                            GtkTreeIter temp;
-                            CAPPLET_TREE_STORE_ADD(model, &iter, fake_object_in_pri_group, &temp);
-                        } else {
-                            gtk_tree_model_get_iter(model, &iter, path);
-                            if (!gtk_tree_model_iter_has_child(model, &iter)) {
-                                gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
-                            }
-                        }
+            } else {
+                GtkTreeIter iter;
+                NwamuiObject *obj;
+                /* Delete group */
+                ncu_pri_group_get_iter(model, ALWAYS_OFF_GROUP_ID, 0, &parent);
+                if (gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &iter, &parent)) {
+                    gtk_tree_model_get(model, &iter, 0, &obj, -1);
+                    if (obj == (gpointer)fake_object_in_pri_group) {
+                        g_object_unref(obj);
+                        gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
+                    } else {
+                        g_object_unref(obj);
                     }
                 }
-
-                gtk_tree_view_expand_all(prv->net_conf_treeview);
-            } else {
-                /* Delete group */
-/*             ncu_pri_group_get_iter(model, group_id, group_mode, &parent); */
             }
+
+            for (i = rowrefs; i; i = g_list_next(i)) {
+                GtkTreeIter iter;
+                GtkTreePath *path;
+                gboolean is_ncu = FALSE;
+                GtkTreeRowReference *group_rr = NULL;
+                GtkTreePath *parent_path;
+
+                path = gtk_tree_row_reference_get_path((GtkTreeRowReference*)i->data);
+                /* Monitor the group node. */
+                if (gtk_tree_path_get_depth(path) == 2) {
+                    parent_path = gtk_tree_path_copy(path);
+                    gtk_tree_path_up(parent_path);
+                    is_ncu = TRUE;
+                } else {
+                    parent_path = gtk_tree_path_copy(path);
+                }
+                group_rr = gtk_tree_row_reference_new(model, parent_path);
+                gtk_tree_path_free(parent_path);
+
+                gtk_tree_model_get_iter(model, &iter, path);
+
+                /* Only copy non-group nodes. */
+                capplet_tree_store_move_children(GTK_TREE_STORE(model),
+                  &parent,
+                  &iter,
+                  NULL,
+                  NULL);
+
+                /* Handle group node. */
+                parent_path = gtk_tree_row_reference_get_path(group_rr);
+                if (gtk_tree_path_compare(parent_path,
+                    ncu_pri_group_get_path(model, ALWAYS_ON_GROUP_ID)) == 0 ||
+                  gtk_tree_path_compare(parent_path,
+                    ncu_pri_group_get_path(model, ALWAYS_OFF_GROUP_ID)) == 0) {
+                    GtkTreeIter temp;
+                    gtk_tree_model_get_iter(model, &iter, parent_path);
+                    if (!gtk_tree_model_iter_has_child(model, &iter)) {
+                        CAPPLET_TREE_STORE_ADD(model, &iter, fake_object_in_pri_group, &temp);
+                    }
+                } else {
+                    gtk_tree_model_get_iter(model, &iter, parent_path);
+                    if (!gtk_tree_model_iter_has_child(model, &iter)) {
+                        gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
+                    }
+                }
+                gtk_tree_row_reference_free(group_rr);
+            }
+
+            gtk_tree_selection_unselect_all(selection);
+            gtk_tree_view_expand_all(prv->net_conf_treeview);
 
             g_list_foreach (rowrefs, (GFunc)gtk_tree_row_reference_free, NULL);
             g_list_free (rowrefs);
 
             update_widgets(self, gtk_tree_view_get_selection(prv->net_conf_treeview));
 
+            /* Group button end */
+
         } else if (count_selected_rows == 1) {
             NwamuiObject   *object;
             GtkTreePath    *path = (GtkTreePath *)rows->data;
+            GtkTreeIter    iter;
 
+            gtk_tree_model_get_iter(model, &iter, path);
             gtk_tree_model_get(model, &iter, 0, &object, -1);
  
             if (button == (gpointer)prv->connection_move_up_btn) {
@@ -1284,6 +1304,10 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             g_object_unref(object);
         } else if ( 0 && count_selected_rows == 1) {
             NwamuiObject *object;
+            GtkTreeIter    iter;
+            GtkTreePath    *path = (GtkTreePath *)rows->data;
+
+            gtk_tree_model_get_iter(model, &iter, path);
             gtk_tree_model_get(model, &iter, 0, &object, -1);
  
 
@@ -1297,6 +1321,10 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             if (button == (gpointer)prv->connection_move_up_btn) {
                 GtkTreeIter prev_iter;
                 GtkTreeIter parent_iter;
+                GtkTreeIter    iter;
+                GtkTreePath    *path = (GtkTreePath *)rows->data;
+
+                gtk_tree_model_get_iter(model, &iter, path);
 
                 if ( gtk_tree_path_prev(path) ) { /* See if we have somewhere to move up to... */
                     gtk_tree_model_get_iter(model, &prev_iter, path);
@@ -1426,7 +1454,7 @@ selection_func(GtkTreeSelection *selection,
         if (object == (gpointer)fake_object_in_pri_group) {
             g_object_unref(object);
             /* Filter out the fake object. */
-            return FALSE;
+            return path_currently_selected;
         }
         g_object_unref(object);
 
@@ -1448,7 +1476,7 @@ selection_func(GtkTreeSelection *selection,
             if (object == (gpointer)fake_object_in_pri_group) {
                 g_object_unref(object);
                 /* Filter out the fake object. */
-                return FALSE;
+                return path_currently_selected;
             }
             g_object_unref(object);
         }
