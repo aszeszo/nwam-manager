@@ -1,5 +1,17 @@
 2009-05-19  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_net_conf_panel.c (refresh), (ref_ncu_group_node),
+	(handle_ncu_group_node), (on_button_clicked): Added new functions.
+	ref_ncu_group_node is to get the reference of the parent of a row or
+	itself. handle_ncu_group_node is for handling the parent reference after
+	moving its children, e.g. deleting or inserting (none) node.
+
+	Enable/disalbe ncu is done. Rename has been there, not tested. Set
+	sensitive for tree view and profile edit button according that if
+	selected ncp is modifiable.
+
+2009-05-19  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_net_conf_panel.c (capplet_tree_store_move_children),
 	(on_button_clicked), (selection_func): New/delete group is done.
 
