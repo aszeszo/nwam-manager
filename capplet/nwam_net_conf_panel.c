@@ -63,6 +63,10 @@
 #define NWAM_COND_NCU_GROUP_MODE        "ncu_group_mode"
 #define NWAM_COND_NCU_ACT_MODE          "ncu_group_activation_mode"
 
+/* Edit Connection Dialog */
+#define EDIT_CONNECTIONS_DIALOG         "edit_connections_dialog"
+#define CONNECTION_TREEVIEW             "connection_treeview"
+
 /* Values picked to put always ON at top of list, and always off at bottom */
 #define ALWAYS_ON_GROUP_ID              (0)
 #define ALWAYS_OFF_GROUP_ID             (G_MAXINT)
@@ -84,6 +88,12 @@ struct _NwamNetConfPanelPrivate {
 
     GtkLabel*           activation_mode_lbl;
     GtkComboBox*        connection_activation_combo;
+
+    /* Edit Connections dialog */
+    GtkDialog*          edit_connections_dialog;
+	GtkTreeView*	    connection_treeview;
+
+    GList*              ncu_selection;
 
 	/* Other Data */
     NwamCappletDialog*  pref_dialog;
@@ -129,10 +139,16 @@ static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static void nwam_net_conf_panel_finalize(NwamNetConfPanel *self);
 
 static void nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
-					     GtkCellRenderer   *renderer,
-					     GtkTreeModel      *model,
-					     GtkTreeIter       *iter,
-					     gpointer           data);
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data);
+
+static void nwam_connection_cell_func (GtkTreeViewColumn *col,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data);
 
 static void net_conf_set_property (GObject         *object,
   guint            prop_id,
@@ -163,7 +179,9 @@ static void vanity_name_edited ( GtkCellRendererText *cell,
                                  const gchar         *path_string,
                                  const gchar         *new_text,
                                  gpointer             data);
-
+static void nwam_connection_cell_toggled(GtkCellRendererToggle *cell_renderer,
+  gchar                 *path,
+  gpointer               user_data);
 static void nwam_net_pref_connection_enabled_toggled_cb(    GtkCellRendererToggle *cell_renderer,
                                                             gchar                 *path,
                                                             gpointer               user_data); /* unused */
@@ -182,6 +200,7 @@ static gboolean connection_activation_combo_filter(GtkTreeModel *model, GtkTreeI
 
 
 static void on_button_clicked(GtkButton *button, gpointer user_data );
+static void profile_edit_btn_clicked(GtkButton *button, gpointer user_data );
 static void update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection);
 static void selection_changed(GtkTreeSelection *selection, gpointer user_data);
 static gboolean selection_func(GtkTreeSelection *selection,
@@ -353,6 +372,35 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
     g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (CONNVIEW_INFO));
     g_signal_connect (cell, "edited", G_CALLBACK(vanity_name_edited), (gpointer)self);
     g_signal_connect (cell, "editing-started", G_CALLBACK(vanity_name_editing_started), (gpointer)self);
+
+    /* Connection treeview of Edit Connections Dialog. */
+    view = self->prv->connection_treeview;
+
+	g_object_set (view,
+      "headers-visible", FALSE,
+      "reorderable", FALSE,
+      "enable-search", FALSE,
+      "show-expanders", FALSE,
+      NULL);
+
+	/* connection column */
+    col = capplet_column_new(view,
+      "title",_(""),
+      "expand", TRUE,
+      "resizable", FALSE,
+      NULL);
+
+    cell = capplet_column_append_cell(col,
+      gtk_cell_renderer_toggle_new(), FALSE,
+      nwam_connection_cell_func, (gpointer)self,
+      NULL);
+    g_signal_connect(cell, "toggled",
+      G_CALLBACK(nwam_connection_cell_toggled), (gpointer)self);
+
+    cell = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), TRUE,
+      nwam_connection_cell_func, (gpointer)self,
+      NULL);
 }
 
 /*
@@ -405,8 +453,12 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     prv->activation_mode_lbl = GTK_LABEL(nwamui_util_glade_get_widget(ACTIVATION_MODE_LBL));
     prv->connection_activation_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CONNECTION_ACTIVATION_COMBO));
 
+    /* Edit Connections dialog */
+    prv->edit_connections_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(EDIT_CONNECTIONS_DIALOG));
+    prv->connection_treeview = GTK_TREE_VIEW(nwamui_util_glade_get_widget(CONNECTION_TREEVIEW));
+
     g_signal_connect(prv->profile_edit_btn,
-      "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
+      "clicked", G_CALLBACK(profile_edit_btn_clicked), (gpointer)self);
     g_signal_connect(prv->connection_enable_btn,
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
     g_signal_connect(prv->connection_disable_btn,
@@ -483,6 +535,7 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     g_signal_connect(prv->connection_activation_combo, "changed", G_CALLBACK(conditions_connected_changed),(gpointer)self);
 
     nwam_compose_tree_view(self);
+
     CAPPLET_COMPOSE_NWAMUI_OBJECT_TREE_VIEW(prv->net_conf_treeview);
 
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
@@ -835,6 +888,44 @@ nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
 
 }
 
+static void
+nwam_connection_cell_func (GtkTreeViewColumn *col,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data)
+{
+    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(data);
+    NwamuiObject *obj;
+    gchar *name;
+
+    gtk_tree_model_get(model, iter, 0, &obj, -1);
+
+    name = nwamui_object_get_name(obj);
+
+    if (GTK_IS_CELL_RENDERER_TOGGLE(renderer)) {
+        GList *ncus = prv->ncu_selection;
+        gchar *ncu_name;
+        gboolean hit = FALSE;
+
+        while (ncus && !hit) {
+            ncu_name = nwamui_object_get_name(NWAMUI_OBJECT(ncus->data));
+
+            if (g_ascii_strcasecmp(name, ncu_name) == 0) {
+                hit = TRUE;
+            }
+            ncus = g_list_next(ncus);
+            g_free(ncu_name);
+        }
+        g_object_set(renderer, "active", hit, NULL);
+    } else {
+        g_object_set(renderer, "text", name, NULL);
+
+    }
+    g_free(name);
+    g_object_unref(obj);
+}
+
 /*
  * Enabled Toggle Button was toggled
  */
@@ -964,6 +1055,54 @@ vanity_name_edited ( GtkCellRendererText *cell,
     gtk_tree_path_free (path);
 
     g_object_set (cell, "editable", FALSE, NULL);
+}
+
+static void
+nwam_connection_cell_toggled(GtkCellRendererToggle *cell_renderer,
+  gchar                 *path_str,
+  gpointer               user_data)
+{
+    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(user_data);
+    GtkTreeIter iter;
+    GtkTreeModel *model;
+    GtkTreePath  *path;
+    GList *ncus = prv->ncu_selection;
+    NwamuiNcu*  ncu;
+    gchar *name;
+    gchar *ncu_name;
+    GList *hit = NULL;
+
+    model = gtk_tree_view_get_model(prv->connection_treeview);
+    path = gtk_tree_path_new_from_string(path_str);
+    gtk_tree_model_get_iter (model, &iter, path);
+    gtk_tree_model_get(model, &iter, 0, &ncu, -1);
+
+    name = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
+    while (ncus && !hit) {
+        ncu_name = nwamui_object_get_name(NWAMUI_OBJECT(ncus->data));
+        if (g_ascii_strcasecmp(name, ncu_name) == 0) {
+            hit = ncus;
+        }
+        ncus = g_list_next(ncus);
+        g_free(ncu_name);
+    }
+    g_free(name);
+
+    if (gtk_cell_renderer_toggle_get_active(cell_renderer)) {
+        if (hit) {
+            g_object_unref(hit->data);
+            prv->ncu_selection = g_list_delete_link(prv->ncu_selection, hit);
+        }
+    } else {
+        if (!hit) {
+            /* TODO, maybe we need clone this ncu? */
+            g_object_ref(ncu);
+            prv->ncu_selection = g_list_prepend(prv->ncu_selection, ncu);
+        }
+    }
+    gtk_tree_model_row_changed(model, path, &iter);
+    g_object_unref(ncu);
+    gtk_tree_path_free(path);
 }
 
 /*
@@ -1399,9 +1538,6 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         gtk_tree_model_get(model, &iter, 0, &object, -1);
  
 
-        if (button == (gpointer)prv->profile_edit_btn) {
-        }
-
         if (button == (gpointer)prv->connection_move_up_btn) {
             GtkTreeIter prev_iter;
             GtkTreeIter parent_iter;
@@ -1480,6 +1616,42 @@ on_button_clicked(GtkButton *button, gpointer user_data)
     g_list_foreach (rows, (GFunc)gtk_tree_path_free, NULL);
     g_list_free (rows);
 
+}
+
+static void
+profile_edit_btn_clicked(GtkButton *button, gpointer user_data )
+{
+    NwamNetConfPanelPrivate*  prv           = GET_PRIVATE(user_data);
+    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+    NwamuiNcp *auto_ncp;
+    GtkTreeModel *model;
+    gint result;
+
+    auto_ncp = nwamui_daemon_get_ncp_by_name(daemon, NWAM_NCP_NAME_AUTOMATIC);
+    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(auto_ncp));
+    /* Selected ncus used for show toggle cells. */
+    prv->ncu_selection = nwamui_ncp_get_ncu_list(prv->selected_ncp);
+
+    gtk_tree_view_set_model(prv->connection_treeview, model);
+
+    g_object_unref(model);
+    g_object_unref(auto_ncp);
+    g_object_unref(daemon);
+
+    result = gtk_dialog_run (GTK_DIALOG (prv->edit_connections_dialog));
+    switch (result)
+    {
+    case GTK_RESPONSE_OK:
+        /* Todo handle the updated prv->ncu_selection */
+        break;
+    default:
+        break;
+    }
+    gtk_widget_hide (prv->edit_connections_dialog);
+
+    g_list_foreach(prv->ncu_selection, nwamui_util_obj_unref, NULL);
+    g_list_free(prv->ncu_selection);
+    prv->ncu_selection = NULL;
 }
 
 static void

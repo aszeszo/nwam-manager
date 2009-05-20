@@ -1,3 +1,10 @@
+2009-05-20  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),
+	(nwam_net_conf_panel_init), (nwam_connection_cell_func),
+	(nwam_connection_cell_toggled), (on_button_clicked),
+	(profile_edit_btn_clicked): Show Edit Connections Dialog. TODO save back
+
 2009-05-19  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam-manager-properties.ui: Added a new dialog for edit
