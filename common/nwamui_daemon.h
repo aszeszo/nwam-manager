@@ -164,6 +164,8 @@ extern gboolean                     nwamui_daemon_enm_remove(NwamuiDaemon *self,
 
 extern void                         nwamui_daemon_wifi_start_scan(NwamuiDaemon *self);
 
+extern void                         nwamui_daemon_dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon );
+
 extern GList*                       nwamui_daemon_get_fav_wifi_networks(NwamuiDaemon *self);
 
 extern gboolean                     nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list );

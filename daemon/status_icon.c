@@ -637,9 +637,11 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
 	GtkWidget *item = NULL;
 	
     /* TODO - Make this more efficient */
+    /*
     if (self == NULL || !prv->force_wifi_rescan) {
         return;
     }
+    */
 
     ncp = nwamui_daemon_get_active_ncp(prv->daemon);
 
@@ -775,6 +777,8 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
         nwam_tooltip_widget_update_ncp(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->active_ncp));
 
         nwam_menu_start_update_wifi_timer(self);
+
+        nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
     } else {
         /* Update related menus here. */
         /* Disable wireless interface related menu items */
@@ -1074,9 +1078,6 @@ status_icon_popup(GtkStatusIcon *status_icon,
 
 	if (prv->enable_pop_up_menu && prv->menu != NULL) {
 
-        /* Trigger a re-scan of the networks while we're at it */
-        nwamui_daemon_wifi_start_scan(prv->daemon);
-
 		gtk_menu_popup(GTK_MENU(prv->menu),
           NULL,
           NULL,
@@ -1344,11 +1345,6 @@ notifyaction_popup_menus(NotifyNotification *n,
   gchar *action,
   gpointer user_data)
 {
-    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-    /* Trigger a re-scan of the networks while we're at it */
-    nwamui_daemon_wifi_start_scan(daemon);
-    g_object_unref(daemon);
-
     nwam_status_icon_show_menu(NWAM_STATUS_ICON(user_data));
 }
 

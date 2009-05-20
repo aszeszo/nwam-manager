@@ -1,3 +1,25 @@
+2009-05-20  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/Makefile.am:
+	  Don't install .glade file any more.
+	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
+	  Dispatch Wifi Events from cached data when daemon is made active,
+	  add function nwamui_daemon_dispatch_wifi_scan_events_from_cache() to
+	  allow for the status menu initialisation to cause events to fire
+	  after setting up signal handlers.
+	* common/nwamui_wifi_net.c: 
+	  Add abilty to store ESSID, Priority and BSSID List in internal
+	  structures if the object is created without an associated
+	  known_wlan_t handle.
+	* daemon/status_icon.c: 
+	  Remove scan request when popping up menu, only cause a scan when
+	  specifically requested from menu.
+	  Call function to generate scan results from cache when finished
+	  setting up event handlers.
+	* daemon/nwam-menu.c: 
+	  Initalise start_pos, but still didn't figure out why the assertion
+	  is firing here when attempting to add network - TODO
+
 2009-05-20  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),

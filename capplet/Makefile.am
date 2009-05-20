@@ -94,8 +94,8 @@ libnwamuicapplet_la_LIBADD =			\
 install-data-local:
 
 gladedir   = $(pkgdatadir)
-glade_DATA = nwam-manager-properties.glade \
-		     nwam-manager-properties.ui
+glade_DATA = nwam-manager-properties.ui
+# 			 nwam-manager-properties.glade 
 
 EXTRA_DIST = 		\
 	capplet-utils.h	\

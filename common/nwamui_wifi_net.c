@@ -43,6 +43,7 @@ static GObjectClass *parent_class = NULL;
 
 struct _NwamuiWifiNetPrivate {
         nwam_known_wlan_handle_t        known_wlan_h;
+        gboolean                        is_favourite;
         gboolean                        modified;
         gchar                          *essid;            
         NwamuiNcu                      *ncu;
@@ -58,6 +59,10 @@ struct _NwamuiWifiNetPrivate {
         gchar                          *wpa_password;
         gchar                          *wpa_cert_file;
         gint                            status;
+
+        /* For non-favourites store prio and bssid_strv in memory only */
+        gchar**                         bssid_strv; /* NULL terminated list of strings */
+        guint64                         priority;
 };
 
 static void nwamui_wifi_net_set_property (  GObject         *object,
@@ -292,6 +297,9 @@ nwamui_wifi_net_init (NwamuiWifiNet *self)
     prv->modified = FALSE;
 
     prv->essid = NULL;            
+    prv->is_favourite = TRUE; /* Assume it's a favorite by default */
+    prv->bssid_strv = NULL;
+    prv->priority = 0;
     prv->security = NWAMUI_WIFI_SEC_NONE;
     prv->signal_strength = NWAMUI_WIFI_STRENGTH_NONE;
     prv->bss_type = NWAMUI_WIFI_BSS_TYPE_AUTO;
@@ -340,39 +348,49 @@ nwamui_wifi_net_set_property (  GObject         *object,
 	  case PROP_ESSID: {
                 nwam_error_t    nerr;
 	            const gchar    *essid = g_value_get_string (value);
-                if ( essid != NULL ) {
-                    if ( prv->essid != NULL ) {
-                        g_debug("Renaming Favourite WLAN with name : '%s' to '%s'", prv->essid, essid );
+                if ( prv->is_favourite ) {
+                    if ( essid != NULL ) {
+                        if ( prv->essid != NULL ) {
+                            g_debug("Renaming Favourite WLAN with name : '%s' to '%s'", prv->essid, essid );
 
-                        if ( (nerr = nwam_known_wlan_set_name(prv->known_wlan_h, essid)) != NWAM_SUCCESS) {
-                            g_warning("Error renaming favourite wlan: %s", nwam_strerror(nerr));
+                            if ( (nerr = nwam_known_wlan_set_name(prv->known_wlan_h, essid)) != NWAM_SUCCESS) {
+                                g_warning("Error renaming favourite wlan: %s", nwam_strerror(nerr));
+                            }
+                            else {
+                                g_free( prv->essid );
+                                prv->essid = g_strdup(essid);
+                            }
                         }
                         else {
-                            g_free( prv->essid );
                             prv->essid = g_strdup(essid);
-                        }
-                    }
-                    else {
-                        prv->essid = g_strdup(essid);
-                        g_debug("Creating Favourite WLAN with NWAM : %s", self->prv->essid );
+                            g_debug("Creating Favourite WLAN with NWAM : %s", self->prv->essid );
 
-                        if ( (nerr = nwam_known_wlan_create(prv->essid, &prv->known_wlan_h)) != NWAM_SUCCESS) {
-                            if ( nerr == NWAM_ENTITY_EXISTS ) {
-                                nerr = nwam_known_wlan_read(prv->essid, 0, &self->prv->known_wlan_h);
-                                if (nerr != NWAM_SUCCESS) {
-                                    g_warning("Error reading existing favourite wlan: %s", nwam_strerror(nerr));
+                            if ( (nerr = nwam_known_wlan_create(prv->essid, &prv->known_wlan_h)) != NWAM_SUCCESS) {
+                                if ( nerr == NWAM_ENTITY_EXISTS ) {
+                                    nerr = nwam_known_wlan_read(prv->essid, 0, &self->prv->known_wlan_h);
+                                    if (nerr != NWAM_SUCCESS) {
+                                        g_warning("Error reading existing favourite wlan: %s", nwam_strerror(nerr));
+                                        prv->known_wlan_h = NULL;
+                                    }
+                                }
+                                else {
+                                    g_warning("Error creating favourite wlan: %s", nwam_strerror(nerr));
                                     prv->known_wlan_h = NULL;
                                 }
                             }
-                            else {
-                                g_warning("Error creating favourite wlan: %s", nwam_strerror(nerr));
-                                prv->known_wlan_h = NULL;
-                            }
                         }
+                    }
+                    else {
+                        prv->essid = NULL;
                     }
                 }
                 else {
-                    prv->essid = NULL;
+                    /* Not a favourite, so just store data in structure */
+                    g_debug("Changing non-favourite WifiNet essid to %s", essid?essid:"NULL");
+                    if ( prv->essid ) {
+                        g_free( prv->essid );
+                    }
+                    prv->essid = g_strdup(essid);
                 }
             }
             break;
@@ -484,28 +502,50 @@ nwamui_wifi_net_set_property (  GObject         *object,
             break;
 
         case PROP_BSSID_LIST: {
-                if ( self->prv->known_wlan_h != NULL ) {
-                    GList *bssid_list = g_value_get_pointer( value );
-                    gchar **bssid_strs = nwamui_util_glist_to_strv( bssid_list );
-                    if ( bssid_strs != NULL ) {
-                        set_nwam_known_wlan_string_array_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_BSSIDS, bssid_strs, 0 );
-                        g_strfreev( bssid_strs );
+                if ( prv->is_favourite ) {
+                    if ( self->prv->known_wlan_h != NULL ) {
+                        GList *bssid_list = g_value_get_pointer( value );
+                        gchar **bssid_strs = nwamui_util_glist_to_strv( bssid_list );
+                        if ( bssid_strs != NULL ) {
+                            set_nwam_known_wlan_string_array_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_BSSIDS, bssid_strs, 0 );
+                            g_strfreev( bssid_strs );
+                        }
+                    }
+                    else {
+                        g_warning("Unexpected empty known_wlan handle");
                     }
                 }
                 else {
-                    g_warning("Unexpected empty known_wlan handle");
+                    /* Not favourite, so store in internal structure */
+                    GList *bssid_list = g_value_get_pointer( value );
+                    gchar **bssid_strv = nwamui_util_glist_to_strv( bssid_list );
+
+                    g_debug("Setting non-favourite WifiNet bssid_strv");
+
+                    if ( prv->bssid_strv ) {
+                        g_strfreev( prv->bssid_strv );
+                    }
+                    prv->bssid_strv = bssid_strv;
                 }
             }
             break;
 
         case PROP_PRIORITY: {
-                if ( self->prv->known_wlan_h != NULL ) {
-                    set_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_PRIORITY, 
-                                                     g_value_get_uint64( value ) );
+                if ( prv->is_favourite ) {
+                    if ( self->prv->known_wlan_h != NULL ) {
+                        set_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_PRIORITY, 
+                                                         g_value_get_uint64( value ) );
+                    }
+                    else {
+                        g_warning("Unexpected empty known_wlan handle");
+                    }
                 }
                 else {
-                    g_warning("Unexpected empty known_wlan handle");
+                    /* Not favourite, so store in internal structure */
+                    prv->priority = g_value_get_uint64( value );
+                    g_debug("Setting non-favourite WifiNet priority to %ul", prv->priority);
                 }
+
             }
             break;
 
@@ -592,15 +632,20 @@ nwamui_wifi_net_get_property (GObject         *object,
         case PROP_BSSID_LIST: {
                 GList  *bssid_list = NULL;
 
-                if ( self->prv->known_wlan_h != NULL ) {
-                    gchar **bssid_strv = get_nwam_known_wlan_string_array_prop( self->prv->known_wlan_h, 
-                                                                                NWAM_KNOWN_WLAN_PROP_BSSIDS );
-                    bssid_list = nwamui_util_strv_to_glist( bssid_strv );
+                if ( prv->is_favourite ) {
+                    if ( self->prv->known_wlan_h != NULL ) {
+                        gchar **bssid_strv = get_nwam_known_wlan_string_array_prop( self->prv->known_wlan_h, 
+                                                                                    NWAM_KNOWN_WLAN_PROP_BSSIDS );
+                        bssid_list = nwamui_util_strv_to_glist( bssid_strv );
 
-                    g_strfreev( bssid_strv );
+                        g_strfreev( bssid_strv );
+                    }
+                    else {
+                        g_warning("Unexpected empty known_wlan handle");
+                    }
                 }
                 else {
-                    g_warning("Unexpected empty known_wlan handle");
+                    bssid_list = nwamui_util_strv_to_glist( prv->bssid_strv );
                 }
                 g_value_set_pointer( value, bssid_list );
             }
@@ -608,11 +653,16 @@ nwamui_wifi_net_get_property (GObject         *object,
         case PROP_PRIORITY: {
                 guint64 rval = 0;
 
-                if ( self->prv->known_wlan_h != NULL ) {
-                    rval = get_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_PRIORITY );
+                if ( prv->is_favourite ) {
+                    if ( self->prv->known_wlan_h != NULL ) {
+                        rval = get_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_PRIORITY );
+                    }
+                    else {
+                        g_warning("Unexpected empty known_wlan handle");
+                    }
                 }
                 else {
-                    g_warning("Unexpected empty known_wlan handle");
+                    rval = prv->priority;
                 }
                 g_value_set_uint64( value, rval );
             }
@@ -637,6 +687,12 @@ nwamui_wifi_net_finalize (NwamuiWifiNet *self)
 
         if ( self->prv->known_wlan_h != NULL ) {
             nwam_known_wlan_free( self->prv->known_wlan_h );
+        }
+
+        if ( !self->prv->is_favourite ) {
+            if ( self->prv->bssid_strv != NULL ) {
+                g_strfreev( self->prv->bssid_strv );
+            }
         }
         
         g_free (self->prv); 
@@ -814,6 +870,11 @@ nwamui_wifi_net_new_from_wlan_t(    NwamuiNcu                       *ncu,
     NwamuiWifiNet*  self = NULL;
     
     self = NWAMUI_WIFI_NET(g_object_new (NWAMUI_TYPE_WIFI_NET, NULL));
+
+    /* Mark this as not being a Favourite so that it will never be committed,
+     * and uses in-memory storage.
+     */
+    self->prv->is_favourite = FALSE;
 
     if ( ! nwamui_wifi_net_update_from_wlan_t( self, wlan ) ) {
         g_object_unref(self);

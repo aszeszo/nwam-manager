@@ -297,7 +297,7 @@ nwam_menu_real_insert(GtkMenuShell *menu_shell,
     if (index >= 0) {
         GtkWidget *menu = menu_section_get_menu_widget(&prvsection[index]);
         GList *sorted, *i;
-        gint start_pos;
+        gint start_pos = 0;
 
         /* Section related */
         g_assert(NWAM_IS_MENU(menu));
