@@ -170,6 +170,8 @@ extern GList*                       nwamui_daemon_get_fav_wifi_networks(NwamuiDa
 
 extern gboolean                     nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list );
 
+extern NwamuiWifiNet*               nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name );
+
 extern void                         nwamui_daemon_add_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* new_wifi );
 
 extern void                         nwamui_daemon_remove_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* wifi );

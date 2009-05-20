@@ -1,5 +1,13 @@
 2009-05-20  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
+	  Add nwamui_daemon_find_fav_wifi_net_by_name() to allow for re-use of
+	  a favourite network. Update scans and other areas where a WifiNet is
+	  created to first check for the favourite before creating a new
+	  object.
+
+2009-05-20  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/Makefile.am:
 	  Don't install .glade file any more.
 	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
