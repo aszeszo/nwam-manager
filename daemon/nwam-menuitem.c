@@ -421,13 +421,14 @@ nwam_menu_item_set_widget (NwamMenuItem *self,
     if (prv->w[pos]) {
         gtk_widget_unparent (prv->w[pos]);
         prv->w[pos] = NULL;
-        if (GTK_WIDGET_VISIBLE(self) && GTK_WIDGET_VISIBLE(prv->w[pos]))
-            gtk_widget_queue_resize (GTK_WIDGET(self));
     }
     prv->w[pos] = widget;
 
     if (widget == NULL)
         return;
+
+    if (GTK_WIDGET_VISIBLE(self) && GTK_WIDGET_VISIBLE(prv->w[pos]))
+        gtk_widget_queue_resize (GTK_WIDGET(self));
 
     gtk_widget_set_parent (widget, GTK_WIDGET (self));
     gtk_widget_queue_resize (GTK_WIDGET (self));
@@ -567,10 +568,11 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
     NwamMenuItem *self = NWAM_MENU_ITEM (widget); 
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     GtkPackDirection pack_dir; 
-    guint toggle_spacing;
+    gint toggle_spacing;
+    gint arrow_spacing;
     gint x, y, offset; 
     GtkRequisition child_requisition; 
-    GtkAllocation child_allocation; 
+    GtkAllocation child_allocation;
     gint i;
    
     if (GTK_IS_MENU_BAR (widget->parent)) 
@@ -596,6 +598,12 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
                     GTK_MENU_ITEM(self)->toggle_size = child_requisition.height; 
             } 
         }
+        /* Do not show arrow. */
+        arrow_spacing = 0;
+    } else {
+        gtk_widget_style_get (widget,
+          "arrow-spacing", &arrow_spacing,
+          NULL);
     }
 
     GTK_WIDGET_CLASS(nwam_menu_item_parent_class)->size_allocate(widget, allocation);
@@ -673,7 +681,7 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
                 if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
                   (pack_dir == GTK_PACK_DIRECTION_LTR)) 
                     x = widget->allocation.width - offset -
-                      toggle_spacing - 
+                      toggle_spacing - arrow_spacing -
                       child_requisition.width;
                 else 
                     x = offset + toggle_spacing;
@@ -688,7 +696,7 @@ nwam_menu_item_size_allocate (GtkWidget     *widget,
                 if ((gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR) == 
                   (pack_dir == GTK_PACK_DIRECTION_TTB)) 
                     y = widget->allocation.height - offset -
-                      toggle_spacing -
+                      toggle_spacing - arrow_spacing -
                       child_requisition.height;
                 else
                     y = offset + toggle_spacing;

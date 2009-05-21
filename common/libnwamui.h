@@ -133,8 +133,8 @@ typedef guint64 libnwam_diag_cause_t;
 #define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT "nwam-wireless-75-100"
 #endif
 
-#define  NWAM_ICON_NETWORK_SECURE   "network-secure"
-#define  NWAM_ICON_NETWORK_INSECURE "network-insecure"
+#define  NWAM_ICON_NETWORK_SECURE   "nwam-wireless-secure"
+#define  NWAM_ICON_NETWORK_INSECURE "nwam-wireless-insecure"
 
 /* Condition icons */
 #define  NWAM_ICON_COND_ACT_MODE_SYSTEM          "nwam-activation-system"

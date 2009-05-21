@@ -1408,7 +1408,7 @@ nwam_menu_recreate_wifi_menuitems (NwamStatusIcon *self)
 {
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
-    nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_WIFI);
+/*     nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_WIFI); */
 
     /* set force rescan flag so that we can identify daemon scan wifi event */
     prv->force_wifi_rescan = TRUE;

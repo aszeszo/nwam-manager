@@ -1,3 +1,16 @@
+2009-05-21  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/libnwamui.h: Fixed wireless secure/insecure icons.
+	* daemon/nwam-menu.c (nwam_menu_real_insert): Fixed start_pos isn't zero
+	in a middle menu section.
+	* daemon/nwam-menuitem.c (nwam_menu_item_set_widget),
+	(nwam_menu_item_size_allocate):
+	Fixed request resize when a valid widget is added. Fixed allocate widget
+	space with considering submenu arrow space.
+	* daemon/status_icon.c (nwam_menu_recreate_wifi_menuitems):
+	Simply comment out delete all wlan menuitems, because currently I'm  a
+	little confused how to invoke wlan scan functions.
+
 2009-05-20  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_daemon.h, common/nwamui_daemon.c: 

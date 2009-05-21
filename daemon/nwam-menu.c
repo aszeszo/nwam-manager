@@ -321,7 +321,6 @@ nwam_menu_real_insert(GtkMenuShell *menu_shell,
             if (child)
                 GTK_MENU_SHELL_CLASS(nwam_menu_parent_class)->insert(GTK_MENU_SHELL(menu), child, start_pos++);
         } else {
-            g_assert(start_pos == 0);
             GTK_MENU_SHELL_CLASS(nwam_menu_parent_class)->insert(GTK_MENU_SHELL(menu), child, start_pos);
         }
         menu_section_increase_children(&prvsection[index]);
