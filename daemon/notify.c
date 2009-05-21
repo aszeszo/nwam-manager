@@ -229,12 +229,10 @@ notify_notification_adjust_nth(GQueue *q, guint nth, gint new_timeout)
 {
     msg *m;
 
-    if ((m = g_queue_peek_nth(q, nth)) == NULL) {
-        return;
-    }
-
-    if (m->timeout == NOTIFY_EXP_DEFAULT_FLAG) {
-        m->timeout = NOTIFY_EXP_ADJUSTED_FLAG;
+    if ((m = g_queue_peek_nth(q, nth)) != NULL) {
+        if (m->timeout == NOTIFY_EXP_DEFAULT_FLAG) {
+            m->timeout = NOTIFY_EXP_ADJUSTED_FLAG;
+        }
     }
 
     if (adjust_source_id == 0) {
@@ -254,7 +252,8 @@ notify_notification_adjust_first(GQueue *q)
     g_assert(adjust_source_id > 0);
 
     /* Do not show notifications if status icon is invisible. */
-    if (!gtk_status_icon_get_visible(parent_status_icon)) {
+    if (!gtk_status_icon_is_embedded(parent_status_icon) ||
+      !gtk_status_icon_get_visible(parent_status_icon)) {
         adjust_source_id = g_timeout_add_full(G_PRIORITY_DEFAULT,
           NOTIFY_POLL_STATUS_ICON_INVISIBLE,
           (GSourceFunc)notify_notification_adjust_first,
@@ -264,13 +263,17 @@ notify_notification_adjust_first(GQueue *q)
         return FALSE;
     }
 
+    /* reset source id since the timer should always be deleted/updated */
+    adjust_source_id = 0;
+
     if ((m = g_queue_peek_head(q)) == NULL) {
-        adjust_source_id = 0;
         return FALSE;
     }
 
-    /* reset source id since the timer should always be deleted/updated */
-    adjust_source_id = 0;
+    if (m->t.tv_sec == 0 && m->t.tv_usec == 0) {
+        nwam_notification_show_nth_message(q, 0);
+        return FALSE;
+    }
 
     /* It's showing */
     if (m->t.tv_sec > 0) {
@@ -430,15 +433,10 @@ nwam_notification_show_message(const gchar* summary,
 
     g_queue_push_tail(&msg_q, m);
 
-    if (g_queue_get_length(&msg_q) == 1) {
-        /* first show */
-        nwam_notification_show_message_cb(&msg_q);
-    } else {
-        /* adjust the original last show */
-        notify_notification_adjust_nth(&msg_q,
-          g_queue_get_length(&msg_q) - 2,
-          TIGHT_EXP_TIME);
-    }
+    /* adjust the original last show */
+    notify_notification_adjust_nth(&msg_q,
+      g_queue_get_length(&msg_q) - 2,
+      TIGHT_EXP_TIME);
 }
 
 void
@@ -461,15 +459,10 @@ nwam_notification_show_message_with_action (const gchar* summary,
 
     g_queue_push_tail(&msg_q, m);
 
-    if (g_queue_get_length(&msg_q) == 1) {
-        /* first show */
-        nwam_notification_show_message_cb(&msg_q);
-    } else {
-        /* adjust the original last show */
-        notify_notification_adjust_nth(&msg_q,
-          g_queue_get_length(&msg_q) - 2,
-          TIGHT_EXP_TIME);
-    }
+    /* adjust the original last show */
+    notify_notification_adjust_nth(&msg_q,
+      g_queue_get_length(&msg_q) - 2,
+      TIGHT_EXP_TIME);
 }
 
 void

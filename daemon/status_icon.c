@@ -95,7 +95,7 @@ struct _NwamStatusIconPrivate {
     gulong activate_handler_id;
 
 	gboolean has_wifi;
-	gboolean force_wifi_rescan_due_to_env_changed;
+/* 	gboolean force_wifi_rescan_due_to_env_changed; */
 	gboolean force_wifi_rescan;
 
 };
@@ -279,7 +279,9 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
             /* I don't believe we should actively create menu for wifi, env and
              * enm, we probably could wait daemon populating.
              */
+            /* daemon_active_env_changed will trigger this func
             nwam_menu_recreate_wifi_menuitems(self);
+            */
             /* Initialize Enm. */
             nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_ENM);
             nwam_menu_recreate_enm_menuitems(self);
@@ -636,13 +638,6 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
     NwamuiNcp *ncp = NULL;
 	GtkWidget *item = NULL;
 	
-    /* TODO - Make this more efficient */
-    /*
-    if (self == NULL || !prv->force_wifi_rescan) {
-        return;
-    }
-    */
-
     ncp = nwamui_daemon_get_active_ncp(prv->daemon);
 
 	if (wifi) {
@@ -656,30 +651,6 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
         if (prv->force_wifi_rescan) {
             prv->force_wifi_rescan = FALSE;
         }
-
-        /* Comment out, since it doesn't actually do anything here
-         *
-        if (prv->has_wifi) {
-            NwamuiNcu *ncu = nwamui_ncp_get_active_ncu(ncp);
-
-            if (ncu) {
-                if (nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
-                    NwamuiWifiNet *wifi;
-                    wifi = nwamui_ncu_get_wifi_info(ncu);
-
-                    if (wifi) {
-                        if (nwamui_wifi_net_get_status(wifi) == NWAMUI_WIFI_STATUS_CONNECTED) {
-                            gchar *name = nwamui_wifi_net_get_unique_name(wifi);
-                            g_debug("======== enable wifi %s ===========", name);
-                            g_free(name);
-                        }
-                        g_object_unref(wifi);
-                    }
-                }
-                g_object_unref(ncu);
-            }
-        }
-        */
     }
     g_object_unref(ncp);
 }
@@ -811,7 +782,7 @@ daemon_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
         g_free (summary);
         g_free (body);
 
-        prv->force_wifi_rescan_due_to_env_changed = TRUE;
+/*         prv->force_wifi_rescan_due_to_env_changed = TRUE; */
         nwam_menu_recreate_wifi_menuitems (self);
 
         nwam_tooltip_widget_update_env(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(env));
@@ -1323,13 +1294,21 @@ on_ncp_notify_many_wireless( GObject *gobject, GParamSpec *arg1, gpointer user_d
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    gboolean wireless_num;
 
     g_assert(NWAMUI_IS_NCP(gobject));
 
-    if (arg1 && g_ascii_strcasecmp(arg1->name, "many-wireless") == 0) {
+    wireless_num = nwamui_ncp_get_wireless_link_num(NWAMUI_NCP(gobject));
+    if (wireless_num > 0) {
         nwam_menu_section_foreach(NWAM_MENU(prv->menu), SECTION_WIFI,
           (GFunc)nwam_obj_proxy_refresh, NULL);
+    } else {
+        nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_WIFI);
     }
+    gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_REFRESH_WLAN],
+      wireless_num > 0);
+    gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_JOIN_WLAN],
+      wireless_num > 0);
 }
 
 static void
@@ -1603,10 +1582,13 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
       on_activate_static_menuitems, self);
     CACHE_STATIC_MENUITEMS(self, MENUITEM_HELP);
 
-    menu_append_item(root_menu,
-      GTK_TYPE_MENU_ITEM, _("TeSt MeNu"),
-      on_activate_static_menuitems, self);
-    CACHE_STATIC_MENUITEMS(self, MENUITEM_TEST);
+    /* Only available for testing. */
+    if (debug) {
+        menu_append_item(root_menu,
+          GTK_TYPE_MENU_ITEM, _("TeSt MeNu"),
+          on_activate_static_menuitems, self);
+        CACHE_STATIC_MENUITEMS(self, MENUITEM_TEST);
+    }
 
     /* Other dynamical menuitems */
     menuitem = gtk_menu_item_new_with_label(NONCU);

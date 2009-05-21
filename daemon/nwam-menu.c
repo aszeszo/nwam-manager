@@ -601,7 +601,6 @@ void
 nwam_menu_section_set_visible(NwamMenu *self, gint sec_id, gboolean visible)
 {
     NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
-    GtkWidget *menu = menu_section_get_menu_widget(&prvsection[sec_id]);
     GtkWidget *lw = menu_section_get_left_widget(&prvsection[sec_id]);
     GtkWidget *rw = menu_section_get_right_widget(&prvsection[sec_id]);
     void (*func)(GtkWidget*);
@@ -617,6 +616,12 @@ nwam_menu_section_set_visible(NwamMenu *self, gint sec_id, gboolean visible)
         func(lw);
     if (rw)
         func(rw);
+}
+
+void
+nwam_menu_section_set_sensitive(NwamMenu *self, gint sec_id, gboolean sensitive)
+{
+    nwam_menu_section_foreach(self, sec_id, (GFunc)gtk_widget_set_sensitive, (gpointer)sensitive);
 }
 
 void

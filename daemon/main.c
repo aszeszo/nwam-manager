@@ -239,8 +239,22 @@ user_has_autoconf_auth( void )
 }
 
 static gboolean
+init_wait_for_embedding_idle(gpointer data)
+{
+    GtkStatusIcon* status_icon = GTK_STATUS_ICON(data);
+
+    if ( gtk_status_icon_is_embedded( status_icon ) ) {
+        nwam_status_icon_run(NWAM_STATUS_ICON(status_icon));
+
+        return FALSE;
+    }
+    return TRUE;
+}
+
+static gboolean
 init_wait_for_embedding(gpointer data)
 {
+#if 0
     GtkStatusIcon* status_icon = GTK_STATUS_ICON(data);
 
     /* Wait for the Notification Area to be ready */
@@ -251,6 +265,13 @@ init_wait_for_embedding(gpointer data)
     nwam_status_icon_run(NWAM_STATUS_ICON(status_icon));
 
     return( TRUE );
+#else
+    g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+      init_wait_for_embedding_idle,
+      g_object_ref(data),
+      g_object_unref);
+    return( TRUE );
+#endif
 }
 
 int

@@ -142,6 +142,7 @@ extern GtkWidget* nwam_menu_new(gint n_sections);
 extern void nwam_menu_section_set_left(NwamMenu *self, gint sec_id, GtkWidget *w);
 extern void nwam_menu_section_set_right(NwamMenu *self, gint sec_id, GtkWidget *w);
 extern void nwam_menu_section_set_visible(NwamMenu *self, gint sec_id, gboolean visible);
+extern void nwam_menu_section_set_sensitive(NwamMenu *self, gint sec_id, gboolean sensitive);
 extern void nwam_menu_section_sort(NwamMenu *self, gint sec_id);
 extern void nwam_menu_section_delete(NwamMenu *self, gint sec_id);
 extern void nwam_menu_section_foreach(NwamMenu *self, gint sec_id, GFunc func, gpointer user_data);
