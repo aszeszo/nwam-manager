@@ -450,7 +450,7 @@ nwamui_ncu_set_property ( GObject         *object,
     if ( !self->prv->initialisation ) {
         read_only = !nwamui_ncu_is_modifiable(self);
 
-        if ( read_only ) {
+        if ( read_only && prop_id != PROP_WIFI_INFO ) {
             g_error("Attempting to modify read-only ncu %s", self->prv->device_name?self->prv->device_name:"NULL");
             return;
         }

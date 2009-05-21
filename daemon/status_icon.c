@@ -459,7 +459,9 @@ daemon_wifi_key_needed (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer user
           (GFreeFunc)g_object_unref,
           NOTIFY_EXPIRES_NEVER);
 		
-          g_object_unref(ncu);
+          if (ncu) {
+              g_object_unref(ncu);
+          }
     } else {
         g_assert_not_reached();
     }

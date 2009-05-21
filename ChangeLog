@@ -1,3 +1,11 @@
+2009-05-21  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_ncu.c: 
+	  Allow setting of the WIFI_INFO property on read-only NCUs - doesn't
+	  effect modified flag.
+	* daemon/status_icon.c:
+	  Fix crash if ncu is NULL.
+
 2009-05-21  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/main.c (init_wait_for_embedding_idle),
