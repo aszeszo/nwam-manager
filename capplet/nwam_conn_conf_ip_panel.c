@@ -411,7 +411,7 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
     self->prv->wifi_dialog = nwam_wireless_dialog_new();
     
 	/* Iniialise pointers to important widgets */
-    self->prv->iface_nb = GTK_WIDGET(nwamui_util_glade_get_widget(IP_PANEL_IFACE_NOTEBOOK));
+    self->prv->iface_nb = GTK_NOTEBOOK(nwamui_util_glade_get_widget(IP_PANEL_IFACE_NOTEBOOK));
     self->prv->wireless_tab = GTK_WIDGET(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB));
     self->prv->wifi_fav_tv  = GTK_TREE_VIEW(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TABLE));
     
@@ -693,8 +693,8 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     
     nwamui_ncu_type_t   ncu_type;
     gboolean            ipv4_dhcp;
-    gchar*              ipv4_address;
-    gchar*              ipv4_subnet;
+    const gchar*        ipv4_address;
+    const gchar*        ipv4_subnet;
     gboolean            ipv6_active;
     gboolean            ipv6_dhcp;
     gchar*              ipv6_address;
@@ -702,7 +702,9 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     NwamuiWifiNet*      wifi_info = NULL; 
     GtkTreeModel*   model;
 
-    g_return_if_fail( NWAMUI_IS_NCU(self->prv->ncu) );
+    if ( ! NWAMUI_IS_NCU(self->prv->ncu) ) {
+        return( TRUE );
+    }
 
     prv = self->prv;
     
@@ -780,7 +782,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         break;
     case 3:
         model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv4_tv)));
-        nwamui_ncu_set_v4addresses(NWAMUI_NCU(prv->ncu), model);
+        nwamui_ncu_set_v4addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
         break;
     default:
         /* Disable ipv4 dhcp */
@@ -795,7 +797,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             break;
         case 1:
             model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv6_tv)));
-            nwamui_ncu_set_v6addresses(NWAMUI_NCU(prv->ncu), model);
+            nwamui_ncu_set_v6addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
             break;
         default:
             /* Disable ipv6 dhcp */
@@ -1048,7 +1050,7 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
                 GdkPixbuf   *status_icon;
 
                 status_icon = nwamui_util_get_wireless_strength_icon( 
-                    nwamui_wifi_net_get_signal_strength(wifi_info), TRUE );
+                    nwamui_wifi_net_get_signal_strength(wifi_info), NWAMUI_WIRELESS_ICON_TYPE_BARS, TRUE );
                 g_object_set (G_OBJECT(renderer),
                   "pixbuf", status_icon,
                   NULL);
@@ -1209,7 +1211,7 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
     
     g_debug("wireless_tab_add_button clicked");
     
-    switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), button)) {
+    switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
         case GTK_RESPONSE_OK:
                 new_wifi = nwam_wireless_dialog_get_wifi_net( self->prv->wifi_dialog );
                 nwamui_daemon_add_wifi_fav(self->prv->daemon, new_wifi);
@@ -1298,7 +1300,7 @@ wireless_tab_edit_button_clicked_cb( GtkButton *button, gpointer data )
 
                 nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, wifi_net );
 
-                switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), button)) {
+                switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
                     case GTK_RESPONSE_OK:
                         /* wifi_net object will be already updated, so only need to refresh row. */
                         gtk_tree_model_row_changed(GTK_TREE_MODEL(model), (GtkTreePath *)idx->data, &iter);

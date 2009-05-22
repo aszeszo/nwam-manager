@@ -36,8 +36,9 @@
 #include <secdb.h>
 
 
-#include "status_icon.h"
 #include "libnwamui.h"
+
+#include "status_icon.h"
 
 /*
  * Security Auth needed for NWAM to work. Console User and Network Management

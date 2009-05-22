@@ -825,7 +825,11 @@ nwamui_ncu_get_property (GObject         *object,
                     nwam_state_t    state = NWAM_STATE_OFFLINE;
 
                     nwam_ncu_get_state( self->prv->nwam_ncu_phys, &state );
-                    if ( state == NWAM_STATE_ONLINE ) {
+                    /* 
+                     * XXXX Assume active if IP NCU is active - should be
+                     * undone when state machine is fixed XXXX
+                     */
+                    if ( TRUE || state == NWAM_STATE_ONLINE ) {
                         state = NWAM_STATE_OFFLINE;
                         if ( self->prv->nwam_ncu_ip ) {
                             nwam_ncu_get_state( self->prv->nwam_ncu_ip, &state );

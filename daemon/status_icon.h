@@ -57,7 +57,7 @@ void nwam_status_icon_run(NwamStatusIcon *self);
 void nwam_status_icon_set_activate_callback(NwamStatusIcon *self,
   GCallback activate_cb, gpointer user_data);
 
-void nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status);
+void nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, NwamuiNcu* wireless_ncu );
 
 void nwam_status_icon_show_menu(NwamStatusIcon *self);
 

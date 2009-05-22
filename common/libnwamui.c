@@ -65,17 +65,6 @@
       (double)gdk_pixbuf_get_height(dest)/gdk_pixbuf_get_height(src),   \
       GDK_INTERP_NEAREST, 200)
 
-struct nwamui_wifi_essid {
-    gchar*                          essid;
-    nwamui_wifi_security_t          security;
-    gchar*                          bssid;
-    nwamui_wifi_signal_strength_t   signal_strength;
-    nwamui_wifi_wpa_config_t        wpa_config;
-};
-
-typedef struct nwamui_wifi_essid nwamui_wifi_essid_t;
-
-
 #if USE_GLADE
 /* Load the Glade file and maintain a single reference */
 static GladeXML *glade_xml_tree = NULL;
@@ -662,14 +651,26 @@ nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
 extern GdkPixbuf*
 nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu )
 {
-    nwamui_ncu_type_t ncu_type;
-    nwamui_wifi_signal_strength_t strength = NWAMUI_WIFI_STRENGTH_NONE;
-    g_return_val_if_fail( NWAMUI_IS_NCU( ncu ), NULL );
+    nwamui_ncu_type_t               ncu_type;
+    nwamui_wifi_signal_strength_t   strength = NWAMUI_WIFI_STRENGTH_NONE;
+    gboolean                        active = FALSE;
 
-    ncu_type = nwamui_ncu_get_ncu_type(ncu);
-    strength = nwamui_ncu_get_wifi_signal_strength(ncu);
+    if ( ncu != NULL ) {
+        ncu_type = nwamui_ncu_get_ncu_type(ncu);
+        strength = nwamui_ncu_get_wifi_signal_strength(ncu);
+        active = nwamui_ncu_get_active(ncu);
+    }
+    else {
+        /* Fallback to a Wired connection */
+        ncu_type = NWAMUI_NCU_TYPE_WIRED;
+    }
+
+    g_debug("%s: ncu_type = %s; strength = %d; active = %s",  __func__, 
+            ncu_type==NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Not Wireless", 
+            strength, active?"True":"False");
+
     /* Hardcode icon size 48. */
-    return nwamui_util_get_network_status_icon(ncu_type, strength, nwamui_ncu_get_active(ncu) ? NWAMUI_ENV_STATUS_CONNECTED : NWAMUI_ENV_STATUS_ERROR, 24);
+    return nwamui_util_get_network_status_icon(ncu_type, strength, active? NWAMUI_ENV_STATUS_CONNECTED : NWAMUI_ENV_STATUS_ERROR, 24);
 }
        
 extern const gchar*

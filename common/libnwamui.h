@@ -110,7 +110,7 @@ typedef guint64 libnwam_diag_cause_t;
 #endif
 
 /* Device icons. */
-#define  NWAM_ICON_NETWORK_WIRELESS "network-wireless"
+#define  NWAM_ICON_NETWORK_WIRELESS "nwam-wireless-nosignal"
 #define  NWAM_ICON_NETWORK_WIRED    "network-wired"
 
 /* Status icons */

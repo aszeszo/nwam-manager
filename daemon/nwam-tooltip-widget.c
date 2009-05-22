@@ -109,6 +109,8 @@ nwam_object_tooltip_widget_finalize (NwamObjectTooltipWidget *self)
 {
     NwamObjectTooltipWidgetPrivate *prv = GET_PRIVATE(self);
 
+    g_assert_not_reached();
+
 	G_OBJECT_CLASS(nwam_object_tooltip_widget_parent_class)->finalize(G_OBJECT (self));
 }
 

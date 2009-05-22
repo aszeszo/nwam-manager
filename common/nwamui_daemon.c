@@ -1561,6 +1561,22 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
                         wifi_net = nwamui_wifi_net_new_from_wlan_t( ncu, &(wlans[i]));
                     }
 
+                    if ( wlans[i].connected || wlans[i].selected ) {
+                        NwamuiWifiNet* ncu_wifi = nwamui_ncu_get_wifi_info( ncu );
+
+                        if ( wlans[i].connected ) {
+                            nwamui_wifi_net_set_status(wifi_net, NWAMUI_WIFI_STATUS_CONNECTED);
+                        }
+
+                        if ( ncu_wifi != wifi_net ) {
+                            /* Update NCU with connected Wifi object */
+                            nwamui_ncu_set_wifi_info(ncu, wifi_net);
+                        }
+                    }
+                    else {
+                        nwamui_wifi_net_set_status(wifi_net, NWAMUI_WIFI_STATUS_DISCONNECTED);
+                    }
+
                     if (daemon->prv->emit_wlan_changed_signals) {
                         /* trigger event */
                         g_signal_emit (daemon,

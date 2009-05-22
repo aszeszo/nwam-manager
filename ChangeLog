@@ -1,5 +1,30 @@
 2009-05-22  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_conn_conf_ip_panel.c:
+	  Fix some compile warnings.
+	* common/libnwamui.c, common/libnwamui.h:
+	  Change NWAM_ICON_NETWORK_WIRELESS to be "nwam-wireless-nosignal" to
+	  avoid picking up the wrong icon from hicolor theme. Looks poor, but
+	  will be better when Nimbus theme is updated.
+	  Fix logic error w.r.t. use of wireless_ncu. Also then ensure we
+	  always get a status icon based off the NCU if we have an NCU...
+	* common/nwamui_daemon.c: 
+	  If we find a wifi network that's marked as connected, ensure we
+	  update the NCU with it.
+	* common/nwamui_ncu.c:
+	  XXXX Assume active if IP NCU is active - should be undone when
+	  state machine is fixed XXXX
+	* daemon/main.c:
+	* daemon/nwam-tooltip-widget.c:
+	  Put in a g_assert_not_reached in the finalize method, it seems that
+	  sometimes - if tooltip is up and menu is popped up then this get's
+	  called - try catch it.
+	* daemon/status_icon.c, daemon/status_icon.h:
+	  Add wireless_ncu argument to nwam_status_icon_set_status() so that
+	  we can get a wireless icon if it's correct to do so.
+
+2009-05-22  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/libnwamui.c, common/libnwamui.h:
 	  Change wireless strength icon functions to support the selection of
 	  either RADAR (for the panel) or BARS (for menus and favourites
