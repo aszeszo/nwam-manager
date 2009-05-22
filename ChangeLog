@@ -1,3 +1,12 @@
+2009-05-22  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/libnwamui.c, common/libnwamui.h:
+	  Change wireless strength icon functions to support the selection of
+	  either RADAR (for the panel) or BARS (for menus and favourites
+	  editor). 
+	* capplet/nwam_wireless_chooser.c, daemon/nwam-wifi-item.c:
+	  Update for above changes.
+
 2009-05-21  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_ncu.c: 

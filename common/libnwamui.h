@@ -118,20 +118,27 @@ typedef guint64 libnwam_diag_cause_t;
 #define  NWAM_ICON_WARNING   "nwam-warning"
 #define  NWAM_ICON_ERROR     "nwam-error"
 
-/* Wireless strength icons, do we really need both parts? */
-#if 0
-#define  NWAM_ICON_WIRELESS_STRENGTH_NONE      "network-wireless-signal-none"
-#define  NWAM_ICON_WIRELESS_STRENGTH_POOR      "network-wireless-signal-poor"
-#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR      "network-wireless-signal-fair"
-#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD      "network-wireless-signal-good"
-#define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT "network-wireless-signal-good"
-#else
-#define  NWAM_ICON_WIRELESS_STRENGTH_NONE      "nwam-wireless-nosignal"
-#define  NWAM_ICON_WIRELESS_STRENGTH_POOR      "nwam-wireless-0-24"
-#define  NWAM_ICON_WIRELESS_STRENGTH_FAIR      "nwam-wireless-25-49"
-#define  NWAM_ICON_WIRELESS_STRENGTH_GOOD      "nwam-wireless-50-74"
-#define  NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT "nwam-wireless-75-100"
-#endif
+/* Wireless strength icons */
+
+/* For menus - is signal bars style */
+#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_NONE      "network-wireless-signal-none"
+#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_POOR      "network-wireless-signal-poor"
+#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_FAIR      "network-wireless-signal-fair"
+#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_GOOD      "network-wireless-signal-good"
+#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_EXCELLENT "network-wireless-signal-good"
+
+/* For panel, is radar style */
+#define  NWAM_RADAR_ICON_WIRELESS_STRENGTH_NONE      "nwam-wireless-nosignal"
+#define  NWAM_RADAR_ICON_WIRELESS_STRENGTH_POOR      "nwam-wireless-0-24"
+#define  NWAM_RADAR_ICON_WIRELESS_STRENGTH_FAIR      "nwam-wireless-25-49"
+#define  NWAM_RADAR_ICON_WIRELESS_STRENGTH_GOOD      "nwam-wireless-50-74"
+#define  NWAM_RADAR_ICON_WIRELESS_STRENGTH_EXCELLENT "nwam-wireless-75-100"
+
+typedef enum {
+    NWAMUI_WIRELESS_ICON_TYPE_RADAR = 0,
+    NWAMUI_WIRELESS_ICON_TYPE_BARS,
+    NWAMUI_WIRELESS_ICON_TYPE_LAST /* Not to be used directly */
+} nwamui_wireless_icon_type_t;
 
 #define  NWAM_ICON_NETWORK_SECURE   "nwam-wireless-secure"
 #define  NWAM_ICON_NETWORK_INSECURE "nwam-wireless-insecure"
@@ -226,9 +233,13 @@ extern GdkPixbuf*               nwamui_util_get_network_type_icon( nwamui_ncu_ty
 
 extern GdkPixbuf*               nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status, gint force_size );
 
-extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength, gboolean small);
+extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength, 
+                                                                        nwamui_wireless_icon_type_t icon_type,
+                                                                        gboolean small);
 
-extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon_with_size( nwamui_wifi_signal_strength_t signal_strength, gint size);
+extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon_with_size( nwamui_wifi_signal_strength_t signal_strength, 
+                                                                                  nwamui_wireless_icon_type_t icon_type,
+                                                                                  gint size);
 
 extern GdkPixbuf*               nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type,
                                                                         gboolean small);

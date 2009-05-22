@@ -322,7 +322,7 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "signal-strength") == 0) {
 
-          img = gtk_image_new_from_pixbuf (nwamui_util_get_wireless_strength_icon(nwamui_wifi_net_get_signal_strength(wifi), TRUE ));
+          img = gtk_image_new_from_pixbuf (nwamui_util_get_wireless_strength_icon(nwamui_wifi_net_get_signal_strength(wifi), NWAMUI_WIRELESS_ICON_TYPE_BARS, TRUE ));
           nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, img);
 
     }

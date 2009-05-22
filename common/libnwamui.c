@@ -630,7 +630,7 @@ nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
         }
             break;
         case NWAMUI_NCU_TYPE_WIRELESS:
-            inf_icon = nwamui_util_get_wireless_strength_icon_with_size(strength, size);
+            inf_icon = nwamui_util_get_wireless_strength_icon_with_size(strength, NWAMUI_WIRELESS_ICON_TYPE_RADAR, size);
             break;
         default:
             g_assert_not_reached();
@@ -709,66 +709,89 @@ nwamui_util_get_active_mode_icon( NwamuiObject *object  )
 }
 
 extern GdkPixbuf*
-nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength, gboolean small )
+nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength, 
+                                        nwamui_wireless_icon_type_t icon_type,
+                                        gboolean small )
 {
-    static GdkPixbuf*   enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_LAST][2];
+    static GdkPixbuf*   enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_LAST][NWAMUI_WIRELESS_ICON_TYPE_LAST][2];
     gint                icon_size = small?0:1;
 
-    if ( enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] == NULL ) {
+    if ( enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size] == NULL ) {
         GdkPixbuf* inf_icon = NULL;
         GdkPixbuf* wireless_strength_icon = NULL;
         GdkPixbuf* composed_icon = NULL;
+
+        /* Create Composed RADAR icons */
 
         /* Basic interface icon. */
         inf_icon = get_pixbuf(NWAM_ICON_NETWORK_WIRELESS, small);
 
         /* Compose icon. */
         composed_icon = gdk_pixbuf_copy(inf_icon);
-        wireless_strength_icon = get_pixbuf(NWAM_ICON_WIRELESS_STRENGTH_NONE, small);
+        wireless_strength_icon = get_pixbuf(NWAM_RADAR_ICON_WIRELESS_STRENGTH_NONE, small);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] = composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size] = composed_icon;
           
         composed_icon = gdk_pixbuf_copy(inf_icon);
-        wireless_strength_icon = get_pixbuf(NWAM_ICON_WIRELESS_STRENGTH_POOR, small);
+        wireless_strength_icon = get_pixbuf(NWAM_RADAR_ICON_WIRELESS_STRENGTH_POOR, small);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_WEAK][icon_size] = composed_icon;
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_WEAK][icon_size] = g_object_ref(composed_icon);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_WEAK][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size] = composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_WEAK][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size] = g_object_ref(composed_icon);
 
         composed_icon = gdk_pixbuf_copy(inf_icon);
-        wireless_strength_icon = get_pixbuf(NWAM_ICON_WIRELESS_STRENGTH_FAIR, small);
+        wireless_strength_icon = get_pixbuf(NWAM_RADAR_ICON_WIRELESS_STRENGTH_FAIR, small);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD][icon_size] = composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size] = composed_icon;
 
         composed_icon = gdk_pixbuf_copy(inf_icon);
-        wireless_strength_icon = get_pixbuf(NWAM_ICON_WIRELESS_STRENGTH_GOOD, small);
+        wireless_strength_icon = get_pixbuf(NWAM_RADAR_ICON_WIRELESS_STRENGTH_GOOD, small);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_GOOD][icon_size]= composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_GOOD][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size]= composed_icon;
 
         composed_icon = gdk_pixbuf_copy(inf_icon);
-        wireless_strength_icon = get_pixbuf(NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT, small);
+        wireless_strength_icon = get_pixbuf(NWAM_RADAR_ICON_WIRELESS_STRENGTH_EXCELLENT, small);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT][icon_size]= composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size]= composed_icon;
 
         g_object_unref(inf_icon);
+
+        /* Create simpler Bar Icons */
+        wireless_strength_icon = get_pixbuf(NWAM_BAR_ICON_WIRELESS_STRENGTH_NONE, small);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size] = wireless_strength_icon;
+          
+        wireless_strength_icon = get_pixbuf(NWAM_BAR_ICON_WIRELESS_STRENGTH_POOR, small);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_WEAK][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size] = wireless_strength_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_WEAK][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size] = g_object_ref(wireless_strength_icon);
+
+        wireless_strength_icon = get_pixbuf(NWAM_BAR_ICON_WIRELESS_STRENGTH_FAIR, small);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size] = wireless_strength_icon;
+
+        wireless_strength_icon = get_pixbuf(NWAM_BAR_ICON_WIRELESS_STRENGTH_GOOD, small);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_GOOD][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size]= wireless_strength_icon;
+
+        wireless_strength_icon = get_pixbuf(NWAM_BAR_ICON_WIRELESS_STRENGTH_EXCELLENT, small);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size]= wireless_strength_icon;
     }
 
-    return( GDK_PIXBUF(g_object_ref( G_OBJECT(enabled_wireless_icons[signal_strength][icon_size]) )) );
+    return( GDK_PIXBUF(g_object_ref( G_OBJECT(enabled_wireless_icons[signal_strength][icon_type][icon_size]) )) );
 }
 
 extern GdkPixbuf*
-nwamui_util_get_wireless_strength_icon_with_size( nwamui_wifi_signal_strength_t signal_strength, gint size)
+nwamui_util_get_wireless_strength_icon_with_size( nwamui_wifi_signal_strength_t signal_strength, 
+                                                  nwamui_wireless_icon_type_t icon_type,
+                                                  gint size)
 {
-    static GdkPixbuf*   enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_LAST][4];
+    static GdkPixbuf*   enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_LAST][NWAMUI_WIRELESS_ICON_TYPE_LAST][4];
     gint icon_size;
 
     if (size <= 16) {size = 16; icon_size = 0;}
@@ -776,7 +799,7 @@ nwamui_util_get_wireless_strength_icon_with_size( nwamui_wifi_signal_strength_t 
     else if (size <= 32) {size = 32; icon_size = 2;}
     else {size = 48; icon_size = 3;}
 
-    if ( enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] == NULL ) {
+    if ( enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size] == NULL ) {
         GdkPixbuf* inf_icon = NULL;
         GdkPixbuf* wireless_strength_icon = NULL;
         GdkPixbuf* composed_icon = NULL;
@@ -788,50 +811,69 @@ nwamui_util_get_wireless_strength_icon_with_size( nwamui_wifi_signal_strength_t 
 /*           24, */
 /*           24); */
 
+        /* Create Composed RADAR icons */
+
         inf_icon = get_pixbuf_with_size(NWAM_ICON_NETWORK_WIRELESS, size);
 /*         size = (size - 16)/2 + 16; */
 
         /* Compose icon. */
         composed_icon = gdk_pixbuf_copy(inf_icon);
-        wireless_strength_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_STRENGTH_NONE, size);
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_RADAR_ICON_WIRELESS_STRENGTH_NONE, size);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][icon_size] = composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size] = composed_icon;
           
         composed_icon = gdk_pixbuf_copy(inf_icon);
-        wireless_strength_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_STRENGTH_POOR, size);
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_RADAR_ICON_WIRELESS_STRENGTH_POOR, size);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_WEAK][icon_size] = composed_icon;
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_WEAK][icon_size] = g_object_ref(composed_icon);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_WEAK][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size] = composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_WEAK][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size] = g_object_ref(composed_icon);
 
         composed_icon = gdk_pixbuf_copy(inf_icon);
-        wireless_strength_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_STRENGTH_FAIR, size);
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_RADAR_ICON_WIRELESS_STRENGTH_FAIR, size);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD][icon_size] = composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size] = composed_icon;
 
         composed_icon = gdk_pixbuf_copy(inf_icon);
-        wireless_strength_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_STRENGTH_GOOD, size);
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_RADAR_ICON_WIRELESS_STRENGTH_GOOD, size);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_GOOD][icon_size]= composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_GOOD][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size]= composed_icon;
 
         composed_icon = gdk_pixbuf_copy(inf_icon);
-        wireless_strength_icon = get_pixbuf_with_size(NWAM_ICON_WIRELESS_STRENGTH_EXCELLENT, size);
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_RADAR_ICON_WIRELESS_STRENGTH_EXCELLENT, size);
         PIXBUF_COMPOSITE_NO_SCALE(wireless_strength_icon, composed_icon);
         g_object_unref(wireless_strength_icon);
 
-        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT][icon_size]= composed_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT][NWAMUI_WIRELESS_ICON_TYPE_RADAR][icon_size]= composed_icon;
 
         g_object_unref(inf_icon);
+
+        /* Create simpler Bar Icons */
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_BAR_ICON_WIRELESS_STRENGTH_NONE, size);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_NONE][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size] = wireless_strength_icon;
+          
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_BAR_ICON_WIRELESS_STRENGTH_POOR, size);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_WEAK][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size] = wireless_strength_icon;
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_WEAK][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size] = g_object_ref(wireless_strength_icon);
+
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_BAR_ICON_WIRELESS_STRENGTH_FAIR, size);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_GOOD][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size] = wireless_strength_icon;
+
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_BAR_ICON_WIRELESS_STRENGTH_GOOD, size);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_VERY_GOOD][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size]= wireless_strength_icon;
+
+        wireless_strength_icon = get_pixbuf_with_size(NWAM_BAR_ICON_WIRELESS_STRENGTH_EXCELLENT, size);
+        enabled_wireless_icons[NWAMUI_WIFI_STRENGTH_EXCELLENT][NWAMUI_WIRELESS_ICON_TYPE_BARS][icon_size]= wireless_strength_icon;
     }
 
-    return( GDK_PIXBUF(g_object_ref( G_OBJECT(enabled_wireless_icons[signal_strength][icon_size]) )) );
+    return( GDK_PIXBUF(g_object_ref( G_OBJECT(enabled_wireless_icons[signal_strength][icon_type][icon_size]) )) );
 }
 
 /* 
