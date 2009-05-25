@@ -285,9 +285,10 @@ nwamui_ncp_set_property (   GObject         *object,
 
         case PROP_ACTIVE: {
                 /* Activate immediately */
-                nwam_state_t    state = NWAM_STATE_OFFLINE;
+                nwam_state_t        state = NWAM_STATE_OFFLINE;
+                nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-                nwam_ncp_get_state( self->prv->nwam_ncp, &state );
+                nwam_ncp_get_state( self->prv->nwam_ncp, &state, &aux_state );
 
                 gboolean active = g_value_get_boolean( value );
                 if ( state != NWAM_STATE_ONLINE && active ) {
@@ -328,9 +329,10 @@ nwamui_ncp_get_property (   GObject         *object,
         case PROP_ACTIVE: {
                 gboolean active = FALSE;
                 if ( self->prv->nwam_ncp ) {
-                    nwam_state_t    state = NWAM_STATE_OFFLINE;
+                    nwam_state_t        state = NWAM_STATE_OFFLINE;
+                    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-                    nwam_ncp_get_state( self->prv->nwam_ncp, &state );
+                    nwam_ncp_get_state( self->prv->nwam_ncp, &state, &aux_state );
                     if ( state == NWAM_STATE_ONLINE ) {
                         active = TRUE;
                     }

@@ -157,6 +157,8 @@ connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object)
         g_signal_connect (G_OBJECT(object), "notify::active",
           G_CALLBACK(nwam_ncu_notify), (gpointer)self);
 
+        g_signal_connect (G_OBJECT(object), "notify::wifi-info",
+          G_CALLBACK(nwam_ncu_notify), (gpointer)self);
         nwam_ncu_notify(G_OBJECT(object), NULL, (gpointer)self);
     } else {
         g_signal_connect (G_OBJECT(object), "notify::name",

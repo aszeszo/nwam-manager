@@ -2049,12 +2049,15 @@ nwamd_event_handler(gpointer data)
                 switch ( nwamevent->data.object_action.action ) {
                 case NWAM_ACTION_ADD:
                 case NWAM_ACTION_REMOVE:
-                case NWAM_ACTION_REFRESH:
                 case NWAM_ACTION_REQUEST_STATE:
                 case NWAM_ACTION_RENAME:
                 case NWAM_ACTION_DESTROY:
                     g_error("OBJECT Action : %d recieved, and unhandled", 
                             nwamevent->data.object_action.action );
+                    break;
+                case NWAM_ACTION_REFRESH:
+                    g_debug("Got NWAM_ACTION_REFRESH for object %s, doing nothing...", 
+                            nwamevent->data.object_action.name );
                     break;
                 case NWAM_ACTION_ENABLE:
                     if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_NCP ) {

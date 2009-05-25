@@ -199,27 +199,33 @@ typedef enum {
 	NWAM_STATE_UNINITIALIZED = 0x0,
 	NWAM_STATE_INITIALIZED = 0x1,
 	NWAM_STATE_OFFLINE = 0x2,
-	NWAM_STATE_ONLINE = 0x4,
-	NWAM_STATE_MAINTENANCE = 0x8,
-	NWAM_STATE_DEGRADED = 0x10,
-	NWAM_STATE_DISABLED = 0x20
+	NWAM_STATE_OFFLINE_TO_ONLINE = 0x4,
+	NWAM_STATE_ONLINE_TO_OFFLINE = 0x8,
+	NWAM_STATE_ONLINE = 0x10,
+	NWAM_STATE_MAINTENANCE = 0x20,
+	NWAM_STATE_DEGRADED = 0x40,
+	NWAM_STATE_DISABLED = 0x80
 } nwam_state_t;
 
 #define	NWAM_STATE_ANY	(NWAM_STATE_UNINITIALIZED | \
 			NWAM_STATE_INITIALIZED | \
 			NWAM_STATE_OFFLINE | \
+			NWAM_STATE_OFFLINE_TO_ONLINE | \
+			NWAM_STATE_ONLINE_TO_OFFLINE | \
 			NWAM_STATE_ONLINE | \
 			NWAM_STATE_MAINTENANCE | \
 			NWAM_STATE_DEGRADED | \
 			NWAM_STATE_DISABLED)
 
-#define	NWAM_STATE_UNINITIALIZED_STRING	"uninitialized"
-#define	NWAM_STATE_INITIALIZED_STRING	"initialized"
-#define	NWAM_STATE_OFFLINE_STRING	"offline"
-#define	NWAM_STATE_ONLINE_STRING	"online"
-#define	NWAM_STATE_MAINTENANCE_STRING	"maintenance"
-#define	NWAM_STATE_DEGRADED_STRING	"degraded"
-#define	NWAM_STATE_DISABLED_STRING	"disabled"
+#define	NWAM_STATE_UNINITIALIZED_STRING		"uninitialized"
+#define	NWAM_STATE_INITIALIZED_STRING		"initialized"
+#define	NWAM_STATE_OFFLINE_STRING		"offline"
+#define	NWAM_STATE_OFFLINE_TO_ONLINE_STRING	"offline*"
+#define	NWAM_STATE_ONLINE_TO_OFFLINE_STRING	"online*"
+#define	NWAM_STATE_ONLINE_STRING		"online"
+#define	NWAM_STATE_MAINTENANCE_STRING		"maintenance"
+#define	NWAM_STATE_DEGRADED_STRING		"degraded"
+#define	NWAM_STATE_DISABLED_STRING		"disabled"
 
 /*
  * In the future, aux state will be used to signify supplemental
@@ -227,8 +233,68 @@ typedef enum {
  * "disabled by administrator", "waiting for DHCP response").
  */
 typedef enum {
-	NWAM_AUX_STATE_TO_DO
+	/* General auxiliary states */
+	NWAM_AUX_STATE_UNINITIALIZED,
+	NWAM_AUX_STATE_INITIALIZED,
+	NWAM_AUX_STATE_CONDITIONS_NOT_MET,
+	NWAM_AUX_STATE_MANUAL_DISABLE,
+	NWAM_AUX_STATE_METHOD_FAILED,
+	NWAM_AUX_STATE_METHOD_MISSING,
+	NWAM_AUX_STATE_METHOD_RUNNING,
+	NWAM_AUX_STATE_INVALID_CONFIG,
+	NWAM_AUX_STATE_ACTIVE,
+	/* Link-specific auxiliary states */
+	NWAM_AUX_STATE_LINK_INIT,
+	NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION,
+	NWAM_AUX_STATE_LINK_WIFI_NEED_KEY,
+	NWAM_AUX_STATE_LINK_WIFI_CONNECTING,
+	NWAM_AUX_STATE_LINK_UP,
+	NWAM_AUX_STATE_LINK_DOWN,
+	/* IP interface-specific auxiliary states */
+	NWAM_AUX_STATE_IF_INIT,
+	NWAM_AUX_STATE_IF_CONFIGDHCP,
+	NWAM_AUX_STATE_IF_UP,
+	NWAM_AUX_STATE_IF_DOWN
 } nwam_aux_state_t;
+
+#define	NWAM_AUX_STATE_UNINITIALIZED_STRING		\
+		"uninitialized"
+#define	NWAM_AUX_STATE_INITIALIZED_STRING		\
+		"initialized but not configured"
+#define	NWAM_AUX_STATE_CONDITIONS_NOT_MET_STRING	\
+		"conditions for activation are not met"
+#define	NWAM_AUX_STATE_MANUAL_DISABLE_STRING		\
+		"disabled by administrator"
+#define	NWAM_AUX_STATE_METHOD_FAILED_STRING		\
+		"method execution or enable of service failed"
+#define	NWAM_AUX_STATE_METHOD_RUNNING_STRING		\
+		"method or service enable currently executing"
+#define	NWAM_AUX_STATE_METHOD_MISSING_STRING		\
+		"method or FMRI not specified"
+#define	NWAM_AUX_STATE_INVALID_CONFIG_STRING		\
+		"invalid or unreadable configuration values"
+#define	NWAM_AUX_STATE_ACTIVE_STRING			\
+		"active"
+#define	NWAM_AUX_STATE_LINK_INIT_STRING			\
+		"(re)initializing link"
+#define	NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION_STRING	\
+		"need WiFi wireless network selection"
+#define	NWAM_AUX_STATE_LINK_WIFI_NEED_KEY_STRING	\
+		"need security key for selected wireless network"
+#define	NWAM_AUX_STATE_LINK_WIFI_CONNECTING_STRING	\
+		"connecting to selected wireless network"
+#define	NWAM_AUX_STATE_LINK_UP_STRING			\
+		"link is up"
+#define	NWAM_AUX_STATE_LINK_DOWN_STRING			\
+		"link is down"
+#define	NWAM_AUX_STATE_IF_INIT_STRING			\
+		"(re)initializing interface"
+#define	NWAM_AUX_STATE_IF_CONFIGDHCP_STRING		\
+		"waiting for DHCP response"
+#define	NWAM_AUX_STATE_IF_UP_STRING			\
+		"interface is up"
+#define	NWAM_AUX_STATE_IF_DOWN_STRING			\
+		"interface is down"
 
 /* Activation modes */
 typedef enum {
@@ -604,7 +670,8 @@ extern nwam_error_t nwam_loc_get_prop_description(const char *, const char **);
 extern nwam_error_t nwam_loc_get_default_proplist(const char ***, uint_t *);
 
 /* get sstate of loc from nwamd */
-extern nwam_error_t nwam_loc_get_state(nwam_loc_handle_t, nwam_state_t *);
+extern nwam_error_t nwam_loc_get_state(nwam_loc_handle_t, nwam_state_t *,
+	nwam_aux_state_t *);
 
 /* Get whether the loc has manual activation-mode or not */
 extern nwam_error_t nwam_loc_is_manual(nwam_loc_handle_t, boolean_t *);
@@ -651,7 +718,8 @@ extern nwam_error_t nwam_ncp_enable(nwam_ncp_handle_t);
 extern void nwam_ncp_free(nwam_ncp_handle_t);
 
 /* Get state of NCP from nwamd */
-extern nwam_error_t nwam_ncp_get_state(nwam_ncp_handle_t, nwam_state_t *);
+extern nwam_error_t nwam_ncp_get_state(nwam_ncp_handle_t, nwam_state_t *,
+	nwam_aux_state_t *);
 
 /* Create an ncu or read it from persistent storage */
 extern nwam_error_t nwam_ncu_create(nwam_ncp_handle_t, const char *,
@@ -675,7 +743,8 @@ extern nwam_error_t nwam_ncu_enable(nwam_ncu_handle_t);
 extern nwam_error_t nwam_ncu_disable(nwam_ncu_handle_t);
 
 /* Get state of NCU from nwamd */
-extern nwam_error_t nwam_ncu_get_state(nwam_ncu_handle_t, nwam_state_t *);
+extern nwam_error_t nwam_ncu_get_state(nwam_ncu_handle_t, nwam_state_t *,
+	nwam_aux_state_t *);
 
 /* Validate ncu content */
 extern nwam_error_t nwam_ncu_validate(nwam_ncu_handle_t, const char **);
@@ -810,7 +879,8 @@ extern nwam_error_t nwam_enm_disable(nwam_enm_handle_t);
 /*
  * Get state of ENM from nwamd.
  */
-extern nwam_error_t nwam_enm_get_state(nwam_enm_handle_t, nwam_state_t *);
+extern nwam_error_t nwam_enm_get_state(nwam_enm_handle_t, nwam_state_t *,
+	nwam_aux_state_t *);
 
 /*
  * Get whether the ENM has manual activation-mode or not.
@@ -1061,6 +1131,7 @@ extern void nwam_event_queue_fini(const char *);
 extern const char *nwam_action_to_string(nwam_action_t);
 extern const char *nwam_event_type_to_string(int);
 extern const char *nwam_state_to_string(nwam_state_t);
+extern const char *nwam_aux_state_to_string(nwam_aux_state_t);
 extern const char *nwam_object_type_to_string(nwam_object_type_t);
 
 #ifdef	__cplusplus

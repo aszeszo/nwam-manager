@@ -154,6 +154,7 @@ static void ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath
 
 static void ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
 
+static void wireless_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
 G_DEFINE_TYPE (NwamuiNcu, nwamui_ncu, NWAMUI_TYPE_OBJECT)
 
@@ -498,9 +499,10 @@ nwamui_ncu_set_property ( GObject         *object,
                                     get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE );
                 
                 if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL ) {
-                    nwam_state_t    state = NWAM_STATE_OFFLINE;
+                    nwam_state_t        state = NWAM_STATE_OFFLINE;
+                    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-                    nwam_ncu_get_state( self->prv->nwam_ncu_phys, &state );
+                    nwam_ncu_get_state( self->prv->nwam_ncu_phys, &state, &aux_state );
 
                     /* Activate immediately */
                     gboolean active = g_value_get_boolean( value );
@@ -738,8 +740,18 @@ nwamui_ncu_set_property ( GObject         *object,
                 g_assert( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS );
                 if ( self->prv->wifi_info != NULL ) {
                         g_object_unref( self->prv->wifi_info );
+                        g_signal_handlers_disconnect_matched(
+                          G_OBJECT(self->prv->wifi_info),
+                          G_SIGNAL_MATCH_DATA,
+                          0,
+                          NULL,
+                          NULL,
+                          NULL,
+                          (gpointer)self);
                 }
                 self->prv->wifi_info = NWAMUI_WIFI_NET( g_value_dup_object( value ) );
+                g_signal_connect (G_OBJECT(self->prv->wifi_info), "notify",
+                  G_CALLBACK(wireless_notify_cb), (gpointer)self);
             }
             break;
 
@@ -822,20 +834,22 @@ nwamui_ncu_get_property (GObject         *object,
         case PROP_ACTIVE: {
                 gboolean active = FALSE;
                 if ( self->prv->nwam_ncu_phys ) {
-                    nwam_state_t    state = NWAM_STATE_OFFLINE;
+                    nwam_state_t        state = NWAM_STATE_OFFLINE;
+                    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-                    nwam_ncu_get_state( self->prv->nwam_ncu_phys, &state );
+                    nwam_ncu_get_state( self->prv->nwam_ncu_phys, &state, &aux_state );
                     /* 
                      * XXXX Assume active if IP NCU is active - should be
                      * undone when state machine is fixed XXXX
                      */
                     if ( TRUE || state == NWAM_STATE_ONLINE ) {
                         state = NWAM_STATE_OFFLINE;
+                        aux_state = NWAM_AUX_STATE_UNINITIALIZED;
                         if ( self->prv->nwam_ncu_ip ) {
-                            nwam_ncu_get_state( self->prv->nwam_ncu_ip, &state );
+                            nwam_ncu_get_state( self->prv->nwam_ncu_ip, &state, &aux_state );
                         }
                         else if ( self->prv->nwam_ncu_iptun ) {
-                            nwam_ncu_get_state( self->prv->nwam_ncu_iptun, &state );
+                            nwam_ncu_get_state( self->prv->nwam_ncu_iptun, &state, &aux_state );
                         }
                         if ( state == NWAM_STATE_ONLINE ) {
                             active = TRUE;
@@ -3409,4 +3423,13 @@ ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer data)
     g_object_notify(G_OBJECT(self), is_v6?"v6addresses":"v4addresses");
 }
 
+static void
+wireless_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer user_data)
+{
+    NwamuiWifiNet*  wifi = NWAMUI_WIFI_NET(gobject);
+    NwamuiNcu*      self = NWAMUI_NCU(user_data);
+
+    /* Chain events in the Wifi Net to the NCU */
+    g_object_notify(G_OBJECT(self), "wifi_info");
+}
 

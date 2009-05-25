@@ -1,3 +1,29 @@
+2009-05-25  Darren Kenny  <darren.kenny@sun.com>
+
+	* nwam_core/usr/include/libnwam.h:
+	  Update header to latest from hg. This explains some unexpected
+	  crashes due to an extra param to the nwam_*get_state functions.
+	* common/nwamui_daemon.c: 
+	  Handle NWAM_ACTION_REFRESH, for now do nothing, but we may need to
+	  consider that it's useful to update NWAMUI objects.
+	* common/nwamui_enm.c, common/nwamui_env.c, common/nwamui_ncp.c: 
+	  Update for API changes.
+	* common/nwamui_ncu.c: 
+	  Update for API changes and add handlers to pass on changed in the
+	  wifi_info object as notifications on the ncu too, to allow tooltip
+	  to notice a change (e.g. in signal, ESSID, etc).
+	* common/libnwamui.c: 
+	  Change slightly the mapping between signal and the radar icon since
+	  even with a good signal it looked like you had a weak signal.
+	  Update nwamui_util_get_network_status_icon() to also cache the
+	  based on signal strength too - it was ignoring this and only
+	  generating the icon once, with the wrong signal strength over time.
+	* daemon/nwam-tooltip-widget.c: 
+	  Connect to ncu to catch wifi_info notification changes too to update
+	  icon correctly.
+	* common/nwamui_cond.c:
+	  Include stdlib.h to clean up warning about call to free();
+
 2009-05-22  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_conf_ip_panel.c:

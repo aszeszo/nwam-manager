@@ -27,6 +27,7 @@
 #include <glib-object.h>
 #include <glib/gi18n.h>
 #include <strings.h>
+#include <stdlib.h>
 
 #include "libnwamui.h"
         

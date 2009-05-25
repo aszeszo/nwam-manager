@@ -356,9 +356,10 @@ nwamui_enm_get_property (   GObject         *object,
         case PROP_ACTIVE: {
                 gboolean active = FALSE;
                 if ( self->prv->nwam_enm ) {
-                    nwam_state_t    state = NWAM_STATE_OFFLINE;
+                    nwam_state_t        state = NWAM_STATE_OFFLINE;
+                    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-                    nwam_enm_get_state( self->prv->nwam_enm, &state );
+                    nwam_enm_get_state( self->prv->nwam_enm, &state, &aux_state );
                     if ( state == NWAM_STATE_ONLINE ) {
                         active = TRUE;
                     }
