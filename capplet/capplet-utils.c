@@ -88,11 +88,31 @@ capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *ite
 	data.user_data = (gpointer)object;
 	data.ret_data = iter;
 
-	gtk_tree_model_foreach(model,
-      capplet_model_foreach_find_object,
+	gtk_tree_model_foreach(model, capplet_model_foreach_find_object,
       (gpointer)&data);
 
 	return data.ret_data == NULL;
+}
+
+gboolean
+capplet_model_find_object_with_parent(GtkTreeModel *model, GtkTreeIter *parent, GObject *object, GtkTreeIter *iter)
+{
+	CappletForeachData data;
+    GtkTreeIter i;
+    gboolean valid;
+
+    g_return_val_if_fail(iter, FALSE);
+
+	data.user_data = (gpointer)object;
+	data.ret_data = iter;
+
+    for (valid = gtk_tree_model_iter_children(model, &i, parent);
+         valid;
+         valid = gtk_tree_model_iter_next(model, &i)) {
+        if (capplet_model_foreach_find_object(model, NULL, &i, (gpointer)&data))
+            return TRUE;
+    }
+    return FALSE;
 }
 
 gboolean

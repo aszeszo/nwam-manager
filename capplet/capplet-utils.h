@@ -154,6 +154,8 @@ typedef gboolean (*CappletTreeModelForeachFunc)(GtkTreeModel *model, GtkTreeIter
 
 gboolean capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *iter);
 
+gboolean capplet_model_find_object_with_parent(GtkTreeModel *model, GtkTreeIter *parent, GObject *object, GtkTreeIter *iter);
+
 gboolean capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, CappletTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter);
 
 void capplet_list_foreach_merge_to_list_store(gpointer data, gpointer store);

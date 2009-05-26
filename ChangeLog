@@ -1,3 +1,32 @@
+2009-05-26  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (capplet_model_find_object),
+	(capplet_model_find_object_with_parent):
+	* capplet/capplet-utils.h:
+	Add a new Function.
+	* capplet/nwam_net_conf_panel.c (refresh), (on_button_clicked),
+	(ncp_add_ncu), (ncp_remove_ncu), (ncu_pri_group_find_iter_by_obj),
+	(ncu_pri_treeview_remove):
+	Handling adding/removing Ncu from a Ncp. And fix gtktreerowref leak.
+	* common/libnwamui.c (get_pixbuf_with_size):
+	Print stock id on failing to locate the icon.
+	* common/libnwamui.h:
+	Fix icon names.
+	* common/nwamui_daemon.c (nwamui_daemon_class_init):
+	* common/nwamui_daemon.h:
+	* common/nwamui_ncp.c (nwamui_ncp_class_init),
+	(nwamui_ncp_remove_ncu), (nwam_ncu_walker_cb),
+	(default_add_ncu_signal_handler),
+	(default_remove_ncu_signal_handler):
+	* common/nwamui_ncp.h:
+	Move add/remove ncu from daemon to ncp.
+	* daemon/nwam-tooltip-widget.c
+	(nwam_object_tooltip_widget_finalize):
+	Remove assertion.
+	* daemon/status_icon.c (nwam_menu_create_wifi_menuitems),
+	(ncp_add_ncu), (ncp_remove_ncu), (connect_nwam_object_signals):
+	Handling adding/removing Ncu from a Ncp.
+
 2009-05-25  Darren Kenny  <darren.kenny@sun.com>
 
 	* nwam_core/usr/include/libnwam.h:

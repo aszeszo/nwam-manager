@@ -428,7 +428,7 @@ get_pixbuf_with_size( const gchar* stock_id, gint size )
                                        (size > 0)?(size):(32), 0, &error );
 
     if ( pixbuf == NULL ) {
-        g_debug("get_pixbuf_with_size: pixbuf = NULL");
+        g_debug("get_pixbuf_with_size: pixbuf = NULL stockid = %s", stock_id);
     }
     else {
         g_debug("get_pixbuf_with_size: pixbuf loaded");

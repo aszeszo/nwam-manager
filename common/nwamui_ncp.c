@@ -58,6 +58,8 @@ enum {
 enum {
     S_ACTIVATE_NCU,
     S_DEACTIVATE_NCU,
+    ADD_NCU,
+    REMOVE_NCU,
     LAST_SIGNAL
 };
 
@@ -90,6 +92,8 @@ static void nwamui_ncp_finalize (     NwamuiNcp *self);
 /* Default signal handlers */
 static void default_activate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer user_data);
 static void default_deactivate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer user_data);
+static void default_add_ncu_signal_handler (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data);
+static void default_remove_ncu_signal_handler (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data);
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -117,6 +121,8 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 
     klass->activate_ncu = default_activate_ncu_signal_handler;
     klass->deactivate_ncu = default_deactivate_ncu_signal_handler;
+    klass->add_ncu = default_add_ncu_signal_handler;
+    klass->remove_ncu = default_remove_ncu_signal_handler;
 
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncp_get_name;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)NULL;
@@ -196,7 +202,7 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
         G_STRUCT_OFFSET (NwamuiNcpClass, activate_ncu),
         NULL, NULL,
-        g_cclosure_marshal_VOID__OBJECT, 
+        g_cclosure_marshal_VOID__OBJECT,
         G_TYPE_NONE,                  /* Return Type */
         1,                            /* Number of Args */
         G_TYPE_OBJECT);                  /* Types of Args */
@@ -207,10 +213,32 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
         G_STRUCT_OFFSET (NwamuiNcpClass, deactivate_ncu),
         NULL, NULL,
-        g_cclosure_marshal_VOID__OBJECT, 
+        g_cclosure_marshal_VOID__OBJECT,
         G_TYPE_NONE,                  /* Return Type */
         1,                            /* Number of Args */
         G_TYPE_OBJECT);                  /* Types of Args */
+    
+    nwamui_ncp_signals[ADD_NCU] =   
+      g_signal_new ("add_ncu",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+        G_STRUCT_OFFSET (NwamuiNcpClass, add_ncu),
+        NULL, NULL,
+        g_cclosure_marshal_VOID__OBJECT,
+        G_TYPE_NONE,                  /* Return Type */
+        1,                            /* Number of Args */
+        G_TYPE_OBJECT);               /* Types of Args */
+    
+    nwamui_ncp_signals[REMOVE_NCU] =   
+      g_signal_new ("remove_ncu",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
+        G_STRUCT_OFFSET (NwamuiNcpClass, remove_ncu),
+        NULL, NULL,
+        g_cclosure_marshal_VOID__OBJECT,
+        G_TYPE_NONE,                  /* Return Type */
+        1,                            /* Number of Args */
+        G_TYPE_OBJECT);               /* Types of Args */
     
 }
 
@@ -745,6 +773,12 @@ nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu )
     }
 
     self->prv->ncu_list = g_list_remove( self->prv->ncu_list, ncu );
+
+    g_signal_emit (self,
+      nwamui_ncp_signals[REMOVE_NCU],
+      0, /* details */
+      ncu);
+
     g_object_unref(ncu);
 
     g_object_thaw_notify(G_OBJECT(self->prv->ncu_tree_store));
@@ -835,6 +869,10 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
         }
 
         prv->ncu_list = g_list_append( prv->ncu_list, g_object_ref(new_ncu) );
+        g_signal_emit (ncp,
+          nwamui_ncp_signals[ADD_NCU],
+          0, /* details */
+          new_ncu);
 
         gtk_list_store_append( prv->ncu_list_store, &iter );
         gtk_list_store_set( prv->ncu_list_store, &iter, 0, new_ncu, -1 );
@@ -1251,3 +1289,24 @@ default_deactivate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer
 
     g_free( device_name );
 }
+
+static void
+default_add_ncu_signal_handler (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data)
+{
+	gchar*      name = nwamui_ncu_get_display_name(ncu);
+	
+	g_debug("Create NCU %s", name );
+	
+	g_free(name);
+}
+
+static void
+default_remove_ncu_signal_handler (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data)
+{
+	gchar*      name = nwamui_ncu_get_display_name(ncu);
+	
+	g_debug("Destroy NCU %s", name );
+	
+	g_free(name);
+}
+

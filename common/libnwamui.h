@@ -121,11 +121,11 @@ typedef guint64 libnwam_diag_cause_t;
 /* Wireless strength icons */
 
 /* For menus - is signal bars style */
-#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_NONE      "network-wireless-signal-none"
-#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_POOR      "network-wireless-signal-poor"
-#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_FAIR      "network-wireless-signal-fair"
-#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_GOOD      "network-wireless-signal-good"
-#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_EXCELLENT "network-wireless-signal-good"
+#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_NONE      "nwam-wireless-signal-none"
+#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_POOR      "nwam-wireless-signal-poor"
+#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_FAIR      "nwam-wireless-signal-fair"
+#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_GOOD      "nwam-wireless-signal-good"
+#define  NWAM_BAR_ICON_WIRELESS_STRENGTH_EXCELLENT "nwam-wireless-signal-good"
 
 /* For panel, is radar style */
 #define  NWAM_RADAR_ICON_WIRELESS_STRENGTH_NONE      "nwam-wireless-nosignal"

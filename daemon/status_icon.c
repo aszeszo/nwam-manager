@@ -140,8 +140,6 @@ static void daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, 
 static void daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
 static void daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
 static void nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data);
-static void daemon_ncu_create(NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data);
-static void daemon_ncu_destroy(NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data);
 static void daemon_add_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
 static void daemon_remove_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
 static void daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data);
@@ -150,6 +148,8 @@ static void daemon_active_env_changed(NwamuiDaemon* daemon, NwamuiEnv* env, gpoi
 /* nwamui ncp signals */
 static void ncp_activate_ncu (NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer user_data);
 static void ncp_deactivate_ncu (NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer user_data);
+static void ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data);
+static void ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data);
 static void on_ncp_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data);
 static void on_ncp_notify_many_wireless( GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
@@ -649,13 +649,15 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
 {
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    NwamuiNcp *ncp = NULL;
 	GtkWidget *item = NULL;
 	
-    ncp = nwamui_daemon_get_active_ncp(prv->daemon);
-
 	if (wifi) {
-		item = nwam_menu_item_create(NWAM_MENU(prv->menu), NWAMUI_OBJECT(wifi));
+        item = nwam_menu_section_get_item_by_proxy(prv->menu, SECTION_WIFI, wifi);
+        if (item) {
+            nwam_obj_proxy_refresh(NWAM_OBJ_PROXY_IFACE(item), NULL);
+        } else {
+            item = nwam_menu_item_create(NWAM_MENU(prv->menu), NWAMUI_OBJECT(wifi));
+        }
 
 		prv->has_wifi = TRUE;
 	} else {
@@ -666,11 +668,10 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
             prv->force_wifi_rescan = FALSE;
         }
     }
-    g_object_unref(ncp);
 }
 
 static void
-daemon_ncu_create(NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data)
+ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
 {
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
@@ -680,7 +681,7 @@ daemon_ncu_create(NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data)
 }
 
 static void
-daemon_ncu_destroy(NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer data)
+ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
 {
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
@@ -840,12 +841,6 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
         g_signal_connect(daemon, "ncu_down",
           G_CALLBACK(daemon_ncu_down), (gpointer)self);
 
-        g_signal_connect(daemon, "ncu_create",
-          G_CALLBACK(daemon_ncu_create), (gpointer) self);
-
-        g_signal_connect(daemon, "ncu_destroy",
-          G_CALLBACK(daemon_ncu_destroy), (gpointer) self);
-
         g_signal_connect(daemon, "add_wifi_fav",
           G_CALLBACK(daemon_add_wifi_fav), (gpointer) self);
 
@@ -860,6 +855,12 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
 
         g_signal_connect(ncp, "deactivate_ncu",
           G_CALLBACK(ncp_deactivate_ncu), (gpointer)self);
+
+        g_signal_connect(ncp, "add_ncu",
+          G_CALLBACK(ncp_add_ncu), (gpointer) self);
+
+        g_signal_connect(ncp, "remove_ncu",
+          G_CALLBACK(ncp_remove_ncu), (gpointer) self);
 
         g_signal_connect(ncp, "notify::ncu-list-store",
           G_CALLBACK(on_ncp_notify), (gpointer)self);

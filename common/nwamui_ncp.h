@@ -58,9 +58,11 @@ struct _NwamuiNcp
 
 struct _NwamuiNcpClass
 {
-	NwamuiObjectClass                parent_class;
+	NwamuiObjectClass parent_class;
     void (*activate_ncu) (NwamuiNcp *self, NwamuiNcu *ncu, gpointer user_data);
     void (*deactivate_ncu) (NwamuiNcp *self, NwamuiNcu *ncu, gpointer user_data);
+	void (*add_ncu) (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data);
+	void (*remove_ncu) (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data);
 };
 
 

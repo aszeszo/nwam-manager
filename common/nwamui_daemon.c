@@ -57,12 +57,10 @@ enum {
     WIFI_SCAN_RESULT,
     ACTIVE_NCP_CHANGED,
     ACTIVE_ENV_CHANGED,
-    WIFI_KEY_NEEDED,
-    WIFI_SELECTION_NEEDED,
-    S_NCU_CREATE,
-    S_NCU_DESTROY,
     S_NCU_UP,
     S_NCU_DOWN,
+    WIFI_KEY_NEEDED,
+    WIFI_SELECTION_NEEDED,
     S_WIFI_FAV_ADD,
     S_WIFI_FAV_REMOVE,
     LAST_SIGNAL
@@ -131,8 +129,6 @@ static void default_active_env_changed_signal_handler (NwamuiDaemon *self, GObje
 static void default_active_ncp_changed_signal_handler (NwamuiDaemon *self, GObject* data, gpointer user_data);
 static void default_add_wifi_fav_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
 static void default_daemon_info_signal_handler (NwamuiDaemon *self, gint type, GObject *obj, gpointer data, gpointer user_data);
-static void default_ncu_create_signal_handler (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
-static void default_ncu_destroy_signal_handler (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
 static void default_ncu_down_signal_handler (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
 static void default_ncu_up_signal_handler (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
 static void default_remove_wifi_fav_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
@@ -272,28 +268,6 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                   G_TYPE_OBJECT);               /* Types of Args */
                   
     
-    nwamui_daemon_signals[S_NCU_CREATE] =   
-            g_signal_new ("ncu_create",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-                  G_STRUCT_OFFSET (NwamuiDaemonClass, ncu_create),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT, 
-                  G_TYPE_NONE,                  /* Return Type */
-                  1,                            /* Number of Args */
-                  G_TYPE_OBJECT);               /* Types of Args */
-    
-    nwamui_daemon_signals[S_NCU_DESTROY] =   
-            g_signal_new ("ncu_destroy",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-                  G_STRUCT_OFFSET (NwamuiDaemonClass, ncu_destroy),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT, 
-                  G_TYPE_NONE,                  /* Return Type */
-                  1,                            /* Number of Args */
-                  G_TYPE_OBJECT);               /* Types of Args */
-    
     nwamui_daemon_signals[S_NCU_UP] =   
             g_signal_new ("ncu_up",
                   G_TYPE_FROM_CLASS (klass),
@@ -357,8 +331,6 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
     klass->wifi_scan_result = default_wifi_scan_result_signal_handler;
     klass->active_env_changed = default_active_env_changed_signal_handler;
     klass->active_ncp_changed = default_active_ncp_changed_signal_handler;
-    klass->ncu_create = default_ncu_create_signal_handler;
-    klass->ncu_destroy = default_ncu_destroy_signal_handler;
     klass->ncu_up = default_ncu_up_signal_handler;
     klass->ncu_down = default_ncu_down_signal_handler;
     klass->daemon_info = default_daemon_info_signal_handler;
@@ -2863,26 +2835,6 @@ default_active_ncp_changed_signal_handler (NwamuiDaemon *self, GObject* data, gp
     g_free(name);
 }
 
-
-static void
-default_ncu_create_signal_handler (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data)
-{
-	gchar*      name = nwamui_ncu_get_display_name(ncu);
-	
-	g_debug("Create NCU %s", name );
-	
-	g_free(name);
-}
-
-static void
-default_ncu_destroy_signal_handler (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data)
-{
-	gchar*      name = nwamui_ncu_get_display_name(ncu);
-	
-	g_debug("Destroy NCU %s", name );
-	
-	g_free(name);
-}
 
 static void 
 default_ncu_up_signal_handler (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data)
