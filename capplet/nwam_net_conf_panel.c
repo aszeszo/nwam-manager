@@ -614,13 +614,15 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         prv->selected_ncp = NWAMUI_NCP(user_data);
         if (old_ncp != NWAMUI_NCP(user_data) || force) {
 
-            g_signal_handlers_disconnect_matched(old_ncp,
-              G_SIGNAL_MATCH_DATA,
-              0,
-              NULL,
-              NULL,
-              NULL,
-              (gpointer)self);
+            if ( old_ncp != NULL ) {
+                g_signal_handlers_disconnect_matched(old_ncp,
+                  G_SIGNAL_MATCH_DATA,
+                  0,
+                  NULL,
+                  NULL,
+                  NULL,
+                  (gpointer)self);
+            }
 
             model = gtk_tree_view_get_model(prv->net_conf_treeview);
 

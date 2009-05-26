@@ -859,15 +859,16 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
         g_debug("Creating a new ncu for %s from handle 0x%08X", name, ncu );
         new_ncu = nwamui_ncu_new_with_handle( NWAMUI_NCP(data), ncu);
 
+        /* Only count on first creation of the ncu */
+        if ( new_ncu && nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
+            _num_wireless++;
+        }
+
         free(name);
     }
 
     /* NCU isn't already in the list, so add it */
     if ( new_ncu != NULL ) {
-        if ( new_ncu && nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
-            _num_wireless++;
-        }
-
         prv->ncu_list = g_list_append( prv->ncu_list, g_object_ref(new_ncu) );
         g_signal_emit (ncp,
           nwamui_ncp_signals[ADD_NCU],

@@ -123,6 +123,8 @@ static void nwamui_ncu_get_property ( GObject         *object,
 
 static void nwamui_ncu_finalize (     NwamuiNcu *self);
 
+static nwam_state_t nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string );
+
 static void set_modified_flag( NwamuiNcu* self, nwam_ncu_class_t ncu_class, gboolean value );
 
 static gboolean     get_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name );
@@ -181,6 +183,7 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_ncu_set_activation_mode;
     nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_ncu_get_active;
     nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_ncu_set_active;
+    nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_ncu_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_ncu_commit;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_ncu_reload;
 
@@ -1551,6 +1554,8 @@ nwamui_ncu_commit( NwamuiNcu* self )
 
     return( TRUE );
 }
+
+
 /**
  * nwamui_ncu_get_vanity_name:
  * @returns: null-terminated C String with the vanity name of the the NCU.
@@ -2487,6 +2492,57 @@ nwamui_ncu_finalize (NwamuiNcu *self)
     parent_class->finalize (G_OBJECT (self));
 }
 
+static 
+nwam_state_t nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p )
+{
+    nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
+
+    if ( aux_state_p ) {
+        *aux_state_p = NWAM_AUX_STATE_UNINITIALIZED;
+    }
+
+    if ( aux_state_string_p ) {
+        *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( NWAM_AUX_STATE_UNINITIALIZED );
+    }
+
+    if ( NWAMUI_IS_NCU( object ) ) {
+        NwamuiNcu   *ncu = NWAMUI_NCU(object);
+        nwam_state_t        state;
+        nwam_aux_state_t    aux_state;
+
+
+        /* First look at the LINK state, then the IP */
+        if ( ncu->prv->nwam_ncu_phys &&
+             nwam_ncu_get_state( ncu->prv->nwam_ncu_phys, &state, &aux_state ) == NWAM_SUCCESS ) {
+            if ( state == NWAM_STATE_ONLINE ) {
+                nwam_state_t        ip_state;
+                nwam_aux_state_t    ip_aux_state;
+                /* LINK looks ok, so try the IP level */
+                if ( ncu->prv->nwam_ncu_ip &&
+                     nwam_ncu_get_state( ncu->prv->nwam_ncu_ip, &ip_state, &ip_aux_state ) == NWAM_SUCCESS ) {
+                    state = ip_state;
+                    aux_state = ip_aux_state;
+                }
+                else if ( ncu->prv->nwam_ncu_iptun &&
+                     nwam_ncu_get_state( ncu->prv->nwam_ncu_iptun, &ip_state, &ip_aux_state ) == NWAM_SUCCESS ) {
+                    state = ip_state;
+                    aux_state = ip_aux_state;
+                }
+            }
+
+            rstate = state;
+            if ( aux_state_p ) {
+                *aux_state_p = aux_state;
+            }
+            if ( aux_state_string_p ) {
+                *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( aux_state );
+            }
+        }
+    }
+
+    return(rstate);
+}
+
 static gchar*
 get_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name )
 {
@@ -2965,7 +3021,7 @@ nwamui_ncu_get_signal_strength_from_dladm( NwamuiNcu* self )
     dladm_handle_t          handle;
     datalink_id_t           linkid;
     dladm_wlan_linkattr_t	attr;
-    nwamui_wifi_signal_strength_t signal = NWAMUI_WIFI_STRENGTH_LAST;
+    nwamui_wifi_signal_strength_t signal = NWAMUI_WIFI_STRENGTH_NONE;
     
     g_return_val_if_fail( NWAMUI_IS_NCU( self ), signal );
 

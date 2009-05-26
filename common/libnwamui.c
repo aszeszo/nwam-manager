@@ -654,7 +654,9 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu )
 {
     nwamui_ncu_type_t               ncu_type;
     nwamui_wifi_signal_strength_t   strength = NWAMUI_WIFI_STRENGTH_NONE;
+    nwamui_connection_state_t       connection_state = NWAMUI_STATE_UNKNOWN;
     gboolean                        active = FALSE;
+    nwamui_env_status_t             env_state = NWAMUI_ENV_STATUS_ERROR;
 
     if ( ncu != NULL ) {
         ncu_type = nwamui_ncu_get_ncu_type(ncu);
@@ -664,14 +666,28 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu )
     else {
         /* Fallback to a Wired connection */
         ncu_type = NWAMUI_NCU_TYPE_WIRED;
+        active = nwamui_ncu_get_active(ncu);
+    }
+    if ( active ) {
+        /* Double check the state using dladm */
+        connection_state = nwamui_ncu_get_connection_state( ncu);
+        if ( connection_state == NWAMUI_STATE_CONNECTED ) {
+            env_state = NWAMUI_ENV_STATUS_CONNECTED;
+        }
+        else if ( connection_state == NWAMUI_STATE_CONNECTING ) {
+            env_state = NWAMUI_ENV_STATUS_WARNING;
+        }
+        else {
+            env_state = NWAMUI_ENV_STATUS_ERROR;
+        }
     }
 
-    g_debug("%s: ncu_type = %s; strength = %d; active = %s",  __func__, 
+    g_debug("%s: ncu_type = %s; strength = %d; active = %s; connection_state = %d",  __func__, 
             ncu_type==NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Not Wireless", 
-            strength, active?"True":"False");
+            strength, active?"True":"False", connection_state);
 
     /* Hardcode icon size 48. */
-    return nwamui_util_get_network_status_icon(ncu_type, strength, active? NWAMUI_ENV_STATUS_CONNECTED : NWAMUI_ENV_STATUS_ERROR, 24);
+    return nwamui_util_get_network_status_icon(ncu_type, strength, env_state, 24);
 }
        
 extern const gchar*

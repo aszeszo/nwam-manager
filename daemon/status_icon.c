@@ -1287,7 +1287,7 @@ update_wifi_timer_func(gpointer user_data)
                     nwamui_wifi_signal_strength_t signal_strength;
                     signal_strength = nwamui_ncu_get_signal_strength_from_dladm(ncu);
                     wifi_net = nwamui_ncu_get_wifi_info(ncu);
-                    if ( wifi_net ) {
+                    if ( wifi_net && signal_strength < NWAMUI_WIFI_STRENGTH_LAST ) {
                         nwamui_wifi_net_set_signal_strength(wifi_net, signal_strength);
                     }
                     nwam_status_icon_set_status(self, prv->current_status, ncu );

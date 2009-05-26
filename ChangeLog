@@ -1,3 +1,30 @@
+2009-05-26  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_net_conf_panel.c: 
+	  Fix issue where old_ncp could be NULL.
+	* common/libnwamui.c: 
+	  Change slightly how the status icon is calculated since it's
+	  possible that we show connected when not, etc. So we make use of the
+	  actual state w.r.t. dladm to be sure we show the correct icon.
+	* common/nwamui_daemon.c: 
+	  Free up the wlans obtained from the cache.
+	* common/nwamui_ncp.c: 
+	  When counting the number of Wifi devices, only count if we're
+	  creating a new NCU, not if we are updating an already existing NCU.
+	* common/nwamui_object.h, common/nwamui_object.c: 
+	  Add the function nwamui_object_get_nwam_state which allows us to get
+	  the state of an object (providing more detail than simply ACTIVE or
+	  not) - specifically useful for getting the auxillary state as in
+	  nwam_aux_state_t and a string representation of the same for the UI.
+	* common/nwamui_ncu.c: 
+	  Provide get_state implementation for NCU.
+	  Change nwamui_ncu_get_signal_strength_from_dladm to return NONE
+	  rather than LAST if we cannot get a signal from dladm.
+	* daemon/nwam-tooltip-widget.c: 
+	  Just add a comment.
+	* daemon/status_icon.c: 
+	  Validate that wifi_net and the signal_strength are valid.
+
 2009-05-26  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (capplet_model_find_object),

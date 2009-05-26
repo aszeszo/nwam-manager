@@ -1558,6 +1558,7 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
                     }
                 }
             }
+            free(wlans);
         }
         else {
             g_debug("Error getting scan results for %s: %s", name, nwam_strerror(nerr) );

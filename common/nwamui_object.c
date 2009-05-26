@@ -85,6 +85,7 @@ nwamui_object_class_init(NwamuiObjectClass *klass)
     klass->set_conditions = NULL;
     klass->get_activation_mode = NULL;
     klass->set_activation_mode = NULL;
+    klass->get_nwam_state = NULL;
 
 	g_type_class_add_private(klass, sizeof(NwamuiObjectPrivate));
 }
@@ -262,4 +263,17 @@ nwamui_object_reload(NwamuiObject *object)
     g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->reload);
 
     NWAMUI_OBJECT_GET_CLASS (object)->reload(object);
+}
+
+extern nwam_state_t         
+nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string )
+{
+    nwam_state_t    rval = NWAM_STATE_UNINITIALIZED;
+
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), rval );
+    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->reload, rval );
+
+    rval = NWAMUI_OBJECT_GET_CLASS (object)->get_nwam_state(object, aux_state, aux_state_string );
+
+    return(rval);
 }
