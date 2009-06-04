@@ -63,6 +63,22 @@ enum {
     LAST_SIGNAL
 };
 
+typedef struct {
+    /* Input */
+    gint            current_prio;
+
+    /* Output */
+    guint32         num_manual_enabled;
+    guint32         num_manual_online;
+    guint32         num_prio_excl;
+    guint32         num_prio_excl_online;
+    guint32         num_prio_shared;
+    guint32         num_prio_shared_online;
+    guint32         num_prio_all;
+    guint32         num_prio_all_online;
+} check_online_info_t;
+
+
 static guint nwamui_ncp_signals[LAST_SIGNAL] = { 0, 0 };
 
 struct _NwamuiNcpPrivate {
@@ -575,6 +591,165 @@ nwamui_ncp_is_modifiable (NwamuiNcp *self)
     }
 
     return( modifiable );
+}
+
+static void
+find_active_prio( gpointer obj, gpointer user_data )
+{
+	NwamuiNcu           *ncu = NWAMUI_NCU(obj);
+    gint*                prio_p = (gint*)user_data;
+    nwam_state_t         state;
+    nwam_aux_state_t     aux_state;
+    gboolean             online = FALSE;
+    nwamui_cond_activation_mode_t 
+                         activation_mode;
+    nwamui_cond_priority_group_mode_t 
+                         prio_group_mode;
+
+
+    if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
+        return;
+    }
+
+    if ( prio_p && *prio_p >= 0 ) {
+        /* Already found a prio, so skip */
+        return;
+    }
+
+    activation_mode = nwamui_ncu_get_activation_mode( ncu );
+    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL);
+
+    if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
+        online = TRUE;
+    }
+
+    if ( online && activation_mode == NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED ) {
+        *prio_p = nwamui_ncu_get_priority_group( ncu );
+    }
+}
+
+static gint
+nwamui_ncp_get_current_prio_group( NwamuiNcp* self ) 
+{
+    gint        current_prio = -1;  /* -1 not a valid prio */
+
+    if (!NWAMUI_IS_NCP (self) && self->prv->nwam_ncp == NULL ) {
+        return( 0 );
+    }
+
+    /* NOTE: This is a temporary hack until libnwam API provides an
+     * alternative.
+     */
+    g_list_foreach(self->prv->ncu_list, find_active_prio, &current_prio );
+
+    return( current_prio );
+}
+
+static void
+check_ncu_online( gpointer obj, gpointer user_data )
+{
+	NwamuiNcu           *ncu = NWAMUI_NCU(obj);
+	check_online_info_t *info_p = (check_online_info_t*)user_data;
+    nwam_state_t         state;
+    nwam_aux_state_t     aux_state;
+    gboolean             online = FALSE;
+    nwamui_cond_activation_mode_t 
+                         activation_mode;
+    nwamui_cond_priority_group_mode_t 
+                         prio_group_mode;
+
+
+    if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
+        return;
+    }
+
+    activation_mode = nwamui_ncu_get_activation_mode( ncu );
+    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL);
+
+    if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
+        online = TRUE;
+    }
+
+    switch (activation_mode) { 
+        case NWAMUI_COND_ACTIVATION_MODE_MANUAL: {
+                info_p->num_manual_enabled++;
+                if ( online ) {
+                    info_p->num_manual_online++;
+                }
+            }
+            break;
+        case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED: {
+                prio_group_mode = nwamui_ncu_get_priority_group_mode( ncu );
+
+                if ( info_p->current_prio != nwamui_ncu_get_priority_group( ncu ) ) {
+                    /* Skip objects not in current_prio group */
+                    return;
+                }
+
+                switch (prio_group_mode) {
+                    case NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE:
+                        info_p->num_prio_excl++;
+                        if ( online ) {
+                            info_p->num_prio_excl_online++;
+                        }
+                        break;
+                    case NWAMUI_COND_PRIORITY_GROUP_MODE_SHARED:
+                        info_p->num_prio_shared++;
+                        if ( online ) {
+                            info_p->num_prio_shared_online++;
+                        }
+                        break;
+                    case NWAMUI_COND_PRIORITY_GROUP_MODE_ALL:
+                        info_p->num_prio_all++;
+                        if ( online ) {
+                            info_p->num_prio_all_online++;
+                        }
+                        break;
+                }
+            }
+            break;
+        default:
+            break;
+    }
+}
+
+/**
+ * nwamui_ncp_all_ncus_online:
+ * @nwamui_ncp: a #NwamuiNcp.
+ * @returns: TRUE if all the expected NCUs in the NCP are online
+ *
+ **/
+extern gboolean
+nwamui_ncp_all_ncus_online (NwamuiNcp *self)
+{
+    nwam_error_t            nerr;
+    gboolean                all_online = TRUE;
+    check_online_info_t     info;
+
+    if (!NWAMUI_IS_NCP (self) && self->prv->nwam_ncp == NULL ) {
+        return( FALSE );
+    }
+
+    bzero((void*)&info, sizeof(check_online_info_t));
+    
+    info.current_prio = nwamui_ncp_get_current_prio_group( self );
+
+    g_list_foreach(self->prv->ncu_list, check_ncu_online, &info );
+
+    if ( info.num_manual_enabled != info.num_manual_online ) {
+        all_online = FALSE;
+    }
+    else if ( info.num_prio_excl != info.num_prio_excl_online ) {
+        all_online = FALSE;
+    }
+    else if ( info.num_prio_shared != info.num_prio_shared_online ) {
+        all_online = FALSE;
+    }
+    else if ( info.num_prio_all != info.num_prio_all_online ) {
+        all_online = FALSE;
+    }
+
+    return( all_online );
 }
 
 /**

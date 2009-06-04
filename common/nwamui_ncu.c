@@ -2492,8 +2492,8 @@ nwamui_ncu_finalize (NwamuiNcu *self)
     parent_class->finalize (G_OBJECT (self));
 }
 
-static 
-nwam_state_t nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p )
+static nwam_state_t
+nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p )
 {
     nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
 

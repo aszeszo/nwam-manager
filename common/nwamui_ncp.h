@@ -87,6 +87,8 @@ extern gboolean                 nwamui_ncp_is_active( NwamuiNcp* self );
 
 extern gboolean                 nwamui_ncp_is_modifiable( NwamuiNcp *self);
 
+extern gboolean                 nwamui_ncp_all_ncus_online (NwamuiNcp *self);
+
 extern GList*                   nwamui_ncp_get_ncu_list( NwamuiNcp *self );
 
 extern	GtkListStore*           nwamui_ncp_get_ncu_list_store ( NwamuiNcp *self );

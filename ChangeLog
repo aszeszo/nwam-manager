@@ -1,3 +1,35 @@
+2009-06-04  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c, common/nwamui_daemon.h:
+	  Change nwamui_daemon_status_t enum to allow for generation of useful
+	  states for representation in panel icon.
+	  Add function nwamui_daemon_get_status_icon_type() to allow for
+	  getting of the status icon type (nwamui_env_status_t) that more
+	  aptly reflects the state of the daemon. Also add supporting
+	  functions to allow for determining that state in a call to
+	  nwamui_daemon_update_status().
+	* daemon/status_icon.c:
+	  Fix references to NWAMUI_DAEMON_STATUS_* enums.
+	  In nwam_status_icon_set_status() try getting env_status from daemon
+	  rather than based off various callers to the funciton, will clean up
+	  function calls to not use the env_status params later.
+	* common/libnwamui.c:
+	  Change some g_warning calls to g_debug. Fix error in call to
+	  nwamui_ncu_get_active when ncu == NULL.
+	* common/nwamui_enm.c, common/nwamui_env.c:
+	  Implement nwamui_object_get_state() functions.
+	* common/nwamui_ncp.h, common/nwamui_ncp.c:
+	  Add function nwamui_ncp_get_current_prio_group(), to try determine
+	  the currently active priority group - fairly slow, may be fixed by
+	  new libnwam API call.
+	  Add function nwamui_ncp_all_ncus_online() to check if all the NCU
+	  expected to be on-line are - takes into account manual and current
+	  priority group.
+	* daemon/nwam-env-item.c, daemon/nwam-enm-item.c:
+	  Fix to use icons rather than strings for activation modes.
+	* common/nwamui_ncu.c:
+	  Minor formattting mistake.
+
 2009-06-04  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/libnwamui.c (get_pixbuf_with_size), (get_pixbuf): Only prt log

@@ -108,7 +108,7 @@ nwam_env_item_init (NwamEnvItem *self)
       "toggled", G_CALLBACK(on_nwam_env_toggled), NULL);
 
     /* Must set it initially, because there are no check elsewhere. */
-    nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, gtk_label_new(""));
+    nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, gtk_image_new());
 }
 
 GtkWidget*
@@ -237,34 +237,10 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
     }
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
-        gchar *object_markup;
-        GtkWidget *label;
+        const gchar    *icon_name = nwamui_util_get_active_mode_icon( object );
+        GtkImage       *image = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
 
-        switch (nwamui_object_get_activation_mode(object)) {
-        case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-            object_markup = _("<b>M</b>");
-            break;
-        case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
-            object_markup = _("<b>S</b>");
-            break;
-        case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
-            object_markup = _("<b>P</b>");
-            break;
-        case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
-            object_markup = _("<b>C</b>");
-            break;
-        case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
-            object_markup = _("<b>A</b>");
-            break;
-        default:
-            g_assert_not_reached();
-            break;
-        }
-
-        label = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
-        g_assert(GTK_IS_LABEL(label));
-        gtk_label_set_markup(GTK_LABEL(label), object_markup);
-
+        gtk_image_set_from_icon_name( image, icon_name, GTK_ICON_SIZE_MENU );
     }
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "name") == 0) {

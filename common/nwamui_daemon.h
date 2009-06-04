@@ -49,8 +49,10 @@ typedef struct _NwamuiDaemonClass        NwamuiDaemonClass;
 typedef struct _NwamuiDaemonPrivate	  NwamuiDaemonPrivate;
 
 typedef enum {
-    NWAMUI_DAEMON_STATUS_INACTIVE,
-    NWAMUI_DAEMON_STATUS_ACTIVE,
+    NWAMUI_DAEMON_STATUS_UNINITIALIZED = 0,
+    NWAMUI_DAEMON_STATUS_ALL_OK,
+    NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION,
+    NWAMUI_DAEMON_STATUS_ERROR,
     NWAMUI_DAEMON_STATUS_LAST
 } nwamui_daemon_status_t;
 
@@ -181,6 +183,8 @@ const char *                        nwamui_daemon_get_event_cause_string(NwamuiD
 extern void                         nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message );
 
 extern void                         nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, nwam_event_t nwamevent );
+
+extern nwamui_env_status_t          nwamui_daemon_get_status_icon_type( NwamuiDaemon *daemon );
 
 extern gboolean                     nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon );
 

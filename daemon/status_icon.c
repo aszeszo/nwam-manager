@@ -248,7 +248,8 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
 	/* should repopulate data here */
 
     switch( status) {
-    case NWAMUI_DAEMON_STATUS_ACTIVE: {
+    case NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION:
+    case NWAMUI_DAEMON_STATUS_ALL_OK: {
         nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, NULL);
         gtk_status_icon_set_visible(GTK_STATUS_ICON(self), TRUE);
         prv->enable_pop_up_menu = TRUE;
@@ -260,7 +261,6 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
             nwam_notification_show_message(status_str, NULL, NWAM_ICON_WIRED_CONNECTED);
             */
             need_report_daemon_error = FALSE;
-
         }
 
         {
@@ -292,7 +292,7 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
         }
     }
         break;
-    case NWAMUI_DAEMON_STATUS_INACTIVE:
+    case NWAMUI_DAEMON_STATUS_ERROR:
         prv->enable_pop_up_menu = FALSE;
 
         if (debug) {
@@ -325,6 +325,8 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
             daemon_active_env_changed(prv->daemon, NULL, user_data);
         }
 
+        break;
+    case NWAMUI_DAEMON_STATUS_UNINITIALIZED:
         break;
     default:
         g_assert_not_reached();
@@ -1040,7 +1042,12 @@ nwam_status_icon_set_activate_callback(NwamStatusIcon *self,
 void
 nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, NwamuiNcu* wireless_ncu )
 {
-    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    NwamStatusIconPrivate  *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    NwamuiDaemon           *daemon = nwamui_daemon_get_instance ();
+
+    env_status = nwamui_daemon_get_status_icon_type( daemon );
+
+    g_object_unref(G_OBJECT(daemon));
 
     prv->current_status = env_status;
 
@@ -1048,7 +1055,7 @@ nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, NwamuiNcu* wi
 
     g_debug("%s: env_status = %d, wireless_ncu = %08X",  __func__, env_status, wireless_ncu );
 
-    if ( wireless_ncu == NULL ) { 
+    if ( wireless_ncu == NULL || nwamui_ncu_get_ncu_type(wireless_ncu) != NWAMUI_NCU_TYPE_WIRELESS) {
         gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
           nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status, 0));
     }
@@ -1260,11 +1267,11 @@ activate_test_menuitems(GtkMenuItem *menuitem, gpointer user_data)
         if (flag = !flag) {
 /*             nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC); */
 /*             nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_NCU, TRUE); */
-            daemon_status_changed(prv->daemon, NWAMUI_DAEMON_STATUS_ACTIVE, (gpointer)self);
+            daemon_status_changed(prv->daemon, NWAMUI_DAEMON_STATUS_ALL_OK, (gpointer)self);
         } else {
 /*             nwam_menu_recreate_env_menuitems(self); */
 /*             nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_NCU, FALSE); */
-            daemon_status_changed(prv->daemon, NWAMUI_DAEMON_STATUS_INACTIVE, (gpointer)self);
+            daemon_status_changed(prv->daemon, NWAMUI_DAEMON_STATUS_ERROR, (gpointer)self);
         }
         /* Test - must enable pop up menu. */
         prv->enable_pop_up_menu = TRUE;

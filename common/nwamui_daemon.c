@@ -85,6 +85,7 @@ struct _NwamuiDaemonPrivate {
     GList       *wifi_fav_list;
 
     /* others */
+    gboolean                     connected_to_nwamd;
     nwamui_daemon_status_t       status;
     nwamui_daemon_event_cause_t  event_cause;
     GThread                     *nwam_events_gthread;
@@ -120,6 +121,10 @@ static void nwamui_daemon_get_property ( GObject         *object,
 static void nwamui_daemon_finalize (     NwamuiDaemon *self);
 
 static void nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self );
+
+static void check_enm_online( gpointer obj, gpointer user_data );
+
+static void nwamui_daemon_update_status( NwamuiDaemon   *daemon );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -183,9 +188,9 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                                      g_param_spec_int   ("status",
                                                          _("status"),
                                                          _("status"),
-                                                          NWAMUI_DAEMON_STATUS_INACTIVE,
+                                                          NWAMUI_DAEMON_STATUS_UNINITIALIZED,
                                                           NWAMUI_DAEMON_STATUS_LAST-1,
-                                                          NWAMUI_DAEMON_STATUS_INACTIVE,
+                                                          NWAMUI_DAEMON_STATUS_UNINITIALIZED,
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -348,7 +353,8 @@ nwamui_daemon_init (NwamuiDaemon *self)
     
     self->prv = g_new0 (NwamuiDaemonPrivate, 1);
     
-    self->prv->status = NWAMUI_DAEMON_STATUS_INACTIVE;
+    self->prv->connected_to_nwamd = FALSE;
+    self->prv->status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
     self->prv->event_cause = NWAMUI_DAEMON_EVENT_CAUSE_NONE;
     self->prv->wep_timeout_id = 0;
     self->prv->communicate_change_to_daemon = TRUE;
@@ -391,6 +397,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     }
 
     self->prv->env_list = NULL;
+
     {
         nwam_error_t nerr;
         int cbret;
@@ -580,6 +587,9 @@ nwamui_daemon_finalize (NwamuiDaemon *self)
     g_list_foreach( self->prv->env_list, nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
     g_list_free(self->prv->env_list);
     
+    g_list_foreach( self->prv->enm_list, nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
+    g_list_free(self->prv->enm_list);
+    
     g_list_foreach( self->prv->ncp_list, nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
     g_list_free(self->prv->ncp_list);
     
@@ -621,7 +631,7 @@ nwamui_daemon_get_instance (void)
  **/
 extern nwamui_daemon_status_t
 nwamui_daemon_get_status( NwamuiDaemon* self ) {
-    nwamui_daemon_status_t status = NWAMUI_DAEMON_STATUS_INACTIVE;
+    nwamui_daemon_status_t status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
 
     g_return_val_if_fail (NWAMUI_IS_DAEMON (self), status );
 
@@ -643,7 +653,7 @@ extern void
 nwamui_daemon_set_status( NwamuiDaemon* self, nwamui_daemon_status_t status ) {
     g_return_if_fail (NWAMUI_IS_DAEMON (self));
     
-    g_assert( status >= NWAMUI_DAEMON_STATUS_INACTIVE && status < NWAMUI_DAEMON_STATUS_LAST );
+    g_assert( status >= NWAMUI_DAEMON_STATUS_UNINITIALIZED && status < NWAMUI_DAEMON_STATUS_LAST );
 
     g_object_set (G_OBJECT (self),
                   "status", status,
@@ -1182,12 +1192,16 @@ find_compare_wifi_net_with_name( gconstpointer a,
 
         if ( wifi_name == NULL && name == NULL ) {
             rval = 0;
+            g_debug("%s: wifi_name == NULL && name == NULL : returning %d", __func__, rval );
         }
         else if (wifi_name == NULL || name == NULL ) {
             rval = (wifi_name == NULL)?1:-1;
+            g_debug("%s: wifi_name == NULL || name == NULL : returning %d", __func__, rval );
         }
         else {
-            rval = strncmp( wifi_name, name, strnlen(name, NWAM_MAX_NAME_LEN) );
+            int len = strnlen(name, NWAM_MAX_NAME_LEN);
+            rval = strncmp( wifi_name, name, len );
+            g_debug("%s: strcmp( %s, %s, %d ) returning %d", __func__, wifi_name, name, len, rval);
         }
     }
 
@@ -1210,7 +1224,7 @@ nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name )
     GList          *found_elem = NULL;
 
     if ( self == NULL || name == NULL || self->prv->wifi_fav_list == NULL ) {
-        g_warning("Searching for wifi_net '%s', returning NULL", name );
+        g_debug("%s: Searching for wifi_net '%s', returning NULL", __func__, name );
         return( found_wifi_net );
     }
 
@@ -1221,7 +1235,7 @@ nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name )
         }
     }
     
-    g_warning("Searching for wifi_net '%s', returning 0x%08x", name, found_wifi_net );
+    g_debug("%s: Searching for wifi_net '%s', returning 0x%08x", __func__, name, found_wifi_net );
     return( found_wifi_net );
 }
 
@@ -1904,19 +1918,24 @@ nwamd_event_handler(gpointer data)
     case NWAMUI_DAEMON_INFO_UNKNOWN:
     case NWAMUI_DAEMON_INFO_ERROR:
     case NWAMUI_DAEMON_INFO_INACTIVE:
-        nwamui_daemon_set_status(daemon, NWAMUI_DAEMON_STATUS_INACTIVE);
+        daemon->prv->connected_to_nwamd = FALSE;
+        nwamui_daemon_set_status(daemon, NWAMUI_DAEMON_STATUS_ERROR);
         nwamui_ncp_populate_ncu_list(daemon->prv->active_ncp, G_OBJECT(daemon));
         break;
     case NWAMUI_DAEMON_INFO_ACTIVE:
-        /* Set active first to make sure status icon is set to visible before
-         * any notification is shown (if status icon is invisible, notification
-         * will show warnings) */
-        nwamui_daemon_set_status(daemon, NWAMUI_DAEMON_STATUS_ACTIVE);
+        /* Set to UNINITIALIZED first, status will then be got later when icon is to be shown
+         */
+        daemon->prv->connected_to_nwamd = TRUE;
+
+        nwamui_daemon_set_status(daemon, NWAMUI_DAEMON_STATUS_UNINITIALIZED);
 
 		/* should repopulate data here */
         nwamui_ncp_populate_ncu_list(daemon->prv->active_ncp, G_OBJECT(daemon));
         nwamui_daemon_populate_wifi_fav_list(daemon);
         nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
+
+        /* Will generate an event if status changes */
+        nwamui_daemon_update_status( daemon );
 
         break;
     case NWAMUI_DAEMON_INFO_RAW:
@@ -2691,6 +2710,153 @@ nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, n
 #endif /* 0 */
 }
 
+/*
+ * The daemon's state is determined by the following criteria:
+ *
+ *  if nwamd is not running
+ *      set status to ERROR
+ *  else
+ *      foreach object [ncus in active ncp, env, enm]
+ *          if object is an NCU 
+ *              if ncu is MANUAL
+ *                  if ncu is enabled 
+ *                      if state is not ONLINE OR aux_state is not UP
+ *                          set status to NEEDS_ATTENTION
+ *                      endif
+ *                  endif
+ *              else if ncu in active priority group
+ *                  if ncu is enabled 
+ *                      if state is not ONLINE OR aux_state is not UP
+ *                          set status to NEEDS_ATTENTION
+ *                      endif
+ *                  endif
+ *              endif
+ *          else 
+ *              if object is enabled
+ *                  if object is ENV
+ *                      found_active_env = TRUE
+ *                  endif
+ *                  if state is not ONLINE OR aux_state is not ACTIVE
+ *                      set status to NEEDS_ATTENTION
+ *                  endif
+ *              endif
+ *          endif
+ *      end
+ *      if not found_active_env
+ *          set status to NEEDS_ATTENTION
+ *      endif
+ *  endif
+ */
+static void
+nwamui_daemon_update_status( NwamuiDaemon   *daemon )
+{
+    nwamui_daemon_status_t  old_status;
+    nwamui_daemon_status_t  new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
+    NwamuiDaemonPrivate    *prv;
+
+    /* 
+     * Determine status from objects 
+     */
+    
+    if ( daemon == NULL || !NWAMUI_IS_DAEMON(daemon) ) {
+        return;
+    }
+
+    old_status = daemon->prv->status;
+    prv = NWAMUI_DAEMON(daemon)->prv;
+
+    /* First check that the daemon is connected to nwamd */
+    if ( !prv->connected_to_nwamd ) {
+        new_status = NWAMUI_DAEMON_STATUS_ERROR;
+    }
+    else {
+        /* Now we need to check all objects in the system */
+
+        /* Look at Active NCP and it's NCUs */
+        if ( prv->active_ncp == NULL ) {
+            new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+        }
+        else {
+            if ( !nwamui_ncp_all_ncus_online( prv->active_ncp ) ) {
+                new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+            }
+        }
+
+        /* Assuming we've no found an error yet, check the Locations */
+        if ( new_status == NWAMUI_DAEMON_STATUS_UNINITIALIZED ) {
+            if ( prv->active_env == NULL ) {
+                new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+            }
+            else {
+                nwam_state_t        state;
+                nwam_aux_state_t    aux_state;
+                state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(prv->active_env), &aux_state, NULL);
+
+                if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
+                    new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                }
+            }
+        }
+
+        /* Assuming we've no found an error yet, check the ENMs */
+        if ( new_status == NWAMUI_DAEMON_STATUS_UNINITIALIZED ) {
+            g_list_foreach( daemon->prv->enm_list, check_enm_online, &new_status ); 
+        }
+    }
+
+    if ( new_status == NWAMUI_DAEMON_STATUS_UNINITIALIZED ) {
+        /* If we got this far with UNINITIALIZED, then we can assume all is OK
+         */
+        new_status = NWAMUI_DAEMON_STATUS_ALL_OK;
+    }
+
+    /* If status has changed, set it, and this will generate an event */
+    if ( new_status != old_status ) {
+        nwamui_daemon_set_status(daemon, new_status );
+    }
+}
+
+static void
+check_enm_online( gpointer obj, gpointer user_data )
+{
+    NwamuiObject            *nobj = NWAMUI_OBJECT(obj);
+    nwamui_daemon_status_t  *new_status_p = (nwamui_daemon_status_t*)user_data; 
+    nwam_state_t             state;
+    nwam_aux_state_t         aux_state;
+
+    state = nwamui_object_get_nwam_state( nobj, &aux_state, NULL);
+
+    if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
+        *new_status_p = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+    }
+}
+
+
+extern nwamui_env_status_t 
+nwamui_daemon_get_status_icon_type( NwamuiDaemon *daemon )
+{
+    nwamui_env_status_t env_status = NWAMUI_ENV_STATUS_ERROR;
+
+    if ( daemon != NULL ) {
+        if ( daemon->prv->status == NWAMUI_DAEMON_STATUS_UNINITIALIZED ) {
+            /* Early call, so try to update it's value now */
+            nwamui_daemon_update_status( daemon );
+        }
+
+        if ( daemon->prv->status == NWAMUI_DAEMON_STATUS_ALL_OK ) {
+            env_status = NWAMUI_ENV_STATUS_CONNECTED;
+        }
+        else if ( daemon->prv->status == NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION ) {
+            env_status = NWAMUI_ENV_STATUS_WARNING;
+        }
+        else {
+            /* Fall through to return, with error icon */
+        }
+    }
+
+    return( env_status );
+}
+
 /**
  * nwam_events_thread:
  *
@@ -2765,12 +2931,18 @@ default_status_changed_signal_handler(NwamuiDaemon *self, nwamui_daemon_status_t
     const char* status_str;
 
     switch( status) {
-        case NWAMUI_DAEMON_STATUS_ACTIVE:
-            status_str="ACTIVE";
+        case NWAMUI_DAEMON_STATUS_UNINITIALIZED:
+            status_str="UNINITIALIZED";
             break;
-        case NWAMUI_DAEMON_STATUS_INACTIVE:
-            status_str="INACTIVE";
+        case NWAMUI_DAEMON_STATUS_ALL_OK:
+            status_str="ALL_OK";
             break;
+        case NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION:
+            status_str="NEEDS_ATTENTION";
+            break;
+        case NWAMUI_DAEMON_STATUS_ERROR:
+            status_str="ERROR";
+        break;
         default:
             status_str="Unexpected";
             break;

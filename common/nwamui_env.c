@@ -155,6 +155,8 @@ static guint64*     get_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const
 static gboolean     set_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , 
                                                     const guint64* value, guint len );
 
+static nwam_state_t nwamui_env_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p );
+
 #if 0
 /* These are not needed right now since we don't support property templates,
  * but would like to keep around for when we do.
@@ -201,6 +203,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_env_set_activation_mode;
     nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_env_get_active;
     nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_env_set_enabled;
+    nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_env_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_env_commit;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_env_reload;
 
@@ -1019,7 +1022,7 @@ nwamui_env_get_property (GObject         *object,
                     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
                     nwam_loc_get_state( self->prv->nwam_loc, &state, &aux_state );
-                    if ( state == NWAM_STATE_ONLINE ) {
+                    if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_ACTIVE ) {
                         active = TRUE;
                     }
                 }
@@ -3874,6 +3877,42 @@ nwamui_env_finalize (NwamuiEnv *self)
     self->prv = NULL;
 
     parent_class->finalize (G_OBJECT (self));
+}
+
+static nwam_state_t
+nwamui_env_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p )
+{
+    nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
+
+    if ( aux_state_p ) {
+        *aux_state_p = NWAM_AUX_STATE_UNINITIALIZED;
+    }
+
+    if ( aux_state_string_p ) {
+        *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( NWAM_AUX_STATE_UNINITIALIZED );
+    }
+
+    if ( NWAMUI_IS_ENV( object ) ) {
+        NwamuiEnv   *env = NWAMUI_ENV(object);
+        nwam_state_t        state;
+        nwam_aux_state_t    aux_state;
+
+
+        /* First look at the LINK state, then the IP */
+        if ( env->prv->nwam_loc &&
+            nwam_loc_get_state( env->prv->nwam_loc, &state, &aux_state ) == NWAM_SUCCESS ) {
+
+            rstate = state;
+            if ( aux_state_p ) {
+                *aux_state_p = aux_state;
+            }
+            if ( aux_state_string_p ) {
+                *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( aux_state );
+            }
+        }
+    }
+
+    return(rstate);
 }
 
 /* Callbacks */

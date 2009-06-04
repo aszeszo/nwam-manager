@@ -468,6 +468,9 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
     gint average_signal_strength = 0;
     nwamui_ncu_type_t ncu_type;
 
+    g_debug("%s: status_icon = %08x; status = %d; force_size = %d",  __func__, 
+            status_icon, env_status, force_size );
+
     if (force_size == 0) {
         if (status_icon != NULL && 
           gtk_status_icon_is_embedded(status_icon)) {
@@ -520,6 +523,10 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
         ncu_type = NWAMUI_NCU_TYPE_WIRED;
         average_signal_strength = NWAMUI_WIFI_STRENGTH_NONE;
     }
+
+    g_debug("%s: returning icon for ncu_type = %d; signal = %d, status = %d; size = %d", __func__, 
+            ncu_type, average_signal_strength, env_status, force_size );
+
     return nwamui_util_get_network_status_icon(ncu_type, 
       average_signal_strength,
       env_status,
@@ -666,7 +673,7 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu )
     else {
         /* Fallback to a Wired connection */
         ncu_type = NWAMUI_NCU_TYPE_WIRED;
-        active = nwamui_ncu_get_active(ncu);
+        active = FALSE;
     }
     if ( active ) {
         /* Double check the state using dladm */
@@ -681,6 +688,7 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu )
             env_state = NWAMUI_ENV_STATUS_ERROR;
         }
     }
+
 
     g_debug("%s: ncu_type = %s; strength = %d; active = %s; connection_state = %d",  __func__, 
             ncu_type==NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Not Wireless", 

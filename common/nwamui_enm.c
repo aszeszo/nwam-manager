@@ -82,6 +82,8 @@ static gboolean     set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const
 static guint64      get_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name );
 static gboolean     set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 value );
 
+static nwam_state_t nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p );
+
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -110,6 +112,7 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
     nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_enm_set_activation_mode;
     nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_enm_get_active;
     nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_enm_set_active;
+    nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_enm_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_enm_commit;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_enm_reload;
 
@@ -360,7 +363,7 @@ nwamui_enm_get_property (   GObject         *object,
                     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
                     nwam_enm_get_state( self->prv->nwam_enm, &state, &aux_state );
-                    if ( state == NWAM_STATE_ONLINE ) {
+                    if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_ACTIVE ) {
                         active = TRUE;
                     }
                 }
@@ -1321,6 +1324,42 @@ nwamui_enm_finalize (NwamuiEnm *self)
     self->prv = NULL;
 
     parent_class->finalize (G_OBJECT (self));
+}
+
+static nwam_state_t
+nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p )
+{
+    nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
+
+    if ( aux_state_p ) {
+        *aux_state_p = NWAM_AUX_STATE_UNINITIALIZED;
+    }
+
+    if ( aux_state_string_p ) {
+        *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( NWAM_AUX_STATE_UNINITIALIZED );
+    }
+
+    if ( NWAMUI_IS_ENM( object ) ) {
+        NwamuiEnm   *enm = NWAMUI_ENM(object);
+        nwam_state_t        state;
+        nwam_aux_state_t    aux_state;
+
+
+        /* First look at the LINK state, then the IP */
+        if ( enm->prv->nwam_enm &&
+             nwam_enm_get_state( enm->prv->nwam_enm, &state, &aux_state ) == NWAM_SUCCESS ) {
+
+            rstate = state;
+            if ( aux_state_p ) {
+                *aux_state_p = aux_state;
+            }
+            if ( aux_state_string_p ) {
+                *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( aux_state );
+            }
+        }
+    }
+
+    return(rstate);
 }
 
 /* Callbacks */
