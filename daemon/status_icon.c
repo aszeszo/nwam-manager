@@ -73,9 +73,10 @@ enum {
     MENUITEM_VPN_PREF,
     MENUITEM_NET_PREF,
     MENUITEM_HELP,
-    MENUITEM_TEST,
     /* Others */
     MENUITEM_NONCU,
+    /* Test menuitems */
+    MENUITEM_TEST,
     N_STATIC_MENUITEMS
 };
 
@@ -130,6 +131,7 @@ static void join_wireless(NwamuiWifiNet *wifi);
 
 /* call back */
 static void on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data);
+static void activate_test_menuitems(GtkMenuItem *menuitem, gpointer user_data);
 static void status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object);
 
 /* nwamui daemon events */
@@ -342,7 +344,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
 
             gchar *essid = nwamui_wifi_net_get_display_string(NWAMUI_WIFI_NET(obj), FALSE);
             msg = g_strdup_printf(_("Connected to wireless network '%s'"), essid, NULL);
-            ncu = nwamui_wifi_net_get_ncu( NWAMUI_WIFI_NET(ncu) );
+            ncu = nwamui_wifi_net_get_ncu( NWAMUI_WIFI_NET(obj) );
             nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_CONNECTED, ncu );
             if ( ncu ) {
                 g_object_unref(ncu);
@@ -1024,14 +1026,14 @@ nwam_status_icon_set_activate_callback(NwamStatusIcon *self,
   GCallback activate_cb, gpointer user_data)
 {
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    if (activate_cb) {
-        g_assert(prv->activate_handler_id == 0);
-        prv->activate_handler_id = g_signal_connect(self, "activate",
-          G_CALLBACK(activate_cb), user_data);
-    } else {
-        g_assert(prv->activate_handler_id > 0);
+    if (prv->activate_handler_id > 0) {
         g_signal_handler_disconnect(self, prv->activate_handler_id);
         prv->activate_handler_id = 0;
+    }
+
+    if (activate_cb) {
+        prv->activate_handler_id = g_signal_connect(self, "activate",
+          G_CALLBACK(activate_cb), user_data);
     }
 }
 
@@ -1230,6 +1232,29 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
     case MENUITEM_HELP:
         nwamui_util_show_help ("");
         break;
+    default:
+        g_assert_not_reached ();
+        /* About */
+        gtk_show_about_dialog (NULL, 
+          "name", _("NWAM Manager"),
+          "title", _("About NWAM Manager"),
+          "copyright", _("2009 Sun Microsystems, Inc  All rights reserved\nUse is subject to license terms."),
+          "website", _("http://www.sun.com/"),
+          NULL);
+    }
+    if (argv) {
+        nwam_exec(argv);
+    }
+}
+
+static void
+activate_test_menuitems(GtkMenuItem *menuitem, gpointer user_data)
+{
+    NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    gint menuitem_id = (gint)g_object_get_data(G_OBJECT(menuitem), STATIC_MENUITEM_ID);
+
+    switch (menuitem_id) {
     case MENUITEM_TEST: {
         static gboolean flag = FALSE;
         if (flag = !flag) {
@@ -1246,17 +1271,7 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
     }
         break;
     default:
-        g_assert_not_reached ();
-        /* About */
-        gtk_show_about_dialog (NULL, 
-          "name", _("NWAM Manager"),
-          "title", _("About NWAM Manager"),
-          "copyright", _("2009 Sun Microsystems, Inc  All rights reserved\nUse is subject to license terms."),
-          "website", _("http://www.sun.com/"),
-          NULL);
-    }
-    if (argv) {
-        nwam_exec(argv);
+        break;
     }
 }
 
@@ -1611,10 +1626,13 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
 
     /* Only available for testing. */
     if (debug) {
-        menu_append_item(root_menu,
-          GTK_TYPE_MENU_ITEM, _("TeSt MeNu"),
-          on_activate_static_menuitems, self);
-        CACHE_STATIC_MENUITEMS(self, MENUITEM_TEST);
+        int i;
+        for (i = MENUITEM_TEST; i < N_STATIC_MENUITEMS; i++) {
+            menu_append_item(root_menu,
+              GTK_TYPE_MENU_ITEM, "TeSt MeNu",
+              activate_test_menuitems, self);
+            CACHE_STATIC_MENUITEMS(self, i);
+        }
     }
 
     /* Other dynamical menuitems */

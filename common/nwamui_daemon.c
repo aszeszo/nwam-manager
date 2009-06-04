@@ -2886,7 +2886,7 @@ nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
     
     new_env = nwamui_env_new_with_handle (env);
         
-    if ( nwamui_env_is_active( new_env ) ) {
+    if ( nwamui_env_get_active( new_env ) ) {
         prv->active_env = NWAMUI_ENV(g_object_ref(new_env));
     }
 

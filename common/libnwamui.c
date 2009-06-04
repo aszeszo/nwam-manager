@@ -430,16 +430,16 @@ get_pixbuf_with_size( const gchar* stock_id, gint size )
     if ( pixbuf == NULL ) {
         g_debug("get_pixbuf_with_size: pixbuf = NULL stockid = %s", stock_id);
     }
-    else {
-        g_debug("get_pixbuf_with_size: pixbuf loaded");
-    }
+/*     else { */
+/*         g_debug("get_pixbuf_with_size: pixbuf loaded"); */
+/*     } */
     return( pixbuf );
 }
 
 static GdkPixbuf*   
 get_pixbuf( const gchar* stock_id, gboolean small )
 {
-    g_debug("get_pixbuf: Seeking %s stock_id = %s", small?"small":"normal", stock_id );
+/*     g_debug("get_pixbuf: Seeking %s stock_id = %s", small?"small":"normal", stock_id ); */
 
     if ( small_icon_size == -1 ) {
         gint dummy;

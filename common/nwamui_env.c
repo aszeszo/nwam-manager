@@ -199,7 +199,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     nwamuiobject_class->set_conditions = (nwamui_object_set_conditions_func_t)nwamui_env_set_conditions;
     nwamuiobject_class->get_activation_mode = (nwamui_object_get_activation_mode_func_t)nwamui_env_get_activation_mode;
     nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_env_set_activation_mode;
-    nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_env_get_enabled;
+    nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_env_get_active;
     nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_env_set_enabled;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_env_commit;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_env_reload;
@@ -2001,7 +2001,7 @@ nwamui_env_get_enabled (NwamuiEnv *self)
  *
  **/
 extern gboolean
-nwamui_env_is_active (NwamuiEnv *self)
+nwamui_env_get_active (NwamuiEnv *self)
 {
     gboolean  active = FALSE; 
 

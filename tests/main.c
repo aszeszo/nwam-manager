@@ -409,7 +409,7 @@ process_env( gpointer data, gpointer user_data )
     nwamui_cond_activation_mode_t
                 activation_mode  =  nwamui_env_get_activation_mode ( env );
     GList*      conditions  =  nwamui_env_get_conditions ( env );
-    gboolean    active  =  nwamui_env_is_active ( env );
+    gboolean    active  =  nwamui_env_get_active ( env );
     gboolean    enabled  =  nwamui_env_get_enabled ( env );
     GList*      nameservices  =  nwamui_env_get_nameservices ( env );
     gchar*      nameservices_config_file  =  nwamui_env_get_nameservices_config_file ( env );

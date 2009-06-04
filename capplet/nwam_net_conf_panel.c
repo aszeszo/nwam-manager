@@ -2026,8 +2026,8 @@ ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
     NwamNetConfPanelPrivate*    prv = GET_PRIVATE(data);
 
     ncu_pri_treeview_add(prv->net_conf_treeview,
-      gtk_tree_view_get_model(prv->net_conf_treeview)
-      , NWAMUI_OBJECT(ncu));
+      gtk_tree_view_get_model(prv->net_conf_treeview),
+      NWAMUI_OBJECT(ncu));
 }
 
 static void
@@ -2036,8 +2036,8 @@ ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
     NwamNetConfPanelPrivate*    prv = GET_PRIVATE(data);
 
     ncu_pri_treeview_remove(prv->net_conf_treeview,
-      gtk_tree_view_get_model(prv->net_conf_treeview)
-      , NWAMUI_OBJECT(ncu));
+      gtk_tree_view_get_model(prv->net_conf_treeview),
+      NWAMUI_OBJECT(ncu));
 }
 
 static NwamuiObject*

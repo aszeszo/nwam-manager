@@ -1,3 +1,18 @@
+2009-06-04  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/libnwamui.c (get_pixbuf_with_size), (get_pixbuf): Only prt log
+	on errro.
+	* common/nwamui_daemon.c (nwam_loc_walker_cb): Rename a function.
+	* common/nwamui_env.c (nwamui_env_class_init),
+	(nwamui_env_get_active):
+	* common/nwamui_env.h:
+	* daemon/status_icon.c (daemon_info),
+	(nwam_status_icon_set_activate_callback),
+	(on_activate_static_menuitems), (activate_test_menuitems),
+	(nwam_menu_create_static_menuitems):
+	Toggle activate loc menuitem. And fix some nits.
+	* tests/main.c (process_env): Rename a function.
+
 2009-05-26  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_net_conf_panel.c: 
