@@ -490,7 +490,9 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
 
         ncu_list = nwamui_ncp_get_ncu_list(ncp);
 
-        g_object_unref(ncp);
+        if ( ncp ) {
+            g_object_unref(ncp);
+        }
 
         while (ncu_list) {
             ncu = NWAMUI_NCU(ncu_list->data);

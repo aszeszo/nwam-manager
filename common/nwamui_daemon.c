@@ -39,14 +39,24 @@
 #include <arpa/inet.h>
 #include <errno.h>
 #include <pthread.h>
+#include <libscf.h>
+
 
 #include "libnwamui.h"
 
 static GObjectClass    *parent_class    = NULL;
 static NwamuiDaemon*    instance        = NULL;
 
+/* Use above mutex for accessing these variables */
 static GStaticMutex nwam_event_mutex = G_STATIC_MUTEX_INIT;
 static gboolean nwam_event_thread_terminate = FALSE; /* To tell event thread to terminate set to TRUE */
+static gboolean nwam_init_done = FALSE; /* Whether to call nwam_events_fini() or not */
+/* End of mutex protected variables */
+
+
+#ifndef NWAM_FMRI
+#define	NWAM_FMRI	"svc:/network/physical:nwam"
+#endif /* NWAM_FMRI */
 
 #define WLAN_TIMEOUT_SCAN_RATE_SEC (60)
 #define WEP_TIMEOUT_SEC (20)
@@ -89,7 +99,6 @@ struct _NwamuiDaemonPrivate {
     nwamui_daemon_status_t       status;
     nwamui_daemon_event_cause_t  event_cause;
     GThread                     *nwam_events_gthread;
-    gboolean                     nwam_init_done;
     gboolean                     communicate_change_to_daemon;
     guint                        wep_timeout_id;
     gboolean                     emit_wlan_changed_signals;
@@ -125,6 +134,9 @@ static void nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self );
 static void check_enm_online( gpointer obj, gpointer user_data );
 
 static void nwamui_daemon_update_status( NwamuiDaemon   *daemon );
+
+static gboolean     nwamui_daemon_nwam_connect( gboolean block );
+static void         nwamui_daemon_nwam_disconnect( void );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -362,13 +374,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     self->prv->active_ncp = NULL;
 
 
-    if ( (nerr = nwam_events_init() ) != NWAM_SUCCESS ) {
-        g_warning("Failed to init nwam events: %s", nwam_strerror( nerr ) );
-        self->prv->nwam_init_done = FALSE;
-    }
-    else {
-        self->prv->nwam_init_done = TRUE;
-    
+    if ( nwamui_daemon_nwam_connect( FALSE ) ) {
 		/*
 		 * according to the logic of nwam_events_thead, we can emit NWAMUI_DAEMON_INFO_ACTIVE
 		 * here, so we can populate all the info in nwamd_event_handler
@@ -567,9 +573,7 @@ nwamui_daemon_finalize (NwamuiDaemon *self)
     nwam_error_t    nerr;
     
     /* TODO - kill tid before destruct self */
-    if (self->prv->nwam_init_done ) {
-        nwam_events_fini();
-    }
+    nwamui_daemon_nwam_disconnect();
 
     if ( self->prv->nwam_events_gthread != NULL ) {
         nwamui_daemon_terminate_event_thread( self );
@@ -1920,7 +1924,6 @@ nwamd_event_handler(gpointer data)
     case NWAMUI_DAEMON_INFO_INACTIVE:
         daemon->prv->connected_to_nwamd = FALSE;
         nwamui_daemon_set_status(daemon, NWAMUI_DAEMON_STATUS_ERROR);
-        nwamui_ncp_populate_ncu_list(daemon->prv->active_ncp, G_OBJECT(daemon));
         break;
     case NWAMUI_DAEMON_INFO_ACTIVE:
         /* Set to UNINITIALIZED first, status will then be got later when icon is to be shown
@@ -2041,7 +2044,6 @@ nwamd_event_handler(gpointer data)
                 switch ( nwamevent->data.object_action.action ) {
                 case NWAM_ACTION_ADD:
                 case NWAM_ACTION_REMOVE:
-                case NWAM_ACTION_REQUEST_STATE:
                 case NWAM_ACTION_RENAME:
                 case NWAM_ACTION_DESTROY:
                     g_error("OBJECT Action : %d recieved, and unhandled", 
@@ -2857,6 +2859,60 @@ nwamui_daemon_get_status_icon_type( NwamuiDaemon *daemon )
     return( env_status );
 }
 
+static gboolean
+nwamui_daemon_nwam_connect( gboolean block )
+{
+    gboolean        rval = FALSE;
+    gboolean        not_done;
+    nwam_error_t    nerr;
+
+    g_static_mutex_lock (&nwam_event_mutex);
+    nwam_init_done = rval;
+    g_static_mutex_unlock (&nwam_event_mutex);
+
+    do {
+        if (strcmp(smf_get_state(NWAM_FMRI), SCF_STATE_STRING_ONLINE) != 0) {
+            g_debug("%s: NWAM service appears to be off-line", __func__);
+        }
+        else if ( (nerr = nwam_events_init()) == NWAM_SUCCESS) {
+            g_debug("%s: Connected to nwam daemon", __func__);
+            rval = TRUE;
+        }
+        else {
+            g_debug("%s: nwam_events_init() returned %d (%s)", 
+                    __func__, nerr, nwam_strerror(nerr) );
+        }
+
+        not_done = (block && !rval );
+        if ( not_done ) {
+            g_debug("%s: sleeping...", __func__);
+            sleep( 5 );
+        }
+    } while ( not_done );
+
+    g_static_mutex_lock (&nwam_event_mutex);
+    nwam_init_done = rval;
+    g_static_mutex_unlock (&nwam_event_mutex);
+
+    return( rval );
+}
+
+static void
+nwamui_daemon_nwam_disconnect( void )
+{
+    gboolean _init_done;
+
+    g_static_mutex_lock (&nwam_event_mutex);
+    _init_done = nwam_init_done;
+    g_static_mutex_unlock (&nwam_event_mutex);
+
+    if ( _init_done ) {
+        g_debug( "%s: Closing connection to nwam daemon", __func__ );
+        (void) nwam_events_fini();
+    }
+}
+
+
 /**
  * nwam_events_thread:
  *
@@ -2889,8 +2945,8 @@ nwam_events_thread ( gpointer data )
             }
 			if (err != NWAM_SUCCESS ) {
 				g_debug("Attempting to reopen connection to daemon");
-				(void) nwam_events_fini();
-				if (nwam_events_init() == NWAM_SUCCESS) {
+                nwamui_daemon_nwam_disconnect();
+                if ( nwamui_daemon_nwam_connect( TRUE ) ) {
                     g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
                       nwamd_event_handler,
                       (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_ACTIVE, NULL),
@@ -2899,7 +2955,7 @@ nwam_events_thread ( gpointer data )
 					continue;
                 }
                 else {
-                    g_debug("nwam_events_init() error: %s", nwam_strerror(err));
+                    g_debug("nwam_event_wait() error: %s", nwam_strerror(err));
                 }
 			}
 			/* Rather than just breaking out here, it is better if we sleep

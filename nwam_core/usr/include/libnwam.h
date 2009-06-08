@@ -244,23 +244,23 @@ typedef enum {
 	NWAM_AUX_STATE_INVALID_CONFIG,
 	NWAM_AUX_STATE_ACTIVE,
 	/* Link-specific auxiliary states */
-	NWAM_AUX_STATE_LINK_INIT,
+	NWAM_AUX_STATE_LINK_WIFI_SCANNING,
 	NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION,
 	NWAM_AUX_STATE_LINK_WIFI_NEED_KEY,
 	NWAM_AUX_STATE_LINK_WIFI_CONNECTING,
-	NWAM_AUX_STATE_LINK_UP,
-	NWAM_AUX_STATE_LINK_DOWN,
 	/* IP interface-specific auxiliary states */
-	NWAM_AUX_STATE_IF_INIT,
-	NWAM_AUX_STATE_IF_CONFIGDHCP,
-	NWAM_AUX_STATE_IF_UP,
-	NWAM_AUX_STATE_IF_DOWN
+	NWAM_AUX_STATE_IF_WAITING_FOR_ADDR,
+	NWAM_AUX_STATE_IF_DHCP_TIMED_OUT,
+	/* Common link/interface auxiliary states */
+	NWAM_AUX_STATE_UP,
+	NWAM_AUX_STATE_DOWN,
+	NWAM_AUX_STATE_NOT_FOUND
 } nwam_aux_state_t;
 
 #define	NWAM_AUX_STATE_UNINITIALIZED_STRING		\
 		"uninitialized"
 #define	NWAM_AUX_STATE_INITIALIZED_STRING		\
-		"initialized but not configured"
+		"(re)initialized but not configured"
 #define	NWAM_AUX_STATE_CONDITIONS_NOT_MET_STRING	\
 		"conditions for activation are not met"
 #define	NWAM_AUX_STATE_MANUAL_DISABLE_STRING		\
@@ -275,26 +275,24 @@ typedef enum {
 		"invalid or unreadable configuration values"
 #define	NWAM_AUX_STATE_ACTIVE_STRING			\
 		"active"
-#define	NWAM_AUX_STATE_LINK_INIT_STRING			\
-		"(re)initializing link"
+#define	NWAM_AUX_STATE_LINK_WIFI_SCANNING_STRING	\
+		"scanning for available networks on WiFi link"
 #define	NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION_STRING	\
 		"need WiFi wireless network selection"
 #define	NWAM_AUX_STATE_LINK_WIFI_NEED_KEY_STRING	\
 		"need security key for selected wireless network"
 #define	NWAM_AUX_STATE_LINK_WIFI_CONNECTING_STRING	\
 		"connecting to selected wireless network"
-#define	NWAM_AUX_STATE_LINK_UP_STRING			\
-		"link is up"
-#define	NWAM_AUX_STATE_LINK_DOWN_STRING			\
-		"link is down"
-#define	NWAM_AUX_STATE_IF_INIT_STRING			\
-		"(re)initializing interface"
-#define	NWAM_AUX_STATE_IF_CONFIGDHCP_STRING		\
-		"waiting for DHCP response"
-#define	NWAM_AUX_STATE_IF_UP_STRING			\
-		"interface is up"
-#define	NWAM_AUX_STATE_IF_DOWN_STRING			\
-		"interface is down"
+#define	NWAM_AUX_STATE_IF_WAITING_FOR_ADDR_STRING	\
+		"waiting for IP address to be assigned"
+#define	NWAM_AUX_STATE_IF_DHCP_TIMED_OUT_STRING	\
+		"dhcp wait timed out, operation still pending..."
+#define	NWAM_AUX_STATE_UP_STRING			\
+		"interface or link is up"
+#define	NWAM_AUX_STATE_DOWN_STRING			\
+		"interface or link is down"
+#define	NWAM_AUX_STATE_NOT_FOUND_STRING			\
+		"interface or link is not present on system"
 
 /* Activation modes */
 typedef enum {
@@ -721,6 +719,9 @@ extern void nwam_ncp_free(nwam_ncp_handle_t);
 extern nwam_error_t nwam_ncp_get_state(nwam_ncp_handle_t, nwam_state_t *,
 	nwam_aux_state_t *);
 
+/* Get the active priority-group */
+extern nwam_error_t nwam_ncp_get_active_priority_group(int64_t *);
+
 /* Create an ncu or read it from persistent storage */
 extern nwam_error_t nwam_ncu_create(nwam_ncp_handle_t, const char *,
 	nwam_ncu_type_t, nwam_ncu_class_t, nwam_ncu_handle_t *);
@@ -995,15 +996,16 @@ extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
 #define	NWAM_EVENT_TYPE_SHUTDOWN		2
 #define	NWAM_EVENT_TYPE_OBJECT_ACTION		3
 #define	NWAM_EVENT_TYPE_OBJECT_STATE		4
-#define	NWAM_EVENT_TYPE_INFO			5
-#define	NWAM_EVENT_TYPE_WLAN_SCAN_REPORT	6
-#define	NWAM_EVENT_TYPE_WLAN_NEED_CHOICE	7
-#define	NWAM_EVENT_TYPE_WLAN_NEED_KEY		8
-#define	NWAM_EVENT_TYPE_WLAN_CONNECTION_REPORT	9
-#define	NWAM_EVENT_TYPE_IF_ACTION		10
-#define	NWAM_EVENT_TYPE_IF_STATE		11
-#define	NWAM_EVENT_TYPE_LINK_ACTION		12
-#define	NWAM_EVENT_TYPE_LINK_STATE		13
+#define	NWAM_EVENT_TYPE_PRIORITY_GROUP		5
+#define	NWAM_EVENT_TYPE_INFO			6
+#define	NWAM_EVENT_TYPE_WLAN_SCAN_REPORT	7
+#define	NWAM_EVENT_TYPE_WLAN_NEED_CHOICE	8
+#define	NWAM_EVENT_TYPE_WLAN_NEED_KEY		9
+#define	NWAM_EVENT_TYPE_WLAN_CONNECTION_REPORT	10
+#define	NWAM_EVENT_TYPE_IF_ACTION		11
+#define	NWAM_EVENT_TYPE_IF_STATE		12
+#define	NWAM_EVENT_TYPE_LINK_ACTION		13
+#define	NWAM_EVENT_TYPE_LINK_STATE		14
 #define	NWAM_EVENT_MAX				NWAM_EVENT_TYPE_LINK_STATE
 
 #define	NWAM_EVENT_STATUS_OK			0
@@ -1029,7 +1031,6 @@ typedef enum {
 	NWAM_ACTION_ADD,
 	NWAM_ACTION_REMOVE,
 	NWAM_ACTION_REFRESH,
-	NWAM_ACTION_REQUEST_STATE,
 	NWAM_ACTION_ENABLE,
 	NWAM_ACTION_DISABLE,
 	NWAM_ACTION_RENAME,
@@ -1065,6 +1066,10 @@ struct nwam_event {
 		} object_state;
 
 		struct {
+			int64_t priority;
+		} priority_group_info;
+
+		struct {
 			char message[NWAM_MAX_VALUE_LEN];
 		} info;
 
@@ -1096,7 +1101,8 @@ struct nwam_event {
 			uint32_t flags;
 			uint32_t index;
 			uint32_t addr_valid; /* boolean */
-			struct sockaddr addr;
+			uint32_t addr_added; /* boolean */
+			struct sockaddr_storage addr;
 			/* might be longer then sizeof(if_state) for addr */
 		} if_state;
 

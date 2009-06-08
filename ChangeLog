@@ -1,3 +1,15 @@
+2009-06-08  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/libnwamui.c: 
+	  Don't unref a NULL ncp pointer.
+	* common/nwamui_daemon.c: 
+	  Add new functions nwamui_daemon_nwam_connect(), 
+	  and nwamui_daemon_nwam_disconnect() to handle connection to nwam
+	  daemon. The connect function will look at the SMF service state and
+	  possibly block until it's on-line (depending on block param).
+	* nwam_core/usr/include/libnwam.h, nwam_core/usr/include/sys/mac.h:
+	  Update to latest versions.
+
 2009-06-04  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_daemon.c, common/nwamui_daemon.h:
