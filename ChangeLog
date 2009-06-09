@@ -1,3 +1,16 @@
+2009-06-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.h:
+	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),
+	(nwam_net_conf_panel_init), (nwam_net_conf_update_status_cell_cb),
+	(static_group_handle_fake_node), (condition_view_drop_motion),
+	(condition_view_drop_data_received), (ncu_find_gt_name),
+	(capplet_tree_store_move_children), (handle_ncu_group_node),
+	(on_button_clicked), (update_widgets), (ncu_pri_group_get_path),
+	(ncu_pri_group_get_iter), (ncu_pri_treeview_add),
+	(ncu_pri_treeview_remove): Update some functions for DnD, though it 
+	doesn't work right now.
+
 2009-06-08  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/libnwamui.c: 

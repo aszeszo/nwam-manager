@@ -105,6 +105,11 @@ gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
         TREE_STORE_CP_OBJECT(model, target, source);                    \
         gtk_tree_store_remove(GTK_TREE_STORE(model), source);           \
     }
+#define TREE_STORE_CP_OBJECT_BEFORE(model, source, parent, sibling, iter) \
+    {                                                                   \
+        gtk_tree_store_insert_before(GTK_TREE_STORE(model), iter, parent, sibling); \
+        TREE_STORE_CP_OBJECT(model, iter, source);                      \
+    }
 #define TREE_STORE_CP_OBJECT_AFTER(model, source, parent, sibling, iter) \
     {                                                                   \
         gtk_tree_store_insert_after(GTK_TREE_STORE(model), iter, parent, sibling); \
