@@ -126,6 +126,10 @@ extern nwamui_daemon_status_t       nwamui_daemon_get_status( NwamuiDaemon* self
 
 extern NwamuiNcp*                   nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name );
 
+extern NwamuiEnv*                   nwamui_daemon_get_env_by_name( NwamuiDaemon *self, const gchar* name );
+
+extern NwamuiEnm*                   nwamui_daemon_get_enm_by_name( NwamuiDaemon *self, const gchar* name );
+
 extern NwamuiNcp*                   nwamui_daemon_get_active_ncp(NwamuiDaemon *self);
 
 extern gchar*                       nwamui_daemon_get_active_ncp_name(NwamuiDaemon *self);

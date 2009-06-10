@@ -494,6 +494,7 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
 {        
     NwamConnConfIPPanelPrivate* prv;
     nwamui_ncu_type_t   ncu_type;
+    gboolean            modifiable;
     gboolean            ipv4_dhcp;
     gchar*              ipv4_address;
     gchar*              ipv4_subnet;
@@ -510,6 +511,7 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     prv = self->prv;
     
     ncu_type = nwamui_ncu_get_ncu_type( NWAMUI_NCU(prv->ncu) );
+    modifiable = nwamui_ncu_is_modifiable( NWAMUI_NCU(prv->ncu) );
     ipv4_dhcp = nwamui_ncu_get_ipv4_dhcp( NWAMUI_NCU(prv->ncu) );
     ipv4_address = nwamui_ncu_get_ipv4_address( NWAMUI_NCU(prv->ncu) );
     ipv4_subnet = nwamui_ncu_get_ipv4_subnet( NWAMUI_NCU(prv->ncu) );
@@ -580,6 +582,7 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
             gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv4_combo), 2); /* Select Static IP on Combo Box */
             /* TODO - Check for Multiple IP Addresses  and update combo to reflect */
         }
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_combo), modifiable);
     }
     
     g_signal_handlers_block_by_func(G_OBJECT(prv->ipv4_addr_entry ), (gpointer)ipv4_addr_changed_cb, (gpointer)self);
@@ -591,6 +594,9 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
           gtk_label_set_text(GTK_LABEL(prv->ipv4_addr_lbl), "");
           gtk_entry_set_text(GTK_ENTRY(prv->ipv4_addr_entry), "");
     }
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_addr_lbl), modifiable);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_addr_entry), modifiable);
+
     g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv4_addr_entry ), (gpointer)ipv4_addr_changed_cb, (gpointer)self);
     
     g_signal_handlers_block_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
@@ -602,6 +608,9 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
           gtk_label_set_text(GTK_LABEL(prv->ipv4_subnet_lbl), "");
           gtk_entry_set_text(GTK_ENTRY(prv->ipv4_subnet_entry), "");
     }
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_subnet_lbl), modifiable);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_subnet_entry), modifiable);
+
     g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
 
     if ( set_initial_state ) {
@@ -612,7 +621,9 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
             gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv6_combo), 1); /* Select Enabled On Combo Box */
             /* TODO - Check for Multiple IP Addresses  and update combo to reflect */
         }
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_combo), modifiable);
     }
+
 
 /*
  *  TODO - Handle IPv6 Accept buttons 
@@ -767,41 +778,43 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
     }
 
-    switch (gtk_combo_box_get_active(GTK_COMBO_BOX(prv->ipv4_combo))) {
-    case 1:
-        nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), TRUE);
-        break;
-    case 2:
-        ipv4_address = gtk_entry_get_text(GTK_ENTRY(prv->ipv4_addr_entry));
-        ipv4_subnet = gtk_label_get_text(GTK_LABEL(prv->ipv4_subnet_lbl));
-        nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
-        nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu),
-          ipv4_address ? ipv4_address : "");
-        nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu),
-          ipv4_subnet ? ipv4_subnet : "");
-        break;
-    case 3:
-        model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv4_tv)));
-        nwamui_ncu_set_v4addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
-        break;
-    default:
-        /* Disable ipv4 dhcp */
-        nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
-        break;
-    }
-    
-    if ( nwamui_ncu_get_ipv6_active( NWAMUI_NCU(prv->ncu) ) ) { 
-        switch (gtk_combo_box_get_active(GTK_COMBO_BOX(prv->ipv6_combo))) {
-        case 0:
-            nwamui_ncu_set_ipv6_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
-            break;
+    if ( nwamui_ncu_is_modifiable( prv->ncu ) ) {
+        switch (gtk_combo_box_get_active(GTK_COMBO_BOX(prv->ipv4_combo))) {
         case 1:
-            model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv6_tv)));
-            nwamui_ncu_set_v6addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
+            nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), TRUE);
+            break;
+        case 2:
+            ipv4_address = gtk_entry_get_text(GTK_ENTRY(prv->ipv4_addr_entry));
+            ipv4_subnet = gtk_label_get_text(GTK_LABEL(prv->ipv4_subnet_lbl));
+            nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+            nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu),
+              ipv4_address ? ipv4_address : "");
+            nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu),
+              ipv4_subnet ? ipv4_subnet : "");
+            break;
+        case 3:
+            model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv4_tv)));
+            nwamui_ncu_set_v4addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
             break;
         default:
-            /* Disable ipv6 dhcp */
+            /* Disable ipv4 dhcp */
+            nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
             break;
+        }
+        
+        if ( nwamui_ncu_get_ipv6_active( NWAMUI_NCU(prv->ncu) ) ) { 
+            switch (gtk_combo_box_get_active(GTK_COMBO_BOX(prv->ipv6_combo))) {
+            case 0:
+                nwamui_ncu_set_ipv6_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+                break;
+            case 1:
+                model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv6_tv)));
+                nwamui_ncu_set_v6addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
+                break;
+            default:
+                /* Disable ipv6 dhcp */
+                break;
+            }
         }
     }
     

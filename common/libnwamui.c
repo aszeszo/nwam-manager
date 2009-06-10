@@ -680,10 +680,12 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu )
     if ( active ) {
         /* Double check the state using dladm */
         connection_state = nwamui_ncu_get_connection_state( ncu);
-        if ( connection_state == NWAMUI_STATE_CONNECTED ) {
+        if ( connection_state == NWAMUI_STATE_CONNECTED 
+           || connection_state == NWAMUI_STATE_CONNECTED_ESSID ) {
             env_state = NWAMUI_ENV_STATUS_CONNECTED;
         }
-        else if ( connection_state == NWAMUI_STATE_CONNECTING ) {
+        else if ( connection_state == NWAMUI_STATE_CONNECTING 
+                || connection_state == NWAMUI_STATE_CONNECTING_ESSID ) {
             env_state = NWAMUI_ENV_STATUS_WARNING;
         }
         else {

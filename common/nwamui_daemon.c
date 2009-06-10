@@ -138,6 +138,8 @@ static void nwamui_daemon_update_status( NwamuiDaemon   *daemon );
 static gboolean     nwamui_daemon_nwam_connect( gboolean block );
 static void         nwamui_daemon_nwam_disconnect( void );
 
+static void         nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent );
+
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -761,6 +763,76 @@ nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name )
         }
     }
     return(ncp);
+}
+
+/**
+ * nwamui_daemon_get_env_by_name:
+ * @self: NwamuiDaemon*
+ * @name: String
+ *
+ * @returns: NwamuiEnv reference
+ *
+ * Looks up an ENV by name
+ *
+ **/
+extern NwamuiEnv*
+nwamui_daemon_get_env_by_name( NwamuiDaemon *self, const gchar* name )
+{
+    NwamuiEnv*  env = NULL;
+
+    g_assert( NWAMUI_IS_DAEMON( self ) );
+
+    g_return_val_if_fail( NWAMUI_IS_DAEMON(self) && name != NULL, env );
+
+    for( GList* item = g_list_first( self->prv->env_list ); 
+         item != NULL;
+         item = g_list_next( item ) ) {
+        if ( item->data != NULL && NWAMUI_IS_ENV(item->data) ) {
+            NwamuiEnv* tmp_env = NWAMUI_ENV(item->data);
+            gchar*     env_name = nwamui_env_get_name( tmp_env );
+
+            if ( strncmp( name, env_name, strlen(name) ) == 0 ) {
+                env = NWAMUI_ENV(g_object_ref(G_OBJECT(tmp_env)));
+                break;
+            }
+        }
+    }
+    return(env);
+}
+
+/**
+ * nwamui_daemon_get_enm_by_name:
+ * @self: NwamuiDaemon*
+ * @name: String
+ *
+ * @returns: NwamuiEnm reference
+ *
+ * Looks up an ENM by name
+ *
+ **/
+extern NwamuiEnm*
+nwamui_daemon_get_enm_by_name( NwamuiDaemon *self, const gchar* name )
+{
+    NwamuiEnm*  enm = NULL;
+
+    g_assert( NWAMUI_IS_DAEMON( self ) );
+
+    g_return_val_if_fail( NWAMUI_IS_DAEMON(self) && name != NULL, enm );
+
+    for( GList* item = g_list_first( self->prv->enm_list ); 
+         item != NULL;
+         item = g_list_next( item ) ) {
+        if ( item->data != NULL && NWAMUI_IS_ENM(item->data) ) {
+            NwamuiEnm* tmp_enm = NWAMUI_ENM(item->data);
+            gchar*     enm_name = nwamui_enm_get_name( tmp_enm );
+
+            if ( strncmp( name, enm_name, strlen(name) ) == 0 ) {
+                enm = NWAMUI_ENM(g_object_ref(G_OBJECT(tmp_enm)));
+                break;
+            }
+        }
+    }
+    return(enm);
 }
 
 /**
@@ -1966,6 +2038,15 @@ nwamd_event_handler(gpointer data)
                   (GDestroyNotify) nwamui_event_free);
             }
             break;
+        case NWAM_EVENT_TYPE_OBJECT_STATE: {
+                g_debug( "%s Object %s's state changed to %s, %s",
+		                 nwam_object_type_to_string(nwamevent->data.object_state.object_type),
+                         nwamevent->data.object_state.name,
+                         nwam_state_to_string(nwamevent->data.object_state.state),
+                         nwam_aux_state_to_string(nwamevent->data.object_state.aux_state));
+                nwamui_daemon_update_status_from_object_state_event( daemon, nwamevent );
+            }
+            break;
         case NWAM_EVENT_TYPE_LINK_STATE: {
                 NwamuiNcu*      ncu;
                 const gchar*    name = nwamevent->data.link_state.name;
@@ -1980,12 +2061,17 @@ nwamd_event_handler(gpointer data)
                     /* Directly deliver to upper consumers */
                     ncu = get_ncu_by_device_name( daemon, NULL, name );
 
-                    g_signal_emit (daemon,
-                      nwamui_daemon_signals[S_NCU_DOWN],
-                      0, /* details */
-                      ncu );
+                    if ( ncu ) {
+                        g_signal_emit (daemon,
+                          nwamui_daemon_signals[S_NCU_DOWN],
+                          0, /* details */
+                          ncu );
 
-                    g_object_unref(ncu);
+                        g_object_unref(ncu);
+                    }
+                    else {
+                        g_debug("%s: Got link state event for device %s, but didn't find an NCU object", __func__, name );
+                    }
                 }
             }
             break;
@@ -2002,16 +2088,21 @@ nwamd_event_handler(gpointer data)
                     sin = (struct sockaddr_in *)
                         &(nwamevent->data.if_state.addr);
                     address = inet_ntoa(sin->sin_addr);
-                    g_debug ("Interface %s is up with address %s", address );
+                    g_debug ("Interface %s is up with address %s", name, address );
 
                     /* Directly deliver to upper consumers */
-                    g_signal_emit (daemon,
-                      nwamui_daemon_signals[S_NCU_UP],
-                      0, /* details */
-                      ncu );
-                } 
+                    if ( ncu ) {
+                        g_signal_emit (daemon,
+                          nwamui_daemon_signals[S_NCU_UP],
+                          0, /* details */
+                          ncu );
 
-                g_object_unref(ncu);
+                        g_object_unref(ncu);
+                    }
+                    else {
+                        g_debug("%s: Got i/f state event for device %s, but didn't find an NCU object", __func__, name );
+                    }
+                } 
             }
             break;
 
@@ -2027,15 +2118,19 @@ nwamd_event_handler(gpointer data)
                 }
                 else if ( action == NWAM_ACTION_REMOVE ) {
                     NwamuiNcu *ncu = get_ncu_by_device_name( daemon, ncp, name );
-                    nwamui_ncp_remove_ncu( ncp, ncu );
+                    if ( ncu ) {
+                        nwamui_ncp_remove_ncu( ncp, ncu );
+                        g_object_unref(ncu);
+                    }
                     g_debug("Interface %s removed\n", name );
-                    g_object_unref(ncu);
                 }
                 else {
                     g_error("LINK Action : %d recieved and unhandled", 
                                 nwamevent->data.object_action.action );
                 }
-                g_object_unref(G_OBJECT(ncp));
+                if ( ncp ) {
+                    g_object_unref(G_OBJECT(ncp));
+                }
             }
             break;
 
@@ -2819,6 +2914,161 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
 }
 
 static void
+nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent )
+{
+    nwamui_daemon_status_t  old_status;
+    nwamui_daemon_status_t  new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
+    NwamuiDaemonPrivate    *prv;
+    nwam_object_type_t      object_type = nwamevent->data.object_state.object_type;
+    const char*             object_name = nwamevent->data.object_state.name;
+    nwam_state_t            object_state = nwamevent->data.object_state.state;
+    nwam_aux_state_t        object_aux_state = nwamevent->data.object_state.aux_state;
+
+    /* 
+     * Determine status from objects 
+     */
+    
+    if ( daemon == NULL || !NWAMUI_IS_DAEMON(daemon) ) {
+        return;
+    }
+
+    old_status = daemon->prv->status;
+    prv = NWAMUI_DAEMON(daemon)->prv;
+
+    /* First check that the daemon is connected to nwamd */
+    if ( !prv->connected_to_nwamd ) {
+        new_status = NWAMUI_DAEMON_STATUS_ERROR;
+    }
+    else {
+        /* Now we need to check all objects in the system */
+
+        switch ( object_type ) {
+            case NWAM_OBJECT_TYPE_NCU:
+                /* Fall through */
+            case NWAM_OBJECT_TYPE_NCP:
+                /* Look at Active NCP and it's NCUs, need to evaluate a change
+                 * in NCP or NCU as part of the whole NCP */
+                if ( object_state == NWAM_STATE_ONLINE &&
+                     object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
+                    /* Check active_ncp against this changed object */
+                    if ( prv->active_ncp == NULL ) {
+                        /* New active NCP */
+                        NwamuiNcp* new_ncp;
+                        
+                        new_ncp = nwamui_daemon_get_ncp_by_name( daemon, object_name );
+                        if ( new_ncp ) {
+                            nwamui_daemon_set_active_ncp( daemon, new_ncp );
+                            g_object_unref(new_ncp);
+                        }
+                    }
+                    else {
+                        gchar*  active_name = nwamui_ncp_get_name(prv->active_ncp);
+                        if ( strncmp( active_name, object_name, strlen(object_name)) == 0 ) {
+                            /* Same, so don't change anything */
+                        }
+                        else {
+                            /* Different, so change active_ncp */
+                            NwamuiNcp* new_ncp;
+                            
+                            new_ncp = nwamui_daemon_get_ncp_by_name( daemon, object_name );
+                            if ( new_ncp ) {
+                                nwamui_daemon_set_active_ncp( daemon, new_ncp );
+                                g_object_unref(new_ncp);
+                            }
+                        }
+                    }
+                }
+
+                if ( prv->active_ncp == NULL ) {
+                    new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                }
+                else {
+                    if ( !nwamui_ncp_all_ncus_online( prv->active_ncp ) ) {
+                        new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                    }
+                }
+
+            case NWAM_OBJECT_TYPE_LOC:
+
+                if ( object_state == NWAM_STATE_ONLINE &&
+                     object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
+
+                    /* Ensure that correct active env pointer */
+                    if ( prv->active_env == NULL ) {
+                        /* New active ENV */
+                        NwamuiEnv* new_env;
+                        
+                        new_env = nwamui_daemon_get_env_by_name( daemon, object_name );
+                        if ( new_env ) {
+                            nwamui_daemon_set_active_env( daemon, new_env );
+                            g_object_unref(new_env);
+                        }
+                    }
+                    else {
+                        gchar*  active_name = nwamui_env_get_name(prv->active_env);
+                        if ( strncmp( active_name, object_name, strlen(object_name)) == 0 ) {
+                            /* Same, so don't change anything */
+                        }
+                        else {
+                            /* Different, so change active_env */
+                            NwamuiEnv* new_env;
+                            
+                            new_env = nwamui_daemon_get_env_by_name( daemon, object_name );
+                            if ( new_env ) {
+                                nwamui_daemon_set_active_env( daemon, new_env );
+                                g_object_unref(new_env);
+                            }
+                        }
+                    }
+                }
+
+                if ( prv->active_env == NULL ) {
+                    new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                }
+                else {
+                    if ( object_state != NWAM_STATE_ONLINE || object_aux_state != NWAM_AUX_STATE_ACTIVE ) {
+                        new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                    }
+                }
+                break;
+
+            case NWAM_OBJECT_TYPE_ENM: {
+                    NwamuiEnm* enm;
+
+                    enm = nwamui_daemon_get_enm_by_name( daemon, object_name );
+                    if ( enm ) {
+                        if ( nwamui_enm_get_enabled( NWAMUI_ENM(enm) ) ) {
+                            if ( object_state != NWAM_STATE_ONLINE || object_aux_state != NWAM_AUX_STATE_ACTIVE ) {
+                                new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                            }
+                        }
+                    }
+                }
+                break;
+            case NWAM_OBJECT_TYPE_KNOWN_WLAN:
+                /* fall-through */
+            case NWAM_OBJECT_TYPE_NONE:
+                /* fall-through */
+            default:
+                /* SKip */
+                break;
+        }
+
+    }
+
+    if ( new_status == NWAMUI_DAEMON_STATUS_UNINITIALIZED ) {
+        /* If we got this far with UNINITIALIZED, then we can assume all is OK
+         */
+        new_status = NWAMUI_DAEMON_STATUS_ALL_OK;
+    }
+
+    /* If status has changed, set it, and this will generate an event */
+    if ( new_status != old_status ) {
+        nwamui_daemon_set_status(daemon, new_status );
+    }
+}
+
+static void
 check_enm_online( gpointer obj, gpointer user_data )
 {
     NwamuiObject            *nobj = NWAMUI_OBJECT(obj);
@@ -2826,10 +3076,12 @@ check_enm_online( gpointer obj, gpointer user_data )
     nwam_state_t             state;
     nwam_aux_state_t         aux_state;
 
-    state = nwamui_object_get_nwam_state( nobj, &aux_state, NULL);
+    if ( nwamui_enm_get_enabled( NWAMUI_ENM(nobj) ) ) {
+        state = nwamui_object_get_nwam_state( nobj, &aux_state, NULL);
 
-    if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
-        *new_status_p = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+        if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
+            *new_status_p = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+        }
     }
 }
 

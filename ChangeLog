@@ -1,3 +1,21 @@
+2009-06-10  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  If an NCU is not modifiable, then don't try to apply settings, also,
+	  if it's not modifiable, make widgits insensitive.
+	* common/libnwamui.c: 
+	  Fix issue where connected/connecting state for wireless wasn't being
+	  handled correctly.
+	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
+	  Add some functions nwamui_daemon_get_env_by_name() and 
+	  nwamui_daemon_get_enm_by_name(). 
+	  Handle OBJECT_STATE events, using them to update the active ncp/env
+	  and also then using it to determine new state of the daemon.
+	  Fix check_enm_online() to first check that the ENM is enabled before
+	  checking it's state.
+	* common/nwamui_ncu.c: 
+	  Remove hack assuming that NCU is online if the IP NCU is online.
+
 2009-06-10  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_net_conf_panel.c (on_button_clicked),
