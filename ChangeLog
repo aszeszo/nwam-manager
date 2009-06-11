@@ -1,3 +1,19 @@
+2009-06-11  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c: 
+	  Handle PRIORITY_GROUP event (doesn't currently do anything except
+	  log it).  Fix a bug in
+	  nwamui_daemon_update_status_from_object_state_event() where it was
+	  causing the wrong state to be generated when an event occurred on an
+	  NCU that isn't in the current priority group.
+	* common/nwamui_ncp.c: 
+	  Update nwamui_ncp_get_current_prio_group() to use new function in
+	  libnwam to get active priority level.
+	* daemon/status_icon.c: 
+	  Should be ref-ing a self object passed to the g_timeout_add when
+	  g_object_unref is passed as function to free it (was causing a
+	  crash).
+
 2009-06-10  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_conf_ip_panel.c: 

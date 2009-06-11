@@ -387,8 +387,8 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
                   NULL,	/* action */
                   NULL,	/* label */
                   notifyaction_popup_menus,
-                  (gpointer)self,
-                  NULL,
+                  (gpointer) g_object_ref (self),
+                  (GFreeFunc) g_object_unref,
                   NOTIFY_EXPIRES_DEFAULT);
 
                 g_free(summary);
@@ -1530,7 +1530,7 @@ nwam_menu_start_update_wifi_timer(NwamStatusIcon *self)
     prv->update_wifi_timer_id = g_timeout_add_full(G_PRIORITY_DEFAULT,
       update_wifi_timer_interval,
       update_wifi_timer_func,
-      (gpointer)self,
+      (gpointer)g_object_ref(self),
       (GDestroyNotify)g_object_unref);
 }
 

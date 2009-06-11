@@ -2038,6 +2038,16 @@ nwamd_event_handler(gpointer data)
                   (GDestroyNotify) nwamui_event_free);
             }
             break;
+        case NWAM_EVENT_TYPE_PRIORITY_GROUP: {
+                    g_debug("Priority group changed to %d",
+                             nwamevent->data.priority_group_info.priority);
+
+                    /* Re-evaluate status since a change in the priority group
+                     * means that the status could be different.
+                     */
+                    nwamui_daemon_update_status( daemon );
+            }
+            break;
         case NWAM_EVENT_TYPE_OBJECT_STATE: {
                 g_debug( "%s Object %s's state changed to %s, %s",
 		                 nwam_object_type_to_string(nwamevent->data.object_state.object_type),
@@ -2944,7 +2954,15 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
 
         switch ( object_type ) {
             case NWAM_OBJECT_TYPE_NCU:
-                /* Fall through */
+                if ( prv->active_ncp == NULL ) {
+                    new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                }
+                else {
+                    if ( !nwamui_ncp_all_ncus_online( prv->active_ncp ) ) {
+                        new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                    }
+                }
+                break;
             case NWAM_OBJECT_TYPE_NCP:
                 /* Look at Active NCP and it's NCUs, need to evaluate a change
                  * in NCP or NCU as part of the whole NCP */
@@ -2987,7 +3005,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
                     }
                 }
-
+                break;
             case NWAM_OBJECT_TYPE_LOC:
 
                 if ( object_state == NWAM_STATE_ONLINE &&

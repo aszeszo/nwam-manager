@@ -628,19 +628,26 @@ find_active_prio( gpointer obj, gpointer user_data )
     }
 }
 
-static gint
+static gint64
 nwamui_ncp_get_current_prio_group( NwamuiNcp* self ) 
 {
-    gint        current_prio = -1;  /* -1 not a valid prio */
+    gint64          current_prio = -1;  /* -1 not a valid prio */
+    int64_t         pg = 0;
+    nwam_error_t    nerr;
 
     if (!NWAMUI_IS_NCP (self) && self->prv->nwam_ncp == NULL ) {
         return( 0 );
     }
 
-    /* NOTE: This is a temporary hack until libnwam API provides an
-     * alternative.
-     */
-    g_list_foreach(self->prv->ncu_list, find_active_prio, &current_prio );
+    if ( (nerr = nwam_ncp_get_active_priority_group( &pg )) != NWAM_SUCCESS ) {
+        g_debug("%s: Error getting active priortiy group: %d (%s)", 
+                nerr, nwam_strerror(nerr) );
+        return( 0 );
+    }
+
+    g_debug("%s: Got active priority group as %d", __func__, pg );
+
+    current_prio = (gint64)pg;
 
     return( current_prio );
 }
