@@ -160,6 +160,21 @@ typedef enum {
 #define  NWAM_ICON_NCU_STATUS_CONDITIONAL GTK_STOCK_STOP
 #define  NWAM_ICON_NCU_STATUS_PRIORITIZED GTK_STOCK_GO_FORWARD
 
+/* NWAM Versions of g_log functions, to prefix with function names */
+#ifdef G_HAVE_ISO_VARARGS
+#define nwamui_debug(_fmt, ...)         g_debug("%s: " _fmt, __func__, __VA_ARGS__)
+#define nwamui_warning(_fmt, ...)       g_warning("%s: " _fmt, __func__, __VA_ARGS__)
+#define nwamui_error(_fmt, ...)         g_error("%s: " _fmt, __func__, __VA_ARGS__)
+#elif defined(G_HAVE_GNUC_VARARGS)
+#define nwamui_debug(_fmt, args...)     g_debug("%s: " _fmt, __func__, args)
+#define nwamui_warning(_fmt, args...)   g_warning("%s: " _fmt, __func__, args)
+#define nwamui_error(_fmt, args...)     g_error("%s: " _fmt, __func__, args)
+#else
+#define nwamui_debug        g_debug
+#define nwamui_warning      g_warning
+#define nwamui_error        g_error
+#endif
+
 /* if no favorite networks are available, what should we do ? */
 enum 
 {

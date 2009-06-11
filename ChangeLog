@@ -1,5 +1,12 @@
 2009-06-11  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/libnwamui.h:
+	  Add nwamui_debug/warning/error() macros that will pre-pend function
+	  being called from to message. Not currently used, but just being
+	  added now as a place-holder.
+
+2009-06-11  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/main.c, capplet/nwam_conn_conf_ip_panel.c,
 	  capplet/nwam_conn_stat_panel.c, capplet/nwam_env_pref_dialog.c,
 	  capplet/nwam_env_svc.c, capplet/nwam_location_dialog.c,
