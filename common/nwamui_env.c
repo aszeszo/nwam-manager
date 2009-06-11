@@ -1438,12 +1438,12 @@ get_nwam_loc_string_prop( nwam_loc_handle_t loc, const char* prop_name )
     }
 
     if ( (nerr = nwam_loc_get_prop_value (loc, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
     if ( (nerr = nwam_value_get_string(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get string value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get string value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
@@ -1482,7 +1482,7 @@ set_nwam_loc_string_prop( nwam_loc_handle_t loc, const char* prop_name, const gc
         }
 
         if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-            g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+            g_debug("Unable to set value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         }
         else {
             retval = TRUE;
@@ -1492,7 +1492,7 @@ set_nwam_loc_string_prop( nwam_loc_handle_t loc, const char* prop_name, const gc
     }
     else {
         if ( (nerr = nwam_loc_delete_prop (loc, prop_name)) != NWAM_SUCCESS ) {
-            g_debug("Unable to delete loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+            g_debug("Unable to delete loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         }
         else {
             retval = TRUE;
@@ -1522,12 +1522,12 @@ get_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name )
     }
 
     if ( (nerr = nwam_loc_get_prop_value (loc, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
     if ( (nerr = nwam_value_get_string_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get string value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get string value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
@@ -1569,7 +1569,7 @@ set_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name, ch
 
     if ( strs == NULL ) {
         if ( (nerr = nwam_loc_delete_prop (loc, prop_name)) != NWAM_SUCCESS ) {
-            g_debug("Unable to delete loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+            g_debug("Unable to delete loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         }
         else {
             retval = TRUE;
@@ -1593,7 +1593,7 @@ set_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name, ch
     }
 
     if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -1622,12 +1622,12 @@ get_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name )
     }
 
     if ( (nerr = nwam_loc_get_prop_value (loc, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_boolean(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get boolean value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get boolean value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -1660,7 +1660,7 @@ set_nwam_loc_boolean_prop( nwam_loc_handle_t loc, const char* prop_name, gboolea
     }
 
     if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -1688,12 +1688,12 @@ get_nwam_loc_uint64_prop( nwam_loc_handle_t loc, const char* prop_name )
     }
 
     if ( (nerr = nwam_loc_get_prop_value (loc, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_uint64(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get uint64 value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get uint64 value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -1727,7 +1727,7 @@ set_nwam_loc_uint64_prop( nwam_loc_handle_t loc, const char* prop_name, guint64 
     }
 
     if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -1757,12 +1757,12 @@ get_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , g
     }
 
     if ( (nerr = nwam_loc_get_prop_value (loc, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_uint64_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get uint64 value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get uint64 value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -1804,7 +1804,7 @@ set_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name,
     }
 
     if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for loc property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -3922,7 +3922,7 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiEnv* self = NWAMUI_ENV(data);
 
-    g_debug("NwamuiEnv: notify %s changed\n", arg1->name);
+    g_debug("NwamuiEnv: notify %s changed", arg1->name);
 }
 
 static void 

@@ -259,7 +259,7 @@ main(int argc, char** argv)
             case NWAMUI_WIFI_SEC_WEP_ASCII:
                 passwd = nwam_wireless_dialog_get_key(wifi_dialog);
                 nwamui_wifi_net_set_wep_password(wifi, passwd);
-                g_debug("\nWIRELESS WEP '%s'\n", passwd);
+                g_debug("\nWIRELESS WEP '%s'", passwd);
                 break;
             case NWAMUI_WIFI_SEC_WPA_PERSONAL:
             case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
@@ -267,7 +267,7 @@ main(int argc, char** argv)
                 passwd = nwam_wireless_dialog_get_wpa_password(wifi_dialog);
                 nwamui_wifi_net_set_wpa_username(wifi, name);
                 nwamui_wifi_net_set_wpa_password(wifi, passwd);
-                g_debug("\nWIRELESS WAP '%s : %s'\n", name, passwd);
+                g_debug("\nWIRELESS WAP '%s : %s'", name, passwd);
                 break;
             default:
                 g_assert_not_reached();

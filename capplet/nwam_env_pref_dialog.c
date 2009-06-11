@@ -2111,7 +2111,7 @@ get_smf_service_name(const char *fmri, gchar **name_out, gboolean* valid_fmri )
 
     if ( scf_handle_decode_fmri( handle, fmri , NULL, service, instance, NULL, NULL,
         SCF_DECODE_FMRI_REQUIRE_INSTANCE ) < 0 ) {
-        g_debug("Problem decoding the fmri '%s' at line %d : %s\n", fmri, __LINE__, scf_strerror(scf_error()));
+        g_debug("Problem decoding the fmri '%s' at line %d : %s", fmri, __LINE__, scf_strerror(scf_error()));
         scf_service_destroy( service );
         scf_instance_destroy( instance );
         return;
@@ -2141,7 +2141,7 @@ get_smf_service_name(const char *fmri, gchar **name_out, gboolean* valid_fmri )
         if ( scf_pg_get_property(pg, "C", prop ) != -1 ) {
             if ( scf_property_get_value(prop, value ) != -1 ) {
                 if ( scf_value_get_ustring(value, cname, max_scf_name_length + 1 ) != -1 ) {
-                    g_debug("INSTANCE COMMON NAME : '%s'\n", cname );
+                    g_debug("INSTANCE COMMON NAME : '%s'", cname );
                     if ( name_out != NULL ) {
                         *name_out = g_strdup(cname);
                     }
@@ -2156,7 +2156,7 @@ get_smf_service_name(const char *fmri, gchar **name_out, gboolean* valid_fmri )
             if ( scf_pg_get_property(pg, "C", prop ) != -1 ) {
                 if ( scf_property_get_value(prop, value ) != -1 ) {
                     if ( scf_value_get_ustring(value, cname, max_scf_name_length + 1 ) != -1 ) {
-                        g_debug("SERVICE COMMON NAME : '%s'\n", cname );
+                        g_debug("SERVICE COMMON NAME : '%s'", cname );
                         *name_out = g_strdup(cname);
                     }
                 }
@@ -2172,7 +2172,7 @@ get_smf_service_name(const char *fmri, gchar **name_out, gboolean* valid_fmri )
         if ( scf_pg_get_property(pg, "C", prop ) != -1 ) {
             if ( scf_property_get_value(prop, value ) != -1 ) {
                 if ( scf_value_get_ustring(value, desc, max_scf_name_length + 1 ) != -1 ) {
-                    g_debug("SERVICE DESCRIPTION : '%s'\n", desc );
+                    g_debug("SERVICE DESCRIPTION : '%s'", desc );
                 }
             }
         }
@@ -2182,7 +2182,7 @@ get_smf_service_name(const char *fmri, gchar **name_out, gboolean* valid_fmri )
         if ( scf_pg_get_property(pg, "C", prop ) != -1 ) {
             if ( scf_property_get_value(prop, value ) != -1 ) {
                 if ( scf_value_get_ustring(value, desc, max_scf_name_length + 1 ) != -1 ) {
-                    g_debug("INSTANCE DESCRIPTION : '%s'\n", desc );
+                    g_debug("INSTANCE DESCRIPTION : '%s'", desc );
                 }
             }
         }

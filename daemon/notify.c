@@ -141,7 +141,7 @@ static void on_prof_notification_default_timeout(NwamuiProf* prof,
     timeout = g_queue_get_length(&msg_q) == 1 ?
       DEFAULT_EXP_TIME : TIGHT_EXP_TIME;
 
-    g_debug("#### Notification default timeout %d ####\n", DEFAULT_EXP_TIME);
+    g_debug("#### Notification default timeout %d ####", DEFAULT_EXP_TIME);
 
     /* restart the timer */
     if (adjust_source_id > 0) {
@@ -206,7 +206,7 @@ get_notification( void )
                 gconf_exp_time = 3000;
             }
 
-/*             g_debug("#### Notification default timeout %d ####\n", DEFAULT_EXP_TIME); */
+/*             g_debug("#### Notification default timeout %d ####", DEFAULT_EXP_TIME); */
 
             g_signal_connect(prof, "notification_default_timeout",
               G_CALLBACK(on_prof_notification_default_timeout), NULL);
@@ -298,7 +298,7 @@ notify_notification_adjust_first(GQueue *q)
         timeout -= (gint) ((ct.tv_sec - m->t.tv_sec) * 1000 +
           (ct.tv_usec - m->t.tv_usec) / 1000);
 
-/*         g_debug("#### %s adjust %d ####\n", __func__, timeout > 0 ? timeout : 0); */
+/*         g_debug("#### %s adjust %d ####", __func__, timeout > 0 ? timeout : 0); */
 
         if (timeout > 0) {
             adjust_source_id = g_timeout_add_full(G_PRIORITY_DEFAULT,

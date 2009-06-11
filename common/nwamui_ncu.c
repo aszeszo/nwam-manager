@@ -2561,12 +2561,12 @@ get_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name )
     }
 
     if ( (nerr = nwam_ncu_get_prop_value (ncu, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
     if ( (nerr = nwam_value_get_string(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get string value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get string value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
@@ -2653,7 +2653,7 @@ set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const gc
     }
 
     if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -2687,12 +2687,12 @@ get_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name )
     }
 
     if ( (nerr = nwam_ncu_get_prop_value (ncu, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
     if ( (nerr = nwam_value_get_string_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get string value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get string value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
@@ -2757,7 +2757,7 @@ set_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, ch
     }
 
     if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -2793,12 +2793,12 @@ get_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name )
     }
 
     if ( (nerr = nwam_ncu_get_prop_value (ncu, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_boolean(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get boolean value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get boolean value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -2837,7 +2837,7 @@ set_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name, gboolea
     }
 
     if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -2870,12 +2870,12 @@ get_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name )
     }
 
     if ( (nerr = nwam_ncu_get_prop_value (ncu, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_uint64(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get uint64 value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get uint64 value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -2914,7 +2914,7 @@ set_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name, guint64 
     }
 
     if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -2948,12 +2948,12 @@ get_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name , g
     }
 
     if ( (nerr = nwam_ncu_get_prop_value (ncu, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_uint64_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get uint64 value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get uint64 value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -3000,7 +3000,7 @@ set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name,
     }
 
     if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for ncu property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -3448,7 +3448,7 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     NwamuiNcu* self = NWAMUI_NCU(data);
     gchar*     name = self->prv->device_name;
 
-    g_debug("NwamuiNcu: %s: notify %s changed\n", name?name:"", arg1->name);
+    g_debug("NwamuiNcu: %s: notify %s changed", name?name:"", arg1->name);
 }
 
 static void 

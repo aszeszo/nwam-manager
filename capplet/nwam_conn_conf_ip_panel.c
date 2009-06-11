@@ -981,7 +981,7 @@ multi_line_del_cb( GtkButton *button, gpointer data )
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-	g_debug("NwamConnConfIPPanel: notify %s changed\n", arg1->name);
+	g_debug("NwamConnConfIPPanel: notify %s changed", arg1->name);
 }
 
 static void 

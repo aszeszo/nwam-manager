@@ -1680,12 +1680,12 @@ get_nwam_known_wlan_string_prop( nwam_known_wlan_handle_t known_wlan, const char
     }
 
     if ( (nerr = nwam_known_wlan_get_prop_value (known_wlan, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
     if ( (nerr = nwam_value_get_string(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get string value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get string value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
@@ -1723,7 +1723,7 @@ set_nwam_known_wlan_string_prop( nwam_known_wlan_handle_t known_wlan, const char
     }
 
     if ( (nerr = nwam_known_wlan_set_prop_value (known_wlan, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -1753,12 +1753,12 @@ get_nwam_known_wlan_string_array_prop( nwam_known_wlan_handle_t known_wlan, cons
     }
 
     if ( (nerr = nwam_known_wlan_get_prop_value (known_wlan, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
     if ( (nerr = nwam_value_get_string_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get string value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get string value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
@@ -1818,7 +1818,7 @@ set_nwam_known_wlan_string_array_prop( nwam_known_wlan_handle_t known_wlan, cons
     }
 
     if ( (nerr = nwam_known_wlan_set_prop_value (known_wlan, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -1846,12 +1846,12 @@ get_nwam_known_wlan_boolean_prop( nwam_known_wlan_handle_t known_wlan, const cha
     }
 
     if ( (nerr = nwam_known_wlan_get_prop_value (known_wlan, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_boolean(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get boolean value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get boolean value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -1877,12 +1877,12 @@ get_nwam_known_wlan_uint64_prop( nwam_known_wlan_handle_t known_wlan, const char
     }
 
     if ( (nerr = nwam_known_wlan_get_prop_value (known_wlan, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_uint64(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get uint64 value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get uint64 value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -1916,7 +1916,7 @@ set_nwam_known_wlan_uint64_prop( nwam_known_wlan_handle_t known_wlan, const char
     }
 
     if ( (nerr = nwam_known_wlan_set_prop_value (known_wlan, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -1946,12 +1946,12 @@ get_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, cons
     }
 
     if ( (nerr = nwam_known_wlan_get_prop_value (known_wlan, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_uint64_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get uint64 value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get uint64 value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -1993,7 +1993,7 @@ set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, cons
     }
 
     if ( (nerr = nwam_known_wlan_set_prop_value (known_wlan, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for known_wlan property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -2022,6 +2022,6 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiWifiNet* self = NWAMUI_WIFI_NET(data);
 
-    g_debug("NwamuiWifiNet: notify %s changed\n", arg1->name);
+    g_debug("NwamuiWifiNet: notify %s changed", arg1->name);
 }
 

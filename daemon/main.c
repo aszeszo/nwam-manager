@@ -86,7 +86,7 @@ detect_and_set_singleton ()
         if ((sunray_token = g_getenv ("SUN_SUNRAY_TOKEN")) == NULL) {
             session_type = NORMAL_SESSION;
         } else {
-            g_debug ("$SUN_SUNRAY_TOKEN = %s\n", sunray_token);
+            g_debug ("$SUN_SUNRAY_TOKEN = %s", sunray_token);
             session_type = SUNRAY_SESSION;
         }
     }
@@ -382,7 +382,7 @@ main( int argc, char* argv[] )
 
     gtk_main();
 
-    g_debug ("exiting...\n");
+    g_debug ("exiting...");
 
     g_object_unref(status_icon);
     g_object_unref (G_OBJECT (program));

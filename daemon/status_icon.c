@@ -984,7 +984,7 @@ nwam_status_icon_run(NwamStatusIcon *self)
 
     g_assert(prv->daemon == NULL && prv->menu == NULL);
 
-    g_debug("%s: Hide self firstly!\n", __func__);
+    g_debug("%s: Hide self firstly!", __func__);
     gtk_status_icon_set_visible(GTK_STATUS_ICON(self), FALSE);
 
     /* Initializing notification, must run first, because others may invoke
@@ -1744,7 +1744,7 @@ nwam_exec (const gchar *nwam_arg)
 		g_free (base);
 	}
 	argv[argc++] = (gchar *)nwam_arg;
-	g_debug ("\n\nnwam-menu-exec: %s %s\n", argv[0], nwam_arg);
+	g_debug ("\n\nnwam-menu-exec: %s %s", argv[0], nwam_arg);
 
 	if (!g_spawn_async(NULL,
 		argv,

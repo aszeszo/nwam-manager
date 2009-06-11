@@ -562,7 +562,7 @@ show_combo_cell_cb (GtkCellLayout *cell_layout,
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-	g_debug("NwamCappletDialog: notify %s changed\n", arg1->name);
+	g_debug("NwamCappletDialog: notify %s changed", arg1->name);
 }
 
 /*

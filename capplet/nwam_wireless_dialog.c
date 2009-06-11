@@ -1517,7 +1517,7 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamWirelessDialog* self = NWAM_WIRELESS_DIALOG(data);
 
-    g_debug("NwamWirelessDialog: notify %s changed\n", arg1->name);
+    g_debug("NwamWirelessDialog: notify %s changed", arg1->name);
 
     if ( g_ascii_strcasecmp(arg1->name, "ncu") == 0 ) {
         populate_essid_combo(self, GTK_COMBO_BOX_ENTRY(self->prv->essid_combo));

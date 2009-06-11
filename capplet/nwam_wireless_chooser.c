@@ -372,7 +372,7 @@ nwam_wifi_chooser_comp_cb (GtkTreeModel *model,
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-	g_debug("NwamWirelessChooser: notify %s changed\n", arg1->name);
+	g_debug("NwamWirelessChooser: notify %s changed", arg1->name);
 }
 
 static void

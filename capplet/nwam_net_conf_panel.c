@@ -1861,7 +1861,7 @@ selection_func(GtkTreeSelection *selection,
             prv->group_num += inc;
     }
 
-    g_debug("<on,off,normal> c< %d %d %d > g< %d %d %d >\n",
+    g_debug("<on,off,normal> c< %d %d %d > g< %d %d %d >",
       prv->on_child_num,
       prv->off_child_num,
       prv->child_num,
@@ -2075,7 +2075,7 @@ conditions_connected_changed(GtkComboBox* combo, gpointer user_data )
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    g_debug("NwamNetConfPanel: notify %s changed\n", arg1->name);
+    g_debug("NwamNetConfPanel: notify %s changed", arg1->name);
 }
 
 static void

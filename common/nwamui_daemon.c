@@ -1539,7 +1539,7 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiDaemon* self = NWAMUI_DAEMON(data);
 
-    g_debug("NwamuiDaemon: notify %s changed\n", arg1->name);
+    g_debug("NwamuiDaemon: notify %s changed", arg1->name);
 }
 
 /**
@@ -1605,7 +1605,7 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
         NwamuiWifiNet  *wifi_net = NULL;
 
         if ( (nerr = nwam_wlan_get_scan_results( name, &nwlan, &wlans )) == NWAM_SUCCESS ) {
-            g_debug("%d WLANs in cache.\n", nwlan);
+            g_debug("%d WLANs in cache.", nwlan);
             for (int i = 0; i < nwlan; i++) {
                 g_debug( "%d: ESSID %s BSSID %s", i + 1,
                     wlans[i].essid, wlans[i].bssid);
@@ -1703,7 +1703,7 @@ dispatch_wifi_scan_events_from_event(NwamuiDaemon* daemon, nwam_event_t event )
 
     nwlan = event->data.wlan_info.num_wlans;
 
-    g_debug("%d WLANs detected.\n", nwlan);
+    g_debug("%d WLANs detected.", nwlan);
     for (int i = 0; i < nwlan; i++) {
         /* Try avoid potentially costly look up ncu object every time */
         if ( prev_iface_name == NULL || strcmp(prev_iface_name, name ) != 0 ) {
@@ -2124,7 +2124,7 @@ nwamd_event_handler(gpointer data)
                 if ( action == NWAM_ACTION_ADD ) {
                     nwamui_ncp_populate_ncu_list( ncp, G_OBJECT(daemon) );
 
-                    g_debug("Interface %s added\n", name );
+                    g_debug("Interface %s added", name );
                 }
                 else if ( action == NWAM_ACTION_REMOVE ) {
                     NwamuiNcu *ncu = get_ncu_by_device_name( daemon, ncp, name );
@@ -2132,7 +2132,7 @@ nwamd_event_handler(gpointer data)
                         nwamui_ncp_remove_ncu( ncp, ncu );
                         g_object_unref(ncu);
                     }
-                    g_debug("Interface %s removed\n", name );
+                    g_debug("Interface %s removed", name );
                 }
                 else {
                     g_error("LINK Action : %d recieved and unhandled", 
@@ -2598,7 +2598,7 @@ nwam_events_callback (nwam_event_t *msg, int size, int nouse)
     nwam_event_t *idx;
     NwamuiDaemon *self = nwamui_daemon_get_instance ();
     
-    g_debug ("nwam_events_callback\n");
+    g_debug ("nwam_events_callback");
     
     for (idx = msg; idx; idx = idx->next) {
         
@@ -3195,7 +3195,7 @@ nwam_events_thread ( gpointer data )
 	nwam_event_t            nwamevent = NULL;
     nwam_error_t            err;
 
-    g_debug ("nwam_events_thread\n");
+    g_debug ("nwam_events_thread");
     
 	while (event_thread_running()) {
         if ( (err = nwam_event_wait( &nwamevent)) != NWAM_SUCCESS ) {

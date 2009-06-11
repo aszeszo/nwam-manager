@@ -391,6 +391,6 @@ object_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamuiSvcPrivate *prv = GET_PRIVATE(gobject);
 
-	g_debug("NwamuiSvc: notify %s changed\n", arg1->name);
+	g_debug("NwamuiSvc: notify %s changed", arg1->name);
 }
 

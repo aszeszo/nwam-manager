@@ -499,12 +499,12 @@ get_nwam_enm_boolean_prop( nwam_enm_handle_t enm, const char* prop_name )
     }
 
     if ( (nerr = nwam_enm_get_prop_value (enm, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_boolean(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get boolean value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get boolean value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -538,7 +538,7 @@ set_nwam_enm_boolean_prop( nwam_enm_handle_t enm, const char* prop_name, gboolea
     }
 
     if ( (nerr = nwam_enm_set_prop_value (enm, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -572,12 +572,12 @@ get_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name )
     }
 
     if ( (nerr = nwam_enm_get_prop_value (enm, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
     if ( (nerr = nwam_value_get_string(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get string value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get string value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
@@ -615,7 +615,7 @@ set_nwam_enm_string_prop( nwam_enm_handle_t enm, const char* prop_name, const gc
     }
 
     if ( (nerr = nwam_enm_set_prop_value (enm, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -649,12 +649,12 @@ get_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name )
     }
 
     if ( (nerr = nwam_enm_get_prop_value (enm, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
     if ( (nerr = nwam_value_get_string_array(nwam_data, &value, &num )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get string value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get string value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return retval;
     }
 
@@ -723,7 +723,7 @@ set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const char* prop_name, ch
     }
 
     if ( (nerr = nwam_enm_set_prop_value (enm, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -755,12 +755,12 @@ get_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name )
     }
 
     if ( (nerr = nwam_enm_get_prop_value (enm, prop_name, &nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("No value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("No value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
     if ( (nerr = nwam_value_get_uint64(nwam_data, &value )) != NWAM_SUCCESS ) {
-        g_debug("Unable to get uint64 value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to get uint64 value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         return value;
     }
 
@@ -794,7 +794,7 @@ set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 
     }
 
     if ( (nerr = nwam_enm_set_prop_value (enm, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for enm property %s, error = %s\n", prop_name, nwam_strerror( nerr ) );
+        g_debug("Unable to set value for enm property %s, error = %s", prop_name, nwam_strerror( nerr ) );
     }
     else {
         retval = TRUE;
@@ -1369,6 +1369,6 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiEnm* self = NWAMUI_ENM(data);
 
-    g_debug("NwamuiEnm: notify %s changed\n", arg1->name);
+    g_debug("NwamuiEnm: notify %s changed", arg1->name);
 }
 

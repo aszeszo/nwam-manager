@@ -216,7 +216,7 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
 
     if (ncu != NULL) {
         g_assert(nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS);
-        g_debug("Using wifi_net's own NCU 0x%X\n\tENABLE\tWlan 0x%p - %s\n", ncu, wifi, name);
+        g_debug("Using wifi_net's own NCU 0x%X\n\tENABLE\tWlan 0x%p - %s", ncu, wifi, name);
         nwamui_wifi_net_connect(wifi);
         g_object_unref(ncu);
     } else {

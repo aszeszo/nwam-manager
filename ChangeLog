@@ -1,5 +1,21 @@
 2009-06-11  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/main.c, capplet/nwam_conn_conf_ip_panel.c,
+	  capplet/nwam_conn_stat_panel.c, capplet/nwam_env_pref_dialog.c,
+	  capplet/nwam_env_svc.c, capplet/nwam_location_dialog.c,
+	  capplet/nwam_net_conf_panel.c, capplet/nwam_pref_dialog.c,
+	  capplet/nwam_proxy_password_dialog.c,
+	  capplet/nwam_vpn_pref_dialog.c, capplet/nwam_wireless_chooser.c,
+	  capplet/nwam_wireless_dialog.c, common/nwamui_cond.c,
+	  common/nwamui_daemon.c, common/nwamui_enm.c, common/nwamui_env.c,
+	  common/nwamui_ip.c, common/nwamui_ncp.c, common/nwamui_ncu.c,
+	  common/nwamui_prof.c, common/nwamui_svc.c, common/nwamui_wifi_net.c,
+	  daemon/main.c, daemon/notify.c, daemon/nwam-ncu-item.c,
+	  daemon/nwam-wifi-item.c, daemon/status_icon.c:
+	  Remove trailing \n in all g_debug calls.
+
+2009-06-11  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_daemon.c: 
 	  Handle PRIORITY_GROUP event (doesn't currently do anything except
 	  log it).  Fix a bug in

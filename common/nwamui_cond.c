@@ -709,7 +709,7 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiCond* self = NWAMUI_COND(data);
 
-    g_debug("NwamuiCond: notify %s changed\n", arg1->name );
+    g_debug("NwamuiCond: notify %s changed", arg1->name );
     g_debug("%s %s %s", nwamui_cond_field_to_str(self->prv->field),
             nwamui_cond_op_to_str(self->prv->op),
             self->prv->value?self->prv->value:"NULL");

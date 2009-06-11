@@ -1143,7 +1143,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    g_debug("NwamLocationDialog: notify %s changed\n", arg1->name);
+    g_debug("NwamLocationDialog: notify %s changed", arg1->name);
 }
 
 static gboolean

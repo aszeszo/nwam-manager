@@ -357,6 +357,6 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamProxyPasswordDialog* self = NWAM_PROXY_PASSWORD_DIALOG(data);
 
-    g_debug("NwamProxyPasswordDialog: notify %s changed\n", arg1->name);
+    g_debug("NwamProxyPasswordDialog: notify %s changed", arg1->name);
 }
 

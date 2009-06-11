@@ -1159,8 +1159,8 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
     /* Generate proper list of NCUs */
     origllp = llp = libnwam_get_llp_list(&nllp);
     orignllp = nllp;
-    g_debug("%d LLPs are present.\n", nllp);
-	g_debug("%-20s %-8s %-8s %-6s %-5s %-4s %-4s %s\n", 
+    g_debug("%d LLPs are present.", nllp);
+	g_debug("%-20s %-8s %-8s %-6s %-5s %-4s %-4s %s", 
             "Name", "Priority", "Type", "Source", "Dlink", "Ifup", "DHCP", "Status");
 
     while (nllp-- > 0) {
@@ -1305,7 +1305,7 @@ nwamui_ncp_set_manual_ncu_selection( NwamuiNcp *self, NwamuiNcu *ncu)
 #if 0
     /* TODO: Decide if we are going to support i/f locking in Phase 1 */
     if (libnwam_lock_llp(device_name) != 0) {
-        g_debug("Call failed: %s\n", strerror(errno));
+        g_debug("Call failed: %s", strerror(errno));
     }
     else {
         g_object_set (G_OBJECT (self),
@@ -1324,7 +1324,7 @@ nwamui_ncp_set_automatic_ncu_selection( NwamuiNcp *self )
 #if 0
     /* TODO: Decide if we are going to support i/f locking in Phase 1 */
     if (libnwam_lock_llp("") != 0) {
-        g_debug("Call failed: %s\n", strerror(errno));
+        g_debug("Call failed: %s", strerror(errno));
     }
     else {
         g_object_set (G_OBJECT (self),
@@ -1369,7 +1369,7 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiNcp* self = NWAMUI_NCP(gobject);
 
-    g_debug("NwamuiNcp: notify %s changed\n", arg1->name);
+    g_debug("NwamuiNcp: notify %s changed", arg1->name);
 }
 static void
 ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
