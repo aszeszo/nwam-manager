@@ -37,6 +37,7 @@
 
 
 #include "libnwamui.h"
+#include "nwam_tree_view.h"
 
 #include "status_icon.h"
 
@@ -50,7 +51,7 @@
 gboolean debug = FALSE;
 
 static GOptionEntry option_entries[] = {
-    {"debug", 0, 0, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
+    {"debug", 'D', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
     {NULL}
 };
 
@@ -285,7 +286,6 @@ main( int argc, char* argv[] )
     NwamuiProf* prof;
     GtkStatusIcon *status_icon = NULL;
 
-    
     option_context = g_option_context_new (PACKAGE);
 
 #ifdef ENABLE_NLS
@@ -339,6 +339,8 @@ main( int argc, char* argv[] )
     if (!g_thread_supported()) {
         g_thread_init(NULL);
     }
+
+    NWAM_TYPE_TREE_VIEW; /* Dummy to cause NwamTreeView to be loaded for GtkBuilder to find symbol */
 
     
     /* nwamui preference signals */

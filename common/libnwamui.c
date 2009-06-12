@@ -168,6 +168,7 @@ get_gtk_builder( void ) {
         const gchar * const *sys_data_dirs;
         const gchar *ui_file;
         gint         i;
+        GError      *err = NULL;
 
         sys_data_dirs = g_get_system_data_dirs ();
         if ( g_file_test(build_datadir, G_FILE_TEST_EXISTS|G_FILE_TEST_IS_DIR) ) {
@@ -175,19 +176,29 @@ get_gtk_builder( void ) {
 
             /* First try with the package name in the path */
             ui_file = g_build_filename (build_datadir, PACKAGE, NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
-            g_debug("Attempting to load : %s", ui_file);
-            if ( (gtk_builder_add_from_file(new_builder, ui_file, NULL )) != 0 ) {
-                g_debug("Found gtk builder file at : %s", ui_file );
+            nwamui_debug("Attempting to load : %s", ui_file);
+            if ( (gtk_builder_add_from_file(new_builder, ui_file, &err )) != 0 ) {
+                nwamui_debug("Found gtk builder file at : %s", ui_file );
                 gtk_builder = new_builder;
+            }
+            else if ( err ) {
+                nwamui_debug("Error loading glade file : %s", err->message);
+                g_error_free(err);
+                err = NULL;
             }
             g_free (ui_file);
             if ( gtk_builder == NULL ) {
                 /* Now try without it */
                 ui_file = g_build_filename (build_datadir, NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
-                g_debug("Attempting to load : %s", ui_file);
-                if ( (gtk_builder_add_from_file(new_builder, ui_file, NULL )) != 0 ) {
-                    g_debug("Found gtk builder file at : %s", ui_file );
+                nwamui_debug("Attempting to load : %s", ui_file);
+                if ( (gtk_builder_add_from_file(new_builder, ui_file, &err )) != 0 ) {
+                    nwamui_debug("Found gtk builder file at : %s", ui_file );
                     gtk_builder = new_builder;
+                }
+                else if ( err ) {
+                    nwamui_debug("Error loading glade file : %s", err->message);
+                    g_error_free(err);
+                    err = NULL;
                 }
                 g_free (ui_file);
             }
@@ -197,28 +208,38 @@ get_gtk_builder( void ) {
                 gchar *ui_file;
                 /* First try with the package name in the path */
                 ui_file = g_build_filename (sys_data_dirs[i], PACKAGE, NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
-                g_debug("Attempting to load : %s", ui_file);
-                if ( (gtk_builder_add_from_file(new_builder, ui_file, NULL )) != 0 ) {
-                    g_debug("Found gtk builder file at : %s", ui_file );
+                nwamui_debug("Attempting to load : %s", ui_file);
+                if ( (gtk_builder_add_from_file(new_builder, ui_file, &err )) != 0 ) {
+                    nwamui_debug("Found gtk builder file at : %s", ui_file );
                     gtk_builder = new_builder;
                     g_free (ui_file);
                     break;
                 }
+                else if ( err ) {
+                    nwamui_debug("Error loading glade file : %s", err->message);
+                    g_error_free(err);
+                    err = NULL;
+                }
                 g_free (ui_file);
                 /* Now try without it */
                 ui_file = g_build_filename (sys_data_dirs[i], NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
-                g_debug("Attempting to load : %s", ui_file);
-                if ( (gtk_builder_add_from_file(new_builder, ui_file, NULL )) != 0 ) {
-                    g_debug("Found gtk builder file at : %s", ui_file );
+                nwamui_debug("Attempting to load : %s", ui_file);
+                if ( (gtk_builder_add_from_file(new_builder, ui_file, &err )) != 0 ) {
+                    nwamui_debug("Found gtk builder file at : %s", ui_file );
                     gtk_builder = new_builder;
                     g_free (ui_file);
                     break;
+                }
+                else if ( err ) {
+                    nwamui_debug("Error loading glade file : %s", err->message);
+                    g_error_free(err);
+                    err = NULL;
                 }
             }
         }
 
         if ( gtk_builder == NULL ) {
-            g_error("Error locating UI file %s", NWAM_MANAGER_PROPERTIES_UI_FILE );
+            nwamui_error("Error locating UI file %s", NWAM_MANAGER_PROPERTIES_UI_FILE );
             g_object_unref( new_builder );
         }
     }

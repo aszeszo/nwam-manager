@@ -1,3 +1,42 @@
+2009-06-12  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/main.c: 
+	  Fix use of options to launch correct thing.
+	* capplet/nwam_wireless_dialog.h, capplet/nwam_wireless_dialog.c:
+	  Change NCU to be an actual NwamuiNcu rather than string.
+	  Change Transient property, to more correct name of "Persistant"
+	  Add do_connect property, if TRUE, then on OK, it will call the
+	  wifi_net_connect function.
+	* common/libnwamui.c: 
+	  Add error messages when get_gtk_builder() fails to load files.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Add nwamui_ncu_wifi_hash_* functions for managing the cache of wifi
+	  objects which are allocated on a per-NCU basis.
+	* common/nwamui_daemon.c: 
+	  Change dispatch_scan_results_if_wireless() to use the per-NCU wifi
+	  cache - avoids the multiple events for a network by combining them
+	  in to one object.
+	* common/nwamui_ncp.c, common/nwamui_ncp.h:
+	  Remove unused SELECTION_MODE references.
+	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c: 
+	  Fix minor bug with the channel provided by wlan_t.
+	  Add functions nwamui_wifi_net_store_key() and
+	  nwamui_wifi_net_security_map_to_nwam().
+	  Make nwamui_wifi_net_connect() actually do a connect!
+	* daemon/main.c: 
+	  Fix options, hiding debug option from user.
+	* daemon/nwam-ncu-item.c: 
+	  Call nwamui_ncu_set_active to (de)activate a manual NCU on selection.
+	* daemon/nwam-wifi-item.c: 
+	  Update for new param to nwamui_wifi_net_connect, w.r.t persistance.
+	* capplet/Makefile.am, daemon/Makefile.am, daemon/status_icon.c: 
+	  Don't force a real scan all the time - really should just ask for
+	  dispatch from the cache in most cases, added boolean param to 
+	  nwam_menu_recreate_wifi_menuitems() for this.
+	  Do similar to Phase 0.5 where the join_wireless didn't do a call out
+	  to another process - just seems like extra overhead for such a
+	  simple function.
+
 2009-06-11  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/libnwamui.h:

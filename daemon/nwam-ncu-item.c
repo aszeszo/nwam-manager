@@ -235,9 +235,9 @@ on_nwam_ncu_toggled (GtkCheckMenuItem *item, gpointer data)
             gchar *name = nwamui_ncu_get_device_name(ncu);
             g_debug("\n\tENABLE\tNcu\t 0x%p\t%s", ncu, name);
             g_free(name);
-            nwamui_ncp_set_manual_ncu_selection(ncp, ncu);
+            nwamui_ncu_set_active( ncu, TRUE );
         } else {
-            nwamui_ncp_set_automatic_ncu_selection(ncp);
+            nwamui_ncu_set_active( ncu, FALSE );
         }
     }
     g_object_unref(daemon);

@@ -436,6 +436,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
         }
     }
 
+    /* Populate Wifi Favourites List */
     nwamui_daemon_populate_wifi_fav_list( self );
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
@@ -589,7 +590,7 @@ nwamui_daemon_finalize (NwamuiDaemon *self)
         g_list_foreach(self->prv->wifi_fav_list, nwamui_util_obj_unref, NULL );
         g_list_free( self->prv->wifi_fav_list );
     }
-
+    
     g_list_foreach( self->prv->env_list, nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
     g_list_free(self->prv->env_list);
     
@@ -1603,6 +1604,7 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
         nwam_wlan_t    *wlans = NULL;
         nwam_error_t    nerr;
         NwamuiWifiNet  *wifi_net = NULL;
+        NwamuiWifiNet  *fav_net = NULL;
 
         if ( (nerr = nwam_wlan_get_scan_results( name, &nwlan, &wlans )) == NWAM_SUCCESS ) {
             g_debug("%d WLANs in cache.", nwlan);
@@ -1614,13 +1616,16 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
                  * to this... Will it still appear in menu??
                  */
                 if ( strlen(wlans[i].essid) > 0  && ncu != NULL ) {
-                    if ( (wifi_net = nwamui_daemon_find_fav_wifi_net_by_name( daemon, 
+                    /* Ensure it's being cached in the ncu, and if already
+                     * theere will update it with new information.
+                     */
+                    wifi_net = nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( ncu, &(wlans[i]));
+
+                    if ( (fav_net = nwamui_daemon_find_fav_wifi_net_by_name( daemon, 
                                                                 wlans[i].essid ) ) != NULL ) {
-                        /* Exists as a favourite, so re-use */
-                        nwamui_wifi_net_update_from_wlan_t( wifi_net, &(wlans[i]));
-                    }
-                    else {
-                        wifi_net = nwamui_wifi_net_new_from_wlan_t( ncu, &(wlans[i]));
+                        /* Exists as a favourite, so update it's information */
+                        nwamui_wifi_net_update_from_wlan_t( fav_net, &(wlans[i]));
+                        g_object_unref(fav_net);
                     }
 
                     if ( wlans[i].connected || wlans[i].selected ) {
@@ -1644,7 +1649,7 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
                         g_signal_emit (daemon,
                           nwamui_daemon_signals[WIFI_SCAN_RESULT],
                           0, /* details */
-                          wifi_net);
+                          wifi_net); /* Hand off ownership of wifi_net */
                     }
                 }
             }

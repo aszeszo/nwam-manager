@@ -51,7 +51,6 @@ enum {
     PROP_NCU_TREE_STORE,
     PROP_NCU_LIST_STORE,
     PROP_ACTIVE_NCU,
-    PROP_SELECTION_MODE,
     PROP_WIRELESS_LINK_NUM
 };
 
@@ -84,7 +83,6 @@ static guint nwamui_ncp_signals[LAST_SIGNAL] = { 0, 0 };
 struct _NwamuiNcpPrivate {
         nwam_ncp_handle_t           nwam_ncp;
         gchar*                      name;
-        nwamui_ncp_selection_mode_t selection_mode;
         gint                        wireless_link_num;
 
         GList*                      ncu_list;
@@ -192,16 +190,6 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 
 
     g_object_class_install_property (gobject_class,
-                                     PROP_SELECTION_MODE,
-                                     g_param_spec_int   ("selection_mode",
-                                                         _("selection_mode"),
-                                                         _("selection_mode"),
-                                                          NWAMUI_NCP_SELECTION_MODE_AUTOMATIC,
-                                                          NWAMUI_NCP_SELECTION_MODE_LAST-1,
-                                                          NWAMUI_NCP_SELECTION_MODE_AUTOMATIC,
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
                                      PROP_WIRELESS_LINK_NUM,
                                      g_param_spec_int("wireless_link_num",
                                                       _("wireless_link_num"),
@@ -270,7 +258,6 @@ nwamui_ncp_init ( NwamuiNcp *self)
     self->prv->ncu_tree_store = NULL;
     self->prv->ncu_list_store = NULL;
 
-    self->prv->selection_mode = NWAMUI_NCP_SELECTION_MODE_AUTOMATIC;
     self->prv->wireless_link_num = 0;
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
@@ -347,10 +334,6 @@ nwamui_ncp_set_property (   GObject         *object,
             }
             break;
 
-        case PROP_SELECTION_MODE: {
-                self->prv->selection_mode = g_value_get_int( value );
-            }
-            break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -394,10 +377,6 @@ nwamui_ncp_get_property (   GObject         *object,
             break;
         case PROP_NCU_LIST_STORE: {
                 g_value_set_object( value, self->prv->ncu_list_store );
-            }
-            break;
-        case PROP_SELECTION_MODE: {
-                g_value_set_int( value, self->prv->selection_mode );
             }
             break;
         case PROP_WIRELESS_LINK_NUM: {
@@ -1110,6 +1089,7 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
         self->prv->temp_ncu_list = NULL;
     }
 
+    _num_wireless = 0;
     nwam_ncp_walk_ncus( self->prv->nwam_ncp, nwam_ncu_walker_cb, (void*)self,
                         NWAM_FLAG_NCU_TYPE_CLASS_ALL, &cb_ret );
 
@@ -1145,207 +1125,6 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
         g_object_notify(G_OBJECT (self), "wireless_link_num" );
     }
 
-#if 0
-    /* TODO: Get list of NCUs */
-    libnwam_llp_t      *llp, *origllp;
-    uint_t              nllp, orignllp;
-    nwamui_ncp_selection_mode_t  selection_mode = NWAMUI_NCP_SELECTION_MODE_AUTOMATIC;
-    gint                wireless_link_num = 0; /* Count wireless i/fs */
-
-    if ( self->prv->ncu_tree_store  == NULL ) {
-        self->prv->ncu_tree_store = gtk_tree_store_new ( 1, NWAMUI_TYPE_NCU);
-    }
-    
-    /* Generate proper list of NCUs */
-    origllp = llp = libnwam_get_llp_list(&nllp);
-    orignllp = nllp;
-    g_debug("%d LLPs are present.", nllp);
-	g_debug("%-20s %-8s %-8s %-6s %-5s %-4s %-4s %s", 
-            "Name", "Priority", "Type", "Source", "Dlink", "Ifup", "DHCP", "Status");
-
-    while (nllp-- > 0) {
-        NwamuiNcu          *ncu;
-        NwamuiWifiNet      *wifi_info = NULL;
-        GtkTreeIter         iter;
-        nwamui_ncu_type_t   ncu_type;
-        
-        const char *tstr = "error";
-        const char *sstr = "error";
-
-        switch (llp->llp_type) {
-        case IF_UNKNOWN:
-            tstr = "unknown";
-            /* Skip */
-            break;
-        case IF_WIRED:
-            tstr = "wired";
-            ncu_type = NWAMUI_NCU_TYPE_WIRED;
-            break;
-        case IF_WIRELESS:
-            tstr = "wireless";
-            ncu_type = NWAMUI_NCU_TYPE_WIRELESS;
-            wireless_link_num++;
-            break;
-        case IF_TUN:
-            tstr = "tun";
-            /* Skip */
-            break;
-        }
-        switch (llp->llp_ipv4src) {
-        case IPV4SRC_STATIC:
-            sstr = "static";
-            break;
-        case IPV4SRC_DHCP:
-            sstr = "dhcp";
-            break;
-        }
-
-        g_debug("%-20s %-8d %-8s %-6s %-5s %-4s %-4s %s %s %s %s",
-                llp->llp_interface, llp->llp_pri, tstr,
-                sstr, llp->llp_link_up ? "Up" : "Down",
-                llp->llp_link_failed ? "Failed" : "OK",
-                llp->llp_dhcp_failed ? "Fail" : "OK",
-                llp->llp_primary ? "Primary" : "",
-                llp->llp_locked ? "Locked" : "",
-                llp->llp_need_wlan ? "Need WLAN" : "",
-                llp->llp_need_key ? "Need Key" : "");
-
-        if ( ncu_type == NWAMUI_NCU_TYPE_WIRED || ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-            /* TODO - Do we need current status here, possibly not for Phase 0.5 */
-            ncu = nwamui_ncp_get_ncu_by_device_name( self, llp->llp_interface );
-
-            char * vanity_name = g_strdup_printf(_("%s (%s)"), 
-              (ncu_type == NWAMUI_NCU_TYPE_WIRELESS?_("Wireless"):_("Wired")),
-              llp->llp_interface);
-
-            if ( ncu == NULL ) {
-
-                ncu = nwamui_ncu_new(   vanity_name,
-                                        llp->llp_interface,
-                                        "",
-                                        ncu_type,
-                                        llp->llp_primary,
-                                        0,
-                                        llp->llp_pri,
-                                        llp->llp_ipv4src == IPV4SRC_DHCP,
-                                        NULL,
-                                        NULL,
-                                        NULL,
-                                        FALSE,
-                                        FALSE,
-                                        NULL,
-                                        NULL,
-                                        NULL );
-
-
-                gtk_tree_store_append( self->prv->ncu_tree_store, &iter );
-                gtk_tree_store_set(self->prv->ncu_tree_store, &iter, 0, ncu, -1 );
-                g_signal_connect(G_OBJECT(ncu), "notify",
-                  (GCallback)ncu_notify_cb, (gpointer)self);
-            } else {
-                nwamui_ncu_sync(ncu,
-                  vanity_name,
-                  llp->llp_interface,
-                  ncu_type,
-                  llp->llp_primary,
-                  llp->llp_pri,
-                  llp->llp_ipv4src == IPV4SRC_DHCP);
-            }
-
-            g_free(vanity_name);
-            
-            /* Need to handle current state and send events as needed */
-            if ( llp->llp_primary ) {
-                nwamui_ncp_set_active_ncu( self, ncu );
-            }
-
-            if ( llp->llp_locked ) {
-                selection_mode = NWAMUI_NCP_SELECTION_MODE_MANUAL;
-            }
-
-            if ( _daemon != NULL ) {
-                /* May be NULL during object init phase */
-                NwamuiDaemon       *daemon = NWAMUI_DAEMON(_daemon);
-                nwamui_daemon_emit_signals_from_llp_info( daemon, ncu, llp );
-            }
-
-            g_object_unref(ncu);
-        }
-
-        llp++;
-    }
-    libnwam_free_llp_list(origllp);
-    
-
-    g_object_notify(G_OBJECT(self), "ncu_tree_store" );
-
-    if ( self->prv->selection_mode != selection_mode ) {
-        g_object_set (G_OBJECT (self),
-                      "selection_mode", selection_mode,
-                      NULL);
-    }
-
-    if ( self->prv->wireless_link_num != wireless_link_num ) {
-        self->prv->wireless_link_num = wireless_link_num;
-        g_object_notify(G_OBJECT (self), "wireless_link_num" );
-    }
-#endif
-}
-
-extern void
-nwamui_ncp_set_manual_ncu_selection( NwamuiNcp *self, NwamuiNcu *ncu)
-{
-    gchar*  device_name;
-
-    g_return_if_fail (NWAMUI_IS_NCP(self)); 
-    g_return_if_fail (NWAMUI_IS_NCU(ncu)); 
-
-    device_name = nwamui_ncu_get_device_name( ncu );
-
-#if 0
-    /* TODO: Decide if we are going to support i/f locking in Phase 1 */
-    if (libnwam_lock_llp(device_name) != 0) {
-        g_debug("Call failed: %s", strerror(errno));
-    }
-    else {
-        g_object_set (G_OBJECT (self),
-                      "selection_mode", NWAMUI_NCP_SELECTION_MODE_MANUAL,
-/*                       "active_ncu", ncu, */
-                      NULL);
-    }
-#endif    
-}
-
-extern void
-nwamui_ncp_set_automatic_ncu_selection( NwamuiNcp *self )
-{
-    g_return_if_fail (NWAMUI_IS_NCP(self)); 
-
-#if 0
-    /* TODO: Decide if we are going to support i/f locking in Phase 1 */
-    if (libnwam_lock_llp("") != 0) {
-        g_debug("Call failed: %s", strerror(errno));
-    }
-    else {
-        g_object_set (G_OBJECT (self),
-                      "selection_mode", NWAMUI_NCP_SELECTION_MODE_AUTOMATIC,
-                      NULL);
-    }
-#endif
-}
-
-extern nwamui_ncp_selection_mode_t
-nwamui_ncp_get_selection_mode( NwamuiNcp* self )
-{
-    nwamui_ncp_selection_mode_t mode = NWAMUI_NCP_SELECTION_MODE_AUTOMATIC;
-
-    g_return_val_if_fail( NWAMUI_IS_NCP(self), mode );
-
-    g_object_get (G_OBJECT (self),
-                  "selection_mode", &mode,
-                  NULL);
-
-    return( mode );
 }
 
 extern gint

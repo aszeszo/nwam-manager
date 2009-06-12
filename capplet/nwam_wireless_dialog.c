@@ -63,8 +63,8 @@
 static GObjectClass *parent_class = NULL;
 
 enum {
-	PROP_ZERO,
-	PROP_NCU,
+        PROP_ZERO,
+        PROP_NCU,
         PROP_ESSID,
         PROP_SECURITY,
         PROP_WEP_KEY,
@@ -73,17 +73,18 @@ enum {
         PROP_WPA_CONFIG_TYPE,
         PROP_WPA_CERT_FILE,
         PROP_BSSID_LIST,
-        PROP_TRANSIENT,
+        PROP_PERSISTANT,
+        PROP_DO_CONNECT,
 };
 
 struct _NwamWirelessDialogPrivate {
         /* Widget Pointers */
-	GtkDialog*              wireless_dialog;
+        GtkDialog*              wireless_dialog;
         GtkComboBoxEntry*       essid_combo;
         GtkEntry*               essid_cbentry; /* Convienience for essid_combo */
         GtkComboBox*            security_combo;
         GtkNotebook*            password_notebook;
-        GtkCheckButton*         transient_cbutton;
+        GtkCheckButton*         persistant_cbutton;
         GtkCheckButton*         show_password_cbutton;
         /* WEP Settings */
         GtkEntry*               key_entry;
@@ -98,8 +99,9 @@ struct _NwamWirelessDialogPrivate {
         /* TODO - Handle CERT FILE */
 
         /* Other Data */
-        gchar*          ncu;
+        NwamuiNcu*      ncu;
         NwamuiWifiNet*  wifi_net;
+        gboolean        do_connect;
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
@@ -171,10 +173,10 @@ nwam_wireless_dialog_class_init (NwamWirelessDialogClass *klass)
     /* Create some properties */
     g_object_class_install_property (gobject_class,
                                      PROP_NCU,
-                                     g_param_spec_string ("ncu",
+                                     g_param_spec_object ("ncu",
                                                           _("Wireless NCU"),
                                                           _("The Wireless NCU that the dialog is to work with."),
-                                                          NULL,
+                                                          NWAMUI_TYPE_NCU,
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -237,11 +239,19 @@ nwam_wireless_dialog_class_init (NwamWirelessDialogClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_TRANSIENT,
-                                     g_param_spec_boolean ("transient",
-                                                          _("Wireless Network is Transient"),
-                                                          _("This Wireless Network shouldn't be remembered on permanently"),
-                                                          NULL,
+                                     PROP_PERSISTANT,
+                                     g_param_spec_boolean ("persistant",
+                                                          _("Wireless Network is Persistant"),
+                                                          _("This Wireless Network should be remembered, on successful connection"),
+                                                          FALSE,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_DO_CONNECT,
+                                     g_param_spec_boolean ("do_connect",
+                                                          _("On success, connect to Wireless Network"),
+                                                          _("On success (RESPONSE_OK), connect to Wireless Network"),
+                                                          FALSE,
                                                           G_PARAM_READWRITE));
     
 }
@@ -270,9 +280,12 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     self->prv->wpa_config_combo =       GTK_COMBO_BOX(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_CONFIG_COMBO));
     self->prv->wpa_username_entry =     GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_USERNAME_ENTRY));
     self->prv->wpa_password_entry =     GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_PASSWORD_ENTRY));
-    self->prv->transient_cbutton =      GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_PERSIST_CBUTTON));
+    self->prv->persistant_cbutton =      GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_PERSIST_CBUTTON));
     self->prv->show_password_cbutton =  GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_SHOW_PASSWORD_CBUTTON));
     
+    self->prv->ncu = NULL;
+    self->prv->do_connect = FALSE;
+
     /* Change the ESSID comboboxentry to use Text and an an image (for Secure/Open) */
     change_essid_cbentry_model(GTK_COMBO_BOX_ENTRY(self->prv->essid_combo));
 
@@ -399,7 +412,7 @@ populate_essid_combo(NwamWirelessDialog *self, GtkComboBoxEntry *cbentry)
 
     g_signal_connect(daemon, "wifi_scan_result", (GCallback)add_essid_list_item_to_essid_liststore, (gpointer)model);
     
-    nwamui_daemon_wifi_start_scan(daemon);
+    nwamui_daemon_dispatch_wifi_scan_events_from_cache( daemon );
 
     g_object_unref(G_OBJECT(daemon));
 }
@@ -415,16 +428,13 @@ nwam_wireless_dialog_set_property ( GObject         *object,
     gint        tmpint = 0;
 
     switch (prop_id) {
-        case PROP_NCU:
-            tmpstr = (gchar *) g_value_get_string (value);
+        case PROP_NCU: {
+                NwamuiNcu* ncu = NWAMUI_NCU( g_value_dup_object( value ) );
 
-            g_assert( tmpstr != NULL );
-
-            if (self->prv->ncu != NULL) {
-                g_free( self->prv->ncu );
-            }
-            if ( tmpstr != NULL ) {
-                self->prv->ncu = g_strdup(tmpstr);
+                if ( self->prv->ncu != NULL ) {
+                        g_object_unref( self->prv->ncu );
+                }
+                self->prv->ncu = ncu;
             }
             break;
         case PROP_ESSID:
@@ -503,8 +513,11 @@ nwam_wireless_dialog_set_property ( GObject         *object,
                 }
             }
             break;
-        case PROP_TRANSIENT:
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->prv->transient_cbutton), g_value_get_boolean (value));
+        case PROP_PERSISTANT:
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->prv->persistant_cbutton), g_value_get_boolean (value));
+            break;
+        case PROP_DO_CONNECT:
+            self->prv->do_connect = g_value_get_boolean (value);
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -522,11 +535,7 @@ nwam_wireless_dialog_get_property (GObject         *object,
 
     switch (prop_id) {
 	case PROP_NCU:
-            if (self->prv->ncu != NULL) {
-                    g_value_set_string (value, self->prv->ncu);
-            } else {
-                    g_value_set_string (value, NULL);
-            }
+            g_value_set_object( value, self->prv->ncu );
             break;
 	case PROP_ESSID:
             if (self->prv->essid_cbentry != NULL) {
@@ -586,10 +595,13 @@ nwam_wireless_dialog_get_property (GObject         *object,
                 g_value_set_pointer( value, blist );
             }
             break;
-	case PROP_TRANSIENT:
-            if (self->prv->transient_cbutton != NULL) {
-                g_value_set_boolean (value, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->prv->transient_cbutton)) ) ;
+	case PROP_PERSISTANT:
+            if (self->prv->persistant_cbutton != NULL) {
+                g_value_set_boolean (value, gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->prv->persistant_cbutton)) ) ;
             }
+            break;
+	case PROP_DO_CONNECT:
+            g_value_set_boolean(value, self->prv->do_connect) ;
             break;
         default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -640,7 +652,7 @@ nwam_wireless_dialog_new_with_ncu (const gchar *ncu)
  **/ 
 void
 nwam_wireless_dialog_set_ncu (NwamWirelessDialog *self,
-                              const gchar        *ncu )
+                              NwamuiNcu          *ncu )
 {
     g_return_if_fail (NWAM_IS_WIRELESS_DIALOG (self));
     g_assert (ncu != NULL );
@@ -753,15 +765,18 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
  *
  * Gets the Wireless NCU currently being configured by the NWAM Wireless Dialog.
  **/
-gchar*
+NwamuiNcu*
 nwam_wireless_dialog_get_ncu (NwamWirelessDialog *self)
 {
-    g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), NULL);
+    NwamuiNcu   *ncu = NULL;
 
-    if ( self->prv->ncu != NULL )
-        return g_strdup(self->prv->ncu);
-    else
-        return NULL;
+    g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), NULL);
+    
+    g_object_get (G_OBJECT (self),
+                  "ncu", &ncu,
+                  NULL);
+
+    return( ncu );
 }
 
 void                    
@@ -1005,27 +1020,51 @@ nwam_wireless_dialog_get_bssid_list (NwamWirelessDialog *self )
 }
 
 void                    
-nwam_wireless_dialog_set_transient (NwamWirelessDialog  *self,
-                                    gboolean             transient)
+nwam_wireless_dialog_set_persistant (NwamWirelessDialog  *self,
+                                    gboolean             persistant)
 {
     g_return_if_fail (NWAM_IS_WIRELESS_DIALOG (self));
 
     g_object_set (G_OBJECT (self),
-                  "transient", transient,
+                  "persistant", persistant,
                   NULL);
 }
                                     
 gboolean                
-nwam_wireless_dialog_get_transient (NwamWirelessDialog *self )
+nwam_wireless_dialog_get_persistant (NwamWirelessDialog *self )
 {
-    gboolean transient = FALSE;
+    gboolean persistant = FALSE;
     
-    g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), transient);
+    g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), persistant);
 
     g_object_get (G_OBJECT (self),
-                  "transient", &transient,
+                  "persistant", &persistant,
                   NULL);
-    return( transient );
+    return( persistant );
+}
+
+void                    
+nwam_wireless_dialog_set_do_connect (NwamWirelessDialog  *self,
+                                    gboolean             do_connect)
+{
+    g_return_if_fail (NWAM_IS_WIRELESS_DIALOG (self));
+
+    g_object_set (G_OBJECT (self),
+                  "do_connect", do_connect,
+                  NULL);
+}
+                                    
+gboolean                
+nwam_wireless_dialog_get_do_connect (NwamWirelessDialog *self )
+{
+    gboolean do_connect = FALSE;
+    
+    g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), do_connect);
+
+    g_object_get (G_OBJECT (self),
+                  "do_connect", &do_connect,
+                  NULL);
+    return( do_connect );
 }
 
 /**
@@ -1056,66 +1095,87 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
         response = gtk_dialog_run(GTK_DIALOG(self->prv->wireless_dialog));
         
         switch( response ) { 
-            case GTK_RESPONSE_OK:
-                if ( self->prv->wifi_net != NULL ) {
-                    g_object_set(G_OBJECT(self->prv->wifi_net),
-                                "essid", nwam_wireless_dialog_get_essid(self),
-                                "security", nwam_wireless_dialog_get_security(self),
-                                "bssid_list", nwam_wireless_dialog_get_bssid_list(self),
-                                NULL);
-                }
-                else {
-                    NwamuiNcu *ncu = NULL;
+            case GTK_RESPONSE_OK: {
+                    gchar*                  essid = nwam_wireless_dialog_get_essid(self);
+                    nwamui_wifi_security_t  security = nwam_wireless_dialog_get_security(self);
+                    GList*                  bssid_list = nwam_wireless_dialog_get_bssid_list(self);
 
-                    if ( self->prv->ncu != NULL ) {
-                        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-                        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
-
-                        ncu = nwamui_ncp_get_ncu_by_device_name(ncp, self->prv->ncu );
-
-                        g_object_unref(ncp);
-                        g_object_unref(daemon);
+                    if ( self->prv->wifi_net != NULL ) {
+                        g_object_set(G_OBJECT(self->prv->wifi_net),
+                                    "essid", essid,
+                                    "security", security,
+                                    "bssid_list", bssid_list,
+                                    NULL);
+                    }
+                    else {
+                        self->prv->wifi_net = nwamui_wifi_net_new(
+                                    self->prv->ncu,
+                                    essid,
+                                    security,
+                                    bssid_list,
+                                    NWAMUI_WIFI_BSS_TYPE_AUTO);
                     }
 
-                    self->prv->wifi_net = nwamui_wifi_net_new(
-                                ncu,
-                                nwam_wireless_dialog_get_essid(self),
-                                nwam_wireless_dialog_get_security(self),
-                                nwam_wireless_dialog_get_bssid_list(self),
-                                NWAMUI_WIFI_BSS_TYPE_AUTO);
-                }
+                    switch ( nwam_wireless_dialog_get_security(self) ) {
+                        case NWAMUI_WIFI_SEC_NONE: 
+                            break;
 
-                switch ( nwam_wireless_dialog_get_security(self) ) {
-                    case NWAMUI_WIFI_SEC_NONE: 
-                        break;
+                        case NWAMUI_WIFI_SEC_WEP_HEX:
+                        case NWAMUI_WIFI_SEC_WEP_ASCII:
+                        case NWAMUI_WIFI_SEC_WPA_PERSONAL: {
+                                gchar*  passwd = nwam_wireless_dialog_get_key(self);
 
-                    case NWAMUI_WIFI_SEC_WEP_HEX:
-                    case NWAMUI_WIFI_SEC_WEP_ASCII:
-                    case NWAMUI_WIFI_SEC_WPA_PERSONAL:
-                        g_object_set(G_OBJECT (self->prv->wifi_net),
-                                "wep_password", nwam_wireless_dialog_get_key(self),
-                                NULL);
-                        break;
+                                g_object_set(G_OBJECT (self->prv->wifi_net),
+                                        "wep_password", passwd,
+                                        NULL);
+
+                                nwamui_wifi_net_store_key(self->prv->wifi_net); 
+
+                                if ( passwd ) {
+                                    g_free(passwd);
+                                }
+                            }
+                            break;
 #if 0
-                    /* Currently ENTERPRISE is not supported */
-                    case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
-                        nwamui_wifi_wpa_config_t wpa_config_type = nwamui_wifi_net_get_wpa_config(wifi_net);
+                        /* Currently ENTERPRISE is not supported */
+                        case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
+                            nwamui_wifi_wpa_config_t wpa_config_type = nwamui_wifi_net_get_wpa_config(wifi_net);
 
-                        /* FIXME: Make this work */
-                        switch( wpa_config_type ) {
-                            case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC:
-                                break;
-                            case NWAMUI_WIFI_WPA_CONFIG_LEAP:
-                                break;
-                            case NWAMUI_WIFI_WPA_CONFIG_PEAP:
-                                break;
-                        }
-                        break;
+                            /* FIXME: Make this work */
+                            switch( wpa_config_type ) {
+                                case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC:
+                                    break;
+                                case NWAMUI_WIFI_WPA_CONFIG_LEAP:
+                                    break;
+                                case NWAMUI_WIFI_WPA_CONFIG_PEAP:
+                                    break;
+                            }
+                            break;
 #endif
-                    default:
-                        break;
-                }
+                        default:
+                            break;
+                    }
 
+                    if ( self->prv->wifi_net != NULL && self->prv->do_connect ) {
+                        gboolean add_to_fav = TRUE;
+
+                        add_to_fav = nwam_wireless_dialog_get_persistant(self);
+
+                        if ( self->prv->ncu ) {
+                            nwamui_ncu_set_wifi_info(self->prv->ncu, self->prv->wifi_net);
+                        }
+                        nwamui_wifi_net_connect(self->prv->wifi_net, add_to_fav );
+                    }
+
+                    if ( essid ) {
+                        g_free(essid);
+                    }
+
+                    if ( bssid_list ) {
+                        g_list_foreach( bssid_list, (GFunc)g_free, NULL );
+                        g_list_free(bssid_list);
+                    }
+                }
                 break;
             default:
                 if ( self->prv->wifi_net != NULL ) {
@@ -1168,7 +1228,7 @@ static void
 nwam_wireless_dialog_finalize (NwamWirelessDialog *self)
 {
     if ( self->prv->ncu != NULL )
-        g_free (self->prv->ncu );
+        g_object_unref( G_OBJECT(self->prv->ncu) );
 
     gtk_widget_unref(GTK_WIDGET(self->prv->wireless_dialog ));
     gtk_widget_unref(GTK_WIDGET(self->prv->essid_combo ));
@@ -1184,7 +1244,7 @@ nwam_wireless_dialog_finalize (NwamWirelessDialog *self)
     gtk_widget_unref(GTK_WIDGET(self->prv->wpa_username_entry));
     gtk_widget_unref(GTK_WIDGET(self->prv->wpa_password_entry));
     /* gtk_widget_unref(GTK_WIDGET(self->prv->wpa_cert_file_entry)); TODO - Handle CERT FILE */
-    gtk_widget_unref(GTK_WIDGET(self->prv->transient_cbutton ));
+    gtk_widget_unref(GTK_WIDGET(self->prv->persistant_cbutton ));
     gtk_widget_unref(GTK_WIDGET(self->prv->show_password_cbutton ));
  
     g_free (self->prv); 
@@ -1286,14 +1346,9 @@ validate_information( NwamWirelessDialog* self )
     }   
 
     if ( self->prv->wifi_net == NULL ) {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
         NwamuiNcu *ncu;
 
-        ncu = nwamui_ncp_get_ncu_by_device_name(ncp, nwam_wireless_dialog_get_ncu(self));
-
-        g_object_unref(ncp);
-        g_object_unref(daemon);
+        ncu = nwam_wireless_dialog_get_ncu(self);
 
         tmp_wifi = nwamui_wifi_net_new(
                 ncu,

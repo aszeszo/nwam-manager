@@ -67,6 +67,7 @@ nwam_manager_SOURCES =		\
 
 nwam_manager_CPPFLAGS = \
 	$(AM_CPPFLAGS)		\
+	-I../capplet		\
 	$(NULL)
 
 nwam_manager_LDADD =				\

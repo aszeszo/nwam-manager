@@ -447,7 +447,7 @@ nwamui_wifi_net_set_property (  GObject         *object,
             }
             break;
         case PROP_WEP_PASSWORD: {
-		const gchar *passwd = g_value_get_string (value);
+                const gchar *passwd = g_value_get_string (value);
                 if ( passwd != NULL ) {
                     if ( prv->wep_password != NULL ) {
                         g_free( prv->wep_password );
@@ -457,6 +457,7 @@ nwamui_wifi_net_set_property (  GObject         *object,
                 else {
                     prv->wep_password = NULL;
                 }
+
             }
             break;
         case PROP_WPA_USERNAME: {
@@ -830,8 +831,7 @@ nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self,
         }
         security = nwamui_wifi_net_security_map (
                         wlan->security_mode);
-        channel = nwamui_wifi_net_security_map (
-                        wlan->channel);
+        channel = wlan->channel;
         bss_type = nwamui_wifi_net_bss_type_map( wlan->bsstype );
 
         signal_strength = nwamui_wifi_net_strength_map(wlan->signal_strength);
@@ -940,17 +940,80 @@ nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other )
 }
 
 /**
+ * Ask NWAM to store the password information
+ **/
+extern void
+nwamui_wifi_net_store_key ( NwamuiWifiNet *self )
+{
+    if ( self != NULL ) {
+        return;
+    }
+
+    switch ( self->prv->security ) {
+        case NWAMUI_WIFI_SEC_NONE: 
+            break;
+
+        case NWAMUI_WIFI_SEC_WEP_HEX:
+        case NWAMUI_WIFI_SEC_WEP_ASCII:
+        case NWAMUI_WIFI_SEC_WPA_PERSONAL: {
+                if ( self->prv->ncu && self->prv->essid ) {
+                    gchar          *device = nwamui_ncu_get_device_name(self->prv->ncu);
+                    nwam_error_t    nerr;
+
+                    nerr = nwam_wlan_set_key( device,
+                                              self->prv->essid,
+                                              NULL,
+                                              nwamui_wifi_net_security_map_to_nwam( self->prv->security),
+                                              self->prv->wep_password?self->prv->wep_password:"");
+
+                    if ( nerr != NWAM_SUCCESS ) {
+                        NwamuiDaemon*   daemon = nwamui_daemon_get_instance();
+
+                        g_warning("Error saving network key NWAM : %s", nwam_strerror(nerr));
+                        nwamui_daemon_emit_info_message(daemon, _("Failed to store network key."));
+
+                        g_object_unref(daemon);
+                    }
+                    
+                    g_free(device);
+                }
+            }
+            break;
+#if 0
+        /* Currently ENTERPRISE is not supported */
+        case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
+            nwamui_wifi_wpa_config_t wpa_config_type = nwamui_wifi_net_get_wpa_config(wifi_net);
+
+            /* FIXME: Make this work */
+            switch( wpa_config_type ) {
+                case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC:
+                    break;
+                case NWAMUI_WIFI_WPA_CONFIG_LEAP:
+                    break;
+                case NWAMUI_WIFI_WPA_CONFIG_PEAP:
+                    break;
+            }
+            break;
+#endif
+        default:
+            break;
+    }
+}
+
+
+/**
  * Ask NWAM to connect to this network.
  **/
 extern void
-nwamui_wifi_net_connect ( NwamuiWifiNet *self )
+nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  )
 {
-    gchar* device = nwamui_ncu_get_device_name(self->prv->ncu);
+    gchar          *device = nwamui_ncu_get_device_name(self->prv->ncu);
+    nwam_error_t    nerr;
 
-    if (FALSE) {
+    if ( (nerr = nwam_wlan_select( device, self->prv->essid, NULL, add_to_favourites )) != NWAM_SUCCESS ) {
         NwamuiDaemon*   daemon = nwamui_daemon_get_instance();
 
-        g_warning("Error selecting network with NWAM : %s", strerror(errno));
+        g_warning("Error selecting network with NWAM : %s", nwam_strerror(nerr));
         nwamui_daemon_emit_info_message(daemon, _("Failed to initiate connection to wireless network."));
 
         g_object_unref(daemon);
@@ -1605,6 +1668,20 @@ nwamui_wifi_net_get_priority (NwamuiWifiNet *self)
                   NULL);
 
     return( priority );
+}
+
+extern uint32_t 
+nwamui_wifi_net_security_map_to_nwam ( nwamui_wifi_security_t sec_mode )
+{
+    switch (sec_mode ) {
+        case NWAMUI_WIFI_SEC_WEP_ASCII:
+        case NWAMUI_WIFI_SEC_WEP_HEX:
+            return (uint32_t)DLADM_WLAN_SECMODE_WEP;
+        case NWAMUI_WIFI_SEC_WPA_PERSONAL:
+            return (uint32_t)DLADM_WLAN_SECMODE_WPA;
+        default:
+            return (uint32_t)DLADM_WLAN_SECMODE_NONE;
+    }
 }
 
 extern nwamui_wifi_security_t

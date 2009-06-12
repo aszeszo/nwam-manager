@@ -180,6 +180,20 @@ extern void                 nwamui_ncu_set_priority_group_mode ( NwamuiNcu *self
 extern nwamui_cond_priority_group_mode_t 
                             nwamui_ncu_get_priority_group_mode ( NwamuiNcu *self );
 
+extern NwamuiWifiNet*       nwamui_ncu_wifi_hash_lookup_by_essid( NwamuiNcu    *self, 
+                                                                  const gchar  *essid );
+
+extern void                 nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     *self, 
+                                                                  NwamuiWifiNet *wifi_net );
+
+extern NwamuiWifiNet*       nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( NwamuiNcu    *self, 
+                                                                               nwam_wlan_t  *wlan );
+
+extern gboolean             nwamui_ncu_wifi_hash_remove_by_essid( NwamuiNcu     *self, 
+                                                                  const gchar   *essid );
+
+extern gboolean             nwamui_ncu_wifi_hash_remove_wifi_net( NwamuiNcu     *self, 
+                                                                  NwamuiWifiNet *wifi_net );
 
 extern nwamui_wifi_signal_strength_t nwamui_ncu_get_signal_strength_from_dladm( NwamuiNcu* self );
 

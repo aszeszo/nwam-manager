@@ -69,12 +69,6 @@ struct _NwamuiNcpClass
 
 extern  GType                   nwamui_ncp_get_type (void) G_GNUC_CONST;
 
-typedef enum {
-    NWAMUI_NCP_SELECTION_MODE_AUTOMATIC = 1,
-    NWAMUI_NCP_SELECTION_MODE_MANUAL,
-    NWAMUI_NCP_SELECTION_MODE_LAST /* Not to be used directly */
-} nwamui_ncp_selection_mode_t;
-
 extern  NwamuiNcp*              nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp);
 
 extern nwam_ncp_handle_t        nwamui_ncp_get_nwam_handle( NwamuiNcp* self );
@@ -104,12 +98,6 @@ extern void                     nwamui_ncp_populate_ncu_list( NwamuiNcp* self, G
 extern void                     nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp* self, const gchar* device_name );
 
 extern void                     nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu );
-
-extern void                     nwamui_ncp_set_manual_ncu_selection( NwamuiNcp *self, NwamuiNcu *ncu);
-
-extern void                     nwamui_ncp_set_automatic_ncu_selection( NwamuiNcp *self );
-
-extern nwamui_ncp_selection_mode_t  nwamui_ncp_get_selection_mode( NwamuiNcp* self );
 
 extern gint                     nwamui_ncp_get_wireless_link_num( NwamuiNcp* self );
 

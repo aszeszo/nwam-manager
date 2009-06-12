@@ -79,9 +79,9 @@ extern NwamuiWifiNet*           nwam_wireless_dialog_get_wifi_net (NwamWirelessD
 extern void                     nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi_net );
 
 extern  void                    nwam_wireless_dialog_set_ncu (NwamWirelessDialog  *wireless_dialog,
-                                                              const gchar         *ncu_name );
+                                                              NwamuiNcu           *ncu_name );
 
-extern  gchar*                  nwam_wireless_dialog_get_ncu (NwamWirelessDialog *wireless_dialog );
+extern  NwamuiNcu*              nwam_wireless_dialog_get_ncu (NwamWirelessDialog *wireless_dialog );
 
 extern  void                    nwam_wireless_dialog_set_essid (NwamWirelessDialog  *wireless_dialog,
                                                                 const gchar         *essid );
@@ -104,10 +104,15 @@ extern  void                    nwam_wireless_dialog_set_bssid_list (NwamWireles
 
 extern  GList*                  nwam_wireless_dialog_get_bssid_list (NwamWirelessDialog *wireless_dialog );
 
-extern  void                    nwam_wireless_dialog_set_transient (NwamWirelessDialog  *wireless_dialog,
-                                                                    gboolean             transient);
+extern  void                    nwam_wireless_dialog_set_persistant (NwamWirelessDialog  *wireless_dialog,
+                                                                    gboolean             persistant);
 
-extern  gboolean                nwam_wireless_dialog_get_transient (NwamWirelessDialog *wireless_dialog );
+extern  gboolean                nwam_wireless_dialog_get_persistant (NwamWirelessDialog *wireless_dialog );
+
+extern  void                    nwam_wireless_dialog_set_do_connect (NwamWirelessDialog  *wireless_dialog,
+                                                                    gboolean             do_connect);
+
+extern  gboolean                nwam_wireless_dialog_get_do_connect (NwamWirelessDialog *wireless_dialog );
 
 extern void                     nwam_wireless_dialog_set_wpa_username (NwamWirelessDialog  *self,
                                                                        const gchar         *wpa_username );

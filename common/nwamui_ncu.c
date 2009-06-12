@@ -80,6 +80,7 @@ struct _NwamuiNcuPrivate {
 
         /* Wireless Info */
         NwamuiWifiNet*                  wifi_info;
+        GHashTable                     *wifi_hash_table;
 };
 
 enum {
@@ -429,6 +430,11 @@ nwamui_ncu_init (NwamuiNcu *self)
     self->prv->v4addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
     self->prv->v6addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
     self->prv->wifi_info = NULL;
+
+    /* Create WifiNet cache */
+    self->prv->wifi_hash_table = g_hash_table_new_full(  g_str_hash, g_str_equal,
+                                                         (GDestroyNotify)g_free,
+                                                         (GDestroyNotify)g_object_unref);
     
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-deleted", (GCallback)ip_row_deleted_cb, (gpointer)self);
@@ -2451,6 +2457,108 @@ nwamui_ncu_set_priority_group_mode (   NwamuiNcu                       *self,
                   NULL);
 }
 
+/*
+ * Functions to handle a hash table of wifi_net objects for the NCU.
+ */
+extern NwamuiWifiNet*
+nwamui_ncu_wifi_hash_lookup_by_essid( NwamuiNcu    *self, 
+                                      const gchar  *essid )
+{
+    NwamuiWifiNet  *wifi_net = NULL;
+    gpointer        value;
+
+    if ( !self || !essid ) {
+        return( wifi_net );
+    }
+
+    if ( (value = g_hash_table_lookup( self->prv->wifi_hash_table, essid )) != NULL ) {
+        wifi_net = NWAMUI_WIFI_NET(value);
+    }
+
+    return(wifi_net);
+}
+
+extern void
+nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     *self, 
+                                      NwamuiWifiNet *wifi_net )
+{
+    gpointer    value = NULL;
+    gchar*      essid;
+
+    if ( !self || !wifi_net ) {
+        return;
+    }
+
+    essid = nwamui_wifi_net_get_essid( wifi_net );
+
+    if ( essid != NULL ) {
+        if ( (value = g_hash_table_lookup( self->prv->wifi_hash_table, essid )) == NULL ) {
+            g_hash_table_insert(self->prv->wifi_hash_table, essid,
+                                g_object_ref(wifi_net) );
+            /* hash table taken ownership of essid */
+        }
+        else {
+            nwamui_warning("Unexpected existing wifi_net in hash table with essid : %s", essid );
+            g_free(essid);
+        }
+    }
+}
+
+extern NwamuiWifiNet*
+nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( NwamuiNcu    *self, 
+                                                   nwam_wlan_t  *wlan )
+{
+    NwamuiWifiNet   *wifi_net = NULL;
+
+    if ( !self || !wlan ) {
+        return(NULL);
+    }
+
+    if ( (wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid( self, 
+                                                wlan->essid ) ) != NULL ) {
+        nwamui_wifi_net_update_from_wlan_t( wifi_net, wlan);
+        g_object_ref(wifi_net);
+    }
+    else {
+        wifi_net = nwamui_wifi_net_new_from_wlan_t( self, wlan );
+        nwamui_ncu_wifi_hash_insert_wifi_net( self, wifi_net );
+    }
+
+    return( wifi_net );
+}
+
+extern gboolean
+nwamui_ncu_wifi_hash_remove_by_essid( NwamuiNcu     *self, 
+                                      const gchar   *essid )
+{
+    if ( !self || !essid ) {
+        return(FALSE);
+    }
+
+    return( g_hash_table_remove(self->prv->wifi_hash_table, essid ) );
+}
+
+extern gboolean
+nwamui_ncu_wifi_hash_remove_wifi_net( NwamuiNcu     *self, 
+                                      NwamuiWifiNet *wifi_net )
+{
+    gchar*      essid;
+    gboolean    rval = FALSE;
+
+    if ( !self || !wifi_net ) {
+        return(rval);
+    }
+
+    essid = nwamui_wifi_net_get_essid( wifi_net );
+
+    if ( essid != NULL ) {
+        rval = nwamui_ncu_wifi_hash_remove_by_essid( self, essid );
+        g_free(essid);
+    }
+
+    return(rval);
+}
+
 /**
  * nwamui_ncu_get_priority_group_mode:
  * @nwamui_ncu: a #NwamuiNcu.
@@ -2480,6 +2588,10 @@ nwamui_ncu_finalize (NwamuiNcu *self)
 
     if (self->prv->v6addresses != NULL ) {
         g_object_unref( G_OBJECT(self->prv->v6addresses) );
+    }
+
+    if ( self->prv->wifi_hash_table != NULL ) {
+        g_hash_table_destroy(self->prv->wifi_hash_table);
     }
 
     g_free (self->prv); 

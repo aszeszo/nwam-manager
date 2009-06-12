@@ -132,7 +132,9 @@ extern gboolean                     nwamui_wifi_net_update_from_wlan_t( NwamuiWi
 
 extern gboolean                     nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_t  handle );
 
-extern void                         nwamui_wifi_net_connect ( NwamuiWifiNet *self );
+extern void                         nwamui_wifi_net_store_key ( NwamuiWifiNet *self );
+
+extern void                         nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  );
 
 extern gint                         nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other );
 
@@ -215,7 +217,10 @@ extern guint64                      nwamui_wifi_net_get_priority ( NwamuiWifiNet
 
 extern nwamui_wifi_security_t       nwamui_wifi_net_security_map ( uint32_t _sec_mode );
 
+extern uint32_t                     nwamui_wifi_net_security_map_to_nwam ( nwamui_wifi_security_t sec_mode );
+
 extern nwamui_wifi_signal_strength_t nwamui_wifi_net_strength_map (const gchar *strength);
+
 
 extern nwamui_wifi_bss_type_t       nwamui_wifi_net_bss_type_map( uint32_t _bsstype );
 G_END_DECLS
