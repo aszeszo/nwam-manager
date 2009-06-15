@@ -161,6 +161,8 @@ static void nwam_conf_ip_panel_finalize(NwamConnConfIPPanel *self);
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
+static void daemon_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+
 static void ncu_changed_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 static void nwam_conn_multi_ip_cell_cb (GtkTreeViewColumn *col,
@@ -487,6 +489,59 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
     nwam_compose_multi_ip_tree_view (self, self->prv->ipv6_tv);
 
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
+
+	g_signal_connect(G_OBJECT(self->prv->daemon), "notify", (GCallback)daemon_notify_cb, self );
+}
+
+static void
+populate_wifi_fav( NwamConnConfIPPanel* self, gboolean set_initial_state )
+{
+    NwamConnConfIPPanelPrivate* prv;
+    GtkTreeModel*   model;
+    GList*          fav_list;
+    GtkTreeIter     iter;
+    
+    prv = self->prv;
+
+    gtk_widget_show_all( GTK_WIDGET(self->prv->wireless_tab) );
+    
+    /* Populate WiFi Favourites */
+    model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->wifi_fav_tv)));
+    gtk_list_store_clear(GTK_LIST_STORE(model));
+    
+    fav_list = nwamui_daemon_get_fav_wifi_networks( NWAMUI_DAEMON(prv->daemon) );
+    for( GList* elem = g_list_first(fav_list); elem != NULL; elem = g_list_next( elem ) ) {
+        NwamuiWifiNet*  wifi_net = NWAMUI_WIFI_NET(elem->data);
+        
+        gtk_list_store_append(GTK_LIST_STORE( model ), &iter );
+        
+        gtk_list_store_set( GTK_LIST_STORE( model ), &iter, 0, wifi_net, -1 );
+    }
+    if (fav_list) {
+        nwamui_util_free_obj_list( fav_list );
+    }
+
+    /* Populate WiFi conditions */
+    {
+        NwamuiProf*     prof;
+
+        prof = nwamui_prof_get_instance ();
+        g_object_get (prof,
+          "action_on_no_fav_networks", &prv->action_if_no_fav,
+          "join_wifi_not_in_fav", &prv->join_open,
+          "join_any_fav_wifi", &prv->join_preferred,
+          "add_any_new_wifi_to_fav", &prv->add_any_wifi,
+          NULL);
+        
+        gtk_combo_box_set_active (prv->no_preferred_networks_combo,
+          prv->action_if_no_fav);
+
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->join_open_cbox), prv->join_open);
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->join_preferred_cbox), prv->join_preferred);
+        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->add_cbox), prv->add_any_wifi);
+
+        g_object_unref (prof);
+    }
 }
 
 static void
@@ -502,7 +557,6 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     gboolean            ipv6_dhcp;
     gchar*              ipv6_address;
     gchar*              ipv6_prefix;
-    NwamuiWifiNet*      wifi_info = NULL; 
 
     g_assert( NWAM_IS_CONN_CONF_IP_PANEL(self));
     
@@ -525,50 +579,7 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
 	gtk_tree_view_set_model (prv->ipv6_tv, GTK_TREE_MODEL(nwamui_ncu_get_v6addresses(NWAMUI_NCU(prv->ncu))));
 	
     if ( ncu_type == NWAMUI_NCU_TYPE_WIRELESS) {
-        GtkTreeModel*   model;
-        GList*          fav_list;
-        GtkTreeIter     iter;
-        
-        gtk_widget_show_all( GTK_WIDGET(self->prv->wireless_tab) );
-        wifi_info = nwamui_ncu_get_wifi_info( NWAMUI_NCU(prv->ncu) );
-        
-        /* Populate WiFi Favourites */
-        model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->wifi_fav_tv)));
-        gtk_list_store_clear(GTK_LIST_STORE(model));
-        
-        fav_list = nwamui_daemon_get_fav_wifi_networks( NWAMUI_DAEMON(prv->daemon) );
-        for( GList* elem = g_list_first(fav_list); elem != NULL; elem = g_list_next( elem ) ) {
-            NwamuiWifiNet*  wifi_net = NWAMUI_WIFI_NET(elem->data);
-            
-            gtk_list_store_append(GTK_LIST_STORE( model ), &iter );
-            
-            gtk_list_store_set( GTK_LIST_STORE( model ), &iter, 0, wifi_net, -1 );
-        }
-        if (fav_list) {
-            nwamui_util_free_obj_list( fav_list );
-        }
-
-        /* Populate WiFi conditions */
-        {
-            NwamuiProf*     prof;
-
-            prof = nwamui_prof_get_instance ();
-            g_object_get (prof,
-              "action_on_no_fav_networks", &prv->action_if_no_fav,
-              "join_wifi_not_in_fav", &prv->join_open,
-              "join_any_fav_wifi", &prv->join_preferred,
-              "add_any_new_wifi_to_fav", &prv->add_any_wifi,
-              NULL);
-            
-            gtk_combo_box_set_active (prv->no_preferred_networks_combo,
-              prv->action_if_no_fav);
-
-            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->join_open_cbox), prv->join_open);
-            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->join_preferred_cbox), prv->join_preferred);
-            gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->add_cbox), prv->add_any_wifi);
-
-            g_object_unref (prof);
-        }
+        populate_wifi_fav( self, set_initial_state );
     }
     else {
         gtk_widget_hide_all( GTK_WIDGET(self->prv->wireless_tab) );
@@ -984,6 +995,19 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 	g_debug("NwamConnConfIPPanel: notify %s changed", arg1->name);
 }
 
+static void
+daemon_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamConnConfIPPanel*self = NWAM_CONN_CONF_IP_PANEL(data);
+
+	g_debug("NwamConnConfIPPanel: daemon notify %s changed", arg1->name);
+
+
+    if (arg1 && g_ascii_strcasecmp(arg1->name, "wifi_fav") == 0) {
+        populate_wifi_fav( self, TRUE );
+    }
+}
+
 static void 
 ncu_changed_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
@@ -1106,10 +1130,17 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
     case WIFI_FAV_SPEED:
         {   
             guint   speed = nwamui_wifi_net_get_speed( wifi_info );
-            gchar*  str = g_strdup_printf("%uMb", speed);
+            gchar*  str;
+
+            if ( speed > 0 ) {
+                str = g_strdup_printf(_("%uMb"), speed);
+            }
+            else {
+                str = g_strdup(_("<i>Unknown</i>"));
+            }
             
             g_object_set (G_OBJECT(renderer),
-                    "text", str,
+                    "markup", str,
                     NULL);
             
             g_free( str );
@@ -1118,10 +1149,17 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
     case WIFI_CHANNEL:
         {  
             guint   channel = nwamui_wifi_net_get_channel (wifi_info);
-            gchar  *channel_str = g_strdup_printf("%d", channel);
+            gchar  *channel_str;
             
+            if ( channel > 0 ) {
+                channel_str = g_strdup_printf("%d", channel);
+            }
+            else {
+                channel_str = g_strdup(_("<i>Unknown</i>"));
+            }
+
             g_object_set (G_OBJECT(renderer),
-                    "text", channel_str,
+                    "markup", channel_str,
                     /* "value", ((((gint)signal) * 100)/(((gint)NWAMUI_WIFI_STRENGTH_LAST) - 1)) % 101, */
                     NULL);
             g_free(channel_str);
@@ -1227,7 +1265,11 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
     switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
         case GTK_RESPONSE_OK:
                 new_wifi = nwam_wireless_dialog_get_wifi_net( self->prv->wifi_dialog );
-                nwamui_daemon_add_wifi_fav(self->prv->daemon, new_wifi);
+                if ( new_wifi != NULL ) {
+                    /* Add to start of list, set prio to lowest (0). */
+                    nwamui_wifi_net_set_priority(new_wifi, 0 );
+                    nwamui_daemon_add_wifi_fav(self->prv->daemon, new_wifi);
+                }
                 nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, NULL ); 
                 nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
             break;

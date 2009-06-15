@@ -1,3 +1,18 @@
+2009-06-15  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Handle add/remove of favourite networks, and updates once a
+	  commit/destroy is done.
+	* common/nwamui_daemon.c: 
+	  Add wifi_fav as a property, so that notify messages can be sent on
+	  changes to the list. Also dispatch the wifi_fav_add/remove signals.
+	  Ensure that wifi_fav list is sorted by priority, and catch
+	  OBJECT_REFRESH/REMOVE messages for each wifi_net object in
+	  favourites list.
+	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c: 
+	  Add nwamui_object_reload support to NwamuiWifiNet. Don't free a nwam
+	  handle after a destroy, since it's already freed.
+
 2009-06-15  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),

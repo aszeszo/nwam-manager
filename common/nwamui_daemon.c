@@ -79,6 +79,7 @@ enum {
 enum {
     PROP_ACTIVE_ENV = 1,
     PROP_ACTIVE_NCP,
+    PROP_WIFI_FAV,
     PROP_STATUS,
     PROP_EVENT_CAUSE
 };
@@ -215,6 +216,13 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                                                           NWAMUI_DAEMON_EVENT_CAUSE_NONE,
                                                           NWAMUI_DAEMON_EVENT_CAUSE_LAST-1,
                                                           NWAMUI_DAEMON_EVENT_CAUSE_UNKNOWN,
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_WIFI_FAV,
+                                     g_param_spec_pointer("wifi_fav",
+                                                         _("wifi_fav"),
+                                                         _("wifi_fav"),
                                                           G_PARAM_READWRITE));
 
     /* Create some signals */
@@ -505,6 +513,11 @@ nwamui_daemon_set_property ( GObject         *object,
                 self->prv->event_cause = g_value_get_int( value );
             }
             break;
+        case PROP_WIFI_FAV: {
+                GList *wifi_fav = (GList*)g_value_get_pointer( value );
+                nwamui_daemon_set_fav_wifi_networks( self, wifi_fav );
+            }
+            break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -534,6 +547,15 @@ nwamui_daemon_get_property (GObject         *object,
             break;
         case PROP_EVENT_CAUSE: {
                 g_value_set_int(value, self->prv->event_cause);
+            }
+            break;
+
+        case PROP_WIFI_FAV: {
+                GList *wifi_fav = NULL;
+
+                wifi_fav = nwamui_daemon_get_fav_wifi_networks( self );
+
+                g_value_set_pointer( value, wifi_fav );
             }
             break;
 
@@ -1255,6 +1277,10 @@ nwamui_daemon_get_fav_wifi_networks(NwamuiDaemon *self)
     
     return( new_list );
 }
+
+/*
+ * Compare a WifiNet (a) with a string (b).
+ */
 static gint
 find_compare_wifi_net_with_name( gconstpointer a,
                                  gconstpointer b)
@@ -1285,6 +1311,33 @@ find_compare_wifi_net_with_name( gconstpointer a,
     return (rval);
 
 }
+
+/*
+ * Compare two wifi_net objects by priority.
+ */
+static gint
+find_compare_wifi_net_by_prio( gconstpointer a,
+                               gconstpointer b)
+{
+    NwamuiWifiNet  *wifi_net_a = NWAMUI_WIFI_NET(a);
+    NwamuiWifiNet  *wifi_net_b = NWAMUI_WIFI_NET(b);
+    guint64         prio_a = 0;
+    guint64         prio_b = 0;
+    gint            rval = -1;
+
+    if ( wifi_net_a != NULL ) {
+        prio_a = nwamui_wifi_net_get_priority( wifi_net_a );
+    }
+
+    if ( wifi_net_b != NULL ) {
+        prio_b = nwamui_wifi_net_get_priority( wifi_net_b );
+    }
+
+    rval = (prio_a - prio_b);
+
+    return (rval);
+}
+
 /**
  * nwamui_daemon_find_fav_wifi_net_by_name
  * @self: NwamuiDaemon*
@@ -1328,8 +1381,17 @@ extern void
 nwamui_daemon_add_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* new_wifi )
 {
 
-    /* TODO - Make this more efficient */
-    self->prv->wifi_fav_list = g_list_append(self->prv->wifi_fav_list, (gpointer)g_object_ref(new_wifi) );
+    if ( !self->prv->communicate_change_to_daemon
+         || nwamui_wifi_net_commit_favourite( new_wifi ) ) {
+        self->prv->wifi_fav_list = g_list_insert_sorted(self->prv->wifi_fav_list, (gpointer)g_object_ref(new_wifi),
+                                                        find_compare_wifi_net_by_prio);
+
+        g_signal_emit (self,
+          nwamui_daemon_signals[S_WIFI_FAV_ADD],
+          0, /* details */
+          new_wifi );
+        g_object_notify(G_OBJECT(self), "wifi_fav");
+    }
 }
 
         
@@ -1345,10 +1407,17 @@ extern void
 nwamui_daemon_remove_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* wifi )
 {
 
-    /* TODO - Make this more efficient */
     if( self->prv->wifi_fav_list != NULL ) {
-        self->prv->wifi_fav_list = g_list_remove(self->prv->wifi_fav_list, (gpointer)wifi);
-        g_object_unref(wifi);
+        if ( !self->prv->communicate_change_to_daemon
+             || nwamui_wifi_net_delete_favourite( wifi ) ) {
+            self->prv->wifi_fav_list = g_list_remove(self->prv->wifi_fav_list, (gpointer)wifi);
+
+            g_signal_emit (self,
+              nwamui_daemon_signals[S_WIFI_FAV_REMOVE],
+              0, /* details */
+              wifi );
+            g_object_notify(G_OBJECT(self), "wifi_fav");
+        }
     }
 }
 
@@ -1443,6 +1512,12 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
                     || nwamui_wifi_net_commit_favourite( wifi ) ) {
                     /* Added, so add to merged list */
                     merged_list = g_list_append( merged_list, item->data );
+                    /* Tell users of API */
+                    g_signal_emit (self,
+                      nwamui_daemon_signals[S_WIFI_FAV_ADD],
+                      0, /* details */
+                      g_object_ref(wifi) );
+                    g_object_notify(G_OBJECT(self), "wifi_fav");
                     /* Don't ref, transfer ownership, since will be freeing new_items list anyway */
                 }
             }
@@ -1463,6 +1538,14 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
                 if (!self->prv->communicate_change_to_daemon 
                     || nwamui_wifi_net_delete_favourite( wifi ) ) {
                     /* Deleted */
+
+                    /* Tell users of API */
+                    g_signal_emit (self,
+                      nwamui_daemon_signals[S_WIFI_FAV_REMOVE],
+                      0, /* details */
+                      g_object_ref(wifi) );
+
+                    g_object_notify(G_OBJECT(self), "wifi_fav");
                 }
 
                 /* Unref wifi now rather than looping again, will free
@@ -1484,10 +1567,20 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
                 || nwamui_wifi_net_commit_favourite( wifi ) ) {
                 /* Copy on succeeded */
                 self->prv->wifi_fav_list = g_list_prepend(self->prv->wifi_fav_list, g_object_ref(item->data));
+
+                g_signal_emit (self,
+                  nwamui_daemon_signals[S_WIFI_FAV_ADD],
+                  0, /* details */
+                  g_object_ref(wifi) );
+                g_object_notify(G_OBJECT(self), "wifi_fav");
             }
         }
         
     }
+    /* Ensure is sorted by prio */
+    self->prv->wifi_fav_list = g_list_sort(self->prv->wifi_fav_list, find_compare_wifi_net_by_prio);
+
+    g_object_notify(G_OBJECT(self), "wifi_fav");
 
     return( TRUE );
 }
@@ -1879,6 +1972,8 @@ nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self )
     nwamui_daemon_set_fav_wifi_networks(self, new_list);
     nwamui_daemon_dispatch_wifi_scan_events_from_cache( self );
     self->prv->communicate_change_to_daemon = TRUE;
+
+    g_object_notify(G_OBJECT(self), "wifi_fav");
 }
 
 /* Handle case where using WEP, and open auth, trigger an event to request a
@@ -2153,15 +2248,50 @@ nwamd_event_handler(gpointer data)
 
                 switch ( nwamevent->data.object_action.action ) {
                 case NWAM_ACTION_ADD:
+                    g_debug("Got NWAM_ACTION_ADD for object %s, doing nothing...", 
+                            nwamevent->data.object_action.name );
+                    break;
                 case NWAM_ACTION_REMOVE:
+                    g_debug("Got NWAM_ACTION_REMOVE for object %s, doing nothing...", 
+                            nwamevent->data.object_action.name );
+                    break;
                 case NWAM_ACTION_RENAME:
+                    g_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
+                            nwamevent->data.object_action.name );
+                    break;
                 case NWAM_ACTION_DESTROY:
-                    g_error("OBJECT Action : %d recieved, and unhandled", 
-                            nwamevent->data.object_action.action );
+                    if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_KNOWN_WLAN ) {
+                        NwamuiWifiNet   *wifi;
+
+                        /* Need to refresh to catch update to priorities */
+                        if ( (wifi = nwamui_daemon_find_fav_wifi_net_by_name( daemon, 
+                                        nwamevent->data.object_action.name ) ) != NULL ) {
+                            daemon->prv->communicate_change_to_daemon = FALSE;
+                            nwamui_daemon_remove_wifi_fav(daemon, wifi );
+                            daemon->prv->communicate_change_to_daemon = TRUE;
+                            g_object_unref(wifi);
+                        }
+                    }
+                    else {
+                        g_debug("Got NWAM_ACTION_DESTROY for object %s, doing nothing...", 
+                                nwamevent->data.object_action.name );
+                    }
                     break;
                 case NWAM_ACTION_REFRESH:
-                    g_debug("Got NWAM_ACTION_REFRESH for object %s, doing nothing...", 
-                            nwamevent->data.object_action.name );
+                    if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_KNOWN_WLAN ) {
+                        NwamuiWifiNet   *wifi;
+
+                        /* Need to refresh to catch update to priorities */
+                        if ( (wifi = nwamui_daemon_find_fav_wifi_net_by_name( daemon, 
+                                        nwamevent->data.object_action.name ) ) != NULL ) {
+                            nwamui_object_reload( NWAMUI_OBJECT(wifi) );
+                            g_object_unref(wifi);
+                        }
+                    }
+                    else {
+                        g_debug("Got NWAM_ACTION_REFRESH for object %s, doing nothing...", 
+                                nwamevent->data.object_action.name );
+                    }
                     break;
                 case NWAM_ACTION_ENABLE:
                     if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_NCP ) {

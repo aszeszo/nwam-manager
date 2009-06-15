@@ -143,6 +143,8 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_wifi_net_get_essid;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_wifi_net_set_essid;
 
+    nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_wifi_net_reload;
+
     /* Create some properties */
     g_object_class_install_property (gobject_class,
                                      PROP_NCU,
@@ -674,6 +676,24 @@ nwamui_wifi_net_get_property (GObject         *object,
     }
 }
 
+/**
+ * nwamui_wifi_net_reload:   re-load stored configuration
+ **/
+extern void
+nwamui_wifi_net_reload( NwamuiWifiNet* self )
+{
+    g_return_if_fail( NWAMUI_IS_WIFI_NET(self) );
+
+    /* nwamui_enm_update_with_handle will cause re-read from configuration */
+    g_object_freeze_notify(G_OBJECT(self));
+
+    if ( self->prv->known_wlan_h != NULL ) {
+        nwamui_wifi_net_update_with_handle( self, self->prv->known_wlan_h );
+    }
+
+    g_object_thaw_notify(G_OBJECT(self));
+}
+
 static void
 nwamui_wifi_net_finalize (NwamuiWifiNet *self)
 {
@@ -1036,7 +1056,6 @@ nwamui_wifi_net_delete_favourite ( NwamuiWifiNet *self )
         return(FALSE);;
     }
 
-    nwam_known_wlan_free(self->prv->known_wlan_h);
     self->prv->known_wlan_h = NULL;
 
     return(TRUE);

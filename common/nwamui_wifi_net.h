@@ -115,6 +115,8 @@ extern gboolean                     nwamui_wifi_net_has_modifications( NwamuiWif
 
 extern gboolean                     nwamui_wifi_net_commit_favourite ( NwamuiWifiNet *self );
 
+extern void                         nwamui_wifi_net_reload( NwamuiWifiNet* self );
+
 extern  NwamuiWifiNet*              nwamui_wifi_net_new(    struct _NwamuiNcu               *ncu,
                                                             const gchar                     *essid, 
                                                             nwamui_wifi_security_t           security,
