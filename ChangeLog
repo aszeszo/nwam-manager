@@ -1,3 +1,11 @@
+2009-06-15  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),
+	(condition_view_drag_data_get), (condition_view_drag_motion),
+	(condition_view_drag_data_received),
+	(capplet_tree_store_move_children), (handle_ncu_group_node),
+	(on_button_clicked): DnD
+
 2009-06-12  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/main.c: 

@@ -179,13 +179,19 @@ static void vanity_name_edited ( GtkCellRendererText *cell,
                                  const gchar         *path_string,
                                  const gchar         *new_text,
                                  gpointer             data);
-static gboolean condition_view_drop_motion(GtkWidget      *widget,
+static void condition_view_drag_data_get(GtkWidget        *widget,
+  GdkDragContext   *drag_context,
+  GtkSelectionData *data,
+  guint             info,
+  guint             time,
+  gpointer          user_data);
+static gboolean condition_view_drag_motion(GtkWidget      *widget,
   GdkDragContext *drag_context,
   gint            x,
   gint            y,
   guint           time,
   gpointer        user_data);
-static void condition_view_drop_data_received(GtkWidget        *widget,
+static void condition_view_drag_data_received(GtkWidget        *widget,
   GdkDragContext   *drag_context,
   gint              x,
   gint              y,
@@ -247,8 +253,8 @@ static void ncu_pri_group_update(GtkTreeModel *model);
 static void ncu_pri_treeview_add(GtkTreeView *treeview, GtkTreeModel *model, NwamuiObject *object);
 static void ncu_pri_treeview_remove(GtkTreeView *treeview, GtkTreeModel *model, NwamuiObject *object);
 static void capplet_tree_store_move_children(GtkTreeStore *model,
-  GtkTreeIter *target,
-  GtkTreeIter *source,
+  GtkTreePath *target_path,
+  GtkTreePath *source_path,
   GtkTreeModelForeachFunc func,
   gpointer user_data);
 static GtkTreeRowReference *ref_ncu_group_node(GtkTreeModel *model, GtkTreePath *path);
@@ -353,7 +359,7 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
       "headers-clickable", FALSE,
       "headers-visible", FALSE,
       "rules-hint", FALSE,
-      "reorderable", TRUE,
+      "reorderable", FALSE,
       "enable-search", FALSE,
       "show-expanders", TRUE,
       "level-indentation", 40,
@@ -362,16 +368,6 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
 	g_signal_connect(view,
       "row-activated",
       (GCallback)nwam_net_pref_connection_view_row_activated_cb,
-      (gpointer)self);
-
-    g_signal_connect(view,
-      "drag-motion",
-      G_CALLBACK(condition_view_drop_motion),
-      (gpointer)self);
-
-    g_signal_connect(view,
-      "drag-data-received",
-      G_CALLBACK(condition_view_drop_data_received),
       (gpointer)self);
 
     g_signal_connect(gtk_tree_view_get_selection(view),
@@ -386,6 +382,38 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
 
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(view),
       GTK_SELECTION_MULTIPLE);
+
+    /* DnD */
+    static GtkTargetEntry targets[] = {
+        { "ROW", GTK_TARGET_SAME_WIDGET, 0 }
+    };
+
+    gtk_tree_view_enable_model_drag_source(view,
+      GDK_BUTTON1_MASK,
+      targets,
+      G_N_ELEMENTS(targets),
+      GDK_ACTION_DEFAULT);
+
+    gtk_tree_view_enable_model_drag_dest(view,
+      targets,
+      G_N_ELEMENTS(targets),
+      GDK_ACTION_DEFAULT | GDK_ACTION_COPY);
+
+    g_signal_connect(view,
+      "drag-data-get",
+      G_CALLBACK(condition_view_drag_data_get),
+      (gpointer)self);
+
+    g_signal_connect(view,
+      "drag-motion",
+      G_CALLBACK(condition_view_drag_motion),
+      (gpointer)self);
+
+    g_signal_connect(view,
+      "drag-data-received",
+      G_CALLBACK(condition_view_drag_data_received),
+      (gpointer)self);
+
 
 	/* column info */
     col = capplet_column_new(view,
@@ -1158,27 +1186,51 @@ static_group_handle_fake_node(GtkTreeModel *model, GtkTreePath *path, gboolean c
     return TRUE;
 }
 
+static void condition_view_drag_data_get(GtkWidget        *widget,
+  GdkDragContext   *drag_context,
+  GtkSelectionData *data,
+  guint             info,
+  guint             time,
+  gpointer          user_data)
+{
+    /* Do nothing */
+    GtkTreeModel *model = gtk_tree_view_get_model(GTK_TREE_VIEW(widget));
+
+    gtk_selection_data_set(data, GDK_NONE,
+      sizeof(GtkTreeModel*), (guchar*)&model,
+      sizeof(GtkTreeModel*));
+}
+
 static gboolean
-condition_view_drop_motion(GtkWidget      *widget,
+condition_view_drag_motion(GtkWidget      *widget,
   GdkDragContext *drag_context,
   gint            x,
   gint            y,
   guint           time,
   gpointer        user_data)
 {
-    GtkTreePath         *path = NULL;
+    GtkTreePath  *path      = NULL;
 
-    if (drag_context->is_source) {
-        gtk_tree_view_scroll_to_point(GTK_TREE_VIEW(widget), x, y);
+    if (gtk_tree_selection_count_selected_rows(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget))) > 0) {
         if (gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(widget), x, y, &path, NULL, NULL, NULL)) {
-            if (gtk_tree_path_get_depth(path) == 0) {
-                gtk_tree_view_set_drag_dest_row(GTK_TREE_VIEW(widget), path, GTK_TREE_VIEW_DROP_INTO_OR_AFTER);
-            } else {
-                gtk_tree_view_set_drag_dest_row(GTK_TREE_VIEW(widget), path, GTK_TREE_VIEW_DROP_AFTER);
+
+            gint depth = gtk_tree_path_get_depth(path);
+
+            gtk_tree_view_scroll_to_cell(GTK_TREE_VIEW(widget), path, NULL, FALSE, 0, 0);
+
+            if (depth >= 1) {
+                if (depth > 1) {
+                    gtk_tree_path_up(path);
+                }
+
+                gtk_tree_view_set_drag_dest_row(GTK_TREE_VIEW(widget), path, 
+                  GTK_TREE_VIEW_DROP_INTO_OR_AFTER);
+
+                gtk_tree_path_free(path);
+                gdk_drag_status(drag_context, GDK_ACTION_COPY, time);
+                return TRUE;
             }
             gtk_tree_path_free(path);
-            gdk_drag_status(drag_context, GDK_ACTION_MOVE, time);
-            return TRUE;
         }
     }
     gdk_drag_status(drag_context, 0, time);
@@ -1186,7 +1238,7 @@ condition_view_drop_motion(GtkWidget      *widget,
 }
 
 static void
-condition_view_drop_data_received(GtkWidget        *widget,
+condition_view_drag_data_received(GtkWidget        *widget,
   GdkDragContext   *drag_context,
   gint              x,
   gint              y,
@@ -1195,57 +1247,72 @@ condition_view_drop_data_received(GtkWidget        *widget,
   guint             time,
   gpointer          user_data)
 {
-#if 1
-    return;
-#else
+    GtkTreePath  *path      = NULL;
+    GtkTreePath  *src_path  = NULL;
     GtkTreeModel *model;
     GtkTreeModel *src_model = NULL;
-    GtkTreePath *src_path = NULL;
-    GtkTreePath *dest_path = NULL;
-    gboolean retval = FALSE;
+    gboolean      flag      = FALSE;
 
     model = gtk_tree_view_get_model(GTK_TREE_VIEW(widget));
-    g_assert(GTK_IS_TREE_STORE(model));
+    if (GDK_NONE == gtk_selection_data_get_data_type(data) &&
+      data->format == sizeof(GtkTreeModel*) &&
+      data->length == sizeof(GtkTreeModel*)) {
+        src_model = *(GtkTreeModel**)data->data;
+    } else {
+        return;
+    }
 
-    if (gtk_tree_get_row_drag_data (data, &src_model, &src_path) &&
-      src_model == (gpointer)model) {
+    if (src_model == (gpointer)model) {
+/*         gtk_tree_view_get_drag_dest_row(GTK_TREE_VIEW(widget), */
+/*           &path, */
+/*           NULL); */
+/*         if (path) { */
+        if (gtk_tree_view_get_dest_row_at_pos(GTK_TREE_VIEW(widget), x, y, &path, NULL)) {
+            gint depth = gtk_tree_path_get_depth(path);
 
-        gtk_tree_view_get_drag_dest_row(GTK_TREE_VIEW(widget),
-          &dest_path,
-          NULL);
-        if (dest_path) {
-            gtk_tree_path_up(dest_path);
-
-            static_group_handle_fake_node(model, dest_path, FALSE);
-
-            if (gtk_tree_path_get_depth(src_path) == 0) {
-                GtkTreeIter parent;
-                GtkTreeIter iter;
-                GtkTreePath *path;
+            if (depth >= 1) {
                 GtkTreeRowReference *group_rr = NULL;
+                GList*               rows     = NULL;
+                GList*               rowrefs  = NULL;
 
-                /* Monitor the group node. */
-                group_rr = ref_ncu_group_node(model, src_path);
+                rows = gtk_tree_selection_get_selected_rows(gtk_tree_view_get_selection(GTK_TREE_VIEW(widget)), &model);
 
-                gtk_tree_model_get_iter(model, &parent, dest_path);
-                gtk_tree_model_get_iter(model, &iter, src_path);
+                for (; rows; rows = g_list_delete_link(rows, rows)) {
+                    rowrefs = g_list_prepend(rowrefs, gtk_tree_row_reference_new(model, (GtkTreePath*)rows->data));
+                    gtk_tree_path_free((GtkTreePath*)rows->data);
+                }
 
-                /* Only copy non-group nodes. */
-                capplet_tree_store_move_children(GTK_TREE_STORE(model),
-                  &parent,
-                  &iter,
-                  NULL,
-                  NULL);
+                if (depth > 1)
+                    gtk_tree_path_up(path);
 
-                /* Handle group node. */
-                handle_ncu_group_node(model, group_rr);
-                gtk_tree_row_reference_free(group_rr);
-                retval = TRUE;
+                static_group_handle_fake_node(model, path, FALSE);
+
+                for (; rowrefs; rowrefs = g_list_delete_link(rowrefs, rowrefs)) {
+                    src_path = gtk_tree_row_reference_get_path((GtkTreeRowReference*)rowrefs->data);
+                    /* Monitor the group node. */
+                    group_rr = ref_ncu_group_node(model, src_path);
+
+                    /* Only copy non-group nodes. */
+                    capplet_tree_store_move_children(GTK_TREE_STORE(model),
+                      path,
+                      src_path,
+                      NULL,
+                      NULL);
+
+                    /* Handle group node. */
+                    handle_ncu_group_node(model, group_rr);
+                    gtk_tree_row_reference_free(group_rr);
+                    gtk_tree_row_reference_free((GtkTreeRowReference*)rowrefs->data);
+                }
+                flag = TRUE;
+                static_group_handle_fake_node(model, path, TRUE);
+                gtk_tree_view_expand_all(GTK_TREE_VIEW(widget));
             }
+            gtk_tree_path_free(path);
         }
     }
-/*     return retval; */
-#endif
+    gtk_drag_finish(drag_context, flag, FALSE, time);
+    return;
 }
 
 static void
@@ -1429,48 +1496,57 @@ ncu_find_gt_name(GtkTreeModel *model, GtkTreeIter *iter, gpointer user_data)
  */
 void
 capplet_tree_store_move_children(GtkTreeStore *model,
-    GtkTreeIter *target,
-    GtkTreeIter *source,
-    GtkTreeModelForeachFunc func,
-    gpointer user_data)
+  GtkTreePath *target_path,
+  GtkTreePath *source_path,
+  GtkTreeModelForeachFunc func,
+  gpointer user_data)
 {
-	GtkTreeIter *tp_iter = target;
 	GtkTreeIter t_iter;
 	GtkTreeIter s_iter;
+    GtkTreeIter target;
+    GtkTreeIter source;
 	GtkTreeIter sibling;
+    gint source_depth;
     NwamuiObject *object;
     gchar *name;
 
+    gtk_tree_model_get_iter(model, &source, source_path);
+    gtk_tree_model_get_iter(model, &target, target_path);
+    source_depth = gtk_tree_path_get_depth(source_path);
+
+    g_debug("%s source depth is %d", __func__, source_depth);
+    g_assert(source_depth > 0 && source_depth <= 2);
+
     /* Consider the position. */
-	if (gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &s_iter, source)) {
+	if (gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &s_iter, &source)) {
 		do {
 
             gtk_tree_model_get(model, &s_iter, 0, &object, -1);
             name = nwamui_object_get_name(object);
             g_object_unref(object);
 
-            if (capplet_model_1_level_foreach(model, tp_iter,
+            if (capplet_model_1_level_foreach(model, &target,
                 ncu_find_gt_name, (gpointer)name, &sibling)) {
-                TREE_STORE_CP_OBJECT_BEFORE(model, &s_iter, tp_iter, &sibling, &t_iter);
+                TREE_STORE_CP_OBJECT_BEFORE(model, &s_iter, &target, &sibling, &t_iter);
             } else {
-                TREE_STORE_CP_OBJECT_BEFORE(model, &s_iter, tp_iter, NULL, &t_iter);
+                TREE_STORE_CP_OBJECT_BEFORE(model, &s_iter, &target, NULL, &t_iter);
             }
             g_free(name);
 
 		} while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter));
-	} else {
-        gtk_tree_model_get(model, source, 0, &object, -1);
+	} else if (source_depth > 1) {
+        gtk_tree_model_get(model, &source, 0, &object, -1);
         name = nwamui_object_get_name(object);
         g_object_unref(object);
 
-        if (capplet_model_1_level_foreach(model, tp_iter,
+        if (capplet_model_1_level_foreach(model, &target,
             ncu_find_gt_name, (gpointer)name, &sibling)) {
-            TREE_STORE_CP_OBJECT_BEFORE(model, source, tp_iter, &sibling, &t_iter);
+            TREE_STORE_CP_OBJECT_BEFORE(model, &source, &target, &sibling, &t_iter);
         } else {
-            TREE_STORE_CP_OBJECT_BEFORE(model, source, tp_iter, NULL, &t_iter);
+            TREE_STORE_CP_OBJECT_BEFORE(model, &source, &target, NULL, &t_iter);
         }
         g_free(name);
-        gtk_tree_store_remove(GTK_TREE_STORE(model), source);
+        gtk_tree_store_remove(GTK_TREE_STORE(model), &source);
     }
 }
 
@@ -1509,6 +1585,7 @@ handle_ncu_group_node(GtkTreeModel *model, GtkTreeRowReference *group_rr)
         gtk_tree_model_get_iter(model, &parent_iter, parent_path);
         if (!gtk_tree_model_iter_has_child(model, &parent_iter)) {
             gtk_tree_store_remove(GTK_TREE_STORE(model), &parent_iter);
+            ncu_pri_group_update(model);
         }
     }
 }
@@ -1540,7 +1617,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
     if (button == (gpointer)prv->connection_group_btn) {
 
         GList *rowrefs = NULL;
-        GtkTreeIter parent;
+        GtkTreePath *parent_path;
         gboolean is_new_group;
 
         is_new_group = (gboolean)g_object_get_data(G_OBJECT(prv->connection_group_btn), BUTTON_IS_GROUP_NEW);
@@ -1552,16 +1629,15 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
         if (is_new_group) {
             /* New group */
-            ncu_pri_group_get_path(model, ALWAYS_OFF_GROUP_ID - 1, NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE, &parent);
+            parent_path = NCU_PRI_GROUP_GET_PATH(model, ALWAYS_OFF_GROUP_ID - 1);
             ncu_pri_group_update(model);
         } else {
             /* Delete group */
-            static_group_handle_fake_node(model,
-              ncu_pri_group_get_path(model, ALWAYS_OFF_GROUP_ID, 0, &parent), FALSE);
+            parent_path = NCU_PRI_GROUP_GET_PATH(model, ALWAYS_OFF_GROUP_ID);
+            static_group_handle_fake_node(model, parent_path, FALSE);
         }
 
         for (; rowrefs; rowrefs = g_list_delete_link(rowrefs, rowrefs)) {
-            GtkTreeIter iter;
             GtkTreePath *path;
             GtkTreeRowReference *group_rr = NULL;
 
@@ -1569,12 +1645,10 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             /* Monitor the group node. */
             group_rr = ref_ncu_group_node(model, path);
 
-            gtk_tree_model_get_iter(model, &iter, path);
-
             /* Only copy non-group nodes. */
             capplet_tree_store_move_children(GTK_TREE_STORE(model),
-              &parent,
-              &iter,
+              parent_path,
+              path,
               NULL,
               NULL);
 
@@ -1605,7 +1679,6 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
             GtkTreePath *parent_path = gtk_tree_path_copy(path);
             GtkTreeRowReference *group_rr = NULL;
-            GtkTreeIter    parent;
 
             /* Monitor the group node. */
             if (gtk_tree_path_get_depth(parent_path) > 1)
@@ -1614,13 +1687,12 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
             /* Find the previous parent path. */
             gtk_tree_path_prev(parent_path);
-            gtk_tree_model_get_iter(model, &parent, parent_path);
             static_group_handle_fake_node(model, parent_path, FALSE);
 
             /* Only copy non-group nodes. */
             capplet_tree_store_move_children(GTK_TREE_STORE(model),
-              &parent,
-              &iter,
+              parent_path,
+              path,
               NULL,
               NULL);
 
@@ -1650,8 +1722,8 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
             /* Only copy non-group nodes. */
             capplet_tree_store_move_children(GTK_TREE_STORE(model),
-              &parent,
-              &iter,
+              parent_path,
+              path,
               NULL,
               NULL);
 
