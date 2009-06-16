@@ -1,3 +1,11 @@
+2009-06-16  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (nwamui_object_active_toggle_cell),
+	(nwamui_object_active_mode_pixbuf_cell):
+	* capplet/capplet-utils.h:
+	* capplet/nwam_location_dialog.c (nwam_compose_tree_view):
+	Location dialog doesn't show active env.
+
 2009-06-15  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_conf_ip_panel.c: 

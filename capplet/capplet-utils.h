@@ -193,6 +193,12 @@ void nwamui_object_name_cell_edited ( GtkCellRendererText *cell,
     const gchar         *new_text,
     gpointer             data);
 
+void nwamui_object_active_toggle_cell(GtkTreeViewColumn *col,
+    GtkCellRenderer   *renderer,
+    GtkTreeModel      *model,
+    GtkTreeIter       *iter,
+    gpointer           data);
+
 void nwamui_object_active_mode_pixbuf_cell (GtkTreeViewColumn *col,
     GtkCellRenderer   *renderer,
     GtkTreeModel      *model,

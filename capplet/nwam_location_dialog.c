@@ -74,7 +74,6 @@ enum {
 
 enum {
 	LOCVIEW_TOGGLE=0,
-	LOCVIEW_MODE,
     LOCVIEW_NAME
 };
 
@@ -98,12 +97,6 @@ static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
 static void nwam_location_dialog_finalize(NwamLocationDialog *self);
-
-static void nwam_location_update_status_cell_cb (GtkTreeViewColumn *col,
-					     GtkCellRenderer   *renderer,
-					     GtkTreeModel      *model,
-					     GtkTreeIter       *iter,
-					     gpointer           data);
 
 static void nwam_location_add (NwamLocationDialog *self, NwamuiNcu* connection);
 
@@ -247,21 +240,12 @@ nwam_compose_tree_view (NwamLocationDialog *self)
       (gpointer)self);
 
     /* Toggle column */
-	col = gtk_tree_view_column_new();
-	gtk_tree_view_append_column (view, col);
-
-    g_object_set(col,
-      "title", NULL,
-      "resizable", TRUE,
-      "clickable", FALSE,
-      "sort-indicator", FALSE,
-      "reorderable", FALSE,
-      NULL);
+	col = capplet_column_new(view, NULL);
     g_object_set_data (G_OBJECT (col), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (LOCVIEW_TOGGLE));
 
-    /* First cell */
-	cell = gtk_cell_renderer_toggle_new();
-    gtk_tree_view_column_pack_start(col, cell, TRUE);
+	cell = capplet_column_append_cell(col, gtk_cell_renderer_toggle_new(),
+      FALSE,
+      G_CALLBACK(nwamui_object_active_toggle_cell), (gpointer) 0, NULL);
 
 	g_object_set (cell,
       "xalign", 0.5,
@@ -269,27 +253,19 @@ nwam_compose_tree_view (NwamLocationDialog *self)
       NULL );
     g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (LOCVIEW_TOGGLE));
 
-	gtk_tree_view_column_set_cell_data_func (col, cell,
-      nwam_location_update_status_cell_cb, (gpointer) 0,
-      NULL);
-	g_object_set (cell, "active", TRUE, NULL);
     g_signal_connect(G_OBJECT(cell), "toggled", G_CALLBACK(nwam_location_connection_enabled_toggled_cb), (gpointer)self);
 
     /* Mode column */
 	col = capplet_column_new(view, NULL);
 	cell = capplet_column_append_cell(col, gtk_cell_renderer_pixbuf_new(), FALSE,
-	    nwamui_object_active_mode_pixbuf_cell, NULL, NULL);
+      nwamui_object_active_mode_pixbuf_cell, NULL, NULL);
 
-    g_object_set_data (G_OBJECT (col), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (LOCVIEW_MODE));
 
     /* Name column */
 	col = capplet_column_new(view,
       "title", _("Name"),
       "expand", FALSE,
       "resizable", TRUE,
-      "clickable", TRUE,
-      "sort-indicator", FALSE,
-      "reorderable", TRUE,
       NULL);
 	cell = capplet_column_append_cell(col, gtk_cell_renderer_text_new(), FALSE,
 	    (GtkTreeCellDataFunc)nwamui_object_name_cell, NULL, NULL);
@@ -655,72 +631,6 @@ nwam_location_connection_compare_cb (GtkTreeModel *model,
 			 gpointer user_data)
 {
 	return 0;
-}
-
-static void
-nwam_location_update_status_cell_cb (GtkTreeViewColumn *col,
-  GtkCellRenderer   *renderer,
-  GtkTreeModel      *model,
-  GtkTreeIter       *iter,
-  gpointer           data)
-{
-    NwamuiEnv*              env = NULL;
-    gchar*                  env_text;
-    gchar*                  env_markup;
-    gboolean                env_status;
-    
-    gtk_tree_model_get(model, iter, 0, &env, -1);
-    
-    switch (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (renderer), TREEVIEW_COLUMN_NUM))) {
-    case LOCVIEW_TOGGLE: {
-        env_status = nwamui_env_get_enabled(env);
-        g_object_set(G_OBJECT(renderer),
-          "active", env_status,
-          NULL); 
-    }
-        break;
-        
-    case LOCVIEW_MODE: {
-        switch (nwamui_env_get_activation_mode(env)) {
-        case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-            env_markup= g_strdup_printf(_("<b>%s</b>"), "M");
-            break;
-        case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
-            env_markup= g_strdup_printf(_("<b>%s</b>"), "S");
-            break;
-        case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
-            env_markup= g_strdup_printf(_("<b>%s</b>"), "P");
-            break;
-        case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
-        case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
-            env_markup= g_strdup_printf(_("<b>%s</b>"), "C");
-            break;
-        default:
-            g_assert_not_reached();
-            break;
-        }
-        g_object_set(G_OBJECT(renderer),
-          "markup", env_markup,
-          NULL);
-        g_free( env_markup );
-    }
-        break;
-            
-    case LOCVIEW_NAME: {
-        env_text = nwamui_env_get_name(env);
-        g_object_set(G_OBJECT(renderer),
-          "text", env_text,
-          NULL);
-    }
-        g_free( env_text );
-        break;
-    default:
-        g_assert_not_reached();
-    }
-    
-    if ( env != NULL )
-        g_object_unref(G_OBJECT(env));
-
 }
 
 /*

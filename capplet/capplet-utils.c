@@ -298,6 +298,30 @@ nwamui_object_name_cell_edited ( GtkCellRendererText *cell,
 }
 
 void
+nwamui_object_active_toggle_cell(GtkTreeViewColumn *col,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data)
+{
+    NwamuiEnv*              env = NULL;
+    
+    gtk_tree_model_get(model, iter, 0, &env, -1);
+    
+    if ( env != NULL ) {
+
+        g_object_set(G_OBJECT(renderer),
+          "active", nwamui_object_get_active(NWAMUI_OBJECT(env)),
+          NULL); 
+        g_object_unref(G_OBJECT(env));
+    } else {
+        g_object_set(G_OBJECT(renderer),
+          "active", FALSE,
+          NULL); 
+    }
+}
+
+void
 nwamui_object_active_mode_pixbuf_cell (GtkTreeViewColumn *col,
   GtkCellRenderer   *renderer,
   GtkTreeModel      *model,
@@ -309,9 +333,13 @@ nwamui_object_active_mode_pixbuf_cell (GtkTreeViewColumn *col,
     
     gtk_tree_model_get(model, iter, 0, &object, -1);
     
-    g_object_set(renderer,
-      "icon-name", nwamui_util_get_active_mode_icon(object),
-      NULL);
+    if (object) {
+        g_object_set(renderer,
+          "icon-name", nwamui_util_get_active_mode_icon(object),
+          NULL);
+
+		g_object_unref(object);
+    }
 
     return;
 }
