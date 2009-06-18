@@ -114,6 +114,7 @@ struct _NwamuiDaemonClass
     void (*remove_wifi_fav)         (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
     void (*status_changed)          (NwamuiDaemon *self, nwamui_daemon_status_t status, gpointer user_data);
     void (*wifi_key_needed)         (NwamuiDaemon *self, NwamuiWifiNet* wifi_net, gpointer user_data);
+    void (*wifi_scan_started)       (NwamuiDaemon *self, gpointer user_data);
     void (*wifi_scan_result)        (NwamuiDaemon *self, NwamuiWifiNet* wifi_net, gpointer user_data);
 	
 };

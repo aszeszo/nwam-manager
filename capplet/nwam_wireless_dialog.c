@@ -664,6 +664,32 @@ nwam_wireless_dialog_set_ncu (NwamWirelessDialog *self,
     }
 }
 
+extern  void
+nwam_wireless_dialog_set_title( NwamWirelessDialog  *self, nwamui_wireless_dialog_title_t title )
+{
+    const gchar*    title_str = NULL;
+
+    g_return_if_fail (NWAM_IS_WIRELESS_DIALOG (self));
+
+    g_assert( title >= NWAMUI_WIRELESS_DIALOG_TITLE_ADD && title < NWAMUI_WIRELESS_DIALOG_TITLE_LAST );
+
+    switch( title ) {
+        case NWAMUI_WIRELESS_DIALOG_TITLE_ADD:
+            title_str = _("Add Wireless Network");
+            break;
+        case NWAMUI_WIRELESS_DIALOG_TITLE_JOIN:
+            title_str = _("Join Wireless Network");
+            break;
+        case NWAMUI_WIRELESS_DIALOG_TITLE_EDIT:
+            title_str = _("Edit Wireless Network");
+            break;
+    }
+
+    if ( title_str != NULL ) {
+        gtk_window_set_title( GTK_WINDOW(self->prv->wireless_dialog), title_str );
+    }
+}
+
 /**
  * nwam_wireless_dialog_get_wifi_net:
  * @nwam_wireless_dialog: a #NwamWirelessDialog.

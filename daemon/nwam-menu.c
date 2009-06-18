@@ -700,9 +700,9 @@ nwam_menu_section_get_item_by_proxy(NwamMenu *self, gint sec_id, GObject* proxy)
     menu_section_get_children(&prvsection[sec_id], &children, NULL);
 
     while (children) {
-        if (nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(children->data)) ==
-          (gpointer)proxy)
+        if (nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(children->data)) == (gpointer)proxy) {
             item = GTK_WIDGET(children->data);
+        }
         children = g_list_delete_link(children, children);
     }
     return item;

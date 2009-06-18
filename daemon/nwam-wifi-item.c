@@ -107,7 +107,9 @@ nwam_wifi_item_init (NwamWifiItem *self)
         connect_daemon_signals(G_OBJECT(self), daemon);
 
         g_object_unref(ncp);
-        g_object_unref(daemon);
+
+        prv->daemon = daemon;
+
     }
 
     prv->toggled_handler_id = g_signal_connect(self,
@@ -133,14 +135,14 @@ nwam_wifi_item_finalize (NwamWifiItem *self)
     NwamWifiItemPrivate *prv = GET_PRIVATE(self);
 
     /* nwamui ncp signals */
-    {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance ();
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
+    if ( prv->daemon ) {
+        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
 
-        disconnect_daemon_signals(G_OBJECT(self), daemon);
+        disconnect_daemon_signals(G_OBJECT(self), prv->daemon);
 
         g_object_unref(ncp);
-        g_object_unref(daemon);
+
+        g_object_unref(prv->daemon);
     }
 
 	G_OBJECT_CLASS(nwam_wifi_item_parent_class)->finalize(G_OBJECT (self));

@@ -64,6 +64,7 @@ static gboolean nwam_init_done = FALSE; /* Whether to call nwam_events_fini() or
 enum {
     DAEMON_STATUS_CHANGED,
     DAEMON_INFO,
+    WIFI_SCAN_STARTED,
     WIFI_SCAN_RESULT,
     ACTIVE_NCP_CHANGED,
     ACTIVE_ENV_CHANGED,
@@ -154,6 +155,7 @@ static void default_ncu_up_signal_handler (NwamuiDaemon *self, NwamuiNcu* ncu, g
 static void default_remove_wifi_fav_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
 static void default_status_changed_signal_handler (NwamuiDaemon *self, nwamui_daemon_status_t status , gpointer user_data);
 static void default_wifi_key_needed (NwamuiDaemon *self, NwamuiWifiNet* wifi, gpointer user_data);
+static void default_wifi_scan_started_signal_handler (NwamuiDaemon *self, gpointer user_data);
 static void default_wifi_scan_result_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* wifi_net, gpointer user_data);
 static void default_wifi_selection_needed (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
 
@@ -226,6 +228,17 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                                                           G_PARAM_READWRITE));
 
     /* Create some signals */
+    nwamui_daemon_signals[WIFI_SCAN_STARTED] =   
+            g_signal_new ("wifi_scan_started",
+                  G_TYPE_FROM_CLASS (klass),
+                  G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
+                  G_STRUCT_OFFSET (NwamuiDaemonClass, wifi_scan_started),
+                  NULL, NULL,
+                  g_cclosure_marshal_VOID__VOID, 
+                  G_TYPE_NONE,                  /* Return Type */
+                  0,                            /* Number of Args */
+                  NULL);                        /* Types of Args */
+    
     nwamui_daemon_signals[WIFI_SCAN_RESULT] =   
             g_signal_new ("wifi_scan_result",
                   G_TYPE_FROM_CLASS (klass),
@@ -355,6 +368,7 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
     klass->status_changed = default_status_changed_signal_handler;
     klass->wifi_key_needed = default_wifi_key_needed;
     klass->wifi_selection_needed = default_wifi_selection_needed;
+    klass->wifi_scan_started = default_wifi_scan_started_signal_handler;
     klass->wifi_scan_result = default_wifi_scan_result_signal_handler;
     klass->active_env_changed = default_active_env_changed_signal_handler;
     klass->active_ncp_changed = default_active_ncp_changed_signal_handler;
@@ -1597,7 +1611,7 @@ nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon )
         gchar*      ncp_name = nwamui_ncp_get_name( ncp );
 
         if ( nwamui_ncp_is_modifiable( ncp ) ) {
-            g_warning("NCP : %s modifiable", ncp_name );
+            nwamui_debug("NCP : %s modifiable", ncp_name );
             for( GList* ncu_item = g_list_first(nwamui_ncp_get_ncu_list( NWAMUI_NCP(ncp) ) ); 
                  rval && ncu_item != NULL; 
                  ncu_item = g_list_next( ncu_item ) ) {
@@ -1605,20 +1619,20 @@ nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon )
                 gchar*      ncu_name = nwamui_ncu_get_display_name( ncu );
 
                 if ( nwamui_ncu_has_modifications( ncu ) ) {
-                    g_warning("Going to commit changes for %s : %s", ncp_name, ncu_name );
+                    nwamui_debug("Going to commit changes for %s : %s", ncp_name, ncu_name );
                     if ( !nwamui_ncu_commit( ncu ) ) {
-                        g_warning("Commit FAILED for %s : %s", ncp_name, ncu_name );
+                        nwamui_debug("Commit FAILED for %s : %s", ncp_name, ncu_name );
                         rval = FALSE;
                         break;
                     }
                 }
                 else {
-                    g_warning("No changes for %s : %s", ncp_name, ncu_name );
+                    nwamui_debug("No changes for %s : %s", ncp_name, ncu_name );
                 }
             }
         }
         else {
-            g_warning("NCP : %s read-only", ncp_name );
+            nwamui_debug("NCP : %s read-only", ncp_name );
         }
 
         g_free( ncp_name );
@@ -1665,45 +1679,73 @@ get_ncu_by_device_name( NwamuiDaemon *daemon, NwamuiNcp*  _ncp, const char*devic
     return( ncu );
 }
 
-static gboolean
-dispatch_scan_results_if_wireless(  GtkTreeModel *model,
-                                    GtkTreePath *path,
-                                    GtkTreeIter *iter,
-                                    gpointer data)
+static void
+nwamui_daemon_emit_scan_started_event( NwamuiDaemon *daemon )
 {
-    NwamuiDaemon   *daemon = NWAMUI_DAEMON(data);
-	NwamuiNcu      *ncu = NULL;
-	gchar          *name = NULL;
-	
-  	gtk_tree_model_get(model, iter, 0, &ncu, -1);
+    if (daemon->prv->emit_wlan_changed_signals) {
+        /* Signal Scan Start */
+        g_signal_emit (daemon,
+          nwamui_daemon_signals[WIFI_SCAN_STARTED],
+          0, NULL );
+    }
+}
+
+/* Assumes ownership of wifi_net, so should not be unref-ed by caller */
+static void
+nwamui_daemon_emit_scan_result( NwamuiDaemon *daemon, NwamuiWifiNet *wifi_net )
+{
+    if (daemon->prv->emit_wlan_changed_signals) {
+        /* trigger event */
+        g_signal_emit (daemon,
+          nwamui_daemon_signals[WIFI_SCAN_RESULT],
+          0, /* details */
+          wifi_net); /* Hand off ownership of wifi_net */
+    }
+}
+
+static void
+nwamui_daemon_emit_scan_end_of_results( NwamuiDaemon *daemon )
+{
+    if (daemon->prv->emit_wlan_changed_signals) {
+        /* Signal Scan Start */
+        g_signal_emit (daemon,
+          nwamui_daemon_signals[WIFI_SCAN_RESULT],
+          0, /* details */
+          NULL); /* NULL Wifi == End of Results */
+
+        daemon->prv->emit_wlan_changed_signals = FALSE;
+    }
+}
+
+static gboolean
+dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  uint_t nwlan, nwam_wlan_t *wlans )
+{
+    gchar*  name = NULL;
 
     if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
         return( FALSE );
     }
+
     g_assert( NWAMUI_IS_NCU(ncu) );
     
 	name = nwamui_ncu_get_device_name (ncu);
 
-    g_debug("Dispatch scan events for i/f %s  = %s (%d)", name,  nwamui_ncu_get_ncu_type (ncu) == NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Wired", nwamui_ncu_get_ncu_type (ncu));
+    nwamui_debug("Dispatch scan events for i/f %s  = %s (%d)", name,  nwamui_ncu_get_ncu_type (ncu) == NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Wired", nwamui_ncu_get_ncu_type (ncu));
 	if (nwamui_ncu_get_ncu_type (ncu) != NWAMUI_NCU_TYPE_WIRELESS ) {
-        g_object_unref( ncu );
         g_free (name);
         return( FALSE );
 	}
 
-
     if ( name != NULL ) {
-        uint_t          nwlan = 0;
-        nwam_wlan_t    *wlans = NULL;
         nwam_error_t    nerr;
         NwamuiWifiNet  *wifi_net = NULL;
         NwamuiWifiNet  *fav_net = NULL;
 
-        if ( (nerr = nwam_wlan_get_scan_results( name, &nwlan, &wlans )) == NWAM_SUCCESS ) {
-            g_debug("%d WLANs in cache.", nwlan);
+        if ( nwlan > 0 && wlans != NULL ) {
+            nwamui_debug("%d WLANs in cache.", nwlan);
             for (int i = 0; i < nwlan; i++) {
-                g_debug( "%d: ESSID %s BSSID %s", i + 1,
-                    wlans[i].essid, wlans[i].bssid);
+                nwamui_debug( "%d: ESSID %s BSSID %s", i + 1,
+                              wlans[i].essid, wlans[i].bssid);
 
                 /* Skipping empty ESSID seems wrong here, what if we actually connect
                  * to this... Will it still appear in menu??
@@ -1713,6 +1755,8 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
                      * theere will update it with new information.
                      */
                     wifi_net = nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( ncu, &(wlans[i]));
+
+                    nwamui_debug( "ESSID: %s ; NCU = %08X ; wifi_net = %08X", wlans[i].essid, ncu, wifi_net );
 
                     if ( (fav_net = nwamui_daemon_find_fav_wifi_net_by_name( daemon, 
                                                                 wlans[i].essid ) ) != NULL ) {
@@ -1737,24 +1781,63 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
                         nwamui_wifi_net_set_status(wifi_net, NWAMUI_WIFI_STATUS_DISCONNECTED);
                     }
 
-                    if (daemon->prv->emit_wlan_changed_signals) {
-                        /* trigger event */
-                        g_signal_emit (daemon,
-                          nwamui_daemon_signals[WIFI_SCAN_RESULT],
-                          0, /* details */
-                          wifi_net); /* Hand off ownership of wifi_net */
-                    }
+                    nwamui_daemon_emit_scan_result( daemon, wifi_net );
                 }
             }
-            free(wlans);
         }
         else {
-            g_debug("Error getting scan results for %s: %s", name, nwam_strerror(nerr) );
+            nwamui_debug("No wlans to dispatch events for: nwlan = %d", nwlan );
         }
     }
     g_free (name);
     
-    g_object_unref( ncu );
+    return( TRUE );
+}
+
+
+static gboolean
+dispatch_scan_results_if_wireless(  GtkTreeModel *model,
+                                    GtkTreePath *path,
+                                    GtkTreeIter *iter,
+                                    gpointer data)
+{
+    NwamuiDaemon   *daemon = NWAMUI_DAEMON(data);
+	NwamuiNcu      *ncu = NULL;
+	
+  	gtk_tree_model_get(model, iter, 0, &ncu, -1);
+
+    if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
+        return( FALSE );
+    }
+
+    g_assert( NWAMUI_IS_NCU(ncu) );
+    
+    if ( ncu != NULL ) {
+        uint_t          nwlan = 0;
+        nwam_wlan_t    *wlans = NULL;
+        nwam_error_t    nerr;
+        NwamuiWifiNet  *wifi_net = NULL;
+        NwamuiWifiNet  *fav_net = NULL;
+        gchar          *name = NULL;
+
+        name = nwamui_ncu_get_device_name (ncu);
+
+        if ( name != NULL ) {
+            if ( (nerr = nwam_wlan_get_scan_results( name, &nwlan, &wlans )) == NWAM_SUCCESS ) {
+                dispatch_scan_results_from_wlan_array( daemon, ncu,  nwlan, wlans );
+
+                free(wlans);
+            }
+            else {
+                nwamui_debug("Error getting scan results for %s: %s", name, nwam_strerror(nerr) );
+            }
+        }
+        else {
+            nwamui_debug("Failed to get device name for ncu %08X", ncu );
+        }
+
+        g_object_unref( ncu );
+    }
     
     return( FALSE );
 }
@@ -1771,18 +1854,13 @@ nwamui_daemon_dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon )
 
     if ( ncp != NULL ) {
         daemon->prv->emit_wlan_changed_signals = TRUE;
+
+        nwamui_daemon_emit_scan_started_event( daemon );
+
         nwamui_ncp_foreach_ncu (ncp, dispatch_scan_results_if_wireless, (gpointer)daemon);
         g_object_unref(ncp);
 
-        if (daemon->prv->emit_wlan_changed_signals) {
-            /* Signal End List */
-            g_signal_emit (daemon,
-              nwamui_daemon_signals[WIFI_SCAN_RESULT],
-              0, /* details */
-              NULL);
-
-            daemon->prv->emit_wlan_changed_signals = FALSE;
-        }
+        nwamui_daemon_emit_scan_end_of_results( daemon );
     }
 }
 
@@ -1799,57 +1877,20 @@ dispatch_wifi_scan_events_from_event(NwamuiDaemon* daemon, nwam_event_t event )
         return;
     }
 
-    nwlan = event->data.wlan_info.num_wlans;
 
-    g_debug("%d WLANs detected.", nwlan);
-    for (int i = 0; i < nwlan; i++) {
-        /* Try avoid potentially costly look up ncu object every time */
-        if ( prev_iface_name == NULL || strcmp(prev_iface_name, name ) != 0 ) {
-            if ( ncu ) {
-                g_object_unref(ncu);
-            }
-            ncu = get_ncu_by_device_name( daemon, NULL, name );
-        }
-        g_debug( "%d: ESSID %s BSSID %s", i + 1,
-            event->data.wlan_info.wlans[i].essid,
-            event->data.wlan_info.wlans[i].bssid);
+    ncu = get_ncu_by_device_name( daemon, NULL, name );
 
-        /* Skipping empty ESSID seems wrong here, what if we actually connect
-         * to this... Will it still appear in menu??
-         */
-        if ( strlen(event->data.wlan_info.wlans[i].essid) > 0  && ncu != NULL ) {
+    nwamui_daemon_emit_scan_started_event( daemon );
 
-            if ( (wifi_net = nwamui_daemon_find_fav_wifi_net_by_name( daemon, 
-                                                        event->data.wlan_info.wlans[i].essid ) ) != NULL ) {
-                /* Exists as a favourite, so re-use */
-                nwamui_wifi_net_update_from_wlan_t( wifi_net, 
-                                            &(event->data.wlan_info.wlans[i]));
-            }
-            else {
-                wifi_net = nwamui_wifi_net_new_from_wlan_t( ncu, 
-                                            &(event->data.wlan_info.wlans[i]));
-            }
+    if ( ncu != NULL ) {
+        dispatch_scan_results_from_wlan_array( daemon, ncu,  
+                                               event->data.wlan_info.num_wlans,
+                                               event->data.wlan_info.wlans );
 
-            if (daemon->prv->emit_wlan_changed_signals) {
-                /* trigger event */
-                g_signal_emit (daemon,
-                  nwamui_daemon_signals[WIFI_SCAN_RESULT],
-                  0, /* details */
-                  wifi_net);
-            }
-        }
+        g_object_unref(ncu);
     }
-    g_object_unref(ncu);
  
-    if (daemon->prv->emit_wlan_changed_signals) {
-        /* Signal End List */
-        g_signal_emit (daemon,
-          nwamui_daemon_signals[WIFI_SCAN_RESULT],
-          0, /* details */
-          NULL);
-
-        daemon->prv->emit_wlan_changed_signals = FALSE;
-    }
+    nwamui_daemon_emit_scan_end_of_results( daemon );
 }
 
 static NwamuiEvent*
@@ -2719,141 +2760,6 @@ nwamd_event_handler(gpointer data)
     return FALSE;
 }
 
-
-/**
- * nwam_events_callback:
- *
- * This callback is needed to be MT safe.
- */
-static int
-nwam_events_callback (nwam_event_t *msg, int size, int nouse)
-{
-#if 0
-    /* This is not back to more like phase 0.5, so need to refactor again */
-    nwam_event_t *idx;
-    NwamuiDaemon *self = nwamui_daemon_get_instance ();
-    
-    g_debug ("nwam_events_callback");
-    
-    for (idx = msg; idx; idx = idx->next) {
-        
-        switch (idx->type) {
-        case NWAM_EVENT_TYPE_NOOP:
-        case NWAM_EVENT_TYPE_SOURCE_DEAD:
-            g_debug ("NWAM daemon died.");
-            break;
-        case NWAM_EVENT_TYPE_SOURCE_BACK:
-            g_debug ("NWAM events synthesized.");
-            break;
-        case NWAM_EVENT_TYPE_NO_MAGIC:
-            g_debug ("NWAM events require user's interaction.");
-            break;
-        case NWAM_EVENT_TYPE_INFO:
-            /* Directly deliver to upper consumers */
-            g_signal_emit (self,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              g_strdup (idx->data.info.message));
-            break;
-        case NWAM_EVENT_TYPE_IF_STATE:
-            /* TODO - */
-            if (idx->data.if_state.addr_valid) {
-                char address[INET6_ADDRSTRLEN];
-                struct sockaddr_in *sin;
-                sin = (struct sockaddr_in *)&idx->data.if_state.addr;
-                printf("address %s", inet_ntoa(sin->sin_addr));
-                g_signal_emit (self,
-                  nwamui_daemon_signals[DAEMON_INFO],
-                  0, /* details */
-                  g_strdup_printf ("interface %s (%d) flags %x\naddress %s",
-                    idx->data.if_state.name, 
-                    idx->data.if_state.index,
-                    idx->data.if_state.flags,
-                    inet_ntoa(sin->sin_addr)));
-            } else {
-                g_debug ("interface %s (%d) flags %x",
-                  idx->data.if_state.name, 
-                  idx->data.if_state.index,
-                  idx->data.if_state.flags);
-            }
-            break;
-        case NWAM_EVENT_TYPE_IF_REMOVED:
-            /* TODO - */
-            g_signal_emit (self,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              g_strdup_printf ("interface %s is removed.", idx->data.removed.name));
-            break;
-        case NWAM_EVENT_TYPE_LINK_STATE:
-            /* TODO - map to NCU up/down */
-            switch (idx->data.link_state.link_state) {
-            }
-            
-            g_signal_emit (self,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              g_strdup_printf ("link %s is removed.", idx->data.removed.name));
-            break;
-        case NWAM_EVENT_TYPE_LINK_REMOVED:
-            /* TODO - map to NCU destroy */
-            g_signal_emit (self,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              g_strdup_printf ("link %s is removed.", idx->data.removed.name));
-            break;
-        case NWAM_EVENT_TYPE_WLAN_SCAN_REPORT: {
-            nwam_events_wlan_t *wlans;
-            int i;
-            NwamuiWifiNet          *wifi_net = NULL;
-            
-            wlans = idx->data.wlan_scan.wlans;
-            /* TODO - We should list all the wlans from all interfaces */
-            g_signal_emit (self,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              g_strdup_printf ("got some essids from interface %s.",
-                idx->data.wlan_scan.name));
-             
-            for (i = 0; i < idx->data.wlan_scan.num_wlans; i++) {
-                GList *bssid_list = g_list_append( NULL, g_strdup(wlans->bssid) );
-                wifi_net = nwamui_wifi_net_new (NULL,
-                  wlans->essid,
-                  nwamui_wifi_net_security_map (wlans->security_mode),
-                  bssid_list,
-                  NWAMUI_WIFI_BSS_TYPE_AUTO);
-                  
-                /* trigger event */
-                g_signal_emit (self,
-                  nwamui_daemon_signals[WIFI_SCAN_RESULT],
-                  0, /* details */
-                  wifi_net);
-                
-                wlans++;
-            }
-             
-            /* Signal End List */
-            g_signal_emit (self,
-              nwamui_daemon_signals[WIFI_SCAN_RESULT],
-              0, /* details */
-              NULL);
-        }
-            break;
-        default:
-            /* Directly deliver to upper consumers */
-            g_signal_emit (self,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              g_strdup_printf ("Unknown NWAM event type %d.", idx->type));
-            break;
-        }
-    }
-    
-    g_object_unref (self);
-    
-#endif
-    return 0;
-}
-
 extern void
 nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message )
 {
@@ -3416,7 +3322,7 @@ static void
 default_wifi_selection_needed (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data)
 {
     gchar *dispname = NULL;
-    g_debug("Wireless selection needed for network interface '%s'", (dispname = nwamui_ncu_get_display_name(ncu)) );
+    nwamui_debug("Wireless selection needed for network interface '%s'", (dispname = nwamui_ncu_get_display_name(ncu)) );
     g_free(dispname);
 }
 
@@ -3426,23 +3332,28 @@ default_wifi_key_needed (NwamuiDaemon *self, NwamuiWifiNet* wifi, gpointer user_
     if ( wifi ) {
         char *essid = nwamui_wifi_net_get_essid( wifi );
 
-        g_debug("Wireless key needed for network '%s'", essid?essid:"???UNKNOWN ESSID???" );
+        nwamui_debug("Wireless key needed for network '%s'", essid?essid:"???UNKNOWN ESSID???" );
     }
 }
 
+static void
+default_wifi_scan_started_signal_handler (NwamuiDaemon *self, gpointer user_data)
+{
+    nwamui_debug("Scan Started", NULL);
+}
 
 static void
 default_wifi_scan_result_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* wifi_net, gpointer user_data)
 {
     if ( wifi_net == NULL ) {
         /* End of Scan */
-        g_debug("Scan Result : End Of Scan");
+        nwamui_debug("Scan Result : End Of Scan", NULL);
     }
     else {
         gchar *name;
 
         name = nwamui_wifi_net_get_essid( wifi_net );
-        g_debug("Scan Result : Got ESSID\t\"%s\"", name);
+        nwamui_debug("Scan Result : Got ESSID\t\"%s\"", name);
         g_free (name);
     }
 }

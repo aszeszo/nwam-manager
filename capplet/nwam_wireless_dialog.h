@@ -64,12 +64,21 @@ struct _NwamWirelessDialogClass
 };
 
 
-
+typedef enum {
+    NWAMUI_WIRELESS_DIALOG_TITLE_ADD,
+    NWAMUI_WIRELESS_DIALOG_TITLE_JOIN,
+    NWAMUI_WIRELESS_DIALOG_TITLE_EDIT,
+    NWAMUI_WIRELESS_DIALOG_TITLE_LAST /* Not to be used directly */
+} nwamui_wireless_dialog_title_t;
 
 
 extern  GType                   nwam_wireless_dialog_get_type (void) G_GNUC_CONST;
+
 extern  NwamWirelessDialog*     nwam_wireless_dialog_new (void);
-extern  NwamWirelessDialog*     nwam_wireless_dialog_new_with_label (const gchar *label);
+
+extern  NwamWirelessDialog*     nwam_wireless_dialog_new_with_ncu (const gchar *ncu);
+
+extern  void                    nwam_wireless_dialog_set_title( NwamWirelessDialog  *self, nwamui_wireless_dialog_title_t title );
 
 extern  void                    nwam_wireless_dialog_show (NwamWirelessDialog  *self);
 extern  void                    nwam_wireless_dialog_hide (NwamWirelessDialog  *self);

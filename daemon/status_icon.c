@@ -141,6 +141,7 @@ static void daemon_wifi_key_needed (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, g
 static void daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
 static void daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
 static void daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
+static void nwam_menu_scan_started(GObject *daemon, gpointer data);
 static void nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data);
 static void daemon_add_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
 static void daemon_remove_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
@@ -640,6 +641,22 @@ daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
     g_free (summary);
 }
 
+/* 
+ * nwam_menu_scan_started
+ *
+ * When we see a scan started message we should clean up the exiting menu
+ * items.
+ */
+static void
+nwam_menu_scan_started(GObject *daemon, gpointer data)
+{
+	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+
+    /* TODO: Would be good to add a "Scanning..." message too? */
+    nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_WIFI);
+}
+
 /**
  * nwam_menu_create_wifi_menuitems:
  *
@@ -831,6 +848,9 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
         g_signal_connect(daemon, "wifi_selection_needed",
           G_CALLBACK(daemon_wifi_selection_needed), (gpointer)self);
 
+        g_signal_connect(daemon, "wifi_scan_started",
+          (GCallback)nwam_menu_scan_started, (gpointer) self);
+
         g_signal_connect(daemon, "wifi_scan_result",
           (GCallback)nwam_menu_create_wifi_menuitems, (gpointer) self);
 
@@ -970,6 +990,7 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
         g_debug("%s ## wifi 0x%p %s", __func__, wifi, name ? name : "nil");
         g_free(name);
     }
+    nwam_wireless_dialog_set_title( wifi_dialog, NWAMUI_WIRELESS_DIALOG_TITLE_JOIN );
     nwam_wireless_dialog_set_wifi_net(wifi_dialog, wifi);
     nwam_wireless_dialog_set_do_connect(wifi_dialog, do_connect);
 

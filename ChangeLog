@@ -1,3 +1,39 @@
+2009-06-18  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	  Change the version to 0.99.0 to more correctly reflect the state of
+	  things - will bump dot-dot for each build to QA.
+	* common/Makefile.am:
+	  Add help_refs.h to EXTRA_DIST 
+	* capplet/nwam_wireless_dialog.h, capplet/nwam_wireless_dialog.c: 
+	  Add functon nwam_wireless_dialog_set_title() to set the title for
+	  the wireless dialog to be Add/Join/Edit using an enum.
+	* capplet/nwam_conn_conf_ip_panel.c:
+	  Use the new nwam_wireless_dialog title functionality.
+	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
+	  Add wifi_scan_started message to allow the UI to know when a scan
+	  has been started. 
+	  Fix issue where scan events (from nwamd) were not taking the same
+	  code path as for events from the cache, meaning that the wifi
+	  caching wasn't working and this resulted in multiple items in the
+	  menus. Did a code refactor to fix this. Also removed some old code.
+	* daemon/nwam-menu.c: 
+	  Minor nit.
+	* daemon/nwam-wifi-item.c: 
+	  Fixed a bug in nwam_wifi_item_init() where daemon pointer wasn't
+	  being set, and this caused a crash later.
+	* daemon/status_icon.c: 
+	  Add handler for new daemon wifi_scan_started signal to clear all the
+	  wifi menu items - may need some improvement to maybe leave connected
+	  network and/or add a "Scanning..." entry while scan still happening.
+	  Make join_wireless() use the new title mechanism for the wireless
+	  dialog.
+	* nwam_core/usr/include/libdladm.h,
+	  nwam_core/usr/include/libdladm_impl.h,
+	  nwam_core/usr/include/sys/dld_ioc.h,
+	  nwam_core/usr/include/sys/dls_mgmt.h:
+	  Bump to latest from snv117.
+
 2009-06-16  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (nwamui_object_active_toggle_cell),

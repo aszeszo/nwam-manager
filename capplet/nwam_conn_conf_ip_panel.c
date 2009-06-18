@@ -1261,7 +1261,9 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
     NwamuiWifiNet*  new_wifi = NULL;
     
     g_debug("wireless_tab_add_button clicked");
-    
+
+    nwam_wireless_dialog_set_title( self->prv->wifi_dialog, NWAMUI_WIRELESS_DIALOG_TITLE_ADD);
+
     switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
         case GTK_RESPONSE_OK:
                 new_wifi = nwam_wireless_dialog_get_wifi_net( self->prv->wifi_dialog );
@@ -1354,6 +1356,7 @@ wireless_tab_edit_button_clicked_cb( GtkButton *button, gpointer data )
                 gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, 0, &wifi_net, -1 );
 
                 nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, wifi_net );
+                nwam_wireless_dialog_set_title( self->prv->wifi_dialog, NWAMUI_WIRELESS_DIALOG_TITLE_EDIT);
 
                 switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
                     case GTK_RESPONSE_OK:
