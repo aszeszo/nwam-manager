@@ -572,42 +572,7 @@ nwamui_ncp_is_modifiable (NwamuiNcp *self)
     return( modifiable );
 }
 
-static void
-find_active_prio( gpointer obj, gpointer user_data )
-{
-	NwamuiNcu           *ncu = NWAMUI_NCU(obj);
-    gint*                prio_p = (gint*)user_data;
-    nwam_state_t         state;
-    nwam_aux_state_t     aux_state;
-    gboolean             online = FALSE;
-    nwamui_cond_activation_mode_t 
-                         activation_mode;
-    nwamui_cond_priority_group_mode_t 
-                         prio_group_mode;
-
-
-    if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
-        return;
-    }
-
-    if ( prio_p && *prio_p >= 0 ) {
-        /* Already found a prio, so skip */
-        return;
-    }
-
-    activation_mode = nwamui_ncu_get_activation_mode( ncu );
-    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL);
-
-    if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
-        online = TRUE;
-    }
-
-    if ( online && activation_mode == NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED ) {
-        *prio_p = nwamui_ncu_get_priority_group( ncu );
-    }
-}
-
-static gint64
+extern gint64
 nwamui_ncp_get_current_prio_group( NwamuiNcp* self ) 
 {
     gint64          current_prio = -1;  /* -1 not a valid prio */

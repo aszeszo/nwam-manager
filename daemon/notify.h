@@ -42,37 +42,63 @@ G_BEGIN_DECLS
 void nwam_notification_init( GtkStatusIcon* status_icon );
 
 /* 
- * Displays a message. Only the summary is needed, the body text and icon can be NULL.
+ * Show a message to tell the user that the nwam daemon is unavailable.
  */
-void nwam_notification_show_message( const gchar* summary,
-  const gchar* body,
-  const GdkPixbuf* icon,
-  gint timeout );
+void nwam_notification_show_nwam_unavailable( void );
 
 /* 
- * Displays a message. Only the summary is needed, the body text and icon can
- * be NULL. If action is NULL or is empty, the default action "default" will be
- * used.
+ * Show a message to tell the user that a connection has been made.
+ *
+ * For a wireless ncu it will also show the ESSID.
  */
-void nwam_notification_show_message_with_action (const gchar* summary,
-  const gchar* body,
-  const GdkPixbuf* icon,
-  const gchar* action,
-  const gchar* label,
-  NotifyActionCallback callback,
-  gpointer user_data,
-  GFreeFunc free_func,
-  gint timeout);
+void nwam_notification_show_ncu_connected( NwamuiNcu* ncu );
+
+/* 
+ * Show a message to tell the user that a connection has been broken.
+ *
+ * For a wireless ncu it will also show the ESSID.
+ */
+void nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
+                                              NotifyActionCallback callback,
+                                              GObject*             user_object );
+
+/* 
+ * Show a message to tell the user that an attempt to connect to a wireless
+ * ncu has failed.
+ */
+void nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu );
+
+/* 
+ * Show a message to tell the user that wireless key is needed.
+ */
+void nwam_notification_show_ncu_wifi_key_needed( NwamuiWifiNet* wifi_net, NotifyActionCallback callback );
+
+/* 
+ * Show a message to tell the user that wireless selection is needed.
+ */
+void nwam_notification_show_ncu_wifi_selection_needed(   NwamuiNcu           *ncu, 
+                                                         NotifyActionCallback callback,
+                                                         GObject*             user_object );
+
+/* 
+ * Show a message to tell the user that no wireless networks could be found.
+ */
+void nwam_notification_show_no_wifi_networks( void );
+
+/* 
+ * Show a message to tell the user that the active location has changed.
+ */
+void nwam_notification_show_location_changed( NwamuiEnv* env );
+
+/* 
+ * Show a message to tell the user that the active NCP has changed.
+ */
+void nwam_notification_show_ncp_changed( NwamuiNcp* ncp );
 
 /* 
  * Should be called prior to exiting, to ensure notificaiton area is cleaned up.
  */
 void nwam_notification_cleanup( void );
-
-/*
- * Returns a string containing the last status message sent.
- */
-const gchar* nwam_notification_get_status_msg( void );
 
 void nwam_notification_set_default_icon(GdkPixbuf *pixbuf);
 

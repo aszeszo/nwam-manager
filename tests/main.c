@@ -275,7 +275,7 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     active = nwamui_ncu_get_active( ncu );
     enabled = nwamui_ncu_get_enabled( ncu );
     statestr = nwamui_ncu_get_connection_state_string( ncu );
-    state_detailstr = nwamui_ncu_get_connection_state_detail_string( ncu );
+    state_detailstr = nwamui_ncu_get_connection_state_detail_string( ncu, TRUE );
     ipv4_dhcp = nwamui_ncu_get_ipv4_dhcp( ncu );
     ipv4_auto_conf = nwamui_ncu_get_ipv4_auto_conf( ncu );
     ipv4_address = nwamui_ncu_get_ipv4_address( ncu );

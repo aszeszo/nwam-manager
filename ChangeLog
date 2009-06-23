@@ -1,3 +1,44 @@
+2009-06-23  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_ncp.c, common/nwamui_ncp.h:
+	  Remove find_active_prio w/around and use libnwam function to get
+	  active priority group, also make function to get this group extern
+	  rather than static.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Change nwamui_ncu_get_connection_state_detail_string() to take extra
+	  param to decide whether to use newline or comma-space as separator
+	  in the detail strings.
+	  Also added translation markers for the NWAM auxillary states.
+	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
+	  Add new property "num_scanned_wifi" to allow for discovery of the
+	  last number of wlan's scanned - if 0 then we might show a message.
+	  Removed old Phase 0.5 cause strings.
+	* common/nwamui_wifi_net.c: 
+	  Update nwamui_wifi_net_update_from_wlan_t() to also extract the wlan
+	  speed from the wlan_t.
+	* capplet/nwam_conn_stat_panel.c, tests/main.c,
+	  daemon/status_icon_tooltip.c: 
+	  Update with extra param for connection detail string.
+	* daemon/notify.h, daemon/notify.c: 
+	  Centralize the notification message generation to notify.c file and
+	  use more strict API - this is to allow for better handling of when
+	  and where to show them (TBD), new functions are:
+	  - nwam_notification_show_nwam_unavailable
+	  - nwam_notification_show_ncu_connected
+	  - nwam_notification_show_ncu_disconnected
+	  - nwam_notification_show_ncu_wifi_connect_failed
+	  - nwam_notification_show_ncu_wifi_selection_needed
+	  - nwam_notification_show_ncu_wifi_key_needed
+	  - nwam_notification_show_no_wifi_networks
+	  - nwam_notification_show_ncp_changed
+	  - nwam_notification_show_location_changed
+	  Also make the original functions static to avoid their unintentional
+	  use.
+	* daemon/status_icon.c: 
+	  Updates to use new notify functions.
+	* nwam_core/usr/include/libnwam.h:
+	  Update to latest version, to get speed wlan_t field.
+
 2009-06-18  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in:

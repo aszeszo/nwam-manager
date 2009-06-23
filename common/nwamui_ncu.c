@@ -44,6 +44,26 @@
 #include <libdllink.h>
 #include <libdlwlan.h>
 
+/* Try to ensure that NWAM_AUX_STATES are translated */
+#define NWAMUI_AUX_STATE_UNINITIALIZED_STRING               N_("uninitialized")
+#define NWAMUI_AUX_STATE_INITIALIZED_STRING                 N_("(re)initialized but not configured")
+#define NWAMUI_AUX_STATE_CONDITIONS_NOT_MET_STRING          N_("conditions for activation are not met")
+#define NWAMUI_AUX_STATE_MANUAL_DISABLE_STRING              N_("disabled by administrator")
+#define NWAMUI_AUX_STATE_METHOD_FAILED_STRING               N_("method execution or enable of service failed")
+#define NWAMUI_AUX_STATE_METHOD_RUNNING_STRING              N_("method or service enable currently executing")
+#define NWAMUI_AUX_STATE_METHOD_MISSING_STRING              N_("method or FMRI not specified")
+#define NWAMUI_AUX_STATE_INVALID_CONFIG_STRING              N_("invalid or unreadable configuration values")
+#define NWAMUI_AUX_STATE_ACTIVE_STRING                      N_("active")
+#define NWAMUI_AUX_STATE_LINK_WIFI_SCANNING_STRING          N_("scanning for available networks on WiFi link")
+#define NWAMUI_AUX_STATE_LINK_WIFI_NEED_SELECTION_STRING    N_("need WiFi wireless network selection")
+#define NWAMUI_AUX_STATE_LINK_WIFI_NEED_KEY_STRING          N_("need security key for selected wireless network")
+#define NWAMUI_AUX_STATE_LINK_WIFI_CONNECTING_STRING        N_("connecting to selected wireless network")
+#define NWAMUI_AUX_STATE_IF_WAITING_FOR_ADDR_STRING         N_("waiting for IP address to be assigned")
+#define NWAMUI_AUX_STATE_IF_DHCP_TIMED_OUT_STRING           N_("dhcp wait timed out, operation still pending...")
+#define NWAMUI_AUX_STATE_UP_STRING                          N_("interface or link is up")
+#define NWAMUI_AUX_STATE_DOWN_STRING                        N_("interface or link is down")
+#define NWAMUI_AUX_STATE_NOT_FOUND_STRING                   N_("interface or link is not present on system")
+
 static GObjectClass *parent_class = NULL;
 
 struct _NwamuiNcuPrivate {
@@ -2643,7 +2663,7 @@ nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, c
                 *aux_state_p = aux_state;
             }
             if ( aux_state_string_p ) {
-                *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( aux_state );
+                *aux_state_string_p = _((const gchar*)nwam_aux_state_to_string( aux_state ));
             }
         }
     }
@@ -3454,7 +3474,7 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
  * ncu, should be freed by caller using gfree().
  */
 extern gchar*
-nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self )
+nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self, gboolean use_newline )
 {
     nwamui_connection_state_t   state = NWAMUI_STATE_NOT_CONNECTED;
     gchar*                      status_string = NULL;
@@ -3469,8 +3489,10 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self )
     switch( state ) {
         case NWAMUI_STATE_CONNECTED:
         case NWAMUI_STATE_CONNECTED_ESSID: {
-            gchar *v4addr = get_interface_address_str( self->prv->device_name, AF_INET );
-            gchar *v6addr = get_interface_address_str( self->prv->device_name, AF_INET6 );
+            gchar          *v4addr = get_interface_address_str( self->prv->device_name, AF_INET );
+            gchar          *v6addr = get_interface_address_str( self->prv->device_name, AF_INET6 );
+            guint           speed;
+            const gchar    *sepr;
 
             if ( v4addr != NULL ) {
                 addr_part = v4addr;
@@ -3496,13 +3518,27 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self )
             if ( state == NWAMUI_STATE_CONNECTED_ESSID ) {
                 signal_part = g_strdup_printf( _("Signal: %s"), nwamui_ncu_get_signal_strength_string( self ));
             }
-            speed_part = g_strdup_printf( _("Speed: %d Mb/s"), nwamui_ncu_get_speed( self ));
 
-            if ( signal_part == NULL ) {
-                status_string = g_strdup_printf( _("%s, %s"), addr_part, speed_part );
+            speed = nwamui_ncu_get_speed( self );
+
+            if ( speed > 1000 ) {
+                speed_part = g_strdup_printf( _("Speed: %d Gb/s"), speed / 1000 );
             }
             else {
-                status_string = g_strdup_printf( _("%s, %s, %s"), addr_part, signal_part, speed_part );
+                speed_part = g_strdup_printf( _("Speed: %d Mb/s"), speed );
+            }
+
+            if ( use_newline ) {
+                sepr = "\n";
+            }
+            else {
+                sepr = ", ";
+            }
+            if ( signal_part == NULL ) {
+                status_string = g_strdup_printf( _("%s%s%s"), addr_part, sepr, speed_part );
+            }
+            else {
+                status_string = g_strdup_printf( _("%s%s%s%s%s"), addr_part, sepr, signal_part, sepr, speed_part );
             }
             }
             break;

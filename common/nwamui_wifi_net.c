@@ -837,7 +837,8 @@ nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self,
         GList                          *bssid_list;
         nwamui_wifi_bss_type_t          bss_type;
         nwamui_wifi_signal_strength_t   signal_strength;
-        gint                            channel;
+        guint                           channel;
+        guint                           speed;
         
         bssid_list = nwamui_wifi_net_get_bssid_list( self );
         if ( wlan->bssid != NULL ) {
@@ -852,6 +853,7 @@ nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self,
         security = nwamui_wifi_net_security_map (
                         wlan->security_mode);
         channel = wlan->channel;
+        speed = wlan->speed / 2; /* dladm_wlan_speed_t needs to be div by 2 */
         bss_type = nwamui_wifi_net_bss_type_map( wlan->bsstype );
 
         signal_strength = nwamui_wifi_net_strength_map(wlan->signal_strength);
@@ -864,6 +866,7 @@ nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self,
                             "bss_type", bss_type,
                             "security", security,
                             "channel", channel,
+                            "speed", speed,
                             "signal_strength", signal_strength,
                             NULL);
             

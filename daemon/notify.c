@@ -43,6 +43,7 @@ static gint gconf_exp_time;
 #define NOTIFY_EXP_ADJUSTED_FLAG	(NOTIFY_EXP_DEFAULT_FLAG - 1)
 #define NOTIFY_POLL_STATUS_ICON_INVISIBLE	(1000)
 
+#define NOTIFY_ICON_SIZE    (24)
 
 typedef struct _msg
 {
@@ -106,7 +107,7 @@ nwam_notification_msg_new(NotifyNotification *n,
     m->summary = g_strdup(summary);
     m->body = g_strdup(body);
     if (icon)
-        m->icon = g_object_ref(icon);
+        m->icon = g_object_ref(G_OBJECT(icon));
     m->action = g_strdup(action);
     m->label = g_strdup(label);
     m->cb = callback;
@@ -418,7 +419,7 @@ nwam_notification_show_message_cb(GQueue *q)
     return FALSE;
 }
 
-void
+static void
 nwam_notification_show_message(const gchar* summary,
   const gchar* body,
   const GdkPixbuf* icon,
@@ -439,7 +440,7 @@ nwam_notification_show_message(const gchar* summary,
       TIGHT_EXP_TIME);
 }
 
-void
+static void
 nwam_notification_show_message_with_action (const gchar* summary,
   const gchar* body,
   const GdkPixbuf* icon,
@@ -463,6 +464,445 @@ nwam_notification_show_message_with_action (const gchar* summary,
     notify_notification_adjust_nth(&msg_q,
       g_queue_get_length(&msg_q) - 2,
       TIGHT_EXP_TIME);
+}
+
+/* 
+ * Show a message to tell the user that NWAM is unavailable.
+ *
+ * For a wireless ncu it will also show the ESSID.
+ */
+void
+nwam_notification_show_nwam_unavailable( void )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    GdkPixbuf       *icon = NULL;
+
+    if ( daemon ) {
+        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+    }
+    nwam_notification_show_message(
+            _("Automatic network configuration daemon is unavailable."),
+            _("For further information please run\n\"svcs -xv nwam\" in a terminal."),
+            icon,
+            NOTIFY_EXPIRES_DEFAULT);
+
+    if ( icon != NULL ) {
+        g_object_unref(G_OBJECT(icon));
+    }
+    if ( daemon != NULL ) {
+        g_object_unref(G_OBJECT(daemon));
+    }
+}
+
+/* 
+ * Show a message to tell the user that a connection has been made.
+ *
+ * For a wireless ncu it will also show the ESSID.
+ */
+void
+nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    GdkPixbuf       *icon = NULL;
+    gchar           *summary_str = NULL;
+    gchar           *body_str = NULL;
+    gchar           *display_name = NULL;
+    guint            speed = 0;
+    gchar           *address_str = NULL;
+    
+
+    g_return_if_fail( ncu != NULL );
+
+    if ( daemon ) {
+        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+    }
+
+    display_name = nwamui_ncu_get_display_name( ncu );
+    body_str = nwamui_ncu_get_connection_state_detail_string( ncu, TRUE );
+
+    switch ( nwamui_ncu_get_ncu_type( ncu ) ) {
+        case NWAMUI_NCU_TYPE_WIRELESS: {
+                NwamuiWifiNet  *wifi_net = NULL;
+                gchar          *essid = NULL;
+
+                if ( (wifi_net = nwamui_ncu_get_wifi_info( ncu )) != NULL) {
+                    essid = nwamui_wifi_net_get_essid( wifi_net );
+                    g_object_unref(G_OBJECT(wifi_net));
+                }
+
+                if ( essid != NULL ) {
+                    summary_str = g_strdup_printf(_("%s connected to %s"), 
+                                                  display_name, essid );
+                    g_free(essid);
+                    break;
+                }
+                else {
+                    /* Fall through */
+                }
+            }
+        case NWAMUI_NCU_TYPE_WIRED:
+            /* Fall through */
+        case NWAMUI_NCU_TYPE_TUNNEL:
+            /* Fall through */
+        default:
+            summary_str = g_strdup_printf(_("%s connected"), display_name );
+            break;
+    }
+
+    nwam_notification_show_message( summary_str, body_str,
+                                    icon, NOTIFY_EXPIRES_DEFAULT);
+
+    g_free(summary_str);
+    g_free(body_str);
+
+    if ( icon != NULL ) {
+        g_object_unref(G_OBJECT(icon));
+    }
+    if ( daemon != NULL ) {
+        g_object_unref(G_OBJECT(daemon));
+    }
+}
+
+/* 
+ * Show a message to tell the user that a connection has been broken.
+ *
+ * For a wireless ncu it will also show the ESSID.
+ */
+void
+nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
+                                         NotifyActionCallback callback,
+                                         GObject*             user_object )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    GdkPixbuf       *icon = NULL;
+    gchar           *summary_str = NULL;
+    gchar           *body_str = NULL;
+    gchar           *display_name = NULL;
+    
+
+    g_return_if_fail( ncu != NULL );
+
+    if ( daemon ) {
+        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+    }
+
+    display_name = nwamui_ncu_get_display_name( ncu );
+
+    switch ( nwamui_ncu_get_ncu_type( ncu ) ) {
+        case NWAMUI_NCU_TYPE_WIRELESS: {
+                NwamuiWifiNet  *wifi_net = NULL;
+                gchar          *essid = NULL;
+
+                if ( (wifi_net = nwamui_ncu_get_wifi_info( ncu )) != NULL) {
+                    essid = nwamui_wifi_net_get_essid( wifi_net );
+                    g_object_unref(G_OBJECT(wifi_net));
+                }
+
+                body_str = g_strdup(_("Click on this message to view other available networks."));
+
+                if ( essid != NULL ) {
+                    summary_str = g_strdup_printf(_("%s disconnected from %s"), 
+                                                  display_name, essid );
+                    g_free(essid);
+                    break;
+                }
+                else {
+                    /* Fall through */
+                }
+            }
+        case NWAMUI_NCU_TYPE_WIRED:
+            /* Fall through */
+        case NWAMUI_NCU_TYPE_TUNNEL:
+            /* Fall through */
+        default:
+            summary_str = g_strdup_printf(_("%s disconnected"), display_name );
+            if ( body_str == NULL ) {
+                const gchar* aux_string = NULL;
+                /* Get state reason from NWAM aux_state */
+                nwamui_object_get_nwam_state(NWAMUI_OBJECT(ncu), NULL, &aux_string );
+                if ( aux_string != NULL ) {
+                    body_str = g_strdup( aux_string );
+                }
+            }
+            break;
+    }
+
+    if ( callback != NULL ) {
+        nwam_notification_show_message_with_action(summary_str, body_str,
+          NULL,
+          NULL,	/* action */
+          NULL,	/* label */
+          callback,
+          (gpointer) (user_object)?g_object_ref (user_object):NULL,
+          (GFreeFunc)(user_object)?g_object_unref:NULL,
+          NOTIFY_EXPIRES_DEFAULT);
+    }
+    else {
+        nwam_notification_show_message( summary_str, body_str,
+                                        icon, NOTIFY_EXPIRES_DEFAULT);
+    }
+
+    g_free(summary_str);
+    g_free(body_str);
+
+    if ( icon != NULL ) {
+        g_object_unref(G_OBJECT(icon));
+    }
+    if ( daemon != NULL ) {
+        g_object_unref(G_OBJECT(daemon));
+    }
+}
+
+/* 
+ * Show a message to tell the user that an attempt to connect to a wireless
+ * ncu has failed.
+ */
+void
+nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    GdkPixbuf       *icon = NULL;
+    gchar           *summary_str = NULL;
+    gchar           *body_str = NULL;
+    gchar           *display_name = NULL;
+    
+
+    g_return_if_fail( ncu != NULL );
+
+    if ( daemon ) {
+        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+    }
+
+    switch ( nwamui_ncu_get_ncu_type( ncu ) ) {
+        case NWAMUI_NCU_TYPE_WIRELESS: {
+                NwamuiWifiNet  *wifi_net = NULL;
+                gchar          *essid = NULL;
+
+                if ( (wifi_net = nwamui_ncu_get_wifi_info( ncu )) != NULL) {
+                    essid = nwamui_wifi_net_get_essid( wifi_net );
+                    g_object_unref(G_OBJECT(wifi_net));
+                }
+
+                body_str = g_strdup(_("Click on this message to view other available networks."));
+
+                if ( essid != NULL ) {
+                    summary_str = g_strdup_printf(_("Unable to connect to %s"), essid );
+                    g_free(essid);
+                }
+            }
+            break;
+        case NWAMUI_NCU_TYPE_WIRED:
+            /* Fall through */
+        case NWAMUI_NCU_TYPE_TUNNEL:
+            /* Fall through */
+        default:
+            /* Do nothing if not wireless */
+            break;
+    }
+
+    if ( summary_str != NULL ) {
+        nwam_notification_show_message( summary_str, body_str,
+                                        icon, NOTIFY_EXPIRES_DEFAULT);
+    }
+
+    g_free(summary_str);
+    g_free(body_str);
+
+    if ( icon != NULL ) {
+        g_object_unref(G_OBJECT(icon));
+    }
+    if ( daemon != NULL ) {
+        g_object_unref(G_OBJECT(daemon));
+    }
+}
+
+/* 
+ * Show a message to tell the user that wireless selection is needed.
+ */
+void
+nwam_notification_show_ncu_wifi_selection_needed(   NwamuiNcu           *ncu, 
+                                                    NotifyActionCallback callback,
+                                                    GObject*             user_object )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    GdkPixbuf       *icon = NULL;
+    gchar           *body = NULL;
+    gchar           *summary = NULL;
+
+    g_return_if_fail( ncu != NULL );
+
+    if ( daemon ) {
+        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+    }
+
+    summary = g_strdup(_("Wireless Selection Required"));
+    body = g_strdup(_("Right-click the icon to connect to an available network."));
+
+
+    /* XXXX - Need to also use dialog? */
+    nwam_notification_show_message_with_action(
+                summary, 
+                body,
+                icon,
+                NULL,	/* action */
+                NULL,	/* label */
+                callback,
+                (gpointer)  user_object?g_object_ref(user_object):NULL,
+                (GFreeFunc) user_object?g_object_unref:NULL,
+                NOTIFY_EXPIRES_NEVER);
+		
+    g_free(body);
+    g_free(summary);
+
+    if ( icon != NULL ) {
+        g_object_unref(G_OBJECT(icon));
+    }
+    if ( daemon != NULL ) {
+        g_object_unref(G_OBJECT(daemon));
+    }
+}
+
+/* 
+ * Show a message to tell the user that wireless key is needed.
+ */
+void
+nwam_notification_show_ncu_wifi_key_needed( NwamuiWifiNet       *wifi_net, 
+                                            NotifyActionCallback callback )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    GdkPixbuf       *icon = NULL;
+    gchar           *name;
+    gchar           *body = NULL;
+    gchar           *summary = NULL;
+
+    g_return_if_fail( wifi_net != NULL );
+
+    if ( daemon ) {
+        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+    }
+
+    name = nwamui_wifi_net_get_display_string(wifi_net, FALSE);
+    summary = g_strdup_printf (_("'%s' requires authentication"), name);
+    body = g_strdup_printf (_("Click here to enter the wireless network key."));
+
+    /* XXXX - Need to also use dialog? */
+
+    nwam_notification_show_message_with_action(
+                summary, 
+                body,
+                icon,
+                NULL,	/* action */
+                NULL,	/* label */
+                callback,
+                (gpointer)g_object_ref(wifi_net),
+                (GFreeFunc)g_object_unref,
+                NOTIFY_EXPIRES_NEVER);
+		
+    g_free(name);
+    g_free(body);
+    g_free(summary);
+
+    if ( icon != NULL ) {
+        g_object_unref(G_OBJECT(icon));
+    }
+    if ( daemon != NULL ) {
+        g_object_unref(G_OBJECT(daemon));
+    }
+}
+
+/* 
+ * Show a message to tell the user that no wireless networks could be found.
+ */
+void
+nwam_notification_show_no_wifi_networks( void )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    GdkPixbuf       *icon = NULL;
+
+    if ( daemon ) {
+        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+    }
+    nwam_notification_show_message(
+            _("No wireless networks found"),
+            _("Click this message to join an unlisted network"),
+            icon,
+            NOTIFY_EXPIRES_DEFAULT);
+
+    if ( icon != NULL ) {
+        g_object_unref(G_OBJECT(icon));
+    }
+    if ( daemon != NULL ) {
+        g_object_unref(G_OBJECT(daemon));
+    }
+}
+
+/* 
+ * Show a message to tell the user that the active ncp has changed.
+ */
+void
+nwam_notification_show_ncp_changed( NwamuiNcp* ncp )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    GdkPixbuf       *icon = NULL;
+    gchar           *summary_str = NULL;
+
+    g_return_if_fail( ncp != NULL );
+
+    if ( daemon ) {
+        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+    }
+
+    summary_str = g_strdup_printf(_("Switched to Network Profile '%s'"), nwamui_ncp_get_name( ncp ));
+
+    nwam_notification_show_message(
+            summary_str,
+            "",
+            icon,
+            NOTIFY_EXPIRES_DEFAULT);
+
+    g_free(summary_str);
+
+    if ( icon != NULL ) {
+        g_object_unref(G_OBJECT(icon));
+    }
+
+    if ( daemon != NULL ) {
+        g_object_unref(G_OBJECT(daemon));
+    }
+}
+
+/* 
+ * Show a message to tell the user that the active location has changed.
+ */
+void
+nwam_notification_show_location_changed( NwamuiEnv* env )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    GdkPixbuf       *icon = NULL;
+    gchar           *summary_str = NULL;
+
+    g_return_if_fail( env != NULL );
+
+    if ( daemon ) {
+        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+    }
+
+    summary_str = g_strdup_printf(_("Switch to location '%s'"), nwamui_env_get_name( env ));
+
+    nwam_notification_show_message(
+            summary_str,
+            "",
+            icon,
+            NOTIFY_EXPIRES_DEFAULT);
+
+    g_free(summary_str);
+
+    if ( icon != NULL ) {
+        g_object_unref(G_OBJECT(icon));
+    }
+    if ( daemon != NULL ) {
+        g_object_unref(G_OBJECT(daemon));
+    }
 }
 
 void

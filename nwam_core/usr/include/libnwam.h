@@ -88,6 +88,8 @@ extern "C" {
 
 /* Walk known WLANs in order of priroity (lowest first) */
 #define	NWAM_FLAG_KNOWN_WLAN_WALK_PRIORITY_ORDER	0x000010000ULL << 32
+/* Do not perform priority collision checking for known WLANs */
+#define	NWAM_FLAG_KNOWN_WLAN_NO_COLLISION_CHECK		0x000020000ULL << 32
 
 /* nwam return codes */
 typedef enum {
@@ -970,6 +972,7 @@ typedef struct {
 	char bssid[NWAM_MAX_NAME_LEN];
 	char signal_strength[NWAM_MAX_NAME_LEN];
 	uint32_t security_mode; /* a dladm_wlan_secmode_t */
+	uint32_t speed; /* a dladm_wlan_speed_t */
 	uint32_t channel; /* a dladm_wlan_channel_t */
 	uint32_t bsstype; /* a dladm_wlan_bsstype_t */
 	boolean_t have_key;

@@ -171,6 +171,8 @@ extern void                         nwamui_daemon_wifi_start_scan(NwamuiDaemon *
 
 extern void                         nwamui_daemon_dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon );
 
+extern gint                         nwamui_daemon_get_num_scanned_wifi(NwamuiDaemon* self );
+
 extern GList*                       nwamui_daemon_get_fav_wifi_networks(NwamuiDaemon *self);
 
 extern gboolean                     nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list );
@@ -180,10 +182,6 @@ extern NwamuiWifiNet*               nwamui_daemon_find_fav_wifi_net_by_name(Nwam
 extern void                         nwamui_daemon_add_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* new_wifi );
 
 extern void                         nwamui_daemon_remove_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* wifi );
-
-nwamui_daemon_event_cause_t         nwamui_daemon_get_event_cause(NwamuiDaemon* self );
-
-const char *                        nwamui_daemon_get_event_cause_string(NwamuiDaemon* self );
 
 extern void                         nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message );
 

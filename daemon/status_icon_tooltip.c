@@ -161,7 +161,7 @@ tooltip_treeview_cell (GtkTreeViewColumn *col,
 	if (type == NWAMUI_TYPE_NCU) {
         if (cell_num == 0) {
         } else {
-            gchar *state = nwamui_ncu_get_connection_state_detail_string(NWAMUI_NCU(object));
+            gchar *state = nwamui_ncu_get_connection_state_detail_string(NWAMUI_NCU(object), FALSE);
             switch (nwamui_ncu_get_ncu_type(NWAMUI_NCU(object))) {
             case NWAMUI_NCU_TYPE_WIRELESS:
                 g_string_append_printf(gstr, _("<b>Wireless (%s):</b> %s"),

@@ -82,7 +82,7 @@ enum {
     PROP_ACTIVE_NCP,
     PROP_WIFI_FAV,
     PROP_STATUS,
-    PROP_EVENT_CAUSE
+    PROP_NUM_SCANNED_WIFI
 };
 
 static guint nwamui_daemon_signals[LAST_SIGNAL] = { 0, 0 };
@@ -99,12 +99,11 @@ struct _NwamuiDaemonPrivate {
     /* others */
     gboolean                     connected_to_nwamd;
     nwamui_daemon_status_t       status;
-    nwamui_daemon_event_cause_t  event_cause;
     GThread                     *nwam_events_gthread;
     gboolean                     communicate_change_to_daemon;
     guint                        wep_timeout_id;
     gboolean                     emit_wlan_changed_signals;
-    GList                       *wifi_list;
+    gint                         num_scanned_wireless;
 };
 
 typedef struct _NwamuiEvent {
@@ -128,6 +127,8 @@ static void nwamui_daemon_get_property ( GObject         *object,
                                       guint            prop_id,
                                       GValue          *value,
                                       GParamSpec      *pspec);
+
+static void nwamui_daemon_set_num_scanned_wifi(NwamuiDaemon* self,  gint num_scanned_wifi);
 
 static void nwamui_daemon_finalize (     NwamuiDaemon *self);
 
@@ -211,13 +212,13 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_EVENT_CAUSE,
-                                     g_param_spec_int   ("event_cause",
-                                                         _("event_cause"),
-                                                         _("event_cause"),
-                                                          NWAMUI_DAEMON_EVENT_CAUSE_NONE,
-                                                          NWAMUI_DAEMON_EVENT_CAUSE_LAST-1,
-                                                          NWAMUI_DAEMON_EVENT_CAUSE_UNKNOWN,
+                                     PROP_NUM_SCANNED_WIFI,
+                                     g_param_spec_int   ("num_scanned_wifi",
+                                                         _("num_scanned_wifi"),
+                                                         _("num_scanned_wifi"),
+                                                          0,
+                                                          G_MAXINT,
+                                                          0,
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -389,9 +390,9 @@ nwamui_daemon_init (NwamuiDaemon *self)
     
     self->prv = g_new0 (NwamuiDaemonPrivate, 1);
     
+    self->prv->num_scanned_wireless = 0;
     self->prv->connected_to_nwamd = FALSE;
     self->prv->status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
-    self->prv->event_cause = NWAMUI_DAEMON_EVENT_CAUSE_NONE;
     self->prv->wep_timeout_id = 0;
     self->prv->communicate_change_to_daemon = TRUE;
     self->prv->active_env = NULL;
@@ -523,8 +524,8 @@ nwamui_daemon_set_property ( GObject         *object,
                   self->prv->status);
             }
             break;
-        case PROP_EVENT_CAUSE: {
-                self->prv->event_cause = g_value_get_int( value );
+        case PROP_NUM_SCANNED_WIFI: {
+                self->prv->num_scanned_wireless = g_value_get_int(value);
             }
             break;
         case PROP_WIFI_FAV: {
@@ -559,17 +560,16 @@ nwamui_daemon_get_property (GObject         *object,
                 g_value_set_int(value, self->prv->status);
             }
             break;
-        case PROP_EVENT_CAUSE: {
-                g_value_set_int(value, self->prv->event_cause);
-            }
-            break;
-
         case PROP_WIFI_FAV: {
                 GList *wifi_fav = NULL;
 
                 wifi_fav = nwamui_daemon_get_fav_wifi_networks( self );
 
                 g_value_set_pointer( value, wifi_fav );
+            }
+            break;
+        case PROP_NUM_SCANNED_WIFI: {
+                g_value_set_int(value, self->prv->num_scanned_wireless);
             }
             break;
 
@@ -1722,6 +1722,10 @@ dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  ui
 {
     gchar*  name = NULL;
 
+    if ( nwlan != daemon->prv->num_scanned_wireless ) {
+        nwamui_daemon_set_num_scanned_wifi( daemon, nwlan );
+    }
+
     if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
         return( FALSE );
     }
@@ -1914,80 +1918,25 @@ nwamui_event_free(NwamuiEvent *event)
     g_free(event);
 }
 
-static nwamui_daemon_event_cause_t
-convert_cause(libnwam_diag_cause_t cause)
+gint
+nwamui_daemon_get_num_scanned_wifi(NwamuiDaemon* self )
 {
-    nwamui_daemon_event_cause_t rval;
+    gint    num_scanned_wifi = 0;
 
-    switch (cause) {
-#if 0
-    /* TODO: Find way to discover cause of event */
-    case dcNone:      rval = NWAMUI_DAEMON_EVENT_CAUSE_NONE; break;
-    case dcDHCP:      rval = NWAMUI_DAEMON_EVENT_CAUSE_DHCP_DOWN; break;
-    case dcTimer:     rval = NWAMUI_DAEMON_EVENT_CAUSE_DHCP_TIMER; break;
-    case dcUnplugged: rval = NWAMUI_DAEMON_EVENT_CAUSE_UNPLUGGED; break;
-    case dcUser:      rval = NWAMUI_DAEMON_EVENT_CAUSE_USER_PRIO; break;
-    case dcBetter:    rval = NWAMUI_DAEMON_EVENT_CAUSE_HIGHER_PRIO_AVAIL; break;
-    case dcNewAP:     rval = NWAMUI_DAEMON_EVENT_CAUSE_NEW_AP; break;
-    case dcGone:      rval = NWAMUI_DAEMON_EVENT_CAUSE_AP_GONE; break;
-    case dcFaded:     rval = NWAMUI_DAEMON_EVENT_CAUSE_AP_FADED; break;
-    case dcAllDown:   rval = NWAMUI_DAEMON_EVENT_CAUSE_ALL_BUT_ONE_DOWN; break;
-    case dcUnwanted:  rval = NWAMUI_DAEMON_EVENT_CAUSE_NOT_WANTED; break;
-    case dcShutdown:  rval = NWAMUI_DAEMON_EVENT_CAUSE_DAEMON_SHUTTING_DOWN; break;
-    case dcSelect:    rval = NWAMUI_DAEMON_EVENT_CAUSE_DIFFERENT_AP_SELECTED; break;
-    case dcRemoved:   rval = NWAMUI_DAEMON_EVENT_CAUSE_HW_REMOVED; break;
-#endif        
-    default:
-        rval = NWAMUI_DAEMON_EVENT_CAUSE_UNKNOWN;
-        break;
-    }
-    return (rval);
-}
-
-const char *
-nwamui_daemon_get_event_cause_string(NwamuiDaemon* self )
-{
-    g_return_val_if_fail (NWAMUI_IS_DAEMON (self), _("unknown") );
-
-    switch (self->prv->event_cause) {
-    case NWAMUI_DAEMON_EVENT_CAUSE_DHCP_DOWN: return _("DHCP down");
-    case NWAMUI_DAEMON_EVENT_CAUSE_DHCP_TIMER: return _("DHCP timed out");
-    case NWAMUI_DAEMON_EVENT_CAUSE_UNPLUGGED: return _("Cable disconnected");
-    case NWAMUI_DAEMON_EVENT_CAUSE_USER_PRIO: return _("User changed priority");
-    case NWAMUI_DAEMON_EVENT_CAUSE_HIGHER_PRIO_AVAIL: return _("Higher priority, cable connected");
-    case NWAMUI_DAEMON_EVENT_CAUSE_NEW_AP: return _("Scan done on higher-priority wireless network interface");
-    case NWAMUI_DAEMON_EVENT_CAUSE_AP_GONE: return _("Periodic scan shows wireless network gone.");
-    case NWAMUI_DAEMON_EVENT_CAUSE_AP_FADED: return _("Periodic scan shows very weak signal on wireless network");
-    case NWAMUI_DAEMON_EVENT_CAUSE_ALL_BUT_ONE_DOWN: return _("All network interfaces but one going down");
-    case NWAMUI_DAEMON_EVENT_CAUSE_NOT_WANTED: return _("Another network interface is already active");
-    case NWAMUI_DAEMON_EVENT_CAUSE_DAEMON_SHUTTING_DOWN: return _("NWAM Daemon is shutting down");
-    case NWAMUI_DAEMON_EVENT_CAUSE_DIFFERENT_AP_SELECTED: return _("Different AP selected");
-    case NWAMUI_DAEMON_EVENT_CAUSE_HW_REMOVED: return _("Hardware removed");
-    case NWAMUI_DAEMON_EVENT_CAUSE_NONE: return _("none");
-    default:
-        return _("unknown");
-    }
-}
-
-nwamui_daemon_event_cause_t
-nwamui_daemon_get_event_cause(NwamuiDaemon* self )
-{
-    nwamui_daemon_event_cause_t cause = NWAMUI_DAEMON_EVENT_CAUSE_NONE;
-
-    g_return_val_if_fail (NWAMUI_IS_DAEMON (self), cause );
+    g_return_val_if_fail (NWAMUI_IS_DAEMON (self), num_scanned_wifi );
 
     g_object_get (G_OBJECT (self),
-                  "event_cause", &cause,
+                  "num_scanned_wifi", &num_scanned_wifi,
                   NULL);
 
-    return( cause );
+    return( num_scanned_wifi );
 }
 
 static void 
-nwamui_daemon_set_event_cause(NwamuiDaemon* self,  nwamui_daemon_event_cause_t event_cause )
+nwamui_daemon_set_num_scanned_wifi(NwamuiDaemon* self,  gint num_scanned_wifi)
 {
     g_object_set (G_OBJECT (self),
-                  "event_cause", event_cause,
+                  "num_scanned_wifi", num_scanned_wifi,
                   NULL); 
 }
 
@@ -2127,7 +2076,6 @@ nwamd_event_handler(gpointer data)
 	nwam_event_t             nwamevent = event->nwamevent;
     nwam_error_t             err;
 
-    daemon->prv->event_cause = NWAMUI_DAEMON_EVENT_CAUSE_NONE;
 
     g_debug("nwamd_event_handler : %d", event->e );
 
@@ -2705,7 +2653,6 @@ nwamd_event_handler(gpointer data)
             NwamuiNcu * current_ncu = NULL;
             const char* reason = NULL;
             gchar*      name = NULL;
-            nwamui_daemon_set_event_cause( daemon, convert_cause( nwamevent->led_cause ));
             reason = nwamui_daemon_get_event_cause_string( daemon );
 
             g_debug("'%s' network interface unselected, Reason: '%s'", nwamevent->led_interface, reason);
