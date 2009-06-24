@@ -1,3 +1,13 @@
+2009-06-24  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_conn_stat_panel.c:
+	  Update wireless icon on status panel to show signal strength.
+	  Fixes defect#9527.
+	* common/nwamui_ncp.c: 
+	  Fix counting of wireless i/f, it was being reset to 0, resulting in
+	  an incorrect icon in the panel since this cause the icon to not be
+	  updated. Fixes defect#9527.
+
 2009-06-23  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_ncp.c, common/nwamui_ncp.h:

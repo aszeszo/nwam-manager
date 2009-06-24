@@ -420,6 +420,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
               NULL);
         }
         else if( cell_num == 0 && ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+            strength = nwamui_ncu_get_signal_strength_from_dladm( ncu );
             status_icon = nwamui_util_get_network_status_icon(ncu_type, strength, 
                     ncu_status?NWAMUI_ENV_STATUS_CONNECTED : NWAMUI_ENV_STATUS_ERROR,
                     icon_size);

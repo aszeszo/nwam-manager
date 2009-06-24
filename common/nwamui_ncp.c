@@ -941,6 +941,42 @@ device_exists_on_system( gchar* device_name )
     return( rval );
 }
 
+static nwam_ncu_type_t
+get_nwam_ncu_type( nwam_ncu_handle_t ncu )
+{
+    nwam_error_t        nerr;
+    nwam_value_type_t   nwam_type;
+    nwam_value_t        nwam_data;
+    uint64_t            value = 0;
+    nwam_ncu_type_t     rval = NWAM_NCU_TYPE_LINK;
+
+    if ( ncu == NULL ) {
+        return( value );
+    }
+
+    if ( (nerr = nwam_ncu_get_prop_type( NWAM_NCU_PROP_TYPE, &nwam_type ) ) != NWAM_SUCCESS 
+         || nwam_type != NWAM_VALUE_TYPE_UINT64 ) {
+        g_warning("Unexpected type for ncu property %s - got %d\n", NWAM_NCU_PROP_TYPE, nwam_type );
+        return rval;
+    }
+
+    if ( (nerr = nwam_ncu_get_prop_value (ncu, NWAM_NCU_PROP_TYPE, &nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("No value for ncu property %s, error = %s", NWAM_NCU_PROP_TYPE, nwam_strerror( nerr ) );
+        return rval;
+    }
+
+    if ( (nerr = nwam_value_get_uint64(nwam_data, &value )) != NWAM_SUCCESS ) {
+        g_debug("Unable to get uint64 value for ncu property %s, error = %s", NWAM_NCU_PROP_TYPE, nwam_strerror( nerr ) );
+        return rval;
+    }
+
+    nwam_value_free(nwam_data);
+
+    rval = (nwam_ncu_type_t)value;
+
+    return( rval );
+}
+
 static gint _num_wireless = 0; /* Count wireless i/fs */
 
 static int
@@ -952,6 +988,7 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
     GtkTreeIter         iter;
     NwamuiNcp*          ncp = NWAMUI_NCP(data);
     NwamuiNcpPrivate*   prv = ncp->prv;
+    nwam_ncu_type_t     nwam_ncu_type;
 
     g_debug ("nwam_ncu_walker_cb 0x%p", ncu);
 
@@ -964,11 +1001,19 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
         /* Skip device that don't have a physical equivalent */
         return( 0 );
     }
-    
+
+    nwam_ncu_type = get_nwam_ncu_type(ncu);
+
     if ( (new_ncu = nwamui_ncp_get_ncu_by_device_name( ncp, name )) != NULL ) {
         /* Update rather than create a new object */
         g_debug("Updating existing ncu (%s) from handle 0x%08X", name, ncu );
         nwamui_ncu_update_with_handle( new_ncu, ncu);
+
+        /* Only count if it's a LINK class (to avoid double count) */
+        if ( nwam_ncu_type == NWAM_NCU_TYPE_LINK &&
+             new_ncu && nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
+            _num_wireless++;
+        }
 
         /*
          * Remove from temp_ncu_list, which is being used to find NCUs that
@@ -985,8 +1030,9 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
         g_debug("Creating a new ncu for %s from handle 0x%08X", name, ncu );
         new_ncu = nwamui_ncu_new_with_handle( NWAMUI_NCP(data), ncu);
 
-        /* Only count on first creation of the ncu */
-        if ( new_ncu && nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
+        /* Only count if it's a LINK class (to avoid double count) */
+        if ( nwam_ncu_type == NWAM_NCU_TYPE_LINK &&
+             new_ncu && nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
             _num_wireless++;
         }
 
