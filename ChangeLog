@@ -1,5 +1,26 @@
 2009-06-25  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_env_pref_dialog.c: (populate_panels_from_env),
+	  In on_ns_selection_toggled() I fixed how the NS selection was
+	  handled, making sure there is always 1 selected. Also incremented
+	  the count of nwam_nameservices for a new item, which was missed.
+	  This is part of the fix for defect#9559.
+	* common/nwamui_env.c:
+	  Fix a logic error where we were checking the GList data pointer for
+	  a NULL value when it's not a pointer but a guint64. This is another
+	  part of the fix for defect#9559.
+	* capplet/nwam_location_dialog.c: 
+	  Fix how the button sensitivity is being handled for SYSTEM
+	  activation mode objects. These objects cannot be renamed or
+	  destroyed, so we shouldn't enable the buttons for these.
+	  This fixes defect#9644.
+	  Also fixed an issue where a warning was being generated when you
+	  selected a location and clicked on Rename. This meant that you
+	  couldn't rename that itme.
+	  Also fixed some minor compilation warnings due to missing casts.
+
+2009-06-25  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_ncp.h, common/nwamui_ncp.c: 
 	  Update nwamui_ncp_all_ncus_online() to return a reference to the ncu
 	  and wifi objects that require action when a wifi selection or key is

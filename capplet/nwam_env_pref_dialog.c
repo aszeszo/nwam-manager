@@ -886,7 +886,19 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->files_service_cb), files );
 
+    /* If active, then set senstivity based on the number of services,
+     * otherwise it's always sensitive.
+     */
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->files_service_cb), 
+                            ((files)?(num_nameservices > 1):TRUE) );
+
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->dns_service_cb), dns );
+    /* If active, then set senstivity based on the number of services,
+     * otherwise it's always sensitive.
+     */
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_service_cb), 
+                            ((dns)?(num_nameservices > 1):TRUE) );
+
     if ( dns ) {
         gchar*                      dns_domain = NULL;
         GList*                      dns_servers = NULL;
@@ -942,6 +954,11 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     }
 
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->nis_service_cb), nis );
+    /* If active, then set senstivity based on the number of services,
+     * otherwise it's always sensitive.
+     */
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_service_cb), 
+                            ((nis)?(num_nameservices > 1):TRUE) );
 
     if ( nis ) {
         GList*                      nis_servers = NULL;
@@ -975,6 +992,11 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     }
 
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->ldap_service_cb), ldap );
+    /* If active, then set senstivity based on the number of services,
+     * otherwise it's always sensitive.
+     */
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_service_cb), 
+                            ((ldap)?(num_nameservices > 1):TRUE) );
 
     if ( ldap ) {
         GList*                      ldap_servers = NULL;
@@ -1493,7 +1515,24 @@ on_ns_selection_toggled(GtkToggleButton *togglebutton, gpointer user_data)
 
     if ( new_service != NWAMUI_ENV_NAMESERVICES_LAST ) {
         g_list_append( nameservices, (gpointer)new_service );
+        num_nameservices++;
     }
+    
+    /* If active, then set senstivity based on the number of services,
+     * otherwise it's always sensitive.
+     */
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->files_service_cb), 
+                            ((gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->files_service_cb)))?
+                             (num_nameservices > 1):TRUE) );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_service_cb), 
+                            ((gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->dns_service_cb)))?
+                             (num_nameservices > 1):TRUE) );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_service_cb), 
+                            ((gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->nis_service_cb)))?
+                             (num_nameservices > 1):TRUE) );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_service_cb), 
+                            ((gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->ldap_service_cb)))?
+                             (num_nameservices > 1):TRUE) );
     
     nwamui_env_set_nameservices( prv->selected_env, nameservices );
 

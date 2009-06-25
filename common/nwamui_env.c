@@ -1845,7 +1845,7 @@ convert_name_services_glist_to_unint64_array( GList* ns_glist, guint *count )
 
         i = 0;
         for ( GList *element  = g_list_first( ns_glist );
-              element != NULL && element->data != NULL;
+              element != NULL;
               element = g_list_next( element ) ) {
             guint64 ns = (guint64) element->data;
             /* Make sure it's a valid value */
