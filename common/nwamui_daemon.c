@@ -721,7 +721,9 @@ trigger_scan_if_wireless(  GtkTreeModel *model,
     
 	name = nwamui_ncu_get_device_name (ncu);
 
-    g_debug("i/f %s  = %s (%d)", name,  nwamui_ncu_get_ncu_type (ncu) == NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Wired", nwamui_ncu_get_ncu_type (ncu));
+    g_debug("i/f %s  = %s (%d)", name,  
+            nwamui_ncu_get_ncu_type (ncu) == NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Wired", nwamui_ncu_get_ncu_type (ncu));
+
 	if (nwamui_ncu_get_ncu_type (ncu) != NWAMUI_NCU_TYPE_WIRELESS ) {
         g_object_unref( ncu );
         g_free (name);
@@ -2872,8 +2874,22 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
             new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
         }
         else {
-            if ( !nwamui_ncp_all_ncus_online( prv->active_ncp ) ) {
+            NwamuiNcu       *needs_wifi_selection = NULL;
+            NwamuiWifiNet   *needs_wifi_key = NULL;
+            if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                 new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                if ( needs_wifi_selection != NULL ) {
+                    g_signal_emit (daemon,
+                      nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
+                      0, /* details */
+                      needs_wifi_selection );
+                }
+                if ( needs_wifi_key != NULL ) {
+                    g_signal_emit (daemon,
+                      nwamui_daemon_signals[WIFI_KEY_NEEDED],
+                      0, /* details */
+                      needs_wifi_key );
+                }
             }
         }
 
@@ -2946,8 +2962,36 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
                 }
                 else {
-                    if ( !nwamui_ncp_all_ncus_online( prv->active_ncp ) ) {
+                    NwamuiNcu       *changed_ncu = NULL;
+                    NwamuiNcu       *needs_wifi_selection = NULL;
+                    NwamuiWifiNet   *needs_wifi_key = NULL;
+                    char            *device_name = NULL;
+                    nwam_ncu_type_t  nwam_ncu_type;
+
+                    /* NCU's come in the typed name format (e.g. link:ath0) */
+                    if ( nwam_ncu_typed_name_to_name(object_name, &nwam_ncu_type, &device_name ) == NWAM_SUCCESS ) {
+                        changed_ncu = get_ncu_by_device_name( daemon, NULL, device_name );
+                        if ( changed_ncu != NULL ) {
+                            g_object_notify( G_OBJECT(changed_ncu), "active" );
+                            g_object_unref(changed_ncu);
+                        }
+                        free(device_name);
+                    }
+
+                    if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                        if ( needs_wifi_selection != NULL ) {
+                            g_signal_emit (daemon,
+                              nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
+                              0, /* details */
+                              needs_wifi_selection );
+                        }
+                        if ( needs_wifi_key != NULL ) {
+                            g_signal_emit (daemon,
+                              nwamui_daemon_signals[WIFI_KEY_NEEDED],
+                              0, /* details */
+                              needs_wifi_key );
+                        }
                     }
                 }
                 break;
@@ -2989,8 +3033,22 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
                 }
                 else {
-                    if ( !nwamui_ncp_all_ncus_online( prv->active_ncp ) ) {
+                    NwamuiNcu       *needs_wifi_selection = NULL;
+                    NwamuiWifiNet   *needs_wifi_key = NULL;
+                    if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                        if ( needs_wifi_selection != NULL ) {
+                            g_signal_emit (daemon,
+                              nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
+                              0, /* details */
+                              needs_wifi_selection );
+                        }
+                        if ( needs_wifi_key != NULL ) {
+                            g_signal_emit (daemon,
+                              nwamui_daemon_signals[WIFI_KEY_NEEDED],
+                              0, /* details */
+                              needs_wifi_key );
+                        }
                     }
                 }
                 break;

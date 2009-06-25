@@ -880,6 +880,20 @@ nwamui_ncu_get_property (GObject         *object,
                             active = TRUE;
                         }
                     }
+                    else if ( state == NWAM_STATE_OFFLINE_TO_ONLINE &&
+                              (aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ||
+                               aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ||
+                               aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) ) {
+                        /* Special case for Wireless - they are marked as
+                         * offline* while waiting for a key, but for the UI
+                         * this means it should be seen as active
+                         */
+                        active = TRUE;
+                    }
+                }
+                if ( active != self->prv->active ) {
+                    g_object_notify(G_OBJECT(self), "active" );
+                    self->prv->active = active;
                 }
                 g_value_set_boolean( value, active );
             }

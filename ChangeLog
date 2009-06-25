@@ -1,3 +1,28 @@
+2009-06-25  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_ncp.h, common/nwamui_ncp.c: 
+	  Update nwamui_ncp_all_ncus_online() to return a reference to the ncu
+	  and wifi objects that require action when a wifi selection or key is
+	  needed. 
+	  Update ncu_notify_cb() to also send row-changed events for the
+	  GtkListStore - Fixes defect#9532.
+	* common/nwamui_ncu.c: 
+	  For PROP_ACTIVE, a wireless link should be seen as active if it's in
+	  the state OFFLINE_TO_ONLINE and waiting for selection or key or is
+	  connecting to a wifi network. Fixes defect#9531.
+	  Also sent an notification message if active changes.
+	* common/nwamui_daemon.c: 
+	  Update usage of nwamui_ncp_all_ncus_online and dispatch wifi events
+	  if needed.
+	* common/nwamui_wifi_net.c: 
+	  Remove use of BSSID in nwamui_wifi_net_get_unique_name() since we
+	  see the ESSID as unique now since the BSSID is a list and will be
+	  merged if the same ESSID is seen.
+	* daemon/notify.c: 
+	  Fix notification functions to not unref the icon since it was never
+	  ref-ed in the first place - was causing a crash after showing some
+	  notifications.
+
 2009-06-24  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_stat_panel.c:

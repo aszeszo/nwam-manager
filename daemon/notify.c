@@ -486,9 +486,6 @@ nwam_notification_show_nwam_unavailable( void )
             icon,
             NOTIFY_EXPIRES_DEFAULT);
 
-    if ( icon != NULL ) {
-        g_object_unref(G_OBJECT(icon));
-    }
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
     }
@@ -555,9 +552,6 @@ nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
     g_free(summary_str);
     g_free(body_str);
 
-    if ( icon != NULL ) {
-        g_object_unref(G_OBJECT(icon));
-    }
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
     }
@@ -645,9 +639,6 @@ nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
     g_free(summary_str);
     g_free(body_str);
 
-    if ( icon != NULL ) {
-        g_object_unref(G_OBJECT(icon));
-    }
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
     }
@@ -708,9 +699,6 @@ nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu )
     g_free(summary_str);
     g_free(body_str);
 
-    if ( icon != NULL ) {
-        g_object_unref(G_OBJECT(icon));
-    }
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
     }
@@ -754,9 +742,6 @@ nwam_notification_show_ncu_wifi_selection_needed(   NwamuiNcu           *ncu,
     g_free(body);
     g_free(summary);
 
-    if ( icon != NULL ) {
-        g_object_unref(G_OBJECT(icon));
-    }
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
     }
@@ -802,9 +787,6 @@ nwam_notification_show_ncu_wifi_key_needed( NwamuiWifiNet       *wifi_net,
     g_free(body);
     g_free(summary);
 
-    if ( icon != NULL ) {
-        g_object_unref(G_OBJECT(icon));
-    }
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
     }
@@ -828,9 +810,6 @@ nwam_notification_show_no_wifi_networks( void )
             icon,
             NOTIFY_EXPIRES_DEFAULT);
 
-    if ( icon != NULL ) {
-        g_object_unref(G_OBJECT(icon));
-    }
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
     }
@@ -861,10 +840,6 @@ nwam_notification_show_ncp_changed( NwamuiNcp* ncp )
             NOTIFY_EXPIRES_DEFAULT);
 
     g_free(summary_str);
-
-    if ( icon != NULL ) {
-        g_object_unref(G_OBJECT(icon));
-    }
 
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
@@ -897,9 +872,6 @@ nwam_notification_show_location_changed( NwamuiEnv* env )
 
     g_free(summary_str);
 
-    if ( icon != NULL ) {
-        g_object_unref(G_OBJECT(icon));
-    }
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
     }

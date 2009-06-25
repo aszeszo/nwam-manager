@@ -81,7 +81,9 @@ extern gboolean                 nwamui_ncp_is_active( NwamuiNcp* self );
 
 extern gboolean                 nwamui_ncp_is_modifiable( NwamuiNcp *self);
 
-extern gboolean                 nwamui_ncp_all_ncus_online (NwamuiNcp *self);
+extern gboolean                 nwamui_ncp_all_ncus_online (NwamuiNcp       *self,
+                                                            NwamuiNcu      **needs_wifi_selection,
+                                                            NwamuiWifiNet  **needs_wifi_key );
 
 extern GList*                   nwamui_ncp_get_ncu_list( NwamuiNcp *self );
 

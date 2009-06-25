@@ -75,6 +75,8 @@ typedef struct {
     guint32         num_prio_shared_online;
     guint32         num_prio_all;
     guint32         num_prio_all_online;
+    NwamuiNcu      *needs_wifi_selection;
+    NwamuiWifiNet  *needs_wifi_key;
 } check_online_info_t;
 
 
@@ -617,9 +619,11 @@ check_ncu_online( gpointer obj, gpointer user_data )
     activation_mode = nwamui_ncu_get_activation_mode( ncu );
     state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL);
 
-    if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
+    if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_UP ) {
         online = TRUE;
     }
+
+    nwamui_warning("NCU %s: online = %s", nwamui_ncu_get_vanity_name(ncu), online?"True":"False" );
 
     switch (activation_mode) { 
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL: {
@@ -662,16 +666,35 @@ check_ncu_online( gpointer obj, gpointer user_data )
         default:
             break;
     }
+
+    if ( aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
+        if ( info_p->needs_wifi_selection == NULL ) {
+            info_p->needs_wifi_selection = NWAMUI_NCU(g_object_ref(ncu));
+        }
+    }
+
+    if ( aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY) {
+        if ( info_p->needs_wifi_key == NULL ) {
+            info_p->needs_wifi_key = nwamui_ncu_get_wifi_info(ncu);
+        }
+    }
+
 }
 
 /**
  * nwamui_ncp_all_ncus_online:
  * @nwamui_ncp: a #NwamuiNcp.
+ *
+ * Sets needs_wifi_selection to point to the NCU needing selection, or NULL.
+ * Sets needs_wifi_key to point to the WifiNet needing selection, or NULL.
+ *
  * @returns: TRUE if all the expected NCUs in the NCP are online
  *
  **/
 extern gboolean
-nwamui_ncp_all_ncus_online (NwamuiNcp *self)
+nwamui_ncp_all_ncus_online (NwamuiNcp       *self,
+                            NwamuiNcu      **needs_wifi_selection,
+                            NwamuiWifiNet  **needs_wifi_key )
 {
     nwam_error_t            nerr;
     gboolean                all_online = TRUE;
@@ -698,6 +721,15 @@ nwamui_ncp_all_ncus_online (NwamuiNcp *self)
     }
     else if ( info.num_prio_all != info.num_prio_all_online ) {
         all_online = FALSE;
+    }
+
+    if ( needs_wifi_selection != NULL ) {
+        /* No need to ref, since will already by ref-ed */
+        *needs_wifi_selection = info.needs_wifi_selection;
+    }
+    if ( needs_wifi_key != NULL ) {
+        /* No need to ref, since will already by ref-ed */
+        *needs_wifi_key = info.needs_wifi_key;
     }
 
     return( all_online );
@@ -1183,6 +1215,28 @@ ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
             path = gtk_tree_model_get_path(GTK_TREE_MODEL(self->prv->ncu_tree_store),
               &iter);
             gtk_tree_model_row_changed(GTK_TREE_MODEL(self->prv->ncu_tree_store),
+              path,
+              &iter);
+            gtk_tree_path_free(path);
+        }
+        if ( ncu )
+            g_object_unref(ncu);
+    }
+    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter);
+         valid_iter;
+         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter)) {
+        NwamuiNcu      *ncu;
+
+        gtk_tree_model_get( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter, 0, &ncu, -1);
+
+        if ( (gpointer)ncu == (gpointer)gobject ) {
+            GtkTreePath *path;
+
+            valid_iter = FALSE;
+
+            path = gtk_tree_model_get_path(GTK_TREE_MODEL(self->prv->ncu_list_store),
+              &iter);
+            gtk_tree_model_row_changed(GTK_TREE_MODEL(self->prv->ncu_list_store),
               path,
               &iter);
             gtk_tree_path_free(path);

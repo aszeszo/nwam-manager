@@ -1208,7 +1208,6 @@ extern gchar*
 nwamui_wifi_net_get_unique_name ( NwamuiWifiNet *self )
 {
     gchar*  ret_str = NULL;
-    gchar*  bssid = NULL;
     gchar*  essid = NULL;
     gchar*  device_name = NULL;
     
@@ -1218,15 +1217,13 @@ nwamui_wifi_net_get_unique_name ( NwamuiWifiNet *self )
 
     g_object_get (G_OBJECT (self),
                   "essid", &essid,
-                  "bssid", &bssid,
                   NULL);
 
     /* "%s - %s", so it's different to FALSEWLAN */
-    ret_str = g_strconcat(device_name?device_name:"", " - ", essid ? essid : "", " - ", bssid ? bssid : "", NULL);
+    ret_str = g_strconcat(device_name?device_name:"", " - ", essid ? essid : "", NULL);
 
     g_free(device_name);
     g_free(essid);
-    g_free(bssid);
 
     return( ret_str );
 }
