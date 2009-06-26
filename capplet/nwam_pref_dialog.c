@@ -320,17 +320,17 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 	NwamCappletDialog  *self = NWAM_CAPPLET_DIALOG(iface);
     gboolean            rval = TRUE;
     NwamuiDaemon       *daemon = NULL;
+    gint                cur_idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
 
     daemon = nwamui_daemon_get_instance();
 
-    if ( self->prv->selected_ncu ) {
-        /* Ensure we don't have unsaved data */
-        gint        cur_idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
-        gchar      *prop_name = NULL;
+    /* Ensure we don't have unsaved data */
+    if ( !nwam_pref_apply (NWAM_PREF_IFACE(NWAM_CAPPLET_DIALOG(self)->prv->panel[cur_idx]), NULL) ) {
+        rval = FALSE;
+    }
 
-        if ( !nwam_pref_apply (NWAM_PREF_IFACE(NWAM_CAPPLET_DIALOG(self)->prv->panel[cur_idx]), NULL) ) {
-            rval = FALSE;
-        }
+    if ( self->prv->selected_ncu ) {
+        gchar      *prop_name = NULL;
 
         /* Validate NCU */
         if ( !nwamui_ncu_validate( NWAMUI_NCU(self->prv->selected_ncu), &prop_name ) ) {

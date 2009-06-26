@@ -1,5 +1,14 @@
 2009-06-26  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_pref_dialog.c, common/nwamui_ncp.c: 
+	  Fix defect#9707 where the activation of the NCP wasn't being done.
+	  The call to apply changes in the panel was only being done if the
+	  selected_ncu was non-NULL - which it isn't if an NCU is not selected
+	  in the combo box. Also, found then that activating the Automatic NCP
+	  fired an exception.
+
+2009-06-26  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/capplet-utils.h, capplet/capplet-utils.c: 
 	  Add notification to handler to added objects so that we can track
 	  changes and send a row-changed event.

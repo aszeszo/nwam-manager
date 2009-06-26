@@ -279,7 +279,7 @@ nwamui_ncp_set_property (   GObject         *object,
 
     read_only = !nwamui_ncp_is_modifiable(self);
 
-    if ( read_only ) {
+    if ( prop_id != PROP_ACTIVE && read_only ) {
         g_error("Attempting to modify read-only ncp %s", self->prv->name?self->prv->name:"NULL");
         return;
     }
@@ -327,7 +327,7 @@ nwamui_ncp_set_property (   GObject         *object,
                 if ( state != NWAM_STATE_ONLINE && active ) {
                     nwam_error_t nerr;
                     if ( (nerr = nwam_ncp_enable (self->prv->nwam_ncp)) != NWAM_SUCCESS ) {
-                        g_warning("Failed to enable ncpation due to error: %s", nwam_strerror(nerr));
+                        g_warning("Failed to enable ncp due to error: %s", nwam_strerror(nerr));
                     }
                 }
                 else {
@@ -530,7 +530,7 @@ extern void
 nwamui_ncp_set_active (   NwamuiNcp *self,
                           gboolean        active )
 {
-    g_return_if_fail (NWAMUI_IS_ENV (self));
+    g_return_if_fail (NWAMUI_IS_NCP (self));
 
     g_object_set (G_OBJECT (self),
                   "active", active,
