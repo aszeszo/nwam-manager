@@ -45,8 +45,6 @@
 #include "capplet/nwam_wireless_dialog.h"
 #include "capplet/capplet-utils.h"
 
-extern gboolean debug;
-
 typedef struct _NwamStatusIconPrivate NwamStatusIconPrivate;
 #define NWAM_STATUS_ICON_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_STATUS_ICON, NwamStatusIconPrivate))
 
@@ -278,7 +276,7 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
     case NWAMUI_DAEMON_STATUS_ERROR:
         prv->enable_pop_up_menu = FALSE;
 
-        if (debug) {
+        if (nwamui_util_is_debug_mode()) {
             gtk_status_icon_set_visible(GTK_STATUS_ICON(self), TRUE);
             prv->enable_pop_up_menu = TRUE;
         }
@@ -1457,7 +1455,7 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
     CACHE_STATIC_MENUITEMS(self, MENUITEM_HELP);
 
     /* Only available for testing. */
-    if (debug) {
+    if (nwamui_util_is_debug_mode()) {
         int i;
         for (i = MENUITEM_TEST; i < N_STATIC_MENUITEMS; i++) {
             menu_append_item(root_menu,
@@ -1482,7 +1480,7 @@ nwam_menu_item_create(NwamMenu *self, NwamuiObject *object)
     GType type = G_OBJECT_TYPE(object);
     GtkWidget *item;
 
-    if (debug) {
+    if (nwamui_util_is_debug_mode()) {
         gchar *name = nwamui_object_get_name(object);
         g_debug("%s %s", __func__, name);
         g_free(name);
@@ -1511,7 +1509,7 @@ nwam_menu_item_delete(NwamMenu *self, NwamuiObject *object)
     GtkWidget *item;
     gint sec_id;
 
-    if (debug) {
+    if (nwamui_util_is_debug_mode()) {
         gchar *name = nwamui_object_get_name(object);
         g_debug("%s %s", __func__, name);
         g_free(name);

@@ -939,24 +939,23 @@ nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
                 }
             }
 
-#if 0
-            g_object_set(G_OBJECT(renderer),
-              "sensitive", TRUE,
-              "markup", str ? str:"TODO",
-              NULL);
-#else
-            {
+            if ( nwamui_util_is_debug_mode()  ) { /* Append the group_id */
                 gchar *id;
                 gint    group_id = 0;
                 group_id = (gint)g_object_get_data(G_OBJECT(ncu), NWAM_COND_NCU_GROUP_ID);
-                id = g_strdup_printf("%s: %d", str ? str:"TODO", group_id);
+                id = g_strdup_printf("%s: %d", str ? str:"<i>Unknown</i>", group_id);
                 g_object_set(G_OBJECT(renderer),
                   "sensitive", TRUE,
                   "markup", id,
                   NULL);
                 g_free(id);
             }
-#endif
+            else {
+                g_object_set(G_OBJECT(renderer),
+                  "sensitive", TRUE,
+                  "markup", str ? str:"<i>Unknown</i>",
+                  NULL);
+            }
         }
     }
         break;

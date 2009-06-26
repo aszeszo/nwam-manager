@@ -5826,7 +5826,7 @@ system/system-log:default
             <property name="visible">True</property>
             <property name="layout_style">end</property>
             <child>
-              <object class="GtkButton" id="revert_btn">
+              <object class="GtkButton" id="rules_revert_btn">
                 <property name="label" translatable="yes">gtk-revert-to-saved</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -5840,10 +5840,11 @@ system/system-log:default
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="cancel_btn">
+              <object class="GtkButton" id="rules_cancel_btn">
                 <property name="label" translatable="yes">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="can_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
               </object>
@@ -5854,10 +5855,11 @@ system/system-log:default
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="ok_btn">
+              <object class="GtkButton" id="rules_ok_btn">
                 <property name="label" translatable="yes">gtk-ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
+                <property name="can_default">True</property>
                 <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
               </object>
@@ -5877,9 +5879,9 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-2">revert_btn</action-widget>
-      <action-widget response="-6">cancel_btn</action-widget>
-      <action-widget response="-5">ok_btn</action-widget>
+      <action-widget response="-2">rules_revert_btn</action-widget>
+      <action-widget response="-6">rules_cancel_btn</action-widget>
+      <action-widget response="-5">rules_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="edit_connections_dialog">
@@ -5992,8 +5994,8 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="0">cancel_btn</action-widget>
-      <action-widget response="0">ok_btn</action-widget>
+      <action-widget response="-6">cancel_btn</action-widget>
+      <action-widget response="-5">ok_btn</action-widget>
     </action-widgets>
   </object>
 </interface>

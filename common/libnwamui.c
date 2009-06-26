@@ -276,7 +276,50 @@ nwamui_util_glade_get_widget( const gchar* widget_name )
         
 #endif /* USE_GLADE */
 
-/**
+static gboolean _debug = FALSE;
+
+/*
+ * Get/Set debug mode.
+ */
+
+extern void
+nwamui_util_set_debug_mode( gboolean enabled )
+{
+    _debug = enabled;
+}
+
+extern gboolean
+nwamui_util_is_debug_mode( void )
+{
+    return( _debug );
+}
+
+/* 
+ * Default log handler setup
+ */
+static void
+default_log_handler( const gchar    *log_domain,
+                     GLogLevelFlags  log_level,
+                     const gchar    *message,
+                     gpointer        unused_data)
+{
+    /* If "debug" not set then filter out debug messages. */
+    if ((log_level & G_LOG_LEVEL_MASK) == G_LOG_LEVEL_DEBUG && !_debug) {
+        /* Do nothing */
+        return;
+    }
+
+    /* Otherwise just log as usual */
+    g_log_default_handler (log_domain, log_level, message, unused_data);
+}
+
+extern void
+nwamui_util_default_log_handler_init( void )
+{
+    g_log_set_default_handler( default_log_handler, NULL );
+}    
+
+/*
  * nwamui_util_wifi_sec_to_string:
  * @wireless_sec: a #nwamui_wifi_security_t.
  * @returns: a localized string representation of the security type

@@ -256,6 +256,15 @@ nwamui_object_commit(NwamuiObject *object)
     return NWAMUI_OBJECT_GET_CLASS (object)->commit(object);
 }
 
+extern gboolean
+nwamui_object_destroy(NwamuiObject *object)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
+    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->destroy, FALSE);
+
+    return NWAMUI_OBJECT_GET_CLASS (object)->destroy(object);
+}
+
 extern void
 nwamui_object_reload(NwamuiObject *object)
 {

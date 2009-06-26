@@ -94,6 +94,7 @@ static const gchar *combo_contents[NWAMUI_LOC_ACTIVATION_LAST] = {
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
@@ -165,6 +166,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
 	iface->apply = apply;
+	iface->cancel = cancel;
 	iface->help = help;
     iface->dialog_run = dialog_run;
 }
@@ -407,32 +409,6 @@ nwam_update_obj (NwamLocationDialog *self, GObject *obj)
     }
     g_free(prev_txt);
 #endif
-    enabled = nwamui_env_get_enabled(NWAMUI_ENV(obj));
-    if (enabled != nwamui_object_get_active(NWAMUI_OBJECT(obj))) {
-        nwamui_object_set_active(NWAMUI_OBJECT(obj), enabled);
-    }
-
-    cond = nwamui_object_get_activation_mode(NWAMUI_OBJECT(obj));
-    switch (gtk_combo_box_get_active(prv->location_activation_combo)) {
-    case NWAMUI_LOC_ACTIVATION_MANUAL:
-        if (cond != NWAMUI_COND_ACTIVATION_MODE_MANUAL) {
-            nwamui_object_set_activation_mode(NWAMUI_OBJECT(obj), NWAMUI_COND_ACTIVATION_MODE_MANUAL);
-        }
-        break;
-    case NWAMUI_LOC_ACTIVATION_BY_RULES:
-        if (cond != NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY) {
-            nwamui_object_set_activation_mode(NWAMUI_OBJECT(obj), NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY);
-        }
-        break;
-    case NWAMUI_LOC_ACTIVATION_BY_SYSTEM:
-        if (cond != NWAMUI_COND_ACTIVATION_MODE_SYSTEM) {
-            nwamui_object_set_activation_mode(NWAMUI_OBJECT(obj), NWAMUI_COND_ACTIVATION_MODE_SYSTEM);
-        }
-        break;
-    default:
-        g_assert_not_reached();
-        break;
-    }
 
 	return TRUE;
 }
@@ -491,6 +467,37 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     capplet_reset_increasable_name(G_OBJECT(self));
 
     return( TRUE );
+}
+
+static gboolean
+tree_model_foreach_revert(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data)
+{
+	NwamuiEnv *env;
+
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &env, -1);
+    if (env) {
+        nwamui_object_reload( NWAMUI_OBJECT(env) );
+        g_object_unref(env);
+    }
+    return FALSE;
+}
+static gboolean
+cancel(NwamPrefIFace *iface, gpointer user_data)
+{
+    GtkTreeModel          *model;
+    NwamLocationDialog    *self = NWAM_LOCATION_DIALOG( iface );
+
+    /* Re-read objects from system 
+     */
+
+	model = gtk_tree_view_get_model(self->prv->location_tree);
+    gtk_tree_model_foreach(model,
+                           tree_model_foreach_revert,
+                           NULL);
+
 }
 
 static gboolean
@@ -894,6 +901,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
                 g_debug("Removing location: '%s'", name);
             
                 gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+                nwamui_env_destroy(env);
             }
         
             if (name)
@@ -1008,7 +1016,8 @@ location_activation_combo_changed_cb(GtkComboBox* combo, gpointer user_data)
 {
     NwamLocationDialog*           self = NWAM_LOCATION_DIALOG(user_data);
     NwamLocationDialogPrivate*    prv = self->prv;
-	GtkTreeIter iter;
+    GtkTreeModel*                 model = NULL;
+    GtkTreeIter                   iter;
 
 	if (gtk_combo_box_get_active_iter(combo, &iter)) {
         gint row_data;
@@ -1022,6 +1031,35 @@ location_activation_combo_changed_cb(GtkComboBox* combo, gpointer user_data)
             break;
         }
 	}
+
+    if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->location_tree), &model, &iter ) ) {
+        NwamuiEnv                      *env;
+        nwamui_cond_activation_mode_t   cond;
+
+        gtk_tree_model_get(model, &iter, 0, &env, -1);
+        
+        cond = nwamui_object_get_activation_mode(NWAMUI_OBJECT(env));
+        switch (gtk_combo_box_get_active(prv->location_activation_combo)) {
+        case NWAMUI_LOC_ACTIVATION_MANUAL:
+            if (cond != NWAMUI_COND_ACTIVATION_MODE_MANUAL) {
+                nwamui_object_set_activation_mode(NWAMUI_OBJECT(env), NWAMUI_COND_ACTIVATION_MODE_MANUAL);
+            }
+            break;
+        case NWAMUI_LOC_ACTIVATION_BY_RULES:
+            if (cond != NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY) {
+                nwamui_object_set_activation_mode(NWAMUI_OBJECT(env), NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY);
+            }
+            break;
+        case NWAMUI_LOC_ACTIVATION_BY_SYSTEM:
+            if (cond != NWAMUI_COND_ACTIVATION_MODE_SYSTEM) {
+                nwamui_object_set_activation_mode(NWAMUI_OBJECT(env), NWAMUI_COND_ACTIVATION_MODE_SYSTEM);
+            }
+            break;
+        default:
+            g_assert_not_reached();
+            break;
+        }
+    }
 }
 
 static void
@@ -1047,6 +1085,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 			break;
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
+            nwam_pref_cancel(NWAM_PREF_IFACE(data), NULL);
 			gtk_widget_hide (GTK_WIDGET(prv->location_dialog));
             stop_emission = FALSE;
 			break;

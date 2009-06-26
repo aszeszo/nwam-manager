@@ -76,11 +76,13 @@ gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
         GtkTreeIter iter;                                               \
         gtk_list_store_append(GTK_LIST_STORE(model), &iter);            \
         gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, object, -1); \
+        g_signal_connect(G_OBJECT(object), "notify", (GCallback)capplet_util_object_notify_cb, (gpointer)model); \
     }
 #define CAPPLET_TREE_STORE_ADD(model, parent, object, iter)             \
     {                                                                   \
         gtk_tree_store_append(GTK_TREE_STORE(model), iter, parent);     \
         gtk_tree_store_set(GTK_TREE_STORE(model), iter, 0, object, -1); \
+        g_signal_connect(G_OBJECT(object), "notify", (GCallback)capplet_util_object_notify_cb, (gpointer)model); \
     }
 #define TREE_STORE_INSET_BEFORE(model, parent, sibling, object, iter)   \
     {                                                                   \
@@ -217,5 +219,7 @@ gchar* capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GO
 gint capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix);
 
 gchar* capplet_get_original_name(const gchar *prefix, const gchar *name);
+
+void capplet_util_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 #endif /* _CAPPLET_UTILS_H */

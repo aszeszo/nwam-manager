@@ -37,7 +37,6 @@
 #include "nwam-menu.h"
 #include "libnwamui.h"
 
-extern gboolean debug;
 #define DEBUG()	g_debug ("[[ %20s : %-4d ]]", __func__, __LINE__)
 
 typedef struct _NwamMenuPrivate NwamMenuPrivate;
@@ -250,7 +249,7 @@ nwam_menu_real_remove(GtkContainer *container, GtkWidget *widget)
     g_signal_emit(container, nwam_menu_signals[GET_SECTION_INDEX], 0,
       widget, (gpointer)&index);
 
-    if (debug) {
+    if (nwamui_util_is_debug_mode()) {
         if (NWAM_IS_OBJ_PROXY_IFACE(widget)) {
             NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(widget)));
             gchar *name = nwamui_object_get_name(object);
@@ -284,7 +283,7 @@ nwam_menu_real_insert(GtkMenuShell *menu_shell,
     g_signal_emit(menu_shell, nwam_menu_signals[GET_SECTION_INDEX], 0,
       child, (gpointer)&index);
 
-    if (debug) {
+    if (nwamui_util_is_debug_mode()) {
         if (NWAM_IS_OBJ_PROXY_IFACE(child)) {
             NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(child)));
             gchar *name = nwamui_object_get_name(object);

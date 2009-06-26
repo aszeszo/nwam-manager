@@ -279,6 +279,7 @@ extern gboolean             nwamui_env_activate (NwamuiEnv *self);
 
 extern gboolean             nwamui_env_has_modifications( NwamuiEnv* self );
 extern gboolean             nwamui_env_commit( NwamuiEnv* self );
+extern gboolean             nwamui_env_destroy( NwamuiEnv* self );
 extern gboolean             nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret );
 extern void                 nwamui_env_reload( NwamuiEnv* self );
 

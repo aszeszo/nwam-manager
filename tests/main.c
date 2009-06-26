@@ -55,22 +55,6 @@ GOptionEntry application_options[] = {
         { NULL }
 };
 
-static void
-default_log_handler( const gchar    *log_domain,
-                     GLogLevelFlags  log_level,
-                     const gchar    *message,
-                     gpointer        unused_data)
-{
-    /* If "debug" not set then filter out debug messages. */
-    if ((log_level & G_LOG_LEVEL_MASK) == G_LOG_LEVEL_DEBUG && !debug) {
-        /* Do nothing */
-        return;
-    }
-
-    /* Otherwise just log as usual */
-    g_log_default_handler (log_domain, log_level, message, unused_data);
-}
-
 /*
  * 
  */
@@ -91,7 +75,7 @@ main(int argc, char** argv)
     gtk_set_locale ();
     
     /* Setup log handler to trap debug messages */
-    g_log_set_default_handler( default_log_handler, NULL );
+    nwamui_util_default_log_handler_init();
 
     option_context = g_option_context_new("test-nwam");
     g_option_context_add_main_entries(option_context, application_options, NULL);
@@ -101,6 +85,8 @@ main(int argc, char** argv)
                                   GNOME_PARAM_APP_DATADIR, NWAM_MANAGER_DATADIR,
                                   GNOME_PARAM_GOPTION_CONTEXT, option_context,
                                   GNOME_PARAM_NONE);
+
+    nwamui_util_set_debug_mode( debug );
 
     daemon = nwamui_daemon_get_instance();
     nwamui_daemon_wifi_start_scan(daemon);

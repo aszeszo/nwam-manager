@@ -1,3 +1,46 @@
+2009-06-26  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/capplet-utils.h, capplet/capplet-utils.c: 
+	  Add notification to handler to added objects so that we can track
+	  changes and send a row-changed event.
+	* common/libnwamui.h, common/libnwamui.c: 
+	  Create functions to get/set debug_mode (rather than using global
+	  vars) and centralize the function to init the default log handler
+	  too.
+	* capplet/main.c, daemon/main.c, tests/main.c, daemon/nwam-menu.c,
+	  daemon/status_icon.c: 
+	  Change use of debug variable to use of nwamui_util_* debug
+	  functions.
+	* capplet/nwam-manager-properties.ui:
+	  Fix defect#9627 where because the names of the buttons in the
+	  refresh dialog weren't unique GtkBuilder wasn't "linking" them to
+	  the response callback.
+	* capplet/nwam_condition_vbox.c: 
+	  Add cancel function to nwam_pref interface.
+	* capplet/nwam_env_pref_dialog.c: 
+	  Implement a cancel() function and add it to nwam_pref interface,
+	  then ensure that it's being called in there response callback.
+	* capplet/nwam_location_dialog.c: 
+	  Implement a cancel() function and add it to nwam_pref interface,
+	  then ensure that it's being called in there response callback.
+	  Ensure that settign the activation mode was applied to the correct
+	  object - it was being applied to all objects!
+	  Fixes defect#9603.
+	  Add destroy function call to destroy an Env object when remove is
+	  called. Fixes defect#9604.
+	* capplet/nwam_net_conf_panel.c:
+	  Change code to only show the value of the priority group if
+	  debug_mode is enabled.
+	* capplet/nwam_rules_dialog.c: 
+	  Call refresh function not cancel when Revert button is pressed.
+	* common/nwamui_env.h, common/nwamui_env.c: 
+	  Add destroy function - to allow for object removal from system.
+	  Also fix when the nwam_loc_disable function is called, it was being
+	  called at improper times.
+	* common/nwamui_object.c, common/nwamui_object.h:
+	  Add common object destroy function (currently only used with Env,
+	  but should be added to others too).
+
 2009-06-25  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_env_pref_dialog.c: (populate_panels_from_env),

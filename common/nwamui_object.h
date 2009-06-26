@@ -63,6 +63,7 @@ typedef    void                 (*nwamui_object_set_active_func_t)(NwamuiObject 
 typedef    nwam_state_t         (*nwamui_object_get_nwam_state_func_t)(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string );
 typedef    gboolean             (*nwamui_object_commit_func_t)(NwamuiObject *object);
 typedef    void                 (*nwamui_object_reload_func_t)(NwamuiObject *object);
+typedef    gboolean             (*nwamui_object_destroy_func_t)(NwamuiObject *object);
 
 struct _NwamuiObjectClass
 {
@@ -79,6 +80,7 @@ struct _NwamuiObjectClass
     nwamui_object_get_nwam_state_func_t         get_nwam_state;
     nwamui_object_commit_func_t                 commit;
     nwamui_object_reload_func_t                 reload;
+    nwamui_object_destroy_func_t                destroy;
 };
 
 extern  GType               nwamui_object_get_type (void) G_GNUC_CONST;
@@ -94,6 +96,7 @@ extern void                 nwamui_object_set_active(NwamuiObject *object, gbool
 extern nwam_state_t         nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string );
 extern gboolean             nwamui_object_commit(NwamuiObject *object);
 extern void                 nwamui_object_reload(NwamuiObject *object);
+extern gboolean             nwamui_object_destroy(NwamuiObject *object);
 
 G_END_DECLS
 

@@ -37,6 +37,8 @@ typedef struct _CappletForeachData {
 	gpointer ret_data;
 } CappletForeachData;
 
+static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+
 static gboolean
 capplet_model_foreach_find_object(GtkTreeModel *model,
     GtkTreePath *path,
@@ -662,5 +664,39 @@ capplet_get_original_name(const gchar *prefix, const gchar *name)
 		}
 	}
 	return NULL;
+}
+
+extern void
+capplet_util_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    GtkTreeModel   *model = GTK_TREE_MODEL(data);
+    GtkTreeIter     iter;
+    gboolean        valid_iter = FALSE;
+
+    g_debug("capplet-utils: notify %s changed", arg1->name);
+
+    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(model), &iter);
+         valid_iter;
+         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(model), &iter)) {
+        GObject*    obj;
+
+        gtk_tree_model_get( GTK_TREE_MODEL(model), &iter, 0, &obj, -1);
+
+        if ( (gpointer)obj == (gpointer)gobject ) {
+            GtkTreePath *path;
+
+            valid_iter = FALSE;
+
+            path = gtk_tree_model_get_path(GTK_TREE_MODEL(model),
+              &iter);
+            gtk_tree_model_row_changed(GTK_TREE_MODEL(model),
+              path,
+              &iter);
+            gtk_tree_path_free(path);
+        }
+        if ( obj )
+            g_object_unref(obj);
+    }
+
 }
 

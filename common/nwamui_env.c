@@ -206,6 +206,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_env_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_env_commit;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_env_reload;
+    nwamuiobject_class->destroy = (nwamui_object_destroy_func_t)nwamui_env_destroy;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -692,10 +693,11 @@ nwamui_env_set_property (   GObject         *object,
                             g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
                         }
                     }
-                    else if ( state != NWAM_STATE_OFFLINE  ) {
+                    else if ( (state != NWAM_STATE_DISABLED && state != NWAM_STATE_OFFLINE )
+                              && !self->prv->enabled  ) {
                         nwam_error_t nerr;
                         if ( (nerr = nwam_loc_disable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
-                            g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
+                            g_warning("Failed to disable location due to error: %s", nwam_strerror(nerr));
                         }
                     }
                 }
@@ -3784,6 +3786,29 @@ nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret )
 }
 
 /**
+ * nwamui_env_destroy:   destroy in-memory configuration, to persistant storage
+ * @returns: TRUE if succeeded, FALSE if failed
+ **/
+extern gboolean
+nwamui_env_destroy( NwamuiEnv* self )
+{
+    nwam_error_t    nerr;
+
+    g_return_val_if_fail( NWAMUI_IS_ENV(self), FALSE );
+
+    if ( self->prv->nwam_loc != NULL ) {
+
+        if ( (nerr = nwam_loc_destroy( self->prv->nwam_loc, 0 ) ) != NWAM_SUCCESS ) {
+            g_warning("Failed when destroying LOC for %s", self->prv->name);
+            return( FALSE );
+        }
+        self->prv->nwam_loc = NULL;
+    }
+
+    return( TRUE );
+}
+
+/**
  * nwamui_env_commit:   commit in-memory configuration, to persistant storage
  * @returns: TRUE if succeeded, FALSE if failed
  **/
@@ -3795,22 +3820,37 @@ nwamui_env_commit( NwamuiEnv* self )
     g_return_val_if_fail( NWAMUI_IS_ENV(self), FALSE );
 
     if ( self->prv->nwam_loc_modified && self->prv->nwam_loc != NULL ) {
+        nwamui_cond_activation_mode_t activation_mode;
+
         if ( (nerr = nwam_loc_commit( self->prv->nwam_loc, 0 ) ) != NWAM_SUCCESS ) {
             g_warning("Failed when committing LOC for %s", self->prv->name);
             return( FALSE );
         }
-        if ( self->prv->enabled ) {
-            nwam_error_t nerr;
-            if ( (nerr = nwam_loc_enable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
-                g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
-                return (FALSE);
+
+        /* Activate immediately, if manual and is enabled */
+        activation_mode = (nwamui_cond_activation_mode_t)
+            get_nwam_loc_uint64_prop( self->prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
+
+        if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL ) {
+            nwam_state_t        state = NWAM_STATE_OFFLINE;
+            nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+
+            nwam_loc_get_state( self->prv->nwam_loc, &state, &aux_state );
+
+            if ( state != NWAM_STATE_ONLINE && self->prv->enabled ) {
+                nwam_error_t nerr;
+                if ( (nerr = nwam_loc_enable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
+                    g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
+                    return (FALSE);
+                }
             }
-        }
-        else {
-            nwam_error_t nerr;
-            if ( (nerr = nwam_loc_disable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
-                g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
-                return (FALSE);
+            else if ( (state != NWAM_STATE_DISABLED && state != NWAM_STATE_OFFLINE )
+                      && !self->prv->enabled  ) {
+                nwam_error_t nerr;
+                if ( (nerr = nwam_loc_disable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
+                    g_warning("Failed to disable location due to error: %s", nwam_strerror(nerr));
+                    return (FALSE);
+                }
             }
         }
     }
@@ -3821,7 +3861,6 @@ nwamui_env_commit( NwamuiEnv* self )
 static void
 nwamui_env_finalize (NwamuiEnv *self)
 {
-    g_assert_not_reached();
     
     if (self->prv->name != NULL ) {
         g_free( self->prv->name );

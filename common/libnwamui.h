@@ -222,6 +222,12 @@ void marshal_VOID__OBJECT_POINTER(GClosure     *closure,
 /* Utility Functions */
 extern GtkWidget*               nwamui_util_glade_get_widget( const gchar* widget_name );
 
+extern void                     nwamui_util_default_log_handler_init( void );
+
+extern void                     nwamui_util_set_debug_mode( gboolean enabled );
+
+extern gboolean                 nwamui_util_is_debug_mode( void );
+
 extern gchar*                   nwamui_util_wifi_sec_to_string( nwamui_wifi_security_t wireless_sec );
 
 extern gchar*                   nwamui_util_wifi_sec_to_short_string( nwamui_wifi_security_t wireless_sec );

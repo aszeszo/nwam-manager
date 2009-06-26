@@ -241,6 +241,7 @@ struct _NwamEnvPrefDialogPrivate {
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
+static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
@@ -331,6 +332,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
 	iface->apply = apply;
+	iface->cancel = cancel;
     iface->help = help;
     iface->dialog_run = dialog_run;
 }
@@ -1868,6 +1870,7 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
         break;
     case GTK_RESPONSE_CANCEL:
         g_debug("GTK_RESPONSE_CANCEL");
+        nwam_pref_cancel (NWAM_PREF_IFACE(data), NULL);
         gtk_widget_hide( GTK_WIDGET(self->prv->env_pref_dialog) );
         stop_emission = TRUE;
         break;
@@ -1923,6 +1926,24 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 	return TRUE;
 }
 
+static gboolean
+cancel(NwamPrefIFace *iface, gpointer user_data)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
+    NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(iface);
+    NwamuiEnv *current_env;
+
+    g_debug("NwamEnvPrefDialog cancel");
+
+    if (!prv->selected_env) {
+        return TRUE;
+    }
+    else {
+        nwamui_object_reload( NWAMUI_OBJECT(prv->selected_env) );
+    }
+
+    return TRUE;
+}
 static gboolean
 apply(NwamPrefIFace *iface, gpointer user_data)
 {

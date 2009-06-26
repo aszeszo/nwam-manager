@@ -48,7 +48,7 @@
 #define	NET_AUTOCONF_AUTH	"solaris.network.autoconf"
 
 /* Command-line options */
-gboolean debug = FALSE;
+static gboolean debug = FALSE;
 
 static GOptionEntry option_entries[] = {
     {"debug", 'D', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
@@ -208,22 +208,6 @@ find_wireless_interface(GtkTreeModel *model,
     return FALSE;
 }
 
-static void
-default_log_handler( const gchar    *log_domain,
-                     GLogLevelFlags  log_level,
-                     const gchar    *message,
-                     gpointer        unused_data)
-{
-    /* If "debug" not set then filter out debug messages. */
-    if ((log_level & G_LOG_LEVEL_MASK) == G_LOG_LEVEL_DEBUG && !debug) {
-        /* Do nothing */
-        return;
-    }
-
-    /* Otherwise just log as usual */
-    g_log_default_handler (log_domain, log_level, message, unused_data);
-}
-
 static gboolean
 user_has_autoconf_auth( void )
 {
@@ -309,7 +293,9 @@ main( int argc, char* argv[] )
 
 
     /* Setup log handler to trap debug messages */
-    g_log_set_default_handler( default_log_handler, NULL );
+    nwamui_util_default_log_handler_init();
+
+    nwamui_util_set_debug_mode( debug );
 
     act.sa_sigaction = cleanup_and_exit;
     sigemptyset (&act.sa_mask);
@@ -324,7 +310,7 @@ main( int argc, char* argv[] )
         exit(0);
     }
 
-    if ( !debug ) {
+    if ( !nwamui_util_is_debug_mode() ) {
         client = gnome_master_client ();
         gnome_client_set_restart_command (client, argc, argv);
         gnome_client_set_restart_style (client, GNOME_RESTART_IMMEDIATELY);
@@ -378,7 +364,7 @@ main( int argc, char* argv[] )
      */
     status_icon = nwam_status_icon_new();
     gtk_init_add(init_wait_for_embedding, (gpointer)status_icon);
-    if ( debug ) {
+    if ( nwamui_util_is_debug_mode() ) {
         g_message("Show status icon initially on debug mode.");
     }
 
