@@ -719,7 +719,7 @@ nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
 
         network_status_icons[net_status][ncu_type][strength][icon_size] = inf_icon;
     }
-    return(network_status_icons[net_status][ncu_type][strength][icon_size]);
+    return(GDK_PIXBUF(g_object_ref(network_status_icons[net_status][ncu_type][strength][icon_size])));
 }
 
 extern GdkPixbuf*

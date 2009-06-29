@@ -97,6 +97,7 @@ struct _NwamVPNPrefDialogPrivate {
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 extern gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
@@ -151,6 +152,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
     iface->refresh = refresh;
     iface->apply = apply;
+	iface->cancel = cancel;
     iface->help = help;
     iface->dialog_run = dialog_run;
 }
@@ -515,6 +517,11 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 
     if (force) {
     }
+}
+
+static gboolean
+cancel(NwamPrefIFace *iface, gpointer user_data)
+{
 }
 
 static gboolean

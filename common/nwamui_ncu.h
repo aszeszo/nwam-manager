@@ -96,6 +96,7 @@ extern gboolean             nwamui_ncu_has_modifications( NwamuiNcu* self );
 extern gboolean             nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret );
 extern gboolean             nwamui_ncu_commit( NwamuiNcu* self );
 extern void                 nwamui_ncu_reload( NwamuiNcu* self );
+extern gboolean             nwamui_ncu_destroy( NwamuiNcu* self );
 
 extern gchar*               nwamui_ncu_get_vanity_name ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name );

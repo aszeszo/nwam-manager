@@ -90,6 +90,9 @@ struct _NwamuiNcpPrivate {
         GList*                      ncu_list;
         GtkTreeStore*               ncu_tree_store;
         GtkListStore*               ncu_list_store;
+        GList*                      ncus_removed;
+        GList*                      ncus_added;
+
         GList*                      temp_ncu_list;
 };
 
@@ -142,6 +145,7 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncp_get_name;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)NULL;
+    nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_ncp_commit;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -259,6 +263,12 @@ nwamui_ncp_init ( NwamuiNcp *self)
     self->prv->ncu_list = NULL;
     self->prv->ncu_tree_store = NULL;
     self->prv->ncu_list_store = NULL;
+
+    /* Used to store the list of NCUs that are added or removed in the UI but
+     * not yet committed.
+     */
+    self->prv->ncus_removed = NULL;
+    self->prv->ncus_added = NULL;
 
     self->prv->wireless_link_num = 0;
 
@@ -417,15 +427,35 @@ nwamui_ncp_finalize (NwamuiNcp *self)
     parent_class->finalize (G_OBJECT (self));
 }
 
+extern NwamuiNcp*
+nwamui_ncp_new(const gchar* name )
+{
+    NwamuiNcp*      self = NULL;
+    nwam_error_t    nerr;
+    nwam_ncp_handle_t nwam_ncp;
+    
+    /* For Phase 1, we can only create the "User" profile */
+    g_return_val_if_fail( name && strncmp(NWAM_NCP_NAME_USER, name, strlen(NWAM_NCP_NAME_USER) ) == 0, self);
+
+    if ( (nerr = nwam_ncp_create (name, 0, &nwam_ncp )) != NWAM_SUCCESS ) {
+        g_debug ("Failed to get name for ncp, error: %s", nwam_strerror (nerr));
+    }
+
+    self = NWAMUI_NCP(g_object_new (NWAMUI_TYPE_NCP,
+                                    NULL));
+
+    self->prv->nwam_ncp = nwam_ncp;
+
+    self->prv->name = g_strdup(name);
+
+    nwamui_ncp_populate_ncu_list( self, NULL );
+
+    return( self );
+}
 
 /**
- * nwamui_ncp_get_instance:
+ * nwamui_ncp_new_with_handle
  * @returns: a #NwamuiNcp.
- *
- * Get a reference to the <b>singleton</b> #NwamuiNcp. When finished using the object,
- * you should g_object_unref() it.
- *
- *  NOTE: For Phase 2 this will be obsoleted since there will be multiple NCPs in NWAM.
  *
  **/
 extern NwamuiNcp*
@@ -839,7 +869,7 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
     }
 
     for (GList *elem = g_list_first(self->prv->ncu_list);
-         elem != NULL;
+         elem != NULL && ret_ncu == NULL;
          elem = g_list_next(elem) ) {
         if ( elem->data != NULL && NWAMUI_IS_NCU(elem->data) ) {
             NwamuiNcu* ncu = NWAMUI_NCU(elem->data);
@@ -937,7 +967,7 @@ nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu )
       0, /* details */
       ncu);
 
-    g_object_unref(ncu);
+    self->prv->ncus_removed = g_list_append(self->prv->ncus_removed, ncu );
 
     g_object_thaw_notify(G_OBJECT(self->prv->ncu_tree_store));
     g_object_thaw_notify(G_OBJECT(self->prv->ncu_list_store));
@@ -963,6 +993,33 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
 
     if ( found_ncu ) { 
         nwamui_warning("Tried to add existing NCU '%s' to NCP", device_name?device_name:"NULL");
+        return;
+    }
+
+    /* Next check if it was previously removed in the UI! */
+    for (GList *elem = g_list_first(self->prv->ncus_removed);
+         elem != NULL && found_ncu == NULL;
+         elem = g_list_next(elem) ) {
+        if ( elem->data != NULL && NWAMUI_IS_NCU(elem->data) ) {
+            NwamuiNcu* ncu = NWAMUI_NCU(elem->data);
+            gchar *ncu_device_name = nwamui_ncu_get_device_name( ncu );
+
+            if ( ncu_device_name != NULL 
+                 && g_ascii_strcasecmp( ncu_device_name, device_name ) == 0 ) {
+                /* Set found_ncu, which will cause for loop to exit */
+                nwamui_debug("Compare %s to target %s : SAME", ncu_device_name, device_name);
+                found_ncu = NWAMUI_NCU(g_object_ref(ncu));
+            } else {
+                nwamui_debug("Compare %s to target %s : DIFFERENT", ncu_device_name, device_name);
+            }
+            g_free(ncu_device_name);
+        }
+    }
+
+    if (found_ncu) {
+        self->prv->ncus_removed = g_list_remove(self->prv->ncus_removed, found_ncu );
+        nwamui_debug("Found already removed NCU : %s, re-using...", device_name );
+        nwamui_ncu_reload( found_ncu );
         return;
     }
 
@@ -993,9 +1050,67 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
                      (GCallback)ncu_notify_cb, (gpointer)self);
 
 
+    self->prv->ncus_added = g_list_append( self->prv->ncus_added, 
+                                           g_object_ref(new_ncu));
+
     g_object_thaw_notify(G_OBJECT(self->prv->ncu_tree_store));
     g_object_thaw_notify(G_OBJECT(self->prv->ncu_list_store));
 
+}
+
+extern gboolean
+nwamui_ncp_commit( NwamuiNcp* self )
+{
+    gboolean    rval = FALSE;
+
+    g_return_val_if_fail (NWAMUI_IS_NCP(self), rval );
+
+    if ( self->prv->ncus_removed != NULL ) {
+        /* Make sure they are removed from the system */
+        g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_ncu_destroy, NULL );
+        g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_util_obj_unref, NULL );
+        g_list_free( self->prv->ncus_removed );
+        self->prv->ncus_removed = NULL;
+    }
+
+    if ( self->prv->ncus_added != NULL ) {
+        g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_ncu_commit, NULL );
+        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_util_obj_unref, NULL );
+        g_list_free( self->prv->ncus_added );
+        self->prv->ncus_added = NULL;
+    }
+
+    nwamui_ncp_populate_ncu_list( self, NULL );
+
+    return( TRUE );
+}
+
+extern gboolean
+nwamui_ncp_rollback( NwamuiNcp* self )
+{
+    gboolean    rval = FALSE;
+
+    g_return_val_if_fail (NWAMUI_IS_NCP(self), rval );
+
+    /* Assumption is that anything that was newly added should be removed,
+     * anything that was removed will still exist unless a commit was done.
+     */
+    if ( self->prv->ncus_added != NULL ) {
+        /* Make sure they are removed from the system */
+        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_ncu_destroy, NULL );
+        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_util_obj_unref, NULL );
+        g_list_free( self->prv->ncus_added );
+        self->prv->ncus_added = NULL;
+    }
+    if ( self->prv->ncus_removed != NULL ) {
+        g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_util_obj_unref, NULL );
+        g_list_free( self->prv->ncus_removed );
+        self->prv->ncus_removed = NULL;
+    }
+
+    nwamui_ncp_populate_ncu_list( self, NULL );
+
+    return( TRUE );
 }
 
 /* After discussion with Alan, it makes sense that we only show devices that

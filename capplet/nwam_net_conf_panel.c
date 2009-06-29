@@ -134,6 +134,7 @@ static NwamuiObject *fake_object_in_pri_group = NULL;
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 
 static void nwam_net_conf_panel_finalize(NwamNetConfPanel *self);
@@ -272,6 +273,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
 	iface->apply = apply;
+	iface->cancel = cancel;
 	iface->help = help;
     iface->dialog_run = NULL;
 }
@@ -743,19 +745,45 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 static gboolean
 apply(NwamPrefIFace *iface, gpointer user_data)
 {
-    NwamNetConfPanel*    self = NWAM_NET_CONF_PANEL( iface );
-    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(iface);
-    NwamuiObject *combo_object;
+    NwamNetConfPanel           *self = NWAM_NET_CONF_PANEL( iface );
+    NwamNetConfPanelPrivate    *prv = GET_PRIVATE(iface);
+    NwamuiObject               *combo_object;
+    NwamuiNcp                  *user_ncp;
+    NwamuiDaemon               *daemon = nwamui_daemon_get_instance();
 
-    {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-        /* Set active ncp combo. */
-        combo_object = (NwamuiObject *)capplet_combo_get_active_object(prv->profile_name_combo);
-        nwamui_daemon_set_active_ncp(daemon, NWAMUI_NCP(combo_object));
+    /* Set active ncp combo. */
+    combo_object = (NwamuiObject *)capplet_combo_get_active_object(prv->profile_name_combo);
+    nwamui_daemon_set_active_ncp(daemon, NWAMUI_NCP(combo_object));
 
-        g_object_unref(combo_object);
-        g_object_unref(daemon);
+    g_object_unref(combo_object);
+
+    user_ncp = nwamui_daemon_get_ncp_by_name(daemon, NWAM_NCP_NAME_USER);
+    if ( user_ncp ) {
+        nwamui_ncp_commit( user_ncp );
+        g_object_unref(G_OBJECT(user_ncp));
     }
+
+    g_object_unref(daemon);
+
+    return(TRUE);
+}
+
+static gboolean
+cancel(NwamPrefIFace *iface, gpointer user_data)
+{
+    NwamNetConfPanel           *self = NWAM_NET_CONF_PANEL( iface );
+    NwamNetConfPanelPrivate    *prv = GET_PRIVATE(iface);
+    NwamuiObject               *combo_object;
+    NwamuiNcp                  *user_ncp;
+    NwamuiDaemon               *daemon = nwamui_daemon_get_instance();
+
+    user_ncp = nwamui_daemon_get_ncp_by_name(daemon, NWAM_NCP_NAME_USER);
+    if ( user_ncp ) {
+        nwamui_ncp_rollback( user_ncp );
+        g_object_unref(G_OBJECT(user_ncp));
+    }
+
+    return(TRUE);
 }
 
 static gboolean

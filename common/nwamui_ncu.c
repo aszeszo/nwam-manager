@@ -207,6 +207,7 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_ncu_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_ncu_commit;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_ncu_reload;
+    nwamuiobject_class->destroy = (nwamui_object_destroy_func_t)nwamui_ncu_destroy;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -1324,23 +1325,33 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
                 nwam_ncu_handle_t   ncu_handle;
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_LINK );
 
-                if ( self->prv->nwam_ncu_phys != NULL ) {
-                    nwam_ncu_free( self->prv->nwam_ncu_phys );
-                }
+                if ( ncu_handle != NULL ) {
+                    if ( self->prv->nwam_ncu_phys != NULL ) {
+                        nwam_ncu_free( self->prv->nwam_ncu_phys );
+                    }
 
-                self->prv->nwam_ncu_phys = ncu_handle;
+                    self->prv->nwam_ncu_phys = ncu_handle;
+                }
+                else {
+                    self->prv->nwam_ncu_phys = ncu;
+                }
             }
             break;
         case NWAM_NCU_CLASS_IPTUN: {
                 nwam_ncu_handle_t   ncu_handle;
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_INTERFACE );
 
-                if ( self->prv->nwam_ncu_iptun != NULL ) {
-                    nwam_ncu_free( self->prv->nwam_ncu_iptun );
-                }
+                if ( ncu_handle != NULL ) {
+                    if ( self->prv->nwam_ncu_iptun != NULL ) {
+                        nwam_ncu_free( self->prv->nwam_ncu_iptun );
+                    }
 
-                self->prv->nwam_ncu_iptun = ncu_handle;
-                populate_iptun_ncu_data( self, ncu_handle );
+                    self->prv->nwam_ncu_iptun = ncu_handle;
+                }
+                else {
+                    self->prv->nwam_ncu_iptun = ncu;
+                }
+                populate_iptun_ncu_data( self, self->prv->nwam_ncu_iptun );
             }
             break;
         case NWAM_NCU_CLASS_IP: {
@@ -1348,12 +1359,17 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
 
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_INTERFACE );
 
-                if ( self->prv->nwam_ncu_ip != NULL ) {
-                    nwam_ncu_free( self->prv->nwam_ncu_ip );
-                }
+                if ( ncu_handle != NULL ) {
+                    if ( self->prv->nwam_ncu_ip != NULL ) {
+                        nwam_ncu_free( self->prv->nwam_ncu_ip );
+                    }
 
-                self->prv->nwam_ncu_ip = ncu_handle;
-                populate_ip_ncu_data( self, ncu_handle );
+                    self->prv->nwam_ncu_ip = ncu_handle;
+                }
+                else {
+                    self->prv->nwam_ncu_ip = ncu;
+                }
+                populate_ip_ncu_data( self, self->prv->nwam_ncu_ip );
             }
             break;
         default:
@@ -1424,7 +1440,7 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
         }
         if ( nwam_ncu_phys != NULL ) {
             nwamui_ncu_update_with_handle( new, nwam_ncu_phys );
-            nwam_ncu_free(nwam_ncu_phys);
+            set_modified_flag( new, NWAM_NCU_CLASS_PHYS, TRUE );
         }
     }
 
@@ -1444,7 +1460,7 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
         }
         if ( nwam_ncu_ip != NULL ) {
             nwamui_ncu_update_with_handle( new, nwam_ncu_ip );
-            nwam_ncu_free(nwam_ncu_ip);
+            set_modified_flag( new, NWAM_NCU_CLASS_IP, TRUE );
         }
     }
 
@@ -1464,7 +1480,7 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
         }
         if ( nwam_ncu_iptun != NULL ) {
             nwamui_ncu_update_with_handle( new, nwam_ncu_iptun );
-            nwam_ncu_free(nwam_ncu_iptun);
+            set_modified_flag( new, NWAM_NCU_CLASS_IPTUN, TRUE );
         }
     }
 
@@ -1672,6 +1688,40 @@ nwamui_ncu_commit( NwamuiNcu* self )
     if ( self->prv->nwam_ncu_iptun_modified && self->prv->nwam_ncu_iptun != NULL ) {
         if ( (nerr = nwam_ncu_commit( self->prv->nwam_ncu_iptun, 0 )) != NWAM_SUCCESS ) {
             g_warning("Failed when committing IPTUN NCU for %s", self->prv->device_name);
+            return( FALSE );
+        }
+    }
+
+    return( TRUE );
+}
+
+/**
+ * nwamui_ncu_destroy:   commit in-memory configuration, to persistant storage
+ * @returns: TRUE if succeeded, FALSE if failed
+ **/
+extern gboolean
+nwamui_ncu_destroy( NwamuiNcu* self )
+{
+    nwam_error_t    nerr;
+
+    g_return_val_if_fail( NWAMUI_IS_NCU(self), FALSE );
+
+    if ( self->prv->nwam_ncu_ip != NULL ) {
+        if ( (nerr = nwam_ncu_destroy( self->prv->nwam_ncu_ip, 0 )) != NWAM_SUCCESS ) {
+            g_warning("Failed when destroying IP NCU for %s", self->prv->device_name);
+            return( FALSE );
+        }
+    }
+
+    if ( self->prv->nwam_ncu_iptun != NULL ) {
+        if ( (nerr = nwam_ncu_destroy( self->prv->nwam_ncu_iptun, 0 )) != NWAM_SUCCESS ) {
+            g_warning("Failed when destroying IPTUN NCU for %s", self->prv->device_name);
+            return( FALSE );
+        }
+    }
+    if ( self->prv->nwam_ncu_phys != NULL ) {
+        if ( (nerr = nwam_ncu_destroy( self->prv->nwam_ncu_phys, 0 ) ) != NWAM_SUCCESS ) {
+            g_warning("Failed when destroying PHYS NCU for %s", self->prv->device_name);
             return( FALSE );
         }
     }

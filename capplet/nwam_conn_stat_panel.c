@@ -82,6 +82,7 @@ enum {
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 
 static void nwam_conn_status_panel_finalize(NwamConnStatusPanel *self);
@@ -115,6 +116,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
 	iface->apply = apply;
+	iface->cancel = cancel;
 	iface->help = help;
     iface->dialog_run = NULL;
 }
@@ -350,6 +352,11 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     }
     on_nwam_enm_notify_cb (NULL, NULL, (gpointer)self);
     return(TRUE);
+}
+
+static gboolean
+cancel(NwamPrefIFace *iface, gpointer user_data)
+{
 }
 
 static gboolean

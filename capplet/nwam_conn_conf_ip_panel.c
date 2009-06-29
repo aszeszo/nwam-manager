@@ -154,6 +154,7 @@ enum {
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 
 static void nwam_conf_ip_panel_finalize(NwamConnConfIPPanel *self);
@@ -217,6 +218,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
 	iface->apply = apply;
+	iface->cancel = cancel;
     iface->help = help;
     iface->dialog_run = NULL;
 }
@@ -708,6 +710,11 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 }
 
 static gboolean
+cancel(NwamPrefIFace *iface, gpointer user_data)
+{
+}
+
+static gboolean
 apply(NwamPrefIFace *iface, gpointer user_data)
 {
     NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(iface);
@@ -945,6 +952,7 @@ multi_line_add_cb( GtkButton *button, gpointer data )
 		view = self->prv->ipv6_tv;
         is_v6 = TRUE;
 	}
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
 
     ip = nwamui_ip_new(self->prv->ncu, "", "", is_v6, FALSE, FALSE, FALSE );
 
@@ -954,7 +962,7 @@ multi_line_add_cb( GtkButton *button, gpointer data )
 	gtk_tree_selection_select_iter (gtk_tree_view_get_selection(view),
 		&iter);
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
 }
 
 static void
@@ -965,6 +973,8 @@ multi_line_del_cb( GtkButton *button, gpointer data )
 	GList *list, *idx;
 	GtkTreeModel *model;
 	
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+
 	if (button == self->prv->ipv4_mutli_del_btn) {
 		selection = gtk_tree_view_get_selection (self->prv->ipv4_tv);
 		model = gtk_tree_view_get_model (self->prv->ipv4_tv);
@@ -986,7 +996,7 @@ multi_line_del_cb( GtkButton *button, gpointer data )
 	}
 	g_list_free (list);
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
 }
 
 static void
@@ -1430,7 +1440,9 @@ ipv4_addr_changed_cb( GtkEditable* editable, gpointer data )
 
     ipv4_address = gtk_entry_get_text(GTK_ENTRY(editable));
     if ( ipv4_address != NULL ) {
+        g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
         nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu), ipv4_address );
+        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
     }
 }
 
@@ -1443,7 +1455,9 @@ ipv4_subnet_changed_cb( GtkEditable* editable, gpointer data )
 
     ipv4_subnet = gtk_entry_get_text(GTK_ENTRY(editable));
     if ( ipv4_subnet != NULL ) {
+        g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
         nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu), ipv4_subnet );
+        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
     }
 }
 

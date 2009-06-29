@@ -77,6 +77,7 @@ struct _NwamCappletDialogPrivate {
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
+static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
@@ -116,6 +117,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 	iface->refresh = refresh;
 	iface->apply = apply;
+	iface->cancel = cancel;
     iface->help = help;
     iface->dialog_run = dialog_run;
 }
@@ -315,6 +317,11 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 }
 
 static gboolean
+cancel(NwamPrefIFace *iface, gpointer user_data)
+{
+}
+
+static gboolean
 apply(NwamPrefIFace *iface, gpointer user_data)
 {
 	NwamCappletDialog  *self = NWAM_CAPPLET_DIALOG(iface);
@@ -394,6 +401,9 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
 			break;
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
+            if (nwam_pref_cancel (NWAM_PREF_IFACE(self), NULL)) {
+                gtk_widget_hide_all (GTK_WIDGET(self->prv->capplet_dialog));
+            }
 			break;
 		case GTK_RESPONSE_HELP:
             nwam_pref_help(NWAM_PREF_IFACE(self), NULL);

@@ -1,5 +1,32 @@
 2009-06-29  Darren Kenny  <darren.kenny@sun.com>
 
+	* configure.in:
+	  Bump to 0.99.1.
+	* common/nwamui_ncp.h, common/nwamui_ncp.c: 
+	  Add nwamui_ncp_new() function allow for creation of an empty User
+	  NCP.
+	  Add functions to allow for add/remove of an ncu, which are tracked
+	  for when it comes to time to commit or rollback.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Fix issue in nwamui_ncu_update_with_handle() where if the object
+	  wasn't yet committed it would forget it's information.
+	  Add nwamui_ncu_clone() and nwamui_ncu_destroy() functions.
+	* capplet/nwam_net_conf_panel.c: 
+	  Fix defect#9709 where changes to the network preferences were being
+	  ignored.
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Fix defect#9763 where changes to the entry fields were triggering a
+	  refresh thus preventing a user for entering any text!.
+	* capplet/nwam_pref_dialog.c: 
+	  Call nwam_pref_cancel() when Cancel button is clicked.
+	* capplet/nwam_conn_stat_panel.c, capplet/nwam_vpn_pref_dialog.c,
+	  capplet/nwam_wireless_chooser.c: 
+	  Add empty cancel() functions to avoid NULL pointer problem.
+	* common/libnwamui.c:
+	  Add ref to returned pixmaps.
+
+2009-06-29  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_net_conf_panel.c:
 	  Make the connections dialog actually do something. Also fixed some
 	  warnings.

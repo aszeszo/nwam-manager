@@ -1,5 +1,5 @@
 AC_PREREQ(2.54)
-AC_INIT([nwam-manager], [0.99.0], [null])
+AC_INIT([nwam-manager], [0.99.0.5], [null])
 
 AC_CONFIG_SRCDIR([daemon])
 AC_CONFIG_MACRO_DIR([m4])
