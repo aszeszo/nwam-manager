@@ -943,6 +943,61 @@ nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu )
     g_object_thaw_notify(G_OBJECT(self->prv->ncu_list_store));
 }
 
+extern void 
+nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu ) 
+{
+    NwamuiNcpPrivate   *prv;
+    GtkTreeIter         iter;
+    gboolean            valid_iter = FALSE;
+    NwamuiNcu          *found_ncu = NULL;
+    gchar              *device_name = NULL;
+
+    g_return_if_fail (NWAMUI_IS_NCP(self) && NWAMUI_IS_NCU(new_ncu) );
+
+    prv = self->prv;
+    device_name = nwamui_ncu_get_device_name(new_ncu);
+
+    if ( device_name ) {
+        found_ncu = nwamui_ncp_get_ncu_by_device_name( self, device_name );
+    }
+
+    if ( found_ncu ) { 
+        nwamui_warning("Tried to add existing NCU '%s' to NCP", device_name?device_name:"NULL");
+        return;
+    }
+
+    /* NCU isn't already in the list, so add it */
+
+    g_object_freeze_notify(G_OBJECT(self->prv->ncu_tree_store));
+    g_object_freeze_notify(G_OBJECT(self->prv->ncu_list_store));
+
+    if ( nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
+        self->prv->wireless_link_num--;
+        g_object_notify(G_OBJECT (self), "wireless_link_num" );
+    }
+
+    prv->ncu_list = g_list_append( prv->ncu_list, g_object_ref(new_ncu) );
+
+    g_signal_emit (self,
+      nwamui_ncp_signals[ADD_NCU],
+      0, /* details */
+      new_ncu);
+
+    gtk_list_store_append( prv->ncu_list_store, &iter );
+    gtk_list_store_set( prv->ncu_list_store, &iter, 0, new_ncu, -1 );
+
+    gtk_tree_store_append( prv->ncu_tree_store, &iter, NULL );
+    gtk_tree_store_set( prv->ncu_tree_store, &iter, 0, new_ncu, -1 );
+
+    g_signal_connect(G_OBJECT(new_ncu), "notify",
+                     (GCallback)ncu_notify_cb, (gpointer)self);
+
+
+    g_object_thaw_notify(G_OBJECT(self->prv->ncu_tree_store));
+    g_object_thaw_notify(G_OBJECT(self->prv->ncu_list_store));
+
+}
+
 /* After discussion with Alan, it makes sense that we only show devices that
  * only have a physical presence on the system - on the basis that to configure
  * anything else would have no effect. 

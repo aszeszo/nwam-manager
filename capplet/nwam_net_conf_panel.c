@@ -1509,8 +1509,8 @@ capplet_tree_store_move_children(GtkTreeStore *model,
     NwamuiObject *object;
     gchar *name;
 
-    gtk_tree_model_get_iter(model, &source, source_path);
-    gtk_tree_model_get_iter(model, &target, target_path);
+    gtk_tree_model_get_iter(GTK_TREE_MODEL(model), &source, source_path);
+    gtk_tree_model_get_iter(GTK_TREE_MODEL(model), &target, target_path);
     source_depth = gtk_tree_path_get_depth(source_path);
 
     g_debug("%s source depth is %d", __func__, source_depth);
@@ -1520,11 +1520,11 @@ capplet_tree_store_move_children(GtkTreeStore *model,
 	if (gtk_tree_model_iter_children(GTK_TREE_MODEL(model), &s_iter, &source)) {
 		do {
 
-            gtk_tree_model_get(model, &s_iter, 0, &object, -1);
+            gtk_tree_model_get(GTK_TREE_MODEL(model), &s_iter, 0, &object, -1);
             name = nwamui_object_get_name(object);
             g_object_unref(object);
 
-            if (capplet_model_1_level_foreach(model, &target,
+            if (capplet_model_1_level_foreach(GTK_TREE_MODEL(model), &target,
                 ncu_find_gt_name, (gpointer)name, &sibling)) {
                 TREE_STORE_CP_OBJECT_BEFORE(model, &s_iter, &target, &sibling, &t_iter);
             } else {
@@ -1534,11 +1534,11 @@ capplet_tree_store_move_children(GtkTreeStore *model,
 
 		} while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter));
 	} else if (source_depth > 1) {
-        gtk_tree_model_get(model, &source, 0, &object, -1);
+        gtk_tree_model_get(GTK_TREE_MODEL(model), &source, 0, &object, -1);
         name = nwamui_object_get_name(object);
         g_object_unref(object);
 
-        if (capplet_model_1_level_foreach(model, &target,
+        if (capplet_model_1_level_foreach(GTK_TREE_MODEL(model), &target,
             ncu_find_gt_name, (gpointer)name, &sibling)) {
             TREE_STORE_CP_OBJECT_BEFORE(model, &source, &target, &sibling, &t_iter);
         } else {
@@ -1815,6 +1815,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 static void
 profile_edit_btn_clicked(GtkButton *button, gpointer user_data )
 {
+    NwamNetConfPanel*         self          = NWAM_NET_CONF_PANEL(user_data);
     NwamNetConfPanelPrivate*  prv           = GET_PRIVATE(user_data);
     NwamuiDaemon *daemon = nwamui_daemon_get_instance();
     NwamuiNcp *auto_ncp;
@@ -1835,17 +1836,90 @@ profile_edit_btn_clicked(GtkButton *button, gpointer user_data )
     result = gtk_dialog_run (GTK_DIALOG (prv->edit_connections_dialog));
     switch (result)
     {
-    case GTK_RESPONSE_OK:
-        /* Todo handle the updated prv->ncu_selection */
+    case GTK_RESPONSE_OK: {
+            /* Handle the updated prv->ncu_selection */
+            GList *cur_list = nwamui_ncp_get_ncu_list(prv->selected_ncp);
+            for ( GList *elem = g_list_first( cur_list );
+                  elem != NULL;
+                  elem = g_list_next( elem ) ) {
+                gchar      *elem_name = NULL;
+                gboolean    found_selected = FALSE;
+                
+                if ( !NWAMUI_IS_NCU(elem->data) ) {
+                    continue;
+                }
+
+                elem_name = nwamui_ncu_get_device_name( NWAMUI_NCU(elem->data) );
+
+                for ( GList *selected = g_list_first( prv->ncu_selection );
+                      selected != NULL;
+                      /* leave until later the selecte++ */ ) {
+                    gchar*  selected_name = NULL;
+
+                    if ( !NWAMUI_IS_NCU(selected->data) ) {
+                        continue;
+                    }
+
+                    selected_name = nwamui_ncu_get_device_name( NWAMUI_NCU(selected->data) );
+
+                    if ( strcmp(elem_name, selected_name) == 0 ) {
+                        gboolean is_first = (selected == prv->ncu_selection);
+
+                        /* In both lists, so remove from ncu_selection list */
+                        g_object_unref(G_OBJECT(selected->data));
+                        selected = g_list_remove( selected, selected->data );
+                        if ( is_first ) {
+                            /* If it was the first element we removed, we
+                             * need to update the list pointer.
+                             */
+                            prv->ncu_selection = selected;
+                        }
+                        found_selected = TRUE;
+                        break;
+                    }
+                    else {
+                        selected = g_list_next( selected );
+                    }
+                
+                    g_free(selected_name);
+                }
+                if ( !found_selected ) {
+                    /* Need to remove, since it's not in the selected list */
+                    nwamui_ncp_remove_ncu(prv->selected_ncp, NWAMUI_NCU(elem->data));
+                }
+
+                g_free(elem_name);
+            }
+            if ( prv->ncu_selection != NULL ) {
+                /* Need to add new ncus to this */
+                NwamuiNcu *new_ncu;
+
+                for ( GList *selected = g_list_first( prv->ncu_selection );
+                      selected != NULL;
+                      selected = g_list_next( selected ) ) {
+                    if ( !NWAMUI_IS_NCU(selected->data) ) {
+                        continue;
+                    }
+                    /* Should fire events to get it added to UI */
+                    new_ncu = nwamui_ncu_clone( prv->selected_ncp, NWAMUI_NCU(selected->data) );
+                    if ( new_ncu != NULL ) {
+                        nwamui_ncp_add_ncu( prv->selected_ncp, new_ncu );
+                    }
+                }
+            }
+            nwam_pref_refresh(NWAM_PREF_IFACE(self), prv->selected_ncp, TRUE);
+        }
         break;
     default:
         break;
     }
-    gtk_widget_hide (prv->edit_connections_dialog);
+    gtk_widget_hide(GTK_WIDGET(prv->edit_connections_dialog));
 
-    g_list_foreach(prv->ncu_selection, nwamui_util_obj_unref, NULL);
-    g_list_free(prv->ncu_selection);
-    prv->ncu_selection = NULL;
+    if ( prv->ncu_selection != NULL ) {
+        g_list_foreach(prv->ncu_selection, nwamui_util_obj_unref, NULL);
+        g_list_free(prv->ncu_selection);
+        prv->ncu_selection = NULL;
+    }
 }
 
 static void
@@ -2284,7 +2358,7 @@ ncu_pri_group_find_iter_gt(GtkTreeModel *model, GtkTreeIter *iter, gpointer user
 
     gtk_tree_model_get(model, iter, 0, &object, -1);
 
-    group_id = (gint)g_object_get_data(object, NWAM_COND_NCU_GROUP_ID);
+    group_id = (gint)g_object_get_data(G_OBJECT(object), NWAM_COND_NCU_GROUP_ID);
 
     g_object_unref(object);
 
@@ -2318,7 +2392,7 @@ ncu_pri_group_get_path(GtkTreeModel *model, gint group_id, gint group_mode, GtkT
     GtkTreePath *parent_path;
     GtkTreePath *path = NULL;
 
-    if ((rowref = (GtkTreeRowReference*)g_hash_table_lookup(hash, group_id)) == NULL ||
+    if ((rowref = (GtkTreeRowReference*)g_hash_table_lookup(hash, (gpointer)group_id)) == NULL ||
       (path = gtk_tree_row_reference_get_path(rowref)) == NULL) {
         NwamuiObject *fakeobj;
         GtkTreeIter   sibling;
@@ -2332,7 +2406,7 @@ ncu_pri_group_get_path(GtkTreeModel *model, gint group_id, gint group_mode, GtkT
         if (!parent) {parent = &parent_iter;}
 
         if (capplet_model_1_level_foreach(model, NULL,
-            ncu_pri_group_find_iter_gt, group_id, &sibling)) {
+            ncu_pri_group_find_iter_gt, (gpointer)group_id, &sibling)) {
             sibling_p = &sibling;
         } else {
             sibling_p = NULL;
@@ -2345,7 +2419,7 @@ ncu_pri_group_get_path(GtkTreeModel *model, gint group_id, gint group_mode, GtkT
         parent_path = gtk_tree_model_get_path(model, parent);
         rowref = gtk_tree_row_reference_new(model, parent_path);
         /* Reference could be invalid? */
-        g_hash_table_replace(hash, group_id, rowref);
+        g_hash_table_replace(hash, (gpointer)group_id, rowref);
         gtk_tree_path_free(parent_path);
 
         path = gtk_tree_row_reference_get_path(rowref);
@@ -2370,7 +2444,7 @@ ncu_pri_group_get_iter(GtkTreeModel *model, gint group_id, gint group_mode, GtkT
     GtkTreePath *path = NULL;
     gboolean ret;
 
-    if ((rowref = (GtkTreeRowReference*)g_hash_table_lookup(hash, group_id)) == NULL ||
+    if ((rowref = (GtkTreeRowReference*)g_hash_table_lookup(hash, (gpointer)group_id)) == NULL ||
       (path = gtk_tree_row_reference_get_path(rowref)) == NULL) {
         path = ncu_pri_group_get_path(model, group_id, group_mode, parent);
         ret = FALSE;
@@ -2396,14 +2470,14 @@ ncu_pri_group_update(GtkTreeModel *model)
     GtkTreeIter iter;
 
     keys = g_hash_table_get_keys(hash);
-    keys = g_list_sort(keys, compare_int);
+    keys = g_list_sort(keys, (GCompareFunc)compare_int);
 
     while (keys) {
         gint group_id = GPOINTER_TO_INT(keys->data);
         keys = g_list_delete_link(keys, keys);
 
         if (group_id != ALWAYS_ON_GROUP_ID && group_id != ALWAYS_OFF_GROUP_ID) {
-            rowref = (GtkTreeRowReference*)g_hash_table_lookup(hash, group_id);
+            rowref = (GtkTreeRowReference*)g_hash_table_lookup(hash, (gpointer)group_id);
             if (rowref) {
                 path = gtk_tree_row_reference_get_path(rowref);
                 if (path) {
@@ -2411,7 +2485,7 @@ ncu_pri_group_update(GtkTreeModel *model)
                     gtk_tree_model_get_iter(model, &iter, path);
                     gtk_tree_model_get(model, &iter, 0, &obj, -1);
 
-                    g_hash_table_steal(hash, group_id);
+                    g_hash_table_steal(hash, (gpointer)group_id);
                     g_hash_table_insert(hash, GINT_TO_POINTER(i), rowref);
 
                     g_object_set_data(G_OBJECT(obj), NWAM_COND_NCU_GROUP_ID, 

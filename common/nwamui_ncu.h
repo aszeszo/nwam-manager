@@ -88,6 +88,8 @@ extern struct _NwamuiNcp;
 extern NwamuiNcu*           nwamui_ncu_new_with_handle( struct _NwamuiNcp* ncp, nwam_ncu_handle_t ncu );
 extern void                 nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   );
 
+extern NwamuiNcu*           nwamui_ncu_clone (  struct _NwamuiNcp *ncp, NwamuiNcu *ncu );
+
 extern gboolean             nwamui_ncu_is_modifiable (NwamuiNcu *self);
 
 extern gboolean             nwamui_ncu_has_modifications( NwamuiNcu* self );

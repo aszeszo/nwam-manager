@@ -97,6 +97,8 @@ extern  void                    nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTree
 
 extern void                     nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon );
 
+extern void                     nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu );
+
 extern void                     nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp* self, const gchar* device_name );
 
 extern void                     nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu );

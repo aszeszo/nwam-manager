@@ -1,3 +1,13 @@
+2009-06-29  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_net_conf_panel.c:
+	  Make the connections dialog actually do something. Also fixed some
+	  warnings.
+	* common/nwamui_ncp.h, common/nwamui_ncp.c: 
+	  Add nwamui_ncp_add_ncu() function to add to the NCP.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Add function to clone an NCU.
+
 2009-06-26  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_daemon.c: 

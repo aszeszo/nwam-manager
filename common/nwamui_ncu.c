@@ -1384,6 +1384,94 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
 }
 
 /**
+ * nwamui_ncu_clone:
+ * @returns: a new #NwamuiNcu.
+ *
+ * Creates a new #NwamuiNcu with info initialised based on the argumens passed.
+ **/
+extern  NwamuiNcu*          
+nwamui_ncu_clone (  NwamuiNcp       *ncp,
+                    NwamuiNcu       *ncu )
+{
+    NwamuiNcu              *new = NULL;
+    nwam_ncp_handle_t       nwam_ncp;
+    nwam_ncu_handle_t       nwam_ncu_phys;
+    nwam_ncu_handle_t       nwam_ncu_ip;
+    nwam_ncu_handle_t       nwam_ncu_iptun;
+    nwam_error_t            nerr;
+
+    g_return_val_if_fail( ncp != NULL && ncu != NULL, new );
+
+    new = NWAMUI_NCU(g_object_new (NWAMUI_TYPE_NCU,
+                                    "ncp", ncp,
+                                    NULL));
+
+    nwam_ncp = nwamui_ncp_get_nwam_handle( ncp );
+
+    if ( ncu->prv->nwam_ncu_phys != NULL ) {
+        nwam_ncu_type_t     ncu_type;
+        nwam_ncu_class_t    ncu_class;
+        
+        ncu_type = (nwam_ncu_type_t)get_nwam_ncu_uint64_prop(ncu->prv->nwam_ncu_phys, NWAM_NCU_PROP_TYPE);
+        ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu->prv->nwam_ncu_phys, NWAM_NCU_PROP_CLASS);
+
+        if ( (nerr = nwam_ncu_read( nwam_ncp, ncu->prv->device_name, ncu_type, 0,
+                                    &nwam_ncu_phys ) ) != NWAM_SUCCESS  ) {
+            nerr = nwam_ncu_create(nwam_ncp, ncu->prv->device_name, ncu_type, ncu_class, &nwam_ncu_phys);
+            if ( nerr != NWAM_SUCCESS) {
+                nwamui_warning("Create LINK ncu error: %s", nwam_strerror(nerr));
+            }
+        }
+        if ( nwam_ncu_phys != NULL ) {
+            nwamui_ncu_update_with_handle( new, nwam_ncu_phys );
+            nwam_ncu_free(nwam_ncu_phys);
+        }
+    }
+
+    if ( ncu->prv->nwam_ncu_ip != NULL ) {
+        nwam_ncu_type_t     ncu_type;
+        nwam_ncu_class_t    ncu_class;
+        
+        ncu_type = (nwam_ncu_type_t)get_nwam_ncu_uint64_prop(ncu->prv->nwam_ncu_ip, NWAM_NCU_PROP_TYPE);
+        ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu->prv->nwam_ncu_ip, NWAM_NCU_PROP_CLASS);
+
+        if ( (nerr = nwam_ncu_read( nwam_ncp, ncu->prv->device_name, ncu_type, 0,
+                                    &nwam_ncu_ip ) ) != NWAM_SUCCESS  ) {
+            nerr = nwam_ncu_create(nwam_ncp, ncu->prv->device_name, ncu_type, ncu_class, &nwam_ncu_ip);
+            if ( nerr != NWAM_SUCCESS) {
+                nwamui_warning("Create LINK ncu error: %s", nwam_strerror(nerr));
+            }
+        }
+        if ( nwam_ncu_ip != NULL ) {
+            nwamui_ncu_update_with_handle( new, nwam_ncu_ip );
+            nwam_ncu_free(nwam_ncu_ip);
+        }
+    }
+
+    if ( ncu->prv->nwam_ncu_iptun != NULL ) {
+        nwam_ncu_type_t     ncu_type;
+        nwam_ncu_class_t    ncu_class;
+        
+        ncu_type = (nwam_ncu_type_t)get_nwam_ncu_uint64_prop(ncu->prv->nwam_ncu_iptun, NWAM_NCU_PROP_TYPE);
+        ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu->prv->nwam_ncu_iptun, NWAM_NCU_PROP_CLASS);
+
+        if ( (nerr = nwam_ncu_read( nwam_ncp, ncu->prv->device_name, ncu_type, 0,
+                                    &nwam_ncu_iptun ) ) != NWAM_SUCCESS  ) {
+            nerr = nwam_ncu_create(nwam_ncp, ncu->prv->device_name, ncu_type, ncu_class, &nwam_ncu_iptun);
+            if ( nerr != NWAM_SUCCESS) {
+                nwamui_warning("Create LINK ncu error: %s", nwam_strerror(nerr));
+            }
+        }
+        if ( nwam_ncu_iptun != NULL ) {
+            nwamui_ncu_update_with_handle( new, nwam_ncu_iptun );
+            nwam_ncu_free(nwam_ncu_iptun);
+        }
+    }
+
+    return( new );
+}
+
+/**
  * nwamui_ncu_new:
  * @returns: a new #NwamuiNcu.
  *
