@@ -3722,6 +3722,9 @@ nwamui_env_activate (NwamuiEnv *self)
 {
     nwam_error_t nerr;
     nerr = nwam_loc_enable (self->prv->nwam_loc);
+    if ( nerr != NWAM_SUCCESS ) { 
+        nwamui_debug("Failed to activate env with error: %s", nwam_strerror(nerr));
+    }
     return nerr == NWAM_SUCCESS;
 }
 

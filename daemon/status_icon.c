@@ -1316,6 +1316,8 @@ nwam_menu_recreate_env_menuitems (NwamStatusIcon *self)
     GList *idx = NULL;
 	GtkWidget* item = NULL;
 
+    nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC);
+
 	for (idx = env_list; idx; idx = g_list_next(idx)) {
         //nwam_menuitem_proxy_new(action, env_group);
         item = nwam_menu_item_create(NWAM_MENU(prv->menu), NWAMUI_OBJECT(idx->data));
@@ -1331,6 +1333,8 @@ nwam_menu_recreate_enm_menuitems (NwamStatusIcon *self)
     GList *enm_list = nwamui_daemon_get_enm_list(prv->daemon);
 	GList *idx = NULL;
 	GtkWidget* item = NULL;
+
+    nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_ENM);
 
 	for (idx = enm_list; idx; idx = g_list_next(idx)) {
         //nwam_menuitem_proxy_new(action, vpn_group);

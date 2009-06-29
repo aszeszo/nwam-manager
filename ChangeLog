@@ -1,5 +1,22 @@
 2009-06-26  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_daemon.c: 
+	  If activation of an env doesn't work, then don't change the stored
+	  value of the active_env.
+	* common/nwamui_env.c: 
+	  Print debug information about nwam error status.
+	* daemon/status_icon.c: 
+	  When recreating LOC and ENM section, clear out existing entries
+	  otherwise we get multiple entries. Fixes defect#9560.
+	* daemon/status_icon_tooltip.c: 
+	  Ref the newly created env/ncp_widget since we are storing it as well
+	  as passing to container, which (appears to) claims ownership. (was
+	  causing an assertion if didn't do this)
+	  Add some comments to explain the handling of updated ncp and fix
+	  some minor warnings.
+
+2009-06-26  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_pref_dialog.c, common/nwamui_ncp.c: 
 	  Fix defect#9707 where the activation of the NCP wasn't being done.
 	  The call to apply changes in the panel was only being done if the
