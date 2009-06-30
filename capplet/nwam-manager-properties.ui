@@ -3702,7 +3702,6 @@ Disable these services when this location is active:</property>
     <property name="resizable">False</property>
     <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">dialog</property>
-    <property name="skip_taskbar_hint">True</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox3">

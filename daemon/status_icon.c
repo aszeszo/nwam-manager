@@ -186,7 +186,7 @@ G_DEFINE_TYPE (NwamStatusIcon, nwam_status_icon, GTK_TYPE_STATUS_ICON)
 static void
 status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object)
 {
-    join_wireless(NWAMUI_WIFI_NET(object), FALSE);
+    join_wireless(NWAMUI_WIFI_NET(object), TRUE);
 }
 
 static gboolean

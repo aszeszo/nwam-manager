@@ -1,3 +1,24 @@
+2009-06-30  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.ui:
+	  Fix issue where the wifi dialog didn't show on taskbar.
+	* common/nwamui_ncp.c: 
+	  Fix crash in error using format string, only seen when nwam
+	  restarted.
+	* common/nwamui_ncu.c: 
+	  Fix logic error in determining if a wifi connection is active.
+	  Should also take into account the activation mode and the active
+	  priority.
+	* common/nwamui_wifi_net.c: 
+	  Fix logic error in nwamui_wifi_net_store_key which caused it to do
+	  nothing.
+	  Fix assumptions in nwamui_wifi_net_validate_favourite and
+	  nwamui_wifi_net_commit_favourite where they always assumed the
+	  known_wlan handle was set, but it's not for non-favourite objects.
+	  This fixes defect#9737
+	* daemon/status_icon.c: 
+	  On getting a key, we should also cause a connect attempt to be made.
+
 2009-06-29  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in:

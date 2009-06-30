@@ -866,7 +866,12 @@ nwamui_ncu_get_property (GObject         *object,
                 if ( self->prv->nwam_ncu_phys ) {
                     nwam_state_t        state = NWAM_STATE_OFFLINE;
                     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+                    gint64              active_prio = nwamui_ncp_get_current_prio_group( self->prv->ncp );
+                    gint64              ncu_prio =  nwamui_ncu_get_priority_group(self);
+                    nwamui_cond_activation_mode_t activation_mode;
 
+                    activation_mode = nwamui_ncu_get_activation_mode (self);
+                
                     nwam_ncu_get_state( self->prv->nwam_ncu_phys, &state, &aux_state );
                     if ( state == NWAM_STATE_ONLINE ) {
                         state = NWAM_STATE_OFFLINE;
@@ -881,15 +886,17 @@ nwamui_ncu_get_property (GObject         *object,
                             active = TRUE;
                         }
                     }
-                    else if ( state == NWAM_STATE_OFFLINE_TO_ONLINE &&
+                    else if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL || ncu_prio == active_prio) {
+                        if (  state == NWAM_STATE_OFFLINE_TO_ONLINE &&
                               (aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ||
                                aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ||
                                aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) ) {
-                        /* Special case for Wireless - they are marked as
-                         * offline* while waiting for a key, but for the UI
-                         * this means it should be seen as active
-                         */
-                        active = TRUE;
+                            /* Special case for Wireless - they are marked as
+                             * offline* while waiting for a key, but for the UI
+                             * this means it should be seen as active
+                             */
+                            active = TRUE;
+                        }
                     }
                 }
                 if ( active != self->prv->active ) {

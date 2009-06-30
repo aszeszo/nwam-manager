@@ -968,7 +968,7 @@ nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other )
 extern void
 nwamui_wifi_net_store_key ( NwamuiWifiNet *self )
 {
-    if ( self != NULL ) {
+    if ( self == NULL ) {
         return;
     }
 
@@ -1073,7 +1073,8 @@ nwamui_wifi_net_validate_favourite ( NwamuiWifiNet *self, gchar**error_prop )
     g_return_val_if_fail( self != NULL, rval );
 
     const char* errprop = NULL;
-    if ( (nerr = nwam_known_wlan_validate(self->prv->known_wlan_h, &errprop)) != NWAM_SUCCESS ) {
+    if ( self->prv->is_favourite && 
+         (nerr = nwam_known_wlan_validate(self->prv->known_wlan_h, &errprop)) != NWAM_SUCCESS ) {
         g_debug("wlan has a validation error with prop %s : error: %s", errprop?errprop:"NULL", nwam_strerror(nerr));
         if ( error_prop != NULL ) {
             *error_prop = g_strdup( errprop );
@@ -1104,7 +1105,8 @@ nwamui_wifi_net_commit_favourite ( NwamuiWifiNet *self )
 
     g_debug("Committing Favourite WLAN with NWAM : %s", self->prv->essid );
 
-    if ( (nerr = nwam_known_wlan_commit(self->prv->known_wlan_h, 0) ) != NWAM_SUCCESS ) {
+    if ( self->prv->is_favourite && 
+         (nerr = nwam_known_wlan_commit(self->prv->known_wlan_h, 0) ) != NWAM_SUCCESS ) {
 		if (nerr == NWAM_ENTITY_MISSING_MEMBER) {
             const char* errprop = NULL;
 			nwam_known_wlan_validate(self->prv->known_wlan_h, &errprop);

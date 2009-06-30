@@ -616,12 +616,12 @@ nwamui_ncp_get_current_prio_group( NwamuiNcp* self )
     }
 
     if ( (nerr = nwam_ncp_get_active_priority_group( &pg )) != NWAM_SUCCESS ) {
-        g_debug("%s: Error getting active priortiy group: %d (%s)", 
-                nerr, nwam_strerror(nerr) );
+        nwamui_debug("Error getting active priortiy group: %d (%s)", 
+                     nerr, nwam_strerror(nerr) );
         return( 0 );
     }
 
-    g_debug("%s: Got active priority group as %d", __func__, pg );
+    nwamui_debug("Got active priority group as %d", pg );
 
     current_prio = (gint64)pg;
 
