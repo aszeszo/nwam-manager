@@ -107,6 +107,8 @@ extern void                     nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp*
 
 extern void                     nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu );
 
+extern GList*                   nwamui_ncp_get_wireless_ncus( NwamuiNcp* self );
+
 extern gint                     nwamui_ncp_get_wireless_link_num( NwamuiNcp* self );
 
 extern gint64                   nwamui_ncp_get_current_prio_group( NwamuiNcp* self );

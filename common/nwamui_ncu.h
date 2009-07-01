@@ -192,6 +192,9 @@ extern void                 nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     
 extern NwamuiWifiNet*       nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( NwamuiNcu    *self, 
                                                                                nwam_wlan_t  *wlan );
 
+extern NwamuiWifiNet*       nwamui_ncu_wifi_hash_insert_or_update_from_handle( NwamuiNcu                 *self, 
+                                                                               nwam_known_wlan_handle_t   wlan_h );
+
 extern gboolean             nwamui_ncu_wifi_hash_remove_by_essid( NwamuiNcu     *self, 
                                                                   const gchar   *essid );
 

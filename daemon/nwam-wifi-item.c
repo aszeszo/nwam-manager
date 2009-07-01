@@ -251,8 +251,16 @@ static gint
 menu_wifi_item_compare(NwamMenuItem *self, NwamMenuItem *other)
 {
     gint ret;
+    gint signal_self;
+    gint signal_other;
 
-    ret = nwamui_wifi_net_get_speed(NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self)))) - nwamui_wifi_net_get_speed(NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other))));
+    signal_self = (gint)nwamui_wifi_net_get_signal_strength(
+            NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))));
+    signal_other = (gint)nwamui_wifi_net_get_signal_strength(
+            NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other))));
+
+    /* Reverse logic to sort descending, by signal strength. */
+    ret = signal_other - signal_self;
 
     if (ret == 0)
         ret = nwamui_wifi_net_compare(NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))), NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other))));

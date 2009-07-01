@@ -1,3 +1,26 @@
+2009-07-01  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c: 
+	  Changed dispatch_scan_results_from_wlan_array to first sort the list
+	  of wlans by signal strength before dispatching, this ensures that
+	  the strongest signal is shown in the menus.
+	  Modified nwamui_daemon_populate_wifi_fav_list
+	  and events to ensure that  they are using cached WifiNet objects
+	  rather than creating their own - removes the chances of duplicate
+	  entries occuring.
+	* common/nwamui_env.c: 
+	  In nwamui_env_update_with_handle() ensure that the nwam_loc handle
+	  is NULL if failed to read from the system.
+	* common/nwamui_ncp.h, common/nwamui_ncp.c: 
+	  Add function nwamui_ncp_get_wireless_ncus() to enable easy fetching
+	  of the wireless ncus in a given NCP.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c:
+	  Add function nwamui_ncu_wifi_hash_insert_or_update_from_handle to
+	  support insert/update with a known_wlan_handle too.
+	* daemon/nwam-wifi-item.c: 
+	  Change comparision to use signal strength instead of speed, sorting
+	  in descending order.
+
 2009-06-30  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.ui:

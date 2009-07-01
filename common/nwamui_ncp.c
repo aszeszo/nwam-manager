@@ -1340,6 +1340,35 @@ nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon )
 
 }
 
+static void
+find_wireless_ncu( gpointer obj, gpointer user_data )
+{
+	NwamuiNcu           *ncu = NWAMUI_NCU(obj);
+    GList              **glist_p = (GList**)user_data;
+
+    if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
+        return;
+    }
+
+    if ( nwamui_ncu_get_ncu_type( ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
+        (*glist_p) = g_list_append( (*glist_p), (gpointer)g_object_ref(ncu) );
+    }
+}
+
+extern GList*
+nwamui_ncp_get_wireless_ncus( NwamuiNcp* self )
+{
+    GList*  ncu_list = NULL;
+
+    g_return_val_if_fail( NWAMUI_IS_NCP(self), ncu_list );
+
+    if ( self->prv->wireless_link_num > 0 ) {
+        g_list_foreach( self->prv->ncu_list, find_wireless_ncu, &ncu_list );
+    }
+
+    return( ncu_list );
+}
+
 extern gint
 nwamui_ncp_get_wireless_link_num( NwamuiNcp* self )
 {

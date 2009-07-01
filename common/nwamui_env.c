@@ -1325,12 +1325,12 @@ nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh)
 
     nerr = nwam_loc_read (prv->name, 0, &prv->nwam_loc);
     if (nerr != NWAM_SUCCESS) {
-        g_error ("nwamui_env_update_with_handle failed to read nwam_loc_handle %s", prv->name);
-        g_object_unref(self);
+        prv->nwam_loc = NULL;
+        nwamui_debug("failed to read nwam_loc_handle %s", prv->name);
         return (FALSE);
     }
 
-    g_debug ("loading nwamui_env_update_with_handle %s", name);
+    nwamui_debug ("loaded nwam_loc_handle : %s", name);
 
     free (name);
 

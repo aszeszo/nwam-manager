@@ -2706,6 +2706,35 @@ nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( NwamuiNcu    *self,
     return( wifi_net );
 }
 
+extern NwamuiWifiNet*
+nwamui_ncu_wifi_hash_insert_or_update_from_handle( NwamuiNcu                 *self, 
+                                                   nwam_known_wlan_handle_t   wlan_h )
+{
+    NwamuiWifiNet  *wifi_net = NULL;
+    char           *essid = NULL;
+    nwam_error_t    nerr;
+
+    if ( !self || !wlan_h ) {
+        return(NULL);
+    }
+
+    if ( (nerr = nwam_known_wlan_get_name(wlan_h, &essid)) != NWAM_SUCCESS) {
+        g_warning("Error getting name of known wlan: %s", nwam_strerror(nerr));
+        return( NULL );
+    }
+
+    if ( (wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid( self, essid ) ) != NULL ) {
+        nwamui_wifi_net_update_with_handle( wifi_net, wlan_h);
+        g_object_ref(wifi_net);
+    }
+    else {
+        wifi_net = nwamui_wifi_net_new_with_handle( self, wlan_h );
+        nwamui_ncu_wifi_hash_insert_wifi_net( self, wifi_net );
+    }
+
+    return( wifi_net );
+}
+
 extern gboolean
 nwamui_ncu_wifi_hash_remove_by_essid( NwamuiNcu     *self, 
                                       const gchar   *essid )
