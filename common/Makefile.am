@@ -74,7 +74,6 @@ EXTRA_DIST = 		\
 	libnwamui.h \
 	help_refs.h \
 	nwam_pref_iface.h \
-	nwam_ui_icons.h \
 	nwamui_cond.h \
 	nwamui_daemon.h \
 	nwamui_enm.h \
