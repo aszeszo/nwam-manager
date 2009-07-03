@@ -93,6 +93,8 @@ struct _NwamStatusIconPrivate {
     guint animation_icon_update_timeout_id;
 
     guint update_wifi_timer_id;
+    guint enable_sync_wifi_signals_timer_id;
+    gboolean need_sync_wifi_menu_items;
     gulong activate_handler_id;
 
 	gboolean has_wifi;
@@ -109,6 +111,7 @@ static void nwam_menu_get_section_index(NwamMenu *self, GtkWidget *child, gint *
 
 static void nwam_menu_start_update_wifi_timer(NwamStatusIcon *self);
 static void nwam_menu_stop_update_wifi_timer(NwamStatusIcon *self);
+static void nwam_menu_enable_sync_wifi_signals_timer(NwamStatusIcon *self);
 
 static void nwam_menu_recreate_wifi_menuitems (NwamStatusIcon *self, gboolean force_scan );
 static void nwam_menu_recreate_ncu_menuitems (NwamStatusIcon *self);
@@ -133,7 +136,7 @@ static void activate_test_menuitems(GtkMenuItem *menuitem, gpointer user_data);
 static void status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object);
 
 /* nwamui daemon events */
-static void daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpointer user_data);
+static void daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
 static void daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data);
 static void daemon_wifi_key_needed (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer user_data);
 static void daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
@@ -218,7 +221,7 @@ ncu_is_higher_priority_than_active_ncu( NwamuiNcu* ncu, gboolean *is_active_ptr 
 }
 
 static void
-daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpointer user_data)
+daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data)
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
@@ -228,7 +231,7 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
 
 	/* should repopulate data here */
 
-    switch( status) {
+    switch(nwamui_daemon_get_status(daemon)) {
     case NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION:
     case NWAMUI_DAEMON_STATUS_ALL_OK: {
         nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, NULL);
@@ -248,7 +251,7 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
             NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
             NwamuiEnv *env = nwamui_daemon_get_active_env(prv->daemon);
             /* Hide menus for performance. */
-            gtk_widget_hide(GTK_WIDGET(prv->menu));
+/*             gtk_widget_hide(GTK_WIDGET(prv->menu)); */
             /* We don't need rescan wlans, because when daemon changes to active
              * it will emulate wlan changed signal
              */
@@ -269,7 +272,7 @@ daemon_status_changed(NwamuiDaemon *daemon, nwamui_daemon_status_t status, gpoin
             nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_ENM);
             nwam_menu_recreate_enm_menuitems(self);
             /* Show menus. */
-            gtk_widget_show(GTK_WIDGET(prv->menu));
+/*             gtk_widget_show(GTK_WIDGET(prv->menu)); */
         }
     }
         break;
@@ -477,8 +480,12 @@ nwam_menu_scan_started(GObject *daemon, gpointer data)
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
-    /* TODO: Would be good to add a "Scanning..." message too? */
-    nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_WIFI);
+    if (!GTK_WIDGET_VISIBLE(prv->menu)) {
+        /* TODO: Would be good to add a "Scanning..." message too? */
+        nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_WIFI);
+    } else {
+        prv->need_sync_wifi_menu_items = TRUE;
+    }
 }
 
 /**
@@ -567,7 +574,9 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
 
         g_object_ref(prv->active_ncp);
 
+#if 0
         nwam_notification_show_ncp_changed( prv->active_ncp );
+#endif
 
         connect_nwam_object_signals(G_OBJECT(self), G_OBJECT(prv->active_ncp));
 
@@ -601,7 +610,9 @@ daemon_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
     gchar *summary, *body;
 
     if (env) {
+#if 0
         nwam_notification_show_location_changed( env );
+#endif
 
 /*         prv->force_wifi_rescan_due_to_env_changed = TRUE; */
         nwam_menu_recreate_wifi_menuitems (self, FALSE);
@@ -620,7 +631,7 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
 	if (type == NWAMUI_TYPE_DAEMON) {
         NwamuiDaemon *daemon = NWAMUI_DAEMON(obj);
 
-        g_signal_connect(daemon, "status_changed",
+        g_signal_connect(daemon, "notify::status",
           G_CALLBACK(daemon_status_changed), (gpointer)self);
 
         g_signal_connect(daemon, "daemon_info",
@@ -908,7 +919,7 @@ nwam_status_icon_run(NwamStatusIcon *self)
     connect_nwam_object_signals(G_OBJECT(self), G_OBJECT(prv->daemon));
 
     /* Initially populate network info */
-    daemon_status_changed(prv->daemon, nwamui_daemon_get_status(prv->daemon), (gpointer)self);
+    daemon_status_changed(prv->daemon, NULL, (gpointer)self);
 }
 
 void
@@ -971,6 +982,8 @@ status_icon_popup(GtkStatusIcon *status_icon,
 
 	if (prv->enable_pop_up_menu && prv->menu != NULL) {
 
+        nwam_menu_enable_sync_wifi_signals_timer(NWAM_STATUS_ICON(status_icon));
+
 		gtk_menu_popup(GTK_MENU(prv->menu),
           NULL,
           NULL,
@@ -978,7 +991,6 @@ status_icon_popup(GtkStatusIcon *status_icon,
           (gpointer)status_icon,
           button,
           activate_time);
-/* 		gtk_widget_show_all(prv->menu); */
 	}
 }
 
@@ -1087,11 +1099,11 @@ activate_test_menuitems(GtkMenuItem *menuitem, gpointer user_data)
         if (flag = !flag) {
 /*             nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC); */
 /*             nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_NCU, TRUE); */
-            daemon_status_changed(prv->daemon, NWAMUI_DAEMON_STATUS_ALL_OK, (gpointer)self);
+/*             daemon_status_changed(prv->daemon, NWAMUI_DAEMON_STATUS_ALL_OK, (gpointer)self); */
         } else {
 /*             nwam_menu_recreate_env_menuitems(self); */
 /*             nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_NCU, FALSE); */
-            daemon_status_changed(prv->daemon, NWAMUI_DAEMON_STATUS_ERROR, (gpointer)self);
+/*             daemon_status_changed(prv->daemon, NWAMUI_DAEMON_STATUS_ERROR, (gpointer)self); */
         }
         /* Test - must enable pop up menu. */
         prv->enable_pop_up_menu = TRUE;
@@ -1140,6 +1152,26 @@ update_wifi_timer_func(gpointer user_data)
                 break;
             }
         }
+    }
+
+    return TRUE;
+}
+
+static gboolean
+enable_sync_wifi_signals_func(gpointer user_data)
+{
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(user_data);
+
+    if (!GTK_WIDGET_VISIBLE(prv->menu)) {
+        g_signal_connect(prv->daemon, "wifi_scan_result",
+          (GCallback)nwam_menu_create_wifi_menuitems, user_data);
+/*         g_debug("connect scan wifi signals."); */
+        if (prv->need_sync_wifi_menu_items) {
+            prv->need_sync_wifi_menu_items = FALSE;
+            nwam_menu_recreate_wifi_menuitems(NWAM_STATUS_ICON(user_data), FALSE);
+        }
+        prv->enable_sync_wifi_signals_timer_id = 0;
+        return FALSE;
     }
 
     return TRUE;
@@ -1369,6 +1401,24 @@ nwam_menu_stop_update_wifi_timer(NwamStatusIcon *self)
     if (prv->update_wifi_timer_id > 0) {
         g_source_remove(prv->update_wifi_timer_id);
         prv->update_wifi_timer_id = 0;
+    }
+}
+
+static void
+nwam_menu_enable_sync_wifi_signals_timer(NwamStatusIcon *self)
+{
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+
+    if (prv->enable_sync_wifi_signals_timer_id == 0) {
+        /* Disable wifi signals. */
+        g_signal_handlers_disconnect_by_func(prv->daemon,
+          (GCallback)nwam_menu_create_wifi_menuitems, self);
+/*         g_debug("dispatch scan wifi signals."); */
+        prv->enable_sync_wifi_signals_timer_id = g_timeout_add_full(G_PRIORITY_DEFAULT,
+          500,
+          enable_sync_wifi_signals_func,
+          (gpointer)g_object_ref(self),
+          (GDestroyNotify)g_object_unref);
     }
 }
 

@@ -62,7 +62,6 @@ static gboolean nwam_init_done = FALSE; /* Whether to call nwam_events_fini() or
 #define WEP_TIMEOUT_SEC (20)
 
 enum {
-    DAEMON_STATUS_CHANGED,
     DAEMON_INFO,
     WIFI_SCAN_STARTED,
     WIFI_SCAN_RESULT,
@@ -159,7 +158,6 @@ static void default_daemon_info_signal_handler (NwamuiDaemon *self, gint type, G
 static void default_ncu_down_signal_handler (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
 static void default_ncu_up_signal_handler (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
 static void default_remove_wifi_fav_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
-static void default_status_changed_signal_handler (NwamuiDaemon *self, nwamui_daemon_status_t status , gpointer user_data);
 static void default_wifi_key_needed (NwamuiDaemon *self, NwamuiWifiNet* wifi, gpointer user_data);
 static void default_wifi_scan_started_signal_handler (NwamuiDaemon *self, gpointer user_data);
 static void default_wifi_scan_result_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* wifi_net, gpointer user_data);
@@ -278,18 +276,6 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                   1,                            /* Number of Args */
                   G_TYPE_OBJECT);               /* Types of Args */
 
-    nwamui_daemon_signals[DAEMON_STATUS_CHANGED] =   
-            g_signal_new ("status_changed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-                  G_STRUCT_OFFSET (NwamuiDaemonClass, status_changed),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__INT, 
-                  G_TYPE_NONE,                  /* Return Type */
-                  1,                            /* Number of Args */
-                  G_TYPE_INT);                  /* Types of Args */
-    
-    
     nwamui_daemon_signals[WIFI_KEY_NEEDED] =   
             g_signal_new ("wifi_key_needed",
                   G_TYPE_FROM_CLASS (klass),
@@ -371,7 +357,6 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
         1,                            /* Number of Args */
         NWAMUI_TYPE_WIFI_NET);               /* Types of Args */
 
-    klass->status_changed = default_status_changed_signal_handler;
     klass->wifi_key_needed = default_wifi_key_needed;
     klass->wifi_selection_needed = default_wifi_selection_needed;
     klass->wifi_scan_started = default_wifi_scan_started_signal_handler;
@@ -521,12 +506,29 @@ nwamui_daemon_set_property ( GObject         *object,
             }
             break;
         case PROP_STATUS: {
+                const char* status_str;
+
                 self->prv->status = g_value_get_int( value );
 
-                g_signal_emit (self,
-                  nwamui_daemon_signals[DAEMON_STATUS_CHANGED],
-                  0, /* details */
-                  self->prv->status);
+                switch(self->prv->status) {
+                case NWAMUI_DAEMON_STATUS_UNINITIALIZED:
+                    status_str="UNINITIALIZED";
+                    break;
+                case NWAMUI_DAEMON_STATUS_ALL_OK:
+                    status_str="ALL_OK";
+                    break;
+                case NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION:
+                    status_str="NEEDS_ATTENTION";
+                    break;
+                case NWAMUI_DAEMON_STATUS_ERROR:
+                    status_str="ERROR";
+                    break;
+                default:
+                    status_str="Unexpected";
+                    break;
+                }
+
+                g_debug("Daemon status changed to %s", status_str );
             }
             break;
         case PROP_NUM_SCANNED_WIFI: {
@@ -1327,6 +1329,7 @@ find_compare_wifi_net_with_name( gconstpointer a,
             rval = strncmp( wifi_name, name, len );
             g_debug("%s: strcmp( %s, %s, %d ) returning %d", __func__, wifi_name, name, len, rval);
         }
+        g_free(wifi_name);
     }
 
     return (rval);
@@ -1886,8 +1889,10 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
                 free(wlans);
             }
             else {
+                g_assert(wlans == NULL);
                 nwamui_debug("Error getting scan results for %s: %s", name, nwam_strerror(nerr) );
             }
+            g_free(name);
         }
         else {
             nwamui_debug("Failed to get device name for ncu %08X", ncu );
@@ -3378,32 +3383,6 @@ nwam_events_thread ( gpointer data )
 
 
 /* Default Signal Handlers */
-static void
-default_status_changed_signal_handler(NwamuiDaemon *self, nwamui_daemon_status_t status, gpointer user_data)
-{
-    const char* status_str;
-
-    switch( status) {
-        case NWAMUI_DAEMON_STATUS_UNINITIALIZED:
-            status_str="UNINITIALIZED";
-            break;
-        case NWAMUI_DAEMON_STATUS_ALL_OK:
-            status_str="ALL_OK";
-            break;
-        case NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION:
-            status_str="NEEDS_ATTENTION";
-            break;
-        case NWAMUI_DAEMON_STATUS_ERROR:
-            status_str="ERROR";
-        break;
-        default:
-            status_str="Unexpected";
-            break;
-    }
-
-    g_debug("Daemon status changed to %s", status_str );
-}
-
 static void
 default_wifi_selection_needed (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data)
 {

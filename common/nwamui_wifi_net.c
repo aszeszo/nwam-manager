@@ -794,8 +794,12 @@ nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_
 
     if (nerr != NWAM_SUCCESS) {
         g_error ("nwamui_wifi_net_update_with_handle failed to read nwam_known_wlan handle %s", name );
+        g_free(name);
         return (FALSE);
     }
+
+    if (self->prv->essid)
+        g_free(self->prv->essid);
 
     self->prv->essid = g_strdup( name );
 

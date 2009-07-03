@@ -70,6 +70,7 @@ static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 
 static void nwam_wireless_chooser_finalize(NwamWirelessChooser *self);
+static void nwam_wifi_scan_start (GObject *daemon, gpointer data);
 static void nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data);
 static void nwam_rescan_wifi (NwamWirelessChooser *self);
 
@@ -130,70 +131,54 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
       NULL);
 
     // Column:	WIFI_FAV_ESSID
-	renderer = gtk_cell_renderer_pixbuf_new();
-	col = gtk_tree_view_column_new_with_attributes(_("Name (ESSID)"),
-      renderer,
+	col = capplet_column_new(view,
+      "title", _("Name (ESSID)"),
       "expand", TRUE,
       "resizable", TRUE,
       "clickable", FALSE,
       "sort-indicator", FALSE,
       "reorderable", FALSE,
       NULL);
-    gtk_tree_view_append_column (view, col);
+
     /* first signal strength icon cell */
-	gtk_tree_view_column_set_cell_data_func (col,
-      renderer,
-      nwam_wifi_chooser_cell_cb,
-      (gpointer) 0,
-      NULL);
+    renderer = capplet_column_append_cell(col, gtk_cell_renderer_pixbuf_new(),
+      FALSE, nwam_wifi_chooser_cell_cb, (gpointer)self, NULL);
+
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SIGNAL));
 
     /* second ESSID text cell */
-    renderer = gtk_cell_renderer_text_new();
-    gtk_tree_view_column_pack_end(col, renderer, TRUE);
-    gtk_tree_view_column_set_cell_data_func (col,
-      renderer,
-      nwam_wifi_chooser_cell_cb,
-      (gpointer) self,
-      NULL);
+    renderer = capplet_column_append_cell(col, gtk_cell_renderer_text_new(),
+      TRUE, nwam_wifi_chooser_cell_cb, (gpointer)self, NULL);
     g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_ESSID));
     
     // Column:	WIFI_FAV_SPEED
-    renderer = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new_with_attributes(_("Speed"),
-      renderer,
+	col = capplet_column_new(view,
+      "title", _("Speed"),
       "expand", TRUE,
       "resizable", TRUE,
       "clickable", FALSE,
       "sort-indicator", FALSE,
       "reorderable", FALSE,
       NULL);
-    gtk_tree_view_append_column (view, col);
-    gtk_tree_view_column_set_cell_data_func (col,
-      renderer,
-      nwam_wifi_chooser_cell_cb,
-      (gpointer) self,
-      NULL);
+
+    renderer = capplet_column_append_cell(col, gtk_cell_renderer_text_new(),
+      FALSE, nwam_wifi_chooser_cell_cb, (gpointer)self, NULL);
     g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SPEED));
 
     // Column:	WIFI_FAV_SECURITY
-    renderer = gtk_cell_renderer_text_new();
-	col = gtk_tree_view_column_new_with_attributes(_("Security"),
-      renderer,
+	col = capplet_column_new(view,
+      "title", _("Security"),
       "expand", TRUE,
       "resizable", TRUE,
       "clickable", FALSE,
       "sort-indicator", FALSE,
       "reorderable", FALSE,
       NULL);
-    gtk_tree_view_append_column (view, col);
-    gtk_tree_view_column_set_cell_data_func (col,
-      renderer,
-      nwam_wifi_chooser_cell_cb,
-      (gpointer) self,
-      NULL);
+
+    renderer = capplet_column_append_cell(col, gtk_cell_renderer_text_new(),
+      FALSE, nwam_wifi_chooser_cell_cb, (gpointer)self, NULL);
     g_object_set(G_OBJECT(renderer), "editable", FALSE, NULL);
     g_object_set_data(G_OBJECT(renderer), "nwam_wifi_fav_column_id", GUINT_TO_POINTER(WIFI_FAV_SECURITY));
 
@@ -213,6 +198,8 @@ nwam_wireless_chooser_init(NwamWirelessChooser *self)
 
     self->prv->add_to_preferred_cbox = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_ADD_TO_PREFERRED_CBOX));
 
+    g_signal_connect(self->prv->daemon, "wifi_scan_started",
+      (GCallback)nwam_wifi_scan_start, (gpointer) self);
 	g_signal_connect((gpointer) self->prv->daemon, "wifi_scan_result",
       (GCallback)nwam_create_wifi_cb, (gpointer) self);
 	g_signal_connect(G_OBJECT(self), "notify",
@@ -445,6 +432,21 @@ nwam_wifi_chooser_cell_cb (GtkTreeViewColumn *col,
     default:
         g_assert_not_reached ();
     }
+}
+
+static void
+nwam_wifi_scan_start (GObject *daemon, gpointer data)
+{
+    NwamWirelessChooser* self = NWAM_WIRELESS_CHOOSER(data);
+    GtkTreeModel *model;
+
+    model = gtk_tree_view_get_model (self->prv->wifi_tv);
+
+    gtk_widget_hide (GTK_WIDGET(self->prv->wifi_tv));
+    
+    gtk_list_store_clear (GTK_LIST_STORE(model));
+
+    gtk_widget_show (GTK_WIDGET(self->prv->wifi_tv));
 }
 
 static void

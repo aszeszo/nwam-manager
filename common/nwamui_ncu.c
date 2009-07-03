@@ -1219,6 +1219,7 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                     ncu->prv->ipv4_primary_ip = NWAMUI_IP(g_object_ref(ip));
                 }
             }
+	    g_free(ipv4_addrsrc);
         }
         else if (ip_version[ip_n] == NWAM_IP_VERSION_IPV6) {
             char**  ptr;
@@ -1257,8 +1258,10 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
             if ( ipv6_addrsrc_num > 0 ) {
                 ncu->prv->ipv6_active = TRUE;
             }
+	    g_free(ipv6_addrsrc);
         }
     }
+    g_free(ip_version);
 
     g_object_thaw_notify(G_OBJECT(ncu->prv->v4addresses));
     g_object_thaw_notify(G_OBJECT(ncu->prv->v6addresses));
@@ -2732,6 +2735,7 @@ nwamui_ncu_wifi_hash_insert_or_update_from_handle( NwamuiNcu                 *se
         nwamui_ncu_wifi_hash_insert_wifi_net( self, wifi_net );
     }
 
+    free(essid);
     return( wifi_net );
 }
 

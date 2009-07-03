@@ -477,6 +477,9 @@ nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp)
 
     self->prv->nwam_ncp = nwam_ncp;
 
+    if (self->prv->name) {
+        g_free(self->prv->name);
+    }
     self->prv->name = name;
 
     nwamui_ncp_populate_ncu_list( self, NULL );

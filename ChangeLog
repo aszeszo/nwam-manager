@@ -1,3 +1,26 @@
+2009-07-03  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_wireless_chooser.c (nwam_compose_wifi_chooser_view),
+	(nwam_wireless_chooser_init), (nwam_wifi_scan_start): Fixed runtime
+	critical warnings and dup wlan items.
+	* common/nwamui_daemon.h:
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_set_property), (find_compare_wifi_net_with_name),
+	(dispatch_scan_results_if_wireless): Remove daemon status signal, uses
+	status notify instead.
+	* common/nwamui_ncp.c (nwamui_ncp_new_with_handle):
+	* common/nwamui_ncu.c (populate_ip_ncu_data),
+	(nwamui_ncu_wifi_hash_insert_or_update_from_handle):
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_update_with_handle):
+	Fixed some mem leak.
+	* daemon/status_icon.c (daemon_status_changed),
+	(nwam_menu_scan_started), (daemon_active_ncp_changed),
+	(daemon_active_env_changed), (connect_nwam_object_signals),
+	(nwam_status_icon_run), (status_icon_popup),
+	(activate_test_menuitems), (enable_sync_wifi_signals_func),
+	(nwam_menu_enable_sync_wifi_signals_timer): Delay sync wifi menuitems
+	when pop menu is visible.
+
 2009-07-02  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/Makefile.am: Clean code for 'make dist'.
