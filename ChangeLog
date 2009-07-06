@@ -1,3 +1,11 @@
+2009-07-06  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_vpn_pref_dialog.c (nwam_compose_tree_view),
+	(vpn_pref_clicked_cb), (enm_name_cell_edited):
+	* common/nwamui_enm.c (nwamui_enm_class_init),
+	(nwamui_enm_destroy): Fixed doo:9847. And update start/stop rules label
+	after enm name changes.
+
 2009-07-03  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_wireless_chooser.c (nwam_compose_wifi_chooser_view),

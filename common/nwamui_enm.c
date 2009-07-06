@@ -83,6 +83,7 @@ static guint64      get_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char*
 static gboolean     set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 value );
 
 static nwam_state_t nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p );
+static gboolean     nwamui_enm_destroy( NwamuiEnm* self );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -115,6 +116,7 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
     nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_enm_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_enm_commit;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_enm_reload;
+    nwamuiobject_class->destroy = (nwamui_object_destroy_func_t)nwamui_enm_destroy;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -1244,6 +1246,29 @@ nwamui_enm_reload( NwamuiEnm* self )
     }
 
     g_object_thaw_notify(G_OBJECT(self));
+}
+
+/**
+ * nwamui_enm_destroy:   destroy in-memory configuration, to persistant storage
+ * @returns: TRUE if succeeded, FALSE if failed
+ **/
+static gboolean
+nwamui_enm_destroy( NwamuiEnm* self )
+{
+    nwam_error_t    nerr;
+
+    g_return_val_if_fail( NWAMUI_IS_ENM(self), FALSE );
+
+    if ( self->prv->nwam_enm != NULL ) {
+
+        if ( (nerr = nwam_enm_destroy( self->prv->nwam_enm, 0 ) ) != NWAM_SUCCESS ) {
+            g_warning("Failed when destroying ENM for %s", self->prv->name);
+            return( FALSE );
+        }
+        self->prv->nwam_enm = NULL;
+    }
+
+    return( TRUE );
 }
 
 /**

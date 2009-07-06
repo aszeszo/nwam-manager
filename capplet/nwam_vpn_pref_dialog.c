@@ -117,6 +117,10 @@ static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void vpn_pref_clicked_cb(GtkButton *button, gpointer data);
 static void command_entry_changed(GtkEditable *editable, gpointer data);
+static void enm_name_cell_edited ( GtkCellRendererText *cell,
+  const gchar         *path_string,
+  const gchar         *new_text,
+  gpointer             data);
 static void nwam_vpn_cell_cb(GtkTreeViewColumn *col,
 	GtkCellRenderer   *renderer,
 	GtkTreeModel      *model,
@@ -325,9 +329,8 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       gtk_cell_renderer_text_new(), FALSE,
       (GtkTreeCellDataFunc)nwamui_object_name_cell, NULL, NULL);
 	g_signal_connect(renderer, "edited",
-      G_CALLBACK(nwamui_object_name_cell_edited), (gpointer)view);
+      G_CALLBACK(enm_name_cell_edited), (gpointer)self);
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
-	g_object_set_data(G_OBJECT(renderer), VPN_APP_VIEW_COL_ID, GUINT_TO_POINTER(APP_NAME));
 
 #if 0
 	gtk_tree_view_column_set_sort_column_id (col, APP_NAME);
@@ -754,6 +757,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 				gtk_tree_model_get (model, &iter, 0, &obj, -1);
 				gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
 				if (obj) {
+                    nwamui_object_destroy(NWAMUI_OBJECT(obj));
                     g_object_unref(obj);
                 }
 			} else {
@@ -813,6 +817,24 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 	} else if (button == self->prv->stop_btn) {
 		nwamui_enm_set_active (obj, FALSE);
 	}
+}
+
+static void
+enm_name_cell_edited ( GtkCellRendererText *cell,
+  const gchar         *path_string,
+  const gchar         *new_text,
+  gpointer             data)
+{
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
+    gchar *title;
+
+    /* Update object. */
+    nwamui_object_name_cell_edited(cell, path_string, new_text, (gpointer)prv->view);
+
+    /* Update label. */
+    title = g_strdup_printf(_("Start/stop '%s' according to rules"), new_text);
+    g_object_set(prv->vpn_conditional_cb, "label", title, NULL);
+    g_free(title);
 }
 
 static void
