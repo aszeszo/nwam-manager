@@ -75,7 +75,7 @@ gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
     {                                                                   \
         GtkTreeIter iter;                                               \
         gtk_list_store_append(GTK_LIST_STORE(model), &iter);            \
-        gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, object, -1); \
+        gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, G_OBJECT(object), -1); \
         g_signal_connect(G_OBJECT(object), "notify", (GCallback)capplet_util_object_notify_cb, (gpointer)model); \
     }
 #define CAPPLET_TREE_STORE_ADD(model, parent, object, iter)             \

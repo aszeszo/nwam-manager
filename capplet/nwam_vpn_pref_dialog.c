@@ -117,10 +117,6 @@ static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void vpn_pref_clicked_cb(GtkButton *button, gpointer data);
 static void command_entry_changed(GtkEditable *editable, gpointer data);
-static void enm_name_cell_edited ( GtkCellRendererText *cell,
-  const gchar         *path_string,
-  const gchar         *new_text,
-  gpointer             data);
 static void nwam_vpn_cell_cb(GtkTreeViewColumn *col,
 	GtkCellRenderer   *renderer,
 	GtkTreeModel      *model,
@@ -277,6 +273,21 @@ static void get_property (GObject         *object,
 }
 
 static void
+capplet_tree_model_row_changed_func(GtkTreeModel *tree_model,
+  GtkTreePath  *path,
+  GtkTreeIter  *iter,
+  gpointer      user_data)
+{
+	NwamVPNPrefDialog *self = GET_PRIVATE(user_data);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(user_data);
+    GtkTreeSelection *selection = gtk_tree_view_get_selection(prv->view);
+
+    if (gtk_tree_selection_path_is_selected(selection, path)) {
+        nwam_vpn_selection_changed(selection, gtk_tree_selection_get_user_data(selection));
+    }
+}
+
+static void
 nwam_compose_tree_view (NwamVPNPrefDialog *self)
 {
 	GtkTreeViewColumn *col;
@@ -284,7 +295,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
 	GtkTreeView *view = self->prv->view;
 	
     g_object_set(view,
-      "headers-clickable", TRUE,
+      "headers-clickable", FALSE,
       "headers-visible", TRUE,
       "rules-hint", TRUE,
       "reorderable", FALSE,
@@ -321,7 +332,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       "title", _("Application Name"),
       "expand", FALSE,
       "resizable", TRUE,
-      "clickable", TRUE,
+      "clickable", FALSE,
       "sort-indicator", FALSE,
       "reorderable", TRUE,
       NULL);
@@ -329,7 +340,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       gtk_cell_renderer_text_new(), FALSE,
       (GtkTreeCellDataFunc)nwamui_object_name_cell, NULL, NULL);
 	g_signal_connect(renderer, "edited",
-      G_CALLBACK(enm_name_cell_edited), (gpointer)self);
+      G_CALLBACK(nwamui_object_name_cell_edited), (gpointer)view);
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
 
 #if 0
@@ -368,6 +379,8 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       NULL);
 
     CAPPLET_COMPOSE_NWAMUI_OBJECT_LIST_VIEW(view);
+    g_signal_connect(gtk_tree_view_get_model(view),
+      "row-changed", G_CALLBACK(capplet_tree_model_row_changed_func), (gpointer)self);
 }
 
 /* FIXME, if update failed, popup dialog and return FALSE */
@@ -515,8 +528,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     g_object_unref(daemon);
 
     capplet_reset_increasable_name(G_OBJECT(self));
-/*     g_signal_connect (idx->data, "notify::active", */
-/*       G_CALLBACK(on_nwam_enm_notify_cb), (gpointer)self); */
 
     if (force) {
     }
@@ -820,24 +831,6 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 }
 
 static void
-enm_name_cell_edited ( GtkCellRendererText *cell,
-  const gchar         *path_string,
-  const gchar         *new_text,
-  gpointer             data)
-{
-	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
-    gchar *title;
-
-    /* Update object. */
-    nwamui_object_name_cell_edited(cell, path_string, new_text, (gpointer)prv->view);
-
-    /* Update label. */
-    title = g_strdup_printf(_("Start/stop '%s' according to rules"), new_text);
-    g_object_set(prv->vpn_conditional_cb, "label", title, NULL);
-    g_free(title);
-}
-
-static void
 nwam_vpn_cell_cb (GtkTreeViewColumn *col,
 		GtkCellRenderer   *renderer,
 		GtkTreeModel      *model,
@@ -993,7 +986,6 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
                 fmri_value = TRUE;
             }
 			g_free (txt);
-            on_nwam_enm_notify_cb(G_OBJECT(obj), NULL, data);
 
             if (!(start_value || stop_value || fmri_value)) {
                 init_editting = TRUE;
@@ -1062,22 +1054,6 @@ static void
 on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
-    NwamuiEnm *nwamobj;
-	GtkTreeIter iter;
-    GtkTreeSelection *selection;
-    GtkTreeModel *model;
-	
-    selection = gtk_tree_view_get_selection (prv->view);
-    model = gtk_tree_view_get_model (prv->view);
-	if (gtk_tree_selection_get_selected(selection,
-                                        NULL, &iter)) {
-        GtkTreePath* path;
-        path = gtk_tree_model_get_path (model, &iter);
-        gtk_tree_model_row_changed (model, path, &iter);
-        gtk_tree_path_free (path);
-    } else {
-        g_assert_not_reached();
-    }
 }
 
 static void

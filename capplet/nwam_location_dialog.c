@@ -678,8 +678,6 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
                 nwamui_env_set_enabled(env, TRUE);
             }
 
-            gtk_tree_model_row_changed(model, tpath, &iter);
-
             g_object_unref(env);
         }
         
@@ -901,7 +899,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
                 g_debug("Removing location: '%s'", name);
             
                 gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
-                nwamui_env_destroy(env);
+                nwamui_object_destroy(NWAMUI_OBJECT(env));
             }
         
             if (name)
@@ -1118,8 +1116,6 @@ tree_model_foreach_find_enabled_env(GtkTreeModel *model,
     if (env) {
         if (nwamui_env_get_enabled(env)) {
             nwamui_env_set_enabled(env, FALSE);
-
-            gtk_tree_model_row_changed(model, path, iter);
 
             g_object_unref(env);
             return TRUE;

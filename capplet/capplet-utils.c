@@ -37,8 +37,6 @@ typedef struct _CappletForeachData {
 	gpointer ret_data;
 } CappletForeachData;
 
-static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
-
 static gboolean
 capplet_model_foreach_find_object(GtkTreeModel *model,
     GtkTreePath *path,
@@ -675,28 +673,18 @@ capplet_util_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data
 
     g_debug("capplet-utils: notify %s changed", arg1->name);
 
-    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(model), &iter);
-         valid_iter;
-         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(model), &iter)) {
-        GObject*    obj;
+    if (capplet_model_find_object(model, gobject, &iter)) {
+        GtkTreePath *path;
 
-        gtk_tree_model_get( GTK_TREE_MODEL(model), &iter, 0, &obj, -1);
-
-        if ( (gpointer)obj == (gpointer)gobject ) {
-            GtkTreePath *path;
-
-            valid_iter = FALSE;
-
-            path = gtk_tree_model_get_path(GTK_TREE_MODEL(model),
-              &iter);
-            gtk_tree_model_row_changed(GTK_TREE_MODEL(model),
-              path,
-              &iter);
-            gtk_tree_path_free(path);
-        }
-        if ( obj )
-            g_object_unref(obj);
+        path = gtk_tree_model_get_path(GTK_TREE_MODEL(model),
+          &iter);
+        gtk_tree_model_row_changed(GTK_TREE_MODEL(model),
+          path,
+          &iter);
+        gtk_tree_path_free(path);
+/*     } else { */
+/*         g_signal_handlers_disconnect_by_func(gobject, */
+/*           G_CALLBACK(capplet_util_object_notify_cb), data); */
     }
-
 }
 

@@ -930,6 +930,7 @@ nwamui_enm_set_active (   NwamuiEnm *self,
             }
         }
         self->prv->nwam_enm_modified = TRUE;
+        g_object_notify(G_OBJECT(self), "active");
     }
     else {
         g_warning("Unexpected null enm handle");
