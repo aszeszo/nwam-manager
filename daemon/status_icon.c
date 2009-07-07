@@ -389,7 +389,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
                 wifi = NWAMUI_WIFI_NET(obj);
             }
             if ( wifi != NULL ) {
-                NwamuiNcu*  ncu = nwamui_wifi_net_get_ncu( wifi );
+                ncu = nwamui_wifi_net_get_ncu( wifi );
                 show_message = ncu_is_higher_priority_than_active_ncu( ncu, &is_active_ncu );
             }
 

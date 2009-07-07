@@ -602,6 +602,7 @@ typedef struct nwam_handle *nwam_known_wlan_handle_t;
 #define	NWAM_KNOWN_WLAN_PROP_BSSIDS	"bssids"
 #define	NWAM_KNOWN_WLAN_PROP_PRIORITY	"priority"
 #define	NWAM_KNOWN_WLAN_PROP_KEYNAME	"keyname"
+#define	NWAM_KNOWN_WLAN_PROP_KEYSLOT	"keyslot"
 
 
 /*
@@ -957,7 +958,7 @@ extern nwam_error_t nwam_known_wlan_get_default_proplist(const char ***,
 
 /* Add a bssid to the known WLANs */
 extern nwam_error_t nwam_known_wlan_add_to_known_wlans(const char *,
-    const char *, const char *);
+    const char *, uint_t, const char *);
 
 /* Remove a bssid from known WLANs */
 extern nwam_error_t nwam_known_wlan_remove_from_known_wlans(const char *,
@@ -989,7 +990,7 @@ extern nwam_error_t nwam_wlan_get_scan_results(const char *, uint_t *,
 extern nwam_error_t nwam_wlan_select(const char *, const char *, const char *,
     boolean_t);
 extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
-    uint32_t, const char *);
+    uint32_t, uint_t, const char *);
 
 /*
  * Event notification definitions

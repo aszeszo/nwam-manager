@@ -54,6 +54,7 @@ struct _NwamuiWifiNetPrivate {
         guint                           speed;
         gchar*                          mode;
         nwamui_wifi_wpa_config_t        wpa_config; /* Only valid if security is WPA */
+        guint                           wep_key_index;
         gchar                          *wep_password;
         gchar                          *wpa_username;
         gchar                          *wpa_password;
@@ -115,6 +116,7 @@ enum {
         PROP_SPEED,
         PROP_MODE,
         PROP_WPA_CONFIG,
+        PROP_WEP_KEY_INDEX,
         PROP_WEP_PASSWORD,
         PROP_WPA_USERNAME,
         PROP_WPA_PASSWORD,
@@ -248,6 +250,16 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
+                                     PROP_WEP_KEY_INDEX,
+                                     g_param_spec_int    ("wep_key_index",
+                                                          _("Wep Key Index"),
+                                                          _("Wep Key Index"),
+                                                          1, /* Min */
+                                                          4, /* Max */
+                                                          1, /* Default */
+                                                          G_PARAM_READWRITE));    
+
+    g_object_class_install_property (gobject_class,
                                      PROP_WPA_USERNAME,
                                      g_param_spec_string ("wpa_username",
                                                           _("Wifi WPA Username"),
@@ -308,6 +320,7 @@ nwamui_wifi_net_init (NwamuiWifiNet *self)
     prv->speed = 0;
     prv->mode = NULL;
     prv->wpa_config = NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC; 
+    prv->wep_key_index = 1;
     prv->wep_password = NULL;
     prv->wpa_username = NULL;
     prv->wpa_password = NULL;
@@ -373,11 +386,20 @@ nwamui_wifi_net_set_property (  GObject         *object,
                                     if (nerr != NWAM_SUCCESS) {
                                         g_warning("Error reading existing favourite wlan: %s", nwam_strerror(nerr));
                                         prv->known_wlan_h = NULL;
+                                        /* Ensure it's marked as a not a
+                                         * favourite since we no longer  have
+                                         * a valid handle. */
+                                        self->prv->is_favourite = FALSE;
+
                                     }
                                 }
                                 else {
                                     g_warning("Error creating favourite wlan: %s", nwam_strerror(nerr));
                                     prv->known_wlan_h = NULL;
+                                    /* Ensure it's marked as a not a
+                                     * favourite since we no longer  have
+                                     * a valid handle. */
+                                    self->prv->is_favourite = FALSE;
                                 }
                             }
                         }
@@ -448,6 +470,17 @@ nwamui_wifi_net_set_property (  GObject         *object,
                 prv->wpa_config = (nwamui_wifi_wpa_config_t)tmpint;
             }
             break;
+
+        case PROP_WEP_KEY_INDEX: {
+                prv->wep_key_index = g_value_get_int (value); 
+                nwamui_debug("Setting WifiNet keyslot to %ul", prv->wep_key_index);
+                if ( prv->is_favourite && prv->known_wlan_h != NULL ) {
+                    set_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_KEYSLOT, 
+                                                     g_value_get_uint64( value ) );
+                }
+            }
+            break;
+
         case PROP_WEP_PASSWORD: {
                 const gchar *passwd = g_value_get_string (value);
                 if ( passwd != NULL ) {
@@ -543,12 +576,9 @@ nwamui_wifi_net_set_property (  GObject         *object,
                         g_warning("Unexpected empty known_wlan handle");
                     }
                 }
-                else {
-                    /* Not favourite, so store in internal structure */
-                    prv->priority = g_value_get_uint64( value );
-                    g_debug("Setting non-favourite WifiNet priority to %ul", prv->priority);
-                }
-
+                /* Not favourite, so store in internal structure */
+                prv->priority = g_value_get_uint64( value );
+                nwamui_debug("Setting WifiNet priority to %ul", prv->priority);
             }
             break;
 
@@ -612,6 +642,18 @@ nwamui_wifi_net_get_property (GObject         *object,
                 g_value_set_int(value, (gint)prv->wpa_config );
             }
             break;
+        case PROP_WEP_KEY_INDEX: {
+                guint64 rval = 0;
+
+                if ( prv->is_favourite && self->prv->known_wlan_h != NULL ) {
+                    rval = get_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_KEYSLOT );
+                }
+                else {
+                    rval = prv->wep_key_index;
+                }
+                g_value_set_uint64( value, rval );
+            }
+            break;
         case PROP_WEP_PASSWORD: {
                 g_value_set_string(value, prv->wep_password);
             }
@@ -656,13 +698,8 @@ nwamui_wifi_net_get_property (GObject         *object,
         case PROP_PRIORITY: {
                 guint64 rval = 0;
 
-                if ( prv->is_favourite ) {
-                    if ( self->prv->known_wlan_h != NULL ) {
-                        rval = get_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_PRIORITY );
-                    }
-                    else {
-                        g_warning("Unexpected empty known_wlan handle");
-                    }
+                if ( prv->is_favourite && self->prv->known_wlan_h != NULL ) {
+                    rval = get_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_PRIORITY );
                 }
                 else {
                     rval = prv->priority;
@@ -805,6 +842,8 @@ nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_
 
     g_free(name);
 
+    /* Ensure it's marked as a favourite since we now have a valid handle. */
+    self->prv->is_favourite = TRUE;
     self->prv->modified = FALSE;
 
     return(TRUE);
@@ -991,6 +1030,7 @@ nwamui_wifi_net_store_key ( NwamuiWifiNet *self )
                                               self->prv->essid,
                                               NULL,
                                               nwamui_wifi_net_security_map_to_nwam( self->prv->security),
+                                              self->prv->wep_key_index,
                                               self->prv->wep_password?self->prv->wep_password:"");
 
                     if ( nerr != NWAM_SUCCESS ) {
@@ -1037,7 +1077,13 @@ nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  )
     gchar          *device = nwamui_ncu_get_device_name(self->prv->ncu);
     nwam_error_t    nerr;
 
-    if ( (nerr = nwam_wlan_select( device, self->prv->essid, NULL, add_to_favourites )) != NWAM_SUCCESS ) {
+    nwamui_warning("nwam_wlan_select( %s, %s, NULL, %s[%d])", 
+                    device, self->prv->essid, 
+                    add_to_favourites?"TRUE":"FALSE",
+                    add_to_favourites?B_TRUE:B_FALSE );
+
+    if ( (nerr = nwam_wlan_select( device, self->prv->essid, NULL, 
+                    add_to_favourites?B_TRUE:B_FALSE )) != NWAM_SUCCESS ) {
         NwamuiDaemon*   daemon = nwamui_daemon_get_instance();
 
         g_warning("Error selecting network with NWAM : %s", nwam_strerror(nerr));
@@ -1064,6 +1110,10 @@ nwamui_wifi_net_delete_favourite ( NwamuiWifiNet *self )
     }
 
     self->prv->known_wlan_h = NULL;
+
+    /* Ensure it's marked as a not a favourite since we no longer  have a
+     * valid handle. */
+    self->prv->is_favourite = FALSE;
 
     return(TRUE);
 }
@@ -1529,6 +1579,33 @@ nwamui_wifi_net_get_wep_password (NwamuiWifiNet *self )
                   NULL);
     
     return( ret_str );
+}
+
+/* Get/Set WEP Password/Key Index (1-4)*/
+extern void                    
+nwamui_wifi_net_set_wep_key_index (  NwamuiWifiNet  *self,
+                                    guint           wep_key_index )
+{
+    g_return_if_fail (NWAMUI_IS_WIFI_NET(self));
+    g_return_if_fail ( wep_key_index >= 1 && wep_key_index <= 4 );
+
+    g_object_set (G_OBJECT (self),
+                  "wep_key_index", wep_key_index,
+                  NULL);
+}
+                                
+extern guint
+nwamui_wifi_net_get_wep_key_index (NwamuiWifiNet *self )
+{
+    guint  rval = 0;
+    
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), rval);
+
+    g_object_get (G_OBJECT (self),
+                  "wep_key_index", &rval,
+                  NULL);
+    
+    return( rval );
 }
 
 /* Get/Set WPA Username */

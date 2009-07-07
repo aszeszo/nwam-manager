@@ -1,3 +1,14 @@
+2009-07-07  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_wifi_net.c: 
+	  Update to handle the wep key index/slot and pass when setting the
+	  wep key.
+	* daemon/status_icon.c: 
+	  Fixed a stupid error where ncu could be NULL due to use of local
+	  scope variable masking outer.
+	* nwam_core/usr/include/libnwam.h:
+	  Update to latest header to get API changes.
+
 2009-07-06  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (capplet_util_object_notify_cb):
