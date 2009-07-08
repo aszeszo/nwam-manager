@@ -1306,7 +1306,7 @@ get_nwam_ncu_handle( NwamuiNcu* self, nwam_ncu_type_t ncu_type )
 
         if ( (nerr = nwam_ncu_read( ncp_handle, self->prv->device_name, ncu_type, 0,
                                     &ncu_handle ) ) != NWAM_SUCCESS  ) {
-            g_warning("Failed to read ncu information for %s", self->prv->device_name );
+			g_warning("Failed to read ncu information for %s error: %s", self->prv->device_name, nwam_strerror(nerr));
             return ( NULL );
         }
     }
@@ -1447,6 +1447,9 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
             if ( nerr != NWAM_SUCCESS) {
                 nwamui_warning("Create LINK ncu error: %s", nwam_strerror(nerr));
             }
+		    if ( (nerr = nwam_ncu_commit(nwam_ncu_phys, 0 ) ) != NWAM_SUCCESS ) {
+			    g_warning("Failed when committing PHYS NCU for %s error: %s", ncu->prv->device_name, nwam_strerror(nerr));
+		    }
         }
         if ( nwam_ncu_phys != NULL ) {
             nwamui_ncu_update_with_handle( new, nwam_ncu_phys );
@@ -1467,6 +1470,9 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
             if ( nerr != NWAM_SUCCESS) {
                 nwamui_warning("Create LINK ncu error: %s", nwam_strerror(nerr));
             }
+	 	   if ( (nerr = nwam_ncu_commit(nwam_ncu_ip, 0 ) ) != NWAM_SUCCESS ) {
+			    g_warning("Failed when committing IP NCU for %s error: %s", ncu->prv->device_name, nwam_strerror(nerr));
+	    	}
         }
         if ( nwam_ncu_ip != NULL ) {
             nwamui_ncu_update_with_handle( new, nwam_ncu_ip );
@@ -1487,6 +1493,9 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
             if ( nerr != NWAM_SUCCESS) {
                 nwamui_warning("Create LINK ncu error: %s", nwam_strerror(nerr));
             }
+	    	if ( (nerr = nwam_ncu_commit(nwam_ncu_iptun, 0 ) ) != NWAM_SUCCESS ) {
+			    g_warning("Failed when committing IPTUN NCU for %s error: %s", ncu->prv->device_name, nwam_strerror(nerr));
+	    	}
         }
         if ( nwam_ncu_iptun != NULL ) {
             nwamui_ncu_update_with_handle( new, nwam_ncu_iptun );

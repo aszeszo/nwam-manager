@@ -391,12 +391,13 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
             if ( wifi != NULL ) {
                 ncu = nwamui_wifi_net_get_ncu( wifi );
                 show_message = ncu_is_higher_priority_than_active_ncu( ncu, &is_active_ncu );
-            }
 
+            }
             if ( show_message ) {
                 nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, ncu );
                 nwam_notification_show_ncu_wifi_connect_failed( ncu );
             }
+
             if (ncu) {
                 g_object_unref(ncu);
             }
@@ -574,7 +575,7 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
 
         g_object_ref(prv->active_ncp);
 
-#if 0
+#if 1
         nwam_notification_show_ncp_changed( prv->active_ncp );
 #endif
 
@@ -610,7 +611,7 @@ daemon_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
     gchar *summary, *body;
 
     if (env) {
-#if 0
+#if 1
         nwam_notification_show_location_changed( env );
 #endif
 
