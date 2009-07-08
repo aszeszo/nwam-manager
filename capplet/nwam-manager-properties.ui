@@ -1291,6 +1291,7 @@ Choose which connections are enabled in this profile:</property>
                                         <child>
                                           <object class="GtkCheckButton" id="accept_ipv6_stateless_cbox">
                                             <property name="label" translatable="yes">Accept _stateless addresses from router</property>
+                                            <property name="visible">False</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
                                             <property name="use_underline">True</property>
@@ -1307,6 +1308,7 @@ Choose which connections are enabled in this profile:</property>
                                         <child>
                                           <object class="GtkCheckButton" id="accept_ipv6_stateful_cbox">
                                             <property name="label" translatable="yes">Accept state_ful addresses from router</property>
+                                            <property name="visible">False</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
                                             <property name="use_underline">True</property>

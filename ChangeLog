@@ -1,5 +1,10 @@
 2009-07-08  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam-manager-properties.ui:
+	* capplet/nwam_conn_conf_ip_panel.c (show_changed_cb): doo:9870
+
+2009-07-08  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_ncu.c (get_nwam_ncu_handle), (nwamui_ncu_clone):
 	Fixed doo:9709
 	* daemon/status_icon.c (daemon_info), (daemon_active_ncp_changed),

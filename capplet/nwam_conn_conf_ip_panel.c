@@ -1067,9 +1067,9 @@ show_changed_cb( GtkComboBox* widget, gpointer data )
 
 	/* update the notetab according to the selected entry */
 	if (actid == 0) {
-		gtk_widget_hide_all (GTK_WIDGET(cur_nb));
+		gtk_widget_hide (GTK_WIDGET(cur_nb));
 	} else if (actid > 0 && actid <=3) {
-		gtk_widget_show_all (GTK_WIDGET(cur_nb));
+		gtk_widget_show (GTK_WIDGET(cur_nb));
 		gtk_notebook_set_current_page(cur_nb, actid - 1);
 	} else {
 		g_assert_not_reached ();
