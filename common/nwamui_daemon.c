@@ -145,6 +145,7 @@ static void nwamui_daemon_update_status( NwamuiDaemon   *daemon );
 static gboolean     nwamui_daemon_nwam_connect( gboolean block );
 static void         nwamui_daemon_nwam_disconnect( void );
 
+static void         nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent );
 static void         nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent );
 
 /* Callbacks */
@@ -2322,159 +2323,7 @@ nwamd_event_handler(gpointer data)
             break;
 
 		case NWAM_EVENT_TYPE_OBJECT_ACTION: {
-
-                switch ( nwamevent->data.object_action.action ) {
-                case NWAM_ACTION_ADD:
-                    g_debug("Got NWAM_ACTION_ADD for object %s, doing nothing...", 
-                            nwamevent->data.object_action.name );
-                    break;
-                case NWAM_ACTION_REMOVE:
-                    g_debug("Got NWAM_ACTION_REMOVE for object %s, doing nothing...", 
-                            nwamevent->data.object_action.name );
-                    break;
-                case NWAM_ACTION_RENAME:
-                    g_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
-                            nwamevent->data.object_action.name );
-                    break;
-                case NWAM_ACTION_DESTROY:
-                    if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_KNOWN_WLAN ) {
-                        NwamuiWifiNet   *wifi;
-
-                        /* Need to refresh to catch update to priorities */
-                        if ( (wifi = nwamui_daemon_find_fav_wifi_net_by_name( daemon, 
-                                        nwamevent->data.object_action.name ) ) != NULL ) {
-                            daemon->prv->communicate_change_to_daemon = FALSE;
-                            nwamui_daemon_remove_wifi_fav(daemon, wifi );
-                            daemon->prv->communicate_change_to_daemon = TRUE;
-                            g_object_unref(wifi);
-                        }
-                    }
-                    else {
-                        g_debug("Got NWAM_ACTION_DESTROY for object %s, doing nothing...", 
-                                nwamevent->data.object_action.name );
-                    }
-                    break;
-                case NWAM_ACTION_REFRESH:
-                    if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_KNOWN_WLAN ) {
-                        NwamuiWifiNet   *wifi;
-
-                        /* Need to refresh to catch update to priorities */
-                        if ( (wifi = nwamui_daemon_find_fav_wifi_net_by_name( daemon, 
-                                        nwamevent->data.object_action.name ) ) != NULL ) {
-                            nwamui_object_reload( NWAMUI_OBJECT(wifi) );
-                            g_object_unref(wifi);
-                        }
-                    }
-                    else {
-                        g_debug("Got NWAM_ACTION_REFRESH for object %s, doing nothing...", 
-                                nwamevent->data.object_action.name );
-                    }
-                    break;
-                case NWAM_ACTION_ENABLE:
-                    if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_NCP ) {
-                        NwamuiNcp *ncp;
-
-                        g_debug("NCP %s Enabled",
-                                nwamevent->data.object_action.name );
-            
-                        ncp = nwamui_daemon_get_ncp_by_name( daemon,
-                                nwamevent->data.object_action.name );
-
-                        if ( ncp != NULL ) {
-                            /* Don't use nwamui_ncp_set_active() since it will
-                             * actually cause a switch again...
-                             */
-                            if ( daemon->prv->active_ncp != NULL ) {
-                                g_object_unref(G_OBJECT(daemon->prv->active_ncp));
-                            }
-
-                            daemon->prv->active_ncp = NWAMUI_NCP(g_object_ref( ncp ));
-
-                            g_signal_emit (daemon,
-                              nwamui_daemon_signals[ACTIVE_NCP_CHANGED],
-                              0, /* details */
-                              ncp );
-
-                            g_object_unref(ncp);
-                        }
-                        else {
-                            g_error("Couldn't find NCP object for '%s'", nwamevent->data.object_action.name );
-                        }
-                    }
-                    else if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_NCU ) {
-                        NwamuiNcu *ncu;
-
-                        g_debug("NCU %s Enabled",
-                                nwamevent->data.object_action.name );
-            
-                        ncu = get_ncu_by_device_name( daemon, NULL,
-                                                      nwamevent->data.object_action.name );
-
-                        if ( ncu != NULL ) {
-                            if ( !nwamui_ncu_has_modifications( ncu ) ) {
-                                nwamui_ncu_reload( ncu );
-                            }
-
-                            g_signal_emit (daemon,
-                              nwamui_daemon_signals[DAEMON_INFO],
-                              0, /* details */
-                              NWAMUI_DAEMON_INFO_NCU_SELECTED,
-                              ncu,
-                              g_strdup_printf(_("%s network interface enabled."), 
-                                  nwamui_ncu_get_vanity_name( ncu )));
-
-                            g_object_unref(ncu);
-                        }
-                        else {
-                            g_error("Couldn't find NCU object for '%s'", nwamevent->data.object_action.name );
-                        }
-                    }
-                    else if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_ENM ) {
-                        g_debug("ENM %s enabled", 
-                                nwamevent->data.object_action.name );
-                        g_signal_emit (daemon,
-                          nwamui_daemon_signals[DAEMON_INFO],
-                          0, /* details */
-                          NWAMUI_DAEMON_INFO_GENERIC,
-                          NULL,
-                          g_strdup_printf(_("VPN '%s' enabled"),
-                                           nwamevent->data.object_action.name) );
-                    }
-                    break;
-                case NWAM_ACTION_DISABLE:
-                    if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_NCU ) {
-                        NwamuiNcu *ncu;
-
-                        g_debug("NCU %s disabled",
-                                nwamevent->data.object_action.name );
-            
-                        ncu = get_ncu_by_device_name( daemon, NULL,
-                                                      nwamevent->data.object_action.name );
-
-                        if ( ncu != NULL ) { 
-                            if ( !nwamui_ncu_has_modifications( ncu ) ) {
-                                nwamui_ncu_reload( ncu );
-                            }
-                            g_object_unref(ncu);
-                        }
-                        else {
-                            g_error("Couldn't find NCU object for '%s'", nwamevent->data.object_action.name );
-                        }
-                    }
-                    else if ( nwamevent->data.object_action.object_type == NWAM_OBJECT_TYPE_ENM ) {
-                        g_debug("ENM %s disabled", 
-                                nwamevent->data.object_action.name );
-
-                        g_signal_emit (daemon,
-                          nwamui_daemon_signals[DAEMON_INFO],
-                          0, /* details */
-                          NWAMUI_DAEMON_INFO_GENERIC,
-                          NULL,
-                          g_strdup_printf(_("VPN '%s' disabled"),
-                                           nwamevent->data.object_action.name) );
-                    }
-                    break;
-                }
+                nwamui_daemon_handle_object_action_event( daemon, nwamevent );
             }
             break;
 
@@ -3010,6 +2859,314 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
     /* If status has changed, set it, and this will generate an event */
     if ( new_status != old_status ) {
         nwamui_daemon_set_status(daemon, new_status );
+    }
+}
+
+static void
+nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent )
+{
+    const char*             object_name;
+
+    if ( daemon == NULL || !NWAMUI_IS_DAEMON(daemon) ) {
+        return;
+    }
+
+    g_return_if_fail( nwamevent != NULL );
+
+    object_name = nwamevent->data.object_action.name;
+
+    switch ( nwamevent->data.object_action.object_type ) {
+        case NWAM_OBJECT_TYPE_NCP: {
+            NwamuiNcp   *ncp = nwamui_daemon_get_ncp_by_name( daemon, object_name );
+
+            switch ( nwamevent->data.object_action.action ) {
+            case NWAM_ACTION_ADD: {
+                    nwamui_debug("Got NWAM_ACTION_ADD for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_DISABLE: {
+                    nwamui_debug("Got NWAM_ACTION_DISABLE for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_ENABLE: {
+                    nwamui_debug("Got NWAM_ACTION_ENABLE for object %s, updating active_ncp...", 
+                            object_name );
+
+                    if ( ncp != NULL ) {
+                        /* Don't use nwamui_ncp_set_active() since it will
+                         * actually cause a switch again...
+                         */
+                        if ( daemon->prv->active_ncp != NULL ) {
+                            g_object_unref(G_OBJECT(daemon->prv->active_ncp));
+                        }
+
+                        daemon->prv->active_ncp = NWAMUI_NCP(g_object_ref( ncp ));
+
+                        g_signal_emit (daemon,
+                          nwamui_daemon_signals[ACTIVE_NCP_CHANGED],
+                          0, /* details */
+                          ncp );
+
+                    }
+                    else {
+                        g_error("Couldn't find NCP object for '%s'", object_name );
+                    }
+                }
+                break;
+            case NWAM_ACTION_REFRESH: {
+                    nwamui_debug("Got NWAM_ACTION_REFRESH for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_REMOVE: {
+                    nwamui_debug("Got NWAM_ACTION_REMOVE for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_RENAME: {
+                    nwamui_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_DESTROY: {
+                    nwamui_debug("Got NWAM_ACTION_DESTROY for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            }
+            if ( ncp != NULL ) {
+                g_object_unref(ncp);
+            }
+        }
+        break;
+        case NWAM_OBJECT_TYPE_NCU: {
+            NwamuiNcu *ncu;
+
+            ncu = get_ncu_by_device_name( daemon, NULL, object_name );
+
+            switch ( nwamevent->data.object_action.action ) {
+            case NWAM_ACTION_ADD: {
+                    nwamui_debug("Got NWAM_ACTION_ADD for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_DISABLE: {
+                    nwamui_debug("Got NWAM_ACTION_DISABLE for object %s, doing nothing...", 
+                            object_name );
+
+                    if ( ncu != NULL ) { 
+                        if ( !nwamui_ncu_has_modifications( ncu ) ) {
+                            nwamui_ncu_reload( ncu );
+                        }
+                    }
+                    else {
+                        g_error("Couldn't find NCU object for '%s'", object_name );
+                    }
+                }
+                break;
+            case NWAM_ACTION_ENABLE: {
+                    nwamui_debug("Got NWAM_ACTION_ENABLE for object %s, enabled...", 
+                            object_name );
+
+                    if ( ncu != NULL ) {
+                        if ( !nwamui_ncu_has_modifications( ncu ) ) {
+                            nwamui_ncu_reload( ncu );
+                        }
+
+                        g_signal_emit (daemon,
+                          nwamui_daemon_signals[DAEMON_INFO],
+                          0, /* details */
+                          NWAMUI_DAEMON_INFO_NCU_SELECTED,
+                          ncu,
+                          g_strdup_printf(_("%s network interface enabled."), 
+                              nwamui_ncu_get_vanity_name( ncu )));
+
+                    }
+                    else {
+                        g_error("Couldn't find NCU object for '%s'", nwamevent->data.object_action.name );
+                    }
+                }
+                break;
+            case NWAM_ACTION_REFRESH: {
+                    nwamui_debug("Got NWAM_ACTION_REFRESH for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_REMOVE: {
+                    nwamui_debug("Got NWAM_ACTION_REMOVE for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_RENAME: {
+                    nwamui_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_DESTROY: {
+                    nwamui_debug("Got NWAM_ACTION_DESTROY for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            }
+            if ( ncu != NULL  ) {
+                g_object_unref(ncu);
+            }
+        }
+        break;
+        case NWAM_OBJECT_TYPE_LOC: {
+            switch ( nwamevent->data.object_action.action ) {
+            case NWAM_ACTION_ADD: {
+                    nwamui_debug("Got NWAM_ACTION_ADD for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_DISABLE: {
+                    nwamui_debug("Got NWAM_ACTION_DISABLE for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_ENABLE: {
+                    nwamui_debug("Got NWAM_ACTION_ENABLE for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_REFRESH: {
+                    nwamui_debug("Got NWAM_ACTION_REFRESH for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_REMOVE: {
+                    nwamui_debug("Got NWAM_ACTION_REMOVE for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_RENAME: {
+                    nwamui_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_DESTROY: {
+                    nwamui_debug("Got NWAM_ACTION_DESTROY for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            }
+        }
+        break;
+        case NWAM_OBJECT_TYPE_ENM: {
+            switch ( nwamevent->data.object_action.action ) {
+            case NWAM_ACTION_ADD: {
+                    nwamui_debug("Got NWAM_ACTION_ADD for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_DISABLE: {
+                    nwamui_debug("Got NWAM_ACTION_DISABLE for object %s, sending event...", 
+                            object_name );
+
+                    g_signal_emit (daemon,
+                      nwamui_daemon_signals[DAEMON_INFO],
+                      0, /* details */
+                      NWAMUI_DAEMON_INFO_GENERIC,
+                      NULL,
+                      g_strdup_printf(_("VPN '%s' disabled"), object_name) );
+                }
+                break;
+            case NWAM_ACTION_ENABLE: {
+                    nwamui_debug("Got NWAM_ACTION_ENABLE for object %s, sending event...", 
+                            object_name );
+
+                    g_signal_emit (daemon,
+                      nwamui_daemon_signals[DAEMON_INFO],
+                      0, /* details */
+                      NWAMUI_DAEMON_INFO_GENERIC,
+                      NULL,
+                      g_strdup_printf(_("VPN '%s' enabled"), object_name) );
+                }
+                break;
+            case NWAM_ACTION_REFRESH: {
+                    nwamui_debug("Got NWAM_ACTION_REFRESH for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_REMOVE: {
+                    nwamui_debug("Got NWAM_ACTION_REMOVE for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_RENAME: {
+                    nwamui_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_DESTROY: {
+                    nwamui_debug("Got NWAM_ACTION_DESTROY for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            }
+        }
+        break;
+        case NWAM_OBJECT_TYPE_KNOWN_WLAN: {
+            NwamuiWifiNet   *wifi;
+
+            wifi = nwamui_daemon_find_fav_wifi_net_by_name( daemon, object_name );
+
+            switch ( nwamevent->data.object_action.action ) {
+            case NWAM_ACTION_ADD: {
+                    nwamui_debug("Got NWAM_ACTION_ADD for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_DISABLE: {
+                    nwamui_debug("Got NWAM_ACTION_DISABLE for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_ENABLE: {
+                    nwamui_debug("Got NWAM_ACTION_ENABLE for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_REFRESH: {
+                    nwamui_debug("Got NWAM_ACTION_REFRESH for object %s, reloading...", 
+                            object_name );
+
+                    /* Need to refresh to catch update to priorities */
+                    if ( wifi != NULL ) {
+                        nwamui_object_reload( NWAMUI_OBJECT(wifi) );
+                    }
+                }
+                break;
+            case NWAM_ACTION_REMOVE: {
+                    nwamui_debug("Got NWAM_ACTION_REMOVE for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_RENAME: {
+                    nwamui_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
+                            object_name );
+                }
+                break;
+            case NWAM_ACTION_DESTROY: {
+                    nwamui_debug("Got NWAM_ACTION_DESTROY for object %s, removing from fav_list...", 
+                            object_name );
+
+                    if ( wifi != NULL ) {
+                        daemon->prv->communicate_change_to_daemon = FALSE;
+                        nwamui_daemon_remove_wifi_fav(daemon, wifi );
+                        daemon->prv->communicate_change_to_daemon = TRUE;
+                    }
+                }
+                break;
+            }
+            if ( wifi != NULL ) {
+                g_object_unref(wifi);
+            }
+        }
+        break;
     }
 }
 

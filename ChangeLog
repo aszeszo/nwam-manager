@@ -1,3 +1,11 @@
+2009-07-09  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c: 
+	  Change nwamd_event_handler, and how it's handles object_action
+	  events, via the function nwamui_daemon_handle_object_action_event(),
+	  which was re-layed out by object - really needs some more work to
+	  update objects correctly!.
+
 2009-07-09  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam-manager-properties.ui:
