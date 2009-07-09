@@ -197,6 +197,10 @@ extern void                         nwamui_wifi_net_set_wep_password (  NwamuiWi
                        
 extern gchar*                       nwamui_wifi_net_get_wep_password (  NwamuiWifiNet *self );
 
+extern void                         nwamui_wifi_net_set_wep_key_index (  NwamuiWifiNet  *self, guint wep_key_index );
+
+extern guint                        nwamui_wifi_net_get_wep_key_index (NwamuiWifiNet *self );
+
 extern void                         nwamui_wifi_net_set_wpa_username (  NwamuiWifiNet *self, const gchar *wpa_username );
                      
 extern gchar*                       nwamui_wifi_net_get_wpa_username (  NwamuiWifiNet *self );

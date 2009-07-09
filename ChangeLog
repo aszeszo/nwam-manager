@@ -1,3 +1,16 @@
+2009-07-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam-manager-properties.ui:
+	* capplet/nwam_wireless_dialog.c (nwam_wireless_dialog_class_init),
+	(nwam_wireless_dialog_init), (nwam_wireless_dialog_set_property),
+	(nwam_wireless_dialog_get_property),
+	(nwam_wireless_dialog_set_wifi_net),
+	(nwam_wireless_dialog_set_key_index),
+	(nwam_wireless_dialog_get_key_index), (dialog_run),
+	(nwam_wireless_dialog_finalize), (security_selection_cb):
+	* capplet/nwam_wireless_dialog.h:
+	* common/nwamui_wifi_net.h: Fixed doo#9802
+
 2009-07-08  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam-manager-properties.ui:

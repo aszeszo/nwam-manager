@@ -3772,6 +3772,7 @@ Disable these services when this location is active:</property>
                     <child>
                       <object class="GtkTable" id="wep_table">
                         <property name="visible">True</property>
+                        <property name="n_rows">2</property>
                         <property name="n_columns">2</property>
                         <property name="column_spacing">6</property>
                         <property name="row_spacing">3</property>
@@ -3786,7 +3787,7 @@ Disable these services when this location is active:</property>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -3798,7 +3799,34 @@ Disable these services when this location is active:</property>
                             <property name="mnemonic_widget">wep_password_entry</property>
                           </object>
                           <packing>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="key_index_lbl">
+                            <property name="visible">True</property>
+                            <property name="xalign">1</property>
+                            <property name="label" translatable="yes">Key Index:</property>
+                            <property name="mnemonic_widget">key_index_spinbtn</property>
+                          </object>
+                          <packing>
+                            <property name="top_attach">1</property>
+                            <property name="bottom_attach">2</property>
+                            <property name="y_options"></property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkSpinButton" id="key_index_spinbtn">
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="invisible_char">&#x25CF;</property>
+                          </object>
+                          <packing>
+                            <property name="left_attach">1</property>
+                            <property name="right_attach">2</property>
+                            <property name="top_attach">1</property>
+                            <property name="bottom_attach">2</property>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                       </object>

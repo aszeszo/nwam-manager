@@ -45,6 +45,8 @@
 #define WIRELESS_PASSWORD_NOTEBOOK              "password_notebook"
 #define WIRELESS_DIALOG_WEP_KEY_ENTRY           "wep_password_entry"
 #define WIRELESS_DIALOG_WEP_KEY_CONF_ENTRY      "wep_confirm_password_entry"
+#define WIRELESS_DIALOG_KEY_INDEX_SPINBTN       "key_index_spinbtn"
+#define WIRELESS_DIALOG_KEY_INDEX_LBL           "key_index_lbl"
 #define WIRELESS_DIALOG_BSSID_LIST              "bssid_list"
 #define WIRELESS_DIALOG_BSSID_ADD_BUTTON        "bssid_add_btn"
 #define WIRELESS_DIALOG_BSSID_REMOVE_BUTTON     "bssid_remove_btn"
@@ -68,6 +70,7 @@ enum {
         PROP_ESSID,
         PROP_SECURITY,
         PROP_WEP_KEY,
+        PROP_WEP_KEY_INDEX,
         PROP_WPA_USERNAME,
         PROP_WPA_PASSWORD,
         PROP_WPA_CONFIG_TYPE,
@@ -92,6 +95,8 @@ struct _NwamWirelessDialogPrivate {
         GtkTreeView*            bssid_list_tv;
         GtkButton*              bssid_add_btn;
         GtkButton*              bssid_remove_btn;
+        GtkLabel*               key_index_lbl;
+        GtkSpinButton*          key_index_spinbtn;
         /* WPA Settings */
         GtkComboBox*            wpa_config_combo;
         GtkEntry*		wpa_username_entry;
@@ -201,6 +206,16 @@ nwam_wireless_dialog_class_init (NwamWirelessDialogClass *klass)
                                                           _("The Wireless security key."),
                                                           NULL,
                                                           G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_WEP_KEY_INDEX,
+                                     g_param_spec_int ("key_index",
+                                                          _("Wireless Security Key Index"),
+                                                          _("The Wireless security key index."),
+                                                          1, /* Min */
+                                                          4, /* Max */
+                                                          1, /* Default */
+                                                          G_PARAM_READWRITE));
     g_object_class_install_property (gobject_class,
                                      PROP_WPA_USERNAME,
                                      g_param_spec_string ("wpa_username",
@@ -272,6 +287,8 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     self->prv->security_combo =         GTK_COMBO_BOX(nwamui_util_glade_get_widget(WIRELESS_DIALOG_SEC_COMBO));
     self->prv->password_notebook =      GTK_NOTEBOOK(nwamui_util_glade_get_widget(WIRELESS_PASSWORD_NOTEBOOK));
     self->prv->key_entry =              GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_ENTRY));
+    self->prv->key_index_lbl =          GTK_LABEL(nwamui_util_glade_get_widget(WIRELESS_DIALOG_KEY_INDEX_LBL));
+    self->prv->key_index_spinbtn =      GTK_SPIN_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_KEY_INDEX_SPINBTN));
     /* self->prv->key_conf_entry =         GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_CONF_ENTRY)); */
     self->prv->key_conf_entry =         GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_ENTRY));
     self->prv->bssid_list_tv =          GTK_TREE_VIEW(nwamui_util_glade_get_widget(WIRELESS_DIALOG_BSSID_LIST));
@@ -286,6 +303,8 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     self->prv->ncu = NULL;
     self->prv->do_connect = FALSE;
 
+    gtk_spin_button_set_range(self->prv->key_index_spinbtn, 1, 4);
+    gtk_spin_button_set_increments(self->prv->key_index_spinbtn, 1.0, 1.0);
     /* Change the ESSID comboboxentry to use Text and an an image (for Secure/Open) */
     change_essid_cbentry_model(GTK_COMBO_BOX_ENTRY(self->prv->essid_combo));
 
@@ -462,6 +481,12 @@ nwam_wireless_dialog_set_property ( GObject         *object,
                 gtk_entry_set_text(GTK_ENTRY(self->prv->key_conf_entry), tmpstr?tmpstr:"");
             }
             break;
+        case PROP_WEP_KEY_INDEX:
+            if (self->prv->key_index_spinbtn != NULL) {
+                gtk_spin_button_set_value(GTK_SPIN_BUTTON(self->prv->key_index_spinbtn),
+                  g_value_get_int(value));
+            }
+            break;
 	case PROP_WPA_CONFIG_TYPE:
             tmpint = g_value_get_int (value);
 
@@ -550,6 +575,12 @@ nwam_wireless_dialog_get_property (GObject         *object,
 	case PROP_WEP_KEY:
             if (self->prv->key_entry != NULL) {
                 g_value_set_string( value, g_strdup(gtk_entry_get_text(GTK_ENTRY(self->prv->key_entry))) );
+            }
+            break;            
+	case PROP_WEP_KEY_INDEX:
+            if (self->prv->key_index_spinbtn != NULL) {
+                g_value_set_int(value,
+                  gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(self->prv->key_index_spinbtn)));
             }
             break;            
 	case PROP_WPA_CONFIG_TYPE:
@@ -745,6 +776,7 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
             case NWAMUI_WIFI_SEC_WPA_PERSONAL:
                 g_object_set(G_OBJECT (self),
                         "key", nwamui_wifi_net_get_wep_password(wifi_net),
+                        "key_index", nwamui_wifi_net_get_wep_key_index(wifi_net),
                         NULL);
                 break;
 #if 0
@@ -880,6 +912,32 @@ nwam_wireless_dialog_get_key (NwamWirelessDialog *self )
 
     g_object_get (G_OBJECT (self),
                   "key", &key,
+                  NULL);
+    return( key );
+}
+
+void
+nwam_wireless_dialog_set_key_index (NwamWirelessDialog  *self,
+  guint key_index )
+{
+    g_return_if_fail (NWAM_IS_WIRELESS_DIALOG (self));
+    g_return_if_fail (key_index >= 1 && key_index <= 4);
+
+    g_object_set (G_OBJECT (self),
+                  "key_index", key_index,
+                  NULL);
+
+}
+
+guint
+nwam_wireless_dialog_get_key_index (NwamWirelessDialog *self )
+{
+    gint  key = 1;
+    
+    g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), key);
+
+    g_object_get (G_OBJECT (self),
+                  "key_index", &key,
                   NULL);
     return( key );
 }
@@ -1160,6 +1218,11 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
                                 if ( passwd ) {
                                     g_free(passwd);
                                 }
+                                if (nwam_wireless_dialog_get_security(self) != NWAMUI_WIFI_SEC_WEP_HEX) {
+                                    g_object_set(G_OBJECT (self->prv->wifi_net),
+                                      "wep_key_index", nwam_wireless_dialog_get_key_index(self),
+                                      NULL);
+                                }
                             }
                             break;
 #if 0
@@ -1263,6 +1326,8 @@ nwam_wireless_dialog_finalize (NwamWirelessDialog *self)
     gtk_widget_unref(GTK_WIDGET(self->prv->password_notebook ));
     gtk_widget_unref(GTK_WIDGET(self->prv->key_entry ));
     gtk_widget_unref(GTK_WIDGET(self->prv->key_conf_entry ));
+    gtk_widget_unref(GTK_WIDGET(self->prv->key_index_lbl ));
+    gtk_widget_unref(GTK_WIDGET(self->prv->key_index_spinbtn ));
     gtk_widget_unref(GTK_WIDGET(self->prv->bssid_list_tv ));
     gtk_widget_unref(GTK_WIDGET(self->prv->bssid_add_btn ));
     gtk_widget_unref(GTK_WIDGET(self->prv->bssid_remove_btn ));
@@ -1449,23 +1514,37 @@ static void
 security_selection_cb( GtkWidget* widget, gpointer data )
 {
     NwamWirelessDialog *self = NWAM_WIRELESS_DIALOG(data);
+    gint active_index;
     
     g_assert( self != NULL );
-    
-    switch( gtk_combo_box_get_active(GTK_COMBO_BOX(widget) ) ) {
+
+    active_index = gtk_combo_box_get_active(GTK_COMBO_BOX(widget) );
+    switch( active_index ) {
         case NWAMUI_WIFI_SEC_NONE:
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WEP_PAGE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_entry), FALSE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_conf_entry), FALSE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->show_password_cbutton ), FALSE );
+/*             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_index_lbl ), FALSE ); */
+/*             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_index_spinbtn ), FALSE ); */
+            gtk_widget_hide( GTK_WIDGET(self->prv->key_index_lbl ));
+            gtk_widget_hide( GTK_WIDGET(self->prv->key_index_spinbtn ));
             break;
         case NWAMUI_WIFI_SEC_WEP_HEX:
         case NWAMUI_WIFI_SEC_WEP_ASCII:
-        case NWAMUI_WIFI_SEC_WPA_PERSONAL:
+        case NWAMUI_WIFI_SEC_WPA_PERSONAL: {
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WEP_PAGE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_entry), TRUE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_conf_entry), TRUE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->show_password_cbutton ), FALSE );
+            if (active_index != NWAMUI_WIFI_SEC_WEP_HEX) {
+                gtk_widget_show( GTK_WIDGET(self->prv->key_index_lbl ));
+                gtk_widget_show( GTK_WIDGET(self->prv->key_index_spinbtn ));
+            } else {
+                gtk_widget_hide( GTK_WIDGET(self->prv->key_index_lbl ));
+                gtk_widget_hide( GTK_WIDGET(self->prv->key_index_spinbtn ));
+            }
+    }
             break;
 #if 0
         /* Currently ENTERPRISE is not supported */
