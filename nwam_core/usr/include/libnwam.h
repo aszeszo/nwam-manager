@@ -976,6 +976,7 @@ typedef struct {
 	uint32_t speed; /* a dladm_wlan_speed_t */
 	uint32_t channel; /* a dladm_wlan_channel_t */
 	uint32_t bsstype; /* a dladm_wlan_bsstype_t */
+	uint_t keyindex;
 	boolean_t have_key;
 	boolean_t selected;
 	boolean_t connected;
