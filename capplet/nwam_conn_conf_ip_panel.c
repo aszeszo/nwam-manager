@@ -82,6 +82,9 @@
 #define IP_MULTI_PANEL_IPV6_ACCEPT_STATEFUL_CBTN    "accept_ipv6_stateful_cbox"
 #define IP_MULTI_PANEL_IPV6_ACCEPT_STATELESS_CBTN   "accept_ipv6_stateless_cbox"
 
+#define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
+	NWAM_TYPE_CONN_CONF_IP_PANEL, NwamConnConfIPPanelPrivate)) 
+
 struct _NwamConnConfIPPanelPrivate {
 	/* Widget Pointers */
 	GtkNotebook *iface_nb;
@@ -120,11 +123,11 @@ struct _NwamConnConfIPPanelPrivate {
 	GtkLabel *ipv6_prefix_lbl;
 	GtkEntry *ipv6_addr_entry;
 	GtkEntry *ipv6_prefix_entry;
- 	GtkButton *ipv6_mutli_add_btn;
-	GtkButton *ipv6_mutli_del_btn;
 	GtkCheckButton *ipv6_accept_stateful_cb;
 	GtkCheckButton *ipv6_accept_stateless_cb;
 */      
+ 	GtkButton *ipv6_add_btn;
+	GtkButton *ipv6_del_btn;
 	GtkTreeView *ipv6_tv;
 
 	/* Other Data */
@@ -176,10 +179,14 @@ static void nwam_conn_wifi_fav_cell_cb (GtkTreeViewColumn *col,
 					     GtkTreeModel      *model,
 					     GtkTreeIter       *iter,
 					     gpointer           data);
-static void nwam_conn_multi_ip_cell_edited_cb (GtkCellRendererText *renderer,
-			gchar               *path,
-                        gchar               *new_text,
-                        gpointer             user_data);
+static void nwam_conn_multi_ipv4_cell_edited_cb (GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             user_data);
+static void nwam_conn_multi_ipv6_cell_edited_cb (GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             user_data);
 
 static gint nwam_conn_multi_ip_comp_cb (GtkTreeModel *model,
 			      GtkTreeIter *a,
@@ -228,7 +235,9 @@ nwam_conf_ip_panel_class_init(NwamConnConfIPPanelClass *klass)
 {
 	/* Pointer to GObject Part of Class */
 	GObjectClass *gobject_class = (GObjectClass*) klass;
-		
+    
+    g_type_class_add_private (klass, sizeof(NwamConnConfIPPanelPrivate));
+
 	/* Override Some Function Pointers */
 	gobject_class->finalize = (void (*)(GObject*)) nwam_conf_ip_panel_finalize;
 }
@@ -373,8 +382,13 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 
 	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_ADDR);	
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
-	g_signal_connect(G_OBJECT(renderer), "edited",
-		(GCallback) nwam_conn_multi_ip_cell_edited_cb, (gpointer) view);
+	if (view == self->prv->ipv4_tv) {
+        g_signal_connect(G_OBJECT(renderer), "edited",
+          (GCallback) nwam_conn_multi_ipv4_cell_edited_cb, (gpointer)self);
+    } else {
+        g_signal_connect(G_OBJECT(renderer), "edited",
+          (GCallback) nwam_conn_multi_ipv6_cell_edited_cb, (gpointer)self);
+    }
 	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_ADDR));
 
 	// column IP_VIEW_MASK
@@ -384,19 +398,24 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       "sort-indicator", TRUE,
       "reorderable", TRUE,
       NULL);
-	if (view == self->prv->ipv4_tv) {
-		gtk_tree_view_column_set_title(col, _("Subnet Mask"));
-	} else {
-		gtk_tree_view_column_set_title(col, _("Prefix Length"));
-	}
+
+	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_MASK);	
+
 	renderer = capplet_column_append_cell(col,
       gtk_cell_renderer_text_new(), FALSE,
       (GtkTreeCellDataFunc)nwam_conn_multi_ip_cell_cb, (gpointer)view, NULL);
 
-	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_MASK);	
+	if (view == self->prv->ipv4_tv) {
+		gtk_tree_view_column_set_title(col, _("Subnet Mask"));
+        g_signal_connect(G_OBJECT(renderer), "edited",
+          (GCallback) nwam_conn_multi_ipv4_cell_edited_cb, (gpointer)self);
+	} else {
+		gtk_tree_view_column_set_title(col, _("Prefix Length"));
+        g_signal_connect(G_OBJECT(renderer), "edited",
+          (GCallback) nwam_conn_multi_ipv6_cell_edited_cb, (gpointer)self);
+	}
+
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
-	g_signal_connect(G_OBJECT(renderer), "edited",
-		(GCallback) nwam_conn_multi_ip_cell_edited_cb, (gpointer) view);
 	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_MASK));
 }
 
@@ -405,7 +424,7 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 {
 	GtkTreeModel *model;
 	
-	self->prv = g_new0(NwamConnConfIPPanelPrivate, 1);
+	self->prv = GET_PRIVATE(self);
 	
     self->prv->ncu = NULL;
     self->prv->ncu_handler_id = 0;
@@ -485,6 +504,11 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 */
 
 	self->prv->ipv6_tv = GTK_TREE_VIEW(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ADDR_TABLE_TVIEW));
+
+	self->prv->ipv6_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ADD_BTN));
+	self->prv->ipv6_del_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_DEL_BTN));
+	g_signal_connect(G_OBJECT(self->prv->ipv6_add_btn), "clicked", (GCallback)multi_line_add_cb, (gpointer)self);
+	g_signal_connect(G_OBJECT(self->prv->ipv6_del_btn), "clicked", (GCallback)multi_line_del_cb, (gpointer)self);
 
     nwam_compose_multi_ip_tree_view (self, self->prv->ipv4_tv);
 
@@ -890,7 +914,6 @@ nwam_conf_ip_panel_finalize(NwamConnConfIPPanel *self)
         g_object_unref( self->prv->daemon );
     }
 
-    g_free(self->prv);
     self->prv = NULL;
 
     G_OBJECT_CLASS(nwam_conf_ip_panel_parent_class)->finalize(G_OBJECT(self));
@@ -1233,12 +1256,14 @@ nwam_conn_multi_ip_cell_cb (    GtkTreeViewColumn *col,
 }
 
 static void
-nwam_conn_multi_ip_cell_edited_cb ( GtkCellRendererText *renderer,
+nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
                                     gchar               *path,
                                     gchar               *new_text,
                                     gpointer             data)
 {
-    GtkTreeView        *view = GTK_TREE_VIEW(data);
+    NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(data);
+    NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(data);
+    GtkTreeView        *view = prv->ipv4_tv;
 	guint               col_id = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(renderer), "nwam_multi_ip_column_id"));
 	GtkTreeModel*       model = GTK_TREE_MODEL (gtk_tree_view_get_model(view));
     NwamuiIp*           ip = NULL;
@@ -1246,6 +1271,8 @@ nwam_conn_multi_ip_cell_edited_cb ( GtkCellRendererText *renderer,
 	
 	gtk_tree_model_get_iter_from_string (model, &iter, path);
 	gtk_tree_model_get(model, &iter, 0, &ip, -1);
+
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
 
     /* TODO - Validate data in editing */
 	switch (col_id) {
@@ -1262,6 +1289,44 @@ nwam_conn_multi_ip_cell_edited_cb ( GtkCellRendererText *renderer,
 	default:
 		g_assert_not_reached ();
 	}
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+}
+
+static void
+nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
+                                    gchar               *path,
+                                    gchar               *new_text,
+                                    gpointer             data)
+{
+    NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(data);
+    NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(data);
+    GtkTreeView        *view = prv->ipv6_tv;
+	guint               col_id = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(renderer), "nwam_multi_ip_column_id"));
+	GtkTreeModel*       model = GTK_TREE_MODEL (gtk_tree_view_get_model(view));
+    NwamuiIp*           ip = NULL;
+	GtkTreeIter         iter;
+	
+	gtk_tree_model_get_iter_from_string (model, &iter, path);
+	gtk_tree_model_get(model, &iter, 0, &ip, -1);
+
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+
+    /* TODO - Validate data in editing */
+	switch (col_id) {
+/*
+	case IP_VIEW_HOSTNAME:
+		break;
+*/
+	case IP_VIEW_ADDR:
+        nwamui_ip_set_address(ip, new_text);
+		break;
+	case IP_VIEW_MASK:
+        nwamui_ip_set_subnet_prefix(ip, new_text);
+		break;
+	default:
+		g_assert_not_reached ();
+	}
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
 }
 
 static void 

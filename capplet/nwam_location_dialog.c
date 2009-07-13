@@ -875,7 +875,11 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         g_free(name);
         g_object_unref(object);
 
-        nwam_tree_view_select_cached_object(NWAM_TREE_VIEW(prv->location_tree));
+        /* Select this new object. */
+        gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->location_tree),
+          nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->location_tree)));
+        /* Trigger rename on the new object as spec defines. */
+        gtk_button_clicked(prv->location_rename_btn);
         return;
     }
 

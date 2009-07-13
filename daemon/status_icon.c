@@ -1447,7 +1447,7 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
     END_MENU_SECTION_SEPARATOR(sub_menu, SECTION_LOC, TRUE);
 
     menu_append_item(sub_menu,
-      GTK_TYPE_MENU_ITEM, _("_Location Preferences..."),
+      GTK_TYPE_MENU_ITEM, _("_Network Locations..."),
       on_activate_static_menuitems, self);
     CACHE_STATIC_MENUITEMS(self, MENUITEM_ENV_PREF);
     menu_append_item_with_submenu(root_menu,

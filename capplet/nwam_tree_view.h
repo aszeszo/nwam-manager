@@ -89,9 +89,8 @@ void nwam_tree_view_down(NwamTreeView *self, GObject *item);
 GObject* nwam_tree_view_edit(NwamTreeView *self, const gchar *name);
 GObject* nwam_tree_view_get_item_by_proxy(NwamTreeView *self, GObject *proxy);
 
-void nwam_tree_view_select_cached_object(NwamTreeView *self);
-
 NwamuiObject* nwam_tree_view_get_cached_object(NwamTreeView *self);
+GtkTreePath* nwam_tree_view_get_cached_object_path(NwamTreeView *self);
 
 
 G_END_DECLS

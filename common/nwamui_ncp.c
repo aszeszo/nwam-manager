@@ -624,7 +624,7 @@ nwamui_ncp_get_current_prio_group( NwamuiNcp* self )
         return( 0 );
     }
 
-    nwamui_debug("Got active priority group as %d", pg );
+/*     nwamui_debug("Got active priority group as %d", pg ); */
 
     current_prio = (gint64)pg;
 

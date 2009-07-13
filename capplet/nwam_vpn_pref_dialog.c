@@ -748,7 +748,8 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
         g_free(name);
         g_object_unref(object);
 
-        nwam_tree_view_select_cached_object(NWAM_TREE_VIEW(self->prv->view));
+        gtk_tree_selection_select_path(gtk_tree_view_get_selection(self->prv->view),
+          nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(self->prv->view)));
         return;
     }
 

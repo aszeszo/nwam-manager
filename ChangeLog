@@ -1,3 +1,25 @@
+2009-07-10  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_condition_vbox.c
+	(table_get_condition_subject_model): Fixed bug#9651
+	* capplet/nwam_conn_conf_ip_panel.c
+	(nwam_conf_ip_panel_class_init), (nwam_compose_multi_ip_tree_view),
+	(nwam_conf_ip_panel_init), (nwam_conf_ip_panel_finalize),
+	(nwam_conn_multi_ipv4_cell_edited_cb),
+	(nwam_conn_multi_ipv6_cell_edited_cb):
+	* capplet/nwam_location_dialog.c (on_button_clicked):
+	* capplet/nwam_tree_view.c (nwam_tree_view_init),
+	(object_tree_model_notify), (nwam_tree_view_row_inserted),
+	(nwam_tree_view_row_changed),
+	(nwam_tree_view_get_cached_object_path), (connect_model_signals):
+	* capplet/nwam_tree_view.h:
+	* capplet/nwam_vpn_pref_dialog.c (vpn_pref_clicked_cb):
+	Fixed bug#9869 mutiply ipv6 addresses, update nwam tree view and
+	all references.
+	* common/nwamui_ncp.c (nwamui_ncp_get_current_prio_group):
+	* daemon/status_icon.c (nwam_menu_create_static_menuitems):
+	Fixed bug#9498
+	
 2009-07-10  Darren Kenny  <darren.kenny@sun.com>
 
 	* nwam_core/usr/include/libnwam.h:
@@ -10,7 +32,7 @@
 	  events, via the function nwamui_daemon_handle_object_action_event(),
 	  which was re-layed out by object - really needs some more work to
 	  update objects correctly!.
-
+	
 2009-07-09  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam-manager-properties.ui:

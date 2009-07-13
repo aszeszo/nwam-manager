@@ -752,7 +752,8 @@ table_get_condition_subject_model ()
 
 	condition_subject = GTK_TREE_MODEL(gtk_list_store_new (1, G_TYPE_INT));
 	/* Note we use NWAMUI_COND_FIELD_LAST to display <No conditions> */
-    for (i = NWAMUI_COND_FIELD_NCU; i <= NWAMUI_COND_FIELD_LAST; i++) {
+    /* In spec 1.8.4, there is no <no conditions> contidion. */
+    for (i = NWAMUI_COND_FIELD_NCU; i < NWAMUI_COND_FIELD_LAST; i++) {
         gtk_list_store_append (GTK_LIST_STORE(condition_subject), &iter);
         gtk_list_store_set (GTK_LIST_STORE(condition_subject), &iter, 0, i, -1);
     }
