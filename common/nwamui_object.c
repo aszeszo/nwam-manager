@@ -93,6 +93,7 @@ nwamui_object_class_init(NwamuiObjectClass *klass)
 static void
 nwamui_object_init(NwamuiObject *self)
 {
+    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
 
 static void
@@ -286,3 +287,14 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, 
 
     return(rval);
 }
+
+/* Callbacks */
+
+static void
+object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamuiObject* self = NWAMUI_OBJECT(data);
+
+/*     g_debug("%s: notify '%s' changed", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), arg1->name); */
+}
+

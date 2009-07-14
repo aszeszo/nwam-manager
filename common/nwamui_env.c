@@ -2795,7 +2795,7 @@ nwamui_env_get_ipsecpolicy_config_file (NwamuiEnv *self)
 /** 
  * nwamui_env_set_svcs_enable:
  * @nwamui_env: a #NwamuiEnv.
- * @svcs_enable: Value to set svcs_enable to.
+ * @svcs_enable: Value to set svcs_enable to. NULL means remove all.
  * 
  **/ 
 extern void
@@ -2804,11 +2804,9 @@ nwamui_env_set_svcs_enable (   NwamuiEnv *self,
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
 
-    if ( svcs_enable != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "svcs_enable", svcs_enable,
-                      NULL);
-    }
+    g_object_set (G_OBJECT (self),
+      "svcs_enable", svcs_enable,
+      NULL);
 }
 
 /**
@@ -2834,7 +2832,7 @@ nwamui_env_get_svcs_enable (NwamuiEnv *self)
 /** 
  * nwamui_env_set_svcs_disable:
  * @nwamui_env: a #NwamuiEnv.
- * @svcs_disable: Value to set svcs_disable to.
+ * @svcs_disable: Value to set svcs_disable to. NULL means remove all.
  * 
  **/ 
 extern void
@@ -2843,11 +2841,9 @@ nwamui_env_set_svcs_disable (   NwamuiEnv *self,
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
 
-    if ( svcs_disable != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "svcs_disable", svcs_disable,
-                      NULL);
-    }
+    g_object_set (G_OBJECT (self),
+      "svcs_disable", svcs_disable,
+      NULL);
 }
 
 /**
@@ -3962,9 +3958,7 @@ nwamui_env_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, c
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    NwamuiEnv* self = NWAMUI_ENV(data);
-
-    g_debug("NwamuiEnv: notify %s changed", arg1->name);
+/*     NwamuiEnv* self = NWAMUI_ENV(data); */
 }
 
 static void 

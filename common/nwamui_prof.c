@@ -569,7 +569,5 @@ nwamui_prof_notify_begin (NwamuiProf* self)
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    NwamuiProf* self = NWAMUI_PROF(data);
-
-    g_debug("NwamuiProf: notify %s changed", arg1->name);
+/*     NwamuiProf* self = NWAMUI_PROF(data); */
 }

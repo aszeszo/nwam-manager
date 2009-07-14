@@ -1393,8 +1393,6 @@ nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, c
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    NwamuiEnm* self = NWAMUI_ENM(data);
-
-    g_debug("NwamuiEnm: notify %s changed", arg1->name);
+/*     NwamuiEnm* self = NWAMUI_ENM(data); */
 }
 

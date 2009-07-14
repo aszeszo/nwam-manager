@@ -375,5 +375,4 @@ svc_toggle_cb (GtkCellRendererToggle *cell_renderer,
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-	g_debug("NwamEnvSvc: notify %s changed", arg1->name);
 }

@@ -1391,10 +1391,9 @@ nwamui_ncp_get_wireless_link_num( NwamuiNcp* self )
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    NwamuiNcp* self = NWAMUI_NCP(gobject);
-
-    g_debug("NwamuiNcp: notify %s changed", arg1->name);
+/*     NwamuiNcp* self = NWAMUI_NCP(gobject); */
 }
+
 static void
 ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {

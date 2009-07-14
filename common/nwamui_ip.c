@@ -603,8 +603,6 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiIp* self = NWAMUI_IP(data);
 
-    g_debug("NwamuiIp: notify %s changed", arg1->name);
-
     if ( self->prv->ncu_parent != NULL ) {
         g_object_notify(G_OBJECT(self->prv->ncu_parent), (gpointer)(self->prv->is_v6?"v6addresses":"v4addresses") );
     }

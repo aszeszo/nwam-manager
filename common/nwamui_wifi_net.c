@@ -2199,8 +2199,6 @@ nwamui_wifi_net_has_modifications( NwamuiWifiNet* self )
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    NwamuiWifiNet* self = NWAMUI_WIFI_NET(data);
-
-    g_debug("NwamuiWifiNet: notify %s changed", arg1->name);
+/*     NwamuiWifiNet* self = NWAMUI_WIFI_NET(data); */
 }
 

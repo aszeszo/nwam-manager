@@ -2044,7 +2044,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         /* Update disabled svcs */
         model = gtk_tree_view_get_model(prv->disabled_netservices_list);
         nlist = capplet_model_to_list(model);
-        nwamui_env_set_svcs_enable(current_env, nlist);
+        nwamui_env_set_svcs_disable(current_env, nlist);
         g_list_foreach(nlist, (GFunc)g_free, NULL);
         g_list_free(nlist);
     }

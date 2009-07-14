@@ -3794,10 +3794,7 @@ get_kstat_uint64 (const gchar *device, const gchar* stat_name, uint64_t *rval )
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    NwamuiNcu* self = NWAMUI_NCU(data);
-    gchar*     name = self->prv->device_name;
-
-    g_debug("NwamuiNcu: %s: notify %s changed", name?name:"", arg1->name);
+/*     NwamuiNcu* self = NWAMUI_NCU(data); */
 }
 
 static void 
