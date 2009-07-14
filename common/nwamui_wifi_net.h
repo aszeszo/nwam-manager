@@ -65,11 +65,22 @@ struct _NwamuiWifiNetClass
 	NwamuiObjectClass                parent_class;
 };
 
+#ifndef WEP_ASCII_EQ_HEX 
+/* For Phase 1, we don't differentiate between WEP ASCII / HEX since the API
+ * can't handle it, it will determine based off it's length.
+ */
+#define WEP_ASCII_EQ_HEX 1
+#endif
+
 /* Enumerations */
 typedef enum {
     NWAMUI_WIFI_SEC_NONE,
+#ifdef WEP_ASCII_EQ_HEX 
+    NWAMUI_WIFI_SEC_WEP,
+#else
     NWAMUI_WIFI_SEC_WEP_HEX,
     NWAMUI_WIFI_SEC_WEP_ASCII,
+#endif /* WEP_ASCII_EQ_HEX */
     NWAMUI_WIFI_SEC_WPA_PERSONAL,
     /* NWAMUI_WIFI_SEC_WPA_ENTERPRISE,- Currently not supported  */
     NWAMUI_WIFI_SEC_LAST /* Not to be used directly */

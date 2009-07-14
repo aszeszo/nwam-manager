@@ -642,7 +642,11 @@ nwamui_env_set_property (   GObject         *object,
                         g_debug ("nwamui_env_set_property found nwam_loc_handle %s", prv->name);
                     } else {
                         nerr = nwam_loc_create (self->prv->name, &self->prv->nwam_loc);
-                        g_assert (nerr == NWAM_SUCCESS);
+                        if ( nerr != NWAM_SUCCESS ) {
+                            nwamui_warning("Error creating location: %s : %s", 
+                                            self->prv->name, nwam_strerror(nerr));
+                            break;
+                        }
                     }
                 }
                 nerr = nwam_loc_set_name (self->prv->nwam_loc, self->prv->name);
@@ -1290,7 +1294,7 @@ nwamui_env_get_property (GObject         *object,
  * Creates a new #NwamuiEnv.
  **/
 NwamuiEnv*
-nwamui_env_new ( gchar* name )
+nwamui_env_new ( const gchar* name )
 {
     NwamuiEnv   *env = NWAMUI_ENV(g_object_new (NWAMUI_TYPE_ENV, NULL));
     
@@ -1321,6 +1325,12 @@ nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh)
         g_assert_not_reached ();
     }
 
+    if ( prv->name != NULL ) {
+        if ( strncmp( prv->name, name, strlen(prv->name)) != 0 ) {
+            g_object_notify(G_OBJECT(self), "name");
+        }
+        g_free(prv->name);
+    }
     prv->name = g_strdup( name );
 
     nerr = nwam_loc_read (prv->name, 0, &prv->nwam_loc);
@@ -1335,7 +1345,11 @@ nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh)
     free (name);
 
     /* Initialise enabled to be the original value */
-    prv->enabled = get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED );
+    enabled = get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED );
+    if ( prv->enabled != enabled ) {
+        g_object_notify(G_OBJECT(self), "enabled" );
+    }
+    prv->enabled = enabled;
 
     prv->nwam_loc_modified = FALSE;
 

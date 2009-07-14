@@ -771,8 +771,12 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
             case NWAMUI_WIFI_SEC_NONE: 
                 break;
 
+#ifdef WEP_ASCII_EQ_HEX 
+            case NWAMUI_WIFI_SEC_WEP:
+#else
             case NWAMUI_WIFI_SEC_WEP_HEX:
             case NWAMUI_WIFI_SEC_WEP_ASCII:
+#endif /* WEP_ASCII_EQ_HEX */
             case NWAMUI_WIFI_SEC_WPA_PERSONAL:
                 g_object_set(G_OBJECT (self),
                         "key", nwamui_wifi_net_get_wep_password(wifi_net),
@@ -1204,8 +1208,12 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
                         case NWAMUI_WIFI_SEC_NONE: 
                             break;
 
+#ifdef WEP_ASCII_EQ_HEX 
+                        case NWAMUI_WIFI_SEC_WEP:
+#else
                         case NWAMUI_WIFI_SEC_WEP_HEX:
                         case NWAMUI_WIFI_SEC_WEP_ASCII:
+#endif /* WEP_ASCII_EQ_HEX */
                         case NWAMUI_WIFI_SEC_WPA_PERSONAL: {
                                 gchar*  passwd = nwam_wireless_dialog_get_key(self);
 
@@ -1218,7 +1226,12 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
                                 if ( passwd ) {
                                     g_free(passwd);
                                 }
-                                if (nwam_wireless_dialog_get_security(self) != NWAMUI_WIFI_SEC_WEP_HEX) {
+#ifdef WEP_ASCII_EQ_HEX 
+                                if (nwam_wireless_dialog_get_security(self) == NWAMUI_WIFI_SEC_WEP) {
+#else
+                                if (nwam_wireless_dialog_get_security(self) == NWAMUI_WIFI_SEC_WEP_HEX) ||
+                                   (nwam_wireless_dialog_get_security(self) == NWAMUI_WIFI_SEC_WEP_ASCII) {
+#endif /* WEP_ASCII_EQ_HEX */
                                     g_object_set(G_OBJECT (self->prv->wifi_net),
                                       "wep_key_index", nwam_wireless_dialog_get_key_index(self),
                                       NULL);
@@ -1404,8 +1417,12 @@ validate_information( NwamWirelessDialog* self )
         case NWAMUI_WIFI_SEC_NONE: 
             break;
 
+#ifdef WEP_ASCII_EQ_HEX 
+        case NWAMUI_WIFI_SEC_WEP:
+#else
         case NWAMUI_WIFI_SEC_WEP_HEX:
         case NWAMUI_WIFI_SEC_WEP_ASCII:
+#endif /* WEP_ASCII_EQ_HEX */
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:
             {
                 const gchar* key =        gtk_entry_get_text(GTK_ENTRY(self->prv->key_entry));
@@ -1452,8 +1469,12 @@ validate_information( NwamWirelessDialog* self )
             case NWAMUI_WIFI_SEC_NONE: 
                 break;
 
+#ifdef WEP_ASCII_EQ_HEX 
+            case NWAMUI_WIFI_SEC_WEP:
+#else
             case NWAMUI_WIFI_SEC_WEP_HEX:
             case NWAMUI_WIFI_SEC_WEP_ASCII:
+#endif /* WEP_ASCII_EQ_HEX */
             case NWAMUI_WIFI_SEC_WPA_PERSONAL:
                 g_object_set(G_OBJECT (tmp_wifi),
                         "wep_password", nwam_wireless_dialog_get_key(self),
@@ -1530,14 +1551,26 @@ security_selection_cb( GtkWidget* widget, gpointer data )
             gtk_widget_hide( GTK_WIDGET(self->prv->key_index_lbl ));
             gtk_widget_hide( GTK_WIDGET(self->prv->key_index_spinbtn ));
             break;
+#ifdef WEP_ASCII_EQ_HEX 
+#else
+#endif /* WEP_ASCII_EQ_HEX */
+#ifdef WEP_ASCII_EQ_HEX 
+        case NWAMUI_WIFI_SEC_WEP:
+#else
         case NWAMUI_WIFI_SEC_WEP_HEX:
         case NWAMUI_WIFI_SEC_WEP_ASCII:
+#endif /* WEP_ASCII_EQ_HEX */
         case NWAMUI_WIFI_SEC_WPA_PERSONAL: {
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WEP_PAGE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_entry), TRUE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_conf_entry), TRUE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->show_password_cbutton ), FALSE );
-            if (active_index != NWAMUI_WIFI_SEC_WEP_HEX) {
+#ifdef WEP_ASCII_EQ_HEX 
+            if (active_index == NWAMUI_WIFI_SEC_WEP) {
+#else
+            if (active_index == NWAMUI_WIFI_SEC_WEP_ASCII ||
+                active_index == NWAMUI_WIFI_SEC_WEP_HEX) {
+#endif /* WEP_ASCII_EQ_HEX */
                 gtk_widget_show( GTK_WIDGET(self->prv->key_index_lbl ));
                 gtk_widget_show( GTK_WIDGET(self->prv->key_index_spinbtn ));
             } else {

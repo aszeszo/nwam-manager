@@ -93,7 +93,7 @@ typedef enum {
     NWAMUI_ENV_CONFIG_SOURCE_LAST
 } nwamui_env_config_source_t;
 
-extern NwamuiEnv*           nwamui_env_new ( gchar* name );
+extern NwamuiEnv*           nwamui_env_new ( const gchar* name );
 
 extern NwamuiEnv*			nwamui_env_new_with_handle (nwam_loc_handle_t envh);
 

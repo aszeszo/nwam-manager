@@ -1019,8 +1019,15 @@ nwamui_wifi_net_store_key ( NwamuiWifiNet *self )
         case NWAMUI_WIFI_SEC_NONE: 
             break;
 
+#ifdef WEP_ASCII_EQ_HEX 
+#else
+#endif /* WEP_ASCII_EQ_HEX */
+#ifdef WEP_ASCII_EQ_HEX 
+        case NWAMUI_WIFI_SEC_WEP:
+#else
         case NWAMUI_WIFI_SEC_WEP_HEX:
         case NWAMUI_WIFI_SEC_WEP_ASCII:
+#endif /* WEP_ASCII_EQ_HEX */
         case NWAMUI_WIFI_SEC_WPA_PERSONAL: {
                 if ( self->prv->ncu && self->prv->essid ) {
                     gchar          *device = nwamui_ncu_get_device_name(self->prv->ncu);
@@ -1776,8 +1783,12 @@ extern uint32_t
 nwamui_wifi_net_security_map_to_nwam ( nwamui_wifi_security_t sec_mode )
 {
     switch (sec_mode ) {
+#ifdef WEP_ASCII_EQ_HEX 
+        case NWAMUI_WIFI_SEC_WEP:
+#else
         case NWAMUI_WIFI_SEC_WEP_ASCII:
         case NWAMUI_WIFI_SEC_WEP_HEX:
+#endif /* WEP_ASCII_EQ_HEX */
             return (uint32_t)DLADM_WLAN_SECMODE_WEP;
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:
             return (uint32_t)DLADM_WLAN_SECMODE_WPA;
@@ -1794,7 +1805,11 @@ nwamui_wifi_net_security_map ( uint32_t _sec_mode )
     
     switch (sec_mode ) {
         case DLADM_WLAN_SECMODE_WEP:
+#ifdef WEP_ASCII_EQ_HEX 
+            return NWAMUI_WIFI_SEC_WEP;
+#else
             return NWAMUI_WIFI_SEC_WEP_HEX;
+#endif /* WEP_ASCII_EQ_HEX */
         case DLADM_WLAN_SECMODE_WPA:
             return NWAMUI_WIFI_SEC_WPA_PERSONAL;
         default:

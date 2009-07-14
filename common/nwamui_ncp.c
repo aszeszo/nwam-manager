@@ -420,6 +420,10 @@ nwamui_ncp_finalize (NwamuiNcp *self)
         gtk_list_store_clear(self->prv->ncu_list_store);
         g_object_unref(self->prv->ncu_list_store);
     }
+
+    if ( self->prv->nwam_ncp != NULL ) {
+        nwam_ncp_free( self->prv->nwam_ncp );
+    }
     
     g_free (self->prv); 
     self->prv = NULL;
@@ -437,8 +441,14 @@ nwamui_ncp_new(const gchar* name )
     /* For Phase 1, we can only create the "User" profile */
     g_return_val_if_fail( name && strncmp(NWAM_NCP_NAME_USER, name, strlen(NWAM_NCP_NAME_USER) ) == 0, self);
 
-    if ( (nerr = nwam_ncp_create (name, 0, &nwam_ncp )) != NWAM_SUCCESS ) {
-        g_debug ("Failed to get name for ncp, error: %s", nwam_strerror (nerr));
+    /* First check if handle already exists, if so, read it */
+    if ( ( nerr = nwam_ncp_read (name, 0, &nwam_ncp) ) != NWAM_SUCCESS ) {
+        nwamui_debug ("Failed to read handle for ncp '%s', error: %s", name, nwam_strerror (nerr));
+
+        if ( (nerr = nwam_ncp_create (name, 0, &nwam_ncp )) != NWAM_SUCCESS ) {
+            nwamui_debug ("Failed to create new ncp '%s', error: %s", name, nwam_strerror (nerr));
+            return( NULL );
+        }
     }
 
     self = NWAMUI_NCP(g_object_new (NWAMUI_TYPE_NCP,
@@ -485,6 +495,33 @@ nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp)
     nwamui_ncp_populate_ncu_list( self, NULL );
 
     return( self );
+}
+
+extern void
+nwamui_ncp_reload( NwamuiNcp* self )
+{
+    nwam_error_t    nerr;
+    nwam_ncp_handle_t nwam_ncp;
+
+    g_return_if_fail( NWAMUI_IS_NCP(self) );
+
+    g_object_freeze_notify(G_OBJECT(self));
+
+    g_debug("Reloading NCP %s", self->prv->name);
+
+    if ( ( nerr = nwam_ncp_read ( self->prv->name, 0, &nwam_ncp) ) != NWAM_SUCCESS ) {
+        g_debug ("Failed to create private handle for ncp, error: %s", nwam_strerror (nerr));
+    }
+
+    if ( self->prv->nwam_ncp != NULL ) {
+        nwam_ncp_free( self->prv->nwam_ncp );
+    }
+
+    self->prv->nwam_ncp = nwam_ncp;
+
+    nwamui_ncp_populate_ncu_list( self, NULL );
+
+    g_object_thaw_notify(G_OBJECT(self));
 }
 
 extern nwam_ncp_handle_t

@@ -330,8 +330,12 @@ nwamui_util_wifi_sec_to_string( nwamui_wifi_security_t wireless_sec ) {
     g_assert( wireless_sec >= 0 && wireless_sec < NWAMUI_WIFI_SEC_LAST );
     
     switch( wireless_sec ) {
+#ifdef WEP_ASCII_EQ_HEX 
+        case NWAMUI_WIFI_SEC_WEP:               return(_("WEP"));
+#else
         case NWAMUI_WIFI_SEC_WEP_HEX:           return(_("WEP Hex"));
         case NWAMUI_WIFI_SEC_WEP_ASCII:         return(_("WEP ASCII"));
+#endif /* WEP_ASCII_EQ_HEX */
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:      return(_("WPA Personal(PSK)"));
 #if 0
         /* ENTERPRISE currently not supported */
@@ -352,8 +356,12 @@ nwamui_util_wifi_sec_to_short_string( nwamui_wifi_security_t wireless_sec ) {
     g_assert( wireless_sec >= 0 && wireless_sec < NWAMUI_WIFI_SEC_LAST );
     
     switch( wireless_sec ) {
+#ifdef WEP_ASCII_EQ_HEX 
+        case NWAMUI_WIFI_SEC_WEP:           return(_("WEP"));
+#else
         case NWAMUI_WIFI_SEC_WEP_HEX:           return(_("WEP"));
         case NWAMUI_WIFI_SEC_WEP_ASCII:         return(_("WEP"));
+#endif /* WEP_ASCII_EQ_HEX */
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:      return(_("WPA"));
 #if 0
         /* ENTERPRISE currently not supported */
@@ -649,8 +657,12 @@ nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type, gboolean
     }
 
     switch (sec_type) {
+#ifdef WEP_ASCII_EQ_HEX 
+        case NWAMUI_WIFI_SEC_WEP:
+#else
         case NWAMUI_WIFI_SEC_WEP_ASCII:
         case NWAMUI_WIFI_SEC_WEP_HEX:
+#endif /* WEP_ASCII_EQ_HEX */
         /* case NWAMUI_WIFI_SEC_WPA_ENTERPRISE: - Currently not supported */
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:
             return( GDK_PIXBUF(g_object_ref(G_OBJECT(secured_icon) )) );

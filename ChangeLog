@@ -1,3 +1,24 @@
+2009-07-14  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c,
+	  capplet/nwam_wireless_dialog.c, common/libnwamui.c: 
+	  Make the use of a separate WEP HEX and ASCII optional since right
+	  now NWAM and dladm doesn't differentiate, so we can't really
+	  differentiate in the UI either. Also fix issue where key index
+	  wasn't being shown for all WEP types, but it was for WPA, when WPA
+	  doesn't support it.
+	* common/nwamui_env.c, common/nwamui_env.h:
+	  Fix new function to use const char, and also replace an assertion
+	  with a warning.  Also on reload, generate some notify messages if
+	  the name or enabled has changed.
+	* common/nwamui_ncp.c, common/nwamui_ncp.h:
+	  Add nwamui_ncp_reload function.
+	* common/nwamui_daemon.c: 
+	  Add an NCP_LIST property, so UI elements can listen for changes in
+	  the ncp_list. 
+	  Part of the fix for defect#9766 so that we should now be noticing
+	  all the most events w.r.t. objects in the system.
+
 2009-07-14  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_env_pref_dialog.c (apply):
