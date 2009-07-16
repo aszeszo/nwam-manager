@@ -1114,7 +1114,7 @@ nwamui_ncp_commit( NwamuiNcp* self )
     }
 
     if ( self->prv->ncus_added != NULL ) {
-        g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_ncu_commit, NULL );
+        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_ncu_commit, NULL );
         g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_util_obj_unref, NULL );
         g_list_free( self->prv->ncus_added );
         self->prv->ncus_added = NULL;

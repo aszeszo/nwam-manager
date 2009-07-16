@@ -276,8 +276,7 @@ nwam_compose_tree_view (NwamLocationDialog *self)
       NULL);
 	cell = capplet_column_append_cell(col, gtk_cell_renderer_text_new(), FALSE,
 	    (GtkTreeCellDataFunc)nwamui_object_name_cell, NULL, NULL);
-	g_signal_connect(cell, "edited",
-      G_CALLBACK(nwamui_object_name_cell_edited), (gpointer)view);
+	g_signal_connect (cell, "edited", G_CALLBACK(nwamui_object_name_cell_edited), (gpointer)view);
     g_signal_connect (cell, "edited", G_CALLBACK(vanity_name_edited), (gpointer)self);
     g_signal_connect (cell, "editing-started", G_CALLBACK(vanity_name_editing_started), (gpointer)self);
 
@@ -463,8 +462,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 
     nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(self->prv->location_tree),
       (gpointer)self);
-
-    capplet_reset_increasable_name(G_OBJECT(self));
 
     return( TRUE );
 }
@@ -872,10 +869,15 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
         object = NWAMUI_OBJECT(nwamui_env_new(name) );
         CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
+        /* Commit immediately. */
+        nwamui_object_commit(object);
         g_free(name);
         g_object_unref(object);
 
-        /* Select this new object. */
+        /* Select and scroll to this new object. */
+        gtk_tree_view_scroll_to_cell(prv->location_tree,
+          nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->location_tree)),
+          NULL, FALSE, 0.0, 0.0);
         gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->location_tree),
           nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->location_tree)));
         /* Trigger rename on the new object as spec defines. */
@@ -911,20 +913,12 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         
             g_free(message);
         } else if (button == (gpointer)prv->location_dup_btn) {
-            gchar*  sname = nwamui_env_get_name( env );
-            gchar *oname;
+            gchar *sname = nwamui_env_get_name( env );
             gchar *prefix;
             gchar *name;
             NwamuiObject *object;
 
-            /* TODO avoid Copy of Copy of ... */
-            /* Try to get the original name if it is something like 'Copy...' */
-            if (!(oname = capplet_get_original_name(_("Copy of"), sname))) {
-                prefix = g_strdup_printf(_("Copy of %s"), sname);
-            } else {
-                prefix = g_strdup_printf(_("Copy of %s"), oname);
-                g_free(oname);
-            }
+            prefix = capplet_get_original_name(_("Copy of"), sname);
 
             name = capplet_get_increasable_name(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree)), prefix, G_OBJECT(env));
 
@@ -932,14 +926,22 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
             object = NWAMUI_OBJECT(nwamui_env_clone( env ));
             nwamui_object_set_name(object, name);
-
             CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
-
+            /* Commit immediately. */
+            nwamui_object_commit(object);
             g_free(name);
             g_free(prefix);
             g_free(sname);
             g_object_unref(object);
 
+            /* Select and scroll to this new object. */
+            gtk_tree_view_scroll_to_cell(prv->location_tree,
+              nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->location_tree)),
+              NULL, FALSE, 0.0, 0.0);
+            gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->location_tree),
+              nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->location_tree)));
+            /* Trigger rename on the new object as spec defines. */
+            gtk_button_clicked(prv->location_rename_btn);
 
 /*             NwamuiDaemon *daemon = nwamui_daemon_get_instance(); */
 

@@ -295,6 +295,6 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiObject* self = NWAMUI_OBJECT(data);
 
-/*     g_debug("%s: notify '%s' changed", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), arg1->name); */
+    g_debug("%s: notify '%s' changed", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), arg1->name);
 }
 

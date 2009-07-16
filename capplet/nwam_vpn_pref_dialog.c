@@ -527,8 +527,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     gtk_widget_show(GTK_WIDGET(prv->view));
     g_object_unref(daemon);
 
-    capplet_reset_increasable_name(G_OBJECT(self));
-
     if (force) {
     }
 }

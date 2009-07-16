@@ -1,3 +1,21 @@
+2009-07-16  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (capplet_model_find_max_name_suffix),
+	(capplet_get_increasable_name), (capplet_get_max_name_num),
+	(capplet_get_original_name):
+	* capplet/capplet-utils.h:
+	Fixed duplicated name bug.
+	* capplet/nwam_location_dialog.c (nwam_compose_tree_view),
+	(refresh), (on_button_clicked):
+	Commit immediately after create or dup one, otherwise the second
+	dup will fail.
+	* capplet/nwam_vpn_pref_dialog.c (refresh):
+	Updated due to dup name functions changes.
+	* common/nwamui_ncp.c (nwamui_ncp_commit):
+	Fixed a nit.
+	* common/nwamui_object.c (object_notify_cb):
+	Reenable object notify message.
+
 2009-07-14  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c,

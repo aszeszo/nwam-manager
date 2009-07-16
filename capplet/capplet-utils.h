@@ -212,11 +212,9 @@ void capplet_tree_store_move_object(GtkTreeModel *model,
     GtkTreeIter *source);
 
 /* Increasable name. */
-void capplet_reset_increasable_name(GObject *object);
-
 gchar* capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GObject *object);
 
-gint capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix);
+gint capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix, gint base);
 
 gchar* capplet_get_original_name(const gchar *prefix, const gchar *name);
 

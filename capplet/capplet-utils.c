@@ -576,7 +576,7 @@ capplet_model_find_max_name_suffix(GtkTreeModel *model,
 	gint *max = data->ret_data;
 	NwamuiObject *object;
 
-        gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
 	
 	if (object) {
 		gchar *name = nwamui_object_get_name(object);
@@ -588,8 +588,9 @@ capplet_model_find_max_name_suffix(GtkTreeModel *model,
 				num = strtoll(name + prefix_len + 1, &endptr, 10);
 				if (num > 0 && *max < num)
 					*max = num;
-			} else
-				*max = 0;
+            } else if (*max < 0) {
+                *max = 0;
+            }
 		}
 		g_free(name);
 		g_object_unref(object);
@@ -601,16 +602,13 @@ gchar*
 capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GObject *object)
 {
 	gchar *name;
-	gint inc;
+	gint inc = -1;
 
 	g_return_val_if_fail(object && G_IS_OBJECT(object), NULL);
 
-	inc = (gint)g_object_get_data(object, "capplet::increasable_name");
-	g_assert(inc >= -1);
-
 	/* Initial flag */
 	if (inc < 0) {
-		capplet_get_max_name_num(model, prefix);
+		inc = capplet_get_max_name_num(model, prefix, inc);
 	}
 
 	if (++inc > 0)
@@ -618,22 +616,14 @@ capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GObject *
 	else
 		name = g_strdup(prefix);
 
-	g_object_set_data(object, "capplet::increasable_name", (gpointer)inc);
-
 	return name;
 }
 
-void
-capplet_reset_increasable_name(GObject *object)
-{
-	g_object_set_data(object, "capplet::increasable_name", (gpointer)-1);
-}
-
 gint
-capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix)
+capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix, gint base)
 {
 	CappletForeachData data;
-	gint max;
+	gint max = base;
 
 	data.user_data = (gpointer)prefix;
 	data.ret_data = (gpointer)&max;
@@ -645,23 +635,40 @@ capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix)
 	return max;
 }
 
+/**
+ * capplet_get_original_name:
+ * @prefix: a string prefix for duplicating names, e.g. Copy of ...
+ * @name: maybe has contained a prefix
+ * Avoid Copy of Copy of ... 
+ *
+ * Return: the composed name including the @prefix but the last number
+ * if it is there.
+ */
 gchar*
 capplet_get_original_name(const gchar *prefix, const gchar *name)
 {
-	if (g_str_has_prefix(name, prefix)) {
-		gchar *oname = g_strdup(name);
-		gchar *p_num = g_strrstr(oname, " ");
+    gchar *prefix_str = g_strconcat(prefix, " ", NULL);
+    gchar *oname = NULL;
+
+	if (g_str_has_prefix(name, prefix_str)) {
+        gchar *p_num;
 		gint num;
 		gchar *endptr;
-		if (p_num) {
+
+		oname = g_strdup(name);
+        /* Assume a blank is ahead of a number, so delete the number. */
+		p_num = g_strrstr(oname, " ");
+		if (p_num > strlen(prefix_str)) {
 			num = strtoll(p_num + 1, &endptr, 10);
 			if (num > 0) {
 				*p_num = '\0';
-				return oname;
 			}
 		}
-	}
-	return NULL;
+	} else {
+        oname = g_strdup_printf(_("%s %s"), prefix_str, name);
+    }
+    g_free(prefix_str);
+    return g_strstrip(oname);
 }
 
 extern void
