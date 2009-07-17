@@ -489,30 +489,13 @@ nwamui_daemon_set_property ( GObject         *object,
 
                 env = NWAMUI_ENV(g_value_dup_object( value ));
 
-                /* TODO - I presume that keep the prev active env if failded */
-                /* FIXME: For demo, always set active_env! */
-/*
- * Comment out this block because set_active_env will be invoked by
- * event handler, in that case env is already activated, but the
- * following check condition will fail then the signal will never
- * be sent out.
-*/
-/*                 if (nwamui_env_activate (env)) { */
-/*                     self->prv->active_env = env; */
-                    
-/*                     g_signal_emit (self, */
-/*                       nwamui_daemon_signals[ACTIVE_ENV_CHANGED], */
-/*                       0, /\* details *\/ */
-/*                       self->prv->active_env ); */
-/*                 } else { */
-/*                     /\* TODO - We should tell user we are failed *\/ */
-/*                 } */
-
                 /* Always send out this signal. To set active env should
                  * call nwamui_env_activate (env) directly, then if it
                  * is successful event handler will update this prop.
                  * This should be a private function instead of a public prop.
                  */
+                self->prv->active_env = env;
+
                 g_signal_emit (self,
                   nwamui_daemon_signals[ACTIVE_ENV_CHANGED],
                   0, /* details */
@@ -719,9 +702,11 @@ nwamui_daemon_set_status( NwamuiDaemon* self, nwamui_daemon_status_t status ) {
     
     g_assert( status >= NWAMUI_DAEMON_STATUS_UNINITIALIZED && status < NWAMUI_DAEMON_STATUS_LAST );
 
-    g_object_set (G_OBJECT (self),
-                  "status", status,
-                  NULL); 
+    if ( status != self->prv->status ) {
+        g_object_set (G_OBJECT (self),
+                      "status", status,
+                      NULL); 
+    }
 }
 
 static gboolean
@@ -966,7 +951,7 @@ nwamui_daemon_set_active_ncp( NwamuiDaemon* self, NwamuiNcp* ncp )
 {
     g_assert( NWAMUI_IS_DAEMON(self) );
 
-    if ( ncp != NULL ) {
+    if ( ncp != NULL && ncp != self->prv->active_ncp ) {
         g_object_set (G_OBJECT (self),
               "active_ncp", ncp,
               NULL);
@@ -1133,7 +1118,7 @@ nwamui_daemon_set_active_env( NwamuiDaemon* self, NwamuiEnv* env )
 {
     g_assert( NWAMUI_IS_DAEMON(self) );
 
-    if ( env != NULL ) {
+    if ( env != NULL && env != self->prv->active_env ) {
         g_object_set (G_OBJECT (self),
               "active_env", env,
               NULL);
@@ -3125,13 +3110,13 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                             object_name );
 
                     if ( env != NULL ) {
-                        nwamui_env_set_enabled( env, TRUE );
-
                         /* Ensure that correct active env pointer */
                         if ( prv->active_env != env ) {
                             /* New active ENV */
                             nwamui_daemon_set_active_env( daemon, env );
                         }
+
+                        nwamui_env_set_enabled( env, TRUE );
                     }
                 }
                 break;
@@ -3160,6 +3145,10 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                     nwamui_debug("Got NWAM_ACTION_DESTROY for object %s, removing from daemon...", 
                             object_name );
                     if ( env != NULL ) {
+                        if ( prv->active_env == env ) {
+                            g_object_unref(prv->active_env);
+                            prv->active_env = NULL;
+                        }
                         nwamui_daemon_env_remove( daemon, env );
                     }
                 }
@@ -3472,18 +3461,21 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     env = nwamui_daemon_get_env_by_name( daemon, object_name );
 
                     if ( env != NULL ) {
-                        if ( prv->active_env == NULL ) {
-                            new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
-                            DEBUG_STATUS(new_status);
-                        }
-                        else if ( prv->active_env == env ) {
+                        if ( prv->active_env == env ) {
                             if ( object_state != NWAM_STATE_ONLINE || object_aux_state != NWAM_AUX_STATE_ACTIVE ) {
                                 new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
                                 DEBUG_STATUS(new_status);
                             }
                         }
+                        else { 
+                            if ( object_state == NWAM_STATE_ONLINE && object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
+                                /* Need to update the active_env */
+                                nwamui_daemon_set_active_env( daemon, env );
+                            }
+                        }
                         g_object_unref(env);
                     }
+                    DEBUG_STATUS(new_status);
                 }
                 break;
 

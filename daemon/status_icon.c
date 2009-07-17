@@ -228,6 +228,7 @@ daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data
     const gchar* status_str;
     const gchar *body_str;
     static gboolean need_report_daemon_error = FALSE;
+    static gboolean init_state = TRUE;
 
 	/* should repopulate data here */
 
@@ -258,10 +259,14 @@ daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data
              */
             /* Initialize Ncp. */
             nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_NCU);
-            daemon_active_ncp_changed(prv->daemon, ncp, user_data);
+            if ( init_state ) {
+                daemon_active_ncp_changed(prv->daemon, ncp, user_data);
+            }
             /* Initialize Env. */
             nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC);
-            daemon_active_env_changed(prv->daemon, env, user_data);
+            if ( init_state ) {
+                daemon_active_env_changed(prv->daemon, env, user_data);
+            }
 
             /* I don't believe we should actively create menu for wifi, env and
              * enm, we probably could wait daemon populating.
@@ -275,9 +280,11 @@ daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data
             /* Show menus. */
 /*             gtk_widget_show(GTK_WIDGET(prv->menu)); */
         }
+        init_state = FALSE;
     }
         break;
     case NWAMUI_DAEMON_STATUS_ERROR:
+        init_state = TRUE;
         prv->enable_pop_up_menu = FALSE;
 
         if (nwamui_util_is_debug_mode()) {
