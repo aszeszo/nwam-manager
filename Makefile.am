@@ -18,7 +18,7 @@
 # CDDL HEADER END
 #
 
-SUBDIRS = common tests capplet daemon po pixmaps help
+SUBDIRS = common tests capplet daemon po pixmaps data help
 
 NWAM_CORE_INCS = \
 		nwam_core/usr/include/inetcfg.h \

@@ -1,3 +1,24 @@
+2009-07-17  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* Makefile.am:
+	* capplet/main.c (main):
+	* configure.in:
+	* daemon/Makefile.am:
+	* daemon/main.c (main):
+	* daemon/nwam-manager.desktop.in:
+	* daemon/nwam-manager.schemas.in:
+	* data/nwam-manager.desktop.in:
+	* data/nwam-manager.schemas.in:
+	Use libunique. Add a very simple code to fix doo#9771.
+	Remove old singleton code.
+	* data/nwam-manager-properties.desktop.in:
+	Add a panel menuitem for network locations, doo#9494
+	* daemon/status_icon.c (daemon_ncu_up), (daemon_ncu_down):
+	Add two comments.
+	* capplet/nwam_location_dialog.c (apply):
+	Fix doo#10028 nwam-manager-properties -l ok button does not
+	close dialog - sparc 
+	
 2009-07-16  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (capplet_model_find_max_name_suffix),

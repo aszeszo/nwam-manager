@@ -34,7 +34,7 @@
 #include <pwd.h>
 #include <auth_attr.h>
 #include <secdb.h>
-
+#include <unique/unique.h>
 
 #include "libnwamui.h"
 #include "nwam_tree_view.h"
@@ -72,62 +72,6 @@ static gboolean find_wireless_interface(GtkTreeModel *model,
   GtkTreePath *path,
   GtkTreeIter *iter,
   gpointer data);
-
-gboolean
-detect_and_set_singleton ()
-{
-    enum { NORMAL_SESSION = 1, SUNRAY_SESSION };
-    static gint session_type = 0;
-    gchar *lockfile = NULL;
-    int fd;
-    
-    if (session_type == 0) {
-        const gchar *sunray_token;
-        g_assert (lockfile == NULL);
-        if ((sunray_token = g_getenv ("SUN_SUNRAY_TOKEN")) == NULL) {
-            session_type = NORMAL_SESSION;
-        } else {
-            g_debug ("$SUN_SUNRAY_TOKEN = %s", sunray_token);
-            session_type = SUNRAY_SESSION;
-        }
-    }
-    
-    switch (session_type) {
-    case NORMAL_SESSION:
-        lockfile = g_build_filename ("/tmp", NWAM_MANAGER_LOCK, NULL);
-        break;
-    case SUNRAY_SESSION:
-        lockfile = g_build_filename ("/tmp", g_get_user_name (),
-          NWAM_MANAGER_LOCK, NULL);
-        break;
-    default:
-        g_debug ("Unknown session type.");
-        exit (1);
-    }
-
-    fd = open (lockfile, O_CREAT | O_RDWR | O_TRUNC, S_IRUSR | S_IWUSR);
-    if (fd == -1) {
-        g_debug ("open lock file %s error", lockfile);
-        exit (1);
-    } else {
-        struct flock pidlock;
-        pidlock.l_type = F_WRLCK;
-        pidlock.l_whence = SEEK_SET;
-        pidlock.l_start = 0;
-        pidlock.l_len = 0;
-        if (fcntl (fd, F_SETLK, &pidlock) == -1) {
-            if (errno == EAGAIN || errno == EACCES) {
-                g_free (lockfile);
-                return FALSE;
-            } else {
-                g_debug ("obtain lock file %s error", lockfile);
-                exit (1);
-            }
-        }
-    }
-    g_free (lockfile);
-    return TRUE;
-}
 
 static void 
 cleanup_and_exit(int sig, siginfo_t *sip, void *data)
@@ -287,6 +231,17 @@ main( int argc, char* argv[] )
                                   GNOME_PARAM_APP_DATADIR, NWAM_MANAGER_DATADIR,
                                   GNOME_PARAM_GOPTION_CONTEXT, option_context,
                                   GNOME_PARAM_NONE);
+
+    {
+        UniqueApp       *app            = NULL;
+        app = unique_app_new("org.gnome.nwam-manager", NULL);
+        if (unique_app_is_running(app)) {
+/*         unique_app_add_command(app, "", 1); */
+/*         unique_app_send_message(app, 1, NULL); */
+            g_printf("Another instance is running, exiting.\n");
+            exit(0);
+        }
+    }
 
     gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (),
                            NWAM_MANAGER_DATADIR G_DIR_SEPARATOR_S "icons");

@@ -76,26 +76,13 @@ AC_DEFINE_UNQUOTED(GETTEXT_PACKAGE,"$GETTEXT_PACKAGE", [GETTEXT package name])
 AM_GLIB_GNU_GETTEXT
 IT_PROG_INTLTOOL([0.35.0])
 
-PKG_CHECK_MODULES(NWAM_MANAGER, libgnomeui-2.0 >= 2.1.5 glib-2.0 gconf-2.0 libglade-2.0 gtk+-2.0 >= 2.6.0)
+PKG_CHECK_MODULES(NWAM_MANAGER,
+	libgnomeui-2.0 >= 2.1.5
+	glib-2.0 gconf-2.0 libglade-2.0 gtk+-2.0 >= 2.6.0
+	libnotify >= 0.3.0
+	unique-1.0 >= 1.0.8)
 AC_SUBST(NWAM_MANAGER_CFLAGS)
 AC_SUBST(NWAM_MANAGER_LIBS)
-
-dnl
-dnl Check for libnotify support
-dnl
-AC_MSG_CHECKING([checking for libnotify support])
-PKG_CHECK_MODULES(LIBNOTIFY, libnotify >= 0.3.0,
-                  HAVE_LIBNOTIFY="yes", HAVE_LIBNOTIFY="no")
-
-if test "x$HAVE_LIBNOTIFY" = "xyes"; then
-        AC_DEFINE(HAVE_LIBNOTIFY, 1, [libnotify available])
-	AC_SUBST(LIBNOTIFY_CFLAGS)
-	AC_SUBST(LIBNOTIFY_LIBS)
-        AC_MSG_RESULT(available)
-else
-        AC_MSG_RESULT(no)
-fi
-
 
 dnl
 dnl gconf checks
@@ -211,6 +198,7 @@ pixmaps/32x32/status/Makefile
 pixmaps/48x48/Makefile
 pixmaps/48x48/apps/Makefile
 pixmaps/48x48/status/Makefile
+data/Makefile
 ])
 
 AC_OUTPUT([

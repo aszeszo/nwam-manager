@@ -452,6 +452,7 @@ daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
 
     nwam_notification_show_ncu_connected( ncu );
 
+    /* Start update if there is at least one active wireless link. */
     switch(nwamui_ncu_get_ncu_type(ncu)) {
     case NWAMUI_NCU_TYPE_WIRELESS:
         nwam_menu_start_update_wifi_timer(self);
@@ -477,6 +478,7 @@ daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
 
         nwam_notification_show_ncu_disconnected( ncu, NULL, NULL );
 
+        /* TODO, stop update if there are no active wireless links.  */
         switch(nwamui_ncu_get_ncu_type(ncu)) {
         case NWAMUI_NCU_TYPE_WIRELESS:
             nwam_menu_stop_update_wifi_timer(self);

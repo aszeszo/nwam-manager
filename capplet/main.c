@@ -30,6 +30,7 @@
 #include <glib/gi18n.h>
 #include <libgnomeui/libgnomeui.h>
 #include <glade/glade-xml.h>
+#include <unique/unique.h>
 
 #include <libnwamui.h>
 #include "nwam_tree_view.h"
@@ -99,10 +100,10 @@ customwidgethandler(GladeXML *xml,
 int
 main(int argc, char** argv) 
 {
-    GnomeProgram*   program = NULL;
-    GOptionContext*	option_context = NULL;
-    GError*         err = NULL;
-    NwamPrefIFace *capplet_dialog = NULL;
+    GnomeProgram*    program        = NULL;
+    GOptionContext*  option_context = NULL;
+    GError*          err            = NULL;
+    NwamPrefIFace   *capplet_dialog = NULL;
     
     /* Initialise Thread Support */
     g_thread_init( NULL );
@@ -123,6 +124,17 @@ main(int argc, char** argv)
                                   GNOME_PARAM_NONE);
 
     nwamui_util_set_debug_mode( debug );
+
+    {
+        UniqueApp       *app            = NULL;
+        app = unique_app_new("org.gnome.nwam-manager-properties", NULL);
+        if (unique_app_is_running(app)) {
+/*         unique_app_add_command(app, "", 1); */
+/*         unique_app_send_message(app, 1, NULL); */
+            g_printf("Another instance is running, exiting.\n");
+            exit(0);
+        }
+    }
 
     gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (),
                            NWAM_MANAGER_DATADIR G_DIR_SEPARATOR_S "icons");

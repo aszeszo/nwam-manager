@@ -511,9 +511,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 
     model = gtk_tree_view_get_model (prv->location_tree);
 
-    /* FIXME, ok need call into separated panel/instance
-     * apply all changes, if no errors, hide all
-     */
+    /* Apply all changes, if no errors, hide all. */
     if (retval && gtk_tree_model_get_iter_first (model, &iter)) {
         gchar* prop_name = NULL;
         do {
@@ -599,7 +597,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 
         g_object_unref(daemon);
     }
-
+    return retval;
 }
 
 /**
