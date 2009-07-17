@@ -1,5 +1,12 @@
 2009-07-17  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_wireless_dialog.c (nwam_pref_init), (help):
+	Fixed doo#9499 help does not launch from the
+	"Add wireless Network" dialog.
+	* data/Makefile.am: Forget this file.
+
+2009-07-17  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* Makefile.am:
 	* capplet/main.c (main):
 	* configure.in:

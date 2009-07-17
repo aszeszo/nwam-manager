@@ -157,7 +157,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
 /*     iface->refresh = refresh; */
 /*     iface->apply = apply; */
-/*     iface->help = help; */
+    iface->help = help;
     iface->dialog_run = dialog_run;
 }
 
@@ -1155,6 +1155,12 @@ nwam_wireless_dialog_get_do_connect (NwamWirelessDialog *self )
     return( do_connect );
 }
 
+static gboolean
+help(NwamPrefIFace *iface, gpointer user_data)
+{
+    nwamui_util_show_help(HELP_REF_JOIN_NETWORK);
+}
+
 /**
  * nwam_wireless_dialog_run:
  * @nwam_wireless_dialog: a #NwamWirelessDialog.
@@ -1628,6 +1634,7 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
             break;
         case GTK_RESPONSE_HELP:
             g_debug("GTK_RESPONSE_HELP");
+            nwam_pref_help (NWAM_PREF_IFACE(data), NULL);
             stop_emission = TRUE;
             break;
     }
