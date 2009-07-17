@@ -125,7 +125,7 @@ main(int argc, char** argv)
 
     nwamui_util_set_debug_mode( debug );
 
-    {
+    if ( !nwamui_util_is_debug_mode() ) {
         UniqueApp       *app            = NULL;
         app = unique_app_new("org.gnome.nwam-manager-properties", NULL);
         if (unique_app_is_running(app)) {
@@ -134,6 +134,9 @@ main(int argc, char** argv)
             g_printf("Another instance is running, exiting.\n");
             exit(0);
         }
+    } 
+    else {
+        g_debug("Auto uniqueness disabled while in debug mode.");
     }
 
     gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (),

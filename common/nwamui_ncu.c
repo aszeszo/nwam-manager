@@ -3512,16 +3512,88 @@ get_interface_address_str(const char *ifname, sa_family_t family)
 }
 
 static const gchar* status_string_fmt[NWAMUI_STATE_LAST] = {
-    "Unknown",
-    "Not Connected",
-    "Connecting",
-    "Connected",
-    "Connecting to %s",     /* %s = ESSID */
-    "Connected to %s",      /* %s = ESSID */
-    "Network unavailable",
-    "Cable unplugged"
+    N_("Unknown"),
+    N_("Disabled"),
+    N_("Not Connected"),
+    N_("Needs Network Selection"),
+    N_("Wireless Network %s Needs a Key"),  /* %s = ESSID */
+    N_("Waiting for Address"),
+    N_("DHCP Timed Out"),
+    N_("Connecting"),
+    N_("Connected"),
+    N_("Connecting to %s"),     /* %s = ESSID */
+    N_("Connected to %s"),      /* %s = ESSID */
+    N_("Network Unavailable"),
+    N_("Cable Unplugged")
 };
 
+#if 1
+extern nwamui_connection_state_t
+nwamui_ncu_get_connection_state( NwamuiNcu* self ) 
+{
+    nwamui_connection_state_t   state = NWAMUI_STATE_UNKNOWN;
+    nwam_state_t                nwam_state;
+    nwam_aux_state_t            aux_state;
+
+    nwam_state = nwamui_ncu_get_nwam_state(NWAMUI_OBJECT(self), &aux_state, NULL );
+
+    switch ( nwam_state ) { 
+        case NWAM_STATE_UNINITIALIZED:
+            state = NWAMUI_STATE_UNKNOWN;
+            break;
+        case NWAM_STATE_MAINTENANCE:
+        case NWAM_STATE_DEGRADED:
+        case NWAM_STATE_DISABLED:
+        case NWAM_STATE_INITIALIZED:
+        case NWAM_STATE_ONLINE_TO_OFFLINE:
+            state = NWAMUI_STATE_NETWORK_UNAVAILABLE;
+            break;
+        case NWAM_STATE_OFFLINE:
+            if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRED && 
+                 aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET ) {
+                state = NWAMUI_STATE_CABLE_UNPLUGGED;
+                break;
+            }
+            state = NWAMUI_STATE_NOT_CONNECTED;
+            break;
+        case NWAM_STATE_OFFLINE_TO_ONLINE:
+            if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+                if ( aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
+                    state = NWAMUI_STATE_NEEDS_SELECTION;
+                    break;
+                }
+                else if ( aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
+                    state = NWAMUI_STATE_NEEDS_KEY_ESSID;
+                    break;
+                }
+                else if ( aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
+                    state = NWAMUI_STATE_CONNECTING_ESSID;
+                    break;
+                }
+            }
+	        if ( aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR ) {
+                state = NWAMUI_STATE_WAITING_FOR_ADDRESS;
+            }
+            else if ( aux_state == NWAM_AUX_STATE_IF_DHCP_TIMED_OUT ) {
+                state = NWAMUI_STATE_DHCP_TIMED_OUT;
+            }
+            state = NWAMUI_STATE_CONNECTING;
+            break;
+        case NWAM_STATE_ONLINE:
+            if ( aux_state == NWAM_AUX_STATE_UP ) {
+                if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+                    state = NWAMUI_STATE_CONNECTED_ESSID;
+                    break;
+                }
+                state = NWAMUI_STATE_CONNECTED;
+                break;
+            }
+            break;
+    }
+
+    return( state );
+}
+#else
 extern nwamui_connection_state_t
 nwamui_ncu_get_connection_state( NwamuiNcu* self ) 
 {
@@ -3599,6 +3671,7 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
 
     return( state );
 }
+#endif
 
 /*
  * Get a string that describes the status of the system, should be freed by
@@ -3618,6 +3691,7 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
     switch( state ) {
         case NWAMUI_STATE_UNKNOWN:
         case NWAMUI_STATE_NOT_CONNECTED:
+        case NWAMUI_STATE_NEEDS_SELECTION:
         case NWAMUI_STATE_CONNECTING:
         case NWAMUI_STATE_CONNECTED:
         case NWAMUI_STATE_NETWORK_UNAVAILABLE:
@@ -3625,6 +3699,7 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
             status_string = g_strdup( _(status_string_fmt[state]) );
             break;
 
+        case NWAMUI_STATE_NEEDS_KEY_ESSID:
         case NWAMUI_STATE_CONNECTING_ESSID:
         case NWAMUI_STATE_CONNECTED_ESSID: {
                 dladm_handle_t              handle;

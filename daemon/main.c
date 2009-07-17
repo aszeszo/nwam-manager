@@ -232,16 +232,6 @@ main( int argc, char* argv[] )
                                   GNOME_PARAM_GOPTION_CONTEXT, option_context,
                                   GNOME_PARAM_NONE);
 
-    {
-        UniqueApp       *app            = NULL;
-        app = unique_app_new("org.gnome.nwam-manager", NULL);
-        if (unique_app_is_running(app)) {
-/*         unique_app_add_command(app, "", 1); */
-/*         unique_app_send_message(app, 1, NULL); */
-            g_printf("Another instance is running, exiting.\n");
-            exit(0);
-        }
-    }
 
     gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (),
                            NWAM_MANAGER_DATADIR G_DIR_SEPARATOR_S "icons");
@@ -266,12 +256,22 @@ main( int argc, char* argv[] )
     }
 
     if ( !nwamui_util_is_debug_mode() ) {
+        UniqueApp       *app            = NULL;
+
+        app = unique_app_new("org.gnome.nwam-manager", NULL);
+        if (unique_app_is_running(app)) {
+/*         unique_app_add_command(app, "", 1); */
+/*         unique_app_send_message(app, 1, NULL); */
+            g_printf("Another instance is running, exiting.\n");
+            exit(0);
+        }
+
         client = gnome_master_client ();
         gnome_client_set_restart_command (client, argc, argv);
         gnome_client_set_restart_style (client, GNOME_RESTART_IMMEDIATELY);
     }
     else {
-        g_debug("Auto restart disabled while in debug mode.");
+        g_debug("Auto restart and uniqueness disabled while in debug mode.");
     }
 
     gtk_init( &argc, &argv );

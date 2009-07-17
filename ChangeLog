@@ -1,3 +1,24 @@
+2009-07-17  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/main.c, daemon/main.c:
+	  Disable Unique app when using debug mode.
+	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
+	  Another part of the fix for defect#9766 which should be taking more
+	  notice of the object action and state events.
+	  Also fixed an issue where all location events were being processed
+	  as if they were the active location, causing an incorrect panel icon
+	  state to be shown.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Change nwamui_ncu_get_connection_state to use state information from
+	  NWAM rather then dladm - there is more useful information here. As a
+	  consequence also added some extra useful states and matching
+	  strings - e.g. DHCP Timed out, Waiting for Address, etc.
+	* common/libnwamui.c: 
+	  Update for new NCU states.
+	* daemon/notify.c: 
+	  Remove unused last_message and similar functions. Added a debug
+	  statement to output messages so we can see them in debug logs.
+
 2009-07-17  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_wireless_dialog.c (nwam_pref_init), (help):

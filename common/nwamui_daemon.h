@@ -188,6 +188,8 @@ extern void                         nwamui_daemon_emit_signals_from_event_msg( N
 
 extern nwamui_env_status_t          nwamui_daemon_get_status_icon_type( NwamuiDaemon *daemon );
 
+extern const gchar*                 nwamui_deamon_status_to_string( nwamui_daemon_status_t status );
+
 extern gboolean                     nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon );
 
 G_END_DECLS

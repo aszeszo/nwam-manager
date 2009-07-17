@@ -754,13 +754,15 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu )
         active = FALSE;
     }
     if ( active ) {
-        /* Double check the state using dladm */
+        /* Double check the state using nwam state */
         connection_state = nwamui_ncu_get_connection_state( ncu);
         if ( connection_state == NWAMUI_STATE_CONNECTED 
            || connection_state == NWAMUI_STATE_CONNECTED_ESSID ) {
             env_state = NWAMUI_ENV_STATUS_CONNECTED;
         }
         else if ( connection_state == NWAMUI_STATE_CONNECTING 
+                || connection_state == NWAMUI_STATE_WAITING_FOR_ADDRESS
+                || connection_state == NWAMUI_STATE_DHCP_TIMED_OUT
                 || connection_state == NWAMUI_STATE_CONNECTING_ESSID ) {
             env_state = NWAMUI_ENV_STATUS_WARNING;
         }

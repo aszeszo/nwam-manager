@@ -32,7 +32,6 @@ static NotifyNotification*   notification           = NULL;
 static GtkStatusIcon*        parent_status_icon     = NULL;
 static GdkPixbuf            *default_icon           = NULL;
 static GQueue                msg_q                  = G_QUEUE_INIT;
-static gchar                *last_message           = NULL;
 
 static guint adjust_source_id = 0;
 static gint gconf_exp_time;
@@ -70,8 +69,6 @@ static msg *nwam_notification_msg_new(NotifyNotification *n,
   gpointer user_data,
   GFreeFunc free_func,
   gint timeout);
-
-static void set_last_message( const gchar* summary, const gchar* body );
 
 static void nwam_notification_msg_free(msg *m);
 
@@ -115,13 +112,17 @@ nwam_notification_msg_new(NotifyNotification *n,
     m->free_func = free_func;
     m->timeout = (timeout == NOTIFY_EXPIRES_DEFAULT) ? NOTIFY_EXP_DEFAULT_FLAG : timeout;
 
+    nwamui_debug("NOTIFICATION_MESSAGE: Summary = '%s' ; Body = '%s' ; Action = '%s' ; Label = '%s'", 
+                 summary?summary:"NULL",
+                 body?body:"NULL",
+                 action?action:"NULL",
+                 label?label:"NULL");
     return m;
 }
 
 static void
 nwam_notification_msg_free(msg *m)
 {
-    set_last_message(m->summary, m->body);
     g_free(m->summary);
     g_free(m->body);
     if (m->icon)
@@ -862,7 +863,7 @@ nwam_notification_show_location_changed( NwamuiEnv* env )
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
 
-    summary_str = g_strdup_printf(_("Switch to location '%s'"), nwamui_env_get_name( env ));
+    summary_str = g_strdup_printf(_("Switch to Location '%s'"), nwamui_env_get_name( env ));
 
     nwam_notification_show_message(
             summary_str,
@@ -890,29 +891,6 @@ nwam_notification_init( GtkStatusIcon* status_icon )
     
     g_object_ref( status_icon );
     parent_status_icon = status_icon;
-}
-
-const gchar*
-nwam_notification_get_status_msg(void) 
-{
-    return( last_message );
-}
-
-static void
-set_last_message( const gchar* summary, const gchar* body )
-{
-
-    if ( last_message != NULL ) {
-        g_free(last_message);
-        last_message = NULL;
-    }
-
-    if ( body != NULL ) {
-        last_message = g_strdup_printf(_("  %s\n    %s"), summary, body );
-    }
-    else {
-        last_message = g_strdup_printf(_("  %s"), summary );
-    }
 }
 
 void

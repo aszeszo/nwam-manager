@@ -535,29 +535,10 @@ nwamui_daemon_set_property ( GObject         *object,
             }
             break;
         case PROP_STATUS: {
-                const char* status_str;
-
                 self->prv->status = g_value_get_int( value );
 
-                switch(self->prv->status) {
-                case NWAMUI_DAEMON_STATUS_UNINITIALIZED:
-                    status_str="UNINITIALIZED";
-                    break;
-                case NWAMUI_DAEMON_STATUS_ALL_OK:
-                    status_str="ALL_OK";
-                    break;
-                case NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION:
-                    status_str="NEEDS_ATTENTION";
-                    break;
-                case NWAMUI_DAEMON_STATUS_ERROR:
-                    status_str="ERROR";
-                    break;
-                default:
-                    status_str="Unexpected";
-                    break;
-                }
-
-                g_debug("Daemon status changed to %s", status_str );
+                nwamui_debug("Daemon status changed to %s", 
+                        nwamui_deamon_status_to_string(self->prv->status));
             }
             break;
         case PROP_NUM_SCANNED_WIFI: {
@@ -2719,7 +2700,7 @@ nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message )
     g_signal_emit (self,
       nwamui_daemon_signals[DAEMON_INFO],
       0, /* details */
-      NWAMUI_DAEMON_INFO_UNKNOWN,
+      NWAMUI_DAEMON_INFO_GENERIC,
       NULL,
       g_strdup(message?message:""));
 }
@@ -3131,7 +3112,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 }
                 break;
             case NWAM_ACTION_DISABLE: {
-                    nwamui_debug("Got NWAM_ACTION_DISABLE for object %s, doing nothing...", 
+                    nwamui_debug("Got NWAM_ACTION_DISABLE for object %s, marking as disabled...", 
                             object_name );
 
                     if ( env != NULL ) {
@@ -3140,10 +3121,17 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 }
                 break;
             case NWAM_ACTION_ENABLE: {
-                    nwamui_debug("Got NWAM_ACTION_ENABLE for object %s, doing nothing...", 
+                    nwamui_debug("Got NWAM_ACTION_ENABLE for object %s, setting active_env...", 
                             object_name );
+
                     if ( env != NULL ) {
                         nwamui_env_set_enabled( env, TRUE );
+
+                        /* Ensure that correct active env pointer */
+                        if ( prv->active_env != env ) {
+                            /* New active ENV */
+                            nwamui_daemon_set_active_env( daemon, env );
+                        }
                     }
                 }
                 break;
@@ -3339,6 +3327,13 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
     daemon->prv->communicate_change_to_daemon = TRUE;
 }
 
+#define DEBUG_STATUS( status )  \
+    nwamui_warning("line: %d : name = %s : status = %d (%s) : state = %d (%s) : aux_state = %d (%s)",\
+                   __LINE__, object_name, \
+                  (status), nwamui_deamon_status_to_string(status), \
+                  (object_state), nwam_state_to_string(object_state), \
+                  (object_aux_state), nwam_aux_state_to_string(object_aux_state))
+
 static void
 nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent )
 {
@@ -3358,12 +3353,15 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
         return;
     }
 
+    DEBUG_STATUS(new_status);
+
     old_status = daemon->prv->status;
     prv = NWAMUI_DAEMON(daemon)->prv;
 
     /* First check that the daemon is connected to nwamd */
     if ( !prv->connected_to_nwamd ) {
         new_status = NWAMUI_DAEMON_STATUS_ERROR;
+        DEBUG_STATUS(new_status);
     }
     else {
         /* Now we need to check all objects in the system */
@@ -3372,6 +3370,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
             case NWAM_OBJECT_TYPE_NCU:
                 if ( prv->active_ncp == NULL ) {
                     new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                    DEBUG_STATUS(new_status);
                 }
                 else {
                     NwamuiNcu       *changed_ncu = NULL;
@@ -3392,6 +3391,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
 
                     if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                        DEBUG_STATUS(new_status);
                         if ( needs_wifi_selection != NULL ) {
                             g_signal_emit (daemon,
                               nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
@@ -3443,12 +3443,14 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
 
                 if ( prv->active_ncp == NULL ) {
                     new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                    DEBUG_STATUS(new_status);
                 }
                 else {
                     NwamuiNcu       *needs_wifi_selection = NULL;
                     NwamuiWifiNet   *needs_wifi_key = NULL;
                     if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                        DEBUG_STATUS(new_status);
                         if ( needs_wifi_selection != NULL ) {
                             g_signal_emit (daemon,
                               nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
@@ -3464,46 +3466,23 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     }
                 }
                 break;
-            case NWAM_OBJECT_TYPE_LOC:
+            case NWAM_OBJECT_TYPE_LOC: {
+                    NwamuiEnv* env;
+                    
+                    env = nwamui_daemon_get_env_by_name( daemon, object_name );
 
-                if ( object_state == NWAM_STATE_ONLINE &&
-                     object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
-
-                    /* Ensure that correct active env pointer */
-                    if ( prv->active_env == NULL ) {
-                        /* New active ENV */
-                        NwamuiEnv* new_env;
-                        
-                        new_env = nwamui_daemon_get_env_by_name( daemon, object_name );
-                        if ( new_env ) {
-                            nwamui_daemon_set_active_env( daemon, new_env );
-                            g_object_unref(new_env);
+                    if ( env != NULL ) {
+                        if ( prv->active_env == NULL ) {
+                            new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                            DEBUG_STATUS(new_status);
                         }
-                    }
-                    else {
-                        gchar*  active_name = nwamui_env_get_name(prv->active_env);
-                        if ( strncmp( active_name, object_name, strlen(object_name)) == 0 ) {
-                            /* Same, so don't change anything */
-                        }
-                        else {
-                            /* Different, so change active_env */
-                            NwamuiEnv* new_env;
-                            
-                            new_env = nwamui_daemon_get_env_by_name( daemon, object_name );
-                            if ( new_env ) {
-                                nwamui_daemon_set_active_env( daemon, new_env );
-                                g_object_unref(new_env);
+                        else if ( prv->active_env == env ) {
+                            if ( object_state != NWAM_STATE_ONLINE || object_aux_state != NWAM_AUX_STATE_ACTIVE ) {
+                                new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                                DEBUG_STATUS(new_status);
                             }
                         }
-                    }
-                }
-
-                if ( prv->active_env == NULL ) {
-                    new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
-                }
-                else {
-                    if ( object_state != NWAM_STATE_ONLINE || object_aux_state != NWAM_AUX_STATE_ACTIVE ) {
-                        new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                        g_object_unref(env);
                     }
                 }
                 break;
@@ -3516,6 +3495,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                         if ( nwamui_enm_get_enabled( NWAMUI_ENM(enm) ) ) {
                             if ( object_state != NWAM_STATE_ONLINE || object_aux_state != NWAM_AUX_STATE_ACTIVE ) {
                                 new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                                DEBUG_STATUS(new_status);
                             }
                         }
                     }
@@ -3532,14 +3512,17 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
 
     }
 
+    DEBUG_STATUS(new_status);
     if ( new_status == NWAMUI_DAEMON_STATUS_UNINITIALIZED ) {
         /* If we got this far with UNINITIALIZED, then we can assume all is OK
          */
         new_status = NWAMUI_DAEMON_STATUS_ALL_OK;
+        DEBUG_STATUS(new_status);
     }
 
     /* If status has changed, set it, and this will generate an event */
     if ( new_status != old_status ) {
+        DEBUG_STATUS(new_status);
         nwamui_daemon_set_status(daemon, new_status );
     }
 }
@@ -3585,6 +3568,32 @@ nwamui_daemon_get_status_icon_type( NwamuiDaemon *daemon )
     }
 
     return( env_status );
+}
+
+extern const gchar*
+nwamui_deamon_status_to_string( nwamui_daemon_status_t status )
+{
+    const gchar*    status_str = NULL;
+
+    switch(status) {
+    case NWAMUI_DAEMON_STATUS_UNINITIALIZED:
+        status_str="UNINITIALIZED";
+        break;
+    case NWAMUI_DAEMON_STATUS_ALL_OK:
+        status_str="ALL_OK";
+        break;
+    case NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION:
+        status_str="NEEDS_ATTENTION";
+        break;
+    case NWAMUI_DAEMON_STATUS_ERROR:
+        status_str="ERROR";
+        break;
+    default:
+        status_str="Unexpected";
+        break;
+    }
+
+    return( status_str );
 }
 
 static gboolean
