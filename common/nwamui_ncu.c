@@ -92,6 +92,7 @@ struct _NwamuiNcuPrivate {
         gchar*                          tun_encr_auth;
         gchar*                          tun_auth;
 
+        gboolean                        ipv4_active;
         NwamuiIp*                       ipv4_primary_ip;
         gboolean                        ipv6_active;
         NwamuiIp*                       ipv6_primary_ip;
@@ -114,6 +115,7 @@ enum {
         PROP_READONLY,
         PROP_SPEED,
         PROP_MTU,
+        PROP_IPV4_ACTIVE,
         PROP_IPV4_DHCP,
         PROP_IPV4_AUTO_CONF,
         PROP_IPV4_ADDRESS,
@@ -286,6 +288,14 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                        G_MAXUINT,
                                                        0,
                                                        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IPV4_ACTIVE,
+                                     g_param_spec_boolean ("ipv4_active",
+                                                           _("ipv4_active"),
+                                                           _("ipv4_active"),
+                                                          FALSE,
+                                                          G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_IPV4_DHCP,
@@ -579,6 +589,11 @@ nwamui_ncu_set_property ( GObject         *object,
                 guint64 mtu = g_value_get_uint( value );
                 set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_LINK_MTU, mtu );
                 set_modified_flag( self, NWAM_NCU_CLASS_PHYS, TRUE );
+            }
+            break;
+        case PROP_IPV4_ACTIVE: {
+                self->prv->ipv4_active = g_value_get_boolean( value );
+                set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
             }
             break;
         case PROP_IPV4_DHCP: {
@@ -922,6 +937,10 @@ nwamui_ncu_get_property (GObject         *object,
                 g_value_set_uint( value, (guint)mtu );
             }
             break;
+        case PROP_IPV4_ACTIVE: {
+                g_value_set_boolean(value, self->prv->ipv4_active);
+            }
+            break;
         case PROP_IPV4_DHCP: {
                 gboolean dhcp = FALSE;
                 
@@ -1165,22 +1184,23 @@ populate_iptun_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 static void
 populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 {
-    nwam_ip_version_t  *ip_version = NULL;
+    guint64            *ip_version = NULL;
     guint               ip_version_num = NULL;
     guint               ipv4_addrsrc_num = 0;
-    nwam_addrsrc_t*     ipv4_addrsrc = NULL;
+    guint64            *ipv4_addrsrc = NULL;
     gchar**             ipv4_addr = NULL;
     guint               ipv6_addrsrc_num = 0;
-    nwam_addrsrc_t*     ipv6_addrsrc =  NULL;
+    guint64            *ipv6_addrsrc =  NULL;
     gchar**             ipv6_addr = NULL;
     
-    ip_version = (nwam_ip_version_t*)get_nwam_ncu_uint64_array_prop( nwam_ncu, 
-                                                                     NWAM_NCU_PROP_IP_VERSION, 
-                                                                     &ip_version_num );
+    ip_version = get_nwam_ncu_uint64_array_prop( nwam_ncu, 
+                                                 NWAM_NCU_PROP_IP_VERSION, 
+                                                 &ip_version_num );
 
     g_object_freeze_notify(G_OBJECT(ncu->prv->v4addresses));
     g_object_freeze_notify(G_OBJECT(ncu->prv->v6addresses));
 
+    ncu->prv->ipv6_active = FALSE;
     gtk_list_store_clear(ncu->prv->v4addresses);
 
     ncu->prv->ipv6_active = FALSE;
@@ -1189,9 +1209,9 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     for ( int ip_n = 0; ip_n < ip_version_num; ip_n++ ) {
         if (ip_version[ip_n] == NWAM_IP_VERSION_IPV4) {
             char**  ptr;
-            ipv4_addrsrc = (nwam_addrsrc_t*)get_nwam_ncu_uint64_array_prop( nwam_ncu, 
-                                                                            NWAM_NCU_PROP_IPV4_ADDRSRC, 
-                                                                            &ipv4_addrsrc_num );
+            ipv4_addrsrc = get_nwam_ncu_uint64_array_prop( nwam_ncu, 
+                                                           NWAM_NCU_PROP_IPV4_ADDRSRC, 
+                                                           &ipv4_addrsrc_num );
 
             ipv4_addr = get_nwam_ncu_string_array_prop(nwam_ncu, NWAM_NCU_PROP_IPV4_ADDR );
 
@@ -1219,14 +1239,17 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                     ncu->prv->ipv4_primary_ip = NWAMUI_IP(g_object_ref(ip));
                 }
             }
-	    g_free(ipv4_addrsrc);
+            g_free(ipv4_addrsrc);
+            if ( ipv4_addrsrc_num > 0 ) {
+                ncu->prv->ipv4_active = TRUE;
+            }
         }
         else if (ip_version[ip_n] == NWAM_IP_VERSION_IPV6) {
             char**  ptr;
 
-            ipv6_addrsrc = (nwam_addrsrc_t*)get_nwam_ncu_uint64_array_prop( nwam_ncu, 
-                                                                            NWAM_NCU_PROP_IPV6_ADDRSRC, 
-                                                                            &ipv6_addrsrc_num );
+            ipv6_addrsrc = get_nwam_ncu_uint64_array_prop(  nwam_ncu, 
+                                                            NWAM_NCU_PROP_IPV6_ADDRSRC, 
+                                                            &ipv6_addrsrc_num );
             
             ipv6_addr = get_nwam_ncu_string_array_prop(nwam_ncu, NWAM_NCU_PROP_IPV6_ADDR );
 
@@ -1266,6 +1289,168 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     g_object_thaw_notify(G_OBJECT(ncu->prv->v4addresses));
     g_object_thaw_notify(G_OBJECT(ncu->prv->v6addresses));
 
+}
+
+
+static gboolean 
+append_to_glist( GtkTreeModel *model,
+                 GtkTreePath *path,
+                 GtkTreeIter *iter,
+                 gpointer data )
+{
+    GList     **list_p = (GList**)data;
+    GList      *list = *list_p;
+	NwamuiIp   *ip;
+
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &ip, -1);
+    if ( ip ) {
+        list = g_list_append( list, (gpointer)g_object_ref(G_OBJECT(ip)) );
+    }
+
+    *list_p = list;
+
+    return(FALSE);
+}
+
+
+static GList*
+convert_gtk_list_store_to_g_list( GtkListStore *ls ) 
+{
+    GList*  new_list = NULL;
+
+    if ( ls != NULL ) {
+        gtk_tree_model_foreach( GTK_TREE_MODEL(ls), append_to_glist, &new_list );
+    }
+
+    return( new_list );
+}
+    
+static void
+nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
+{
+    uint64_t            ip_version[2] = {0};
+    guint               ip_version_num = 0;
+    uint64_t           *ipv4_addrsrc = NULL;
+    guint               ipv4_addrsrc_num = 0;
+    gchar**             ipv4_addr = NULL;
+    uint64_t           *ipv6_addrsrc =  NULL;
+    guint               ipv6_addrsrc_num = 0;
+    gchar**             ipv6_addr = NULL;
+    
+
+    if ( self->prv->ipv4_active ) {
+        GList   *ipv4_list;
+        guint    src_index;
+        guint    addr_index;
+
+        ip_version[ip_version_num] = (uint64_t)NWAM_IP_VERSION_IPV4;
+        ip_version_num++;
+
+        ipv4_list = convert_gtk_list_store_to_g_list( self->prv->v4addresses );
+
+        ipv4_addrsrc_num = g_list_length( ipv4_list );
+        ipv4_addrsrc = (uint64_t*)g_malloc(ipv4_addrsrc_num * sizeof(uint64_t));
+        ipv4_addr = (gchar**)g_malloc((ipv4_addrsrc_num * sizeof(gchar**) + 1));
+
+        src_index = 0;
+        addr_index = 0;
+        for ( GList* elem = g_list_first(ipv4_list);
+              elem != NULL;
+              elem = g_list_next(elem) ) {
+            NwamuiIp*   ip = NWAMUI_IP(elem->data);
+
+            if ( nwamui_ip_is_static( ip ) ) {
+                gchar*  addr = nwamui_ip_get_address(ip);
+                gchar*  subnet = nwamui_ip_get_subnet_prefix(ip); 
+
+                ipv4_addrsrc[src_index] = (uint64_t)NWAM_ADDRSRC_STATIC;
+                ipv4_addr[addr_index] = g_strdup_printf("%s/%d", addr, 
+                    nwamui_util_convert_netmask_str_to_prefixlen(AF_INET, subnet) );
+                addr_index++;
+            }
+            else if ( nwamui_ip_is_autoconf( ip ) ) {
+                ipv4_addrsrc[src_index] = (uint64_t)NWAM_ADDRSRC_AUTOCONF;
+            }
+            else {
+                ipv4_addrsrc[src_index] = (uint64_t)NWAM_ADDRSRC_DHCP;
+            }
+               
+            src_index++;
+        }
+        ipv4_addr[addr_index] = NULL;
+
+        if ( addr_index > 0 ) {
+            set_nwam_ncu_string_array_prop(self->prv->nwam_ncu_ip,
+                                           NWAM_NCU_PROP_IPV4_ADDR, ipv4_addr, 0 );
+        }
+        if ( src_index > 0 ) {
+            set_nwam_ncu_uint64_array_prop( self->prv->nwam_ncu_ip,
+                                            NWAM_NCU_PROP_IPV4_ADDRSRC, 
+                                            ipv4_addrsrc,
+                                            ipv4_addrsrc_num );
+        }
+        nwamui_util_free_obj_list( ipv4_list );
+    }
+
+    if ( self->prv->ipv6_active ) {
+        GList   *ipv6_list;
+        guint    src_index;
+        guint    addr_index;
+
+        ip_version[ip_version_num] = (uint64_t)NWAM_IP_VERSION_IPV6;
+        ip_version_num++;
+
+        ipv6_list = convert_gtk_list_store_to_g_list( self->prv->v6addresses );
+
+        ipv6_addrsrc_num = g_list_length( ipv6_list );
+        ipv6_addrsrc = (uint64_t*)g_malloc(ipv6_addrsrc_num * sizeof(uint64_t));
+        ipv6_addr = (gchar**)g_malloc((ipv6_addrsrc_num * sizeof(gchar**) + 1));
+
+        src_index = 0;
+        addr_index = 0;
+        for ( GList* elem = g_list_first(ipv6_list);
+              elem != NULL;
+              elem = g_list_next(elem) ) {
+            NwamuiIp*   ip = NWAMUI_IP(elem->data);
+
+            if ( nwamui_ip_is_static( ip ) ) {
+                gchar*  addr = nwamui_ip_get_address(ip);
+                gchar*  subnet = nwamui_ip_get_subnet_prefix(ip); 
+
+                ipv6_addrsrc[src_index] = (uint64_t)NWAM_ADDRSRC_STATIC;
+                ipv6_addr[addr_index] = g_strdup_printf("%s/%d", addr, 
+                    nwamui_util_convert_netmask_str_to_prefixlen(AF_INET6, subnet) );
+                addr_index++;
+            }
+            else if ( nwamui_ip_is_autoconf( ip ) ) {
+                ipv6_addrsrc[src_index] = (uint64_t)NWAM_ADDRSRC_AUTOCONF;
+            }
+            else {
+                ipv6_addrsrc[src_index] = (uint64_t)NWAM_ADDRSRC_DHCP;
+            }
+               
+            src_index++;
+        }
+        ipv6_addr[addr_index] = NULL;
+
+        if ( addr_index > 0 ) {
+            set_nwam_ncu_string_array_prop(self->prv->nwam_ncu_ip,
+                                           NWAM_NCU_PROP_IPV6_ADDR, ipv6_addr, 0 );
+        }
+        if ( src_index > 0 ) {
+            set_nwam_ncu_uint64_array_prop( self->prv->nwam_ncu_ip,
+                                            NWAM_NCU_PROP_IPV6_ADDRSRC, 
+                                            ipv6_addrsrc,
+                                            ipv6_addrsrc_num );
+        }
+        nwamui_util_free_obj_list( ipv6_list );
+    }
+
+
+    set_nwam_ncu_uint64_array_prop(  self->prv->nwam_ncu_ip,
+                                     NWAM_NCU_PROP_IP_VERSION, 
+                                     ip_version,
+                                     ip_version_num );
 }
 
 /* 
@@ -1698,6 +1883,7 @@ nwamui_ncu_commit( NwamuiNcu* self )
     }
 
     if ( self->prv->nwam_ncu_ip_modified && self->prv->nwam_ncu_ip != NULL ) {
+        nwamui_ncu_sync_handle_with_ip_data( self );
         if ( (nerr = nwam_ncu_commit( self->prv->nwam_ncu_ip, 0 )) != NWAM_SUCCESS ) {
             g_warning("Failed when committing IP NCU for %s", self->prv->device_name);
             return( FALSE );
@@ -2025,6 +2211,43 @@ nwamui_ncu_get_mtu (NwamuiNcu *self)
                   NULL);
 
     return( mtu );
+}
+
+/** 
+ * nwamui_ncu_set_ipv4_active:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @ipv4_active: Valiue to set ipv4_active to.
+ * 
+ **/ 
+extern void
+nwamui_ncu_set_ipv4_active (   NwamuiNcu *self,
+                              gboolean        ipv4_active )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+
+    g_object_set (G_OBJECT (self),
+                  "ipv4_active", ipv4_active,
+                  NULL);
+}
+
+/**
+ * nwamui_ncu_get_ipv4_active:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @returns: the ipv4_active.
+ *
+ **/
+extern gboolean
+nwamui_ncu_get_ipv4_active (NwamuiNcu *self)
+{
+    gboolean  ipv4_active = FALSE; 
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), ipv4_active);
+
+    g_object_get (G_OBJECT (self),
+                  "ipv4_active", &ipv4_active,
+                  NULL);
+
+    return( ipv4_active );
 }
 
 /** 

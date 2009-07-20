@@ -79,7 +79,7 @@ enum {
 G_DEFINE_TYPE (NwamuiIp, nwamui_ip, NWAMUI_TYPE_OBJECT)
 
 
-#define IS_DHCP(self) (((self)->prv->addr_src | ADDRSRC_DHCP)?TRUE:FALSE)
+#define IS_DHCP(self) (((self)->prv->addr_src & ADDRSRC_DHCP)?TRUE:FALSE)
 
 static void
 nwamui_ip_class_init (NwamuiIpClass *klass)
@@ -207,20 +207,18 @@ nwamui_ip_set_property (    GObject         *object,
             break;
 
         case PROP_IS_DHCP: {
-                /* TODO: Determine if can have more than one of these set */
                 if ( g_value_get_boolean( value ) ) {
-                    self->prv->addr_src |= ADDRSRC_DHCP; 
+                    self->prv->addr_src = ADDRSRC_DHCP; 
                 }
                 else {
-                    self->prv->addr_src &= ~ADDRSRC_DHCP; 
+                    self->prv->addr_src = ADDRSRC_STATIC; 
                 }
             }
             break;
 
         case PROP_IS_AUTOCONF: {
-                /* TODO: Determine if can have more than one of these set */
                 if ( g_value_get_boolean( value ) ) {
-                    self->prv->addr_src |= ADDRSRC_AUTOCONF; 
+                    self->prv->addr_src = ADDRSRC_AUTOCONF; 
                 }
                 else {
                     self->prv->addr_src &= ~ADDRSRC_AUTOCONF; 
@@ -229,12 +227,11 @@ nwamui_ip_set_property (    GObject         *object,
             break;
 
         case PROP_IS_STATIC: {
-                /* TODO: Determine if can have more than one of these set */
                 if ( g_value_get_boolean( value ) ) {
-                    self->prv->addr_src |= ADDRSRC_STATIC; 
+                    self->prv->addr_src = ADDRSRC_STATIC; 
                 }
                 else {
-                    self->prv->addr_src &= ~ADDRSRC_STATIC; 
+                    self->prv->addr_src = ADDRSRC_DHCP; 
                 }
             }
             break;

@@ -827,7 +827,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             break;
         case 2:
             ipv4_address = gtk_entry_get_text(GTK_ENTRY(prv->ipv4_addr_entry));
-            ipv4_subnet = gtk_label_get_text(GTK_LABEL(prv->ipv4_subnet_lbl));
+            ipv4_subnet = gtk_entry_get_text(GTK_ENTRY(prv->ipv4_subnet_entry));
             nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
             nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu),
               ipv4_address ? ipv4_address : "");
@@ -975,7 +975,7 @@ multi_line_add_cb( GtkButton *button, gpointer data )
 		view = self->prv->ipv6_tv;
         is_v6 = TRUE;
 	}
-    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, (gpointer)self);
 
     ip = nwamui_ip_new(self->prv->ncu, "", "", is_v6, FALSE, FALSE, FALSE );
 
@@ -985,7 +985,7 @@ multi_line_add_cb( GtkButton *button, gpointer data )
 	gtk_tree_selection_select_iter (gtk_tree_view_get_selection(view),
 		&iter);
 
-    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 }
 
 static void
@@ -996,7 +996,7 @@ multi_line_del_cb( GtkButton *button, gpointer data )
 	GList *list, *idx;
 	GtkTreeModel *model;
 	
-    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 
 	if (button == self->prv->ipv4_mutli_del_btn) {
 		selection = gtk_tree_view_get_selection (self->prv->ipv4_tv);
@@ -1019,7 +1019,7 @@ multi_line_del_cb( GtkButton *button, gpointer data )
 	}
 	g_list_free (list);
 
-    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 }
 
 static void
@@ -1052,13 +1052,14 @@ ncu_changed_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 static void
 show_changed_cb( GtkComboBox* widget, gpointer data )
 {
-	NwamConnConfIPPanel* self = NWAM_CONN_CONF_IP_PANEL(data);
-	GtkNotebook *cur_nb = NULL;
-	GtkLabel *lbl = NULL;
-	gchar *ipv6_lbl = NULL;
+	NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(data);
+	GtkNotebook         *cur_nb = NULL;
+	GtkLabel            *lbl = NULL;
+	gchar               *ipv6_lbl = NULL;
+    gboolean             is_v4 = FALSE;
 
 	/* detect which combo is operated by the user before go further */
-	if (widget == self->prv->ipv4_combo) {
+	if ( is_v4 = (widget == self->prv->ipv4_combo) ) {
 		cur_nb = self->prv->ipv4_nb;
 	} else {
 		cur_nb = self->prv->ipv6_nb;
@@ -1069,15 +1070,15 @@ show_changed_cb( GtkComboBox* widget, gpointer data )
 
 	if (lbl) {
 		switch (actid) {
-                    case 0: 
-                        /* ipv6_lbl = _("None"); */
-                        ipv6_lbl = "";
-                        break;
-                    case 1: 
-                        ipv6_lbl = _("Enabled");
-                        break;
-                    default: 
-                        g_assert_not_reached();
+            case 0: 
+                /* ipv6_lbl = _("None"); */
+                ipv6_lbl = "";
+                break;
+            case 1: 
+                ipv6_lbl = _("Enabled");
+                break;
+            default: 
+                g_assert_not_reached();
 		}
         if (*ipv6_lbl != '\0') {
             ipv6_lbl = g_strdup_printf(_("Configure IPv_6 (%s)"), ipv6_lbl);
@@ -1088,6 +1089,7 @@ show_changed_cb( GtkComboBox* widget, gpointer data )
 		g_free (ipv6_lbl);
 	}
 
+
 	/* update the notetab according to the selected entry */
 	if (actid == 0) {
 		gtk_widget_hide (GTK_WIDGET(cur_nb));
@@ -1097,6 +1099,29 @@ show_changed_cb( GtkComboBox* widget, gpointer data )
 	} else {
 		g_assert_not_reached ();
 	}
+
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
+    if ( nwamui_ncu_is_modifiable( self->prv->ncu ) ) {
+        if (actid == 0) {
+            if ( is_v4 ) {
+                nwamui_ncu_set_ipv4_active( self->prv->ncu, FALSE );
+            }
+            else {
+                nwamui_ncu_set_ipv6_active( self->prv->ncu, FALSE );
+            }
+        } 
+        else if ( actid == 1 ) {
+            if ( is_v4 ) {
+                nwamui_ncu_set_ipv4_dhcp( self->prv->ncu, TRUE );
+            }
+        }
+        else if (actid > 1 && actid <=3) {
+            if ( is_v4 ) {
+                nwamui_ncu_set_ipv4_dhcp( self->prv->ncu, FALSE );
+            }
+        }
+    }
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 }
 
 static void
@@ -1272,7 +1297,7 @@ nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
 	gtk_tree_model_get_iter_from_string (model, &iter, path);
 	gtk_tree_model_get(model, &iter, 0, &ip, -1);
 
-    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 
     /* TODO - Validate data in editing */
 	switch (col_id) {
@@ -1289,7 +1314,7 @@ nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
 	default:
 		g_assert_not_reached ();
 	}
-    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 }
 
 static void
@@ -1309,7 +1334,7 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
 	gtk_tree_model_get_iter_from_string (model, &iter, path);
 	gtk_tree_model_get(model, &iter, 0, &ip, -1);
 
-    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 
     /* TODO - Validate data in editing */
 	switch (col_id) {
@@ -1326,7 +1351,7 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
 	default:
 		g_assert_not_reached ();
 	}
-    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 }
 
 static void 
@@ -1505,9 +1530,9 @@ ipv4_addr_changed_cb( GtkEditable* editable, gpointer data )
 
     ipv4_address = gtk_entry_get_text(GTK_ENTRY(editable));
     if ( ipv4_address != NULL ) {
-        g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+        g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
         nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu), ipv4_address );
-        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
     }
 }
 
@@ -1520,9 +1545,9 @@ ipv4_subnet_changed_cb( GtkEditable* editable, gpointer data )
 
     ipv4_subnet = gtk_entry_get_text(GTK_ENTRY(editable));
     if ( ipv4_subnet != NULL ) {
-        g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+        g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
         nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu), ipv4_subnet );
-        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (GCallback)ncu_changed_notify_cb, self);
+        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
     }
 }
 

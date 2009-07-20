@@ -5002,12 +5002,12 @@ system/system-log:default
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="okbutton4">
+              <object class="GtkButton" id="rename_environment_ok_btn">
                 <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
-                <property name="receives_default">False</property>
+                <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
               </object>
               <packing>
@@ -5027,7 +5027,7 @@ system/system-log:default
     </child>
     <action-widgets>
       <action-widget response="-6">cancelbutton4</action-widget>
-      <action-widget response="-5">okbutton4</action-widget>
+      <action-widget response="-5">rename_environment_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="proxy_password_dialog">

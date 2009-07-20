@@ -649,7 +649,7 @@ nwam_tree_view_row_changed(GtkTreeModel *tree_model,
 
     ref_path = gtk_tree_row_reference_get_path(prv->new_obj_ref);
 
-    if (gtk_tree_path_compare(ref_path, path) == 0) {
+    if (ref_path != NULL && gtk_tree_path_compare(ref_path, path) == 0) {
         gtk_tree_model_get(tree_model, iter, 0, &object, -1);
         if (object) {
             /* Real object is inserted, we enable add button here */

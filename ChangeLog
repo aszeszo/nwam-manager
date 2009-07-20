@@ -1,3 +1,32 @@
+2009-07-20  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/capplet-utils.c, capplet/nwam_location_dialog.c: 
+	  Use the ENV enabled property as the transient state, which will
+	  later be acted upon on commit to enable the location.
+	* capplet/nwam-manager-properties.ui, common/libnwamui.h,
+	  common/libnwamui.c: 
+	  Make the rename dialog ok turn on/off based on length of string.
+	  Also add a function to convert netmask str to prefixlen.
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Fis bug#10060 to enable configuring of manual addresses.
+	* capplet/nwam_tree_view.c: 
+	  Fix possible crash on NULL de-ref.
+	* common/nwamui_daemon.c: 
+	  Change functions to append/remove env/enm/ncp to first check for
+	  existance, and also to fire notify events on change.
+	* common/nwamui_env.c: 
+	  Fix bug#10030 to allow cloning of locations.
+	* common/nwamui_ip.c: 
+	  Change DHCP/STATIC to be mutually exclusive, changing one changes
+	  the other.
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Fix an issue w.r.t. guint64 being cast to array of enums - they
+	  sizes differ, so was picking up wrong values of v6 enabled or not.
+	  Also handle the committing of IP address changes, by populating the
+	  handle before commit.
+	  Also add a ipv4_active flag, since it's possible to have a just v6
+	  configuration.
+
 2009-07-17  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_daemon.c: 

@@ -54,6 +54,7 @@
 
 #define NWAM_ENVIRONMENT_RENAME     "nwam_environment_rename"
 #define RENAME_ENVIRONMENT_ENTRY    "rename_environment_entry"
+#define RENAME_ENVIRONMENT_OK_BTN   "rename_environment_ok_btn"
 
 #define PIXBUF_COMPOSITE_NO_SCALE(src, dest)                            \
     gdk_pixbuf_composite(GDK_PIXBUF(src), GDK_PIXBUF(dest),             \
@@ -1023,6 +1024,19 @@ nwamui_util_show_help( const gchar* link_name )
   }
 }
 
+static void
+disable_widget_if_empty (GtkEditable *editable, gpointer  user_data)  
+{
+    const gchar* text = gtk_entry_get_text(GTK_ENTRY(editable));
+
+    if ( text == NULL || strlen(text) == 0 ) {
+        gtk_widget_set_sensitive( GTK_WIDGET(user_data), FALSE);
+    }
+    else {
+        gtk_widget_set_sensitive( GTK_WIDGET(user_data), TRUE);
+    }
+}
+
 /*
  * Shows a dialog with a single entry like:
  * 
@@ -1036,6 +1050,7 @@ nwamui_util_rename_dialog_run(GtkWindow* parent_window, const gchar* title, cons
 {
     static GtkWidget*   dialog = NULL;
     static GtkWidget*   entry  = NULL;
+    static GtkWidget*   ok_btn  = NULL;
     
     gint                response;
     gchar*              outstr;
@@ -1047,6 +1062,7 @@ nwamui_util_rename_dialog_run(GtkWindow* parent_window, const gchar* title, cons
     if ( dialog == NULL ) {
         dialog = nwamui_util_glade_get_widget(NWAM_ENVIRONMENT_RENAME);
         entry = nwamui_util_glade_get_widget(RENAME_ENVIRONMENT_ENTRY);
+        ok_btn = nwamui_util_glade_get_widget(RENAME_ENVIRONMENT_OK_BTN);
     }
 
     if (parent_window != NULL) {
@@ -1059,6 +1075,7 @@ nwamui_util_rename_dialog_run(GtkWindow* parent_window, const gchar* title, cons
     }
 
     gtk_window_set_title(GTK_WINDOW(dialog), title );
+    g_signal_connect(G_OBJECT(entry), "changed", G_CALLBACK(disable_widget_if_empty), (gpointer)ok_btn );
     gtk_entry_set_text(GTK_ENTRY(entry), current_name );
 
     gtk_widget_show_all(dialog);
@@ -1558,6 +1575,82 @@ nwamui_util_convert_prefixlen_to_netmask_str( sa_family_t family, guint prefixle
     }
 
     return( netmask_str );
+}
+
+/*
+ * Convert a netmask string to prefix length
+ */
+extern guint
+nwamui_util_convert_netmask_str_to_prefixlen( sa_family_t family, const gchar* netmask_str ) 
+{
+   uint32_t               prefixlen = 0;
+   uint32_t               maxlen = 0;
+   struct lifreq        lifr;
+   struct sockaddr_in  *sin = (struct sockaddr_in *)&lifr.lifr_addr;
+   struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&lifr.lifr_addr;
+   uchar_t             *mask = NULL;
+
+   memset(&lifr.lifr_addr, 0, sizeof (lifr.lifr_addr));
+
+    switch( family ) {
+        case AF_INET:
+            maxlen = IP_ABITS;
+            break;
+        case AF_INET6:
+            maxlen = IPV6_ABITS;
+            prefixlen = (uint32_t)atoi( netmask_str );
+            return( prefixlen );
+        default:
+            break;
+    }
+
+    /* If v6, we will have returned already, but have some code here just
+     * incase we need it again... */
+	if ((prefixlen < 0) || (prefixlen > maxlen)) {
+        return( prefixlen );
+	}
+
+    switch( family ) {
+        case AF_INET:
+            if ( inet_pton ( family, netmask_str, (void*)(&sin->sin_addr) ) ) {
+                mask = (uchar_t *)&(sin->sin_addr);
+            }
+            break;
+        case AF_INET6:
+            if ( inet_pton ( family, netmask_str, (void*)(&sin6->sin6_addr) ) ) {
+                mask = (uchar_t *)&(sin6->sin6_addr);
+            }
+            break;
+        default:
+            break;
+    }
+
+    if ( mask == NULL ) {
+        return( 0 );
+    }
+
+    for ( int i = 0; i < maxlen / 8; i++ ) {
+        if ( *mask == 0xFF ) {
+            prefixlen += 8;
+        }
+        else if ( *mask == 0 ) {
+            break;
+        }
+        else {
+            for ( int j = 1; j <= 8; j++ ) {
+                if ( *mask & (1 << (8 - j))) {
+                    prefixlen++;
+                }
+                else {
+                    /* If we hit a 0, then break out, we're done */
+                    break;
+                }
+            }
+        }
+        mask++;
+    }
+
+    return(prefixlen);
 }
 
 extern gboolean

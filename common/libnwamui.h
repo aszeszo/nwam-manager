@@ -285,6 +285,8 @@ extern gchar*                   nwamui_util_encode_menu_label( gchar **modified_
 
 extern gchar*                   nwamui_util_convert_prefixlen_to_netmask_str( sa_family_t family, guint prefixlen );
 
+extern guint                    nwamui_util_convert_netmask_str_to_prefixlen( sa_family_t family, const gchar* netmask_str );
+
 extern gboolean                 nwamui_util_get_interface_address(  const char  *ifname, 
                                                                     sa_family_t  family, 
                                                                     gchar      **address_p, 

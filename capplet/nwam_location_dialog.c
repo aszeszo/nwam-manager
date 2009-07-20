@@ -396,6 +396,7 @@ nwam_update_obj (NwamLocationDialog *self, GObject *obj)
     if (!NWAMUI_IS_ENV(obj)) {
         return( FALSE );
     }
+
 #if 0
 	prev_txt = nwamui_env_get_start_command(NWAMUI_ENV(obj));
 	txt = gtk_entry_get_text(prv->start_cmd_entry);
@@ -662,6 +663,8 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
         gtk_tree_model_get(model, &iter, 0, &env, -1);
 
         if (env) {
+            gchar *name = nwamui_env_get_name(env);
+
             /* Figer out which one is enabled, change it to disabled */
             gtk_tree_model_foreach(model,
               tree_model_foreach_find_enabled_env,
@@ -674,6 +677,7 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
             }
 
             g_object_unref(env);
+            g_free(name);
         }
         
     }
@@ -850,8 +854,9 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
 static void
 on_button_clicked(GtkButton *button, gpointer user_data)
 {
-    NwamLocationDialog*           self = NWAM_LOCATION_DIALOG(user_data);
-    NwamLocationDialogPrivate*    prv = self->prv;
+    NwamuiDaemon               *daemon = nwamui_daemon_get_instance();
+    NwamLocationDialog         *self = NWAM_LOCATION_DIALOG(user_data);
+    NwamLocationDialogPrivate  *prv = self->prv;
     GtkTreeModel*               model;
     GtkTreeIter                 iter;
 
@@ -865,10 +870,23 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
         g_assert(name);
 
+#ifdef USE_DIALOG_FOR_NAME
+        {
+            gchar *new_name;
+
+            new_name = nwamui_util_rename_dialog_run(GTK_WINDOW(prv->location_dialog), _("Location Name"), name );
+        
+            if ( new_name != NULL ) {
+                g_free(name);
+                name = new_name;
+                new_name = NULL;
+            }
+        }
+#endif /* USE_DIALOG_FOR_NAME */
+
         object = NWAMUI_OBJECT(nwamui_env_new(name) );
         CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
-        /* Commit immediately. */
-        nwamui_object_commit(object);
+        nwamui_daemon_env_append(daemon, NWAMUI_ENV(object));
         g_free(name);
         g_object_unref(object);
 
@@ -878,8 +896,11 @@ on_button_clicked(GtkButton *button, gpointer user_data)
           NULL, FALSE, 0.0, 0.0);
         gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->location_tree),
           nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->location_tree)));
+#ifndef USE_DIALOG_FOR_NAME
         /* Trigger rename on the new object as spec defines. */
         gtk_button_clicked(prv->location_rename_btn);
+#endif /* ! USE_DIALOG_FOR_NAME */
+        g_object_unref(G_OBJECT(daemon));
         return;
     }
 
@@ -925,12 +946,9 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             object = NWAMUI_OBJECT(nwamui_env_clone( env ));
             nwamui_object_set_name(object, name);
             CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
-            /* Commit immediately. */
-            nwamui_object_commit(object);
             g_free(name);
             g_free(prefix);
             g_free(sname);
-            g_object_unref(object);
 
             /* Select and scroll to this new object. */
             gtk_tree_view_scroll_to_cell(prv->location_tree,
@@ -941,16 +959,11 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             /* Trigger rename on the new object as spec defines. */
             gtk_button_clicked(prv->location_rename_btn);
 
-/*             NwamuiDaemon *daemon = nwamui_daemon_get_instance(); */
-
-
-
-/*             nwamui_daemon_env_append(daemon, new_env ); */
+            nwamui_daemon_env_append(daemon, NWAMUI_ENV(object) );
         
 /*             nwamui_daemon_set_active_env(daemon, new_env ); */
 
-/*             g_object_unref( G_OBJECT(new_env) ); */
-/*             g_object_unref(daemon); */
+            g_object_unref( G_OBJECT(object) );
 
         } else if (button == (gpointer)prv->location_rename_btn) {
 #if 0
@@ -999,6 +1012,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             g_object_unref(env);
         }
     }
+    g_object_unref(G_OBJECT(daemon));
 }
 
 static void

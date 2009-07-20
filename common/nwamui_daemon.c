@@ -80,6 +80,8 @@ enum {
     PROP_ACTIVE_ENV = 1,
     PROP_ACTIVE_NCP,
     PROP_NCP_LIST,
+    PROP_ENV_LIST,
+    PROP_ENM_LIST,
     PROP_WIFI_FAV,
     PROP_STATUS,
     PROP_NUM_SCANNED_WIFI
@@ -214,6 +216,20 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                                      g_param_spec_pointer ("ncp_list",
                                                           _("GList of NCPs"),
                                                           _("GList of NCPs"),
+                                                           G_PARAM_READABLE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_ENV_LIST,
+                                     g_param_spec_pointer ("env_list",
+                                                          _("GList of ENVs"),
+                                                          _("GList of ENVs"),
+                                                           G_PARAM_READABLE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_ENM_LIST,
+                                     g_param_spec_pointer ("enm_list",
+                                                          _("GList of ENMs"),
+                                                          _("GList of ENMs"),
                                                            G_PARAM_READABLE));
 
     g_object_class_install_property (gobject_class,
@@ -1019,9 +1035,10 @@ nwamui_daemon_ncp_append(NwamuiDaemon *self, NwamuiNcp* new_ncp )
 
     g_return_if_fail( NWAMUI_IS_DAEMON(self));
 
-    self->prv->ncp_list = g_list_append(self->prv->ncp_list, (gpointer)g_object_ref(new_ncp));
-
-    g_object_notify(G_OBJECT(self), "ncp_list" );
+    if ( !g_list_find( self->prv->ncp_list, new_ncp ) ) {
+        self->prv->ncp_list = g_list_append(self->prv->ncp_list, (gpointer)g_object_ref(new_ncp));
+        g_object_notify(G_OBJECT(self), "ncp_list" );
+    }
 }
 
 /**
@@ -1192,7 +1209,10 @@ nwamui_daemon_env_append(NwamuiDaemon *self, NwamuiEnv* new_env )
 
     g_return_if_fail( NWAMUI_IS_DAEMON(self));
 
-    self->prv->env_list = g_list_append(self->prv->env_list, (gpointer)g_object_ref(new_env));
+    if ( !g_list_find( self->prv->env_list, new_env ) ) {
+        self->prv->env_list = g_list_append(self->prv->env_list, (gpointer)g_object_ref(new_env));
+        g_object_notify(G_OBJECT(self), "env_list" );
+    }
 }
 
 /**
@@ -1213,8 +1233,11 @@ nwamui_daemon_env_remove(NwamuiDaemon *self, NwamuiEnv* env )
 
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self), rval );
 
-    self->prv->env_list = g_list_remove(self->prv->env_list, (gpointer)env);
-    rval = TRUE;
+    if ( g_list_find( self->prv->env_list, (gpointer)env) ) {
+        self->prv->env_list = g_list_remove(self->prv->env_list, (gpointer)env);
+        g_object_notify(G_OBJECT(self), "env_list" );
+        rval = TRUE;
+    }
 
     return(rval);
 }
@@ -1259,7 +1282,10 @@ nwamui_daemon_enm_append(NwamuiDaemon *self, NwamuiEnm* new_enm )
 
     g_return_if_fail( NWAMUI_IS_DAEMON(self));
 
-    self->prv->enm_list = g_list_append(self->prv->enm_list, (gpointer)g_object_ref(new_enm));
+    if ( !g_list_find( self->prv->enm_list, new_enm ) ) {
+        self->prv->enm_list = g_list_append(self->prv->enm_list, (gpointer)g_object_ref(new_enm));
+        g_object_notify(G_OBJECT(self), "enm_list" );
+    }
 }
 
 /**
@@ -1280,8 +1306,11 @@ nwamui_daemon_enm_remove(NwamuiDaemon *self, NwamuiEnm* enm )
 
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self), rval );
 
-    self->prv->enm_list = g_list_remove(self->prv->enm_list, (gpointer)enm);
-    rval = TRUE;
+    if ( g_list_find( self->prv->enm_list, (gpointer)enm) ) {
+        self->prv->enm_list = g_list_remove(self->prv->enm_list, (gpointer)enm);
+        g_object_notify(G_OBJECT(self), "enm_list" );
+        rval = TRUE;
+    }
 
     return(rval);
 }

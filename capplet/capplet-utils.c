@@ -311,7 +311,7 @@ nwamui_object_active_toggle_cell(GtkTreeViewColumn *col,
     if ( env != NULL ) {
 
         g_object_set(G_OBJECT(renderer),
-          "active", nwamui_object_get_active(NWAMUI_OBJECT(env)),
+          "active", nwamui_env_get_enabled(env),
           NULL); 
         g_object_unref(G_OBJECT(env));
     } else {
