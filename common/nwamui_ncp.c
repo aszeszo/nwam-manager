@@ -693,7 +693,7 @@ check_ncu_online( gpointer obj, gpointer user_data )
         online = TRUE;
     }
 
-    nwamui_warning("NCU %s: online = %s", nwamui_ncu_get_vanity_name(ncu), online?"True":"False" );
+    nwamui_debug("NCU %s: online = %s", nwamui_ncu_get_vanity_name(ncu), online?"True":"False" );
 
     switch (activation_mode) { 
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL: {
@@ -1492,10 +1492,10 @@ row_deleted_cb (GtkTreeModel *model, GtkTreePath *path, gpointer user_data)
     g_debug("NwamuiNcp: NCU List: Row Deleted: %s", gtk_tree_path_to_string(path));
 
     if ( model == GTK_TREE_MODEL(ncp->prv->ncu_list_store )) {
-        g_warning("NCU Removed from List, but not propagated.");
+        g_debug("NCU Removed from List, but not propagated.");
     }
     else if ( model == GTK_TREE_MODEL(ncp->prv->ncu_tree_store )) {
-/*         g_warning("NCU Removed from Tree, but not propagated."); */
+        g_debug("NCU Removed from Tree, but not propagated.");
     }
 }
 
@@ -1507,10 +1507,10 @@ row_inserted_cb (GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpoi
     g_debug("NwamuiNcp: NCU List: Row Inserted: %s",gtk_tree_path_to_string(path));
 
     if ( model == GTK_TREE_MODEL(ncp->prv->ncu_list_store )) {
-        g_warning("NCU Inserted in List, but not propagated.");
+        g_debug("NCU Inserted in List, but not propagated.");
     }
     else if ( model == GTK_TREE_MODEL(ncp->prv->ncu_tree_store )) {
-/*         g_warning("NCU Inserted in Tree, but not propagated."); */
+        g_debug("NCU Inserted in Tree, but not propagated.");
     }
 }
 
@@ -1523,10 +1523,10 @@ rows_reordered_cb(GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter
     g_debug("NwamuiNcp: NCU List: Rows Reordered: %s", path_str?path_str:"NULL");
 
     if ( tree_model == GTK_TREE_MODEL(ncp->prv->ncu_list_store )) {
-        g_warning("NCU Re-ordered in List, but not propagated.");
+        g_debug("NCU Re-ordered in List, but not propagated.");
     }
     else if ( tree_model == GTK_TREE_MODEL(ncp->prv->ncu_tree_store )) {
-/*         g_warning("NCU Re-ordered in Tree, but not propagated."); */
+        g_debug("NCU Re-ordered in Tree, but not propagated.");
     }
 }
 

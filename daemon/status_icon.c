@@ -148,6 +148,8 @@ static void daemon_add_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpoin
 static void daemon_remove_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
 static void daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data);
 static void daemon_active_env_changed(NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data);
+static void daemon_enm_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data);
+static void daemon_env_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data);
 
 /* nwamui ncp signals */
 static void ncp_activate_ncu (NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer user_data);
@@ -258,13 +260,13 @@ daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data
              * it will emulate wlan changed signal
              */
             /* Initialize Ncp. */
-            nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_NCU);
             if ( init_state ) {
+                nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_NCU);
                 daemon_active_ncp_changed(prv->daemon, ncp, user_data);
             }
             /* Initialize Env. */
-            nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC);
             if ( init_state ) {
+                nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC);
                 daemon_active_env_changed(prv->daemon, env, user_data);
             }
 
@@ -586,6 +588,26 @@ daemon_remove_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data)
 }
 
 static void
+daemon_enm_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
+{
+	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+
+    nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_ENM);
+    nwam_menu_recreate_enm_menuitems(self);
+}
+
+static void
+daemon_env_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
+{
+	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+
+    nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC);
+    nwam_menu_recreate_env_menuitems(self);
+}
+
+static void
 daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
 {
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
@@ -663,6 +685,12 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
 
         g_signal_connect(daemon, "notify::status",
           G_CALLBACK(daemon_status_changed), (gpointer)self);
+
+        g_signal_connect(daemon, "notify::enm-list",
+          G_CALLBACK(daemon_enm_list_changed), (gpointer)self);
+
+        g_signal_connect(daemon, "notify::env-list",
+          G_CALLBACK(daemon_env_list_changed), (gpointer)self);
 
         g_signal_connect(daemon, "daemon_info",
           G_CALLBACK(daemon_info), (gpointer)self);
