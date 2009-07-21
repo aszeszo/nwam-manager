@@ -179,6 +179,10 @@ static void nwam_conn_wifi_fav_cell_cb (GtkTreeViewColumn *col,
 					     GtkTreeModel      *model,
 					     GtkTreeIter       *iter,
 					     gpointer           data);
+static void nwam_conn_multi_cell_editing_started_cb(GtkCellRenderer *cell,
+                                        GtkCellEditable *editable,
+                                        const gchar     *path,
+                                        gpointer         data);
 static void nwam_conn_multi_ipv4_cell_edited_cb (GtkCellRendererText *renderer,
   gchar               *path,
   gchar               *new_text,
@@ -385,9 +389,13 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	if (view == self->prv->ipv4_tv) {
         g_signal_connect(G_OBJECT(renderer), "edited",
           (GCallback) nwam_conn_multi_ipv4_cell_edited_cb, (gpointer)self);
+        g_signal_connect(G_OBJECT(renderer), "editing-started",
+          (GCallback) nwam_conn_multi_cell_editing_started_cb, (gpointer)FALSE);
     } else {
         g_signal_connect(G_OBJECT(renderer), "edited",
           (GCallback) nwam_conn_multi_ipv6_cell_edited_cb, (gpointer)self);
+        g_signal_connect(G_OBJECT(renderer), "editing-started",
+          (GCallback) nwam_conn_multi_cell_editing_started_cb, (gpointer)TRUE);
     }
 	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_ADDR));
 
@@ -476,9 +484,12 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 	self->prv->ipv4_addr_entry = GTK_ENTRY(nwamui_util_glade_get_widget(IP_MANUAL_PANEL_IPV4_ADDRESS_ENTRY));
     g_signal_connect(G_OBJECT(self->prv->ipv4_addr_entry ), "changed",
             (GCallback)ipv4_addr_changed_cb, (gpointer)self);
+    nwamui_util_set_entry_ip_address_only( self->prv->ipv4_addr_entry, FALSE );
+
 	self->prv->ipv4_subnet_entry = GTK_ENTRY(nwamui_util_glade_get_widget(IP_MANUAL_PANEL_IPV4_SUBNET_ENTRY));
     g_signal_connect(G_OBJECT(self->prv->ipv4_subnet_entry ), "changed",
             (GCallback)ipv4_subnet_changed_cb, (gpointer)self);
+    nwamui_util_set_entry_ip_address_only( self->prv->ipv4_subnet_entry, FALSE );
 
 	self->prv->ipv4_tv = GTK_TREE_VIEW(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV4_ADDR_TABLE_TVIEW));
 
@@ -1281,6 +1292,20 @@ nwam_conn_multi_ip_cell_cb (    GtkTreeViewColumn *col,
 }
 
 static void
+nwam_conn_multi_cell_editing_started_cb(GtkCellRenderer *cell,
+                                        GtkCellEditable *editable,
+                                        const gchar     *path,
+                                        gpointer         data)
+{
+    if (GTK_IS_ENTRY (editable)) {
+        GtkEntry *entry = GTK_ENTRY (editable);
+        gboolean  is_v6 = (gboolean)data;
+      
+        nwamui_util_set_entry_ip_address_only(entry, is_v6);
+    }
+}
+
+static void
 nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
                                     gchar               *path,
                                     gchar               *new_text,
@@ -1300,6 +1325,17 @@ nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
     g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 
     /* TODO - Validate data in editing */
+    if ( !nwamui_util_validate_ip_address( GTK_WIDGET(view), new_text, FALSE, TRUE ) ) {
+        /* Invalid */
+        GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+        GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
+
+        gtk_tree_view_set_cursor (GTK_TREE_VIEW(view), tpath, col, FALSE);
+
+        gtk_tree_path_free(tpath);
+        return;
+    }
+
 	switch (col_id) {
 /*
 	case IP_VIEW_HOSTNAME:
@@ -1337,6 +1373,17 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
     g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 
     /* TODO - Validate data in editing */
+    if ( col_id == IP_VIEW_ADDR &&
+         !nwamui_util_validate_ip_address( GTK_WIDGET(view), new_text, FALSE, TRUE ) ) {
+        /* Invalid */
+        GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+        GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
+
+        gtk_tree_view_set_cursor (GTK_TREE_VIEW(view), tpath, col, FALSE);
+
+        gtk_tree_path_free(tpath);
+        return;
+    }
 	switch (col_id) {
 /*
 	case IP_VIEW_HOSTNAME:

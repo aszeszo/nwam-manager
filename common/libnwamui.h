@@ -295,11 +295,27 @@ extern gboolean                 nwamui_util_get_interface_address(  const char  
 
 extern gboolean                 nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry );
 
+extern void                     nwamui_util_set_entry_ip_address_only( GtkEntry* entry, gboolean is_v6 );
+
+extern gboolean                 nwamui_util_validate_ip_address(    GtkWidget   *widget,
+                                                                    const gchar *address_str,
+                                                                    gboolean     is_v6,
+                                                                    gboolean     show_error_dialog );
+
 extern void                     nwamui_util_window_title_append_hostname( GtkDialog* dialog );
 
 extern GList*                   nwamui_util_parse_string_to_glist( const gchar* str );
 
 extern gchar*                   nwamui_util_glist_to_comma_string( GList* list );
+
+extern gboolean                 nwamui_util_split_address_prefix( gboolean v6, 
+                                                                  const gchar* address_prefix, 
+                                                                  gchar **address, 
+                                                                  gchar **prefix );
+
+extern gchar*                   nwamui_util_join_address_prefix( gboolean v6, 
+                                                                 const gchar *address, 
+                                                                 const gchar *prefix );
 
 G_END_DECLS
 

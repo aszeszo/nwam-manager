@@ -1,5 +1,19 @@
 2009-07-21  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_conn_conf_ip_panel.c:
+	  Handle validation of IP Address fields.
+	* common/libnwamui.h, common/libnwamui.c: 
+	  Added several functions to handle GtkEntry and ip address
+	  validations : nwamui_util_validate_ip_address(),
+	  nwamui_util_set_entry_ip_address_only(),
+	  nwamui_util_split_address_prefix(),
+	  nwamui_util_join_address_prefix().
+	* common/nwamui_ncu.c: 
+	  Fix handling of x.x.x.x/N format addresses on loading of
+	  configuration. 
+
+2009-07-21  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_ncp.c: 
 	  Change some warnings to be debug statements.
 	* daemon/status_icon.c: 

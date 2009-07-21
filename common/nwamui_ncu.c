@@ -1220,13 +1220,24 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
             ptr = ipv4_addr;
 
             for( int i = 0; i < ipv4_addrsrc_num; i++ ) {
+                gchar*  address = NULL;
+                gchar*  subnet = NULL;
+
+                if ( ptr != NULL && *ptr != NULL ) {
+                     nwamui_util_split_address_prefix( FALSE, *ptr, &address, &subnet );
+                }
+
                 NwamuiIp*   ip = nwamui_ip_new( ncu, 
-                                                ((ptr != NULL)?(*ptr):(NULL)), 
-                                                "", 
+                                                (address?address:""),
+                                                (subnet?subnet:""),
                                                 FALSE, 
                                                 ipv4_addrsrc[i] == NWAM_ADDRSRC_DHCP,
                                                 ipv4_addrsrc[i] == NWAM_ADDRSRC_AUTOCONF,
                                                 ipv4_addrsrc[i] == NWAM_ADDRSRC_STATIC);
+
+                if ( subnet != NULL ) {
+                    g_free(subnet);
+                }
 
                 GtkTreeIter iter;
 
@@ -1238,14 +1249,27 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                 if ( i == 0 ) {
                     ncu->prv->ipv4_primary_ip = NWAMUI_IP(g_object_ref(ip));
                 }
+                if ( ptr != NULL && *ptr != NULL ) {
+                    /* Free up memory as we go */
+                    g_free(*ptr);
+                }
+                if ( ptr != NULL ) {
+                    ptr++;
+                }
             }
             g_free(ipv4_addrsrc);
+            if ( ipv4_addr != NULL ) {
+                g_free(ipv4_addr);
+            }
+
             if ( ipv4_addrsrc_num > 0 ) {
                 ncu->prv->ipv4_active = TRUE;
             }
         }
         else if (ip_version[ip_n] == NWAM_IP_VERSION_IPV6) {
-            char**  ptr;
+            char          ** ptr;
+            const char     *prefix = NULL;
+            char           *delim;
 
             ipv6_addrsrc = get_nwam_ncu_uint64_array_prop(  nwam_ncu, 
                                                             NWAM_NCU_PROP_IPV6_ADDRSRC, 
@@ -1258,9 +1282,16 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
             ptr = ipv6_addr;
 
             for( int i = 0; i < ipv6_addrsrc_num; i++ ) {
+                gchar*  address = NULL;
+                gchar*  prefix = NULL;
+
+                if ( ptr != NULL && *ptr != NULL ) {
+                     nwamui_util_split_address_prefix( TRUE, *ptr, &address, &prefix );
+                }
+
                 NwamuiIp*   ip = nwamui_ip_new( ncu, 
-                                                ((ptr != NULL)?(*ptr):(NULL)), 
-                                                "", 
+                                                (address?address:""),
+                                                (prefix?prefix:""), 
                                                 TRUE, 
                                                 ipv6_addrsrc[i] == NWAM_ADDRSRC_DHCP,
                                                 ipv6_addrsrc[i] == NWAM_ADDRSRC_AUTOCONF,
@@ -1276,12 +1307,24 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                 if ( i == 0 ) {
                     ncu->prv->ipv6_primary_ip = NWAMUI_IP(g_object_ref(ip));
                 }
+                if ( ptr != NULL && *ptr != NULL ) {
+                    /* Free up memory as we go */
+                    g_free(*ptr);
+                }
+                if ( ptr != NULL ) {
+                    ptr++;
+                }
             }
 
             if ( ipv6_addrsrc_num > 0 ) {
                 ncu->prv->ipv6_active = TRUE;
             }
-	    g_free(ipv6_addrsrc);
+
+            g_free(ipv6_addrsrc);
+
+            if ( ipv4_addr != NULL ) {
+                g_free(ipv4_addr);
+            }
         }
     }
     g_free(ip_version);
@@ -1350,7 +1393,7 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
 
         ipv4_addrsrc_num = g_list_length( ipv4_list );
         ipv4_addrsrc = (uint64_t*)g_malloc(ipv4_addrsrc_num * sizeof(uint64_t));
-        ipv4_addr = (gchar**)g_malloc((ipv4_addrsrc_num * sizeof(gchar**) + 1));
+        ipv4_addr = (gchar**)g_malloc((ipv4_addrsrc_num + 1) * sizeof(gchar**));
 
         src_index = 0;
         addr_index = 0;
@@ -1364,8 +1407,7 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
                 gchar*  subnet = nwamui_ip_get_subnet_prefix(ip); 
 
                 ipv4_addrsrc[src_index] = (uint64_t)NWAM_ADDRSRC_STATIC;
-                ipv4_addr[addr_index] = g_strdup_printf("%s/%d", addr, 
-                    nwamui_util_convert_netmask_str_to_prefixlen(AF_INET, subnet) );
+                ipv4_addr[addr_index] = nwamui_util_join_address_prefix( FALSE, addr, subnet );
                 addr_index++;
             }
             else if ( nwamui_ip_is_autoconf( ip ) ) {
@@ -1390,6 +1432,12 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
                                             ipv4_addrsrc_num );
         }
         nwamui_util_free_obj_list( ipv4_list );
+        if ( ipv4_addr != NULL ) {
+            g_strfreev(ipv4_addr);
+        }
+        if ( ipv4_addrsrc != NULL ) {
+            g_free(ipv4_addrsrc);
+        }
     }
 
     if ( self->prv->ipv6_active ) {
@@ -1404,7 +1452,7 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
 
         ipv6_addrsrc_num = g_list_length( ipv6_list );
         ipv6_addrsrc = (uint64_t*)g_malloc(ipv6_addrsrc_num * sizeof(uint64_t));
-        ipv6_addr = (gchar**)g_malloc((ipv6_addrsrc_num * sizeof(gchar**) + 1));
+        ipv6_addr = (gchar**)g_malloc((ipv6_addrsrc_num + 1 ) * sizeof(gchar**));
 
         src_index = 0;
         addr_index = 0;
@@ -1418,8 +1466,7 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
                 gchar*  subnet = nwamui_ip_get_subnet_prefix(ip); 
 
                 ipv6_addrsrc[src_index] = (uint64_t)NWAM_ADDRSRC_STATIC;
-                ipv6_addr[addr_index] = g_strdup_printf("%s/%d", addr, 
-                    nwamui_util_convert_netmask_str_to_prefixlen(AF_INET6, subnet) );
+                ipv6_addr[addr_index] = nwamui_util_join_address_prefix( TRUE, addr, subnet );
                 addr_index++;
             }
             else if ( nwamui_ip_is_autoconf( ip ) ) {
@@ -1444,6 +1491,12 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
                                             ipv6_addrsrc_num );
         }
         nwamui_util_free_obj_list( ipv6_list );
+        if ( ipv6_addr != NULL ) {
+            g_strfreev(ipv6_addr);
+        }
+        if ( ipv6_addrsrc != NULL ) {
+            g_free(ipv6_addrsrc);
+        }
     }
 
 

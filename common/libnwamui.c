@@ -1796,6 +1796,9 @@ partial_smf_completion_func(GtkEntryCompletion *completion,
     return( rval );
 }
 
+/* 
+ * Utility function to attach an FNRI completion support to a GtkEntry.
+ */
 extern gboolean
 nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry )
 {
@@ -1823,6 +1826,145 @@ nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry )
 
     return( TRUE );
 }
+
+static void
+insert_text_ip_only_handler (GtkEditable *editable,
+                             const gchar *text,
+                             gint         length,
+                             gint        *position,
+                             gpointer     data)
+{
+    gboolean    is_v6 = (gboolean)data;
+    gboolean    is_valid = TRUE;
+    gchar      *lower = g_ascii_strdown(text, length);
+
+    for ( int i = 0; i < length && is_valid; i++ ) {
+        if ( is_v6 ) {
+            /* Valid chars for v6 are ASCII [0-9a-f:] */
+            is_valid = (g_ascii_isxdigit( lower[i] ) || text[i] == ':');   
+        }
+        else {
+            /* Valid chars for v4 are ASCII [0-9.] */
+            is_valid = (g_ascii_isdigit( lower[i] ) || text[i] == '.');   
+        }
+    }
+    
+    if ( is_valid ) {
+        g_signal_handlers_block_by_func (editable,
+                       (gpointer) insert_text_ip_only_handler, data);
+
+        gtk_editable_insert_text (editable, lower, length, position);
+        g_signal_handlers_unblock_by_func (editable,
+                                         (gpointer) insert_text_ip_only_handler, data);
+    }
+    g_signal_stop_emission_by_name (editable, "insert_text");
+    g_free (lower);
+}
+
+/* Validate an IP address. 
+ * 
+ * If show_error_dialog is TRUE, then a message dialog will be shown to the
+ * user.
+ *
+ * Returns whether the address was valid or not.
+ */
+extern gboolean
+nwamui_util_validate_ip_address(    GtkWidget   *widget,
+                                    const gchar *address_str,
+                                    gboolean     is_v6,
+                                    gboolean     show_error_dialog )
+{
+    struct lifreq           lifr;
+    struct sockaddr_in     *sin = (struct sockaddr_in *)&lifr.lifr_addr;
+    struct sockaddr_in6    *sin6 = (struct sockaddr_in6 *)&lifr.lifr_addr;
+    GtkWindow              *top_level = GTK_WINDOW(gtk_widget_get_toplevel(widget));
+    gboolean                is_valid = TRUE;
+
+    if ( !GTK_WIDGET_IS_SENSITIVE(widget) || !gtk_window_has_toplevel_focus (top_level)) {
+        /* Assume valid */
+        return( TRUE );;
+    }
+
+    if ( address_str == NULL || strlen (address_str) == 0 ) {
+        is_valid = FALSE;
+    }
+    else {
+        if ( is_v6 ) {
+            if ( ! inet_pton ( AF_INET6, address_str, (void*)(&sin6->sin6_addr) ) ) {
+                is_valid = FALSE;
+            }
+        }
+        else {
+            if ( ! inet_pton ( AF_INET, address_str, (void*)(&sin->sin_addr) ) ) {
+                is_valid = FALSE;
+            }
+        }
+    }
+
+    if ( ! is_valid && show_error_dialog ) {
+        const gchar*    message;
+        if ( is_v6 ) {
+            message = _("IP addresses must be in the format x:x:x:...");
+        }
+        else {
+            message = _("IP addresses must be in the format w.x.y.z.");
+        }
+
+        nwamui_util_show_message(GTK_WINDOW(top_level), 
+                                 GTK_MESSAGE_ERROR, _("Invalid IP address"), message);
+    }
+
+    return( is_valid );
+}
+
+static gboolean
+validate_ip_on_focus_exit(GtkWidget     *widget,
+                          GdkEventFocus *event,
+                          gpointer       data)
+{
+    gboolean                is_v6 = (gboolean)data;
+    gboolean                is_valid = TRUE;
+    GtkWindow              *top_level = GTK_WINDOW(gtk_widget_get_toplevel(widget));
+    const gchar            *address_str;
+
+    if ( !GTK_WIDGET_IS_SENSITIVE(widget) || !gtk_window_has_toplevel_focus (top_level)) {
+        /* If not sensitive, do nothing, since user can't edit it */
+        return(FALSE);
+    }
+
+    g_signal_handlers_block_by_func (widget,
+                   (gpointer) validate_ip_on_focus_exit, data);
+
+    address_str = gtk_entry_get_text(GTK_ENTRY(widget));
+    
+
+    if ( ! nwamui_util_validate_ip_address( widget, address_str, is_v6, TRUE) ) {
+        gtk_widget_grab_focus( widget );
+    }
+
+    g_signal_handlers_unblock_by_func (widget,
+                   (gpointer) validate_ip_on_focus_exit, data);
+
+    return(FALSE); /* Must return FALSE since GtkEntry expects it */
+}
+
+/* 
+ * Utility function to attach an insert-text handler to a GtkEntry to limit
+ * it's input to be characters acceptable to a valid IP address format.
+ */
+extern void
+nwamui_util_set_entry_ip_address_only( GtkEntry* entry, gboolean is_v6 )
+{
+    if ( entry != NULL ) {
+        g_signal_connect(G_OBJECT(entry), "insert_text", 
+                         (GCallback)insert_text_ip_only_handler, (gpointer)is_v6);
+        /*
+        g_signal_connect(G_OBJECT(entry), "focus-out-event", 
+                         (GCallback)validate_ip_on_focus_exit, (gpointer)is_v6);
+         */
+    }
+}
+
 
 extern void
 nwamui_util_window_title_append_hostname( GtkDialog* dialog )
@@ -1895,6 +2037,84 @@ nwamui_util_glist_to_comma_string( GList* list )
     }
     return( g_string_free( g_str, FALSE ) );
 }
+
+/* Given an address of the format:
+ *
+ *  <addr>/<prefixlen>
+ *
+ *  Split it out to appropriate format for family, v6 or v4, so for v4 it will
+ *  be a subnet x.x.x.x, while for v6 it's simply the number in string format.
+ *
+ */
+extern gboolean
+nwamui_util_split_address_prefix( gboolean v6, const gchar* address_prefix, gchar **address, gchar **prefix )
+{
+    gchar       *delim;
+    gchar       *tmpstr;
+    gchar       *prefix_str = NULL;
+
+    if ( address_prefix == NULL ) {
+        return( FALSE );
+    }
+
+    tmpstr = g_strdup( address_prefix ); /* Worker string */
+
+    if ( (delim = strrchr( tmpstr, '/' )) != NULL ) {
+        gint prefix_num = 0;
+        /* Format is x.x.x.x/N for subnet prefix */
+        *delim = '\0'; /* Split string */
+        delim++;
+        prefix_num = atoi( delim );
+        prefix_str = nwamui_util_convert_prefixlen_to_netmask_str( (v6?AF_INET6:AF_INET), prefix_num );
+    }
+
+    if ( address != NULL ) {
+        *address = g_strdup( tmpstr );
+    }
+
+    if ( prefix != NULL ) {
+        if ( prefix_str == NULL ) {
+            *prefix = g_strdup("");
+        }
+        else {
+            *prefix = g_strdup( prefix_str );
+        }
+    }
+
+    g_free(tmpstr);
+
+    return( TRUE );
+}
+
+/* Given an address and prefix, generate a string of the format:
+ *
+ *  <addr>/<prefixlen>
+ *
+ *  Prefix shoul be appropriate format for family, v6 or v4, so for v4 it
+ *  should be a subnet x.x.x.x, while for v6 it's simply the number in string
+ *  format.
+ *
+ * If prefix == NULL, then will omit the /prefix and only generate x.x.x.x
+ */
+extern gchar*
+nwamui_util_join_address_prefix( gboolean v6, const gchar *address, const gchar *prefix )
+{
+    gchar* retstr = NULL;
+
+    if ( address == NULL ) {
+        return( NULL );
+    }
+    if ( prefix != NULL ) {
+        retstr = g_strdup_printf("%s/%d", address, 
+                        nwamui_util_convert_netmask_str_to_prefixlen(v6?AF_INET6:AF_INET, prefix) );
+    }
+    else {
+        retstr = g_strdup(address);
+    }
+
+    return( retstr );
+}
+
 
 extern FILE*
 get_stdio( void )
