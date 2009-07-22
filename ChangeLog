@@ -1,3 +1,15 @@
+2009-07-22  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c:
+	  Fix defect#10100 where things got out of sync when NWAM was
+	  restarted. The fix was to handle events better, noting that if a new
+	  event occurred when we thought the connection was broken then
+	  obviously it isn't any more...
+	* daemon/status_icon.c: 
+	  Move start/stop of wifi timer back to when NCP changes since it's
+	  more correct in the long run than on ncu_up/down events, especially
+	  if you've more than one wireless device.
+
 2009-07-21  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_conf_ip_panel.c:

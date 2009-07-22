@@ -460,16 +460,6 @@ daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
 	nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_CONNECTED, ncu);
 
     nwam_notification_show_ncu_connected( ncu );
-
-    /* Start update if there is at least one active wireless link. */
-    switch(nwamui_ncu_get_ncu_type(ncu)) {
-    case NWAMUI_NCU_TYPE_WIRELESS:
-        nwam_menu_start_update_wifi_timer(self);
-    case NWAMUI_NCU_TYPE_WIRED:
-    case NWAMUI_NCU_TYPE_TUNNEL:
-    default:
-        break;
-    }
 }
 
 static void
@@ -486,17 +476,6 @@ daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
         }
 
         nwam_notification_show_ncu_disconnected( ncu, NULL, NULL );
-
-        /* TODO, stop update if there are no active wireless links.  */
-        switch(nwamui_ncu_get_ncu_type(ncu)) {
-        case NWAMUI_NCU_TYPE_WIRELESS:
-            nwam_menu_stop_update_wifi_timer(self);
-            break;
-        case NWAMUI_NCU_TYPE_WIRED:
-        case NWAMUI_NCU_TYPE_TUNNEL:
-        default:
-            break;
-        }
     }
 }
 
@@ -616,7 +595,7 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
     gchar *summary, *body;
 
     if (prv->active_ncp) {
-/*         nwam_menu_stop_update_wifi_timer(self); */
+        nwam_menu_stop_update_wifi_timer(self);
 
         disconnect_nwam_object_signals(G_OBJECT(self), G_OBJECT(prv->active_ncp));
         g_object_unref(prv->active_ncp);
@@ -636,7 +615,7 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
 
         nwam_tooltip_widget_update_ncp(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->active_ncp));
 
-/*         nwam_menu_start_update_wifi_timer(self); */
+        nwam_menu_start_update_wifi_timer(self);
 
         nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
     } else {

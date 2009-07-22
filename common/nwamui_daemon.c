@@ -418,18 +418,6 @@ nwamui_daemon_init (NwamuiDaemon *self)
     self->prv->auto_ncp = NULL;
 
 
-    if ( nwamui_daemon_nwam_connect( FALSE ) ) {
-		/*
-		 * according to the logic of nwam_events_thead, we can emit NWAMUI_DAEMON_INFO_ACTIVE
-		 * here, so we can populate all the info in nwamd_event_handler
-		 */
-		g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
-		  nwamd_event_handler,
-		  (gpointer) nwamui_event_new(self, NWAMUI_DAEMON_INFO_ACTIVE, NULL),
-		  (GDestroyNotify) nwamui_event_free);
-
-    }
-	
     self->prv->nwam_events_gthread = g_thread_create(nwam_events_thread, g_object_ref(self), TRUE, &error);
     if( self->prv->nwam_events_gthread == NULL ) {
         g_debug("Error creating nwam events thread: %s", (error && error->message)?error->message:"" );
@@ -3682,9 +3670,23 @@ nwam_events_thread ( gpointer data )
     NwamuiDaemon           *daemon = NWAMUI_DAEMON( data );
 	nwam_event_t            nwamevent = NULL;
     nwam_error_t            err;
+    gboolean                connected_to_nwamd = FALSE;
 
     g_debug ("nwam_events_thread");
     
+    if ( nwamui_daemon_nwam_connect( FALSE ) ) {
+		/*
+         * We can emit NWAMUI_DAEMON_INFO_ACTIVE here, so we can populate all
+         * the info in nwamd_event_handler
+		 */
+        connected_to_nwamd = TRUE;
+
+		g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+		  nwamd_event_handler,
+		  (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_ACTIVE, NULL),
+		  (GDestroyNotify) nwamui_event_free);
+    }
+	
 	while (event_thread_running()) {
         if ( (err = nwam_event_wait( &nwamevent)) != NWAM_SUCCESS ) {
 			g_debug("Event wait error: %s", nwam_strerror(err));
@@ -3695,6 +3697,8 @@ nwam_events_thread ( gpointer data )
               (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_ERROR, NULL),
               (GDestroyNotify) nwamui_event_free);
               
+            connected_to_nwamd = FALSE;
+
             if ( ! event_thread_running() ) {
                 /* If we were waiting for an event and we got an error, make
                  * sure it wasn't intentional, to cause this thread to exit
@@ -3710,6 +3714,8 @@ nwam_events_thread ( gpointer data )
                       (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_ACTIVE, NULL),
                       (GDestroyNotify) nwamui_event_free);
 
+                    connected_to_nwamd = TRUE;
+
 					continue;
                 }
                 else {
@@ -3723,6 +3729,19 @@ nwam_events_thread ( gpointer data )
             sleep(1);
             continue;
 		}
+        else if ( nwamevent->type == NWAM_EVENT_TYPE_SHUTDOWN ) {
+            /* NWAM has done a clean shutdown, remember this, so we can reset
+             * to connected on next event.
+             */
+            connected_to_nwamd = FALSE;
+        }
+        else if ( !connected_to_nwamd ) {
+            g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+              nwamd_event_handler,
+              (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_ACTIVE, NULL),
+              (GDestroyNotify) nwamui_event_free);
+            connected_to_nwamd = TRUE;
+        }
         
         g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
           nwamd_event_handler,
