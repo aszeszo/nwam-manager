@@ -481,8 +481,18 @@ nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp)
         g_debug ("Failed to get name for ncp, error: %s", nwam_strerror (nerr));
     }
 
-    if ( ( nerr = nwam_ncp_read (name, 0, &nwam_ncp) ) != NWAM_SUCCESS ) {
-        g_debug ("Failed to create private handle for ncp, error: %s", nwam_strerror (nerr));
+    nerr = nwam_ncp_read (name, 0, &nwam_ncp);
+    if (nerr == NWAM_ENTITY_NOT_FOUND ) {
+        /* Most likely only exists in memory right now, so use handle passed
+         * in as parameter.
+         */
+        self->prv->nwam_ncp = ncp;
+    }
+    else if (nerr != NWAM_SUCCESS) {
+        self->prv->nwam_ncp = NULL;
+        g_object_unref(self);
+        nwamui_debug ("Failed to create private handle for ncp, error: %s", nwam_strerror (nerr));
+        return (NULL);
     }
 
     self->prv->nwam_ncp = nwam_ncp;
@@ -495,6 +505,35 @@ nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp)
     nwamui_ncp_populate_ncu_list( self, NULL );
 
     return( self );
+}
+
+/**
+ * nwamui_ncp_clone:
+ * @returns: a copy of an existing #NwamuiNcp, with the name specified.
+ *
+ * Creates a new #NwamuiEnv and copies properties.
+ *
+ **/
+extern NwamuiNcp*
+nwamui_ncp_clone( NwamuiNcp* self, const gchar* name ) 
+{
+    NwamuiNcp          *new_ncp = NULL;;
+    nwam_ncp_handle_t   new_ncp_h;
+    nwam_error_t        nerr;
+
+    g_return_val_if_fail( self != NULL && name != NULL, new_ncp );
+
+    nerr = nwam_ncp_copy (self->prv->nwam_ncp, name, &new_ncp_h);
+
+    if ( nerr != NWAM_SUCCESS ) { 
+        nwamui_warning("Failed to clone new NCP %s from existing NCP %s: %s",
+                       name, self->prv->name, nwam_strerror(nerr) );
+        return( new_ncp );
+    }
+
+    new_ncp = nwamui_ncp_new_with_handle (new_ncp_h);
+
+    return( new_ncp );
 }
 
 extern void

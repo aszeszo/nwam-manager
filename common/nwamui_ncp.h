@@ -73,6 +73,8 @@ extern NwamuiNcp*               nwamui_ncp_new(const gchar* name );
 
 extern NwamuiNcp*               nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp);
 
+extern NwamuiNcp*               nwamui_ncp_clone( NwamuiNcp* self, const gchar* name );
+
 extern nwam_ncp_handle_t        nwamui_ncp_get_nwam_handle( NwamuiNcp* self );
 
 extern void                     nwamui_ncp_reload( NwamuiNcp* self );

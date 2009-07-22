@@ -1,6 +1,16 @@
 2009-07-22  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_daemon.c:
+	  If an User NCP doesn't exist, then create one. This is a fix for
+	  bug#9705. Since there isn't an nwam_ncp_commit function, creating
+	  this has immediate effect so will always be saved, but it's felt
+	  that the negative effect is negligible. 
+	* common/nwamui_ncp.c, common/nwamui_ncp.h:
+	  Add an nwam_ncp_clone() function.
+
+2009-07-22  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c:
 	  Fix defect#10100 where things got out of sync when NWAM was
 	  restarted. The fix was to handle events better, noting that if a new
 	  event occurred when we thought the connection was broken then

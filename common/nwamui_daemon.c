@@ -405,6 +405,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     NwamuiWifiNet          *wifi_net = NULL;
     NwamuiEnm              *new_enm = NULL;
     nwam_error_t            nerr;
+    NwamuiNcp*              user_ncp;
     
     self->prv = g_new0 (NwamuiDaemonPrivate, 1);
     
@@ -431,6 +432,17 @@ nwamui_daemon_init (NwamuiDaemon *self)
         nerr = nwam_walk_ncps (nwam_ncp_walker_cb, (void *)self, 0, &cbret);
         if (nerr != NWAM_SUCCESS) {
             g_debug ("[libnwam] nwam_walk_ncps %s", nwam_strerror (nerr));
+        }
+    }
+
+    /* If there isn't a User NCP, then we need to create one which is a clone
+     * of the Automatic NCP - this is only for Phase 1, we will need to look
+     * at an alternative mechanism in the GUI for more than 2 NCP case.
+     */
+    if ( (user_ncp = nwamui_daemon_get_ncp_by_name( self, NWAM_NCP_NAME_USER ) ) == NULL ) {
+        if ( self->prv->auto_ncp != NULL ) { /* If Auto doesn't exist do nothing */
+            user_ncp = nwamui_ncp_clone( self->prv->auto_ncp, NWAM_NCP_NAME_USER );
+            self->prv->ncp_list = g_list_append(self->prv->ncp_list, (gpointer)g_object_ref(user_ncp));
         }
     }
 
