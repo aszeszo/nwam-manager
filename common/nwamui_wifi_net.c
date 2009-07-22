@@ -37,6 +37,7 @@
 #include "nwamui_wifi_net.h"
 #include <sys/mac.h>
 #include <libdlwlan.h>
+#include <libdllink.h>
 
 static GObjectClass *parent_class = NULL;
 
@@ -840,6 +841,52 @@ nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_
 
     self->prv->essid = g_strdup( name );
 
+#if 0
+    {
+        /* Try to figure out security mode, unfortunately needs more privs to
+         * work.
+         */
+        gchar* keyname = get_nwam_known_wlan_string_prop( self->prv->known_wlan_h, 
+                                                          NWAM_KNOWN_WLAN_PROP_KEYNAME );
+
+        if ( keyname != NULL ) {
+            dladm_handle_t          handle;
+            if ( dladm_open( &handle ) == DLADM_STATUS_OK ) {
+                dladm_secobj_class_t _class;
+                dladm_status_t       status;
+                dladm_wlan_key_t	 wk;
+
+                wk.wk_len = DLADM_WLAN_MAX_KEY_LEN;
+
+                if ( (status = dladm_get_secobj( handle, keyname, &_class, wk.wk_val, &wk.wk_len, 0 )) == DLADM_STATUS_OK ) {
+                    nwamui_warning("secobj %s has class : %s (%d)", keyname, (_class == DLADM_SECOBJ_CLASS_WEP)?"WEP":"WPA", _class);
+                    switch( _class ) {
+                        case DLADM_SECOBJ_CLASS_WEP:
+#ifdef WEP_ASCII_EQ_HEX 
+                            self->prv->security = NWAMUI_WIFI_SEC_WEP;
+#else
+                            self->prv->security = NWAMUI_WIFI_SEC_WEP_HEX;
+#endif /* WEP_ASCII_EQ_HEX */
+                            break;
+                        case DLADM_SECOBJ_CLASS_WPA:
+                            self->prv->security = NWAMUI_WIFI_SEC_WPA_PERSONAL;
+                            break;
+                    }
+
+                }
+                else {
+                    gchar   message[1024];
+
+                    g_warning("Error getting secure object %s : %s",  keyname, dladm_status2str( status, message ));
+                }
+
+                dladm_close( handle );
+            }
+            g_free(keyname);
+        }
+    }
+#endif /* 0 */
+
     g_free(name);
 
     /* Ensure it's marked as a favourite since we now have a valid handle. */
@@ -1019,9 +1066,6 @@ nwamui_wifi_net_store_key ( NwamuiWifiNet *self )
         case NWAMUI_WIFI_SEC_NONE: 
             break;
 
-#ifdef WEP_ASCII_EQ_HEX 
-#else
-#endif /* WEP_ASCII_EQ_HEX */
 #ifdef WEP_ASCII_EQ_HEX 
         case NWAMUI_WIFI_SEC_WEP:
 #else

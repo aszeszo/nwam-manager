@@ -1,5 +1,18 @@
 2009-07-22  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_wireless_dialog.c:
+	  Fix bug#9823 where the show passwords toggle was being made
+	  insensitive when it should  be sensitive.
+	* common/nwamui_ncu.c: 
+	  Fix a double free issue.
+	* common/nwamui_wifi_net.c: 
+	  Add some code to try get security information about favourits from
+	  dladm to nwamui_wifi_net_update_with_handle(), but unfortunately it
+	  cannot work without more privs. Logged NWAM bug for aliternative in
+	  the API.
+
+2009-07-22  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_daemon.c:
 	  If an User NCP doesn't exist, then create one. This is a fix for
 	  bug#9705. Since there isn't an nwam_ncp_commit function, creating

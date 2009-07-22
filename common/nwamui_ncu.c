@@ -1322,8 +1322,8 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 
             g_free(ipv6_addrsrc);
 
-            if ( ipv4_addr != NULL ) {
-                g_free(ipv4_addr);
+            if ( ipv6_addr != NULL ) {
+                g_free(ipv6_addr);
             }
         }
     }

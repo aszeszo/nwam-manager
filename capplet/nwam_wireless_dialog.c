@@ -1570,7 +1570,7 @@ security_selection_cb( GtkWidget* widget, gpointer data )
             gtk_notebook_set_current_page( GTK_NOTEBOOK( self->prv->password_notebook), WIRELESS_NOTEBOOK_WEP_PAGE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_entry), TRUE);
             gtk_widget_set_sensitive( GTK_WIDGET(self->prv->key_conf_entry), TRUE);
-            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->show_password_cbutton ), FALSE );
+            gtk_widget_set_sensitive( GTK_WIDGET(self->prv->show_password_cbutton ), TRUE );
 #ifdef WEP_ASCII_EQ_HEX 
             if (active_index == NWAMUI_WIFI_SEC_WEP) {
 #else
