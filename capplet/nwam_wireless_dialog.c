@@ -1624,7 +1624,7 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
             if ( stop_emission ) {
                 nwamui_util_show_message(GTK_WINDOW(gtk_widget_get_toplevel(widget)), GTK_MESSAGE_ERROR, 
                                                     _("Validation Failed."), 
-                                                    validation_error );
+                                                    validation_error, TRUE );
             }
             g_debug("Validation = %s", (!stop_emission)?"TRUE":"FALSE");
             break;

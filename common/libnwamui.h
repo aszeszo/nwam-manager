@@ -271,7 +271,11 @@ extern gchar*                   nwamui_util_rename_dialog_run(GtkWindow* parent_
 
 extern gboolean                 nwamui_util_ask_yes_no(GtkWindow* parent_window, const gchar* title, const gchar* message);
 
-extern void                     nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gchar* title, const gchar* message);
+extern void                     nwamui_util_show_message(   GtkWindow* parent_window, 
+                                                            GtkMessageType type, 
+                                                            const gchar* title, 
+                                                            const gchar* message, 
+                                                            gboolean block );
 
 extern GList*                   nwamui_util_map_condition_strings_to_object_list( char** conditions );
 
@@ -295,7 +299,11 @@ extern gboolean                 nwamui_util_get_interface_address(  const char  
 
 extern gboolean                 nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry );
 
-extern void                     nwamui_util_set_entry_ip_address_only( GtkEntry* entry, gboolean is_v6 );
+extern void                     nwamui_util_set_entry_ip_address_only( GtkEntry* entry, 
+                                                                       gboolean is_v6, 
+                                                                       gboolean validate_on_focus_out );
+
+extern void                     nwamui_util_unset_entry_ip_address_only( GtkEntry* entry );
 
 extern gboolean                 nwamui_util_validate_ip_address(    GtkWidget   *widget,
                                                                     const gchar *address_str,

@@ -484,12 +484,12 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 	self->prv->ipv4_addr_entry = GTK_ENTRY(nwamui_util_glade_get_widget(IP_MANUAL_PANEL_IPV4_ADDRESS_ENTRY));
     g_signal_connect(G_OBJECT(self->prv->ipv4_addr_entry ), "changed",
             (GCallback)ipv4_addr_changed_cb, (gpointer)self);
-    nwamui_util_set_entry_ip_address_only( self->prv->ipv4_addr_entry, FALSE );
+    nwamui_util_set_entry_ip_address_only( self->prv->ipv4_addr_entry, FALSE, TRUE );
 
 	self->prv->ipv4_subnet_entry = GTK_ENTRY(nwamui_util_glade_get_widget(IP_MANUAL_PANEL_IPV4_SUBNET_ENTRY));
     g_signal_connect(G_OBJECT(self->prv->ipv4_subnet_entry ), "changed",
             (GCallback)ipv4_subnet_changed_cb, (gpointer)self);
-    nwamui_util_set_entry_ip_address_only( self->prv->ipv4_subnet_entry, FALSE );
+    nwamui_util_set_entry_ip_address_only( self->prv->ipv4_subnet_entry, FALSE, TRUE );
 
 	self->prv->ipv4_tv = GTK_TREE_VIEW(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV4_ADDR_TABLE_TVIEW));
 
@@ -1301,7 +1301,7 @@ nwam_conn_multi_cell_editing_started_cb(GtkCellRenderer *cell,
         GtkEntry *entry = GTK_ENTRY (editable);
         gboolean  is_v6 = (gboolean)data;
       
-        nwamui_util_set_entry_ip_address_only(entry, is_v6);
+        nwamui_util_set_entry_ip_address_only(entry, is_v6, FALSE);
     }
 }
 

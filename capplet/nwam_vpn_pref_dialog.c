@@ -406,7 +406,7 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
         if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
             if ( !nwamui_enm_set_start_command(NWAMUI_ENM(obj), txt?txt:"") ) {
                 nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"), 
-                  _("Invalid value specified for Start Command") );
+                  _("Invalid value specified for Start Command"), TRUE );
                 g_free(prev_txt);
                 return( FALSE );
             }
@@ -418,7 +418,7 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
         if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
             if ( !nwamui_enm_set_stop_command(NWAMUI_ENM(obj), txt?txt:"") ) {
                 nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"), 
-                  _("Invalid value specified for Stop Command") );
+                  _("Invalid value specified for Stop Command"), TRUE );
                 g_free(prev_txt);
                 return( FALSE );
             }
@@ -433,7 +433,7 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
         if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
             if ( !nwamui_enm_set_smf_fmri(NWAMUI_ENM(obj), txt?txt:"") ) {
                 nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"), 
-                  _("Invalid value specified for SMF FMRI") );
+                  _("Invalid value specified for SMF FMRI"), TRUE );
                 g_free(prev_txt);
                 return( FALSE );
             }
@@ -462,7 +462,7 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
         /* Check that some conditions exist */
         if ( conditions_list == NULL ) {
             nwamui_util_show_message (GTK_WINDOW(GTK_WINDOW(self->prv->vpn_pref_dialog)), GTK_MESSAGE_ERROR, _("Validation Error"), 
-              _("Activation mode is set to Conditional,\nbut no rules have been configured.") );
+              _("Activation mode is set to Conditional,\nbut no rules have been configured."), TRUE );
             return( FALSE );
         }
         /* If the current mode isn't one of the conditional ones, then assume
@@ -581,7 +581,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                     nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
                       GTK_MESSAGE_ERROR,
                       _("Commit ENM error"),
-                      msg);
+                      msg, TRUE);
                     g_free (msg);
                     g_free (name);
                     retval = FALSE;
@@ -600,7 +600,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                 nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
                   GTK_MESSAGE_ERROR,
                   _("Validation error"),
-                  msg);
+                  msg, TRUE);
                 g_free (msg);
                 g_free (name);
                 retval = FALSE;
@@ -910,7 +910,7 @@ nwam_vpn_pre_selection_validate(   GtkTreeSelection *selection,
             if ( !nwamui_enm_validate( NWAMUI_ENM(obj), &prop_name ) ) {
                 gchar* message = g_strdup_printf(_("An error occurred validating the VPN configuration.\nThe property '%s' caused this failure"), prop_name );
                 nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog), 
-                                          GTK_MESSAGE_ERROR, _("Validation Error"), message );
+                                          GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
                 g_free(prop_name);
                 retval = FALSE;
             }

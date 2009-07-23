@@ -1,3 +1,26 @@
+2009-07-23  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	  Bump to 0.99.3
+	* common/libnwamui.h, common/libnwamui.c: 
+	  Change nwamui_util_show_message() to not take a boolean for whether
+	  the showm message should block rest of events or not while showing,
+	  i.e. use gtk_dialog_run or gtk_widget_show.
+	  Add nwamui_util_validate_ip_address() function to validate ip
+	  addresses, can optionally show a message if invalid.
+	  Add pair of functions to allow easy set/unset of IP validation on a
+	  GtkEntry field - nwamui_util_set_entry_ip_address_only() and 
+	  nwamui_util_unset_entry_ip_address_only().
+	* capplet/nwam_condition_vbox.c: 
+	  Fix defect#10032 - add validation to entry field if IP address in
+	  use.
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Add validation to input areas for IP addresses.
+	* capplet/nwam_env_pref_dialog.c, capplet/nwam_location_dialog.c,
+	  capplet/nwam_pref_dialog.c, capplet/nwam_vpn_pref_dialog.c,
+	  capplet/nwam_wireless_dialog.c:
+	  Update for added param to nwamui_util_show_message().
+
 2009-07-22  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_wireless_dialog.c:

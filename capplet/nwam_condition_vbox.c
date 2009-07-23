@@ -1210,6 +1210,12 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
                 select_item_with_value( GTK_COMBO_BOX(wifi_combo_entry), value );
             }
             else {
+                if (field == NWAMUI_COND_FIELD_IP_ADDRESS) {
+                    nwamui_util_set_entry_ip_address_only( GTK_ENTRY(entry), FALSE, TRUE );
+                }
+                else {
+                    nwamui_util_unset_entry_ip_address_only( GTK_ENTRY(entry) );
+                }
                 gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
                 gtk_entry_set_text (GTK_ENTRY(entry), value?value:"" );
             }
@@ -1272,6 +1278,11 @@ condition_value_changed_cb( GtkWidget* widget, gpointer data )
     GtkComboBox            *combo1 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_COMBO1));
     nwamui_cond_field_t     field;
     gboolean                valid = FALSE;
+    const gchar            *text = NULL;;
+
+    if ( GTK_IS_ENTRY(widget) ) {
+        text = gtk_entry_get_text(GTK_ENTRY(widget));
+    }
 
     field = (nwamui_cond_field_t)get_unfiltered_index_from_combo( combo1 );
     

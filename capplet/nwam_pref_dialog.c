@@ -343,7 +343,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         if ( !nwamui_ncu_validate( NWAMUI_NCU(self->prv->selected_ncu), &prop_name ) ) {
             gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe property '%s' caused this failure"), prop_name );
             nwamui_util_show_message (GTK_WINDOW(self->prv->capplet_dialog), 
-                                      GTK_MESSAGE_ERROR, _("Validation Error"), message );
+                                      GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
             g_free(prop_name);
             rval = FALSE;
         }
@@ -479,7 +479,7 @@ show_changed_cb( GtkWidget* widget, gpointer data )
         if ( !nwamui_ncu_validate( NWAMUI_NCU(self->prv->prev_selected_ncu), &prop_name ) ) {
             gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe property '%s' caused this failure"), prop_name );
             nwamui_util_show_message (GTK_WINDOW(self->prv->capplet_dialog), 
-                                      GTK_MESSAGE_ERROR, _("Validation Error"), message );
+                                      GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
             g_free(prop_name);
             /* Don't change selection */
             valid = FALSE;

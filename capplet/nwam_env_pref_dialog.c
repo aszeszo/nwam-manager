@@ -2055,7 +2055,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         nwamui_util_show_message (GTK_WINDOW(prv->env_pref_dialog),
           GTK_MESSAGE_ERROR,
           _("Commit ENV error"),
-          msg);
+          msg, TRUE);
         g_free (msg);
         g_free (name);
         return FALSE;
@@ -2295,7 +2295,7 @@ fmri_dialog_response_cb( GtkWidget* widget, gint repsonseid, gpointer data )
         nwamui_util_show_message(GTK_WINDOW(widget),
           GTK_MESSAGE_ERROR,
           _("Invalid Service FMRI"), 
-          _("Either the service FMRI you entered was not in a valid\nformat, or the service does not exist. Please try again"));
+          _("Either the service FMRI you entered was not in a valid\nformat, or the service does not exist. Please try again"), TRUE);
         gtk_widget_grab_focus(GTK_WIDGET(prv->smf_fmri_entry));
         gtk_editable_select_region(GTK_EDITABLE(prv->smf_fmri_entry), 0, -1);
         stop_emission = TRUE;

@@ -403,7 +403,7 @@ nwam_update_obj (NwamLocationDialog *self, GObject *obj)
 	if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
         if ( !nwamui_env_set_start_command(NWAMUI_ENV(obj), txt?txt:"") ) {
             nwamui_util_show_message (self->prv->vpn_pref_dialog, GTK_MESSAGE_ERROR, _("Validation Error"), 
-                    _("Invalid value specified for Start Command") );
+                    _("Invalid value specified for Start Command"), TRUE );
             return( FALSE );
         }
     }
@@ -534,7 +534,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                     nwamui_util_show_message (GTK_WINDOW(prv->location_dialog),
                       GTK_MESSAGE_ERROR,
                       _("Commit ENV error"),
-                      msg);
+                      msg, TRUE);
                     g_free (msg);
                     g_free (name);
                     g_object_unref(obj);
@@ -554,7 +554,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                 nwamui_util_show_message (GTK_WINDOW(prv->location_dialog),
                   GTK_MESSAGE_ERROR,
                   _("Validation error"),
-                  msg);
+                  msg, TRUE);
                 g_free (msg);
                 g_free (name);
                 g_object_unref(obj);

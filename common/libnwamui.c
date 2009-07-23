@@ -1123,7 +1123,7 @@ nwamui_util_ask_yes_no(GtkWindow* parent_window, const gchar* title, const gchar
 }
 
 extern void
-nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gchar* title, const gchar* message)
+nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gchar* title, const gchar* message, gboolean block )
 {
     GtkWidget*          message_dialog;
     gint                response;
@@ -1145,7 +1145,13 @@ nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gc
     /* Ensure dialog is destroryed when user closes it */
     g_signal_connect_swapped (message_dialog, "response", G_CALLBACK (gtk_widget_destroy), message_dialog);
     
-   (void)gtk_dialog_run(GTK_DIALOG(message_dialog));
+    if ( block ) {
+       (void)gtk_dialog_run(GTK_DIALOG(message_dialog));
+    }
+    else {
+        gtk_widget_show( GTK_WIDGET(g_object_ref(message_dialog)) );
+    }
+
 }
 
 extern GList*
@@ -1840,8 +1846,8 @@ insert_text_ip_only_handler (GtkEditable *editable,
 
     for ( int i = 0; i < length && is_valid; i++ ) {
         if ( is_v6 ) {
-            /* Valid chars for v6 are ASCII [0-9a-f:] */
-            is_valid = (g_ascii_isxdigit( lower[i] ) || text[i] == ':');   
+            /* Valid chars for v6 are ASCII [0-9a-f:.] */
+            is_valid = (g_ascii_isxdigit( lower[i] ) || text[i] == ':' || text[i] == '.' );   
         }
         else {
             /* Valid chars for v4 are ASCII [0-9.] */
@@ -1877,10 +1883,15 @@ nwamui_util_validate_ip_address(    GtkWidget   *widget,
     struct lifreq           lifr;
     struct sockaddr_in     *sin = (struct sockaddr_in *)&lifr.lifr_addr;
     struct sockaddr_in6    *sin6 = (struct sockaddr_in6 *)&lifr.lifr_addr;
-    GtkWindow              *top_level = GTK_WINDOW(gtk_widget_get_toplevel(widget));
+    GtkWindow              *top_level = NULL;
     gboolean                is_valid = TRUE;
 
-    if ( !GTK_WIDGET_IS_SENSITIVE(widget) || !gtk_window_has_toplevel_focus (top_level)) {
+    if ( widget != NULL ) {
+        top_level = GTK_WINDOW(gtk_widget_get_toplevel(widget));
+    }
+
+    if ( (widget != NULL && !GTK_WIDGET_IS_SENSITIVE(widget)) ||
+         (top_level != NULL && !gtk_window_has_toplevel_focus (top_level)) ) {
         /* Assume valid */
         return( TRUE );;
     }
@@ -1904,14 +1915,14 @@ nwamui_util_validate_ip_address(    GtkWidget   *widget,
     if ( ! is_valid && show_error_dialog ) {
         const gchar*    message;
         if ( is_v6 ) {
-            message = _("IP addresses must be in the format x:x:x:...");
+            message = _("IP addresses must be in one of the formats :\n\n   x:x:x:...\n   x:x:x:.../N");
         }
         else {
-            message = _("IP addresses must be in the format w.x.y.z.");
+            message = _("IP addresses must be in the one of the formats:\n\n    w.x.y.z\n    w.x.y.z/N");
         }
 
         nwamui_util_show_message(GTK_WINDOW(top_level), 
-                                 GTK_MESSAGE_ERROR, _("Invalid IP address"), message);
+                                 GTK_MESSAGE_ERROR, _("Invalid IP address"), message, FALSE);
     }
 
     return( is_valid );
@@ -1953,15 +1964,24 @@ validate_ip_on_focus_exit(GtkWidget     *widget,
  * it's input to be characters acceptable to a valid IP address format.
  */
 extern void
-nwamui_util_set_entry_ip_address_only( GtkEntry* entry, gboolean is_v6 )
+nwamui_util_set_entry_ip_address_only( GtkEntry* entry, gboolean is_v6, gboolean validate_on_focus_out )
 {
     if ( entry != NULL ) {
         g_signal_connect(G_OBJECT(entry), "insert_text", 
                          (GCallback)insert_text_ip_only_handler, (gpointer)is_v6);
-        /*
-        g_signal_connect(G_OBJECT(entry), "focus-out-event", 
-                         (GCallback)validate_ip_on_focus_exit, (gpointer)is_v6);
-         */
+        if ( validate_on_focus_out ) {
+            g_signal_connect(G_OBJECT(entry), "focus-out-event", 
+                             (GCallback)validate_ip_on_focus_exit, (gpointer)is_v6);
+        }
+    }
+}
+
+extern void
+nwamui_util_unset_entry_ip_address_only( GtkEntry* entry )
+{
+    if ( entry != NULL ) {
+        g_signal_handlers_disconnect_by_func( G_OBJECT(entry), (gpointer)insert_text_ip_only_handler, NULL );
+        g_signal_handlers_disconnect_by_func( G_OBJECT(entry), (gpointer)validate_ip_on_focus_exit, NULL );
     }
 }
 
