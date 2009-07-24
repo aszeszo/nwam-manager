@@ -1,5 +1,12 @@
 2009-07-24  Darren Kenny  <darren.kenny@sun.com>
 
+	* data/Makefile.am, data/nwam-manager.desktop.in.in:
+	  Fix issue where nwam-manager.dekstop file wasn't being merged
+	  properly, resulting in it not @LIBEXECDIR@/@PROGRAM@ being left in
+	  installed file.
+
+2009-07-24  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
 	  As part of fix for defect#9853, where the ncu specified in the
 	  condition was unqualified, I'm adding a function to get the

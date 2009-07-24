@@ -7,7 +7,11 @@ desktopdir=$(datadir)/applications
 desktop_in_files = nwam-manager-properties.desktop.in
 desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
 
+%.in: %.in.in
+	LC_ALL=C sed -e "s|\@LIBEXECDIR\@|$(libexecdir)|;s|\@PROGRAM\@|nwam-manager|" $< > $@
+
 autosessiondir      = $(sysconfdir)/xdg/autostart
+autosession_in_in_files = nwam-manager.desktop.in.in
 autosession_in_files = nwam-manager.desktop.in
 autosession_DATA    = $(autosession_in_files:.desktop.in=.desktop)
 
@@ -28,17 +32,18 @@ install-data-local:
 endif
 
 DISTCLEANFILES = \
+	$(autosession_in_files)	\
 	$(autosession_DATA)	\
-        $(desktop_DATA) \
-        $(schemas_DATA) \
-        $(NULL)
+	$(desktop_DATA) \
+	$(schemas_DATA) \
+	$(NULL)
 
 dist-hook:
 	cd $(distdir) ; rm -f $(DISTCLEANFILES)
 
 EXTRA_DIST = \
 	$(schemas_in_files)	\
-        $(desktop_in_files)	\
-	$(autosession_in_files)	\
+	$(desktop_in_files)	\
+	$(autosession_in_in_files)	\
 	$(NULL)
 
