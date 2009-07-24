@@ -233,7 +233,7 @@ static gboolean
 process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
 {
     NwamuiNcu           *ncu = NULL;
-    gchar               *vname, *dname, *display_name;
+    gchar               *vname, *dname, *display_name, *nwam_qualified_name;
     nwamui_ncu_type_t   type;
     gchar*              typestr;
     gchar*              statestr;
@@ -257,6 +257,7 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     vname = nwamui_ncu_get_vanity_name( ncu );
     dname = nwamui_ncu_get_device_name( ncu );
     display_name = nwamui_ncu_get_display_name( ncu );
+    nwam_qualified_name = nwamui_ncu_get_nwam_qualified_name( ncu );
     type = nwamui_ncu_get_ncu_type( ncu );
     active = nwamui_ncu_get_active( ncu );
     enabled = nwamui_ncu_get_enabled( ncu );
@@ -276,6 +277,7 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
 
     printf("%-*sNcu Name = %s (%s)\n", indent, "", vname, dname );
     printf("%-*sNcu Display Name = %s\n", indent, "", display_name );
+    printf("%-*sNcu NWAM Qualified Name = %s\n", indent, "", nwam_qualified_name );
     switch( type ) {
         case NWAMUI_NCU_TYPE_WIRED:
             typestr = "WIRED";

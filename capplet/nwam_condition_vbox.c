@@ -232,7 +232,10 @@ update_cond_from_row( GtkWidget *widget, NwamuiCond *cond )
                 GObject* obj = (GObject*)ptr;
 
                 if ( NWAMUI_IS_NCU( obj ) ) {
-                    value = nwamui_ncu_get_device_name( NWAMUI_NCU(obj) );
+                    /* NCU objects need to be qualified as link or interface,
+                     * etc. 
+                     */
+                    value = nwamui_ncu_get_nwam_qualified_name ( NWAMUI_NCU(obj) );
                 }
                 else if ( NWAMUI_IS_ENM( obj ) ) {
                     value = nwamui_enm_get_name( NWAMUI_ENM(obj) );

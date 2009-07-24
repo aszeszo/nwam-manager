@@ -2135,6 +2135,31 @@ nwamui_ncu_get_display_name ( NwamuiNcu *self )
     return( display_name );
 }
 
+/**
+ * nwamui_ncu_get_nwam_qualified_name:
+ * @returns: null-terminated C String with the nwam qualified name of the the NCU.
+ *
+ * Use this to get a string of the format "<ncu type>:<device name>", e.g.
+ * 
+ *      interface:e1000g0
+ *
+ **/
+extern gchar*               
+nwamui_ncu_get_nwam_qualified_name ( NwamuiNcu *self )
+{
+    gchar*  nwam_qualified_name = NULL;
+    
+    g_return_val_if_fail (NWAMUI_IS_NCU(self), nwam_qualified_name); 
+    
+    if ( self->prv->device_name != NULL ) {
+        nwam_qualified_name = g_strdup_printf( "%s:%s", 
+                                               NWAM_NCU_TYPE_INTERFACE_STRING, 
+                                               self->prv->device_name );
+    }
+    
+    return( nwam_qualified_name );
+}
+
 /** 
  * nwamui_ncu_set_ncu_type:
  * @nwamui_ncu: a #NwamuiNcu.

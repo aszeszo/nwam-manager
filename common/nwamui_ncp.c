@@ -1204,11 +1204,17 @@ device_exists_on_system( gchar* device_name )
 {
     dladm_handle_t              handle;
     datalink_id_t               linkid;
+    uint32_t                    flags = 0;
     gboolean                    rval = FALSE;
 
     if ( device_name != NULL ) {
         if ( dladm_open( &handle ) == DLADM_STATUS_OK ) {
-            if ( dladm_name2info( handle, device_name, &linkid, NULL, NULL, NULL ) == DLADM_STATUS_OK ) {
+            /* Interfaces that exist have a mapping, but also the OPT_ACTIVE
+             * flag set, this could be unset if the device was removed from
+             * the system (e.g. USB / PCMCIA)
+             */
+            if ( dladm_name2info( handle, device_name, &linkid, &flags, NULL, NULL ) == DLADM_STATUS_OK &&
+                 (flags & DLADM_OPT_ACTIVE) ) {
                 rval = TRUE;
             }
             else {

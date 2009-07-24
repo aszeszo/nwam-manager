@@ -1,3 +1,18 @@
+2009-07-24  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  As part of fix for defect#9853, where the ncu specified in the
+	  condition was unqualified, I'm adding a function to get the
+	  qualified name - nwamui_ncu_get_nwam_qualified_name().
+	* capplet/nwam_condition_vbox.c: 
+	  Use the qualified name.
+	* common/nwamui_ncp.c: 
+	  Fix a possible issue where we would be seeing devices not on the
+	  system since we don't check the dladm flags for the active flag
+	  being set.
+	* tests/main.c: 
+	  As test to show qualified name.
+
 2009-07-23  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in:
