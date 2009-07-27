@@ -116,16 +116,29 @@ capplet_model_find_object_with_parent(GtkTreeModel *model, GtkTreeIter *parent, 
 }
 
 gboolean
-capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, CappletTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter)
+capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter)
 {
     gboolean valid;
-    for (valid = gtk_tree_model_iter_children(model, iter, parent);
-         valid;
-         valid = gtk_tree_model_iter_next(model, iter)) {
-        if ((CappletTreeModelForeachFunc*)func(model, iter, user_data))
-            return TRUE;
+	GtkTreeIter temp_iter;
+	GtkTreePath *path = NULL;
+
+    if (iter == NULL)
+        iter = &temp_iter;
+
+    if (parent) {
+        path = gtk_tree_model_get_path(model, parent);
+    } else {
+        path = gtk_tree_path_new_first();
     }
-    return FALSE;
+
+    for (valid = gtk_tree_model_iter_children(model, iter, parent), gtk_tree_path_down(path);
+         valid;
+         valid = gtk_tree_model_iter_next(model, iter), gtk_tree_path_next(path)) {
+        if (func(model, path, iter, user_data))
+            break;
+    }
+    gtk_tree_path_free(path);
+    return valid;
 }
 
 void

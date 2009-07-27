@@ -157,13 +157,11 @@ void capplet_tree_store_exclude_children(GtkTreeStore *model,
     GtkTreeModelForeachFunc func,
     gpointer user_data);
 
-typedef gboolean (*CappletTreeModelForeachFunc)(GtkTreeModel *model, GtkTreeIter *iter, gpointer user_data);
-
 gboolean capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *iter);
 
 gboolean capplet_model_find_object_with_parent(GtkTreeModel *model, GtkTreeIter *parent, GObject *object, GtkTreeIter *iter);
 
-gboolean capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, CappletTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter);
+gboolean capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter);
 
 void capplet_list_foreach_merge_to_list_store(gpointer data, gpointer store);
 void capplet_list_foreach_merge_to_tree_store(gpointer data, gpointer store);
