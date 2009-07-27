@@ -237,7 +237,7 @@ daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data
     switch(nwamui_daemon_get_status(daemon)) {
     case NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION:
     case NWAMUI_DAEMON_STATUS_ALL_OK: {
-        nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, NULL);
+        nwam_status_icon_set_status(self, NULL);
         g_debug("%s: StatusIcon: show self now!", __func__);
         gtk_status_icon_set_visible(GTK_STATUS_ICON(self), TRUE);
         prv->enable_pop_up_menu = TRUE;
@@ -298,7 +298,7 @@ daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data
         if (gtk_status_icon_get_visible(GTK_STATUS_ICON(self))) {
 
             /* On intial run with NWAM disabled the icon won't be visible */
-            nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_ERROR, NULL);
+            nwam_status_icon_set_status(self, NULL);
 
             nwam_notification_show_nwam_unavailable();
 		
@@ -339,7 +339,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
 
             ncu = nwamui_wifi_net_get_ncu( NWAMUI_WIFI_NET(obj) );
 
-            nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_CONNECTED, ncu );
+            nwam_status_icon_set_status(self, ncu );
 
             nwam_notification_show_ncu_connected( ncu );
 
@@ -405,7 +405,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
 
             }
             if ( show_message ) {
-                nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, ncu );
+                nwam_status_icon_set_status(self, ncu );
                 nwam_notification_show_ncu_wifi_connect_failed( ncu );
             }
 
@@ -444,7 +444,7 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
 	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
 
         if ( active_ncu ) {
-            nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, ncu );
+            nwam_status_icon_set_status(self, ncu );
         }
 
         nwam_notification_show_ncu_wifi_selection_needed( ncu, notifyaction_popup_menus, G_OBJECT(self) );
@@ -457,7 +457,7 @@ daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
 
 	/* set status to "CONNECTED" */
-	nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_CONNECTED, ncu);
+	nwam_status_icon_set_status(self, ncu);
 
     nwam_notification_show_ncu_connected( ncu );
 }
@@ -472,7 +472,7 @@ daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
 	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
         /* set status to "WARNING", only relevant if it's the active ncu */
         if ( active_ncu ) {
-            nwam_status_icon_set_status(self, NWAMUI_ENV_STATUS_WARNING, ncu);
+            nwam_status_icon_set_status(self, ncu);
         }
 
         nwam_notification_show_ncu_disconnected( ncu, NULL, NULL );
@@ -976,12 +976,11 @@ nwam_status_icon_set_activate_callback(NwamStatusIcon *self,
 }
 
 void
-nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, NwamuiNcu* wireless_ncu )
+nwam_status_icon_set_status(NwamStatusIcon *self, NwamuiNcu* wireless_ncu )
 {
-    NwamStatusIconPrivate  *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    NwamuiDaemon           *daemon = nwamui_daemon_get_instance ();
-
-    env_status = nwamui_daemon_get_status_icon_type( daemon );
+    NwamStatusIconPrivate *prv        = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    NwamuiDaemon          *daemon     = nwamui_daemon_get_instance ();
+    gint                   env_status = nwamui_daemon_get_status_icon_type( daemon );
 
     g_object_unref(G_OBJECT(daemon));
 
@@ -989,16 +988,20 @@ nwam_status_icon_set_status(NwamStatusIcon *self, gint env_status, NwamuiNcu* wi
 
     /* nwam_notification_set_default_icon(nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status, 48)); */
 
-    g_debug("%s: env_status = %d, wireless_ncu = %08X",  __func__, env_status, wireless_ncu );
+/*     g_debug("%s: env_status = %d, wireless_ncu = %08X",  __func__, env_status, wireless_ncu ); */
 
-    if ( wireless_ncu == NULL || nwamui_ncu_get_ncu_type(wireless_ncu) != NWAMUI_NCU_TYPE_WIRELESS) {
-        gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
-          nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status, 0));
-    }
-    else {
-        gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self), 
-                nwamui_util_get_ncu_status_icon( wireless_ncu ));
-    }
+    /* We need overall status icon here instead of a specific ncu status icon. */
+    gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
+      nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status, 0));
+
+/*     if ( wireless_ncu == NULL || nwamui_ncu_get_ncu_type(wireless_ncu) != NWAMUI_NCU_TYPE_WIRELESS) { */
+/*         gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self), */
+/*           nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self), env_status, 0)); */
+/*     } */
+/*     else { */
+/*         gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),  */
+/*           nwamui_util_get_ncu_status_icon( wireless_ncu )); */
+/*     } */
 
 }
 
@@ -1037,8 +1040,8 @@ status_icon_size_changed(GtkStatusIcon *status_icon, gint size, gpointer user_da
 /*     NwamStatusIcon *self = NWAM_STATUS_ICON(status_icon); */
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(status_icon);
 
-    gtk_status_icon_set_from_pixbuf(status_icon, 
-      nwamui_util_get_env_status_icon(status_icon, prv->current_status, 0));
+    nwam_status_icon_set_status(NWAM_STATUS_ICON(status_icon), NULL);
+
     return TRUE;
 }
 
@@ -1181,7 +1184,7 @@ update_wifi_timer_func(gpointer user_data)
                     if ( wifi_net && signal_strength < NWAMUI_WIFI_STRENGTH_LAST ) {
                         nwamui_wifi_net_set_signal_strength(wifi_net, signal_strength);
                     }
-                    nwam_status_icon_set_status(self, prv->current_status, ncu );
+                    nwam_status_icon_set_status(self, ncu );
                 }
                 break;
             default:

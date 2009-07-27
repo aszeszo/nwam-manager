@@ -1,5 +1,32 @@
 2009-07-27  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/libnwamui.c (nwamui_util_get_env_status_icon),
+	(nwamui_util_get_network_status_icon),
+	(nwamui_util_get_ncu_status_icon):
+	Do not compose transparent status icon. Fixed the forgot
+	duplicate wireless strength icon so it is composed by
+	different status icons multiple times. Get ncu status
+	accept icon size parameter. 
+	* common/libnwamui.h:
+	* common/nwamui_env.h:
+	* common/nwamui_wifi_net.h:
+	Simply mark some unions start from zero.
+	* daemon/notify.c:
+	Change notify icon size to 32.
+	* daemon/nwam-tooltip-widget.c (connect_object),
+	(nwam_object_notify), (nwam_ncu_notify):
+	Fixed ncu status is out-of-sync.
+	* daemon/status_icon.c (daemon_status_changed), (daemon_info),
+	(daemon_wifi_selection_needed), (daemon_ncu_up), (daemon_ncu_down),
+	(nwam_status_icon_set_status), (status_icon_size_changed),
+	(update_wifi_timer_func):
+	* daemon/status_icon.h:
+	nwam_status_icon_set_status need the overall network status.
+	Removed its env status parameter since it is overwriten inside
+	the function.
+
+2009-07-27  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/capplet-utils.c (capplet_model_1_level_foreach):
 	* capplet/capplet-utils.h:
 	* capplet/nwam_net_conf_panel.c (apply), (ncu_find_gt_name),

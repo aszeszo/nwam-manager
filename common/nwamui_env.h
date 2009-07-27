@@ -73,7 +73,7 @@ typedef enum {
 } nwamui_env_proxy_type_t;
 
 typedef enum {
-    NWAMUI_ENV_STATUS_CONNECTED,
+    NWAMUI_ENV_STATUS_CONNECTED = 0,
     NWAMUI_ENV_STATUS_WARNING,
     NWAMUI_ENV_STATUS_ERROR,
     NWAMUI_ENV_STATUS_LAST /* Not to be used directly */

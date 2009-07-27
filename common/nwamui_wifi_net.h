@@ -94,7 +94,7 @@ typedef enum {
 } nwamui_wifi_wpa_config_t;
 
 typedef enum {
-    NWAMUI_WIFI_STRENGTH_NONE,
+    NWAMUI_WIFI_STRENGTH_NONE = 0,
     NWAMUI_WIFI_STRENGTH_VERY_WEAK,
     NWAMUI_WIFI_STRENGTH_WEAK,
     NWAMUI_WIFI_STRENGTH_GOOD,

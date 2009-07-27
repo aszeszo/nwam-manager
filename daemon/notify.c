@@ -42,7 +42,7 @@ static gint gconf_exp_time;
 #define NOTIFY_EXP_ADJUSTED_FLAG	(NOTIFY_EXP_DEFAULT_FLAG - 1)
 #define NOTIFY_POLL_STATUS_ICON_INVISIBLE	(1000)
 
-#define NOTIFY_ICON_SIZE    (24)
+#define NOTIFY_ICON_SIZE    (32)
 
 typedef struct _msg
 {

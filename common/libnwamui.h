@@ -244,7 +244,7 @@ extern GList*                   nwamui_util_copy_obj_list( GList* obj_list );
 
 extern GdkPixbuf*               nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type, nwamui_wifi_signal_strength_t strength, nwamui_env_status_t net_status, gint size);
 
-extern GdkPixbuf*               nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu );
+extern GdkPixbuf*               nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu, gint size );
 
 extern const gchar*             nwamui_util_get_ncu_group_icon( NwamuiNcu* ncu  );
 
@@ -252,7 +252,7 @@ extern const gchar*             nwamui_util_get_active_mode_icon( NwamuiObject *
 
 extern GdkPixbuf*               nwamui_util_get_network_type_icon( nwamui_ncu_type_t ncu_type );
 
-extern GdkPixbuf*               nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t env_status, gint force_size );
+extern GdkPixbuf*               nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t daemon_status, gint force_size );
 
 extern GdkPixbuf*               nwamui_util_get_wireless_strength_icon( nwamui_wifi_signal_strength_t signal_strength, 
                                                                         nwamui_wireless_icon_type_t icon_type,

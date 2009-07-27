@@ -153,7 +153,7 @@ connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object)
         g_signal_connect (G_OBJECT(object), "notify::vanity_name",
           G_CALLBACK(nwam_object_notify), (gpointer)self);
         g_signal_connect (G_OBJECT(object), "notify::active",
-          G_CALLBACK(nwam_ncu_notify), (gpointer)self);
+          G_CALLBACK(nwam_object_notify), (gpointer)self);
 
         g_signal_connect (G_OBJECT(object), "notify::wifi-info",
           G_CALLBACK(nwam_ncu_notify), (gpointer)self);
@@ -216,6 +216,9 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
             g_assert_not_reached ();
         }
         g_free(state);
+
+        /* Updated ncu status. Low frequency. */
+        nwam_ncu_notify(G_OBJECT(object), NULL, (gpointer)self);
 	} else if (type == NWAMUI_TYPE_ENV) {
         g_string_append_printf(gstr, _("<b>Location:</b> %s"), name);
 	} else if (type == NWAMUI_TYPE_NCP) {
@@ -232,7 +235,7 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 static void
 nwam_ncu_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 {
-    GtkImage *img = gtk_image_new_from_pixbuf(nwamui_util_get_ncu_status_icon(NWAMUI_NCU(gobject)));
+    GtkImage *img = gtk_image_new_from_pixbuf(nwamui_util_get_ncu_status_icon(NWAMUI_NCU(gobject), 24));
 
     nwam_menu_item_set_widget(NWAM_MENU_ITEM(user_data),
       0,
