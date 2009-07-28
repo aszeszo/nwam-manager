@@ -108,6 +108,8 @@ static void nwamui_ncp_get_property ( GObject         *object,
 
 static void nwamui_ncp_finalize (     NwamuiNcp *self);
 
+static nwam_state_t nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p );
+
 /* Default signal handlers */
 static void default_activate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer user_data);
 static void default_deactivate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer user_data);
@@ -145,6 +147,7 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncp_get_name;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)NULL;
+    nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_ncp_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_ncp_commit;
 
     /* Create some properties */
@@ -429,6 +432,44 @@ nwamui_ncp_finalize (NwamuiNcp *self)
     self->prv = NULL;
 
     parent_class->finalize (G_OBJECT (self));
+}
+
+static nwam_state_t
+nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p )
+{
+    nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
+
+    g_return_val_if_fail(NWAMUI_IS_NCP( object ), rstate);
+
+    if ( aux_state_p ) {
+        *aux_state_p = NWAM_AUX_STATE_UNINITIALIZED;
+    }
+
+    if ( aux_state_string_p ) {
+        *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( NWAM_AUX_STATE_UNINITIALIZED );
+    }
+
+    {
+        NwamuiNcp   *ncp = NWAMUI_NCP(object);
+        nwam_state_t        state;
+        nwam_aux_state_t    aux_state;
+
+
+        /* First look at the LINK state, then the IP */
+        if ( ncp->prv->nwam_ncp &&
+             nwam_ncp_get_state( ncp->prv->nwam_ncp, &state, &aux_state ) == NWAM_SUCCESS ) {
+
+            rstate = state;
+            if ( aux_state_p ) {
+                *aux_state_p = aux_state;
+            }
+            if ( aux_state_string_p ) {
+                *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( aux_state );
+            }
+        }
+    }
+
+    return(rstate);
 }
 
 extern NwamuiNcp*

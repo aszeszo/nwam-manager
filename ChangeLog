@@ -1,3 +1,19 @@
+2009-07-28  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_stat_panel.c (refresh),
+	(conn_view_filter_visible_cb),
+	(nwam_conn_status_conn_view_row_activated_cb), (repair_clicked_cb):
+	Fixed doo#9767 nwam-manager-properties show connections lists 
+	disabled interface. Filter by get_active. 
+	* common/libnwamui.c:
+	* common/libnwamui.h:
+	* daemon/nwam-wifi-item.c (wifi_net_notify):
+	* capplet/nwam_wireless_chooser.c (nwam_wifi_chooser_cell_cb):
+	* capplet/nwam_conn_conf_ip_panel.c (nwam_conn_wifi_fav_cell_cb):
+	Remove until_get_strenght_icon to use _by_size function.
+	* common/nwamui_ncp.c (nwamui_ncp_class_init),
+	(nwamui_ncp_get_nwam_state): Add get_state function.
+
 2009-07-27  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/libnwamui.c (nwamui_util_get_env_status_icon),

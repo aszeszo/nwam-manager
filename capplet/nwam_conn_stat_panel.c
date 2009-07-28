@@ -86,18 +86,22 @@ static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 
 static void nwam_conn_status_panel_finalize(NwamConnStatusPanel *self);
-static void nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
-					     GtkCellRenderer   *renderer,
-					     GtkTreeModel      *model,
-					     GtkTreeIter       *iter,
-					     gpointer           data);
 
 /* Callbacks */
+
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+static void nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data);
+static gboolean conn_view_filter_visible_cb(GtkTreeModel *model,
+  GtkTreeIter *iter,
+  gpointer data);
 static void nwam_conn_status_conn_view_row_activated_cb (GtkTreeView *tree_view,
-					GtkTreePath *path,
-					GtkTreeViewColumn *column,
-					gpointer data);
+  GtkTreePath *path,
+  GtkTreeViewColumn *column,
+  gpointer data);
 static void repair_clicked_cb( GtkButton *button, gpointer data );
 static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
@@ -328,11 +332,18 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     if (user_data != NULL) {
         NwamuiNcp *ncp = NWAMUI_NCP(user_data);
         GtkTreeModel *model;
+        GtkTreeModel *filter;
+
         model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(ncp));
+        filter = gtk_tree_model_filter_new(model, NULL);
+        gtk_tree_model_filter_set_visible_func(filter, conn_view_filter_visible_cb,
+          NULL, NULL);
+        gtk_tree_model_filter_refilter(filter);
         gtk_widget_hide(GTK_WIDGET(self->prv->conn_status_treeview));
-        gtk_tree_view_set_model(self->prv->conn_status_treeview, model);
+        gtk_tree_view_set_model(self->prv->conn_status_treeview, filter);
         gtk_widget_show(GTK_WIDGET(self->prv->conn_status_treeview));
         g_object_unref(model);
+        g_object_unref(filter);
 
         text = nwamui_daemon_get_active_ncp_name(NWAMUI_DAEMON(self->prv->daemon));
         if (text) {
@@ -486,6 +497,23 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 
 }
 
+static gboolean
+conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
+{
+    NwamuiObject *obj;
+    gboolean      visible = FALSE;
+
+	gtk_tree_model_get(model, iter, 0, &obj, -1);
+
+    if (obj) {
+        if (nwamui_object_get_active(obj)) {
+            visible = TRUE;
+        }
+        g_object_unref(obj);
+    }
+    return visible;
+}
+
 /*
  * Double-clicking a connection switches the status view to that connection's
  * properties view (p5)
@@ -500,8 +528,7 @@ nwam_conn_status_conn_view_row_activated_cb (GtkTreeView *tree_view,
     GtkTreeIter iter;
     GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
 
-    if (gtk_tree_model_get_iter (model, &iter, path))
-    {
+    if (gtk_tree_model_get_iter (model, &iter, path)) {
         gpointer    connection;
         NwamuiNcu*  ncu;
             
@@ -520,15 +547,20 @@ repair_clicked_cb( GtkButton *button, gpointer data )
 	NwamConnStatusPanel* self = NWAM_CONN_STATUS_PANEL(data);
     gint                 response;
 	GtkTreeIter iter;
+	GtkTreeIter filter_iter;
     GtkTreeSelection *selection;
     GtkTreeModel *model;
 
     selection = gtk_tree_view_get_selection (self->prv->conn_status_treeview);
     model = gtk_tree_view_get_model (self->prv->conn_status_treeview);
-	if (gtk_tree_selection_get_selected(selection,
-          NULL, &iter)) {
+
+	if (gtk_tree_selection_get_selected(selection, NULL, &filter_iter)) {
         gpointer    connection;
         NwamuiNcu*  ncu;
+
+        gtk_tree_model_filter_convert_iter_to_child_iter(GTK_TREE_MODEL_FILTER(model),
+          &iter,
+          &filter_iter);
 
         gtk_tree_model_get(model, &iter, 0, &connection, -1);
         ncu  = NWAMUI_NCU( connection );

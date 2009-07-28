@@ -1155,8 +1155,8 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
             if ( cell_num == 0 ) {
                 GdkPixbuf   *status_icon;
 
-                status_icon = nwamui_util_get_wireless_strength_icon( 
-                    nwamui_wifi_net_get_signal_strength(wifi_info), NWAMUI_WIRELESS_ICON_TYPE_BARS, TRUE );
+                status_icon = nwamui_util_get_wireless_strength_icon_with_size( 
+                    nwamui_wifi_net_get_signal_strength(wifi_info), NWAMUI_WIRELESS_ICON_TYPE_BARS, 16);
                 g_object_set (G_OBJECT(renderer),
                   "pixbuf", status_icon,
                   NULL);
