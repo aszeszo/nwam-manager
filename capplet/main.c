@@ -47,6 +47,7 @@
 static gboolean     debug = FALSE;
 static gboolean     vpn_pref_dialog = FALSE;
 static gboolean     net_pref_dialog = TRUE;
+static gboolean     net_pref_view = FALSE;
 static gboolean     location_dialog = FALSE;
 static gboolean     wireless_chooser = FALSE;
 
@@ -59,9 +60,10 @@ static gboolean     show_all_widgets = FALSE;
 static void debug_response_id( gint responseid );
 
 GOptionEntry application_options[] = {
-        { "net-pref-dialog", 'p', 0, G_OPTION_ARG_NONE, &net_pref_dialog, N_("Show 'Network Preferences' Dialog"), NULL  },
-        { "vpn-pref-dialog", 'n', 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, N_("Show 'VPN Preferences' Dialog"), NULL  },
         {"debug", 'D', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
+        { "net-pref-dialog", 'p', 0, G_OPTION_ARG_NONE, &net_pref_dialog, N_("Show 'Network Preferences' Dialog"), NULL  },
+        { "net-pref-view", 0, 0, G_OPTION_ARG_NONE, &net_pref_view, N_("Show 'Network Preferences' Dialog"), NULL  },
+        { "vpn-pref-dialog", 'n', 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, N_("Show 'VPN Preferences' Dialog"), NULL  },
         { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, N_("Show 'Wireless Network Chooser' Dialog"), NULL },
         { "location-dialog", 'l', 0, G_OPTION_ARG_NONE, &location_dialog, N_("Show 'Location' Dialog"), NULL  },
 #ifdef DEBUG_OPTS
@@ -317,6 +319,9 @@ main(int argc, char** argv)
     else if( net_pref_dialog ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_capplet_dialog_new());
         
+        if (net_pref_view) {
+            nwam_pref_refresh(capplet_dialog, PANEL_NET_PREF, TRUE);
+        }
         gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );

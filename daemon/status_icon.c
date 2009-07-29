@@ -1085,16 +1085,17 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    gchar *argv = NULL;
+    gchar *argv[3] = { NULL, NULL, NULL };
     gint menuitem_id = (gint)g_object_get_data(G_OBJECT(menuitem), STATIC_MENUITEM_ID);
 
     switch (menuitem_id) {
     case MENUITEM_ENV_PREF:
-		argv = "-l";
+		argv[0] = "-l";
         break;
     case MENUITEM_CONN_PROF:
         /* TODO, specify a profile. */
-		argv = "-p";
+		argv[0] = "-p";
+        argv[1] = "--net-pref-view";
         break;
     case MENUITEM_REFRESH_WLAN:
         nwam_menu_recreate_wifi_menuitems(self, TRUE);
@@ -1103,10 +1104,10 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
 		join_wireless( NULL, TRUE);
         break;
     case MENUITEM_VPN_PREF:
-        argv = "-n";
+        argv[0] = "-n";
         break;
     case MENUITEM_NET_PREF:
-		argv = "-p";
+		argv[0] = "-p";
         break;
     case MENUITEM_HELP:
         nwamui_util_show_help ("");
@@ -1121,7 +1122,7 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
           "website", _("http://www.sun.com/"),
           NULL);
     }
-    if (argv) {
+    if (argv[0]) {
         nwam_exec(argv);
     }
 }
@@ -1273,7 +1274,8 @@ notification_listwireless(NotifyNotification *n,
   gchar *action,
   gpointer data)
 {
-    nwam_exec("--list-fav-wireless=");
+    gchar *argv[2] = {"--list-fav-wireless=", NULL};
+    nwam_exec(argv);
 }
 
 static void
@@ -1647,11 +1649,13 @@ nwam_menu_get_section_index(NwamMenu *self, GtkWidget *child, gint *index, gpoin
 }
 
 void
-nwam_exec (const gchar *nwam_arg)
+nwam_exec (const gchar **nwam_arg)
 {
 	GError *error = NULL;
-	gchar *argv[4] = {0};
+	gchar **argv = NULL;
 	gint argc = 0;
+
+    argv = g_malloc(sizeof(gchar *) * (g_strv_length(nwam_arg) + 2));
 	argv[argc++] = g_find_program_in_path (NWAM_MANAGER_PROPERTIES);
 	/* FIXME, seems to be Solaris specific */
 	if (argv[0] == NULL) {
@@ -1660,8 +1664,10 @@ nwam_exec (const gchar *nwam_arg)
 		argv[0] = g_build_filename (base, NWAM_MANAGER_PROPERTIES, NULL);
 		g_free (base);
 	}
-	argv[argc++] = (gchar *)nwam_arg;
-	g_debug ("\n\nnwam-menu-exec: %s %s", argv[0], nwam_arg);
+    for (;nwam_arg[argc - 1]; argc++) {
+        argv[argc] = nwam_arg[argc - 1];
+    }
+    argv[argc] = NULL;
 
 	if (!g_spawn_async(NULL,
 		argv,
@@ -1675,5 +1681,6 @@ nwam_exec (const gchar *nwam_arg)
 		g_error_free(error);
 	}
 	g_free (argv[0]);
+	g_free (argv);
 }
 

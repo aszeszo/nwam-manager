@@ -48,13 +48,6 @@
 #define CAPPLET_DIALOG_MAIN_NOTEBOOK	"mainview_notebook"
 #define CAPPLET_DIALOG_REFRESH_BUTTON	"refresh_button"
 
-enum {
-	PANEL_CONN_STATUS = 0,
-	PANEL_NET_PREF,
-	PANEL_CONF_IP,
-	N_PANELS
-};
-
 #define NWAM_CAPPLET_DIALOG_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_CAPPLET_DIALOG, NwamCappletDialogPrivate))
 
 struct _NwamCappletDialogPrivate {
@@ -289,9 +282,18 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     GtkTreeIter iter;
     GObject *obj;
     GList* ncp_list;
+    gint panel_id = (gint)user_data;
 
-    /* Remember the active object and select it later. */
-    obj = capplet_combo_get_active_object(GTK_COMBO_BOX(prv->show_combo));
+    switch(panel_id) {
+    case PANEL_CONN_STATUS:
+    case PANEL_NET_PREF:
+        obj = g_object_ref(prv->panel[panel_id]);
+        break;
+    default:
+        /* Remember the active object and select it later. */
+        obj = capplet_combo_get_active_object(GTK_COMBO_BOX(prv->show_combo));
+        break;
+    }
     g_assert(obj);
     
     /* Refresh show-combo */

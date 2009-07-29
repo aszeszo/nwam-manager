@@ -61,6 +61,13 @@ struct _NwamCappletDialogClass
 	GObjectClass                parent_class;
 };
 
+enum {
+	PANEL_CONN_STATUS = 0,
+	PANEL_NET_PREF,
+	PANEL_CONF_IP,
+	N_PANELS
+};
+
 extern GType                   nwam_capplet_dialog_get_type (void) G_GNUC_CONST;
 extern NwamCappletDialog*     nwam_capplet_dialog_new (void);
 

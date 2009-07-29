@@ -512,7 +512,8 @@ nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
     g_return_if_fail( ncu != NULL );
 
     if ( daemon ) {
-        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+/*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
+        icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
     }
 
     display_name = nwamui_ncu_get_display_name( ncu );
@@ -578,7 +579,8 @@ nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
     g_return_if_fail( ncu != NULL );
 
     if ( daemon ) {
-        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+/*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
+        icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
     }
 
     display_name = nwamui_ncu_get_display_name( ncu );
@@ -662,7 +664,8 @@ nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu )
     g_return_if_fail( ncu != NULL );
 
     if ( daemon ) {
-        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+/*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
+        icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
     }
 
     switch ( nwamui_ncu_get_ncu_type( ncu ) ) {
@@ -721,7 +724,8 @@ nwam_notification_show_ncu_wifi_selection_needed(   NwamuiNcu           *ncu,
     g_return_if_fail( ncu != NULL );
 
     if ( daemon ) {
-        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+/*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
+        icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
     }
 
     summary = g_strdup(_("Wireless Selection Required"));
@@ -764,7 +768,8 @@ nwam_notification_show_ncu_wifi_key_needed( NwamuiWifiNet       *wifi_net,
     g_return_if_fail( wifi_net != NULL );
 
     if ( daemon ) {
-        icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
+/*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
+        icon = nwamui_util_get_ncu_status_icon( nwamui_wifi_net_get_ncu(wifi_net), NOTIFY_ICON_SIZE );
     }
 
     name = nwamui_wifi_net_get_display_string(wifi_net, FALSE);

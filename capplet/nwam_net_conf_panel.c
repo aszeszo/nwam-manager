@@ -1675,7 +1675,8 @@ foreach_set_group_mode(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter
                 case ALWAYS_ON_GROUP_ID:
                 case ALWAYS_OFF_GROUP_ID:
                     nwamui_ncu_set_activation_mode(NWAMUI_NCU(obj), NWAMUI_COND_ACTIVATION_MODE_MANUAL);
-                    nwamui_ncu_set_active(NWAMUI_NCU(obj), group_id == ALWAYS_ON_GROUP_ID);
+/*                     nwamui_object_set_active(obj, group_id == ALWAYS_ON_GROUP_ID); */
+                    nwamui_ncu_set_enabled(NWAMUI_NCU(obj), group_id == ALWAYS_ON_GROUP_ID);
                     break;
                 default:
                     nwamui_ncu_set_priority_group(NWAMUI_NCU(obj), group_id);

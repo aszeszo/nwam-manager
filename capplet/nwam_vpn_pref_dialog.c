@@ -117,7 +117,7 @@ static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void vpn_pref_clicked_cb(GtkButton *button, gpointer data);
 static void command_entry_changed(GtkEditable *editable, gpointer data);
-static void nwam_vpn_cell_cb(GtkTreeViewColumn *col,
+static void nwam_vpn_state_cell_cb(GtkTreeViewColumn *col,
 	GtkCellRenderer   *renderer,
 	GtkTreeModel      *model,
 	GtkTreeIter       *iter,
@@ -334,7 +334,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       "resizable", TRUE,
       "clickable", FALSE,
       "sort-indicator", FALSE,
-      "reorderable", TRUE,
+      "reorderable", FALSE,
       NULL);
 	renderer = capplet_column_append_cell(col,
       gtk_cell_renderer_text_new(), FALSE,
@@ -363,10 +363,13 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       "title", _("Status"),
       "resizable", TRUE,
       "clickable", FALSE,
-      "sort-indicator", TRUE,
-      "reorderable", TRUE,
+      "sort-indicator", FALSE,
+      "reorderable", FALSE,
       NULL);
+
+#if 0
 	gtk_tree_view_column_set_sort_column_id (col, APP_STATE);	
+#endif
 
     /* First cell */
 	renderer = gtk_cell_renderer_text_new();
@@ -374,7 +377,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
 
 	gtk_tree_view_column_set_cell_data_func (col,
       renderer,
-      nwam_vpn_cell_cb,
+      nwam_vpn_state_cell_cb,
       (gpointer) self,
       NULL);
 
@@ -819,18 +822,25 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 		return;
 	}
 
-	/* We should not set sensitive of start/stop buttons after
-	 * trigger it, we should wait the sigal if there has.
-	 */
-	if (button == self->prv->start_btn) {
-		nwamui_enm_set_active (obj, TRUE);
-	} else if (button == self->prv->stop_btn) {
-		nwamui_enm_set_active (obj, FALSE);
-	}
+    /* Update object before activate it, because object notify will update cell
+     * then refresh all the widgets to lose data.
+     */
+    if (nwam_update_obj (self, self->prv->cur_obj)) {
+        if (nwamui_object_commit(self->prv->cur_obj)) {
+            /* We should not set sensitive of start/stop buttons after
+             * trigger it, we should wait the sigal if there has.
+             */
+            if (button == self->prv->start_btn) {
+                nwamui_enm_set_active (obj, TRUE);
+            } else if (button == self->prv->stop_btn) {
+                nwamui_enm_set_active (obj, FALSE);
+            }
+        }
+    }
 }
 
 static void
-nwam_vpn_cell_cb (GtkTreeViewColumn *col,
+nwam_vpn_state_cell_cb (GtkTreeViewColumn *col,
 		GtkCellRenderer   *renderer,
 		GtkTreeModel      *model,
 		GtkTreeIter       *iter,
@@ -841,30 +851,23 @@ nwam_vpn_cell_cb (GtkTreeViewColumn *col,
 	
 	gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &obj, -1);
 
-	switch (gtk_tree_view_column_get_sort_column_id(col)) {
-		case APP_STATE: {
-			if (obj) {
-				gboolean is_active;
-				gchar *status;
-				is_active = nwamui_enm_get_active (NWAMUI_ENM(obj));
-				if (is_active) {
-					status = _("Running");
-				} else {
-					status = _("Stopped");
-				}
-				g_object_set((gpointer)renderer,
-					"text", status,
-					NULL);
-			} else {
-				g_object_set((gpointer)renderer,
-					"text", "",
-					NULL);
-			}
-		}
-		break;
-		default:
-			g_assert_not_reached();
-	}
+    if (obj) {
+        gboolean is_active;
+        gchar *status;
+        is_active = nwamui_enm_get_active (NWAMUI_ENM(obj));
+        if (is_active) {
+            status = _("Running");
+        } else {
+            status = _("Stopped");
+        }
+        g_object_set((gpointer)renderer,
+          "text", status,
+          NULL);
+    } else {
+        g_object_set((gpointer)renderer,
+          "text", "",
+          NULL);
+    }
 }
 
 static gint

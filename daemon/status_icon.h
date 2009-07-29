@@ -62,7 +62,7 @@ void nwam_status_icon_set_status(NwamStatusIcon *self, NwamuiNcu* wireless_ncu )
 void nwam_status_icon_show_menu(NwamStatusIcon *self);
 
 /* Others */
-extern void nwam_exec (const gchar *nwam_arg);
+extern void nwam_exec (const gchar **nwam_arg);
 
 G_END_DECLS
 

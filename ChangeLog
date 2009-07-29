@@ -1,3 +1,29 @@
+2009-07-29  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/status_icon.h:
+	* daemon/status_icon.c (on_activate_static_menuitems),
+	(notification_listwireless), (nwam_exec):
+	* capplet/nwam_pref_dialog.c (refresh):
+	* capplet/nwam_pref_dialog.h:
+	* capplet/main.c (main):
+	Fix doo#9522 show network profile view dialog.
+	* capplet/nwam_conn_conf_ip_panel.c (nwam_conf_ip_panel_init),
+	(populate_panel), (ipv6_manual_addresses_cb_toggled):
+	Fixed doo#10301 static ipv6 checkbox.
+	* capplet/nwam_net_conf_panel.c (foreach_set_group_mode):
+	Update ncu pri group uses set_enabled function rather than
+	set_active.
+	* capplet/nwam_vpn_pref_dialog.c (nwam_compose_tree_view),
+	(vpn_pref_clicked_cb), (nwam_vpn_state_cell_cb):
+	Commit enm before start/stop it.
+	* daemon/notify.c (nwam_notification_show_ncu_connected),
+	(nwam_notification_show_ncu_disconnected),
+	(nwam_notification_show_ncu_wifi_connect_failed),
+	(nwam_notification_show_ncu_wifi_selection_needed),
+	(nwam_notification_show_ncu_wifi_key_needed):
+	Seems use ncu state icons is better than env state icons
+	when update ncu state.
+
 2009-07-28  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_stat_panel.c (refresh),

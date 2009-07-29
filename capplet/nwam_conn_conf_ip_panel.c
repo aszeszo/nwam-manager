@@ -77,6 +77,7 @@
 #define IP_MANUAL_PANEL_IPV6_ROUTER_ENTRY           "ipv6_router_entry"
 #define IP_MANUAL_PANEL_IPV6_PREFIX_ENTRY           "ipv6_prefix_entry"
 #define IP_MULTI_PANEL_IPV6_ADDR_TABLE_TVIEW        "ipv6_address_table"
+#define IP_MULTI_PANEL_IPV6_MANUAL_ADDRESSES_CBOX   "ipv6_manual_addresses_cbox"
 #define IP_MULTI_PANEL_IPV6_ADD_BTN                 "ipv6_add_btn"
 #define IP_MULTI_PANEL_IPV6_DEL_BTN                 "ipv6_delete_btn"
 #define IP_MULTI_PANEL_IPV6_ACCEPT_STATEFUL_CBTN    "accept_ipv6_stateful_cbox"
@@ -125,10 +126,11 @@ struct _NwamConnConfIPPanelPrivate {
 	GtkEntry *ipv6_prefix_entry;
 	GtkCheckButton *ipv6_accept_stateful_cb;
 	GtkCheckButton *ipv6_accept_stateless_cb;
-*/      
- 	GtkButton *ipv6_add_btn;
-	GtkButton *ipv6_del_btn;
-	GtkTreeView *ipv6_tv;
+*/
+    GtkCheckButton *ipv6_manual_addresses_cbox;
+ 	GtkButton      *ipv6_add_btn;
+	GtkButton      *ipv6_del_btn;
+	GtkTreeView    *ipv6_tv;
 
 	/* Other Data */
     NwamuiDaemon*       daemon;
@@ -216,6 +218,7 @@ static void wireless_tab_down_button_clicked_cb( GtkButton *button, gpointer dat
 static void refresh_clicked_cb( GtkButton *button, gpointer data );
 static void ipv4_addr_changed_cb( GtkEditable* editable, gpointer user_data );
 static void ipv4_subnet_changed_cb( GtkEditable* editable, gpointer user_data );
+static void ipv6_manual_addresses_cb_toggled(GtkToggleButton *togglebutton, gpointer user_data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnConfIPPanel,
                         nwam_conf_ip_panel,
@@ -513,13 +516,14 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 	self->prv->ipv6_accept_stateful_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ACCEPT_STATEFUL_CBTN));
 	self->prv->ipv6_accept_stateless_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ACCEPT_STATELESS_CBTN));
 */
-
 	self->prv->ipv6_tv = GTK_TREE_VIEW(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ADDR_TABLE_TVIEW));
 
 	self->prv->ipv6_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ADD_BTN));
 	self->prv->ipv6_del_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_DEL_BTN));
+	self->prv->ipv6_manual_addresses_cbox = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_MANUAL_ADDRESSES_CBOX));
 	g_signal_connect(G_OBJECT(self->prv->ipv6_add_btn), "clicked", (GCallback)multi_line_add_cb, (gpointer)self);
 	g_signal_connect(G_OBJECT(self->prv->ipv6_del_btn), "clicked", (GCallback)multi_line_del_cb, (gpointer)self);
+	g_signal_connect(G_OBJECT(self->prv->ipv6_manual_addresses_cbox), "toggled", (GCallback)ipv6_manual_addresses_cb_toggled, (gpointer)self);
 
     nwam_compose_multi_ip_tree_view (self, self->prv->ipv4_tv);
 
@@ -670,6 +674,9 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
             /* TODO - Check for Multiple IP Addresses  and update combo to reflect */
         }
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_combo), modifiable);
+        /* Hack, because set false doesn't trigger the signal initially. */
+        gtk_toggle_button_toggled(GTK_TOGGLE_BUTTON(prv->ipv6_manual_addresses_cbox));
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->ipv6_manual_addresses_cbox), !ipv6_dhcp);
     }
 
 
@@ -1598,4 +1605,13 @@ ipv4_subnet_changed_cb( GtkEditable* editable, gpointer data )
     }
 }
 
+static void
+ipv6_manual_addresses_cb_toggled(GtkToggleButton *togglebutton, gpointer user_data)
+{
+    NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(user_data);
+    gboolean active = gtk_toggle_button_get_active(togglebutton);
 
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_tv), active);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_add_btn), active);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_del_btn), active);
+}
