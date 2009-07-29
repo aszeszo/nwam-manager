@@ -51,6 +51,7 @@ nwam_pref_iface_class_init (gpointer g_class, gpointer g_class_data)
 	self->apply = NULL;
     self->help = NULL;
     self->dialog_run = NULL;
+    self->dialog_get_window = NULL;
 }
 
 GType
@@ -178,5 +179,16 @@ nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
     g_return_val_if_fail(interface->dialog_run, FALSE );
 
     return interface->dialog_run(iface, parent);
+}
+
+extern GtkWindow*
+nwam_pref_dialog_get_window(NwamPrefIFace *iface)
+{
+	NwamPrefInterface *interface = NWAM_GET_PREF_INTERFACE (iface);
+
+    g_return_val_if_fail(interface != NULL, NULL );
+    g_return_val_if_fail(interface->dialog_get_window, NULL );
+
+    return interface->dialog_get_window(iface);
 }
 

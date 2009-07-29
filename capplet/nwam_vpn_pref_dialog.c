@@ -100,6 +100,7 @@ static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 extern gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
+static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_vpn_pref_dialog_finalize(NwamVPNPrefDialog *self);
 static void nwam_compose_tree_view (NwamVPNPrefDialog *self);
@@ -155,6 +156,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->cancel = cancel;
     iface->help = help;
     iface->dialog_run = dialog_run;
+    iface->dialog_get_window = dialog_get_window;
 }
 
 static void
@@ -517,6 +519,18 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 		gtk_widget_hide( GTK_WIDGET(self->prv->vpn_pref_dialog) );
 	}
 	return(response);
+}
+
+static GtkWindow* 
+dialog_get_window(NwamPrefIFace *iface)
+{
+	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
+
+    if ( self->prv->vpn_pref_dialog ) {
+        return ( GTK_WINDOW(self->prv->vpn_pref_dialog) );
+    }
+
+    return(NULL);
 }
 
 static gboolean

@@ -97,6 +97,7 @@ static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
+static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_location_dialog_finalize(NwamLocationDialog *self);
 
@@ -169,6 +170,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->cancel = cancel;
 	iface->help = help;
     iface->dialog_run = dialog_run;
+    iface->dialog_get_window = dialog_get_window;
 }
 
 static void
@@ -435,6 +437,18 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 
     }
     return(response);
+}
+
+static GtkWindow* 
+dialog_get_window(NwamPrefIFace *iface)
+{
+    NwamLocationDialog*    self = NWAM_LOCATION_DIALOG( iface );
+
+    if (self->prv->location_dialog) {
+        return ( GTK_WINDOW(self->prv->location_dialog) );
+    }
+
+    return(NULL);
 }
 
 /**

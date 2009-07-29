@@ -37,6 +37,7 @@
 /* Misc. */
 void capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class);
 gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
+gboolean capplet_dialog_raise(NwamPrefIFace *iface);
 
 #define CAPPLET_COMPOSE_NWAMUI_OBJECT_COMBO(combo, iface)   \
     {                                                       \

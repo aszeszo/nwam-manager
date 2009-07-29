@@ -52,6 +52,7 @@ struct _NwamPrefInterface {
 	gboolean (*cancel) (NwamPrefIFace *iface, gpointer user_data);
 	gboolean (*help) (NwamPrefIFace *iface, gpointer user_data);
     gint (*dialog_run)(NwamPrefIFace *iface, GtkWindow *parent);
+    GtkWindow *(*dialog_get_window)(NwamPrefIFace *iface);
 };
 
 extern GType nwam_pref_iface_get_type (void) G_GNUC_CONST;
@@ -63,6 +64,7 @@ extern gboolean         nwam_pref_apply (NwamPrefIFace *iface, gpointer user_dat
 extern gboolean         nwam_pref_cancel (NwamPrefIFace *iface, gpointer user_data);
 extern gboolean         nwam_pref_help (NwamPrefIFace *iface, gpointer user_data);
 extern gint             nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
+extern gboolean         nwam_pref_dialog_raise(NwamPrefIFace *iface);
 
 G_END_DECLS
 

@@ -95,6 +95,42 @@ customwidgethandler(GladeXML *xml,
 
     return NULL;
 }
+static UniqueResponse
+nwamui_unique_message_handler(  UniqueApp         *app,
+                                gint               command,
+                                UniqueMessageData *message_data,
+                                guint              time_,
+                                gpointer           user_data) 
+{
+    NwamPrefIFace   *dialog_iface = NULL;
+
+    if ( user_data != NULL ) {
+        dialog_iface = NWAM_PREF_IFACE(user_data);
+    }
+
+    switch ( command ) {
+        case UNIQUE_ACTIVATE:
+            nwamui_debug("Got Unique ACTIVATE command (%d)", command );
+            if ( dialog_iface != NULL ) {
+                capplet_dialog_raise( dialog_iface );
+                return( UNIQUE_RESPONSE_OK );
+            }
+            break;
+        default:
+            nwamui_debug("Got unexpected Unique command %d, ignoring...", command );
+            break;
+    }
+
+    return( UNIQUE_RESPONSE_PASSTHROUGH );
+}
+
+static void
+add_unique_message_handler( UniqueApp *app, NwamPrefIFace *capplet_dialog )
+{
+    if ( app != NULL ) {
+        g_signal_connect(app, "message-received", (GCallback)nwamui_unique_message_handler, (gpointer)capplet_dialog);
+    }
+}
 
 /*
  * 
@@ -102,6 +138,7 @@ customwidgethandler(GladeXML *xml,
 int
 main(int argc, char** argv) 
 {
+    UniqueApp       *app            = NULL;
     GnomeProgram*    program        = NULL;
     GOptionContext*  option_context = NULL;
     GError*          err            = NULL;
@@ -127,13 +164,16 @@ main(int argc, char** argv)
 
     nwamui_util_set_debug_mode( debug );
 
+        app = unique_app_new("com.sun.nwam-manager-properties", NULL);
     if ( !nwamui_util_is_debug_mode() ) {
-        UniqueApp       *app            = NULL;
-        app = unique_app_new("org.gnome.nwam-manager-properties", NULL);
         if (unique_app_is_running(app)) {
-/*         unique_app_add_command(app, "", 1); */
-/*         unique_app_send_message(app, 1, NULL); */
-            g_printf("Another instance is running, exiting.\n");
+            /* Send request to other app to show itself */
+            unique_app_send_message(app, UNIQUE_ACTIVATE, NULL);
+            /*
+            nwamui_util_show_message( NULL, GTK_MESSAGE_INFO, _("NWAM Manager Properties"),
+                                      _("\nAnother instance is running.\nThis instance will exit now."), TRUE );
+                                      */
+            g_debug("Another instance is running, exiting.\n");
             exit(0);
         }
     } 
@@ -166,13 +206,17 @@ main(int argc, char** argv)
     if( vpn_pref_dialog ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_vpn_pref_dialog_new());
         
+        add_unique_message_handler( app, capplet_dialog );
+
         gint responseid = capplet_dialog_run(capplet_dialog, NULL);
 
         debug_response_id( responseid );
     }
     else if( wireless_chooser ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_wireless_chooser_new());
-        
+
+        add_unique_message_handler( app, capplet_dialog );
+
         gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
@@ -180,6 +224,8 @@ main(int argc, char** argv)
     else if( location_dialog ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_location_dialog_new());
         
+        add_unique_message_handler( app, capplet_dialog );
+
         gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
@@ -281,6 +327,9 @@ main(int argc, char** argv)
         if (*add_wireless_dialog != '\0') {
             nwam_wireless_dialog_set_essid (NWAM_WIRELESS_DIALOG(capplet_dialog), add_wireless_dialog);
         }
+
+        add_unique_message_handler( app, capplet_dialog );
+
         gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
@@ -288,6 +337,8 @@ main(int argc, char** argv)
     else if( loc_pref_dialog ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_env_pref_dialog_new());
         
+        add_unique_message_handler( app, capplet_dialog );
+
         gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
@@ -322,6 +373,8 @@ main(int argc, char** argv)
         if (net_pref_view) {
             nwam_pref_refresh(capplet_dialog, PANEL_NET_PREF, TRUE);
         }
+        add_unique_message_handler( app, capplet_dialog );
+
         gint responseid = capplet_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );

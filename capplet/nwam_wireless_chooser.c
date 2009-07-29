@@ -68,6 +68,7 @@ static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
+static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_wireless_chooser_finalize(NwamWirelessChooser *self);
 static void nwam_wifi_scan_start (GObject *daemon, gpointer data);
@@ -103,6 +104,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->cancel = cancel;
     iface->help = help;
     iface->dialog_run = dialog_run;
+    iface->dialog_get_window = dialog_get_window;
 }
 
 static void
@@ -294,6 +296,18 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 		gtk_widget_hide( GTK_WIDGET(self->prv->wireless_chooser) );
 	}
 	return(response);
+}
+
+static GtkWindow* 
+dialog_get_window(NwamPrefIFace *iface)
+{
+    NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(iface);
+
+    if ( self->prv->wireless_chooser ) {
+        return ( GTK_WINDOW(self->prv->wireless_chooser) );
+    }
+
+    return(NULL);
 }
 
 /**

@@ -55,7 +55,6 @@ static GOptionEntry option_entries[] = {
     {NULL}
 };
 
-#define NWAM_MANAGER_LOCK	"nwam-manager-lock"
 gint prof_action_if_no_fav_networks = NULL;
 gboolean prof_ask_join_open_network;
 gboolean prof_ask_join_fav_network;
@@ -258,11 +257,13 @@ main( int argc, char* argv[] )
     if ( !nwamui_util_is_debug_mode() ) {
         UniqueApp       *app            = NULL;
 
-        app = unique_app_new("org.gnome.nwam-manager", NULL);
+        app = unique_app_new("com.sun.nwam-manager", NULL);
         if (unique_app_is_running(app)) {
 /*         unique_app_add_command(app, "", 1); */
 /*         unique_app_send_message(app, 1, NULL); */
-            g_printf("Another instance is running, exiting.\n");
+            nwamui_util_show_message( NULL, GTK_MESSAGE_INFO, _("NWAM Manager"),
+                                      _("\nAnother instance is running.\nThis instance will exit now."), TRUE );
+            g_debug("Another instance is running, exiting.");
             exit(0);
         }
 

@@ -307,6 +307,13 @@ nwamui_enm_set_property (   GObject         *object,
                     guint   len = 0;
 
                     condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
+                    if ( condition_strs == NULL ) {
+                        /* We need to set activation mode to MANUAL or it will
+                         * not allow deletion of conditions
+                         */
+                        nwamui_enm_set_enabled ( self, FALSE );
+                        nwamui_enm_set_activation_mode ( self, NWAMUI_COND_ACTIVATION_MODE_MANUAL );
+                    }
                     set_nwam_enm_string_array_prop( self->prv->nwam_enm, NWAM_ENM_PROP_CONDITIONS, condition_strs, len );
                 }
                 else {

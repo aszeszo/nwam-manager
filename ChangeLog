@@ -1,3 +1,30 @@
+2009-07-29  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/capplet-utils.h, capplet/capplet-utils.c: 
+	  Add a function to raise a dialog in the stack
+	* capplet/main.c: 
+	  Make the UI handle a UniqueApp message to show itself if a 2nd
+	  instance is run.
+	* common/nwam_pref_iface.h, common/nwam_pref_iface.c,
+	  capplet/nwam_env_pref_dialog.c, capplet/nwam_location_dialog.c,
+	  capplet/nwam_pref_dialog.c, capplet/nwam_vpn_pref_dialog.c,
+	  capplet/nwam_wireless_chooser.c, capplet/nwam_wireless_dialog.c: 
+	  Add nwam_pref_dialog_get_window() function to obtain a GtkWindow
+	  pointer for the various capplet dialogs, and implement in each
+	  variant.
+	* common/nwamui_wifi_net.c: 
+	  Update for API changes w.r.t. sec_mode property and
+	  nwam_wlan_select().
+	* daemon/main.c: 
+	  Use a message box rather than a printf for unique instance message.
+	* capplet/nwam_condition_vbox.c:
+	  Fix some issues for rules, specifically fixed handling of No
+	  Conditions, add/remove button errors, and some filtering issues for
+	  the operand, but still needs a little more work.
+	* nwam_core/usr/include/libnwam.h:
+	  Update to latest header file to get nwam_wlan_select() and sec_mode
+	  property API change.
+
 2009-07-29  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (capplet_util_object_notify_cb):

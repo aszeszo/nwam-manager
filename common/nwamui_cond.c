@@ -709,9 +709,14 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiCond* self = NWAMUI_COND(data);
 
-    g_debug("%s %s %s", nwamui_cond_field_to_str(self->prv->field),
-            nwamui_cond_op_to_str(self->prv->op),
-            self->prv->value?self->prv->value:"NULL");
+    if ( self->prv->field != NWAMUI_COND_FIELD_LAST ) {
+        nwamui_debug("%s %s %s", nwamui_cond_field_to_str(self->prv->field),
+                     nwamui_cond_op_to_str(self->prv->op),
+                     self->prv->value?self->prv->value:"NULL");
+    }
+    else {
+        nwamui_debug("condition %08X set to FIELD_LAST", self );
+    }
 }
 
 

@@ -114,6 +114,7 @@ static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
+static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_wireless_dialog_set_property ( GObject         *object,
                                                 guint            prop_id,
@@ -159,6 +160,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 /*     iface->apply = apply; */
     iface->help = help;
     iface->dialog_run = dialog_run;
+    iface->dialog_get_window = dialog_get_window;
 }
 
 static void
@@ -1297,6 +1299,18 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
     }
     
     return( response );
+}
+
+static GtkWindow* 
+dialog_get_window(NwamPrefIFace *iface)
+{
+    NwamWirelessDialog *self = NWAM_WIRELESS_DIALOG(iface);
+
+    if ( self->prv->wireless_dialog ) {
+        return ( GTK_WINDOW(self->prv->wireless_dialog) );
+    }
+
+    return(NULL);
 }
 
 /**

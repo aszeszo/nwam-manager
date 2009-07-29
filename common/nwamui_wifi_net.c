@@ -425,6 +425,11 @@ nwamui_wifi_net_set_property (  GObject         *object,
                 g_assert( tmpint >= NWAMUI_WIFI_SEC_NONE && tmpint < NWAMUI_WIFI_SEC_LAST );
 
                 prv->security = (nwamui_wifi_security_t)tmpint;
+
+                if ( prv->is_favourite && prv->known_wlan_h != NULL ) {
+                    set_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_SECURITY_MODE, 
+                                                     nwamui_wifi_net_security_map_to_nwam( prv->security));
+                }
             }
             break;
         case PROP_CHANNEL: {
@@ -802,9 +807,12 @@ nwamui_wifi_net_new(    NwamuiNcu                       *ncu,
 extern gboolean
 nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_t  handle )
 {
-    gchar*          name = NULL;
-    gchar**         bssid_strv = NULL;
-    nwam_error_t    nerr;
+    gchar*                      name = NULL;
+    gboolean                    essid_changed = TRUE;
+    gchar**                     bssid_strv = NULL;
+    nwam_error_t                nerr;
+    uint32_t                    sec_mode;
+    nwamui_wifi_security_t      security;
 
     /* Accept NULL to allow for simple re-read from system */
     if ( handle != NULL ) {
@@ -836,56 +844,32 @@ nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_
         return (FALSE);
     }
 
-    if (self->prv->essid)
-        g_free(self->prv->essid);
-
-    self->prv->essid = g_strdup( name );
-
-#if 0
-    {
-        /* Try to figure out security mode, unfortunately needs more privs to
-         * work.
-         */
-        gchar* keyname = get_nwam_known_wlan_string_prop( self->prv->known_wlan_h, 
-                                                          NWAM_KNOWN_WLAN_PROP_KEYNAME );
-
-        if ( keyname != NULL ) {
-            dladm_handle_t          handle;
-            if ( dladm_open( &handle ) == DLADM_STATUS_OK ) {
-                dladm_secobj_class_t _class;
-                dladm_status_t       status;
-                dladm_wlan_key_t	 wk;
-
-                wk.wk_len = DLADM_WLAN_MAX_KEY_LEN;
-
-                if ( (status = dladm_get_secobj( handle, keyname, &_class, wk.wk_val, &wk.wk_len, 0 )) == DLADM_STATUS_OK ) {
-                    nwamui_warning("secobj %s has class : %s (%d)", keyname, (_class == DLADM_SECOBJ_CLASS_WEP)?"WEP":"WPA", _class);
-                    switch( _class ) {
-                        case DLADM_SECOBJ_CLASS_WEP:
-#ifdef WEP_ASCII_EQ_HEX 
-                            self->prv->security = NWAMUI_WIFI_SEC_WEP;
-#else
-                            self->prv->security = NWAMUI_WIFI_SEC_WEP_HEX;
-#endif /* WEP_ASCII_EQ_HEX */
-                            break;
-                        case DLADM_SECOBJ_CLASS_WPA:
-                            self->prv->security = NWAMUI_WIFI_SEC_WPA_PERSONAL;
-                            break;
-                    }
-
-                }
-                else {
-                    gchar   message[1024];
-
-                    g_warning("Error getting secure object %s : %s",  keyname, dladm_status2str( status, message ));
-                }
-
-                dladm_close( handle );
-            }
-            g_free(keyname);
+    if (self->prv->essid != NULL && name != NULL) {
+        if ( strcmp( self->prv->essid, name ) == 0 ) {
+            essid_changed = FALSE;
         }
     }
-#endif /* 0 */
+    else if ( name == NULL ) {
+        essid_changed = FALSE;
+    }
+
+    if ( essid_changed ) {
+        if (self->prv->essid != NULL) { 
+            g_free(self->prv->essid);
+        }
+        self->prv->essid = g_strdup( name );
+        g_object_notify(G_OBJECT(self), "essid");
+    }
+
+    sec_mode = get_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, 
+                                                NWAM_KNOWN_WLAN_PROP_SECURITY_MODE );
+
+    security = nwamui_wifi_net_security_map ( sec_mode );
+
+    if ( self->prv->security != security ) {
+        self->prv->security = security;
+        g_object_notify(G_OBJECT(self), "security");
+    }
 
     g_free(name);
 
@@ -1127,13 +1111,32 @@ nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  )
 {
     gchar          *device = nwamui_ncu_get_device_name(self->prv->ncu);
     nwam_error_t    nerr;
+    uint32_t        sec_mode; /* maps to dladm_wlan_secmode_t */
+    const gchar*    sec_mode_str;
 
-    nwamui_warning("nwam_wlan_select( %s, %s, NULL, %s[%d])", 
+    sec_mode = nwamui_wifi_net_security_map_to_nwam( self->prv->security);
+
+    switch( sec_mode ) {
+        case DLADM_WLAN_SECMODE_NONE:
+            sec_mode_str = "None";
+            break;
+        case DLADM_WLAN_SECMODE_WEP:
+            sec_mode_str = "WEP";
+            break;
+        case DLADM_WLAN_SECMODE_WPA:
+            sec_mode_str = "WPA";
+            break;
+        default:
+            sec_mode_str = "???";
+    }
+
+    nwamui_warning("nwam_wlan_select( %s, %s, NULL, %s[%d], %s[%d])", 
                     device, self->prv->essid, 
+                    sec_mode_str, sec_mode,
                     add_to_favourites?"TRUE":"FALSE",
                     add_to_favourites?B_TRUE:B_FALSE );
 
-    if ( (nerr = nwam_wlan_select( device, self->prv->essid, NULL, 
+    if ( (nerr = nwam_wlan_select( device, self->prv->essid, NULL, sec_mode,
                     add_to_favourites?B_TRUE:B_FALSE )) != NWAM_SUCCESS ) {
         NwamuiDaemon*   daemon = nwamui_daemon_get_instance();
 

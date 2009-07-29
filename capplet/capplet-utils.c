@@ -288,6 +288,19 @@ capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w)
 	return nwam_pref_dialog_run(iface, parent);
 }
 
+gboolean
+capplet_dialog_raise(NwamPrefIFace *iface)
+{
+    GtkWindow*  window;
+
+    if ( ( window = nwam_pref_dialog_get_window(iface) ) != NULL ) {
+        gtk_window_present(window);
+        return ( TRUE );
+    }
+
+	return FALSE;
+}
+
 void
 nwamui_object_name_cell_edited ( GtkCellRendererText *cell,
                      const gchar         *path_string,
