@@ -659,7 +659,7 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
         if ( enm_str != NULL )
             g_free( enm_str );  
             
-        enm_str = g_strdup_printf("%s Active", enm_active_count);
+        enm_str = g_strdup_printf("%d Active", enm_active_count);
     }
         
     gtk_label_set_text(prv->current_vpn_lbl, enm_str );

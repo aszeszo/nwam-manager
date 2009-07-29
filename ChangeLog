@@ -1,5 +1,20 @@
 2009-07-29  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/capplet-utils.c (capplet_util_object_notify_cb):
+	Better debug info.
+	* capplet/nwam-manager-properties.ui:
+	In vpn_dialog, smf_rb and cli_rb should in a group.
+	* capplet/nwam_conn_stat_panel.c (on_nwam_enm_notify_cb):
+	Fixed a crash when multiple enms are running.
+	* capplet/nwam_vpn_pref_dialog.c (nwam_vpn_pref_dialog_init),
+	(capplet_tree_model_row_changed_func), (vpn_pref_clicked_cb),
+	(nwam_vpn_pre_selection_validate), (nwam_vpn_selection_changed),
+	(on_rules_button_clicked):
+	Update/commit enm before start/stop will losing cli commands info.
+	smf_rb and cli_rb don't work correctly.
+
+2009-07-29  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* daemon/status_icon.h:
 	* daemon/status_icon.c (on_activate_static_menuitems),
 	(notification_listwireless), (nwam_exec):

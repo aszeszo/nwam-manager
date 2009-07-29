@@ -136,7 +136,7 @@ static gboolean nwam_vpn_pre_selection_validate(    GtkTreeSelection *selection,
 static void nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	gpointer          data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
-static void on_button_clicked(GtkButton *button, gpointer user_data);
+static void on_rules_button_clicked(GtkButton *button, gpointer user_data);
 static void on_radio_button_toggled(GtkToggleButton *button, gpointer user_data);
 static void conditional_toggled_cb(GtkToggleButton *button, gpointer user_data);
 
@@ -234,9 +234,8 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 	g_signal_connect(self, "notify", (GCallback)object_notify_cb, NULL);
 	g_signal_connect(prv->vpn_pref_dialog, "response", (GCallback)response_cb, (gpointer)self);
 	
-    g_signal_connect(self->prv->vpn_rules_btn,
-      "clicked", G_CALLBACK(on_button_clicked),
-      (gpointer)self);
+    g_signal_connect(self->prv->vpn_rules_btn, "clicked",
+      G_CALLBACK(on_rules_button_clicked), (gpointer)self);
 	g_signal_connect(prv->vpn_cli_rb, "toggled",
       (GCallback)on_radio_button_toggled, (gpointer)self);
 /* 	g_signal_connect(prv->vpn_smf_rb, "toggled", */
@@ -283,7 +282,9 @@ capplet_tree_model_row_changed_func(GtkTreeModel *tree_model,
     GtkTreeSelection *selection = gtk_tree_view_get_selection(prv->view);
 
     if (gtk_tree_selection_path_is_selected(selection, path)) {
-        nwam_vpn_selection_changed(selection, gtk_tree_selection_get_user_data(selection));
+        /* Re-select the row to update the panel. */
+        gtk_tree_selection_unselect_path(selection, path);
+        gtk_tree_selection_select_path(selection, path);
     }
 }
 
@@ -731,6 +732,7 @@ static void
 vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 {
 	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(data);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
 	GtkTreeSelection *selection = NULL;
 	GtkTreeModel *model = NULL;
 	NwamuiEnm *obj;
@@ -825,17 +827,28 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
     /* Update object before activate it, because object notify will update cell
      * then refresh all the widgets to lose data.
      */
-    if (nwam_update_obj (self, self->prv->cur_obj)) {
-        if (nwamui_object_commit(self->prv->cur_obj)) {
-            /* We should not set sensitive of start/stop buttons after
-             * trigger it, we should wait the sigal if there has.
-             */
-            if (button == self->prv->start_btn) {
-                nwamui_enm_set_active (obj, TRUE);
-            } else if (button == self->prv->stop_btn) {
-                nwamui_enm_set_active (obj, FALSE);
-            }
-        }
+    g_signal_handlers_block_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
+      (gpointer)nwam_vpn_selection_changed, (gpointer)self);
+
+    if (!nwam_update_obj (self, self->prv->cur_obj) ||
+      !nwamui_object_commit(self->prv->cur_obj)) {
+
+        g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
+          (gpointer)nwam_vpn_selection_changed, (gpointer)self);
+
+        return;
+    }
+
+    g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
+      (gpointer)nwam_vpn_selection_changed, (gpointer)self);
+
+    /* We should not set sensitive of start/stop buttons after
+     * trigger it, we should wait the sigal if there has.
+     */
+    if (button == self->prv->start_btn) {
+        nwamui_enm_set_active (obj, TRUE);
+    } else if (button == self->prv->stop_btn) {
+        nwamui_enm_set_active (obj, FALSE);
     }
 }
 
@@ -886,9 +899,10 @@ nwam_vpn_pre_selection_validate(   GtkTreeSelection *selection,
                                    gboolean path_currently_selected,
                                    gpointer data)
 {
-	NwamVPNPrefDialogPrivate   *prv = GET_PRIVATE(data);
-	GtkTreeIter                 iter;
-    gboolean                    retval = TRUE;
+	NwamVPNPrefDialogPrivate *prv    = GET_PRIVATE(data);
+	NwamVPNPrefDialog        *self   = NWAM_VPN_PREF_DIALOG(data);
+	GtkTreeIter               iter;
+    gboolean                  retval = TRUE;
 
     if ( path_currently_selected ) {
         g_debug( "Same VPN selected, do nothing" );
@@ -906,10 +920,19 @@ nwam_vpn_pre_selection_validate(   GtkTreeSelection *selection,
 		if (prv->cur_obj && prv->cur_obj == obj) {
             gchar* prop_name;
 
+            g_signal_handlers_block_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
+              (gpointer)nwam_vpn_selection_changed, (gpointer)self);
+
             if ( !nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), prv->cur_obj) ) {
                 /* Don't change selection */
+                g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
+                  (gpointer)nwam_vpn_selection_changed, (gpointer)self);
+
                 retval = FALSE;
             }
+            g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
+              (gpointer)nwam_vpn_selection_changed, (gpointer)self);
+
             if ( !nwamui_enm_validate( NWAMUI_ENM(obj), &prop_name ) ) {
                 gchar* message = g_strdup_printf(_("An error occurred validating the VPN configuration.\nThe property '%s' caused this failure"), prop_name );
                 nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog), 
@@ -1000,10 +1023,11 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 /*             gtk_widget_set_sensitive (GTK_WIDGET(prv->process_entry), fmri_value || init_editting); */
 
             gtk_toggle_button_toggled(GTK_TOGGLE_BUTTON(prv->vpn_cli_rb));
-            if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->vpn_cli_rb)) == cli_value || init_editting)
-                gtk_button_clicked(GTK_BUTTON(prv->vpn_cli_rb));
-            else
-                gtk_button_clicked(GTK_BUTTON(prv->vpn_smf_rb));
+            if (cli_value || init_editting) {
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->vpn_cli_rb), TRUE);
+            } else {
+                gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->vpn_smf_rb), TRUE);
+            }
 
             name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
             title = g_strdup_printf(_("Start/stop '%s' according to rules"), name);
@@ -1059,7 +1083,7 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
 }
 
 static void
-on_button_clicked(GtkButton *button, gpointer user_data)
+on_rules_button_clicked(GtkButton *button, gpointer user_data)
 {
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(user_data);
     GtkTreeModel*               model;

@@ -691,7 +691,7 @@ capplet_util_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data
     GtkTreeIter     iter;
     gboolean        valid_iter = FALSE;
 
-    g_debug("capplet-utils: notify %s changed", arg1->name);
+    g_debug("capplet-utils: %s's notify '%s' changed", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), arg1->name);
 
     if (capplet_model_find_object(model, gobject, &iter)) {
         GtkTreePath *path;

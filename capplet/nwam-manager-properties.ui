@@ -4763,6 +4763,7 @@ Disable these services when this location is active:</property>
                         <property name="receives_default">False</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
+                        <property name="group">vpn_smf_rb</property>
                       </object>
                     </child>
                   </object>
