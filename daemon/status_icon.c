@@ -341,8 +341,6 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
 
             nwam_status_icon_set_status(self, ncu );
 
-            nwam_notification_show_ncu_connected( ncu );
-
             if ( ncu ) {
                 g_object_unref(ncu);
             }

@@ -172,6 +172,8 @@ static gboolean     interface_has_addresses(const char *ifname, sa_family_t fami
 
 static gchar*       get_interface_address_str(const char *ifname, sa_family_t family);
 
+static void         set_all_addresses_dhcp( GtkListStore *ls, gboolean is_dhcp );
+
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -613,6 +615,9 @@ nwamui_ncu_set_property ( GObject         *object,
                     g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                     self->prv->ipv4_primary_ip = ip;
                 }
+                g_signal_handlers_block_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
+                set_all_addresses_dhcp( self->prv->v4addresses, dhcp );
+                g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                 set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
             }
             break;
@@ -702,6 +707,9 @@ nwamui_ncu_set_property ( GObject         *object,
                     g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                     self->prv->ipv6_primary_ip = ip;
                 }
+                g_signal_handlers_block_by_func(G_OBJECT(self->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
+                set_all_addresses_dhcp( self->prv->v6addresses, dhcp );
+                g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)self);
                 set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
             }
             break;
@@ -1368,6 +1376,32 @@ convert_gtk_list_store_to_g_list( GtkListStore *ls )
     return( new_list );
 }
     
+static gboolean 
+set_address_source( GtkTreeModel *model,
+                    GtkTreePath *path,
+                    GtkTreeIter *iter,
+                    gpointer data )
+{
+    NwamuiIp   *ip = NULL;
+	gboolean    is_dhcp = (gboolean)data;
+
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &ip, -1);
+    if ( ip && NWAMUI_IS_IP(ip) ) {
+        nwamui_ip_set_dhcp( ip, is_dhcp );
+    }
+
+    return(FALSE);
+}
+
+
+static void
+set_all_addresses_dhcp( GtkListStore *ls, gboolean is_dhcp ) 
+{
+    if ( ls != NULL ) {
+        gtk_tree_model_foreach( GTK_TREE_MODEL(ls), set_address_source, (gpointer)is_dhcp );
+    }
+}
+
 static void
 nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
 {
@@ -4029,6 +4063,16 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
                     dladm_close(handle);
                 }
 
+                if ( essid != NULL && self->prv->wifi_info == NULL ) {
+                    /* Seems we don't have a valid wifi_info despite being
+                     * connected, try rectify this now.
+                     */
+                    NwamuiWifiNet* wifi = nwamui_ncu_wifi_hash_lookup_by_essid( self, essid );
+
+                    if ( wifi != NULL ) {
+                        nwamui_ncu_set_wifi_info( self, wifi );
+                    }
+                }
                 status_string = g_strdup_printf( _(status_string_fmt[state]), essid?essid:"UNKNOWN" );
 
             }

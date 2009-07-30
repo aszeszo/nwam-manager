@@ -117,6 +117,8 @@ extern gint                     nwamui_ncp_get_wireless_link_num( NwamuiNcp* sel
 
 extern gint64                   nwamui_ncp_get_current_prio_group( NwamuiNcp* self );
 
+extern void                     nwamui_ncp_set_current_prio_group( NwamuiNcp* self, gint64 new_prio );
+
 G_END_DECLS
 
 #endif	/* _NWAMUI_NCP_H */

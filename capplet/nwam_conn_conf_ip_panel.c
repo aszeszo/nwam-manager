@@ -663,6 +663,8 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_subnet_lbl), modifiable);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_subnet_entry), modifiable);
 
+    g_signal_handlers_block_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
+    g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
     g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
 
     if ( set_initial_state ) {
@@ -675,8 +677,11 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
         }
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_combo), modifiable);
         /* Hack, because set false doesn't trigger the signal initially. */
+        g_signal_handlers_block_by_func(G_OBJECT(prv->ipv6_manual_addresses_cbox), (gpointer)ipv6_manual_addresses_cb_toggled, (gpointer)self);
+
         gtk_toggle_button_toggled(GTK_TOGGLE_BUTTON(prv->ipv6_manual_addresses_cbox));
         gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->ipv6_manual_addresses_cbox), !ipv6_dhcp);
+        g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv6_manual_addresses_cbox), (gpointer)ipv6_manual_addresses_cb_toggled, (gpointer)self);
     }
 
 
@@ -779,6 +784,8 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 
     prv = self->prv;
     
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, (gpointer)self);
+
     ncu_type = nwamui_ncu_get_ncu_type( NWAMUI_NCU(prv->ncu) );
     
     if ( ncu_type == NWAMUI_NCU_TYPE_WIRELESS) {
@@ -878,6 +885,8 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
     }
     
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
+
     return( TRUE );
 }
 
@@ -986,16 +995,25 @@ multi_line_add_cb( GtkButton *button, gpointer data )
 	GtkTreeView*        view;
     NwamuiIp*           ip = NULL;
     gboolean            is_v6 = FALSE;
+    gboolean            is_dhcp = FALSE;
+    gboolean            is_static = FALSE;
+    gboolean            is_autoconf = FALSE;
 	
 	if (button == self->prv->ipv4_mutli_add_btn) {
 		view = self->prv->ipv4_tv;
+        is_dhcp = nwamui_ncu_get_ipv4_dhcp( self->prv->ncu );
+        is_static = !is_dhcp;
+        is_autoconf = nwamui_ncu_get_ipv4_auto_conf( self->prv->ncu );
 	} else {
 		view = self->prv->ipv6_tv;
         is_v6 = TRUE;
+        is_dhcp = nwamui_ncu_get_ipv6_dhcp( self->prv->ncu );
+        is_static = !is_dhcp;
+        is_autoconf = nwamui_ncu_get_ipv6_auto_conf( self->prv->ncu );
 	}
     g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, (gpointer)self);
 
-    ip = nwamui_ip_new(self->prv->ncu, "", "", is_v6, FALSE, FALSE, FALSE );
+    ip = nwamui_ip_new(self->prv->ncu, "", "", is_v6, is_dhcp, is_autoconf, is_static );
 
 	model = gtk_tree_view_get_model (view);
 	gtk_list_store_append(GTK_LIST_STORE(model), &iter );
@@ -1381,7 +1399,7 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
 
     /* TODO - Validate data in editing */
     if ( col_id == IP_VIEW_ADDR &&
-         !nwamui_util_validate_ip_address( GTK_WIDGET(view), new_text, FALSE, TRUE ) ) {
+         !nwamui_util_validate_ip_address( GTK_WIDGET(view), new_text, TRUE, TRUE ) ) {
         /* Invalid */
         GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
         GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
@@ -1608,8 +1626,13 @@ ipv4_subnet_changed_cb( GtkEditable* editable, gpointer data )
 static void
 ipv6_manual_addresses_cb_toggled(GtkToggleButton *togglebutton, gpointer user_data)
 {
+    NwamConnConfIPPanel        *self = NWAM_CONN_CONF_IP_PANEL(user_data);
     NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(user_data);
     gboolean active = gtk_toggle_button_get_active(togglebutton);
+
+    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
+    nwamui_ncu_set_ipv6_dhcp( NWAMUI_NCU(prv->ncu), !active);
+    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 
     gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_tv), active);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_add_btn), active);

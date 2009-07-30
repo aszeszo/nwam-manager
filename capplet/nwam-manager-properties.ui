@@ -318,6 +318,11 @@
                         <property name="hscrollbar_policy">never</property>
                         <property name="vscrollbar_policy">never</property>
                         <property name="shadow_type">in</property>
+                        <child>
+                          <object class="NwamTreeView" id="connection_status_table">
+                            <property name="visible">True</property>
+                          </object>
+                        </child>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -768,6 +773,11 @@ Choose which connections are enabled in this profile:</property>
                             <property name="hscrollbar_policy">automatic</property>
                             <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">in</property>
+                            <child>
+                              <object class="NwamTreeView" id="network_profile_table">
+                                <property name="visible">True</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>
@@ -2083,10 +2093,10 @@ connection will be attempted:</property>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">helpbutton1</action-widget>
-      <action-widget response="-1">refresh_button</action-widget>
-      <action-widget response="-1">cancel_button</action-widget>
-      <action-widget response="-1">ok_button</action-widget>
+      <action-widget response="-11">helpbutton1</action-widget>
+      <action-widget response="-2">refresh_button</action-widget>
+      <action-widget response="-6">cancel_button</action-widget>
+      <action-widget response="-5">ok_button</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="nwam_location_properties">
@@ -3718,10 +3728,10 @@ Disable these services when this location is active:</property>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">help_button</action-widget>
-      <action-widget response="-1">cancel_button1</action-widget>
-      <action-widget response="-1">apply_button</action-widget>
-      <action-widget response="-1">ok_button1</action-widget>
+      <action-widget response="-11">help_button</action-widget>
+      <action-widget response="-6">cancel_button1</action-widget>
+      <action-widget response="-10">apply_button</action-widget>
+      <action-widget response="-5">ok_button1</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="add_wireless_network">
@@ -4249,9 +4259,9 @@ Disable these services when this location is active:</property>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">helpbutton3</action-widget>
-      <action-widget response="-1">cancelbutton1</action-widget>
-      <action-widget response="-1">okbutton1</action-widget>
+      <action-widget response="-11">helpbutton3</action-widget>
+      <action-widget response="-6">cancelbutton1</action-widget>
+      <action-widget response="-5">okbutton1</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="connect_wireless_network">
@@ -4393,9 +4403,9 @@ Disable these services when this location is active:</property>
     </child>
     <action-widgets>
       <action-widget response="-1">helpbutton4</action-widget>
-      <action-widget response="-1">cancelbutton2</action-widget>
+      <action-widget response="-6">cancelbutton2</action-widget>
       <action-widget response="0">join_unlisted_btn</action-widget>
-      <action-widget response="-1">okbutton2</action-widget>
+      <action-widget response="-5">okbutton2</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="vpn_config">
@@ -4478,6 +4488,11 @@ Disable these services when this location is active:</property>
                         <property name="hscrollbar_policy">never</property>
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">in</property>
+                        <child>
+                          <object class="NwamTreeView" id="vpn_apps_list">
+                            <property name="visible">True</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
@@ -4876,7 +4891,6 @@ system/system-log:default
                         <property name="receives_default">False</property>
                         <property name="active">True</property>
                         <property name="draw_indicator">True</property>
-                        <property name="group">vpn_cli_rb</property>
                       </object>
                     </child>
                   </object>
@@ -4955,9 +4969,9 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">helpbutton5</action-widget>
-      <action-widget response="-1">cancelbutton3</action-widget>
-      <action-widget response="-1">okbutton3</action-widget>
+      <action-widget response="-11">helpbutton5</action-widget>
+      <action-widget response="-6">cancelbutton3</action-widget>
+      <action-widget response="-5">okbutton3</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="nwam_environment_rename">
@@ -5051,8 +5065,8 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">cancelbutton4</action-widget>
-      <action-widget response="-1">rename_environment_ok_btn</action-widget>
+      <action-widget response="-6">cancelbutton4</action-widget>
+      <action-widget response="-5">rename_environment_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="proxy_password_dialog">
@@ -5233,9 +5247,9 @@ Enter username and password for http://$HOST:$PORT
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">proxy_password_dialog_help_btn</action-widget>
-      <action-widget response="-1">proxy_password_dialog_cancel_btn</action-widget>
-      <action-widget response="-1">proxy_password_dialog_ok_btn</action-widget>
+      <action-widget response="-11">proxy_password_dialog_help_btn</action-widget>
+      <action-widget response="-6">proxy_password_dialog_cancel_btn</action-widget>
+      <action-widget response="-5">proxy_password_dialog_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="nwam_environment_ext_props_dialog">
@@ -5376,8 +5390,8 @@ Enter username and password for http://$HOST:$PORT
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">ext_props_cancel_btn</action-widget>
-      <action-widget response="-1">ext_props_ok_btn</action-widget>
+      <action-widget response="-6">ext_props_cancel_btn</action-widget>
+      <action-widget response="-5">ext_props_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="nwam_location">
@@ -5417,6 +5431,11 @@ Enter username and password for http://$HOST:$PORT
                 <property name="hscrollbar_policy">automatic</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">in</property>
+                <child>
+                  <object class="NwamTreeView" id="location_tree">
+                    <property name="visible">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="top_attach">1</property>
@@ -5709,9 +5728,9 @@ Enter username and password for http://$HOST:$PORT
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">location_help_btn</action-widget>
-      <action-widget response="-1">location_cancel_btn</action-widget>
-      <action-widget response="-1">location_ok_btn</action-widget>
+      <action-widget response="-11">location_help_btn</action-widget>
+      <action-widget response="-6">location_cancel_btn</action-widget>
+      <action-widget response="-5">location_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="enter_service_fmri_dialog">
@@ -5822,8 +5841,8 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">button2</action-widget>
-      <action-widget response="-1">button1</action-widget>
+      <action-widget response="-6">button2</action-widget>
+      <action-widget response="-5">button1</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="rules_dialog">
@@ -5993,9 +6012,9 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">rules_revert_btn</action-widget>
-      <action-widget response="-1">rules_cancel_btn</action-widget>
-      <action-widget response="-1">rules_ok_btn</action-widget>
+      <action-widget response="-2">rules_revert_btn</action-widget>
+      <action-widget response="-6">rules_cancel_btn</action-widget>
+      <action-widget response="-5">rules_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="edit_connections_dialog">
@@ -6108,8 +6127,8 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">cancel_btn</action-widget>
-      <action-widget response="-1">ok_btn</action-widget>
+      <action-widget response="-6">cancel_btn</action-widget>
+      <action-widget response="-5">ok_btn</action-widget>
     </action-widgets>
   </object>
 </interface>

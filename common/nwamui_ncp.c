@@ -64,7 +64,7 @@ enum {
 
 typedef struct {
     /* Input */
-    gint            current_prio;
+    gint64          current_prio;
 
     /* Output */
     guint32         num_manual_enabled;
@@ -94,6 +94,10 @@ struct _NwamuiNcpPrivate {
         GList*                      ncus_added;
 
         GList*                      temp_ncu_list;
+
+        /* Cached Priority Group */
+        gint                        priority_group;
+        time_t                      priority_group_last_update;
 };
 
 static void nwamui_ncp_set_property ( GObject         *object,
@@ -262,6 +266,9 @@ nwamui_ncp_init ( NwamuiNcp *self)
     self->prv = g_new0 (NwamuiNcpPrivate, 1);
     
     self->prv->name = NULL;
+
+    self->prv->priority_group = 0;
+    self->prv->priority_group_last_update = 0;
 
     self->prv->ncu_list = NULL;
     self->prv->ncu_tree_store = NULL;
@@ -730,22 +737,43 @@ nwamui_ncp_get_current_prio_group( NwamuiNcp* self )
     gint64          current_prio = -1;  /* -1 not a valid prio */
     int64_t         pg = 0;
     nwam_error_t    nerr;
+    time_t          current_time = time( NULL );
+    time_t          elapsed_time;
 
-    if (!NWAMUI_IS_NCP (self) && self->prv->nwam_ncp == NULL ) {
+    if (!NWAMUI_IS_NCP (self) ) {
         return( 0 );
     }
 
-    if ( (nerr = nwam_ncp_get_active_priority_group( &pg )) != NWAM_SUCCESS ) {
-        nwamui_debug("Error getting active priortiy group: %d (%s)", 
-                     nerr, nwam_strerror(nerr) );
-        return( 0 );
+    elapsed_time = current_time - self->prv->priority_group_last_update;
+
+    if ( elapsed_time > 60 ) { /* seconds  */
+        if ( (nerr = nwam_ncp_get_active_priority_group( &pg )) != NWAM_SUCCESS ) {
+            nwamui_debug("Error getting active priortiy group: %d (%s)", 
+                         nerr, nwam_strerror(nerr) );
+            current_prio = 0;
+        }
+        else {
+            current_prio = (gint64)pg;
+            self->prv->priority_group = current_prio;
+            self->prv->priority_group_last_update = current_time;
+        }
     }
-
-/*     nwamui_debug("Got active priority group as %d", pg ); */
-
-    current_prio = (gint64)pg;
+    else {
+        current_prio = self->prv->priority_group;
+    }
 
     return( current_prio );
+}
+
+extern void
+nwamui_ncp_set_current_prio_group( NwamuiNcp* self, gint64 new_prio ) 
+{
+    if (!NWAMUI_IS_NCP (self) ) {
+        return;
+    }
+
+    self->prv->priority_group = new_prio;
+    self->prv->priority_group_last_update = time( NULL );
 }
 
 static void

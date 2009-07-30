@@ -44,12 +44,16 @@ G_BEGIN_DECLS
 #define NWAMUI_OBJECT_GET_CLASS(obj)     (G_TYPE_INSTANCE_GET_CLASS ((obj), NWAMUI_TYPE_OBJECT, NwamuiObjectClass))
 
 
-typedef struct _NwamuiObject		      NwamuiObject;
+typedef struct _NwamuiObject		     NwamuiObject;
 typedef struct _NwamuiObjectClass        NwamuiObjectClass;
+typedef struct _NwamuiObjectPrivate	     NwamuiObjectPrivate;
+
 
 struct _NwamuiObject
 {
 	GObject                      object;
+    
+    NwamuiObjectPrivate         *prv;
 };
 
 typedef    gchar*               (*nwamui_object_get_name_func_t)(NwamuiObject *object);
@@ -94,6 +98,7 @@ extern void                 nwamui_object_set_activation_mode(NwamuiObject *obje
 extern gint                 nwamui_object_get_active(NwamuiObject *object);
 extern void                 nwamui_object_set_active(NwamuiObject *object, gboolean active);
 extern nwam_state_t         nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string );
+extern void                 nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state);
 extern gboolean             nwamui_object_commit(NwamuiObject *object);
 extern void                 nwamui_object_reload(NwamuiObject *object);
 extern gboolean             nwamui_object_destroy(NwamuiObject *object);
