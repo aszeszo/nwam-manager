@@ -1,3 +1,9 @@
+2009-07-30  Calum Benson <calum.benson@sun.com>
+
+	* capplet/nwam-manager-properties.ui:
+	  Add Lock to Location and Activate Best Location controls,
+	  per d.o.o bug #9561.
+
 2009-07-29  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/capplet-utils.h, capplet/capplet-utils.c: 

@@ -1,47 +1,40 @@
 <?xml version="1.0"?>
 <interface>
+  <requires lib="gtk+" version="2.16"/>
+  <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkAdjustment" id="adjustment1">
-    <property name="upper">65535</property>
-    <property name="lower">0</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
     <property name="value">80</property>
+    <property name="upper">65535</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjustment2">
-    <property name="upper">65535</property>
-    <property name="lower">0</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
     <property name="value">80</property>
+    <property name="upper">65535</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjustment3">
-    <property name="upper">65535</property>
-    <property name="lower">0</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
     <property name="value">80</property>
+    <property name="upper">65535</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjustment4">
-    <property name="upper">65535</property>
-    <property name="lower">0</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
     <property name="value">80</property>
+    <property name="upper">65535</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkAdjustment" id="adjustment5">
-    <property name="upper">65535</property>
-    <property name="lower">0</property>
-    <property name="page_increment">10</property>
-    <property name="step_increment">1</property>
-    <property name="page_size">0</property>
     <property name="value">1080</property>
+    <property name="upper">65535</property>
+    <property name="step_increment">1</property>
+    <property name="page_increment">10</property>
   </object>
   <object class="GtkListStore" id="model1">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -76,6 +69,7 @@
   </object>
   <object class="GtkListStore" id="model10">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -89,6 +83,7 @@
   </object>
   <object class="GtkListStore" id="model11">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -105,6 +100,7 @@
   </object>
   <object class="GtkListStore" id="model2">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -118,6 +114,7 @@
   </object>
   <object class="GtkListStore" id="model3">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -131,6 +128,7 @@
   </object>
   <object class="GtkListStore" id="model4">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -147,6 +145,7 @@
   </object>
   <object class="GtkListStore" id="model5">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -160,6 +159,7 @@
   </object>
   <object class="GtkListStore" id="model6">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -179,6 +179,7 @@
   </object>
   <object class="GtkListStore" id="model7">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -195,6 +196,7 @@
   </object>
   <object class="GtkListStore" id="model8">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -211,6 +213,7 @@
   </object>
   <object class="GtkListStore" id="model9">
     <columns>
+      <!-- column-name gchararray -->
       <column type="gchararray"/>
     </columns>
     <data>
@@ -231,8 +234,6 @@
       </row>
     </data>
   </object>
-  <!-- interface-requires gtk+ 2.16 -->
-  <!-- interface-naming-policy toplevel-contextual -->
   <object class="GtkDialog" id="nwam_capplet">
     <property name="title" translatable="yes">Network Preferences</property>
     <property name="icon">icons/network-idle.png</property>
@@ -267,7 +268,7 @@
                   <packing>
                     <property name="left_attach">1</property>
                     <property name="right_attach">2</property>
-                    <property name="y_options"/>
+                    <property name="y_options"></property>
                   </packing>
                 </child>
                 <child>
@@ -279,8 +280,8 @@
                     <property name="justify">right</property>
                   </object>
                   <packing>
-                    <property name="x_options"/>
-                    <property name="y_options"/>
+                    <property name="x_options"></property>
+                    <property name="y_options"></property>
                   </packing>
                 </child>
               </object>
@@ -317,11 +318,6 @@
                         <property name="hscrollbar_policy">never</property>
                         <property name="vscrollbar_policy">never</property>
                         <property name="shadow_type">in</property>
-                        <child>
-                          <object class="NwamTreeView" id="connection_status_table">
-                            <property name="visible">True</property>
-                          </object>
-                        </child>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -409,7 +405,7 @@
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
                             <property name="x_options">GTK_FILL</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -461,7 +457,7 @@
                             <property name="top_attach">2</property>
                             <property name="bottom_attach">3</property>
                             <property name="x_options">GTK_FILL</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -476,7 +472,7 @@
                             <property name="right_attach">2</property>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -491,7 +487,7 @@
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
                             <property name="x_options">GTK_FILL</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -546,7 +542,7 @@
                             <property name="right_attach">2</property>
                             <property name="top_attach">2</property>
                             <property name="bottom_attach">3</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -561,7 +557,7 @@
                             <property name="top_attach">2</property>
                             <property name="bottom_attach">3</property>
                             <property name="x_options">GTK_FILL</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -762,7 +758,7 @@ Choose which connections are enabled in this profile:</property>
                           <packing>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -772,11 +768,6 @@ Choose which connections are enabled in this profile:</property>
                             <property name="hscrollbar_policy">automatic</property>
                             <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">in</property>
-                            <child>
-                              <object class="NwamTreeView" id="network_profile_table">
-                                <property name="visible">True</property>
-                              </object>
-                            </child>
                           </object>
                         </child>
                         <child>
@@ -909,7 +900,7 @@ Choose which connections are enabled in this profile:</property>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
-                            <property name="x_options"/>
+                            <property name="x_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -922,6 +913,9 @@ Choose which connections are enabled in this profile:</property>
                       </packing>
                     </child>
                   </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
                 </child>
                 <child type="tab">
                   <object class="GtkLabel" id="interface_tab">
@@ -968,7 +962,7 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
                                     <property name="x_options">GTK_FILL</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                                 <child>
@@ -980,7 +974,7 @@ Choose which connections are enabled in this profile:</property>
                                   </object>
                                   <packing>
                                     <property name="x_options">GTK_FILL</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                                 <child>
@@ -994,7 +988,7 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="right_attach">2</property>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1006,7 +1000,7 @@ Choose which connections are enabled in this profile:</property>
                                   <packing>
                                     <property name="left_attach">1</property>
                                     <property name="right_attach">2</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                               </object>
@@ -1038,7 +1032,7 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
                                     <property name="x_options">GTK_FILL</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1050,7 +1044,7 @@ Choose which connections are enabled in this profile:</property>
                                   </object>
                                   <packing>
                                     <property name="x_options">GTK_FILL</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1072,7 +1066,7 @@ Choose which connections are enabled in this profile:</property>
                                   <packing>
                                     <property name="left_attach">1</property>
                                     <property name="right_attach">2</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1096,10 +1090,13 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="right_attach">2</property>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                               </object>
+                              <packing>
+                                <property name="position">1</property>
+                              </packing>
                             </child>
                             <child type="tab">
                               <object class="GtkLabel" id="manual_label">
@@ -1132,7 +1129,7 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
                                     <property name="x_options">GTK_FILL</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1149,7 +1146,7 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
                                     <property name="x_options">GTK_FILL</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1182,10 +1179,13 @@ Choose which connections are enabled in this profile:</property>
                                   <packing>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                               </object>
+                              <packing>
+                                <property name="position">2</property>
+                              </packing>
                             </child>
                             <child type="tab">
                               <object class="GtkLabel" id="multiple_label">
@@ -1256,7 +1256,7 @@ Choose which connections are enabled in this profile:</property>
                                           <packing>
                                             <property name="top_attach">4</property>
                                             <property name="bottom_attach">5</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1291,7 +1291,6 @@ Choose which connections are enabled in this profile:</property>
                                         <child>
                                           <object class="GtkCheckButton" id="accept_ipv6_stateless_cbox">
                                             <property name="label" translatable="yes">Accept _stateless addresses from router</property>
-                                            <property name="visible">False</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
                                             <property name="use_underline">True</property>
@@ -1302,13 +1301,12 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="top_attach">1</property>
                                             <property name="bottom_attach">2</property>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
                                           <object class="GtkCheckButton" id="accept_ipv6_stateful_cbox">
                                             <property name="label" translatable="yes">Accept state_ful addresses from router</property>
-                                            <property name="visible">False</property>
                                             <property name="can_focus">True</property>
                                             <property name="receives_default">False</property>
                                             <property name="use_underline">True</property>
@@ -1317,7 +1315,7 @@ Choose which connections are enabled in this profile:</property>
                                           <packing>
                                             <property name="right_attach">3</property>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1334,7 +1332,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="top_attach">2</property>
                                             <property name="bottom_attach">3</property>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1351,7 +1349,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="top_attach">4</property>
                                             <property name="bottom_attach">5</property>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1368,7 +1366,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="top_attach">4</property>
                                             <property name="bottom_attach">5</property>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                       </object>
@@ -1400,7 +1398,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="top_attach">1</property>
                                             <property name="bottom_attach">2</property>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1414,7 +1412,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="top_attach">1</property>
                                             <property name="bottom_attach">2</property>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1428,7 +1426,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="right_attach">2</property>
                                             <property name="top_attach">2</property>
                                             <property name="bottom_attach">3</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1440,7 +1438,7 @@ Choose which connections are enabled in this profile:</property>
                                           <packing>
                                             <property name="left_attach">1</property>
                                             <property name="right_attach">2</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1454,7 +1452,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="top_attach">2</property>
                                             <property name="bottom_attach">3</property>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1466,10 +1464,13 @@ Choose which connections are enabled in this profile:</property>
                                           </object>
                                           <packing>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                       </object>
+                                      <packing>
+                                        <property name="position">1</property>
+                                      </packing>
                                     </child>
                                     <child type="tab">
                                       <object class="GtkLabel" id="label67">
@@ -1506,7 +1507,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="right_attach">2</property>
                                             <property name="top_attach">2</property>
                                             <property name="bottom_attach">3</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1520,7 +1521,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="right_attach">2</property>
                                             <property name="top_attach">1</property>
                                             <property name="bottom_attach">2</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1534,7 +1535,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="top_attach">2</property>
                                             <property name="bottom_attach">3</property>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1549,7 +1550,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="top_attach">1</property>
                                             <property name="bottom_attach">2</property>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1562,7 +1563,7 @@ Choose which connections are enabled in this profile:</property>
                                           </object>
                                           <packing>
                                             <property name="x_options">GTK_FILL</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                         <child>
@@ -1576,10 +1577,13 @@ Choose which connections are enabled in this profile:</property>
                                           <packing>
                                             <property name="left_attach">1</property>
                                             <property name="right_attach">2</property>
-                                            <property name="y_options"/>
+                                            <property name="y_options"></property>
                                           </packing>
                                         </child>
                                       </object>
+                                      <packing>
+                                        <property name="position">2</property>
+                                      </packing>
                                     </child>
                                     <child type="tab">
                                       <object class="GtkLabel" id="label71">
@@ -1596,7 +1600,7 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="right_attach">2</property>
                                     <property name="top_attach">1</property>
                                     <property name="bottom_attach">2</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                                 <child>
@@ -1608,7 +1612,7 @@ Choose which connections are enabled in this profile:</property>
                                   </object>
                                   <packing>
                                     <property name="x_options">GTK_FILL</property>
-                                    <property name="y_options"/>
+                                    <property name="y_options"></property>
                                   </packing>
                                 </child>
                               </object>
@@ -1625,7 +1629,7 @@ Choose which connections are enabled in this profile:</property>
                             <property name="right_attach">2</property>
                             <property name="top_attach">2</property>
                             <property name="bottom_attach">3</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -1636,8 +1640,8 @@ Choose which connections are enabled in this profile:</property>
                             <property name="use_underline">True</property>
                           </object>
                           <packing>
-                            <property name="x_options"/>
-                            <property name="y_options"/>
+                            <property name="x_options"></property>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -1654,7 +1658,7 @@ Choose which connections are enabled in this profile:</property>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                       </object>
@@ -1690,7 +1694,7 @@ connection will be attempted:</property>
                               <packing>
                                 <property name="right_attach">2</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -1785,8 +1789,8 @@ connection will be attempted:</property>
                                 <property name="right_attach">2</property>
                                 <property name="top_attach">1</property>
                                 <property name="bottom_attach">2</property>
-                                <property name="x_options"/>
-                                <property name="y_options"/>
+                                <property name="x_options"></property>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -1948,6 +1952,9 @@ connection will be attempted:</property>
                           </packing>
                         </child>
                       </object>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                     <child type="tab">
                       <object class="GtkLabel" id="wireless_tab">
@@ -1963,6 +1970,9 @@ connection will be attempted:</property>
                       <object class="GtkLabel" id="label15">
                         <property name="label" translatable="yes">Not required for Phase 1</property>
                       </object>
+                      <packing>
+                        <property name="position">2</property>
+                      </packing>
                     </child>
                     <child type="tab">
                       <object class="GtkLabel" id="label12">
@@ -1975,6 +1985,9 @@ connection will be attempted:</property>
                       </packing>
                     </child>
                   </object>
+                  <packing>
+                    <property name="position">2</property>
+                  </packing>
                 </child>
                 <child type="tab">
                   <object class="GtkLabel" id="connection_profile_tab">
@@ -2070,10 +2083,10 @@ connection will be attempted:</property>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-11">helpbutton1</action-widget>
-      <action-widget response="-2">refresh_button</action-widget>
-      <action-widget response="-6">cancel_button</action-widget>
-      <action-widget response="-5">ok_button</action-widget>
+      <action-widget response="-1">helpbutton1</action-widget>
+      <action-widget response="-1">refresh_button</action-widget>
+      <action-widget response="-1">cancel_button</action-widget>
+      <action-widget response="-1">ok_button</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="nwam_location_properties">
@@ -2166,7 +2179,7 @@ connection will be attempted:</property>
                               </object>
                               <packing>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2181,7 +2194,7 @@ connection will be attempted:</property>
                                 <property name="top_attach">2</property>
                                 <property name="bottom_attach">3</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2196,7 +2209,7 @@ connection will be attempted:</property>
                                 <property name="top_attach">4</property>
                                 <property name="bottom_attach">5</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2211,7 +2224,7 @@ connection will be attempted:</property>
                                 <property name="top_attach">5</property>
                                 <property name="bottom_attach">6</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2223,7 +2236,7 @@ connection will be attempted:</property>
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2237,7 +2250,7 @@ connection will be attempted:</property>
                                 <property name="right_attach">2</property>
                                 <property name="top_attach">2</property>
                                 <property name="bottom_attach">3</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2251,7 +2264,7 @@ connection will be attempted:</property>
                                 <property name="right_attach">2</property>
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2265,7 +2278,7 @@ connection will be attempted:</property>
                                 <property name="right_attach">2</property>
                                 <property name="top_attach">4</property>
                                 <property name="bottom_attach">5</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2279,7 +2292,7 @@ connection will be attempted:</property>
                                 <property name="right_attach">2</property>
                                 <property name="top_attach">5</property>
                                 <property name="bottom_attach">6</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2294,7 +2307,7 @@ connection will be attempted:</property>
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2309,7 +2322,7 @@ connection will be attempted:</property>
                                 <property name="top_attach">4</property>
                                 <property name="bottom_attach">5</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2324,7 +2337,7 @@ connection will be attempted:</property>
                                 <property name="top_attach">5</property>
                                 <property name="bottom_attach">6</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2348,7 +2361,7 @@ connection will be attempted:</property>
                                 <property name="top_attach">1</property>
                                 <property name="bottom_attach">2</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2363,7 +2376,7 @@ connection will be attempted:</property>
                                 <property name="left_attach">4</property>
                                 <property name="right_attach">5</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2378,7 +2391,7 @@ connection will be attempted:</property>
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2409,7 +2422,7 @@ connection will be attempted:</property>
                                 <property name="top_attach">2</property>
                                 <property name="bottom_attach">3</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2425,7 +2438,7 @@ connection will be attempted:</property>
                                 <property name="top_attach">7</property>
                                 <property name="bottom_attach">8</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2438,7 +2451,7 @@ connection will be attempted:</property>
                                 <property name="left_attach">2</property>
                                 <property name="right_attach">3</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2451,7 +2464,7 @@ connection will be attempted:</property>
                               <packing>
                                 <property name="left_attach">3</property>
                                 <property name="right_attach">4</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2466,7 +2479,7 @@ connection will be attempted:</property>
                                 <property name="right_attach">4</property>
                                 <property name="top_attach">2</property>
                                 <property name="bottom_attach">3</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2481,7 +2494,7 @@ connection will be attempted:</property>
                                 <property name="right_attach">4</property>
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2496,7 +2509,7 @@ connection will be attempted:</property>
                                 <property name="right_attach">4</property>
                                 <property name="top_attach">4</property>
                                 <property name="bottom_attach">5</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2511,7 +2524,7 @@ connection will be attempted:</property>
                                 <property name="right_attach">4</property>
                                 <property name="top_attach">5</property>
                                 <property name="bottom_attach">6</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2531,7 +2544,7 @@ connection will be attempted:</property>
                                 <property name="right_attach">4</property>
                                 <property name="top_attach">6</property>
                                 <property name="bottom_attach">7</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -2606,6 +2619,9 @@ connection will be attempted:</property>
                               </object>
                             </child>
                           </object>
+                          <packing>
+                            <property name="position">1</property>
+                          </packing>
                         </child>
                         <child type="tab">
                           <object class="GtkLabel" id="pac_label">
@@ -3108,7 +3124,7 @@ connection will be attempted:</property>
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">3</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -3154,6 +3170,9 @@ connection will be attempted:</property>
                       </object>
                     </child>
                   </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
                 </child>
                 <child type="tab">
                   <object class="GtkLabel" id="label18">
@@ -3202,7 +3221,7 @@ connection will be attempted:</property>
                                         <property name="right_attach">2</property>
                                         <property name="top_attach">1</property>
                                         <property name="bottom_attach">2</property>
-                                        <property name="y_options"/>
+                                        <property name="y_options"></property>
                                       </packing>
                                     </child>
                                     <child>
@@ -3216,7 +3235,7 @@ connection will be attempted:</property>
                                         <property name="right_attach">2</property>
                                         <property name="top_attach">2</property>
                                         <property name="bottom_attach">3</property>
-                                        <property name="y_options"/>
+                                        <property name="y_options"></property>
                                       </packing>
                                     </child>
                                     <child>
@@ -3230,7 +3249,7 @@ connection will be attempted:</property>
                                         <property name="right_attach">2</property>
                                         <property name="top_attach">3</property>
                                         <property name="bottom_attach">4</property>
-                                        <property name="y_options"/>
+                                        <property name="y_options"></property>
                                       </packing>
                                     </child>
                                     <child>
@@ -3347,7 +3366,7 @@ connection will be attempted:</property>
                                         <property name="right_attach">2</property>
                                         <property name="top_attach">1</property>
                                         <property name="bottom_attach">2</property>
-                                        <property name="y_options"/>
+                                        <property name="y_options"></property>
                                       </packing>
                                     </child>
                                     <child>
@@ -3375,7 +3394,7 @@ connection will be attempted:</property>
                                       <packing>
                                         <property name="left_attach">1</property>
                                         <property name="right_attach">2</property>
-                                        <property name="y_options"/>
+                                        <property name="y_options"></property>
                                       </packing>
                                     </child>
                                     <child>
@@ -3411,6 +3430,9 @@ connection will be attempted:</property>
                       </object>
                     </child>
                   </object>
+                  <packing>
+                    <property name="position">2</property>
+                  </packing>
                 </child>
                 <child type="tab">
                   <object class="GtkLabel" id="label14">
@@ -3480,7 +3502,7 @@ connection will be attempted:</property>
                       </object>
                       <packing>
                         <property name="right_attach">2</property>
-                        <property name="y_options"/>
+                        <property name="y_options"></property>
                       </packing>
                     </child>
                     <child>
@@ -3494,7 +3516,7 @@ Disable these services when this location is active:</property>
                         <property name="right_attach">2</property>
                         <property name="top_attach">2</property>
                         <property name="bottom_attach">3</property>
-                        <property name="y_options"/>
+                        <property name="y_options"></property>
                       </packing>
                     </child>
                     <child>
@@ -3544,7 +3566,7 @@ Disable these services when this location is active:</property>
                         <property name="right_attach">2</property>
                         <property name="top_attach">1</property>
                         <property name="bottom_attach">2</property>
-                        <property name="x_options"/>
+                        <property name="x_options"></property>
                       </packing>
                     </child>
                     <child>
@@ -3594,10 +3616,13 @@ Disable these services when this location is active:</property>
                         <property name="right_attach">2</property>
                         <property name="top_attach">3</property>
                         <property name="bottom_attach">4</property>
-                        <property name="x_options"/>
+                        <property name="x_options"></property>
                       </packing>
                     </child>
                   </object>
+                  <packing>
+                    <property name="position">3</property>
+                  </packing>
                 </child>
                 <child type="tab">
                   <object class="GtkLabel" id="label17">
@@ -3693,10 +3718,10 @@ Disable these services when this location is active:</property>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-11">help_button</action-widget>
-      <action-widget response="-6">cancel_button1</action-widget>
-      <action-widget response="-10">apply_button</action-widget>
-      <action-widget response="-5">ok_button1</action-widget>
+      <action-widget response="-1">help_button</action-widget>
+      <action-widget response="-1">cancel_button1</action-widget>
+      <action-widget response="-1">apply_button</action-widget>
+      <action-widget response="-1">ok_button1</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="add_wireless_network">
@@ -3736,7 +3761,7 @@ Disable these services when this location is active:</property>
                     <property name="right_attach">2</property>
                     <property name="top_attach">1</property>
                     <property name="bottom_attach">2</property>
-                    <property name="y_options"/>
+                    <property name="y_options"></property>
                   </packing>
                 </child>
                 <child>
@@ -3750,7 +3775,7 @@ Disable these services when this location is active:</property>
                     <property name="top_attach">1</property>
                     <property name="bottom_attach">2</property>
                     <property name="x_options">GTK_FILL</property>
-                    <property name="y_options"/>
+                    <property name="y_options"></property>
                   </packing>
                 </child>
                 <child>
@@ -3761,7 +3786,7 @@ Disable these services when this location is active:</property>
                     <property name="use_underline">True</property>
                   </object>
                   <packing>
-                    <property name="y_options"/>
+                    <property name="y_options"></property>
                   </packing>
                 </child>
                 <child>
@@ -3859,7 +3884,7 @@ Disable these services when this location is active:</property>
                             <property name="right_attach">2</property>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -3871,7 +3896,7 @@ Disable these services when this location is active:</property>
                             <property name="mnemonic_widget">wpa_username_entry</property>
                           </object>
                           <packing>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -3885,7 +3910,7 @@ Disable these services when this location is active:</property>
                           <packing>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -3897,7 +3922,7 @@ Disable these services when this location is active:</property>
                           <packing>
                             <property name="left_attach">1</property>
                             <property name="right_attach">2</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -3930,7 +3955,7 @@ Disable these services when this location is active:</property>
                           <packing>
                             <property name="top_attach">2</property>
                             <property name="bottom_attach">3</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                         <child>
@@ -3956,10 +3981,13 @@ Disable these services when this location is active:</property>
                             <property name="top_attach">3</property>
                             <property name="bottom_attach">4</property>
                             <property name="x_options">GTK_FILL</property>
-                            <property name="y_options"/>
+                            <property name="y_options"></property>
                           </packing>
                         </child>
                       </object>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
                     </child>
                     <child type="tab">
                       <object class="GtkLabel" id="wpa_lbl">
@@ -4221,9 +4249,9 @@ Disable these services when this location is active:</property>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-11">helpbutton3</action-widget>
-      <action-widget response="-6">cancelbutton1</action-widget>
-      <action-widget response="-5">okbutton1</action-widget>
+      <action-widget response="-1">helpbutton3</action-widget>
+      <action-widget response="-1">cancelbutton1</action-widget>
+      <action-widget response="-1">okbutton1</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="connect_wireless_network">
@@ -4364,9 +4392,10 @@ Disable these services when this location is active:</property>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-11">helpbutton4</action-widget>
-      <action-widget response="-6">cancelbutton2</action-widget>
-      <action-widget response="-5">okbutton2</action-widget>
+      <action-widget response="-1">helpbutton4</action-widget>
+      <action-widget response="-1">cancelbutton2</action-widget>
+      <action-widget response="0">join_unlisted_btn</action-widget>
+      <action-widget response="-1">okbutton2</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="vpn_config">
@@ -4449,11 +4478,6 @@ Disable these services when this location is active:</property>
                         <property name="hscrollbar_policy">never</property>
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">in</property>
-                        <child>
-                          <object class="NwamTreeView" id="vpn_apps_list">
-                            <property name="visible">True</property>
-                          </object>
-                        </child>
                       </object>
                     </child>
                     <child>
@@ -4607,7 +4631,7 @@ Disable these services when this location is active:</property>
                               </object>
                               <packing>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -4622,7 +4646,7 @@ Disable these services when this location is active:</property>
                                 <property name="top_attach">1</property>
                                 <property name="bottom_attach">2</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -4634,7 +4658,7 @@ Disable these services when this location is active:</property>
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -4648,7 +4672,7 @@ Disable these services when this location is active:</property>
                                 <property name="right_attach">2</property>
                                 <property name="top_attach">1</property>
                                 <property name="bottom_attach">2</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -4697,7 +4721,7 @@ Disable these services when this location is active:</property>
                                 <property name="left_attach">2</property>
                                 <property name="right_attach">3</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -4748,7 +4772,7 @@ Disable these services when this location is active:</property>
                                 <property name="top_attach">1</property>
                                 <property name="bottom_attach">2</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                           </object>
@@ -4799,7 +4823,7 @@ Disable these services when this location is active:</property>
                               </object>
                               <packing>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -4812,7 +4836,7 @@ Disable these services when this location is active:</property>
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -4834,7 +4858,7 @@ system/system-log:default
                                 <property name="top_attach">1</property>
                                 <property name="bottom_attach">2</property>
                                 <property name="x_options">GTK_FILL</property>
-                                <property name="y_options"/>
+                                <property name="y_options"></property>
                               </packing>
                             </child>
                             <child>
@@ -4931,9 +4955,9 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-11">helpbutton5</action-widget>
-      <action-widget response="-6">cancelbutton3</action-widget>
-      <action-widget response="-5">okbutton3</action-widget>
+      <action-widget response="-1">helpbutton5</action-widget>
+      <action-widget response="-1">cancelbutton3</action-widget>
+      <action-widget response="-1">okbutton3</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="nwam_environment_rename">
@@ -5027,8 +5051,8 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-6">cancelbutton4</action-widget>
-      <action-widget response="-5">rename_environment_ok_btn</action-widget>
+      <action-widget response="-1">cancelbutton4</action-widget>
+      <action-widget response="-1">rename_environment_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="proxy_password_dialog">
@@ -5209,9 +5233,9 @@ Enter username and password for http://$HOST:$PORT
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-11">proxy_password_dialog_help_btn</action-widget>
-      <action-widget response="-6">proxy_password_dialog_cancel_btn</action-widget>
-      <action-widget response="-5">proxy_password_dialog_ok_btn</action-widget>
+      <action-widget response="-1">proxy_password_dialog_help_btn</action-widget>
+      <action-widget response="-1">proxy_password_dialog_cancel_btn</action-widget>
+      <action-widget response="-1">proxy_password_dialog_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="nwam_environment_ext_props_dialog">
@@ -5273,7 +5297,7 @@ Enter username and password for http://$HOST:$PORT
                   </object>
                   <packing>
                     <property name="right_attach">3</property>
-                    <property name="y_options"/>
+                    <property name="y_options"></property>
                   </packing>
                 </child>
                 <child>
@@ -5300,7 +5324,7 @@ Enter username and password for http://$HOST:$PORT
                     <property name="right_attach">3</property>
                     <property name="top_attach">1</property>
                     <property name="bottom_attach">2</property>
-                    <property name="x_options"/>
+                    <property name="x_options"></property>
                   </packing>
                 </child>
               </object>
@@ -5352,8 +5376,8 @@ Enter username and password for http://$HOST:$PORT
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-6">ext_props_cancel_btn</action-widget>
-      <action-widget response="-5">ext_props_ok_btn</action-widget>
+      <action-widget response="-1">ext_props_cancel_btn</action-widget>
+      <action-widget response="-1">ext_props_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="nwam_location">
@@ -5370,7 +5394,7 @@ Enter username and password for http://$HOST:$PORT
         <child>
           <object class="GtkTable" id="table5">
             <property name="visible">True</property>
-            <property name="n_rows">3</property>
+            <property name="n_rows">4</property>
             <property name="n_columns">2</property>
             <property name="column_spacing">12</property>
             <property name="row_spacing">6</property>
@@ -5393,11 +5417,6 @@ Enter username and password for http://$HOST:$PORT
                 <property name="hscrollbar_policy">automatic</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">in</property>
-                <child>
-                  <object class="NwamTreeView" id="location_tree">
-                    <property name="visible">True</property>
-                  </object>
-                </child>
               </object>
               <packing>
                 <property name="top_attach">1</property>
@@ -5496,7 +5515,7 @@ Enter username and password for http://$HOST:$PORT
               </packing>
             </child>
             <child>
-              <object class="GtkHBox" id="hbox11">
+              <object class="GtkHBox" id="location-activation-hbox">
                 <property name="visible">True</property>
                 <property name="spacing">12</property>
                 <child>
@@ -5527,13 +5546,11 @@ Enter username and password for http://$HOST:$PORT
                         </child>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
                         <property name="position">1</property>
                       </packing>
                     </child>
                   </object>
                   <packing>
-                    <property name="expand">False</property>
                     <property name="position">0</property>
                   </packing>
                 </child>
@@ -5556,12 +5573,76 @@ Enter username and password for http://$HOST:$PORT
                 <property name="top_attach">2</property>
                 <property name="bottom_attach">3</property>
                 <property name="x_options">GTK_FILL</property>
-                <property name="y_options">GTK_SHRINK</property>
+                <property name="y_options"></property>
                 <property name="y_padding">12</property>
               </packing>
             </child>
             <child>
-              <placeholder/>
+              <object class="GtkAlignment" id="alignment1">
+                <property name="visible">True</property>
+                <property name="bottom_padding">24</property>
+                <child>
+                  <object class="GtkHBox" id="location-lock-hbox">
+                    <property name="visible">True</property>
+                    <child>
+                      <object class="GtkCheckButton" id="lock_location_cb">
+                        <property name="label" translatable="yes">_Lock to current location</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">False</property>
+                        <property name="use_underline">True</property>
+                        <property name="draw_indicator">True</property>
+                      </object>
+                      <packing>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="activate_best_location_btn">
+                        <property name="label" translatable="yes">_Activate Best Location</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                </child>
+              </object>
+              <packing>
+                <property name="top_attach">3</property>
+                <property name="bottom_attach">4</property>
+                <property name="x_options">GTK_FILL</property>
+                <property name="y_options">GTK_SHRINK</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label1">
+                <property name="visible">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">2</property>
+                <property name="bottom_attach">3</property>
+                <property name="y_options">GTK_FILL</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label2">
+                <property name="visible">True</property>
+              </object>
+              <packing>
+                <property name="left_attach">1</property>
+                <property name="right_attach">2</property>
+                <property name="top_attach">3</property>
+                <property name="bottom_attach">4</property>
+                <property name="y_options">GTK_FILL</property>
+              </packing>
             </child>
           </object>
           <packing>
@@ -5573,18 +5654,21 @@ Enter username and password for http://$HOST:$PORT
             <property name="visible">True</property>
             <property name="layout_style">end</property>
             <child>
+              <placeholder/>
+            </child>
+            <child>
               <object class="GtkButton" id="location_help_btn">
                 <property name="label">gtk-help</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
-                <property name="receives_default">False</property>
+                <property name="receives_default">True</property>
                 <property name="use_stock">True</property>
               </object>
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">0</property>
+                <property name="position">1</property>
               </packing>
             </child>
             <child>
@@ -5598,7 +5682,7 @@ Enter username and password for http://$HOST:$PORT
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">0</property>
+                <property name="position">2</property>
               </packing>
             </child>
             <child>
@@ -5612,7 +5696,7 @@ Enter username and password for http://$HOST:$PORT
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">1</property>
+                <property name="position">3</property>
               </packing>
             </child>
           </object>
@@ -5625,9 +5709,9 @@ Enter username and password for http://$HOST:$PORT
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-11">location_help_btn</action-widget>
-      <action-widget response="-6">location_cancel_btn</action-widget>
-      <action-widget response="-5">location_ok_btn</action-widget>
+      <action-widget response="-1">location_help_btn</action-widget>
+      <action-widget response="-1">location_cancel_btn</action-widget>
+      <action-widget response="-1">location_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="enter_service_fmri_dialog">
@@ -5738,8 +5822,8 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-6">button2</action-widget>
-      <action-widget response="-5">button1</action-widget>
+      <action-widget response="-1">button2</action-widget>
+      <action-widget response="-1">button1</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="rules_dialog">
@@ -5909,9 +5993,9 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-2">rules_revert_btn</action-widget>
-      <action-widget response="-6">rules_cancel_btn</action-widget>
-      <action-widget response="-5">rules_ok_btn</action-widget>
+      <action-widget response="-1">rules_revert_btn</action-widget>
+      <action-widget response="-1">rules_cancel_btn</action-widget>
+      <action-widget response="-1">rules_ok_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="edit_connections_dialog">
@@ -6024,8 +6108,8 @@ system/system-log:default
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-6">cancel_btn</action-widget>
-      <action-widget response="-5">ok_btn</action-widget>
+      <action-widget response="-1">cancel_btn</action-widget>
+      <action-widget response="-1">ok_btn</action-widget>
     </action-widgets>
   </object>
 </interface>
