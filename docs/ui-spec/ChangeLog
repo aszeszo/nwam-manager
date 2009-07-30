@@ -1,3 +1,13 @@
+2009-07-30  Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+	* img/capplet/wireless-tab.png
+	* img/capplet/locations-new.png
+	* img/capplet/env-ipfilter.png
+
+	Updates for d.o.o bugs #9561, 9653, 9705, 9495, 9821, and 9646.
+
 2009-04-27  Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
