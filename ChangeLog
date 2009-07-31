@@ -1,3 +1,12 @@
+2009-07-31  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_vpn_pref_dialog.c: 
+	  Fix defect#10335, where start/stop buttons were seen to be active to
+	  conditionally activated ENMs. Also fixed a validation error when
+	  doing update_obj.
+	* tests/main.c: 
+	  Add scan results to tests.
+
 2009-07-30  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.ui:

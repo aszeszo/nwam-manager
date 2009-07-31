@@ -409,7 +409,8 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
     if (cli_value) {
         prev_txt = nwamui_enm_get_start_command(NWAMUI_ENM(obj));
         txt = gtk_entry_get_text(prv->start_cmd_entry);
-        if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
+        if ( (prev_txt == NULL || strlen( prev_txt ) == 0 ) 
+              || strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
             if ( !nwamui_enm_set_start_command(NWAMUI_ENM(obj), txt?txt:"") ) {
                 nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"), 
                   _("Invalid value specified for Start Command"), TRUE );
@@ -421,7 +422,8 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
 
         prev_txt = nwamui_enm_get_stop_command(NWAMUI_ENM(obj));
         txt = gtk_entry_get_text(prv->stop_cmd_entry);
-        if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
+        if ( (prev_txt == NULL || strlen( prev_txt ) == 0 ) 
+              || strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
             if ( !nwamui_enm_set_stop_command(NWAMUI_ENM(obj), txt?txt:"") ) {
                 nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"), 
                   _("Invalid value specified for Stop Command"), TRUE );
@@ -552,6 +554,27 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 static gboolean
 cancel(NwamPrefIFace *iface, gpointer user_data)
 {
+	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
+	GtkTreeSelection *selection = NULL;
+	GtkTreeIter iter;
+    GtkTreeModel *model;
+    GObject *obj;
+    gboolean retval = TRUE;
+
+    model = gtk_tree_view_get_model (prv->view);
+    selection = gtk_tree_view_get_selection (prv->view);
+    if (gtk_tree_selection_get_selected(selection,
+        NULL, &iter)) {
+
+        gtk_tree_model_get (model, &iter, 0, &obj, -1);
+        /* Revert the current one before close */
+        if (prv->cur_obj && prv->cur_obj == obj) {
+            nwamui_object_reload(NWAMUI_OBJECT(obj));
+        }
+    }
+
+    return( TRUE );
 }
 
 static gboolean
@@ -1047,18 +1070,22 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
             title = g_strdup_printf(_("Start/stop '%s' according to rules"), name);
             g_object_set(prv->vpn_conditional_cb, "label", title, NULL);
 
-            if (nwamui_enm_get_active (NWAMUI_ENM(obj))) {
-                gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
-                gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), TRUE);
-            } else {
-                gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), TRUE);
-                gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
-            }
             if (nwamui_enm_get_activation_mode(NWAMUI_ENM(obj)) == NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY
                 || nwamui_enm_get_activation_mode(NWAMUI_ENM(obj)) == NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL) {
                 gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->vpn_conditional_cb), TRUE);
+                gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), TRUE);
+                gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
+                gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
             } else {
                 gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->vpn_conditional_cb), FALSE);
+                gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
+                if (nwamui_enm_get_active (NWAMUI_ENM(obj))) {
+                    gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
+                    gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), TRUE);
+                } else {
+                    gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), TRUE);
+                    gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
+                }
             }
 
             g_free(name);
@@ -1070,6 +1097,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 			gtk_entry_set_text (prv->process_entry, "");
             gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
             gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
 		}
 		return;
 	}
@@ -1086,6 +1114,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->process_lbl), FALSE);
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->desc_lbl), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_conditional_cb), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_cli_rb), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_smf_rb), FALSE);
 }
@@ -1133,7 +1162,6 @@ conditional_toggled_cb(GtkToggleButton *button, gpointer user_data)
     toggled = gtk_toggle_button_get_active(button);
 
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), toggled);
-
 }
 
 static void

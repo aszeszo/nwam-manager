@@ -39,6 +39,9 @@ static void test_env_gobject( void );
 static void test_enm_gobject( void );
 static void test_known_wlan_gobject( void );
 
+static void scan_started(GObject *daemon, gpointer data);
+static void scan_result (GObject *daemon, GObject *wifi, gpointer data);
+
 /* Command-line options */
 static gboolean debug = FALSE;
 
@@ -89,6 +92,13 @@ main(int argc, char** argv)
     nwamui_util_set_debug_mode( debug );
 
     daemon = nwamui_daemon_get_instance();
+
+    g_signal_connect(daemon, "wifi_scan_result",
+          (GCallback)scan_started, (gpointer) NULL);
+
+    g_signal_connect(daemon, "wifi_scan_result",
+          (GCallback)scan_result, (gpointer) NULL);
+
     nwamui_daemon_wifi_start_scan(daemon);
 
     test_ncp_gobject();
@@ -96,6 +106,9 @@ main(int argc, char** argv)
     test_enm_gobject();
     test_known_wlan_gobject();
         
+
+    gtk_main();
+
     g_object_unref (G_OBJECT (program));
 
     return (EXIT_SUCCESS);
@@ -610,3 +623,25 @@ test_known_wlan_gobject( void )
     g_list_free( known_wlan_list );
     g_object_unref(G_OBJECT(daemon));
 }
+
+static void
+scan_started(GObject *daemon, gpointer data)
+{
+    g_debug( "** Scan Started **");
+}
+
+static void
+scan_result (GObject *daemon, GObject *wifi, gpointer data)
+{
+	if (wifi) {
+        printf( "** Scan RESULT START **\n");
+        indent += 4;
+        process_known_wlan( (gpointer) wifi, NULL);
+        indent -= 4;
+        printf( "** Scan RESULT END   **\n");
+	} else {
+        printf("** END OF SCAN RESULTS **\n");
+        gtk_main_quit();
+    }
+}
+
