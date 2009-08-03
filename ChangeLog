@@ -1,3 +1,9 @@
+2009-08-03  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/status_icon.c (connect_nwam_object_signals),
+	(nwam_menu_item_delete): Fixed removing fav wifi crashes.
+	Fixed a wrong signal name.
+
 2009-07-31  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_vpn_pref_dialog.c: 

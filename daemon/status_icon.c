@@ -696,11 +696,15 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
         g_signal_connect(daemon, "ncu_down",
           G_CALLBACK(daemon_ncu_down), (gpointer)self);
 
-        g_signal_connect(daemon, "add_wifi_fav",
-          G_CALLBACK(daemon_add_wifi_fav), (gpointer) self);
+        /* We don't have a fav wifi section in pop menu in
+         * Phase 1, so comment out these signals to avoid
+         * crash when removing fav wifi in fav wireless tab.
+         */
+/*         g_signal_connect(daemon, "add_wifi_fav", */
+/*           G_CALLBACK(daemon_add_wifi_fav), (gpointer) self); */
 
-        g_signal_connect(daemon, "remove_wifi_fav",
-          G_CALLBACK(daemon_remove_wifi_fav), (gpointer) self);
+/*         g_signal_connect(daemon, "remove_wifi_fav", */
+/*           G_CALLBACK(daemon_remove_wifi_fav), (gpointer) self); */
 
     } else if (type == NWAMUI_TYPE_NCP) {
         NwamuiNcp* ncp = NWAMUI_NCP(obj);
@@ -720,7 +724,7 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
         g_signal_connect(ncp, "notify::ncu-list-store",
           G_CALLBACK(on_ncp_notify), (gpointer)self);
 
-        g_signal_connect(ncp, "notify::many-wireless",
+        g_signal_connect(ncp, "notify::wireless_link_num",
           G_CALLBACK(on_ncp_notify_many_wireless), (gpointer)self);
 
 /* 	} else if (type == NWAMUI_TYPE_NCU) { */
@@ -1622,7 +1626,9 @@ nwam_menu_item_delete(NwamMenu *self, NwamuiObject *object)
  	}
 
     item = nwam_menu_section_get_item_by_proxy(self, sec_id, G_OBJECT(object));
-    REMOVE_MENU_ITEM(self, item);
+    if (item) {
+        REMOVE_MENU_ITEM(self, item);
+    }
 }
 
 static void
