@@ -538,9 +538,11 @@ nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
                     /* Fall through */
                 }
             }
-        case NWAMUI_NCU_TYPE_WIRED:
-            /* Fall through */
+#ifdef TUNNEL_SUPPORT
         case NWAMUI_NCU_TYPE_TUNNEL:
+            /* Fall through */
+#endif /* TUNNEL_SUPPORT */
+        case NWAMUI_NCU_TYPE_WIRED:
             /* Fall through */
         default:
             summary_str = g_strdup_printf(_("%s connected"), display_name );
@@ -606,9 +608,11 @@ nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
                     /* Fall through */
                 }
             }
-        case NWAMUI_NCU_TYPE_WIRED:
-            /* Fall through */
+#ifdef TUNNEL_SUPPORT
         case NWAMUI_NCU_TYPE_TUNNEL:
+            /* Fall through */
+#endif /* TUNNEL_SUPPORT */
+        case NWAMUI_NCU_TYPE_WIRED:
             /* Fall through */
         default:
             summary_str = g_strdup_printf(_("%s disconnected"), display_name );
@@ -685,9 +689,11 @@ nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu )
                 }
             }
             break;
-        case NWAMUI_NCU_TYPE_WIRED:
-            /* Fall through */
+#ifdef TUNNEL_SUPPORT
         case NWAMUI_NCU_TYPE_TUNNEL:
+            /* Fall through */
+#endif /* TUNNEL_SUPPORT */
+        case NWAMUI_NCU_TYPE_WIRED:
             /* Fall through */
         default:
             /* Do nothing if not wireless */

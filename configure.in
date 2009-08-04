@@ -1,5 +1,5 @@
 AC_PREREQ(2.54)
-AC_INIT([nwam-manager], [0.99.3], [null])
+AC_INIT([nwam-manager], [0.99.4], [null])
 
 AC_CONFIG_SRCDIR([daemon])
 AC_CONFIG_MACRO_DIR([m4])
@@ -99,14 +99,24 @@ dnl
 dnl NWAM checks 
 dnl TODO - Enable this when libnwam is available
 dnl
+
 NWAM_LIBS="-lnwam -lnsl"
 AC_CHECK_LIB(nwam, nwam_ncp_walk_ncus,
- 	[AC_DEFINE(HAVE_NWAM, 1, [Define to 1 if the libnwam library is present.])],
-         [AC_MSG_ERROR(
- ***
- *** libnwam was not found. 
- ***
-)])
+[AC_DEFINE(HAVE_NWAM, 1, [Define to 1 if the libnwam library is present.])],
+[ if test -d nwam_core; then
+    dnl If not present, test again, using private copy in nwam_core directory.
+
+    _NWAM_CPU=`uname -p`
+    NWAM_LIBS="-R/lib -L\$(top_srcdir)/nwam_core/lib/${_NWAM_CPU} -lnwam -lnsl"
+    AC_CHECK_LIB(nsl -Lnwam_core/lib/${_NWAM_CPU} -lnwam , nwam_ncp_walk_ncus,
+        [AC_DEFINE(HAVE_NWAM, 1, [Define to 1 if the libnwam library is present.])], [AC_MSG_ERROR(
+         ***
+         *** libnwam was not found. 
+         ***
+        )
+        ])
+  fi])
+
 AC_SUBST(NWAM_LIBS)
 
 dnl

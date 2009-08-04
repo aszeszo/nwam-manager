@@ -14,13 +14,10 @@ usr/src/lib/libdladm/common/*.h"
 
 CLONE_SYS_HEADERS="usr/src/uts/common/sys/mac.h
 usr/src/uts/common/sys/mac_flow.h
-usr/src/uts/common/sys/dl.h
 usr/src/uts/common/sys/dld.h
-usr/src/uts/common/sys/dld_ioc.h
-usr/src/uts/common/sys/dlpi.h
 usr/src/uts/common/sys/dls_mgmt.h"
 
-if [ -n "$1" -a -d "${1}/usr/src/lib/libdladm" ]; then
+if [ -n "$1" -a -d "${1}/usr/src/lib/libnwam" ]; then
     REPO="$1"
 elif [ -n "$1" ]; then
     echo "$1 doesn't appear to be a valid ONNV clone"
@@ -34,7 +31,7 @@ echo "**************************************************************************
 echo "Using ONNV source repo of ${REPO}"
 echo "**************************************************************************"
 
-if [ ! -d "${REPO}/usr/src/lib/libdladm" ]; then
+if [ ! -d "${REPO}/usr/src/lib/libnwam" ]; then
     echo "Repository doesn't appear to exist, exiting...."
     exit 1
 fi

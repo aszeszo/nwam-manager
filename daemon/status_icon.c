@@ -1219,8 +1219,10 @@ update_wifi_timer_func(gpointer user_data)
             ncu_list = g_list_delete_link(ncu_list, ncu_list);
 
             switch(nwamui_ncu_get_ncu_type(ncu)) {
-            case NWAMUI_NCU_TYPE_WIRED:
+#ifdef TUNNEL_SUPPORT
             case NWAMUI_NCU_TYPE_TUNNEL:
+#endif /* TUNNEL_SUPPORT */
+            case NWAMUI_NCU_TYPE_WIRED:
                 break;
             case NWAMUI_NCU_TYPE_WIRELESS:
                 /* Trigger all related ui widgets. */
@@ -1407,8 +1409,10 @@ nwam_menu_recreate_ncu_menuitems (NwamStatusIcon *self)
                 has_wireless_inf = TRUE;
             }
                 break;
-            case NWAMUI_NCU_TYPE_WIRED:
+#ifdef TUNNEL_SUPPORT
             case NWAMUI_NCU_TYPE_TUNNEL:
+#endif /* TUNNEL_SUPPORT */
+            case NWAMUI_NCU_TYPE_WIRED:
                 break;
             default:
                 g_assert_not_reached ();

@@ -1,3 +1,30 @@
+2009-08-04  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	  Update to 0.99.4, and enable the building on a non-BFU-ed system.
+	  This is currently done using actual binaries, but this should become
+	  unnecessary post-integration.
+	* Makefile.am:
+	  Update EXTRA_DIST for libnwam binaries and header changes.
+	* SUNWnwam-manager.spec, nwam-manager.spec:
+	  Update versions of specs here to match those used for building in a
+	  normal desktop build environment - good the check them in somewhere
+	  for now.
+	* common/libnwamui.c, common/nwamui_ncu.c, common/nwamui_ncu.h,
+	  common/nwamui_wifi_net.c, daemon/notify.c,
+	  daemon/nwam-tooltip-widget.c, daemon/status_icon.c, tests/main.c: 
+	  Update these for the removal of the references to the NWAM tunnels,
+	  at the moment it's all #ifdef-ed out rather than total removal since
+	  it's likely to be required quite soon after integration.
+	* nwam_core/copy_onnv_headers.sh, nwam_core/lib/i386/libnwam.so,
+	  nwam_core/lib/i386/libnwam.so.1, nwam_core/lib/sparc/libnwam.so,
+	  nwam_core/lib/sparc/libnwam.so.1, nwam_core/usr/include/sys/dl.h,
+	  nwam_core/usr/include/sys/dld_ioc.h,
+	  nwam_core/usr/include/sys/dlpi.h:
+	  Update headers being used, removing some that we no longer require
+	  for building. Also added binaries for i386 and sparc to allow
+	  building of nwam-manager on non-BFU'ed system.
+
 2009-08-04  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/main.c (main):
@@ -66,7 +93,7 @@
 	  an event. Updated nwamui_ncp_get_current_prio_group() to use cached
 	  value, if it's not been too long since updated.
 	* common/nwamui_daemon.c: 
-	  Ahen we get object state changes, set this information in the
+	  When we get object state changes, set this information in the
 	  NwamuiObject. Also update the active_ncp's priority group when we
 	  see such an event.
 	* common/nwamui_ncu.c: 

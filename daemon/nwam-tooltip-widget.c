@@ -207,8 +207,10 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
             g_string_append_printf(gstr, _("<b>Wireless (%s):</b> %s"),
               name, state);
             break;
-        case NWAMUI_NCU_TYPE_WIRED:
+#ifdef TUNNEL_SUPPORT
         case NWAMUI_NCU_TYPE_TUNNEL:
+#endif /* TUNNEL_SUPPORT */
+        case NWAMUI_NCU_TYPE_WIRED:
             g_string_append_printf(gstr, _("<b>Wired (%s):</b> %s"),
               name, state);
             break;

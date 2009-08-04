@@ -574,8 +574,10 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
 
             if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
                 switch(nwamui_ncu_get_ncu_type(ncu)) {
-                case NWAMUI_NCU_TYPE_WIRED:
+#ifdef TUNNEL_SUPPORT
                 case NWAMUI_NCU_TYPE_TUNNEL:
+#endif /* TUNNEL_SUPPORT */
+                case NWAMUI_NCU_TYPE_WIRED:
                     activate_wired_num++;
                     break;
                 case NWAMUI_NCU_TYPE_WIRELESS:
@@ -728,8 +730,10 @@ nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
         GdkPixbuf* temp_icon = NULL;
 
         switch(ncu_type) {
-        case NWAMUI_NCU_TYPE_WIRED:
+#ifdef TUNNEL_SUPPORT
         case NWAMUI_NCU_TYPE_TUNNEL:
+#endif /* TUNNEL_SUPPORT */
+        case NWAMUI_NCU_TYPE_WIRED:
             temp_icon = get_pixbuf_with_size(NWAM_ICON_NETWORK_WIRED, size);
             break;
         case NWAMUI_NCU_TYPE_WIRELESS:

@@ -66,7 +66,9 @@ extern  GType                   nwamui_ncu_get_type (void) G_GNUC_CONST;
 typedef enum {
     NWAMUI_NCU_TYPE_WIRED = 1,
     NWAMUI_NCU_TYPE_WIRELESS,
+#ifdef TUNNEL_SUPPORT
     NWAMUI_NCU_TYPE_TUNNEL,
+#endif /* TUNNEL_SUPPORT */
     NWAMUI_NCU_TYPE_LAST /* Not to be used directly */
 } nwamui_ncu_type_t;
 

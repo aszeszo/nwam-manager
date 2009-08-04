@@ -298,9 +298,11 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
         case NWAMUI_NCU_TYPE_WIRELESS:
             typestr = "WIRELESS";
             break;
+#ifdef TUNNEL_SUPPORT
         case NWAMUI_NCU_TYPE_TUNNEL:
             typestr = "TUNNEL";
             break;
+#endif /* TUNNEL_SUPPORT */
         default:
             typestr = "**** UNKNOWN *****";
             break;

@@ -35,7 +35,7 @@
 
 #include "libnwamui.h"
 #include "nwamui_wifi_net.h"
-#include <sys/mac.h>
+#include <sys/types.h>
 #include <libdlwlan.h>
 #include <libdllink.h>
 

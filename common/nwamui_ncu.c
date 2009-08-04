@@ -40,6 +40,7 @@
 #include <errno.h>
 #include <inetcfg.h>
 #include <limits.h>
+#include <sys/types.h>
 #include <sys/dlpi.h>
 #include <libdllink.h>
 #include <libdlwlan.h>
@@ -74,8 +75,10 @@ struct _NwamuiNcuPrivate {
         gboolean                        nwam_ncu_phys_modified;
         nwam_ncu_handle_t               nwam_ncu_ip;
         gboolean                        nwam_ncu_ip_modified;
+#ifdef TUNNEL_SUPPORT
         nwam_ncu_handle_t               nwam_ncu_iptun;
         gboolean                        nwam_ncu_iptun_modified;
+#endif /* TUNNEL_SUPPORT */
 
         gboolean                        active;
 
@@ -84,6 +87,7 @@ struct _NwamuiNcuPrivate {
         gchar*                          device_name;
         nwamui_ncu_type_t               ncu_type;
 
+#ifdef TUNNEL_SUPPORT
         /* IPTun Properties */
         nwam_iptun_type_t               tun_type; 
         gchar*                          tun_tsrc;
@@ -91,6 +95,7 @@ struct _NwamuiNcuPrivate {
         gchar*                          tun_encr;
         gchar*                          tun_encr_auth;
         gchar*                          tun_auth;
+#endif /* TUNNEL_SUPPORT */
 
         gboolean                        ipv4_active;
         NwamuiIp*                       ipv4_primary_ip;
@@ -446,12 +451,15 @@ nwamui_ncu_init (NwamuiNcu *self)
     self->prv->initialisation = TRUE;
 
     self->prv->nwam_ncu_phys = NULL;
-    self->prv->nwam_ncu_ip = NULL;
-    self->prv->nwam_ncu_iptun = NULL;
-
     self->prv->nwam_ncu_phys_modified = FALSE;
+
+    self->prv->nwam_ncu_ip = NULL;
     self->prv->nwam_ncu_ip_modified = FALSE;
+
+#ifdef TUNNEL_SUPPORT
+    self->prv->nwam_ncu_iptun = NULL;
     self->prv->nwam_ncu_iptun_modified = FALSE;
+#endif /* TUNNEL_SUPPORT */
 
     self->prv->vanity_name = NULL;
     self->prv->device_name = NULL;
@@ -560,11 +568,13 @@ nwamui_ncu_set_property ( GObject         *object,
                                 g_warning("Failed to enable ncu_ip due to error: %s", nwam_strerror(nerr));
                             }
                         }
+#ifdef TUNNEL_SUPPORT
                         if ( self->prv->nwam_ncu_iptun) {
                             if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
                                 g_warning("Failed to enable ncu_iptun due to error: %s", nwam_strerror(nerr));
                             }
                         }
+#endif /* TUNNEL_SUPPORT */
                     }
                     else if ( state != NWAM_STATE_OFFLINE  ) {
                         nwam_error_t nerr;
@@ -573,11 +583,13 @@ nwamui_ncu_set_property ( GObject         *object,
                                 g_warning("Failed to disable ncu_ip due to error: %s", nwam_strerror(nerr));
                             }
                         }
+#ifdef TUNNEL_SUPPORT
                         if ( self->prv->nwam_ncu_iptun) {
                             if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
                                 g_warning("Failed to disable ncu_iptun due to error: %s", nwam_strerror(nerr));
                             }
                         }
+#endif /* TUNNEL_SUPPORT */
                         if ( self->prv->nwam_ncu_phys) {
                             if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
                                 g_warning("Failed to disable ncu_phys due to error: %s", nwam_strerror(nerr));
@@ -902,9 +914,11 @@ nwamui_ncu_get_property (GObject         *object,
                         if ( self->prv->nwam_ncu_ip ) {
                             nwam_ncu_get_state( self->prv->nwam_ncu_ip, &state, &aux_state );
                         }
+#ifdef TUNNEL_SUPPORT
                         else if ( self->prv->nwam_ncu_iptun ) {
                             nwam_ncu_get_state( self->prv->nwam_ncu_iptun, &state, &aux_state );
                         }
+#endif /* TUNNEL_SUPPORT */
                         if ( state == NWAM_STATE_ONLINE ) {
                             active = TRUE;
                         }
@@ -1113,6 +1127,7 @@ get_if_type( const gchar* device )
     }
 
     if ( dladm_name2info( handle, device, NULL, NULL, NULL, &media ) != DLADM_STATUS_OK ) {
+#ifdef TUNNEL_SUPPORT
         if (strncmp(device, "ip.tun", 6) == 0 ||
             strncmp(device, "ip6.tun", 7) == 0 ||
             strncmp(device, "ip.6to4tun", 10) == 0)
@@ -1124,6 +1139,7 @@ get_if_type( const gchar* device )
              * names won't necessarily be ip.tunN.
              */
             type = NWAMUI_NCU_TYPE_TUNNEL;
+#endif /* TUNNEL_SUPPORT */
     }
     else if ( media == DL_WIFI ) {
         type = NWAMUI_NCU_TYPE_WIRELESS;
@@ -1156,6 +1172,7 @@ populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     free(name);
 }
 
+#ifdef TUNNEL_SUPPORT
 static void
 populate_iptun_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 {
@@ -1188,6 +1205,7 @@ populate_iptun_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     g_free(tun_encr_auth);
     g_free(tun_auth);
 }
+#endif /* TUNNEL_SUPPORT */
 
 static void
 populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
@@ -1619,6 +1637,7 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
                 }
             }
             break;
+#ifdef TUNNEL_SUPPORT
         case NWAM_NCU_CLASS_IPTUN: {
                 nwam_ncu_handle_t   ncu_handle;
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_INTERFACE );
@@ -1636,6 +1655,7 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
                 populate_iptun_ncu_data( self, self->prv->nwam_ncu_iptun );
             }
             break;
+#endif /* TUNNEL_SUPPORT */
         case NWAM_NCU_CLASS_IP: {
                 nwam_ncu_handle_t   ncu_handle;
 
@@ -1752,6 +1772,7 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
         }
     }
 
+#ifdef TUNNEL_SUPPORT
     if ( ncu->prv->nwam_ncu_iptun != NULL ) {
         nwam_ncu_type_t     ncu_type;
         nwam_ncu_class_t    ncu_class;
@@ -1774,6 +1795,7 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
             set_modified_flag( new, NWAM_NCU_CLASS_IPTUN, TRUE );
         }
     }
+#endif /* TUNNEL_SUPPORT */
 
     return( new );
 }
@@ -1876,10 +1898,12 @@ nwamui_ncu_reload( NwamuiNcu* self )
         nwamui_ncu_update_with_handle( self, self->prv->nwam_ncu_ip );
     }
 
+#ifdef TUNNEL_SUPPORT
     if ( self->prv->nwam_ncu_iptun != NULL ) {
         g_debug("Reverting NCU IPTUN for %s", self->prv->device_name);
         nwamui_ncu_update_with_handle( self, self->prv->nwam_ncu_iptun );
     }
+#endif /* TUNNEL_SUPPORT */
 
     g_object_thaw_notify(G_OBJECT(self));
 }
@@ -1891,10 +1915,16 @@ nwamui_ncu_reload( NwamuiNcu* self )
 extern gboolean
 nwamui_ncu_has_modifications( NwamuiNcu* self )
 {
+#ifdef TUNNEL_SUPPORT
     if ( NWAMUI_IS_NCU(self) &&
           ( self->prv->nwam_ncu_phys_modified 
          || self->prv->nwam_ncu_ip_modified 
          || self->prv->nwam_ncu_iptun_modified) ) {
+#else
+    if ( NWAMUI_IS_NCU(self) &&
+          ( self->prv->nwam_ncu_phys_modified 
+         || self->prv->nwam_ncu_ip_modified) ) {
+#endif /* TUNNEL_SUPPORT */
         return( TRUE );
     }
 
@@ -1937,6 +1967,7 @@ nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret )
         }
     }
 
+#ifdef TUNNEL_SUPPORT
     if ( self->prv->nwam_ncu_iptun_modified && self->prv->nwam_ncu_iptun != NULL ) {
         if ( (nerr = nwam_ncu_validate( self->prv->nwam_ncu_iptun, &prop_name )) != NWAM_SUCCESS ) {
             g_debug("Failed when validating IPTUN NCU for %s : invalid value for %s",
@@ -1947,6 +1978,7 @@ nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret )
             return( FALSE );
         }
     }
+#endif /* TUNNEL_SUPPORT */
 
     return( TRUE );
 }
@@ -1977,12 +2009,14 @@ nwamui_ncu_commit( NwamuiNcu* self )
         }
     }
 
+#ifdef TUNNEL_SUPPORT
     if ( self->prv->nwam_ncu_iptun_modified && self->prv->nwam_ncu_iptun != NULL ) {
         if ( (nerr = nwam_ncu_commit( self->prv->nwam_ncu_iptun, 0 )) != NWAM_SUCCESS ) {
             g_warning("Failed when committing IPTUN NCU for %s", self->prv->device_name);
             return( FALSE );
         }
     }
+#endif /* TUNNEL_SUPPORT */
 
     return( TRUE );
 }
@@ -2005,12 +2039,14 @@ nwamui_ncu_destroy( NwamuiNcu* self )
         }
     }
 
+#ifdef TUNNEL_SUPPORT
     if ( self->prv->nwam_ncu_iptun != NULL ) {
         if ( (nerr = nwam_ncu_destroy( self->prv->nwam_ncu_iptun, 0 )) != NWAM_SUCCESS ) {
             g_warning("Failed when destroying IPTUN NCU for %s", self->prv->device_name);
             return( FALSE );
         }
     }
+#endif /* TUNNEL_SUPPORT */
     if ( self->prv->nwam_ncu_phys != NULL ) {
         if ( (nerr = nwam_ncu_destroy( self->prv->nwam_ncu_phys, 0 ) ) != NWAM_SUCCESS ) {
             g_warning("Failed when destroying PHYS NCU for %s", self->prv->device_name);
@@ -2157,9 +2193,11 @@ nwamui_ncu_get_display_name ( NwamuiNcu *self )
             case NWAMUI_NCU_TYPE_WIRELESS:
                 display_name = g_strdup_printf( _("Wireless(%s)"), self->prv->vanity_name );
                 break;
+#ifdef TUNNEL_SUPPORT
             case NWAMUI_NCU_TYPE_TUNNEL:
                 display_name = g_strdup_printf( _("Tunnel(%s)"), self->prv->vanity_name );
                 break;
+#endif /* TUNNEL_SUPPORT */
             default:
                 display_name = g_strdup( self->prv->vanity_name );
                 break;
@@ -3187,11 +3225,13 @@ nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, c
                     state = ip_state;
                     aux_state = ip_aux_state;
                 }
+#ifdef TUNNEL_SUPPORT
                 else if ( ncu->prv->nwam_ncu_iptun &&
                      nwam_ncu_get_state( ncu->prv->nwam_ncu_iptun, &ip_state, &ip_aux_state ) == NWAM_SUCCESS ) {
                     state = ip_state;
                     aux_state = ip_aux_state;
                 }
+#endif /* TUNNEL_SUPPORT */
             }
 
             rstate = state;
@@ -3277,10 +3317,12 @@ set_modified_flag( NwamuiNcu* self, nwam_ncu_class_t ncu_class, gboolean value )
                 self->prv->nwam_ncu_phys_modified = value;
             }
             break;
+#ifdef TUNNEL_SUPPORT
         case NWAM_NCU_CLASS_IPTUN: {
                 self->prv->nwam_ncu_iptun_modified = value;
             }
             break;
+#endif /* TUNNEL_SUPPORT */
         case NWAM_NCU_CLASS_IP: {
                 self->prv->nwam_ncu_ip_modified = value;
             }

@@ -29,9 +29,6 @@ NWAM_CORE_INCS = \
 		nwam_core/usr/include/libnwam.h \
 		nwam_core/usr/include/libdladm.h \
 		nwam_core/usr/include/sys/mac_flow.h \
-		nwam_core/usr/include/sys/dlpi.h \
-		nwam_core/usr/include/sys/dld_ioc.h \
-		nwam_core/usr/include/sys/dl.h \
 		nwam_core/usr/include/sys/dls_mgmt.h \
 		nwam_core/usr/include/sys/mac.h \
 		nwam_core/usr/include/sys/dld.h \
@@ -44,8 +41,15 @@ NWAM_CORE_INCS = \
 		nwam_core/usr/include/libdlflow.h \
 		nwam_core/usr/include/libdllink.h
 
+NWAM_CORE_LIBS = \
+		nwam_core/lib/i386/libnwam.so \
+		nwam_core/lib/i386/libnwam.so.1 \
+		nwam_core/lib/sparc/libnwam.so \
+		nwam_core/lib/sparc/libnwam.so.1
+
 EXTRA_DIST =			\
 		${NWAM_CORE_INCS} \
+		${NWAM_CORE_LIBS} \
 		m4 \
         intltool-extract.in	\
         intltool-merge.in	\
