@@ -262,7 +262,7 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
 	g_signal_connect(GTK_BUTTON(prv->env_btn), "clicked", (GCallback)env_clicked_cb, (gpointer)self);
 	g_signal_connect(GTK_BUTTON(prv->vpn_btn), "clicked", (GCallback)vpn_clicked_cb, (gpointer)self);
 	g_signal_connect(GTK_BUTTON(btn), "clicked", (GCallback)repair_clicked_cb, (gpointer)self);
-    g_signal_connect (prv->daemon, "notify::active_env", G_CALLBACK(on_nwam_env_notify_cb), (gpointer)self);
+    g_signal_connect (prv->daemon, "notify::active-env", G_CALLBACK(on_nwam_env_notify_cb), (gpointer)self);
 
     nwam_compose_tree_view(self);
 

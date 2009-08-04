@@ -36,12 +36,7 @@
 static NwamuiProf *instance = NULL;
 
 enum {
-    S_JOIN_WIFI_NOT_IN_FAV = 0,
-    S_JOIN_ANY_FAV_WIFI,
-    S_ADD_ANY_NEW_WIFI_TO_FAV,
-    S_ACTION_ON_NO_FAV_NETWORKS,
-    S_ACTIVE_INTERFACE,
-    S_NOTIFICATION_DEFAULT_TIMEOUT,
+    SIG_PLACE_HOLDER = 0,
     LAST_SIGNAL
 };
 
@@ -52,6 +47,7 @@ enum {
     PROP_ACTION_ON_NO_FAV_NETWORKS,
     PROP_ACTIVE_INTERFACE,
     PROP_NOTIFICATION_DEFAULT_TIMEOUT,
+    PROP_LOCK_CURRENT_LOC,
 };
 
 static guint nwamui_prof_signals [LAST_SIGNAL] = { 0 };
@@ -65,6 +61,8 @@ static guint nwamui_prof_signals [LAST_SIGNAL] = { 0 };
     "/add_any_new_wifi_to_fav"
 #define PROF_STRING_ACTION_ON_NO_FAV_NETWORKS PROF_GCONF_ROOT \
     "/action_on_no_fav_networks"
+#define PROF_BOOL_LOCK_CURRENT_LOC PROF_GCONF_ROOT  \
+    "/lock_current_loc"
 
 /* To Allow GNOME Netstatus Applet to follow NWAM Active interface */
 #define PROF_STRING_ACTIVE_INTERFACE PROF_GCONF_ROOT \
@@ -98,9 +96,6 @@ static void gconf_notify_cb (GConfClient *client,
   GConfEntry *entry,
   gpointer user_data);
 
-/* Callbacks */
-static void object_notify_cb (GObject *gobject, GParamSpec *arg1, gpointer data);
-
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAMUI_TYPE_PROF, NwamuiProfPrivate)) 
 
@@ -114,7 +109,7 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         
     /* Override Some Function Pointers */
     gobject_class->set_property = nwamui_prof_set_property;
-       gobject_class->get_property = nwamui_prof_get_property;
+    gobject_class->get_property = nwamui_prof_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_prof_finalize;
     g_type_class_add_private (klass, sizeof (NwamuiProfPrivate));
 
@@ -171,72 +166,14 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         2000,
         G_PARAM_READWRITE));
 
-    /* Create some signals */
-    nwamui_prof_signals[S_JOIN_WIFI_NOT_IN_FAV] =   
-      g_signal_new ("join_wifi_not_in_fav",
-        G_TYPE_FROM_CLASS (klass),
-        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-        0,                            /* No class method */
-        NULL, NULL,
-        g_cclosure_marshal_VOID__BOOLEAN,
-        G_TYPE_NONE,                  /* Return Type */
-        1,                            /* Number of Args */
-        G_TYPE_BOOLEAN);              /* Types of Args */
-    
-    nwamui_prof_signals[S_JOIN_ANY_FAV_WIFI] =   
-      g_signal_new ("join_any_fav_wifi",
-        G_TYPE_FROM_CLASS (klass),
-        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-        0,                            /* No class method */
-        NULL, NULL,
-        g_cclosure_marshal_VOID__BOOLEAN,
-        G_TYPE_NONE,                  /* Return Type */
-        1,                            /* Number of Args */
-        G_TYPE_BOOLEAN);              /* Types of Args */
+    g_object_class_install_property (gobject_class,
+      PROP_LOCK_CURRENT_LOC,
+      g_param_spec_boolean ("lock_current_loc",
+        _("Lock current location"),
+        _("Lock current location"),
+        FALSE,
+        G_PARAM_READWRITE));
 
-    nwamui_prof_signals[S_ADD_ANY_NEW_WIFI_TO_FAV] =   
-      g_signal_new ("add_any_new_wifi_to_fav",
-        G_TYPE_FROM_CLASS (klass),
-        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-        0,                            /* No class method */
-        NULL, NULL,
-        g_cclosure_marshal_VOID__BOOLEAN,
-        G_TYPE_NONE,                  /* Return Type */
-        1,                            /* Number of Args */
-        G_TYPE_BOOLEAN);              /* Types of Args */
-
-    nwamui_prof_signals[S_ACTION_ON_NO_FAV_NETWORKS] =   
-      g_signal_new ("action_on_no_fav_networks",
-        G_TYPE_FROM_CLASS (klass),
-        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-        0,                            /* No class method */
-        NULL, NULL,
-        g_cclosure_marshal_VOID__INT,
-        G_TYPE_NONE,                  /* Return Type */
-        1,                            /* Number of Args */
-        G_TYPE_INT);              /* Types of Args */
-    
-    nwamui_prof_signals[S_ACTIVE_INTERFACE] =   
-      g_signal_new ("active_interface",
-        G_TYPE_FROM_CLASS (klass),
-        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-        0,                            /* No class method */
-        NULL, NULL,
-        g_cclosure_marshal_VOID__STRING,
-        G_TYPE_NONE,                  /* Return Type */
-        1,                            /* Number of Args */
-        G_TYPE_STRING);              /* Types of Args */
-
-    nwamui_prof_signals[S_NOTIFICATION_DEFAULT_TIMEOUT] =   
-      g_signal_new ("notification_default_timeout",
-        G_TYPE_FROM_CLASS (klass),
-        G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-        0,                            /* No class method */
-        NULL, NULL,
-        g_cclosure_marshal_VOID__INT,
-        G_TYPE_NONE,                  /* Return Type */
-        1,                            /* Number of Args */
-        G_TYPE_INT);              /* Types of Args */
 }
 
 
@@ -244,12 +181,12 @@ static void
 nwamui_prof_init (NwamuiProf *self)
 {
 	NwamuiProfPrivate *prv = GET_PRIVATE(self);
-	self->prv = prv;
     GError *err = NULL;
+	self->prv = prv;
     
     prv->client = gconf_client_get_default ();
 
-    gconf_client_add_dir (self->prv->client,
+    gconf_client_add_dir (prv->client,
       PROF_GCONF_ROOT,
       GCONF_CLIENT_PRELOAD_ONELEVEL,
       &err);
@@ -257,10 +194,9 @@ nwamui_prof_init (NwamuiProf *self)
     if (err) {
         g_error ("Unable to call gconf_client_add_dir: %s\n", err->message);
         g_error_free (err);
-        g_assert_not_reached ();
     }
-    
-    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
+
+    nwamui_prof_notify_begin(self);
 }
 
 static void
@@ -315,6 +251,12 @@ nwamui_prof_set_property (GObject         *object,
           g_value_get_int (value),
           &err);
     }
+        break;
+
+    case PROP_LOCK_CURRENT_LOC:
+        gconf_client_set_bool (prv->client, PROF_BOOL_LOCK_CURRENT_LOC,
+          g_value_get_boolean (value),
+          &err);
         break;
 
     default:
@@ -381,6 +323,12 @@ nwamui_prof_get_property (GObject         *object,
     }
         break;
 
+    case PROP_LOCK_CURRENT_LOC:
+        g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+            PROF_BOOL_LOCK_CURRENT_LOC,
+            &err));
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -398,6 +346,11 @@ nwamui_prof_finalize (NwamuiProf *self)
     NwamuiProfPrivate *prv = self->prv;
     GError *err = NULL;
 
+    /* we may not need to remove notify */
+    if (prv->gconf_notify_id) {
+        gconf_client_notify_remove (prv->client, prv->gconf_notify_id);
+    }
+
     gconf_client_remove_dir (self->prv->client,
       PROF_GCONF_ROOT,
       &err);
@@ -405,12 +358,6 @@ nwamui_prof_finalize (NwamuiProf *self)
     if (err) {
         g_error ("Unable to call gconf_client_remove_dir: %s\n", err->message);
         g_error_free (err);
-        g_assert_not_reached ();
-    }
-
-    /* we may not need to remove notify */
-    if (prv->gconf_notify_id) {
-        gconf_client_notify_remove (prv->client, prv->gconf_notify_id);
     }
 
     if (prv->client) {
@@ -424,10 +371,8 @@ nwamui_prof_finalize (NwamuiProf *self)
     instance = NULL;
 }
 
-static void gconf_notify_cb (GConfClient *client,
-  guint cnxn_id,
-  GConfEntry *entry,
-  gpointer user_data)
+static void
+gconf_notify_cb (GConfClient *client, guint cnxn_id, GConfEntry *entry, gpointer user_data)
 {
     NwamuiProf *self = NWAMUI_PROF(user_data);
     const char *key;
@@ -437,35 +382,26 @@ static void gconf_notify_cb (GConfClient *client,
     value = gconf_entry_get_value (entry);
     
     if (g_ascii_strcasecmp (key, PROF_BOOL_JOIN_WIFI_NOT_IN_FAV) == 0) {
-        g_signal_emit (self,
-          nwamui_prof_signals[S_JOIN_WIFI_NOT_IN_FAV],
-          0, /* details */
-          gconf_value_get_bool (value));
+        g_object_set(self, "join_wifi_not_in_fav",
+          gconf_value_get_bool(value), NULL);
     } else if (g_ascii_strcasecmp (key, PROF_BOOL_JOIN_ANY_FAV_WIFI) == 0) {
-        g_signal_emit (self,
-          nwamui_prof_signals[S_JOIN_ANY_FAV_WIFI],
-          0, /* details */
-          gconf_value_get_bool (value));
+        g_object_set(self, "join_any_fav_wifi",
+          gconf_value_get_bool(value), NULL);
     } else if (g_ascii_strcasecmp (key, PROF_BOOL_ADD_ANY_NEW_WIFI_TO_FAV) == 0) {
-        g_signal_emit (self,
-          nwamui_prof_signals[S_ADD_ANY_NEW_WIFI_TO_FAV],
-          0, /* details */
-          gconf_value_get_bool (value));
+        g_object_set(self, "add_any_new_wifi_to_fav",
+          gconf_value_get_bool(value), NULL);
     } else if (g_ascii_strcasecmp (key, PROF_STRING_ACTION_ON_NO_FAV_NETWORKS) == 0) {
-        g_signal_emit (self,
-          nwamui_prof_signals[S_ACTION_ON_NO_FAV_NETWORKS],
-          0, /* details */
-          gconf_value_get_int (value));
+        g_object_set(self, "action_on_no_fav_networks",
+          gconf_value_get_int(value), NULL);
     } else if (g_ascii_strcasecmp (key, PROF_STRING_ACTIVE_INTERFACE ) == 0) {
-        g_signal_emit (self,
-          nwamui_prof_signals[S_ACTIVE_INTERFACE],
-          0, /* details */
-          gconf_value_get_string (value));
+        g_object_set(self, "active_interface",
+          gconf_value_get_string(value), NULL);
     } else if (g_ascii_strcasecmp (key, PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT ) == 0) {
-        g_signal_emit (self,
-          nwamui_prof_signals[S_NOTIFICATION_DEFAULT_TIMEOUT],
-          0, /* details */
-          gconf_value_get_int (value));
+        g_object_set(self, "notification_default_timeout",
+          gconf_value_get_int(value), NULL);
+    } else if (g_ascii_strcasecmp (key, PROF_BOOL_LOCK_CURRENT_LOC) == 0) {
+        g_object_set(self, "lock_current_loc",
+          gconf_value_get_bool(value), NULL);
     } else {
         g_assert_not_reached ();
     }
@@ -482,9 +418,8 @@ nwamui_prof_get_instance ()
 {
     if ( instance == NULL ) {
         instance = NWAMUI_PROF (g_object_new (NWAMUI_TYPE_PROF, NULL));
-    } else {
-        g_object_ref (instance);
     }
+    g_object_ref (instance);
     
     return (instance);
 }
@@ -562,12 +497,4 @@ nwamui_prof_notify_begin (NwamuiProf* self)
         g_error ("Unable to call gconf_client_notify_add: %s\n", err->message);
         g_error_free (err);
     }
-}
-
-/* Callbacks */
-
-static void
-object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-/*     NwamuiProf* self = NWAMUI_PROF(data); */
 }

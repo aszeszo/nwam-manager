@@ -164,6 +164,16 @@ main(int argc, char** argv)
 
     nwamui_util_set_debug_mode( debug );
 
+    /* nwamui preference signals */
+    {
+        NwamuiProf* prof;
+
+        prof = nwamui_prof_get_instance ();
+
+/*         nwamui_prof_notify_begin (prof); */
+        g_object_unref (prof);
+    }
+
         app = unique_app_new("com.sun.nwam-manager-properties", NULL);
     if ( !nwamui_util_is_debug_mode() ) {
         if (unique_app_is_running(app)) {

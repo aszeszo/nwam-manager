@@ -37,8 +37,6 @@
 #include "capplet-utils.h"
 #include "nwam_tree_view.h"
 
-#define DEBUG()	g_debug ("[[ %20s : %-4d ]]", __func__, __LINE__)
-
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAM_TYPE_NET_CONF_PANEL, NwamNetConfPanelPrivate)) 
 

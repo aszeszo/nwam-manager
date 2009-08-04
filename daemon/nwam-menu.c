@@ -37,8 +37,6 @@
 #include "nwam-menu.h"
 #include "libnwamui.h"
 
-#define DEBUG()	g_debug ("[[ %20s : %-4d ]]", __func__, __LINE__)
-
 typedef struct _NwamMenuPrivate NwamMenuPrivate;
 #define NWAM_MENU_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_MENU, NwamMenuPrivate))
 

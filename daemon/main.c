@@ -61,10 +61,10 @@ gboolean prof_ask_join_fav_network;
 gboolean prof_ask_add_to_fav;
 
 /* nwamui preference signal */
-static void join_wifi_not_in_fav (NwamuiProf* prof, gboolean val, gpointer data);
-static void join_any_fav_wifi (NwamuiProf* prof, gboolean val, gpointer data);
-static void add_any_new_wifi_to_fav (NwamuiProf* prof, gboolean val, gpointer data);
-static void action_on_no_fav_networks (NwamuiProf* prof, gint val, gpointer data);
+static void join_wifi_not_in_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void join_any_fav_wifi(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void action_on_no_fav_networks(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* others */
 static gboolean find_wireless_interface(GtkTreeModel *model,
@@ -79,48 +79,48 @@ cleanup_and_exit(int sig, siginfo_t *sip, void *data)
 }
 
 static void
-join_wifi_not_in_fav (NwamuiProf* prof, gboolean val, gpointer data)
+join_wifi_not_in_fav(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
     gchar *body;
     
-    prof_ask_join_open_network = val;
+    g_object_get(gobject, "join_wifi_not_in_fav", &prof_ask_join_open_network, NULL);
     body = g_strdup_printf ("prof_ask_join_open_network = %d", prof_ask_join_open_network);
 /*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
     g_free (body);
 }
 
 static void
-join_any_fav_wifi (NwamuiProf* prof, gboolean val, gpointer data)
+join_any_fav_wifi(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
     gchar *body;
 
-    prof_ask_join_fav_network = val;
+    g_object_get(gobject, "join_any_fav_wifi", &prof_ask_join_fav_network, NULL);
     body = g_strdup_printf ("prof_ask_join_fav_network = %d", prof_ask_join_fav_network);
 /*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
     g_free (body);
 }
 
 static void
-add_any_new_wifi_to_fav (NwamuiProf* prof, gboolean val, gpointer data)
+add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
     gchar *body;
 
-    prof_ask_add_to_fav = val;
+    g_object_get(gobject, "add_any_new_wifi_to_fav", &prof_ask_add_to_fav, NULL);
     body = g_strdup_printf ("prof_ask_add_to_fav = %d", prof_ask_add_to_fav);
 /*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
     g_free (body);
 }
 
 static void
-action_on_no_fav_networks (NwamuiProf* prof, gint val, gpointer data)
+action_on_no_fav_networks(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
     gchar *body;
 
-    prof_action_if_no_fav_networks = val;
+    g_object_get(gobject, "action_on_no_fav_networks", &prof_action_if_no_fav_networks, NULL);
     body = g_strdup_printf ("prof_action_if_no_fav_networks = %d", prof_action_if_no_fav_networks);
 /*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
     g_free (body);
@@ -293,14 +293,17 @@ main( int argc, char* argv[] )
         daemon = nwamui_daemon_get_instance ();
         prof = nwamui_prof_get_instance ();
 
-        g_signal_connect(prof, "join_wifi_not_in_fav",
+        g_signal_connect(prof, "notify::join-wifi-not-in-fav",
           G_CALLBACK(join_wifi_not_in_fav), (gpointer) daemon);
-        g_signal_connect(prof, "join_any_fav_wifi",
+        g_signal_connect(prof, "notify::join-any-fav-wifi",
           G_CALLBACK(join_any_fav_wifi), (gpointer) daemon);
-        g_signal_connect(prof, "add_any_new_wifi_to_fav",
+        g_signal_connect(prof, "notify::add-any-new-wifi-to-fav",
           G_CALLBACK(add_any_new_wifi_to_fav), (gpointer) daemon);
-        g_signal_connect(prof, "action_on_no_fav_networks",
+        g_signal_connect(prof, "notify::action-on-no-fav-networks",
           G_CALLBACK(action_on_no_fav_networks), (gpointer) daemon);
+
+        /* Lock_current_loc is only used for temporary, so init to FALSE. */
+        g_object_set(prof, "lock_current_loc", FALSE, NULL);
 
         g_object_get (prof,
           "action_on_no_fav_networks", &prof_action_if_no_fav_networks,
@@ -309,7 +312,7 @@ main( int argc, char* argv[] )
           "add_any_new_wifi_to_fav", &prof_ask_add_to_fav,
           NULL);
 
-        nwamui_prof_notify_begin (prof);
+/*         nwamui_prof_notify_begin (prof); */
         g_object_unref (prof);
         g_object_unref (daemon);
     }

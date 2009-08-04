@@ -1174,7 +1174,7 @@ populate_iptun_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     tun_auth = get_nwam_ncu_string_prop( nwam_ncu, NWAM_NCU_PROP_IPTUN_AUTH );
 
     g_object_set( ncu, 
-                  "tun_type", tun_type,
+/*                   "tun_type", tun_type, */
                   "tun_tsrc", tun_tsrc,
                   "tun_tdst", tun_tdst,
                   "tun_encr", tun_encr,

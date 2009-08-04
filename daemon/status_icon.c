@@ -48,7 +48,6 @@
 typedef struct _NwamStatusIconPrivate NwamStatusIconPrivate;
 #define NWAM_STATUS_ICON_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_STATUS_ICON, NwamStatusIconPrivate))
 
-#define DEBUG()	g_debug ("[[ %20s : %-4d ]]", __func__, __LINE__)
 #define NWAM_MANAGER_PROPERTIES "nwam-manager-properties"
 #define STATIC_MENUITEM_ID "static_item_id"
 
@@ -66,6 +65,8 @@ enum {
 };
 
 enum {
+    MENUITEM_LOC_LOCK_CURRENT,
+    MENUITEM_LOC_ACTIVATE_BEST,
     MENUITEM_ENV_PREF,
     MENUITEM_CONN_PROF,
     MENUITEM_REFRESH_WLAN,
@@ -134,6 +135,9 @@ static void join_wireless(NwamuiWifiNet *wifi, gboolean do_connect);
 static void on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data);
 static void activate_test_menuitems(GtkMenuItem *menuitem, gpointer user_data);
 static void status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object);
+
+/* nwamui profile events */
+static void prof_lock_current_loc(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* nwamui daemon events */
 static void daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
@@ -220,6 +224,20 @@ ncu_is_higher_priority_than_active_ncu( NwamuiNcu* ncu, gboolean *is_active_ptr 
     g_object_unref(daemon);
     
     return (ncu_prio >= active_prio );
+}
+
+static void
+prof_lock_current_loc(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(data);
+    GtkCheckMenuItem *lock_current_loc = GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_LOC_LOCK_CURRENT]);
+    gboolean loc;
+
+    g_object_get(gobject, "lock_current_loc", &loc, NULL);
+
+    g_signal_handlers_block_by_func(G_OBJECT(lock_current_loc), on_activate_static_menuitems, data);
+    gtk_check_menu_item_set_active(lock_current_loc, loc);
+    g_signal_handlers_unblock_by_func(G_OBJECT(lock_current_loc), on_activate_static_menuitems, data);
 }
 
 static void
@@ -724,7 +742,7 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
         g_signal_connect(ncp, "notify::ncu-list-store",
           G_CALLBACK(on_ncp_notify), (gpointer)self);
 
-        g_signal_connect(ncp, "notify::wireless_link_num",
+        g_signal_connect(ncp, "notify::wireless-link-num",
           G_CALLBACK(on_ncp_notify_many_wireless), (gpointer)self);
 
 /* 	} else if (type == NWAMUI_TYPE_NCU) { */
@@ -957,6 +975,17 @@ nwam_status_icon_run(NwamStatusIcon *self)
     /* Handle all daemon signals here */
     connect_nwam_object_signals(G_OBJECT(self), G_OBJECT(prv->daemon));
 
+    {
+        NwamuiProf *prof;
+
+        prof = nwamui_prof_get_instance ();
+
+        g_signal_connect(prof, "notify::lock-current-loc",
+          G_CALLBACK(prof_lock_current_loc), (gpointer)self);
+
+        g_object_unref (prof);
+    }
+
     /* Initially populate network info */
     daemon_status_changed(prv->daemon, NULL, (gpointer)self);
 }
@@ -1091,6 +1120,21 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
     gint menuitem_id = (gint)g_object_get_data(G_OBJECT(menuitem), STATIC_MENUITEM_ID);
 
     switch (menuitem_id) {
+    case MENUITEM_LOC_LOCK_CURRENT: {
+        NwamuiProf *prof;
+
+        prof = nwamui_prof_get_instance ();
+
+        g_object_set(prof, "lock_current_loc",
+          gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_LOC_LOCK_CURRENT])),
+          NULL);
+
+        g_object_unref (prof);
+    }
+        break;
+    case MENUITEM_LOC_ACTIVATE_BEST:
+        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_LOC_LOCK_CURRENT]), FALSE);
+        break;
     case MENUITEM_ENV_PREF:
 		argv[0] = "-l";
         break;
@@ -1490,9 +1534,22 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
     END_MENU_SECTION_SEPARATOR(sub_menu, SECTION_LOC, TRUE);
 
     menu_append_item(sub_menu,
+      GTK_TYPE_CHECK_MENU_ITEM, _("_Lock to Current Location"),
+      on_activate_static_menuitems, self);
+    CACHE_STATIC_MENUITEMS(self, MENUITEM_LOC_LOCK_CURRENT);
+
+    menu_append_separator(sub_menu);
+
+    menu_append_item(sub_menu,
+      GTK_TYPE_MENU_ITEM, _("_Activate Best Location"),
+      on_activate_static_menuitems, self);
+    CACHE_STATIC_MENUITEMS(self, MENUITEM_LOC_ACTIVATE_BEST);
+
+    menu_append_item(sub_menu,
       GTK_TYPE_MENU_ITEM, _("_Network Locations..."),
       on_activate_static_menuitems, self);
     CACHE_STATIC_MENUITEMS(self, MENUITEM_ENV_PREF);
+
     menu_append_item_with_submenu(root_menu,
       GTK_TYPE_MENU_ITEM, _("_Location"), sub_menu);
 

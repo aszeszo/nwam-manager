@@ -82,9 +82,7 @@ static gboolean notify_notification_adjust_first(GQueue *q);
 
 static void notify_notification_adjust_nth(GQueue *q, guint nth, gint new_timeout);
 
-static void on_prof_notification_default_timeout(NwamuiProf* prof,
-  gint val,
-  gpointer data);
+static void on_prof_notification_default_timeout(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 static msg *
 nwam_notification_msg_new(NotifyNotification *n,
@@ -132,14 +130,15 @@ nwam_notification_msg_free(msg *m)
     g_free(m);
 }
 
-static void on_prof_notification_default_timeout(NwamuiProf* prof,
-  gint val,
-  gpointer data)
+static void
+on_prof_notification_default_timeout(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
+    NwamuiProf* prof = NWAMUI_PROF(gobject);
     msg *m;
     gint timeout;
 
-    gconf_exp_time = val;
+    g_object_get(gobject, "notification_default_timeout", &gconf_exp_time, NULL);
+
     timeout = g_queue_get_length(&msg_q) == 1 ?
       DEFAULT_EXP_TIME : TIGHT_EXP_TIME;
 
@@ -210,10 +209,10 @@ get_notification( void )
 
 /*             g_debug("#### Notification default timeout %d ####", DEFAULT_EXP_TIME); */
 
-            g_signal_connect(prof, "notification_default_timeout",
+            g_signal_connect(prof, "notify::notification-default-timeout",
               G_CALLBACK(on_prof_notification_default_timeout), NULL);
 
-            nwamui_prof_notify_begin (prof);
+/*             nwamui_prof_notify_begin (prof); */
 
             g_object_unref (prof);
         }

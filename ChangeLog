@@ -1,3 +1,31 @@
+2009-08-04  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c (main):
+	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_init):
+	* capplet/nwam_location_dialog.c (nwam_location_dialog_init),
+	(location_lock_location_cb_toggled),
+	(location_activate_best_location_btn_clicked),
+	(prof_lock_current_loc):
+	* capplet/nwam_net_conf_panel.c:
+	* common/nwamui_prof.c (nwamui_prof_class_init),
+	(nwamui_prof_init), (nwamui_prof_set_property),
+	(nwamui_prof_get_property), (nwamui_prof_finalize),
+	(gconf_notify_cb), (nwamui_prof_get_instance),
+	(nwamui_prof_notify_begin):
+	* daemon/main.c (join_wifi_not_in_fav), (join_any_fav_wifi),
+	(add_any_new_wifi_to_fav), (action_on_no_fav_networks), (main):
+	* daemon/notify.c (on_prof_notification_default_timeout),
+	(get_notification):
+	* daemon/nwam-menu.c:
+	* daemon/nwam-tooltip-widget.c (connect_object):
+	* daemon/status_icon.c (prof_lock_current_loc),
+	(connect_nwam_object_signals), (nwam_status_icon_run),
+	(on_activate_static_menuitems),
+	(nwam_menu_create_static_menuitems):
+	Basic code for lock current location for panel icon and
+	location dialog. Fixed nwamui_prof ref/unref problem, removed
+	all prof signals and uses notify signals instead.
+
 2009-08-03  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/status_icon.c (connect_nwam_object_signals),

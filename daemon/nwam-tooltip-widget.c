@@ -150,7 +150,7 @@ connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object)
     GType type = G_OBJECT_TYPE(object);
 
 	if (type == NWAMUI_TYPE_NCU) {
-        g_signal_connect (G_OBJECT(object), "notify::vanity_name",
+        g_signal_connect (G_OBJECT(object), "notify::vanity-name",
           G_CALLBACK(nwam_object_notify), (gpointer)self);
         g_signal_connect (G_OBJECT(object), "notify::active",
           G_CALLBACK(nwam_object_notify), (gpointer)self);
