@@ -1,3 +1,10 @@
+2009-08-05  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	  Update to 0.99.5 to mark change.
+	* nwam_core/usr/include/libnwam.h:
+	  Update (correctly this time) to new libnwam.h.
+
 2009-08-04  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in:

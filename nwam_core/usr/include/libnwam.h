@@ -64,10 +64,8 @@ extern "C" {
 
 /* nwam flags used for selecting ncu class for walk */
 #define	NWAM_FLAG_NCU_CLASS_PHYS		0x00000100ULL << 32
-#define	NWAM_FLAG_NCU_CLASS_IPTUN		0x00000200ULL << 32
 #define	NWAM_FLAG_NCU_CLASS_IP			0x00010000ULL << 32
-#define	NWAM_FLAG_NCU_CLASS_ALL_LINK		(NWAM_FLAG_NCU_CLASS_PHYS | \
-						NWAM_FLAG_NCU_CLASS_IPTUN)
+#define	NWAM_FLAG_NCU_CLASS_ALL_LINK		NWAM_FLAG_NCU_CLASS_PHYS
 #define	NWAM_FLAG_NCU_CLASS_ALL_INTERFACE	NWAM_FLAG_NCU_CLASS_IP
 #define	NWAM_FLAG_NCU_CLASS_ALL		(NWAM_FLAG_NCU_CLASS_ALL_INTERFACE | \
 					NWAM_FLAG_NCU_CLASS_ALL_LINK)
@@ -394,7 +392,6 @@ nwam_error_t nwam_condition_string_to_condition(const char *,
 nwam_error_t nwam_condition_rate(nwam_condition_object_type_t,
     nwam_condition_t, uint64_t *);
 
-
 /*
  * Location definitions.
  */
@@ -469,7 +466,6 @@ typedef enum {
 #define	NWAM_LOC_PROP_SVCS_ENABLE		"svcs-enable"
 #define	NWAM_LOC_PROP_SVCS_DISABLE		"svcs-disable"
 
-
 /*
  * NCP/NCU definitions.
  */
@@ -495,24 +491,12 @@ typedef enum {
 
 typedef enum {
 	NWAM_NCU_CLASS_PHYS,
-	NWAM_NCU_CLASS_IPTUN,
 	NWAM_NCU_CLASS_IP,
 	NWAM_NCU_CLASS_ANY
 } nwam_ncu_class_t;
 
 #define	NWAM_NCU_CLASS_PHYS_STRING	"phys"
-#define	NWAM_NCU_CLASS_IPTUN_STRING	"iptun"
 #define	NWAM_NCU_CLASS_IP_STRING	"ip"
-
-typedef enum {
-	NWAM_IPTUN_TYPE_IPV4,
-	NWAM_IPTUN_TYPE_IPV6,
-	NWAM_IPTUN_TYPE_6TO4
-} nwam_iptun_type_t;
-
-#define	NWAM_IPTUN_TYPE_IPV4_STRING	"ipv4"
-#define	NWAM_IPTUN_TYPE_IPV6_STRING	"ipv6"
-#define	NWAM_IPTUN_TYPE_6TO4_STRING	"6to4"
 
 typedef enum {
 	NWAM_IP_VERSION_IPV4,
@@ -555,14 +539,6 @@ typedef enum {
 #define	NWAM_NCU_PROP_LINK_MAC_ADDR	"link-mac-addr"
 #define	NWAM_NCU_PROP_LINK_AUTOPUSH	"link-autopush"
 #define	NWAM_NCU_PROP_LINK_MTU		"link-mtu"
-
-/* IP tunnel link properties */
-#define	NWAM_NCU_PROP_IPTUN_TYPE	"iptun-type"
-#define	NWAM_NCU_PROP_IPTUN_TSRC	"iptun-tsrc"
-#define	NWAM_NCU_PROP_IPTUN_TDST	"iptun-tdst"
-#define	NWAM_NCU_PROP_IPTUN_ENCR	"iptun-encr"
-#define	NWAM_NCU_PROP_IPTUN_ENCR_AUTH	"iptun-encr-auth"
-#define	NWAM_NCU_PROP_IPTUN_AUTH	"iptun-auth"
 
 /* IP NCU properties */
 #define	NWAM_NCU_PROP_IP_VERSION	"ip-version"
