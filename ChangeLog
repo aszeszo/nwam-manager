@@ -1,5 +1,12 @@
 2009-08-05  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_ncu.c:
+	  Fix nit where it's possible for us to not know the ESSID that we're
+	  attempting to connect to from the system, but we do know if from
+	  NWAM, so use this value.
+
+2009-08-05  Darren Kenny  <darren.kenny@sun.com>
+
 	* configure.in:
 	  Update to 0.99.5 to mark change.
 	* nwam_core/usr/include/libnwam.h:

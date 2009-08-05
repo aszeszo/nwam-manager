@@ -4115,7 +4115,14 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
                         nwamui_ncu_set_wifi_info( self, wifi );
                     }
                 }
-                status_string = g_strdup_printf( _(status_string_fmt[state]), essid?essid:"UNKNOWN" );
+                else if ( essid == NULL && self->prv->wifi_info != NULL ) {
+                    /* We can't get an essid from the system, but we do have
+                     * one in wifi_info, so use it. 
+                     * This can happen if we're in need of a key.
+                     */
+                    essid = nwamui_wifi_net_get_essid( self->prv->wifi_info );
+                }
+                status_string = g_strdup_printf( _(status_string_fmt[state]), essid?essid:"" );
 
             }
             break;
