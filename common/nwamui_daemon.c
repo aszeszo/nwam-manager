@@ -819,8 +819,10 @@ nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name )
 
             if ( strncmp( name, ncp_name, strlen(name) ) == 0 ) {
                 ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(tmp_ncp)));
+                g_free(ncp_name);
                 break;
             }
+            g_free(ncp_name);
         }
     }
     return(ncp);
@@ -854,8 +856,10 @@ nwamui_daemon_get_env_by_name( NwamuiDaemon *self, const gchar* name )
 
             if ( strncmp( name, env_name, strlen(name) ) == 0 ) {
                 env = NWAMUI_ENV(g_object_ref(G_OBJECT(tmp_env)));
+                g_free(env_name);
                 break;
             }
+            g_free(env_name);
         }
     }
     return(env);

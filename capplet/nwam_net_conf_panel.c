@@ -101,6 +101,7 @@ struct _NwamNetConfPanelPrivate {
     gboolean			manual_expander_flag;
     gboolean            connection_activation_combo_show_ncu_part;
 
+    gpointer            foreachdata[1];
 
     gint on_group_num;
     gint off_group_num;
@@ -1522,18 +1523,34 @@ nwam_net_pref_rule_ncu_enabled_toggled_cb  (    GtkCellRendererToggle *cell_rend
 static gboolean
 ncu_find_gt_name(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data)
 {
+    NwamuiObject *ins_object = NWAMUI_OBJECT(user_data);
     NwamuiObject *object;
+    nwamui_ncu_type_t ins_type;
+    nwamui_ncu_type_t type;
+    gchar *ins_name;
     gchar *name;
     gint ret;
 
     gtk_tree_model_get(model, iter, 0, &object, -1);
 
+    ins_type = nwamui_ncu_get_ncu_type(NWAMUI_NCU(ins_object));
+    type = nwamui_ncu_get_ncu_type(NWAMUI_NCU(object));
+    if (ins_type < type) {
+        g_object_unref(object);
+        return TRUE;
+    } else if(ins_type > type) {
+        g_object_unref(object);
+        return FALSE;
+    }
+
     name = nwamui_object_get_name(object);
+    ins_name = nwamui_object_get_name(ins_object);
 
     g_object_unref(object);
 
     ret = g_ascii_strcasecmp(name, (gchar*)user_data);
     g_free(name);
+    g_free(ins_name);
 
     return ret >= 0;
 }
@@ -1556,7 +1573,6 @@ capplet_tree_store_move_children(GtkTreeStore *model,
 	GtkTreeIter sibling;
     gint source_depth;
     NwamuiObject *object;
-    gchar *name;
 
     gtk_tree_model_get_iter(GTK_TREE_MODEL(model), &source, source_path);
     gtk_tree_model_get_iter(GTK_TREE_MODEL(model), &target, target_path);
@@ -1570,30 +1586,26 @@ capplet_tree_store_move_children(GtkTreeStore *model,
 		do {
 
             gtk_tree_model_get(GTK_TREE_MODEL(model), &s_iter, 0, &object, -1);
-            name = nwamui_object_get_name(object);
-            g_object_unref(object);
 
             if (capplet_model_1_level_foreach(GTK_TREE_MODEL(model), &target,
-                ncu_find_gt_name, (gpointer)name, &sibling)) {
+                ncu_find_gt_name, (gpointer)object, &sibling)) {
                 TREE_STORE_CP_OBJECT_BEFORE(model, &s_iter, &target, &sibling, &t_iter);
             } else {
                 TREE_STORE_CP_OBJECT_BEFORE(model, &s_iter, &target, NULL, &t_iter);
             }
-            g_free(name);
+            g_object_unref(object);
 
 		} while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter));
 	} else if (source_depth > 1) {
         gtk_tree_model_get(GTK_TREE_MODEL(model), &source, 0, &object, -1);
-        name = nwamui_object_get_name(object);
-        g_object_unref(object);
 
         if (capplet_model_1_level_foreach(GTK_TREE_MODEL(model), &target,
-            ncu_find_gt_name, (gpointer)name, &sibling)) {
+            ncu_find_gt_name, (gpointer)object, &sibling)) {
             TREE_STORE_CP_OBJECT_BEFORE(model, &source, &target, &sibling, &t_iter);
         } else {
             TREE_STORE_CP_OBJECT_BEFORE(model, &source, &target, NULL, &t_iter);
         }
-        g_free(name);
+        g_object_unref(object);
         gtk_tree_store_remove(GTK_TREE_STORE(model), &source);
     }
 }
@@ -1636,6 +1648,24 @@ handle_ncu_group_node(GtkTreeModel *model, GtkTreeRowReference *group_rr)
             ncu_pri_group_update(model);
         }
     }
+}
+
+
+static gboolean
+foreach_select_object(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data)
+{
+    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(user_data);
+    NwamuiObject *obj;
+
+    gtk_tree_model_get(model, iter, 0, &obj, -1);
+    g_assert(obj);
+    if (obj == prv->foreachdata[0]) {
+        gtk_tree_view_scroll_to_cell(prv->net_conf_treeview, path, NULL, FALSE, 0, 0);
+        gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->net_conf_treeview), path);
+        prv->foreachdata[0] = NULL;
+    }
+    g_object_unref(obj);
+    return prv->foreachdata[0] == NULL;
 }
 
 /*
@@ -1687,6 +1717,7 @@ foreach_set_group_mode(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter
             g_object_unref(obj);
         }
     }
+    return FALSE;
 }
 
 /*
@@ -1828,6 +1859,17 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             handle_ncu_group_node(model, group_rr);
             gtk_tree_row_reference_free(group_rr);
             static_group_handle_fake_node(model, parent_path, TRUE);
+
+            {
+                GtkTreeIter parent;
+                gtk_tree_model_get_iter(model, &parent, parent_path);
+                prv->foreachdata[0] = (gpointer)object;
+                capplet_model_1_level_foreach(model,
+                  &parent,
+                  foreach_select_object,
+                  self,
+                  &iter);
+            }
             gtk_tree_path_free(parent_path);
 
             update_widgets(self, gtk_tree_view_get_selection(prv->net_conf_treeview));
@@ -1859,6 +1901,17 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             handle_ncu_group_node(model, group_rr);
             gtk_tree_row_reference_free(group_rr);
             static_group_handle_fake_node(model, parent_path, TRUE);
+
+            {
+                GtkTreeIter parent;
+                gtk_tree_model_get_iter(model, &parent, parent_path);
+                prv->foreachdata[0] = (gpointer)object;
+                capplet_model_1_level_foreach(model,
+                  &parent,
+                  foreach_select_object,
+                  self,
+                  &iter);
+            }
             gtk_tree_path_free(parent_path);
 
             update_widgets(self, gtk_tree_view_get_selection(prv->net_conf_treeview));
@@ -1887,7 +1940,6 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             GtkTreeIter temp;
             GtkTreeRowReference *group_rr;
             gint group_id = (button == (gpointer)prv->connection_enable_btn?ALWAYS_ON_GROUP_ID:ALWAYS_OFF_GROUP_ID);
-            gchar *name;
 
             gtk_tree_selection_unselect_path(selection, path);
 
@@ -1898,15 +1950,12 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             static_group_handle_fake_node(model,
               NCU_PRI_GROUP_GET_PATH(model, group_id), FALSE);
 
-            name = nwamui_object_get_name(object);
-
             if (capplet_model_1_level_foreach(model, &parent,
-                ncu_find_gt_name, (gpointer)name, &sibling)) {
+                ncu_find_gt_name, (gpointer)object, &sibling)) {
                 TREE_STORE_CP_OBJECT_BEFORE(model, &iter, &parent, &sibling, &temp);
             } else {
                 TREE_STORE_CP_OBJECT_BEFORE(model, &iter, &parent, NULL, &temp);
             }
-            g_free(name);
 
             gtk_tree_selection_select_iter(selection, &temp);
             gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);

@@ -122,14 +122,14 @@ capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, GtkTreeM
 	GtkTreeIter temp_iter;
 	GtkTreePath *path = NULL;
 
-    if (iter == NULL)
-        iter = &temp_iter;
-
     if (parent) {
         path = gtk_tree_model_get_path(model, parent);
     } else {
         path = gtk_tree_path_new_first();
     }
+
+    if (iter == NULL)
+        iter = &temp_iter;
 
     for (valid = gtk_tree_model_iter_children(model, iter, parent), gtk_tree_path_down(path);
          valid;
@@ -335,9 +335,9 @@ nwamui_object_active_toggle_cell(GtkTreeViewColumn *col,
     gtk_tree_model_get(model, iter, 0, &env, -1);
     
     if ( env != NULL ) {
-
+        /* We need show the active env instead of enabled env. */
         g_object_set(G_OBJECT(renderer),
-          "active", nwamui_env_get_enabled(env),
+          "active", nwamui_object_get_active(NWAMUI_OBJECT(env)),
           NULL); 
         g_object_unref(G_OBJECT(env));
     } else {

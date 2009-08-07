@@ -113,6 +113,7 @@ static gint menu_section_get_children_num(MenuSection *sec);
 static gboolean menu_section_has_child(MenuSection *sec, GtkWidget *child);
 static void menu_section_get_children(MenuSection *sec, GList **ret_children, gint *ret_start_pos);
 static void menu_section_get_positions(MenuSection *sec, gint *ret_start_pos, gint *ret_end_pos);
+static void menu_section_children_changed(MenuSection *sec);
 static void menu_section_increase_children(MenuSection *sec);
 static void menu_section_decrease_children(MenuSection *sec);
 
@@ -376,10 +377,7 @@ menu_section_set_left_widget(MenuSection *sec, GtkWidget *w)
     sec->lw = (GtkWidget *)w;
 
     if (GTK_IS_MENU_ITEM(w)) {
-        if (sec->children_number > 0)
-            gtk_widget_show(w);
-        else
-            gtk_widget_hide(w);
+        menu_section_children_changed(sec);
     }
 }
 
@@ -397,20 +395,17 @@ menu_section_set_right_widget(MenuSection *sec, GtkWidget *w)
     g_assert(sec);
     g_assert(w == NULL || GTK_IS_MENU_ITEM(w));
     if ((sec->rw = (GtkWidget *)w) != NULL) {
-        if (sec->children_number > 0)
-            gtk_widget_show(w);
-        else
-            gtk_widget_hide(w);
+        menu_section_children_changed(sec);
     }
 }
 
 static MenuSection*
 menu_section_new(GtkWidget *lw, GtkWidget *rw)
 {
-    MenuSection *sec = g_new(MenuSection, 1);
+    MenuSection *sec = g_new0(MenuSection, 1);
+
     menu_section_set_left_widget(sec, lw);
     menu_section_set_right_widget(sec, rw);
-    sec->children_number = 0;
     return sec;
 }
 
@@ -555,27 +550,35 @@ menu_section_get_positions(MenuSection *sec, gint *ret_start_pos, gint *ret_end_
 }
 
 static void
+menu_section_children_changed(MenuSection *sec)
+{
+    void (*func)(GtkWidget*);
+
+    g_assert(sec->children_number >= 0);
+
+    if (sec->children_number > 0)
+        func = gtk_widget_show;
+    else
+        func = gtk_widget_hide;
+
+    if (sec->lw && GTK_IS_MENU_ITEM(sec->lw))
+        func(sec->lw);
+    if (sec->rw && GTK_IS_MENU_ITEM(sec->rw))
+        func(sec->rw);
+}
+
+static void
 menu_section_increase_children(MenuSection *sec)
 {
-    g_assert(sec->children_number >= 0);
-    if (sec->children_number++ == 0) {
-        if (sec->lw && GTK_IS_MENU_ITEM(sec->lw))
-            gtk_widget_show(sec->lw);
-        if (sec->rw && GTK_IS_MENU_ITEM(sec->rw))
-            gtk_widget_show(sec->rw);
-    }
+    sec->children_number++;
+    menu_section_children_changed(sec);
 }
 
 static void
 menu_section_decrease_children(MenuSection *sec)
 {
-    g_assert(sec->children_number >= 0);
-    if (--sec->children_number == 0) {
-        if (sec->lw && GTK_IS_MENU_ITEM(sec->lw))
-            gtk_widget_hide(sec->lw);
-        if (sec->rw && GTK_IS_MENU_ITEM(sec->rw))
-            gtk_widget_hide(sec->rw);
-    }
+    sec->children_number--;
+    menu_section_children_changed(sec);
 }
 
 void
@@ -602,17 +605,18 @@ nwam_menu_section_set_visible(NwamMenu *self, gint sec_id, gboolean visible)
     GtkWidget *rw = menu_section_get_right_widget(&prvsection[sec_id]);
     void (*func)(GtkWidget*);
 
-    if (visible)
+    if (visible) {
         func = gtk_widget_show;
-    else
+        menu_section_children_changed(&prvsection[sec_id]);
+    } else {
         func = gtk_widget_hide;
+        if (lw)
+            func(lw);
+        if (rw)
+            func(rw);
+    }
 
     nwam_menu_section_foreach(self, sec_id, (GFunc)func, NULL);
-
-    if (lw)
-        func(lw);
-    if (rw)
-        func(rw);
 }
 
 void

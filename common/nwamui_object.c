@@ -69,7 +69,7 @@ static void nwamui_object_finalize(NwamuiObject *self);
 
 
 /* Callbacks */
-static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+static void nwamui_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 #define NWAMUI_OBJECT_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), NWAMUI_TYPE_OBJECT, NwamuiObjectPrivate))
 G_DEFINE_TYPE(NwamuiObject, nwamui_object, G_TYPE_OBJECT)
@@ -113,7 +113,7 @@ nwamui_object_init(NwamuiObject *self)
     self->prv->nwam_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
     self->prv->nwam_state_last_update = 0;
 
-    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
+    g_signal_connect(G_OBJECT(self), "notify", (GCallback)nwamui_object_notify_cb, (gpointer)self);
 }
 
 static void
@@ -200,9 +200,13 @@ extern gchar *
 nwamui_object_get_name (NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), NULL);
-    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_name, NULL);
+/*     g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_name, NULL); */
+    /* For debugging. */
 
-    return NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);
+    if (NWAMUI_OBJECT_GET_CLASS (object)->get_name) {
+        return NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);
+    }
+    return NULL;
 }
 
 /** 
@@ -394,10 +398,11 @@ nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_
 /* Callbacks */
 
 static void
-object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
+nwamui_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiObject* self = NWAMUI_OBJECT(data);
 
-    g_debug("%s: notify '%s' changed", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), arg1->name);
+/*     g_debug("%s 0x%p : notify '%s'", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), gobject, arg1->name); */
+    g_debug("%s '%s' 0x%p : notify '%s'", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), nwamui_object_get_name(self), gobject, arg1->name);
 }
 

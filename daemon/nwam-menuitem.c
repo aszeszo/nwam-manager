@@ -74,6 +74,9 @@ static void default_disconnect_object(NwamMenuItem *self, GObject *object);
 static void default_sync_object(NwamMenuItem *self, GObject *object, gpointer user_data);
 static gint default_compare(NwamMenuItem *self, NwamMenuItem *other);
 
+/* Callbacks */
+static void nwam_menuitem_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+
 enum {
 	PROP_ZERO,
 	PROP_OBJECT,
@@ -190,6 +193,9 @@ nwam_menu_item_init (NwamMenuItem *self)
     */
     g_signal_connect (self, "parent-set",
       G_CALLBACK(nwam_menu_item_parent_set), NULL);
+
+    g_signal_connect(G_OBJECT(self), "notify", (GCallback)nwam_menuitem_notify_cb, (gpointer)self);
+
 }
 
 static void
@@ -845,3 +851,9 @@ nwam_menu_item_compare(NwamMenuItem *self, NwamMenuItem *other)
     return NWAM_MENU_ITEM_GET_CLASS(self)->compare(NWAM_MENU_ITEM(self), NWAM_MENU_ITEM(other));
 }
 
+static void
+nwam_menuitem_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+/*     g_debug("%s 0x%p : notify '%s'", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), gobject, arg1->name); */
+    g_debug("menu-item '%s' 0x%p : notify '%s'", gtk_menu_item_get_label(GTK_MENU_ITEM(gobject)), gobject, arg1->name);
+}

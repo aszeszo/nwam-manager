@@ -801,7 +801,11 @@ check_ncu_online( gpointer obj, gpointer user_data )
         online = TRUE;
     }
 
-    nwamui_debug("NCU %s: online = %s", nwamui_ncu_get_vanity_name(ncu), online?"True":"False" );
+    {
+        gchar *vanity_name = nwamui_ncu_get_vanity_name(ncu);
+        nwamui_debug("NCU %s: online = %s", vanity_name, online?"True":"False" );
+        g_free(vanity_name);
+    }
 
     switch (activation_mode) { 
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL: {
@@ -957,6 +961,28 @@ nwamui_ncp_get_ncu_list( NwamuiNcp *self )
                   NULL);
 
     return( ncu_list );
+}
+
+/**
+ * nwamui_ncp_foreach_ncu_list:
+ *
+ **/
+extern  void
+nwamui_ncp_foreach_ncu_list( NwamuiNcp *self, GFunc func, gpointer user_data )
+{
+    g_assert(NWAMUI_IS_NCP(self));
+    g_return_if_fail(func);
+
+    g_list_foreach( self->prv->ncu_list, func, user_data );
+}
+
+extern  GList*
+nwamui_ncp_find_ncu_list( NwamuiNcp *self, gconstpointer data, GCompareFunc func)
+{
+    g_assert(NWAMUI_IS_NCP(self));
+    g_return_val_if_fail(func, NULL);
+
+    return g_list_find_custom(self->prv->ncu_list, data, func);
 }
 
 /**

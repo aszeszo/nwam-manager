@@ -1,3 +1,38 @@
+2009-08-07  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (capplet_model_1_level_foreach),
+	(nwamui_object_active_toggle_cell): show active rather enabled loc.
+	* capplet/nwam_net_conf_panel.c (ncu_find_gt_name),
+	(capplet_tree_store_move_children), (foreach_select_object),
+	(foreach_set_group_mode), (on_button_clicked):
+	Keep selecting item during moving up/down.
+	* common/nwamui_daemon.c (nwamui_daemon_get_ncp_by_name),
+	(nwamui_daemon_get_env_by_name): Small leak fix.
+	* common/nwamui_ncp.c (check_ncu_online),
+	(nwamui_ncp_foreach_ncu_list), (nwamui_ncp_find_ncu_list):
+	* common/nwamui_ncp.h: add foreach and find ncu functions.
+	* common/nwamui_object.c (nwamui_object_init),
+	(nwamui_object_get_name), (nwamui_object_notify_cb):
+	Better debug info.
+	* daemon/notify.c (nwam_notification_show_ncp_changed),
+	(nwam_notification_show_location_changed): Small leak fixes.
+	* daemon/nwam-menu.c (menu_section_set_left_widget),
+	(menu_section_set_right_widget), (menu_section_new),
+	(menu_section_children_changed), (menu_section_increase_children),
+	(menu_section_decrease_children), (nwam_menu_section_set_visible):
+	* daemon/nwam-menu.h: Fixes for doo#9495, but it is hard to test.
+	* daemon/nwam-menuitem.c (nwam_menu_item_init),
+	(nwam_menuitem_notify_cb):
+	Better debug info.
+	* daemon/nwam-wifi-item.c (wifi_net_notify):
+	Wifi net state doesn't seem properly in sync, add some code for
+	debugging it and detect the ncu state.
+	* daemon/status_icon.c (daemon_active_ncp_changed),
+	(ncp_find_enabled_wireless_ncu), (nwam_menu_update_wifi_section),
+	(on_ncp_notify_many_wireless), (nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_create_static_menuitems), (nwam_menu_get_section_index):
+	Fixes for doo#9495.
+
 2009-08-05  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_ncu.c:

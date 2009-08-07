@@ -54,7 +54,7 @@ struct _NwamMenuClass {
 GType            nwam_menu_get_type          (void) G_GNUC_CONST;
 
 /* GtkMenu MACROs, must define ITEM_VARNAME before use them. */
-#define MENU_APPEND_ITEM_BASE(menu, type, label, callback, user_data)   \
+#define MENU_CREATE_ITEM_BASE(menu, type, label, callback, user_data)   \
     g_assert(GTK_IS_MENU_SHELL(menu));                                  \
     ITEM_VARNAME = g_object_new(type, NULL);                            \
     if (!g_type_is_a(type, GTK_TYPE_SEPARATOR_MENU_ITEM)) {             \
@@ -63,45 +63,53 @@ GType            nwam_menu_get_type          (void) G_GNUC_CONST;
         if (callback)                                                   \
             g_signal_connect((ITEM_VARNAME),                            \
               "activate", G_CALLBACK(callback), (gpointer)user_data);   \
-    }                                                                   \
-    ADD_MENU_ITEM(GTK_MENU_SHELL(menu), GTK_WIDGET(ITEM_VARNAME));
+    }
 #define menu_append_item(menu, type, label, callback, user_data)        \
+    menu_append_item_with_code(menu, type, label, callback, user_data, {})
+#define menu_append_item_with_code(menu, type, label, callback, user_data, _C_) \
     {                                                                   \
-        MENU_APPEND_ITEM_BASE(menu, type, label, callback, user_data);  \
+        MENU_CREATE_ITEM_BASE(menu, type, label, callback, user_data);  \
+        { _C_; }                                                        \
+        ADD_MENU_ITEM(menu, GTK_WIDGET(ITEM_VARNAME));                  \
     }
 #define menu_append_image_item(menu, label, img, callback, user_data)   \
     {                                                                   \
-        MENU_APPEND_ITEM_BASE(menu, GTK_TYPE_IMAGE_MENU_ITEM,           \
+        MENU_CREATE_ITEM_BASE(menu, GTK_TYPE_IMAGE_MENU_ITEM,           \
           label, callback, user_data);                                  \
         gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(ITEM_VARNAME), \
           GTK_WIDGET(GTK_IMAGE(img)));                                  \
+        ADD_MENU_ITEM(menu, GTK_WIDGET(ITEM_VARNAME));                  \
     }
 #define menu_append_stock_item(menu, label, stock, callback, user_data) \
     {                                                                   \
-        MENU_APPEND_ITEM_BASE(menu, GTK_TYPE_IMAGE_MENU_ITEM,           \
+        MENU_CREATE_ITEM_BASE(menu, GTK_TYPE_IMAGE_MENU_ITEM,           \
           label, callback, user_data);                                  \
         gtk_image_menu_item_set_image(GTK_IMAGE_MENU_ITEM(ITEM_VARNAME), \
           gtk_image_new_from_stock(stock, GTK_ICON_SIZE_MENU));         \
+        ADD_MENU_ITEM(menu, GTK_WIDGET(ITEM_VARNAME));                  \
     }
 #define menu_append_item_with_submenu(menu, type, label, submenu)   \
     {                                                               \
         g_assert(!g_type_is_a(type, GTK_TYPE_SEPARATOR_MENU_ITEM)); \
-        MENU_APPEND_ITEM_BASE(menu, type, label, NULL, NULL);       \
+        MENU_CREATE_ITEM_BASE(menu, type, label, NULL, NULL);       \
+        ADD_MENU_ITEM(menu, GTK_WIDGET(ITEM_VARNAME));              \
         gtk_menu_item_set_submenu(GTK_MENU_ITEM(ITEM_VARNAME),      \
           GTK_WIDGET(submenu));                                     \
     }
 #define menu_append_separator(menu)                                 \
     {                                                               \
-        MENU_APPEND_ITEM_BASE(menu, GTK_TYPE_SEPARATOR_MENU_ITEM,   \
+        MENU_CREATE_ITEM_BASE(menu, GTK_TYPE_SEPARATOR_MENU_ITEM,   \
           NULL, NULL, NULL);                                        \
+        ADD_MENU_ITEM(menu, GTK_WIDGET(ITEM_VARNAME));              \
     }
 #define START_MENU_SECTION_SEPARATOR(nwam_menu, sec_id, has_sep)        \
     {                                                                   \
         GtkWidget *sec_widget;                                          \
         g_assert(NWAM_IS_MENU(nwam_menu));                              \
         if (has_sep) {                                                  \
-            MENU_APPEND_ITEM_BASE(nwam_menu, GTK_TYPE_SEPARATOR_MENU_ITEM, \
+            MENU_CREATE_ITEM_BASE(nwam_menu, GTK_TYPE_SEPARATOR_MENU_ITEM, \
               NULL, NULL, NULL);                                        \
+            ADD_MENU_ITEM(nwam_menu, GTK_WIDGET(ITEM_VARNAME));              \
             sec_widget = GTK_WIDGET(ITEM_VARNAME);                      \
         } else {                                                        \
             sec_widget = GTK_WIDGET(nwam_menu);                         \
@@ -114,8 +122,9 @@ GType            nwam_menu_get_type          (void) G_GNUC_CONST;
         GtkWidget *sec_widget;                                          \
         g_assert(NWAM_IS_MENU(nwam_menu));                              \
         if (has_sep) {                                                  \
-            MENU_APPEND_ITEM_BASE(nwam_menu, GTK_TYPE_SEPARATOR_MENU_ITEM, \
+            MENU_CREATE_ITEM_BASE(nwam_menu, GTK_TYPE_SEPARATOR_MENU_ITEM, \
               NULL, NULL, NULL);                                        \
+            ADD_MENU_ITEM(nwam_menu, GTK_WIDGET(ITEM_VARNAME));              \
             sec_widget = GTK_WIDGET(ITEM_VARNAME);                      \
         } else {                                                        \
             sec_widget = NULL;                                          \
