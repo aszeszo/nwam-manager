@@ -128,8 +128,8 @@ static void trigger_animation_panel_icon (GConfClient *client,
                                           GConfEntry *entry,
                                           gpointer user_data);
 
-static void connect_nwam_object_signals(GObject *self, GObject *obj);
-static void disconnect_nwam_object_signals(GObject *self, GObject *obj);
+static void connect_nwam_object_signals(GObject *obj, GObject *self);
+static void disconnect_nwam_object_signals(GObject *obj, GObject *self);
 
 static gint ncp_find_enabled_wireless_ncu(gconstpointer a, gconstpointer b);
 static void nwam_menu_update_wifi_section(NwamStatusIcon *self);
@@ -150,8 +150,6 @@ static void daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpoint
 static void daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data);
 static void daemon_wifi_key_needed (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer user_data);
 static void daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
-static void daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
-static void daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
 static void nwam_menu_scan_started(GObject *daemon, gpointer data);
 static void nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data);
 static void daemon_add_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
@@ -168,6 +166,9 @@ static void ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data);
 static void ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data);
 static void on_ncp_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data);
 static void on_ncp_notify_many_wireless( GObject *gobject, GParamSpec *arg1, gpointer user_data);
+
+/* nwamui ncu signals */
+static void ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* GtkStatusIcon callbacks */
 static void status_icon_popup(GtkStatusIcon *status_icon,
@@ -474,30 +475,38 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
 }
 
 static void
-daemon_ncu_up (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
+ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
-
-	/* set status to "CONNECTED" */
-	nwam_status_icon_set_status(self, ncu);
-
-    nwam_notification_show_ncu_connected( ncu );
-}
-
-static void
-daemon_ncu_down (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
-{
-    NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
+    NwamStatusIcon *self       = NWAM_STATUS_ICON(data);
+    NwamuiNcu      *ncu        = NWAMUI_NCU(gobject);
     gboolean        active_ncu = FALSE;
-    
-    /* Only show this information, if it's an enabled ncu */
+
 	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
-        /* set status to "WARNING", only relevant if it's the active ncu */
         if ( active_ncu ) {
             nwam_status_icon_set_status(self, ncu);
         }
+    }
 
-        nwam_notification_show_ncu_disconnected( ncu, NULL, NULL );
+    /* Ncu state filter. */
+    switch(nwamui_ncu_get_connection_state(ncu)) {
+    case NWAMUI_STATE_CABLE_UNPLUGGED:
+    case NWAMUI_STATE_NEEDS_KEY_ESSID:
+    case NWAMUI_STATE_CONNECTING_ESSID:
+    case NWAMUI_STATE_CONNECTED_ESSID:
+    case NWAMUI_STATE_NEEDS_SELECTION:
+    case NWAMUI_STATE_CONNECTED:
+        if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
+            nwam_notification_show_ncu_connected( ncu );
+        } else {
+            nwam_notification_show_ncu_disconnected( ncu, NULL, NULL );
+        }
+        break;
+    case NWAMUI_STATE_UNKNOWN:
+    case NWAMUI_STATE_NOT_CONNECTED:
+    case NWAMUI_STATE_CONNECTING:
+    case NWAMUI_STATE_NETWORK_UNAVAILABLE:
+    default:
+        break;
     }
 }
 
@@ -619,7 +628,9 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
     if (prv->active_ncp) {
         nwam_menu_stop_update_wifi_timer(self);
 
-        disconnect_nwam_object_signals(G_OBJECT(self), G_OBJECT(prv->active_ncp));
+        disconnect_nwam_object_signals(G_OBJECT(prv->active_ncp), G_OBJECT(self));
+        /* Disconnect ncu signals. */
+        nwamui_ncp_foreach_ncu_list(prv->active_ncp, (GFunc)disconnect_nwam_object_signals, (gpointer)self);
         g_object_unref(prv->active_ncp);
     }
 
@@ -631,7 +642,9 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
         nwam_notification_show_ncp_changed( prv->active_ncp );
 #endif
 
-        connect_nwam_object_signals(G_OBJECT(self), G_OBJECT(prv->active_ncp));
+        connect_nwam_object_signals(G_OBJECT(prv->active_ncp), G_OBJECT(self));
+        /* Connect ncu signals. */
+        nwamui_ncp_foreach_ncu_list(prv->active_ncp, (GFunc)connect_nwam_object_signals, (gpointer)self);
 
         nwam_menu_recreate_ncu_menuitems(self);
 
@@ -671,7 +684,7 @@ daemon_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
 }
 
 static void
-connect_nwam_object_signals(GObject *self, GObject *obj)
+connect_nwam_object_signals(GObject *obj, GObject *self)
 {
 	GType type = G_OBJECT_TYPE(obj);
 
@@ -708,12 +721,6 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
         g_signal_connect(daemon, "wifi_scan_result",
           (GCallback)nwam_menu_create_wifi_menuitems, (gpointer) self);
 
-        g_signal_connect(daemon, "ncu_up",
-          G_CALLBACK(daemon_ncu_up), (gpointer)self);
-	
-        g_signal_connect(daemon, "ncu_down",
-          G_CALLBACK(daemon_ncu_down), (gpointer)self);
-
         /* We don't have a fav wifi section in pop menu in
          * Phase 1, so comment out these signals to avoid
          * crash when removing fav wifi in fav wireless tab.
@@ -745,7 +752,12 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
         g_signal_connect(ncp, "notify::wireless-link-num",
           G_CALLBACK(on_ncp_notify_many_wireless), (gpointer)self);
 
-/* 	} else if (type == NWAMUI_TYPE_NCU) { */
+	} else if (type == NWAMUI_TYPE_NCU) {
+        NwamuiNcu* ncu = NWAMUI_NCU(obj);
+
+        g_signal_connect(ncu, "notify::active",
+          G_CALLBACK(ncu_notify_active), (gpointer)self);
+        
 /* 	} else if (type == NWAMUI_TYPE_ENV) { */
 /* 	} else if (type == NWAMUI_TYPE_ENM) { */
 	} else {
@@ -754,13 +766,13 @@ connect_nwam_object_signals(GObject *self, GObject *obj)
 }
 
 static void
-disconnect_nwam_object_signals(GObject *self, GObject *obj)
+disconnect_nwam_object_signals(GObject *obj, GObject *self)
 {
 	GType type = G_OBJECT_TYPE(obj);
 
 	if (type == NWAMUI_TYPE_DAEMON) {
     } else if (type == NWAMUI_TYPE_NCP) {
-/* 	} else if (type == NWAMUI_TYPE_NCU) { */
+	} else if (type == NWAMUI_TYPE_NCU) {
 /* 	} else if (type == NWAMUI_TYPE_ENV) { */
 /* 	} else if (type == NWAMUI_TYPE_ENM) { */
 	} else {
@@ -1022,7 +1034,7 @@ nwam_status_icon_run(NwamStatusIcon *self)
     /* nwam_status_icon_set_activate_callback(self, G_CALLBACK(activate_cb), NULL); */
 
     /* Handle all daemon signals here */
-    connect_nwam_object_signals(G_OBJECT(self), G_OBJECT(prv->daemon));
+    connect_nwam_object_signals(G_OBJECT(prv->daemon), G_OBJECT(self));
 
     {
         NwamuiProf *prof;
@@ -1409,7 +1421,7 @@ nwam_status_icon_finalize (NwamStatusIcon *self)
 
     g_object_unref(prv->menu);
 
-    disconnect_nwam_object_signals(G_OBJECT(self), G_OBJECT(prv->daemon));
+    disconnect_nwam_object_signals(G_OBJECT(prv->daemon), G_OBJECT(self));
 
     g_object_unref(prv->tooltip_widget);
 

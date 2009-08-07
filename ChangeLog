@@ -1,5 +1,16 @@
 2009-08-07  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamd_event_handler): Removed unused ncu_up/down signals.
+	* common/nwamui_daemon.h:
+	* daemon/status_icon.c (ncu_notify_active),
+	(daemon_active_ncp_changed), (connect_nwam_object_signals),
+	(disconnect_nwam_object_signals), (nwam_status_icon_run),
+	(nwam_status_icon_finalize): Directly connect ncu notify::active
+	signals. Fixed doo#9639 the second time.
+
+2009-08-07  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/capplet-utils.c (capplet_model_1_level_foreach),
 	(nwamui_object_active_toggle_cell): show active rather enabled loc.
 	* capplet/nwam_net_conf_panel.c (ncu_find_gt_name),

@@ -105,8 +105,6 @@ struct _NwamuiDaemonClass
 	NwamuiObjectClass                parent_class;
         
 	void (*daemon_info)             (NwamuiDaemon *self, gint info, GObject *obj, gpointer data, gpointer user_data);
-	void (*ncu_down)                (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
-	void (*ncu_up)                  (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
 	void (*wifi_selection_needed)   (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
     void (*active_env_changed)      (NwamuiDaemon *self, GObject *data, gpointer user_data);
     void (*active_ncp_changed)      (NwamuiDaemon *self, GObject *data, gpointer user_data);
