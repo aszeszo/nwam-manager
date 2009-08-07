@@ -565,6 +565,7 @@ ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
+    connect_nwam_object_signals(G_OBJECT(ncu), G_OBJECT(self));
     nwam_menu_item_create(NWAM_MENU(prv->menu), NWAMUI_OBJECT(ncu));
     nwam_tooltip_widget_add_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu));
 }
@@ -575,6 +576,7 @@ ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
+    disconnect_nwam_object_signals(G_OBJECT(ncu), G_OBJECT(self));
     nwam_menu_item_delete(NWAM_MENU(prv->menu), NWAMUI_OBJECT(ncu));
     nwam_tooltip_widget_remove_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu));
 }
@@ -638,13 +640,13 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
 
         g_object_ref(prv->active_ncp);
 
-#if 1
-        nwam_notification_show_ncp_changed( prv->active_ncp );
-#endif
-
         connect_nwam_object_signals(G_OBJECT(prv->active_ncp), G_OBJECT(self));
         /* Connect ncu signals. */
         nwamui_ncp_foreach_ncu_list(prv->active_ncp, (GFunc)connect_nwam_object_signals, (gpointer)self);
+
+#if 1
+        nwam_notification_show_ncp_changed( prv->active_ncp );
+#endif
 
         nwam_menu_recreate_ncu_menuitems(self);
 
@@ -1597,17 +1599,22 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
     START_MENU_SECTION_SEPARATOR(sub_menu, SECTION_LOC, FALSE);
     END_MENU_SECTION_SEPARATOR(sub_menu, SECTION_LOC, TRUE);
 
-    menu_append_item(sub_menu,
-      GTK_TYPE_CHECK_MENU_ITEM, _("_Lock to Current Location"),
-      on_activate_static_menuitems, self);
-    CACHE_STATIC_MENUITEMS(self, MENUITEM_LOC_LOCK_CURRENT);
+    {
+        GSList *group = NULL;
+        menu_append_item(sub_menu,
+          GTK_TYPE_RADIO_MENU_ITEM, _("Switch Locations Au_tomatically"),
+          on_activate_static_menuitems, self);
+        CACHE_STATIC_MENUITEMS(self, MENUITEM_LOC_LOCK_CURRENT);
+        gtk_radio_menu_item_set_group(menuitem, group);
+        group = gtk_radio_menu_item_get_group(menuitem);
+        menu_append_item(sub_menu,
+          GTK_TYPE_RADIO_MENU_ITEM, _("Switch Locations _Manually"),
+          on_activate_static_menuitems, self);
+        CACHE_STATIC_MENUITEMS(self, MENUITEM_LOC_ACTIVATE_BEST);
+        gtk_radio_menu_item_set_group(menuitem, group);
+    }
 
     menu_append_separator(sub_menu);
-
-    menu_append_item(sub_menu,
-      GTK_TYPE_MENU_ITEM, _("_Activate Best Location"),
-      on_activate_static_menuitems, self);
-    CACHE_STATIC_MENUITEMS(self, MENUITEM_LOC_ACTIVATE_BEST);
 
     menu_append_item(sub_menu,
       GTK_TYPE_MENU_ITEM, _("_Network Locations..."),

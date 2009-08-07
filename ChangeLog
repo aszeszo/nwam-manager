@@ -1,5 +1,14 @@
 2009-08-07  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwamui_daemon.c (nwamd_event_handler):
+	Notify ncu on link/if_state events.
+	* daemon/status_icon.c (ncp_add_ncu), (ncp_remove_ncu),
+	(daemon_active_ncp_changed), (nwam_menu_create_static_menuitems):
+	Fixed doo#9639 previous fix can't show init ncu info.
+	And the change to menu of doo#9561.
+
+2009-08-07  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_daemon.c (nwamui_daemon_class_init),
 	(nwamd_event_handler): Removed unused ncu_up/down signals.
 	* common/nwamui_daemon.h:

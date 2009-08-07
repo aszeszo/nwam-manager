@@ -2291,6 +2291,7 @@ nwamd_event_handler(gpointer data)
                     ncu = get_ncu_by_device_name( daemon, NULL, name );
 
                     if ( ncu ) {
+                        g_object_notify(G_OBJECT(ncu), "active");
                         g_object_unref(ncu);
                     }
                     else {
@@ -2316,6 +2317,7 @@ nwamd_event_handler(gpointer data)
 
                     /* Directly deliver to upper consumers */
                     if ( ncu ) {
+                        g_object_notify(G_OBJECT(ncu), "active");
                         g_object_unref(ncu);
                     }
                     else {
