@@ -1,5 +1,11 @@
 2009-08-10  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_location_dialog.c
+	(nwam_location_connection_enabled_toggled_cb):
+	Toggles still work though they aren't sensentive, workaround it.
+
+2009-08-10  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/capplet-utils.c
 	(capplet_list_foreach_merge_to_tree_store),
 	(nwamui_object_active_toggle_cell), (capplet_get_original_name):

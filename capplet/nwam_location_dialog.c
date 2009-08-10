@@ -703,6 +703,11 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
     GtkTreeIter iter;
     GtkTreeModel *model;
     GtkTreePath  *tpath;
+    gboolean sensitive;
+
+    g_object_get(cell_renderer, "sensitive", &sensitive, NULL);
+    if (!sensitive)
+        return;
 
 	model = gtk_tree_view_get_model(self->prv->location_tree);
     tpath = gtk_tree_path_new_from_string(path);
