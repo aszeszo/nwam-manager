@@ -1793,12 +1793,12 @@ insert_text_ip_only_handler (GtkEditable *editable,
 
     for ( int i = 0; i < length && is_valid; i++ ) {
         if ( is_v6 ) {
-            /* Valid chars for v6 are ASCII [0-9a-f:.] */
-            is_valid = (g_ascii_isxdigit( lower[i] ) || text[i] == ':' || text[i] == '.' );   
+            /* Valid chars for v6 are ASCII [0-9a-f:./] */
+            is_valid = (g_ascii_isxdigit( lower[i] ) || text[i] == '/' || text[i] == ':' || text[i] == '.' );   
         }
         else {
-            /* Valid chars for v4 are ASCII [0-9.] */
-            is_valid = (g_ascii_isdigit( lower[i] ) || text[i] == '.');   
+            /* Valid chars for v4 are ASCII [0-9./] */
+            is_valid = (g_ascii_isdigit( lower[i] ) || text[i] == '.' || text[i] == '/' );   
         }
     }
     
@@ -1847,15 +1847,34 @@ nwamui_util_validate_ip_address(    GtkWidget   *widget,
         is_valid = FALSE;
     }
     else {
-        if ( is_v6 ) {
-            if ( ! inet_pton ( AF_INET6, address_str, (void*)(&sin6->sin6_addr) ) ) {
-                is_valid = FALSE;
-            }
+        gchar **strs =  NULL;
+
+        /* Allow for address in format "addr/prefix" */
+        strs = g_strsplit(address_str, "/", 2 );
+
+        if ( strs == NULL || strs[0] == NULL ) {
+            is_valid = FALSE;
         }
         else {
-            if ( ! inet_pton ( AF_INET, address_str, (void*)(&sin->sin_addr) ) ) {
-                is_valid = FALSE;
+            if ( is_v6 ) {
+                if ( ! inet_pton ( AF_INET6, strs[0], (void*)(&sin6->sin6_addr) ) ) {
+                    is_valid = FALSE;
+                }
+                if ( strs[1] != NULL ) { /* Handle /N */
+                    gint64 prefix = g_ascii_strtoll( strs[1], NULL, 10 );
+                    if ( prefix == 0 ) {
+                        is_valid = FALSE;
+                    }
+                }
             }
+            else {
+                if ( ! inet_pton ( AF_INET, strs[0], (void*)(&sin->sin_addr) ) ) {
+                    is_valid = FALSE;
+                }
+            }
+        }
+        if ( strs != NULL) {
+            g_strfreev( strs );
         }
     }
 
@@ -2041,7 +2060,7 @@ nwamui_util_split_address_prefix( gboolean v6, const gchar* address_prefix, gcha
 
     if ( prefix != NULL ) {
         if ( prefix_str == NULL ) {
-            *prefix = g_strdup("");
+            *prefix = NULL;
         }
         else {
             *prefix = g_strdup( prefix_str );

@@ -1,5 +1,11 @@
 2009-08-10  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_conn_conf_ip_panel.c, common/libnwamui.c: 
+	  Fix bug#10302 (again) to allow for /N to specify the prefix. Also
+	  fixes bug#10289.
+
+2009-08-10  Darren Kenny  <darren.kenny@sun.com>
+
 	* daemon/nwam-menu.c: 
 	  Fix a crash in nwam_menu_real_insert() where the setting of child to
 	  NULL was causing a crash later when setting sensitivity.

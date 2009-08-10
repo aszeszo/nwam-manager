@@ -1366,11 +1366,32 @@ nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
 	case IP_VIEW_HOSTNAME:
 		break;
 */
-	case IP_VIEW_ADDR:
-        nwamui_ip_set_address(ip, new_text);
+	case IP_VIEW_ADDR: {
+            gchar  *address = NULL;
+            gchar  *prefix = NULL;
+
+            nwamui_util_split_address_prefix(  FALSE, new_text, &address, &prefix );
+            if ( address != NULL ) {
+                nwamui_ip_set_address(ip, address );
+            }
+            if ( prefix != NULL ) {
+                nwamui_ip_set_subnet_prefix(ip, prefix );
+            }
+            g_free( address );
+            g_free( prefix );
+        }
 		break;
-	case IP_VIEW_MASK:
-        nwamui_ip_set_subnet_prefix(ip, new_text);
+	case IP_VIEW_MASK: {
+            gchar  *address = NULL;
+            gchar  *prefix = NULL;
+
+            nwamui_util_split_address_prefix(  FALSE, new_text, &address, &prefix );
+            if ( address != NULL ) {
+                nwamui_ip_set_subnet_prefix(ip, address );
+            }
+            g_free( address );
+            g_free( prefix );
+        }
 		break;
 	default:
 		g_assert_not_reached ();
@@ -1414,11 +1435,33 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
 	case IP_VIEW_HOSTNAME:
 		break;
 */
-	case IP_VIEW_ADDR:
-        nwamui_ip_set_address(ip, new_text);
+	case IP_VIEW_ADDR: {
+            gchar  *address = NULL;
+            gchar  *prefix = NULL;
+
+            nwamui_util_split_address_prefix(  TRUE, new_text, &address, &prefix );
+            if ( address != NULL ) {
+                nwamui_ip_set_address(ip, address );
+            }
+            if ( prefix != NULL ) {
+                nwamui_ip_set_subnet_prefix(ip, prefix );
+            }
+            g_free( address );
+            g_free( prefix );
+        }
 		break;
-	case IP_VIEW_MASK:
-        nwamui_ip_set_subnet_prefix(ip, new_text);
+	case IP_VIEW_MASK: {
+            gint64 prefix = g_ascii_strtoll( new_text, NULL, 10 );
+
+            if ( prefix != 0 ) {
+                gchar  *prefix_str;
+
+                prefix_str = g_strdup_printf("%ld", prefix );
+                nwamui_ip_set_subnet_prefix(ip, prefix_str );
+                g_free(prefix_str);
+            }
+
+        }
 		break;
 	default:
 		g_assert_not_reached ();
@@ -1602,8 +1645,19 @@ ipv4_addr_changed_cb( GtkEditable* editable, gpointer data )
 
     ipv4_address = gtk_entry_get_text(GTK_ENTRY(editable));
     if ( ipv4_address != NULL ) {
+        gchar  *address = NULL;
+        gchar  *prefix = NULL;
+
         g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
-        nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu), ipv4_address );
+        nwamui_util_split_address_prefix(  FALSE, ipv4_address, &address, &prefix );
+        if ( address != NULL ) {
+            nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu), address );
+        }
+        if ( prefix != NULL ) {
+            nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu), prefix );
+        }
+        g_free( address );
+        g_free( prefix );
         g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
     }
 }
@@ -1617,8 +1671,16 @@ ipv4_subnet_changed_cb( GtkEditable* editable, gpointer data )
 
     ipv4_subnet = gtk_entry_get_text(GTK_ENTRY(editable));
     if ( ipv4_subnet != NULL ) {
+        gchar  *address = NULL;
+        gchar  *prefix = NULL;
+
         g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
-        nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu), ipv4_subnet );
+        nwamui_util_split_address_prefix(  FALSE, ipv4_subnet, &address, &prefix );
+        if ( address != NULL ) {
+            nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu), address );
+        }
+        g_free( address );
+        g_free( prefix );
         g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
     }
 }
