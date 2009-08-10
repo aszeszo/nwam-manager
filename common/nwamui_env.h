@@ -113,6 +113,7 @@ extern void                 nwamui_env_set_conditions ( NwamuiEnv *self, const G
 extern GList*               nwamui_env_get_conditions ( NwamuiEnv *self );
 
 extern gboolean             nwamui_env_get_active (NwamuiEnv *self);
+extern void                 nwamui_env_set_active (NwamuiEnv *self, gboolean active );
 
 extern void                 nwamui_env_set_enabled ( NwamuiEnv *self, gboolean enabled );
 extern gboolean             nwamui_env_get_enabled ( NwamuiEnv *self );

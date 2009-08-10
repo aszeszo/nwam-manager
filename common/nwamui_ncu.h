@@ -224,6 +224,8 @@ extern gchar*               nwamui_ncu_get_connection_state_string( NwamuiNcu* s
 
 extern gchar*               nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* ncu, gboolean use_newline );
 
+extern gchar*               nwamui_ncu_get_configuration_summary_string( NwamuiNcu* self );
+
 G_END_DECLS
 
 #endif	/* _NWAMUI_NCU_H */

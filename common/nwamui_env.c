@@ -697,7 +697,8 @@ nwamui_env_set_property (   GObject         *object,
                     nwam_state_t        state = NWAM_STATE_OFFLINE;
                     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-                    nwam_loc_get_state( self->prv->nwam_loc, &state, &aux_state );
+                    /* Use cached state in nwamui_object... */
+                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL );
 
                     gboolean active = g_value_get_boolean( value );
                     if ( state != NWAM_STATE_ONLINE && active ) {
@@ -1036,7 +1037,8 @@ nwamui_env_get_property (GObject         *object,
                     nwam_state_t    state = NWAM_STATE_OFFLINE;
                     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-                    nwam_loc_get_state( self->prv->nwam_loc, &state, &aux_state );
+                    /* Use cached state in nwamui_object... */
+                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL );
                     if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_ACTIVE ) {
                         active = TRUE;
                     }

@@ -81,6 +81,7 @@ struct _NwamuiNcuPrivate {
 #endif /* TUNNEL_SUPPORT */
 
         gboolean                        active;
+        gboolean                        enabled;
 
         /* General Properties */
         gchar*                          vanity_name;
@@ -100,6 +101,7 @@ struct _NwamuiNcuPrivate {
         gboolean                        ipv4_active;
         NwamuiIp*                       ipv4_primary_ip;
         gboolean                        ipv6_active;
+        gboolean                        ipv6_autoconf; 
         NwamuiIp*                       ipv6_primary_ip;
         GtkListStore*                   v4addresses;
         GtkListStore*                   v6addresses;
@@ -464,9 +466,11 @@ nwamui_ncu_init (NwamuiNcu *self)
     self->prv->vanity_name = NULL;
     self->prv->device_name = NULL;
     self->prv->ncu_type = NWAMUI_NCU_TYPE_WIRED;
+    self->prv->enabled = FALSE;
     self->prv->active = FALSE;
     self->prv->ipv4_primary_ip = NULL;
     self->prv->ipv6_active = FALSE;
+    self->prv->ipv6_autoconf = FALSE;
     self->prv->ipv6_primary_ip = NULL;
     self->prv->v4addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
     self->prv->v6addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
@@ -830,8 +834,7 @@ nwamui_ncu_set_property ( GObject         *object,
             break;
 
         case PROP_ENABLED: {
-                gboolean enabled = g_value_get_boolean( value );
-                set_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED, enabled );
+                self->prv->enabled = g_value_get_boolean( value );
                 set_modified_flag( self, NWAM_NCU_CLASS_PHYS, TRUE );
             }
             break;
@@ -1075,8 +1078,7 @@ nwamui_ncu_get_property (GObject         *object,
             break;
 
         case PROP_ENABLED: {
-                g_value_set_boolean( value, 
-                            get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED ) );
+                g_value_set_boolean( value, self->prv->enabled );
             }
             break;
 
@@ -1226,10 +1228,18 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     g_object_freeze_notify(G_OBJECT(ncu->prv->v4addresses));
     g_object_freeze_notify(G_OBJECT(ncu->prv->v6addresses));
 
-    ncu->prv->ipv6_active = FALSE;
+    ncu->prv->ipv4_active = FALSE;
+    if ( ncu->prv->ipv4_primary_ip != NULL ) {
+        g_object_unref(G_OBJECT( ncu->prv->ipv4_primary_ip ));
+    }
+    ncu->prv->ipv4_primary_ip = NULL;
     gtk_list_store_clear(ncu->prv->v4addresses);
 
     ncu->prv->ipv6_active = FALSE;
+    if ( ncu->prv->ipv6_primary_ip != NULL ) {
+        g_object_unref(G_OBJECT( ncu->prv->ipv6_primary_ip ));
+    }
+    ncu->prv->ipv6_primary_ip = NULL;
     gtk_list_store_clear(ncu->prv->v6addresses);
 
     for ( int ip_n = 0; ip_n < ip_version_num; ip_n++ ) {
@@ -1272,7 +1282,7 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                 gtk_list_store_set(ncu->prv->v4addresses, &iter, 0, ip, -1 );
                 g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
 
-                if ( i == 0 ) {
+                if ( ncu->prv->ipv6_primary_ip == NULL ) {
                     ncu->prv->ipv4_primary_ip = NWAMUI_IP(g_object_ref(ip));
                 }
                 if ( ptr != NULL && *ptr != NULL ) {
@@ -1311,6 +1321,22 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                 gchar*  address = NULL;
                 gchar*  prefix = NULL;
 
+                /* Handle IPv6 Autoconf differently.
+                 *
+                 * At the moment, it is always on, but it may be turned off,
+                 * and depends on defect 10461 being fixed in nwamd.
+                 *
+                 * The GUI doesn't then have any way to enable/disable
+                 * autoconf, so we just remember if we saw one, if so, we will
+                 * append it on writing out addresses, but for simplicity we
+                 * will not show it anywhere in the GUI other than the 
+                 * config summary string.
+                 */
+                if ( ipv6_addrsrc[i] == NWAM_ADDRSRC_AUTOCONF ) {
+                    ncu->prv->ipv6_autoconf = TRUE;
+                    continue; /* Do no more here */
+                }
+
                 if ( ptr != NULL && *ptr != NULL ) {
                      nwamui_util_split_address_prefix( TRUE, *ptr, &address, &prefix );
                 }
@@ -1330,7 +1356,7 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                 gtk_list_store_set(ncu->prv->v6addresses, &iter, 0, ip, -1 );
                 g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
 
-                if ( i == 0 ) {
+                if ( ncu->prv->ipv6_primary_ip == NULL ) {
                     ncu->prv->ipv6_primary_ip = NWAMUI_IP(g_object_ref(ip));
                 }
                 if ( ptr != NULL && *ptr != NULL ) {
@@ -1496,6 +1522,7 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
         GList   *ipv6_list;
         guint    src_index;
         guint    addr_index;
+        gboolean autoconf = self->prv->ipv6_autoconf;
 
         ip_version[ip_version_num] = (uint64_t)NWAM_IP_VERSION_IPV6;
         ip_version_num++;
@@ -1503,8 +1530,11 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
         ipv6_list = convert_gtk_list_store_to_g_list( self->prv->v6addresses );
 
         ipv6_addrsrc_num = g_list_length( ipv6_list );
+        if ( autoconf ) {
+            ipv6_addrsrc_num++; /* Add extra element for autoconf */
+        }
         ipv6_addrsrc = (uint64_t*)g_malloc(ipv6_addrsrc_num * sizeof(uint64_t));
-        ipv6_addr = (gchar**)g_malloc((ipv6_addrsrc_num + 1 ) * sizeof(gchar**));
+        ipv6_addr = (gchar**)g_malloc((ipv6_addrsrc_num + 1 ) * sizeof(gchar**)); /* +1 for NULL */
 
         src_index = 0;
         addr_index = 0;
@@ -1530,6 +1560,11 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
                
             src_index++;
         }
+        if ( autoconf ) {
+            ipv6_addrsrc[src_index] = (uint64_t)NWAM_ADDRSRC_AUTOCONF;
+            src_index++;
+        }
+
         ipv6_addr[addr_index] = NULL;
 
         if ( addr_index > 0 ) {
@@ -1623,6 +1658,8 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
         case NWAM_NCU_CLASS_PHYS: {
                 /* CLASS PHYS is of type LINK, so has LINK props */
                 nwam_ncu_handle_t   ncu_handle;
+                gboolean            enabled;
+
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_LINK );
 
                 if ( ncu_handle != NULL ) {
@@ -1634,6 +1671,12 @@ nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   )
                 }
                 else {
                     self->prv->nwam_ncu_phys = ncu;
+                }
+
+                enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
+                if ( enabled != self->prv->enabled ) {
+                    g_object_notify(G_OBJECT(self), "enabled" );
+                    self->prv->enabled = enabled;
                 }
             }
             break;
@@ -1957,6 +2000,7 @@ nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret )
     }
 
     if ( self->prv->nwam_ncu_ip_modified && self->prv->nwam_ncu_ip != NULL ) {
+        nwamui_ncu_sync_handle_with_ip_data( self );
         if ( (nerr = nwam_ncu_validate( self->prv->nwam_ncu_ip, &prop_name )) != NWAM_SUCCESS ) {
             g_debug("Failed when validating IP NCU for %s : invalid value for %s",
                     self->prv->device_name, prop_name);
@@ -1999,6 +2043,8 @@ nwamui_ncu_commit( NwamuiNcu* self )
             g_warning("Failed when committing PHYS NCU for %s", self->prv->device_name);
             return( FALSE );
         }
+        /* Make suer that the enabled flag is acted upon on commit */
+        nwamui_ncu_set_active ( self, self->prv->enabled );
     }
 
     if ( self->prv->nwam_ncu_ip_modified && self->prv->nwam_ncu_ip != NULL ) {
@@ -4256,6 +4302,140 @@ get_kstat_uint64 (const gchar *device, const gchar* stat_name, uint64_t *rval )
     kstat_close (kc);
 
     return( FALSE );
+}
+
+extern gchar*
+nwamui_ncu_get_configuration_summary_string( NwamuiNcu* self )
+{
+    GString        *status_string = NULL;
+    GString        *v4addr_part = NULL;
+    GString        *v6addr_part = NULL;
+
+    g_return_val_if_fail( NWAMUI_IS_NCU( self ), NULL );
+
+    if ( self->prv->ipv4_active ) {
+        GList  *ipv4_list = NULL;
+        guint   count;
+
+        ipv4_list = convert_gtk_list_store_to_g_list( self->prv->v4addresses );
+
+        count = g_list_length( ipv4_list );
+
+        if ( ipv4_list->data != NULL ) { 
+            NwamuiIp   *ip = NWAMUI_IP(ipv4_list->data);
+
+            if ( count > 1 ) {
+                v4addr_part = g_string_new( _("Multiple IP configured"));
+            }
+            else if ( nwamui_ip_is_dhcp(ip) ) {
+                v4addr_part = g_string_new(_("DHCP Assigned") );
+            }
+            else if ( nwamui_ip_is_autoconf(ip) ) {
+                v4addr_part = g_string_new(_("Autoconf") );
+            }
+            else {
+                gchar    *addr;
+                gchar    *subnet;
+
+                /* Static */
+                v4addr_part = g_string_new("");
+
+                addr = nwamui_ip_get_address( ip );
+                subnet = nwamui_ip_get_subnet_prefix(ip); 
+
+                if ( addr == NULL || strcmp( addr, "0.0.0.0" ) == 0 ) {
+                   (void)g_string_append( v4addr_part, _("No IP Address") );
+                }
+                else {
+                    gchar *str = nwamui_util_join_address_prefix( FALSE, addr, subnet );
+
+                   (void)g_string_append( v4addr_part, str );
+
+                   g_free(str);
+                }
+                g_free(addr);
+                g_free(subnet);
+            }
+        }
+        nwamui_util_free_obj_list( ipv4_list );
+    }
+
+    if ( self->prv->ipv6_active ) {
+        GList  *ipv6_list = NULL;
+        guint   count;
+
+        ipv6_list = convert_gtk_list_store_to_g_list( self->prv->v6addresses );
+
+        count = g_list_length( ipv6_list );
+
+        if ( ipv6_list->data != NULL ) { 
+            NwamuiIp   *ip = NWAMUI_IP(ipv6_list->data);
+
+            if ( count > 1 ) {
+                v6addr_part = g_string_new( _("Multiple IP configured"));
+            }
+            else if ( nwamui_ip_is_dhcp(ip) ) {
+                v6addr_part = g_string_new(_("DHCP Assigned") );
+            }
+            else if ( nwamui_ip_is_autoconf(ip) ) {
+                v6addr_part = g_string_new(_("Autoconf") );
+            }
+            else {
+                gchar    *addr;
+                gchar    *subnet;
+
+                /* Static */
+                v6addr_part = g_string_new("");
+
+                addr = nwamui_ip_get_address( ip );
+                subnet = nwamui_ip_get_subnet_prefix(ip); 
+
+                if ( addr == NULL ) {
+                   (void)g_string_append( v6addr_part, _("No IP Address") );
+                }
+                else {
+                    gchar *str = nwamui_util_join_address_prefix( TRUE, addr, subnet );
+
+                    (void)g_string_append( v6addr_part, str );
+
+                    g_free(str);
+                }
+                g_free(addr);
+                g_free(subnet);
+            }
+        }
+        if ( self->prv->ipv6_autoconf ) {
+            (void)g_string_append(v6addr_part, _(", Autoconf") );
+        }
+
+        nwamui_util_free_obj_list( ipv6_list );
+    }
+
+    status_string = g_string_new("");
+
+    if ( v4addr_part != NULL && v6addr_part != NULL ) {
+        /* Have both, so make appropriate string */
+
+        g_string_append_printf(status_string, _("Addresses: (v4) %s, (v6) %s"), v4addr_part->str, v6addr_part->str );
+    }
+    else if ( v4addr_part != NULL) {
+        g_string_append_printf(status_string, _("Address: %s"), v4addr_part->str );
+    }
+    else if ( v6addr_part != NULL) {
+        g_string_append_printf(status_string, _("Address(v6): %s"), v6addr_part->str );
+    }
+    else {
+        (void)g_string_append( status_string, _("No addresses configured"));
+    }
+
+    if ( v4addr_part != NULL ) {
+        g_string_free( v4addr_part, TRUE );
+    }
+    if ( v6addr_part != NULL ) {
+        g_string_free( v6addr_part, TRUE );
+    }
+
+    return( g_string_free(status_string, FALSE) );
 }
 
 /* Callbacks */

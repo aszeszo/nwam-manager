@@ -34,6 +34,7 @@
 
 static int indent = 0;
 
+static void test_daemon_gobject( void );
 static void test_ncp_gobject( void );
 static void test_env_gobject( void );
 static void test_enm_gobject( void );
@@ -101,6 +102,7 @@ main(int argc, char** argv)
 
     nwamui_daemon_wifi_start_scan(daemon);
 
+    test_daemon_gobject();
     test_ncp_gobject();
     test_env_gobject();
     test_enm_gobject();
@@ -251,6 +253,7 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     gchar*              typestr;
     gchar*              statestr;
     gchar*              state_detailstr;
+    gchar*              cfg_str;
     gboolean            active;
     gboolean            enabled;
     gboolean            ipv4_dhcp;
@@ -276,6 +279,8 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     enabled = nwamui_ncu_get_enabled( ncu );
     statestr = nwamui_ncu_get_connection_state_string( ncu );
     state_detailstr = nwamui_ncu_get_connection_state_detail_string( ncu, TRUE );
+    cfg_str = nwamui_ncu_get_configuration_summary_string( ncu );
+
     ipv4_dhcp = nwamui_ncu_get_ipv4_dhcp( ncu );
     ipv4_auto_conf = nwamui_ncu_get_ipv4_auto_conf( ncu );
     ipv4_address = nwamui_ncu_get_ipv4_address( ncu );
@@ -311,6 +316,7 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     printf("%-*sNcu Type = %s\n", indent, "", typestr );
     printf("%-*sNcu Connection State = %s\n", indent, "", statestr );
     printf("%-*sNcu Connection State Detail = %s\n", indent, "", state_detailstr?state_detailstr:"NULL" );
+    printf("%-*sNcu Configuration Summary = %s\n", indent, "", cfg_str?cfg_str:"NULL" );
     printf("%-*sNcu active = %s\n", indent, "", active?"True":"False" );
     printf("%-*sNcu enabled = %s\n", indent, "", enabled?"True":"False" );
     printf("%-*sNcu ipv4_dhcp = %s\n", indent, "", ipv4_dhcp?"True":"False" );
@@ -339,6 +345,8 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
         g_free( ipv6_address );
     if ( ipv6_prefix != NULL ) 
         g_free( ipv6_prefix );
+
+    g_free( cfg_str );
 
     printf("%-*s*************************************************************\n", indent, "");
 
@@ -371,6 +379,25 @@ process_ncp( gpointer data, gpointer user_data )
     
 }
 
+static void 
+test_daemon_gobject( void )
+{
+    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+    gboolean         selection_manual  =  nwamui_daemon_env_selection_is_manual( daemon );
+    
+    printf("%-*s=============================================================\n", indent, "");
+    printf("%-*s DAEMON \n", indent, "");
+    printf("%-*s=============================================================\n", indent, "");
+
+    printf("%-*s*************************************************************\n", indent, "");
+    indent += 4;
+
+    printf("%-*sEnv selection_manual  = %s\n", indent, "", selection_manual ?"TRUE":"FALSE" );
+
+    indent -= 4;
+    printf("%-*s*************************************************************\n", indent, "");
+
+}
 static void 
 test_ncp_gobject( void )
 {
@@ -584,6 +611,7 @@ process_known_wlan( gpointer data, gpointer user_data )
 {
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     NwamuiWifiNet   *wifi = NWAMUI_WIFI_NET(data);
+    const gchar     *signal_str;
     
     if ( wifi != NULL ) {
         gchar * essid = nwamui_wifi_net_get_essid( wifi );
@@ -592,6 +620,10 @@ process_known_wlan( gpointer data, gpointer user_data )
         printf("%-*s=============================================================\n", indent, "");
         indent +=4;
         printf("%-*sWLAN : essid = %s\n", indent, "", essid?essid:"NULL" );
+
+        signal_str = nwamui_wifi_net_get_signal_strength_string( wifi );
+
+        printf("%-*sWLAN : signal = %s\n", indent, "", signal_str?signal_str:"NULL" );
 
         print_string_list_and_free( "WLAN", "bssid_list", bssid_list );
 

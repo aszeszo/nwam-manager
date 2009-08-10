@@ -1050,6 +1050,92 @@ nwamui_daemon_ncp_remove(NwamuiDaemon *self, NwamuiNcp* ncp )
 }
 
 
+static void
+check_env_enabled( gpointer obj, gpointer user_data )
+{
+    NwamuiObject            *nobj = NWAMUI_OBJECT(obj);
+    gboolean                *is_manual_p = (gboolean*)user_data;
+
+    if ( is_manual_p == NULL ) {
+        return;
+    }
+
+    /* Only check if we've not already found that something's enabled */
+    if ( !(*is_manual_p) && nwamui_env_get_enabled( NWAMUI_ENV(nobj) ) ) {
+        *is_manual_p = TRUE;
+    }
+}
+
+/**
+ * nwamui_daemon_env_selection_is_manual
+ * @self: NwamuiDaemon*
+ *
+ * @returns: TRUE if the env selection is manual.
+ *
+ **/
+extern gboolean
+nwamui_daemon_env_selection_is_manual(NwamuiDaemon *self)
+{
+    gboolean rval = FALSE;
+
+    g_return_val_if_fail( NWAMUI_IS_DAEMON(self), rval );
+
+    /* This is determined by looking at the enabled property of env objects */
+    g_list_foreach( self->prv->env_list, check_env_enabled, (gpointer)&rval ); 
+
+    return( rval );
+}
+
+static void
+set_env_disabled( gpointer obj, gpointer user_data )
+{
+    NwamuiObject           *nobj = NWAMUI_OBJECT(obj);
+    nwam_state_t            state = NWAM_STATE_UNINITIALIZED;
+    nwam_aux_state_t        aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+
+    /* Only disable an env if it's not marked as offline or disabled already,
+     * best to make sure we pick the correct one here.
+     */
+    state = nwamui_object_get_nwam_state(nobj, &aux_state, NULL );
+    if ( state != NWAM_STATE_OFFLINE && state != NWAM_STATE_DISABLED ) {
+        nwamui_env_set_active( NWAMUI_ENV(nobj), FALSE);
+    }
+}
+
+/**
+ * nwamui_daemon_env_selection_set_manual
+ * @self: NwamuiDaemon*
+ *
+ * Sets activation of Envs to be manual with immediate effect.
+ *
+ * This entails doing the following:
+ *
+ * - If Manual
+ *
+ *   Specifcially activate the passed environment.
+ *
+ * - If not Manual
+ *
+ *   Loop through each Env and ensure it's disabled, returning control to the
+ *   system to decide on best selection.
+ *
+ **/
+extern void
+nwamui_daemon_env_selection_set_manual(NwamuiDaemon *self, gboolean manual, NwamuiEnv* manual_env )
+{
+    g_return_if_fail( NWAMUI_IS_DAEMON(self) );
+
+    if ( manual ) {
+        /* Specifcially set the env active, will disable others  */
+        nwamui_env_set_active( manual_env, TRUE );
+    }
+    else {
+        /* This is determined by looking at the enabled property of env objects */
+        g_list_foreach( self->prv->env_list, set_env_disabled, NULL ); 
+    }
+}
+
+
 /**
  * nwamui_daemon_is_active_env
  * @self: NwamuiDaemon*

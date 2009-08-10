@@ -1,3 +1,33 @@
+2009-08-10  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Change how IPv6 autoconf is handled, it's currently not possible to
+	  disable it using NWAM, so don't add it to table of nwamui_ips since
+	  it will result in it being removed on commit if user toggles
+	  static/DHCP - this may change in the near future.
+	  Add nwamui_ncu_get_configuration_summary_string() to get a summary
+	  string for display of configuration information as opposed to
+	  current state information.
+	* capplet/nwam_net_conf_panel.c:
+	  Use the ncu configuration summary string in the display if ncu info.
+	* common/nwamui_daemon.h, common/nwamui_daemon.c: 
+	  Add two functions for handline of locations.
+	  nwamui_daemon_env_selection_is_manual() will return TRUE if any of
+	  the locations are specifically enabled (overriding NWAMs
+	  conditions).
+	  nwamui_daemon_env_selection_set_manual() will either specifically
+	  activate a location, if manual is TRUE. or if manual is FALSE, then
+	  it will disable the existing location, making nwamd takd control.
+	  These functions should be used to populate the menu/dialog, and on
+	  changes made and the user clicking OK. It has immediate effect.
+	* common/nwamui_enm.c, common/nwamui_env.c: 
+	  Change get/set prop to use the cached nwam state information in the
+	  NwamuiObject rather than going directly to NWAM. 
+	* common/nwamui_env.h:  
+	  Add missing nwamui_set_active() function.
+	* tests/main.c: 
+	  Update for some new functions.
+
 2009-08-10  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_location_dialog.c

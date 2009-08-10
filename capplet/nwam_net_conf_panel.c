@@ -881,34 +881,13 @@ nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
         if (!is_group) {
             gchar*                         ncu_text;
             gchar*                         ncu_markup;
-            gboolean                       ncu_enabled;
-            gboolean                       ncu_is_dhcp;
-            gchar*                         ncu_ipv4_addr;
             gchar*                         ncu_phy_addr;
             gchar*                         info_string;
 
             ncu_text = nwamui_ncu_get_display_name(ncu);
-            ncu_enabled = nwamui_ncu_get_enabled(ncu);
-            ncu_is_dhcp = nwamui_ncu_get_ipv4_auto_conf(ncu);
-            ncu_ipv4_addr = nwamui_ncu_get_ipv4_address(ncu);
             ncu_phy_addr = nwamui_ncu_get_phy_address(ncu);
 
-            if ( ! ncu_enabled ) {
-                if ( ncu_is_dhcp ) {
-                    info_string = g_strdup_printf(_("DHCP"));
-                }
-                else {
-                    info_string = g_strdup_printf(_("Static: %s"), ncu_ipv4_addr?ncu_ipv4_addr:_("<i>No IP Address</i>") );
-                }
-            }
-            else {
-                if ( ncu_is_dhcp ) {
-                    info_string = g_strdup_printf(_("DHCP, %s"), ncu_ipv4_addr?ncu_ipv4_addr:_("<i>No IP Address</i>") );
-                }
-                else {
-                    info_string = g_strdup_printf(_("%s"), ncu_ipv4_addr?ncu_ipv4_addr:_("<i>No IP Address</i>") );
-                }
-            }
+            info_string = nwamui_ncu_get_configuration_summary_string( ncu );
 
             if (ncu_phy_addr) {
                 ncu_markup= g_strdup_printf(_("<b>%s</b>\n<small>%s, %s</small>"), ncu_text, info_string, ncu_phy_addr );
@@ -919,9 +898,6 @@ nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
               "sensitive", TRUE,
               "markup", ncu_markup,
               NULL);
-
-            if ( ncu_ipv4_addr != NULL )
-                g_free( ncu_ipv4_addr );
 
             if ( ncu_phy_addr != NULL )
                 g_free( ncu_phy_addr );

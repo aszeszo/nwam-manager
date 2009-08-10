@@ -142,6 +142,12 @@ extern void                         nwamui_daemon_ncp_append(NwamuiDaemon *self,
 
 extern gboolean                     nwamui_daemon_ncp_remove(NwamuiDaemon *self, NwamuiNcp* ncp );
 
+extern gboolean                     nwamui_daemon_env_selection_is_manual(NwamuiDaemon *self);
+
+extern void                         nwamui_daemon_env_selection_set_manual( NwamuiDaemon *self, 
+                                                                            gboolean manual, 
+                                                                            NwamuiEnv* manual_env );
+
 extern gboolean                     nwamui_daemon_is_active_env(NwamuiDaemon *self, NwamuiEnv* env ) ;
 
 extern NwamuiEnv*                   nwamui_daemon_get_active_env(NwamuiDaemon *self);
