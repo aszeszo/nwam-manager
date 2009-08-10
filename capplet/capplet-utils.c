@@ -69,7 +69,8 @@ capplet_list_foreach_merge_to_list_store(gpointer data, gpointer user_data)
 void
 capplet_list_foreach_merge_to_tree_store(gpointer data, gpointer user_data)
 {
-    CAPPLET_LIST_STORE_ADD(user_data, NULL, data);
+    GtkTreeIter iter;
+    CAPPLET_TREE_STORE_ADD(user_data, NULL, data, &iter);
 	g_object_unref(data);
 }
 
@@ -330,16 +331,16 @@ nwamui_object_active_toggle_cell(GtkTreeViewColumn *col,
   GtkTreeIter       *iter,
   gpointer           data)
 {
-    NwamuiEnv*              env = NULL;
+    NwamuiObject*              object = NULL;
     
-    gtk_tree_model_get(model, iter, 0, &env, -1);
+    gtk_tree_model_get(model, iter, 0, &object, -1);
     
-    if ( env != NULL ) {
-        /* We need show the active env instead of enabled env. */
+    if ( object != NULL ) {
+        /* We need show the active object instead of enabled object. */
         g_object_set(G_OBJECT(renderer),
-          "active", nwamui_object_get_active(NWAMUI_OBJECT(env)),
+          "active", nwamui_object_get_active(NWAMUI_OBJECT(object)),
           NULL); 
-        g_object_unref(G_OBJECT(env));
+        g_object_unref(G_OBJECT(object));
     } else {
         g_object_set(G_OBJECT(renderer),
           "active", FALSE,
@@ -684,7 +685,7 @@ capplet_get_original_name(const gchar *prefix, const gchar *name)
 		oname = g_strdup(name);
         /* Assume a blank is ahead of a number, so delete the number. */
 		p_num = g_strrstr(oname, " ");
-		if (p_num > strlen(prefix_str)) {
+		if ((size_t)(p_num - oname) > strlen(prefix_str)) {
 			num = strtoll(p_num + 1, &endptr, 10);
 			if (num > 0) {
 				*p_num = '\0';

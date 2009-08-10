@@ -39,17 +39,17 @@
 #include "nwam_rules_dialog.h"
 
 /* Names of Widgets in Glade file */
-#define LOCATION_DIALOG                     "nwam_location"
-#define LOCATION_TREE                       "location_tree"
-#define LOCATION_ADD_BTN                    "location_add_btn"
-#define LOCATION_REMOVE_BTN                 "location_remove_btn"
-#define LOCATION_RENAME_BTN                 "location_rename_btn"
-#define LOCATION_DUP_BTN                    "location_dup_btn"
-#define LOCATION_EDIT_BTN                   "location_edit_btn"
-#define LOCATION_ACTIVATION_COMBO           "location_activation_combo"
-#define LOCATION_RULES_BTN                  "location_rules_btn"
-#define LOCATION_LOCK_LOCATION_CB           "lock_location_cb"
-#define LOCATION_ACTIVATE_BEST_LOCATION_BTN "activate_best_location_btn"
+#define LOCATION_DIALOG                 "nwam_location"
+#define LOCATION_TREE                   "location_tree"
+#define LOCATION_ADD_BTN                "location_add_btn"
+#define LOCATION_REMOVE_BTN             "location_remove_btn"
+#define LOCATION_RENAME_BTN             "location_rename_btn"
+#define LOCATION_DUP_BTN                "location_dup_btn"
+#define LOCATION_EDIT_BTN               "location_edit_btn"
+#define LOCATION_ACTIVATION_COMBO       "location_activation_combo"
+#define LOCATION_RULES_BTN              "location_rules_btn"
+#define LOCATION_SWITCH_LOC_AUTO_CB     "switch_loc_auto_cb"
+#define LOCATION_SWITCH_LOC_MANUALLY_CB "switch_loc_manually_cb"
 
 #define TREEVIEW_COLUMN_NUM "meta:column"
 
@@ -66,8 +66,9 @@ struct _NwamLocationDialogPrivate {
     GtkComboBox*        location_activation_combo;
     GtkButton*          location_rules_btn;
 
-    GtkCheckButton*     location_lock_location_cb;
-    GtkButton*          location_activate_best_location_btn;
+    GtkRadioButton*     location_switch_loc_auto_cb;
+    GtkRadioButton*     location_switch_loc_manually_cb;
+    gboolean            prof_switch_loc_manually_flag;
 
 	/* Other Data */
     NwamEnvPrefDialog*  env_pref_dialog;
@@ -119,11 +120,16 @@ static void location_get_property (GObject         *object,
   GParamSpec      *pspec);
 
 /* nwamui profile events */
-static void prof_lock_current_loc(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* Callbacks */
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+static void nwam_location_connection_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data);
 static gint nwam_location_connection_compare_cb (GtkTreeModel *model,
 			      GtkTreeIter *a,
 			      GtkTreeIter *b,
@@ -150,8 +156,7 @@ static void nwam_location_connection_enabled_toggled_cb(    GtkCellRendererToggl
 
 static void nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data);
 static void on_button_clicked(GtkButton *button, gpointer user_data);
-static void location_lock_location_cb_toggled(GtkToggleButton *button, gpointer user_data);
-static void location_activate_best_location_btn_clicked(GtkButton *button, gpointer user_data);
+static void location_switch_loc_manually_cb_toggled(GtkToggleButton *button, gpointer user_data);
 static void location_activation_combo_cell_cb(GtkCellLayout *cell_layout,
   GtkCellRenderer   *renderer,
   GtkTreeModel      *model,
@@ -261,6 +266,10 @@ nwam_compose_tree_view (NwamLocationDialog *self)
       FALSE,
       (GtkTreeCellDataFunc)nwamui_object_active_toggle_cell, (gpointer) 0, NULL);
 
+    /* Handle switch locations automatically/manually */
+	gtk_tree_view_column_set_cell_data_func(col, cell,
+      nwam_location_connection_toggled_cell_sensitive_func, (gpointer)self, NULL);
+
 	g_object_set (cell,
       "xalign", 0.5,
       "radio", TRUE,
@@ -317,8 +326,8 @@ nwam_location_dialog_init(NwamLocationDialog *self)
 
     self->prv->location_rules_btn = GTK_BUTTON(nwamui_util_glade_get_widget(LOCATION_RULES_BTN));
 
-    self->prv->location_lock_location_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(LOCATION_LOCK_LOCATION_CB));
-    self->prv->location_activate_best_location_btn = GTK_BUTTON(nwamui_util_glade_get_widget(LOCATION_ACTIVATE_BEST_LOCATION_BTN));
+    self->prv->location_switch_loc_auto_cb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(LOCATION_SWITCH_LOC_AUTO_CB));
+    self->prv->location_switch_loc_manually_cb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(LOCATION_SWITCH_LOC_MANUALLY_CB));
 
     /* Set title to include hostname */
     nwamui_util_window_title_append_hostname( self->prv->location_dialog );
@@ -336,18 +345,17 @@ nwam_location_dialog_init(NwamLocationDialog *self)
     g_signal_connect(self->prv->location_dup_btn,
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
 
-    g_signal_connect(self->prv->location_lock_location_cb,
-      "toggled", G_CALLBACK(location_lock_location_cb_toggled), (gpointer)self);
-    g_signal_connect(self->prv->location_activate_best_location_btn,
-      "clicked", G_CALLBACK(location_activate_best_location_btn_clicked), (gpointer)self);
+    g_signal_connect(self->prv->location_switch_loc_manually_cb,
+      "toggled", G_CALLBACK(location_switch_loc_manually_cb_toggled), (gpointer)self);
 
     {
         NwamuiProf *prof;
 
         prof = nwamui_prof_get_instance ();
 
-        g_signal_connect(prof, "notify::lock-current-loc",
-          G_CALLBACK(prof_lock_current_loc), (gpointer)self);
+        g_signal_connect(prof, "notify::switch-loc-manually",
+          G_CALLBACK(prof_switch_loc_manually), (gpointer)self);
+        prof_switch_loc_manually(G_OBJECT(prof), NULL, (gpointer)self);
 
         g_object_unref (prof);
     }
@@ -1058,26 +1066,17 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 }
 
 static void
-location_lock_location_cb_toggled(GtkToggleButton *button, gpointer user_data)
+location_switch_loc_manually_cb_toggled(GtkToggleButton *button, gpointer user_data)
 {
     NwamLocationDialog*         self = NWAM_LOCATION_DIALOG(user_data);
     NwamLocationDialogPrivate*  prv  = self->prv;
     NwamuiProf                 *prof = nwamui_prof_get_instance ();
 
-    g_object_set(prof, "lock_current_loc",
-      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->location_lock_location_cb)),
+    g_object_set(prof, "switch_loc_manually",
+      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->location_switch_loc_manually_cb)),
       NULL);
 
     g_object_unref (prof);
-}
-
-static void
-location_activate_best_location_btn_clicked(GtkButton *button, gpointer user_data)
-{
-    NwamLocationDialog*           self = NWAM_LOCATION_DIALOG(user_data);
-    NwamLocationDialogPrivate*    prv = self->prv;
-
-    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->location_lock_location_cb), FALSE);
 }
 
 static void
@@ -1144,18 +1143,28 @@ location_activation_combo_changed_cb(GtkComboBox* combo, gpointer user_data)
 }
 
 static void
-prof_lock_current_loc(GObject *gobject, GParamSpec *arg1, gpointer data)
+prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-	NwamLocationDialog         *self = NWAM_LOCATION_DIALOG(data);
-	NwamLocationDialogPrivate  *prv = self->prv;
-    GtkToggleButton *lock_current_loc = GTK_TOGGLE_BUTTON(prv->location_lock_location_cb);
-    gboolean loc;
+	NwamLocationDialog        *self = NWAM_LOCATION_DIALOG(data);
+	NwamLocationDialogPrivate *prv  = self->prv;
+    GtkToggleButton           *switch_cb;
+    gboolean                   flag = prv->prof_switch_loc_manually_flag;
 
-    g_object_get(gobject, "lock_current_loc", &loc, NULL);
+    g_object_get(gobject, "switch_loc_manually", &prv->prof_switch_loc_manually_flag, NULL);
 
-    g_signal_handlers_block_by_func(G_OBJECT(lock_current_loc), location_lock_location_cb_toggled, data);
-    gtk_toggle_button_set_active(lock_current_loc, loc);
-    g_signal_handlers_unblock_by_func(G_OBJECT(lock_current_loc), location_lock_location_cb_toggled, data);
+    switch_cb = prv->prof_switch_loc_manually_flag ?
+      GTK_TOGGLE_BUTTON(prv->location_switch_loc_manually_cb) :
+      GTK_TOGGLE_BUTTON(prv->location_switch_loc_auto_cb);
+
+    if (flag != prv->prof_switch_loc_manually_flag) {
+        /* Refresh the treeview anyway. */
+        gtk_widget_hide(GTK_WIDGET(prv->location_tree));
+        gtk_widget_show(GTK_WIDGET(prv->location_tree));
+    }
+
+    g_signal_handlers_block_by_func(G_OBJECT(switch_cb), location_switch_loc_manually_cb_toggled, data);
+    gtk_toggle_button_set_active(switch_cb, TRUE);
+    g_signal_handlers_unblock_by_func(G_OBJECT(switch_cb), location_switch_loc_manually_cb_toggled, data);
 }
 
 static void
@@ -1200,6 +1209,21 @@ static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     g_debug("NwamLocationDialog: notify %s changed", arg1->name);
+}
+
+static void
+nwam_location_connection_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data)
+{
+	NwamLocationDialog         *self = NWAM_LOCATION_DIALOG(data);
+	NwamLocationDialogPrivate  *prv = self->prv;
+
+    g_object_set(G_OBJECT(renderer),
+      "sensitive", prv->prof_switch_loc_manually_flag,
+      NULL); 
 }
 
 static gboolean

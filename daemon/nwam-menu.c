@@ -63,6 +63,8 @@ struct _MenuSection {
 	GtkWidget *lw;
 	GtkWidget *rw;
     gint children_number;
+    gboolean sensitive;
+    gboolean visible;
 };
 
 /* Each section is began with GtkSeparatorMenuItem, NULL means 0. We'd
@@ -321,6 +323,15 @@ nwam_menu_real_insert(GtkMenuShell *menu_shell,
         } else {
             GTK_MENU_SHELL_CLASS(nwam_menu_parent_class)->insert(GTK_MENU_SHELL(menu), child, start_pos);
         }
+
+        gtk_widget_set_sensitive(GTK_WIDGET(child), prvsection[index].sensitive);
+
+        if (prvsection[index].visible) {
+            gtk_widget_show(GTK_WIDGET(child));
+        } else {
+            gtk_widget_hide(GTK_WIDGET(child));
+        }
+
         menu_section_increase_children(&prvsection[index]);
     } else {
         GTK_MENU_SHELL_CLASS(nwam_menu_parent_class)->insert(menu_shell, child, position);
@@ -605,6 +616,8 @@ nwam_menu_section_set_visible(NwamMenu *self, gint sec_id, gboolean visible)
     GtkWidget *rw = menu_section_get_right_widget(&prvsection[sec_id]);
     void (*func)(GtkWidget*);
 
+    prvsection[sec_id].visible = visible;
+
     if (visible) {
         func = gtk_widget_show;
         menu_section_children_changed(&prvsection[sec_id]);
@@ -622,6 +635,7 @@ nwam_menu_section_set_visible(NwamMenu *self, gint sec_id, gboolean visible)
 void
 nwam_menu_section_set_sensitive(NwamMenu *self, gint sec_id, gboolean sensitive)
 {
+    prvsection[sec_id].sensitive = sensitive;
     nwam_menu_section_foreach(self, sec_id, (GFunc)gtk_widget_set_sensitive, (gpointer)sensitive);
 }
 

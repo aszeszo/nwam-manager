@@ -62,7 +62,7 @@ static guint nwamui_prof_signals [LAST_SIGNAL] = { 0 };
 #define PROF_STRING_ACTION_ON_NO_FAV_NETWORKS PROF_GCONF_ROOT \
     "/action_on_no_fav_networks"
 #define PROF_BOOL_LOCK_CURRENT_LOC PROF_GCONF_ROOT  \
-    "/lock_current_loc"
+    "/switch_loc_manually"
 
 /* To Allow GNOME Netstatus Applet to follow NWAM Active interface */
 #define PROF_STRING_ACTIVE_INTERFACE PROF_GCONF_ROOT \
@@ -168,9 +168,9 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
 
     g_object_class_install_property (gobject_class,
       PROP_LOCK_CURRENT_LOC,
-      g_param_spec_boolean ("lock_current_loc",
-        _("Lock current location"),
-        _("Lock current location"),
+      g_param_spec_boolean ("switch_loc_manually",
+        _("Lock location manually"),
+        _("Lock location manually"),
         FALSE,
         G_PARAM_READWRITE));
 
@@ -400,7 +400,7 @@ gconf_notify_cb (GConfClient *client, guint cnxn_id, GConfEntry *entry, gpointer
         g_object_set(self, "notification_default_timeout",
           gconf_value_get_int(value), NULL);
     } else if (g_ascii_strcasecmp (key, PROF_BOOL_LOCK_CURRENT_LOC) == 0) {
-        g_object_set(self, "lock_current_loc",
+        g_object_set(self, "switch_loc_manually",
           gconf_value_get_bool(value), NULL);
     } else {
         g_assert_not_reached ();

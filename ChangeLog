@@ -1,3 +1,28 @@
+2009-08-10  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c
+	(capplet_list_foreach_merge_to_tree_store),
+	(nwamui_object_active_toggle_cell), (capplet_get_original_name):
+	* common/nwam_pref_iface.h:
+	Fixed compiling warnings and a potential bug.
+	* capplet/nwam-manager-properties.ui:
+	Updated due to spec 1.10.0
+	* capplet/nwam_location_dialog.c (nwam_compose_tree_view),
+	(nwam_location_dialog_init),
+	(location_switch_loc_manually_cb_toggled),
+	(prof_switch_loc_manually),
+	(nwam_location_connection_toggled_cell_sensitive_func):
+	* common/nwamui_prof.c (nwamui_prof_class_init), (gconf_notify_cb):
+	* daemon/main.c (main):
+	* daemon/nwam-menu.c (nwam_menu_real_insert),
+	(nwam_menu_section_set_visible), (nwam_menu_section_set_sensitive):
+	Section maintains its visible and sensitive state.
+	* daemon/status_icon.c (prof_switch_loc_manually),
+	(daemon_active_env_changed), (nwam_status_icon_run),
+	(on_activate_static_menuitems),
+	(nwam_menu_create_static_menuitems):
+	Fixes for doo#9561 [gnome2.26] cannot switch locations
+
 2009-08-07  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_daemon.c (nwamd_event_handler):

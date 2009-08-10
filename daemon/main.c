@@ -303,7 +303,7 @@ main( int argc, char* argv[] )
           G_CALLBACK(action_on_no_fav_networks), (gpointer) daemon);
 
         /* Lock_current_loc is only used for temporary, so init to FALSE. */
-        g_object_set(prof, "lock_current_loc", FALSE, NULL);
+        g_object_set(prof, "switch_loc_manually", FALSE, NULL);
 
         g_object_get (prof,
           "action_on_no_fav_networks", &prof_action_if_no_fav_networks,

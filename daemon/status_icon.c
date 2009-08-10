@@ -67,8 +67,8 @@ enum {
 #define NO_ENABLED_WIRELESS "No wireless connections enabled"
 
 enum {
-    MENUITEM_LOC_LOCK_CURRENT,
-    MENUITEM_LOC_ACTIVATE_BEST,
+    MENUITEM_SWITCH_LOC_MANUALLY,
+    MENUITEM_SWITCH_LOC_AUTO,
     MENUITEM_ENV_PREF,
     MENUITEM_CONN_PROF,
     MENUITEM_REFRESH_WLAN,
@@ -85,21 +85,22 @@ enum {
 };
 
 struct _NwamStatusIconPrivate {
-    GtkWidget *menu;
-	gboolean enable_pop_up_menu;
-    GtkWidget *tooltip_widget;
-    GtkWidget *static_menuitems[N_STATIC_MENUITEMS];
+    GtkWidget    *menu;
+	gboolean      enable_pop_up_menu;
+    GtkWidget    *tooltip_widget;
+    GtkWidget    *static_menuitems[N_STATIC_MENUITEMS];
 	NwamuiDaemon *daemon;
-    NwamuiNcp *active_ncp;
-    gint current_status;
+    NwamuiNcp    *active_ncp;
+    gint          current_status;
 
     gint icon_stock_index;
     guint animation_icon_update_timeout_id;
 
-    guint update_wifi_timer_id;
-    guint enable_sync_wifi_signals_timer_id;
+    guint    update_wifi_timer_id;
+    guint    enable_sync_wifi_signals_timer_id;
     gboolean need_sync_wifi_menu_items;
-    gulong activate_handler_id;
+    gulong   activate_handler_id;
+    gboolean prof_switch_loc_manually_flag;
 
 	gboolean has_wifi;
 /* 	gboolean force_wifi_rescan_due_to_env_changed; */
@@ -143,7 +144,7 @@ static void activate_test_menuitems(GtkMenuItem *menuitem, gpointer user_data);
 static void status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object);
 
 /* nwamui profile events */
-static void prof_lock_current_loc(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* nwamui daemon events */
 static void daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
@@ -234,17 +235,25 @@ ncu_is_higher_priority_than_active_ncu( NwamuiNcu* ncu, gboolean *is_active_ptr 
 }
 
 static void
-prof_lock_current_loc(GObject *gobject, GParamSpec *arg1, gpointer data)
+prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(data);
-    GtkCheckMenuItem *lock_current_loc = GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_LOC_LOCK_CURRENT]);
-    gboolean loc;
+    NwamStatusIconPrivate *prv  = NWAM_STATUS_ICON_GET_PRIVATE(data);
+    GtkCheckMenuItem      *switch_menuitem;
+    gboolean               flag = prv->prof_switch_loc_manually_flag;
 
-    g_object_get(gobject, "lock_current_loc", &loc, NULL);
+    g_object_get(gobject, "switch_loc_manually", &prv->prof_switch_loc_manually_flag, NULL);
 
-    g_signal_handlers_block_by_func(G_OBJECT(lock_current_loc), on_activate_static_menuitems, data);
-    gtk_check_menu_item_set_active(lock_current_loc, loc);
-    g_signal_handlers_unblock_by_func(G_OBJECT(lock_current_loc), on_activate_static_menuitems, data);
+    switch_menuitem = prv->prof_switch_loc_manually_flag ?
+      GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]) :
+      GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO]);
+
+    if (flag != prv->prof_switch_loc_manually_flag) {
+        nwam_menu_section_set_sensitive(NWAM_MENU(prv->menu), SECTION_LOC, prv->prof_switch_loc_manually_flag);
+    }
+
+    g_signal_handlers_block_by_func(G_OBJECT(switch_menuitem), on_activate_static_menuitems, data);
+    gtk_check_menu_item_set_active(switch_menuitem, TRUE);
+    g_signal_handlers_unblock_by_func(G_OBJECT(switch_menuitem), on_activate_static_menuitems, data);
 }
 
 static void
@@ -672,6 +681,7 @@ daemon_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
     gchar *summary, *body;
 
     if (env) {
+        
 #if 1
         nwam_notification_show_location_changed( env );
 #endif
@@ -1043,8 +1053,8 @@ nwam_status_icon_run(NwamStatusIcon *self)
 
         prof = nwamui_prof_get_instance ();
 
-        g_signal_connect(prof, "notify::lock-current-loc",
-          G_CALLBACK(prof_lock_current_loc), (gpointer)self);
+        g_signal_connect(prof, "notify::switch-loc-manually",
+          G_CALLBACK(prof_switch_loc_manually), (gpointer)self);
 
         g_object_unref (prof);
     }
@@ -1183,20 +1193,20 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
     gint menuitem_id = (gint)g_object_get_data(G_OBJECT(menuitem), STATIC_MENUITEM_ID);
 
     switch (menuitem_id) {
-    case MENUITEM_LOC_LOCK_CURRENT: {
+    case MENUITEM_SWITCH_LOC_MANUALLY: {
         NwamuiProf *prof;
 
         prof = nwamui_prof_get_instance ();
 
-        g_object_set(prof, "lock_current_loc",
-          gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_LOC_LOCK_CURRENT])),
+        g_object_set(prof, "switch_loc_manually",
+          gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])),
           NULL);
 
         g_object_unref (prof);
     }
         break;
-    case MENUITEM_LOC_ACTIVATE_BEST:
-        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_LOC_LOCK_CURRENT]), FALSE);
+    case MENUITEM_SWITCH_LOC_AUTO:
+/*         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]), FALSE); */
         break;
     case MENUITEM_ENV_PREF:
 		argv[0] = "-l";
@@ -1604,13 +1614,13 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
         menu_append_item(sub_menu,
           GTK_TYPE_RADIO_MENU_ITEM, _("Switch Locations Au_tomatically"),
           on_activate_static_menuitems, self);
-        CACHE_STATIC_MENUITEMS(self, MENUITEM_LOC_LOCK_CURRENT);
+        CACHE_STATIC_MENUITEMS(self, MENUITEM_SWITCH_LOC_AUTO);
         gtk_radio_menu_item_set_group(menuitem, group);
         group = gtk_radio_menu_item_get_group(menuitem);
         menu_append_item(sub_menu,
           GTK_TYPE_RADIO_MENU_ITEM, _("Switch Locations _Manually"),
           on_activate_static_menuitems, self);
-        CACHE_STATIC_MENUITEMS(self, MENUITEM_LOC_ACTIVATE_BEST);
+        CACHE_STATIC_MENUITEMS(self, MENUITEM_SWITCH_LOC_MANUALLY);
         gtk_radio_menu_item_set_group(menuitem, group);
     }
 

@@ -65,6 +65,7 @@ extern gboolean         nwam_pref_cancel (NwamPrefIFace *iface, gpointer user_da
 extern gboolean         nwam_pref_help (NwamPrefIFace *iface, gpointer user_data);
 extern gint             nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 extern gboolean         nwam_pref_dialog_raise(NwamPrefIFace *iface);
+extern GtkWindow*       nwam_pref_dialog_get_window(NwamPrefIFace *iface);
 
 G_END_DECLS
 
