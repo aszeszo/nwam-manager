@@ -1,5 +1,13 @@
 2009-08-10  Darren Kenny  <darren.kenny@sun.com>
 
+	* daemon/nwam-menu.c: 
+	  Fix a crash in nwam_menu_real_insert() where the setting of child to
+	  NULL was causing a crash later when setting sensitivity.
+	  There still seems to be an issue though since the wireless menu is
+	  now insenstitive...
+
+2009-08-10  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
 	  Change how IPv6 autoconf is handled, it's currently not possible to
 	  disable it using NWAM, so don't add it to table of nwamui_ips since

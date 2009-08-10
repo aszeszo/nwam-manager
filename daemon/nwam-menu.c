@@ -307,18 +307,20 @@ nwam_menu_real_insert(GtkMenuShell *menu_shell,
         menu_section_get_children(&prvsection[index], &sorted, &start_pos);
 
         if (sorted) {
+            gboolean insert_child = TRUE;
+
             sorted = g_list_sort(sorted, (GCompareFunc)menu_item_compare);
 
             for (i = sorted; i; i = g_list_next(i)) {
-                if (child && menu_item_compare(child, GTK_WIDGET(i->data)) < 0) {
+                if (insert_child && child && menu_item_compare(child, GTK_WIDGET(i->data)) < 0) {
                     GTK_MENU_SHELL_CLASS(nwam_menu_parent_class)->insert(GTK_MENU_SHELL(menu), child, start_pos++);
-                    child = NULL;
+                    insert_child = FALSE;
                 }
                 gtk_menu_reorder_child(GTK_MENU(menu), GTK_WIDGET(i->data), start_pos++);
             }
             g_list_free(sorted);
 
-            if (child)
+            if (insert_child)
                 GTK_MENU_SHELL_CLASS(nwam_menu_parent_class)->insert(GTK_MENU_SHELL(menu), child, start_pos++);
         } else {
             GTK_MENU_SHELL_CLASS(nwam_menu_parent_class)->insert(GTK_MENU_SHELL(menu), child, start_pos);
