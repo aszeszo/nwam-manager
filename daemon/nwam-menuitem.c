@@ -488,7 +488,7 @@ nwam_menu_item_toggle_size_request (GtkMenuItem *menu_item,
 
     if (!prv->draw_indicator) {
         guint indicator_size;
-        gtk_widget_style_get (menu_item, 
+        gtk_widget_style_get(GTK_WIDGET(menu_item), 
           "indicator-size", &indicator_size,
           NULL);
         *requisition -= indicator_size;

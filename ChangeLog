@@ -1,3 +1,20 @@
+2009-08-11  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/nwam-env-item.c (nwam_env_item_init),
+	(nwam_env_item_finalize), (on_nwam_env_notify),
+	(prof_switch_loc_manually):
+	Set sensitive according to gconf value, maybe change to daemon
+	notify later.
+	* daemon/nwam-menu.c (nwam_menu_real_insert), (menu_section_new),
+	(nwam_menu_section_set_visible), (nwam_menu_section_set_sensitive):
+	Remove maintanence of self visible and sensitive, it's hard to do.
+	* daemon/nwam-menuitem.c (nwam_menu_item_toggle_size_request):
+	Fix a build warning.
+	* daemon/status_icon.c (prof_switch_loc_manually),
+	(nwam_status_icon_run), (on_activate_static_menuitems),
+	(nwam_status_icon_finalize), (nwam_menu_recreate_env_menuitems):
+	Clean code. Fixed wireless menu is insensitive issue.
+
 2009-08-10  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_conf_ip_panel.c, common/libnwamui.c: 

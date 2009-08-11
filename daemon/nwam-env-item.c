@@ -41,7 +41,8 @@ typedef struct _NwamEnvItemPrivate NwamEnvItemPrivate;
         NWAM_TYPE_ENV_ITEM, NwamEnvItemPrivate))
 
 struct _NwamEnvItemPrivate {
-    gulong toggled_handler_id;
+    gulong      toggled_handler_id;
+    NwamuiProf *prof;
 };
 
 enum {
@@ -57,6 +58,9 @@ static void nwam_env_item_get_property (GObject         *object,
   GValue          *value,
   GParamSpec      *pspec);
 static void nwam_env_item_finalize (NwamEnvItem *self);
+
+/* nwamui profile events */
+static void prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* nwamui daemon signals */
 static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
@@ -94,6 +98,11 @@ static void
 nwam_env_item_init (NwamEnvItem *self)
 {
     NwamEnvItemPrivate *prv = GET_PRIVATE(self);
+
+    prv->prof = nwamui_prof_get_instance();
+
+    g_signal_connect(prv->prof, "notify::switch-loc-manually",
+      G_CALLBACK(prof_switch_loc_manually), (gpointer)self);
 
     /* nwamui ncp signals */
     {
@@ -139,6 +148,8 @@ nwam_env_item_finalize (NwamEnvItem *self)
         g_object_unref(ncp);
         g_object_unref(daemon);
     }
+
+    g_object_unref (prv->prof);
 
 	G_OBJECT_CLASS(nwam_env_item_parent_class)->finalize(G_OBJECT (self));
 }
@@ -238,7 +249,7 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
         const gchar    *icon_name = nwamui_util_get_active_mode_icon( object );
-        GtkImage       *image = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
+        GtkImage       *image = GTK_IMAGE(nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0));
 
         gtk_image_set_from_icon_name( image, icon_name, GTK_ICON_SIZE_MENU );
     }
@@ -272,6 +283,18 @@ nwam_env_item_set_env (NwamEnvItem *self, NwamuiEnv *env)
     g_return_if_fail(NWAMUI_IS_ENV(env));
 
     g_object_set(self, "proxy-object", env, NULL);
+}
+
+static void
+prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamEnvItem *self = NWAM_ENV_ITEM (data);
+    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
+    gboolean flag;
+
+    g_object_get(gobject, "switch_loc_manually", &flag, NULL);
+
+    gtk_widget_set_sensitive(GTK_WIDGET(self), flag);
 }
 
 static void 

@@ -89,6 +89,7 @@ struct _NwamStatusIconPrivate {
 	gboolean      enable_pop_up_menu;
     GtkWidget    *tooltip_widget;
     GtkWidget    *static_menuitems[N_STATIC_MENUITEMS];
+    NwamuiProf   *prof;
 	NwamuiDaemon *daemon;
     NwamuiNcp    *active_ncp;
     gint          current_status;
@@ -246,10 +247,6 @@ prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
     switch_menuitem = prv->prof_switch_loc_manually_flag ?
       GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]) :
       GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO]);
-
-    if (flag != prv->prof_switch_loc_manually_flag) {
-        nwam_menu_section_set_sensitive(NWAM_MENU(prv->menu), SECTION_LOC, prv->prof_switch_loc_manually_flag);
-    }
 
     g_signal_handlers_block_by_func(G_OBJECT(switch_menuitem), on_activate_static_menuitems, data);
     gtk_check_menu_item_set_active(switch_menuitem, TRUE);
@@ -1021,6 +1018,7 @@ nwam_status_icon_run(NwamStatusIcon *self)
      */
     nwam_notification_init(GTK_STATUS_ICON(self));
 
+    prv->prof = nwamui_prof_get_instance ();
 	prv->daemon = nwamui_daemon_get_instance ();
     prv->menu = g_object_ref_sink(nwam_menu_new(N_SECTION));
     g_signal_connect(G_OBJECT(prv->menu), "get_section_index",
@@ -1048,16 +1046,8 @@ nwam_status_icon_run(NwamStatusIcon *self)
     /* Handle all daemon signals here */
     connect_nwam_object_signals(G_OBJECT(prv->daemon), G_OBJECT(self));
 
-    {
-        NwamuiProf *prof;
-
-        prof = nwamui_prof_get_instance ();
-
-        g_signal_connect(prof, "notify::switch-loc-manually",
-          G_CALLBACK(prof_switch_loc_manually), (gpointer)self);
-
-        g_object_unref (prof);
-    }
+    g_signal_connect(prv->prof, "notify::switch-loc-manually",
+      G_CALLBACK(prof_switch_loc_manually), (gpointer)self);
 
     /* Initially populate network info */
     daemon_status_changed(prv->daemon, NULL, (gpointer)self);
@@ -1193,20 +1183,12 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
     gint menuitem_id = (gint)g_object_get_data(G_OBJECT(menuitem), STATIC_MENUITEM_ID);
 
     switch (menuitem_id) {
-    case MENUITEM_SWITCH_LOC_MANUALLY: {
-        NwamuiProf *prof;
-
-        prof = nwamui_prof_get_instance ();
-
-        g_object_set(prof, "switch_loc_manually",
+    case MENUITEM_SWITCH_LOC_MANUALLY:
+        g_object_set(prv->prof, "switch_loc_manually",
           gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])),
           NULL);
-
-        g_object_unref (prof);
-    }
         break;
     case MENUITEM_SWITCH_LOC_AUTO:
-/*         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]), FALSE); */
         break;
     case MENUITEM_ENV_PREF:
 		argv[0] = "-l";
@@ -1440,7 +1422,8 @@ nwam_status_icon_finalize (NwamStatusIcon *self)
     /* Clean Ncp. */
     daemon_active_ncp_changed(prv->daemon, NULL, (gpointer)self);
 
-	g_object_unref (G_OBJECT(prv->daemon));
+	g_object_unref(prv->daemon);
+    g_object_unref(prv->prof);
 	G_OBJECT_CLASS(nwam_status_icon_parent_class)->finalize(G_OBJECT(self));
 }
 
@@ -1520,6 +1503,9 @@ nwam_menu_recreate_env_menuitems (NwamStatusIcon *self)
         g_object_unref(idx->data);
 	}
     g_list_free(env_list);
+
+    /* For refresh new added env menu-items. */
+    g_object_notify(prv->prof, "switch_loc_manually");
 }
 
 static void
