@@ -249,8 +249,6 @@ prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
         switch_menuitem = GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]);
     } else {
         switch_menuitem = GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO]);
-        /* Return to auto mode. */
-        nwamui_daemon_env_selection_set_manual(prv->daemon, FALSE, NULL);
     }
 
     g_signal_handlers_block_by_func(G_OBJECT(switch_menuitem), on_activate_static_menuitems, data);
@@ -1185,6 +1183,7 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
           NULL);
         break;
     case MENUITEM_SWITCH_LOC_AUTO:
+        nwamui_daemon_env_selection_set_manual(prv->daemon, FALSE, NULL);
         break;
     case MENUITEM_ENV_PREF:
 		argv[0] = "-l";

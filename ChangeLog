@@ -1,5 +1,14 @@
 2009-08-11  Lin Ma  <Lin.Ma@Sun.COM>
 
+	reviewed by: <delete if not using a buddy>
+
+	* capplet/nwam_location_dialog.c (nwam_location_dialog_init),
+	(location_switch_loc_cb_toggled), (prof_switch_loc_manually):
+	* daemon/status_icon.c (prof_switch_loc_manually),
+	(on_activate_static_menuitems):
+
+2009-08-11  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_daemon.c (nwamui_daemon_class_init),
 	(nwamui_daemon_set_property),
 	(nwamui_daemon_handle_object_action_event):
@@ -13,8 +22,6 @@
 
 2009-08-11  Lin Ma  <Lin.Ma@Sun.COM>
 
-	reviewed by: <delete if not using a buddy>
-
 	* common/nwamui_daemon.c (nwamui_daemon_class_init),
 	(nwamui_daemon_set_property),
 	(nwamui_daemon_handle_object_action_event):
@@ -23,6 +30,8 @@
 	(daemon_active_ncp_changed), (daemon_active_env_changed),
 	(connect_nwam_object_signals), (daemon_status_is_good),
 	(nwam_status_icon_run), (nwam_status_icon_finalize):
+	A small change to prevent switch loc auto two times.
+	Forgot change location dialog.
 
 2009-08-11  Lin Ma  <Lin.Ma@Sun.COM>
 

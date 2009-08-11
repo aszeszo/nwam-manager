@@ -156,7 +156,7 @@ static void nwam_location_connection_enabled_toggled_cb(    GtkCellRendererToggl
 
 static void nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data);
 static void on_button_clicked(GtkButton *button, gpointer user_data);
-static void location_switch_loc_manually_cb_toggled(GtkToggleButton *button, gpointer user_data);
+static void location_switch_loc_cb_toggled(GtkToggleButton *button, gpointer user_data);
 static void location_activation_combo_cell_cb(GtkCellLayout *cell_layout,
   GtkCellRenderer   *renderer,
   GtkTreeModel      *model,
@@ -346,7 +346,7 @@ nwam_location_dialog_init(NwamLocationDialog *self)
       "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
 
     g_signal_connect(self->prv->location_switch_loc_manually_cb,
-      "toggled", G_CALLBACK(location_switch_loc_manually_cb_toggled), (gpointer)self);
+      "toggled", G_CALLBACK(location_switch_loc_cb_toggled), (gpointer)self);
 
     {
         NwamuiProf *prof;
@@ -1071,17 +1071,23 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 }
 
 static void
-location_switch_loc_manually_cb_toggled(GtkToggleButton *button, gpointer user_data)
+location_switch_loc_cb_toggled(GtkToggleButton *button, gpointer user_data)
 {
-    NwamLocationDialog*         self = NWAM_LOCATION_DIALOG(user_data);
-    NwamLocationDialogPrivate*  prv  = self->prv;
-    NwamuiProf                 *prof = nwamui_prof_get_instance ();
+    NwamLocationDialog*         self   = NWAM_LOCATION_DIALOG(user_data);
+    NwamLocationDialogPrivate*  prv    = self->prv;
+    NwamuiProf                 *prof   = nwamui_prof_get_instance ();
+    NwamuiDaemon               *daemon = nwamui_daemon_get_instance ();
 
-    g_object_set(prof, "switch_loc_manually",
-      gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->location_switch_loc_manually_cb)),
-      NULL);
+    if (button == prv->location_switch_loc_manually_cb) {
+        g_object_set(prof, "switch_loc_manually",
+          gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->location_switch_loc_manually_cb)),
+          NULL);
+    } else {
+        nwamui_daemon_env_selection_set_manual(daemon, FALSE, NULL);
+    }
 
     g_object_unref (prof);
+    g_object_unref (daemon);
 }
 
 static void
@@ -1157,9 +1163,11 @@ prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
 
     g_object_get(gobject, "switch_loc_manually", &prv->prof_switch_loc_manually_flag, NULL);
 
-    switch_cb = prv->prof_switch_loc_manually_flag ?
-      GTK_TOGGLE_BUTTON(prv->location_switch_loc_manually_cb) :
-      GTK_TOGGLE_BUTTON(prv->location_switch_loc_auto_cb);
+    if (prv->prof_switch_loc_manually_flag) {
+        switch_cb = GTK_TOGGLE_BUTTON(prv->location_switch_loc_manually_cb);
+    } else {
+        switch_cb = GTK_TOGGLE_BUTTON(prv->location_switch_loc_auto_cb);
+    }
 
     if (flag != prv->prof_switch_loc_manually_flag) {
         /* Refresh the treeview anyway. */
@@ -1167,9 +1175,9 @@ prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
         gtk_widget_show(GTK_WIDGET(prv->location_tree));
     }
 
-    g_signal_handlers_block_by_func(G_OBJECT(switch_cb), location_switch_loc_manually_cb_toggled, data);
+    g_signal_handlers_block_by_func(G_OBJECT(switch_cb), location_switch_loc_cb_toggled, data);
     gtk_toggle_button_set_active(switch_cb, TRUE);
-    g_signal_handlers_unblock_by_func(G_OBJECT(switch_cb), location_switch_loc_manually_cb_toggled, data);
+    g_signal_handlers_unblock_by_func(G_OBJECT(switch_cb), location_switch_loc_cb_toggled, data);
 }
 
 static void
