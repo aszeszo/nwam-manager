@@ -302,9 +302,6 @@ main( int argc, char* argv[] )
         g_signal_connect(prof, "notify::action-on-no-fav-networks",
           G_CALLBACK(action_on_no_fav_networks), (gpointer) daemon);
 
-        /* Lock_current_loc is only used for temporary, so init to FALSE. */
-        g_object_set(prof, "switch_loc_manually", FALSE, NULL);
-
         g_object_get (prof,
           "action_on_no_fav_networks", &prof_action_if_no_fav_networks,
           "join_wifi_not_in_fav", &prof_ask_join_open_network,

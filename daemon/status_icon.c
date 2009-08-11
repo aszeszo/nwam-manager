@@ -138,6 +138,7 @@ static void nwam_menu_update_wifi_section(NwamStatusIcon *self);
 
 /* nwamui utilies */
 static void join_wireless(NwamuiWifiNet *wifi, gboolean do_connect);
+static gboolean daemon_status_is_good(NwamuiDaemon *daemon);
 
 /* call back */
 static void on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data);
@@ -156,8 +157,8 @@ static void nwam_menu_scan_started(GObject *daemon, gpointer data);
 static void nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data);
 static void daemon_add_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
 static void daemon_remove_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
-static void daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data);
-static void daemon_active_env_changed(NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data);
+static void daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
+static void daemon_active_env_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
 static void daemon_enm_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data);
 static void daemon_env_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data);
 
@@ -244,9 +245,13 @@ prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
 
     g_object_get(gobject, "switch_loc_manually", &prv->prof_switch_loc_manually_flag, NULL);
 
-    switch_menuitem = prv->prof_switch_loc_manually_flag ?
-      GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]) :
-      GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO]);
+    if (prv->prof_switch_loc_manually_flag) {
+        switch_menuitem = GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]);
+    } else {
+        switch_menuitem = GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO]);
+        /* Return to auto mode. */
+        nwamui_daemon_env_selection_set_manual(prv->daemon, FALSE, NULL);
+    }
 
     g_signal_handlers_block_by_func(G_OBJECT(switch_menuitem), on_activate_static_menuitems, data);
     gtk_check_menu_item_set_active(switch_menuitem, TRUE);
@@ -261,7 +266,6 @@ daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data
     const gchar* status_str;
     const gchar *body_str;
     static gboolean need_report_daemon_error = FALSE;
-    static gboolean init_state = TRUE;
 
 	/* should repopulate data here */
 
@@ -281,43 +285,9 @@ daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data
             */
             need_report_daemon_error = FALSE;
         }
-
-        {
-            NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
-            NwamuiEnv *env = nwamui_daemon_get_active_env(prv->daemon);
-            /* Hide menus for performance. */
-/*             gtk_widget_hide(GTK_WIDGET(prv->menu)); */
-            /* We don't need rescan wlans, because when daemon changes to active
-             * it will emulate wlan changed signal
-             */
-            /* Initialize Ncp. */
-            if ( init_state ) {
-                nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_NCU);
-                daemon_active_ncp_changed(prv->daemon, ncp, user_data);
-            }
-            /* Initialize Env. */
-            if ( init_state ) {
-                nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC);
-                daemon_active_env_changed(prv->daemon, env, user_data);
-            }
-
-            /* I don't believe we should actively create menu for wifi, env and
-             * enm, we probably could wait daemon populating.
-             */
-            /* daemon_active_env_changed will trigger this func
-            nwam_menu_recreate_wifi_menuitems(self, FALSE);
-            */
-            /* Initialize Enm. */
-            nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_ENM);
-            nwam_menu_recreate_enm_menuitems(self);
-            /* Show menus. */
-/*             gtk_widget_show(GTK_WIDGET(prv->menu)); */
-        }
-        init_state = FALSE;
     }
         break;
     case NWAMUI_DAEMON_STATUS_ERROR:
-        init_state = TRUE;
         prv->enable_pop_up_menu = FALSE;
 
         if (nwamui_util_is_debug_mode()) {
@@ -336,18 +306,14 @@ daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data
             need_report_daemon_error = TRUE;
         }
         
-        {
-            /* Hide the whole menus instead of deleting menuitems. */
-/*             nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_ENM); */
-/*             nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC); */
-/*             nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_WIFI); */
-/*             nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_NCU); */
+        /* Hide the whole menus instead of deleting menuitems. */
+/*         nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_ENM); */
+/*         nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_WIFI); */
 
-            /* Clean Ncp. */
-            daemon_active_ncp_changed(prv->daemon, NULL, user_data);
-            /* Clean Env. */
-            daemon_active_env_changed(prv->daemon, NULL, user_data);
-        }
+        /* Clean Ncp. */
+        daemon_active_ncp_changed(prv->daemon, NULL, user_data);
+        /* Clean Env. */
+        daemon_active_env_changed(prv->daemon, NULL, user_data);
 
         break;
     case NWAMUI_DAEMON_STATUS_UNINITIALIZED:
@@ -626,12 +592,13 @@ daemon_env_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 }
 
 static void
-daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
+daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 {
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
     gchar *sname;
     gchar *summary, *body;
+    NwamuiNcp* ncp = daemon_status_is_good(prv->daemon) ? nwamui_daemon_get_active_ncp(prv->daemon) : NULL;
 
     if (prv->active_ncp) {
         nwam_menu_stop_update_wifi_timer(self);
@@ -662,6 +629,8 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
 
         nwam_menu_update_wifi_section(self);
     } else {
+        /* Delete all NCUs. */
+        nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_NCU);
         /* Should not be happened. We should disable all ncu related menu items here. */
         nwam_menu_section_set_sensitive(NWAM_MENU(prv->menu), SECTION_WIFI_CONTROL, FALSE);
         /* Make sure ref'ed, since menu is a container. */
@@ -670,12 +639,14 @@ daemon_active_ncp_changed(NwamuiDaemon* daemon, NwamuiNcp* ncp, gpointer data)
 }
 
 static void
-daemon_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
+daemon_active_env_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 {
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
     gchar *sname;
     gchar *summary, *body;
+    NwamuiEnv* env = daemon_status_is_good(prv->daemon) ? nwamui_daemon_get_active_env(prv->daemon) : NULL;
+
 
     if (env) {
         
@@ -689,6 +660,8 @@ daemon_active_env_changed (NwamuiDaemon* daemon, NwamuiEnv* env, gpointer data)
         nwam_tooltip_widget_update_env(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(env));
         nwam_menu_recreate_env_menuitems(self);
     } else {
+        /* Delete all LOCs. */
+        nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC);
     }
 }
 
@@ -712,10 +685,10 @@ connect_nwam_object_signals(GObject *obj, GObject *self)
         g_signal_connect(daemon, "daemon_info",
           G_CALLBACK(daemon_info), (gpointer)self);
 
-        g_signal_connect(daemon, "active_ncp_changed",
+        g_signal_connect(daemon, "notify::active-ncp",
           G_CALLBACK(daemon_active_ncp_changed), (gpointer) self);
 
-        g_signal_connect(daemon, "active_env_changed",
+        g_signal_connect(daemon, "notify::active-env",
           G_CALLBACK(daemon_active_env_changed), (gpointer) self);
 
         g_signal_connect(daemon, "wifi_key_needed",
@@ -947,6 +920,21 @@ join_wireless(NwamuiWifiNet *wifi)
 #endif
 
 static gboolean
+daemon_status_is_good(NwamuiDaemon *daemon)
+{
+    switch(nwamui_daemon_get_status(daemon)) {
+    case NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION:
+    case NWAMUI_DAEMON_STATUS_ALL_OK:
+        return TRUE;
+    case NWAMUI_DAEMON_STATUS_ERROR:
+    case NWAMUI_DAEMON_STATUS_UNINITIALIZED:
+    default:
+        break;
+    }
+    return FALSE;
+}
+
+static gboolean
 animation_panel_icon_timeout (gpointer user_data)
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
@@ -1049,8 +1037,16 @@ nwam_status_icon_run(NwamStatusIcon *self)
     g_signal_connect(prv->prof, "notify::switch-loc-manually",
       G_CALLBACK(prof_switch_loc_manually), (gpointer)self);
 
-    /* Initially populate network info */
-    daemon_status_changed(prv->daemon, NULL, (gpointer)self);
+    /* Initial place. Init code must be here. */
+    g_object_notify(prv->daemon, "status");
+    g_object_notify(prv->daemon, "active_ncp");
+    g_object_notify(prv->daemon, "active_env");
+    g_object_notify(prv->daemon, "env_list");
+    g_object_notify(prv->daemon, "enm_list");
+
+    g_object_set(prv->prof, "switch_loc_manually", 
+      nwamui_daemon_env_selection_is_manual(prv->daemon) ? TRUE : FALSE,
+      NULL);
 }
 
 void
@@ -1404,6 +1400,8 @@ nwam_status_icon_finalize (NwamStatusIcon *self)
 
     nwam_menu_stop_update_wifi_timer(self);
 
+    disconnect_nwam_object_signals(G_OBJECT(prv->daemon), G_OBJECT(self));
+
     nwam_notification_cleanup();
 
     if (prv->animation_icon_update_timeout_id > 0) {
@@ -1414,14 +1412,7 @@ nwam_status_icon_finalize (NwamStatusIcon *self)
     }
 
     g_object_unref(prv->menu);
-
-    disconnect_nwam_object_signals(G_OBJECT(prv->daemon), G_OBJECT(self));
-
     g_object_unref(prv->tooltip_widget);
-
-    /* Clean Ncp. */
-    daemon_active_ncp_changed(prv->daemon, NULL, (gpointer)self);
-
 	g_object_unref(prv->daemon);
     g_object_unref(prv->prof);
 	G_OBJECT_CLASS(nwam_status_icon_parent_class)->finalize(G_OBJECT(self));

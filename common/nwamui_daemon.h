@@ -106,8 +106,6 @@ struct _NwamuiDaemonClass
         
 	void (*daemon_info)             (NwamuiDaemon *self, gint info, GObject *obj, gpointer data, gpointer user_data);
 	void (*wifi_selection_needed)   (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data);
-    void (*active_env_changed)      (NwamuiDaemon *self, GObject *data, gpointer user_data);
-    void (*active_ncp_changed)      (NwamuiDaemon *self, GObject *data, gpointer user_data);
     void (*add_wifi_fav)            (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
     void (*remove_wifi_fav)         (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
     void (*wifi_key_needed)         (NwamuiDaemon *self, NwamuiWifiNet* wifi_net, gpointer user_data);

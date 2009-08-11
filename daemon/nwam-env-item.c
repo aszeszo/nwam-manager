@@ -224,7 +224,8 @@ on_nwam_env_toggled (GtkCheckMenuItem *item, gpointer data)
     g_signal_handler_unblock(self, prv->toggled_handler_id);
 
 	if (!nwamui_daemon_is_active_env(daemon, env)) {
-		nwamui_env_activate(env);
+        nwamui_daemon_env_selection_set_manual(daemon, TRUE, env);
+/* 		nwamui_env_activate(env); */
 	}
     g_object_unref(daemon);
 }

@@ -65,8 +65,6 @@ enum {
     DAEMON_INFO,
     WIFI_SCAN_STARTED,
     WIFI_SCAN_RESULT,
-    ACTIVE_NCP_CHANGED,
-    ACTIVE_ENV_CHANGED,
     WIFI_KEY_NEEDED,
     WIFI_SELECTION_NEEDED,
     S_WIFI_FAV_ADD,
@@ -156,8 +154,6 @@ static void         nwamui_daemon_update_status_from_object_state_event( NwamuiD
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* Default Callback Handlers */
-static void default_active_env_changed_signal_handler (NwamuiDaemon *self, GObject* data, gpointer user_data);
-static void default_active_ncp_changed_signal_handler (NwamuiDaemon *self, GObject* data, gpointer user_data);
 static void default_add_wifi_fav_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
 static void default_daemon_info_signal_handler (NwamuiDaemon *self, gint type, GObject *obj, gpointer data, gpointer user_data);
 static void default_remove_wifi_fav_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
@@ -278,28 +274,6 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                   1,                            /* Number of Args */
                   G_TYPE_OBJECT);               /* Types of Args */
     
-    nwamui_daemon_signals[ACTIVE_ENV_CHANGED] =   
-            g_signal_new ("active_env_changed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-                  G_STRUCT_OFFSET (NwamuiDaemonClass, active_env_changed),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT, 
-                  G_TYPE_NONE,                  /* Return Type */
-                  1,                            /* Number of Args */
-                  G_TYPE_OBJECT);               /* Types of Args */
-
-    nwamui_daemon_signals[ACTIVE_NCP_CHANGED] =   
-            g_signal_new ("active_ncp_changed",
-                  G_TYPE_FROM_CLASS (klass),
-                  G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-                  G_STRUCT_OFFSET (NwamuiDaemonClass, active_ncp_changed),
-                  NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT, 
-                  G_TYPE_NONE,                  /* Return Type */
-                  1,                            /* Number of Args */
-                  G_TYPE_OBJECT);               /* Types of Args */
-
     nwamui_daemon_signals[WIFI_KEY_NEEDED] =   
             g_signal_new ("wifi_key_needed",
                   G_TYPE_FROM_CLASS (klass),
@@ -362,8 +336,6 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
     klass->wifi_selection_needed = default_wifi_selection_needed;
     klass->wifi_scan_started = default_wifi_scan_started_signal_handler;
     klass->wifi_scan_result = default_wifi_scan_result_signal_handler;
-    klass->active_env_changed = default_active_env_changed_signal_handler;
-    klass->active_ncp_changed = default_active_ncp_changed_signal_handler;
     klass->daemon_info = default_daemon_info_signal_handler;
     klass->add_wifi_fav = default_add_wifi_fav_signal_handler;
     klass->remove_wifi_fav = default_remove_wifi_fav_signal_handler;
@@ -482,11 +454,7 @@ nwamui_daemon_set_property ( GObject         *object,
                  * This should be a private function instead of a public prop.
                  */
                 self->prv->active_env = env;
-
-                g_signal_emit (self,
-                  nwamui_daemon_signals[ACTIVE_ENV_CHANGED],
-                  0, /* details */
-                  self->prv->active_env );
+                g_object_notify(self, "active_env");
             }
             break;
         case PROP_ACTIVE_NCP: {
@@ -3035,11 +3003,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                         }
 
                         daemon->prv->active_ncp = NWAMUI_NCP(g_object_ref( ncp ));
-
-                        g_signal_emit (daemon,
-                          nwamui_daemon_signals[ACTIVE_NCP_CHANGED],
-                          0, /* details */
-                          ncp );
+                        g_object_notify(daemon, "active_ncp");
 
                     }
                     else {
@@ -3869,28 +3833,6 @@ default_wifi_scan_result_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* wifi
         nwamui_debug("Scan Result : Got ESSID\t\"%s\"", name);
         g_free (name);
     }
-}
-
-static void
-default_active_env_changed_signal_handler (NwamuiDaemon *self, GObject* data, gpointer user_data)
-{
-    NwamuiEnv*  env = NWAMUI_ENV(data);
-    gchar*      name = nwamui_env_get_name(env);
-    
-    nwamui_debug("Active Env Changed to %s", name );
-    
-    g_free(name);
-}
-
-static void
-default_active_ncp_changed_signal_handler (NwamuiDaemon *self, GObject* data, gpointer user_data)
-{
-    NwamuiNcp*  ncp = NWAMUI_NCP(data);
-    gchar*      name = nwamui_ncp_get_name(ncp);
-    
-    nwamui_debug("Active Ncp Changed to %s", name );
-    
-    g_free(name);
 }
 
 static void

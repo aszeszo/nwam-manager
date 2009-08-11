@@ -1,5 +1,31 @@
 2009-08-11  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_set_property),
+	(nwamui_daemon_handle_object_action_event):
+	* common/nwamui_daemon.h:
+	* daemon/status_icon.c (daemon_status_changed),
+	(daemon_active_ncp_changed), (daemon_active_env_changed),
+	(connect_nwam_object_signals), (daemon_status_is_good),
+	(nwam_status_icon_run), (nwam_status_icon_finalize):
+	Clean code, rework the gui daemon initial code.
+	Uses nwamui_daemon_env_selection_set/is_manual code.
+
+2009-08-11  Lin Ma  <Lin.Ma@Sun.COM>
+
+	reviewed by: <delete if not using a buddy>
+
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_set_property),
+	(nwamui_daemon_handle_object_action_event):
+	* common/nwamui_daemon.h:
+	* daemon/status_icon.c (daemon_status_changed),
+	(daemon_active_ncp_changed), (daemon_active_env_changed),
+	(connect_nwam_object_signals), (daemon_status_is_good),
+	(nwam_status_icon_run), (nwam_status_icon_finalize):
+
+2009-08-11  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* daemon/nwam-env-item.c (nwam_env_item_init),
 	(nwam_env_item_finalize), (on_nwam_env_notify),
 	(prof_switch_loc_manually):
