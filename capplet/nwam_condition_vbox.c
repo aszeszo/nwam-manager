@@ -298,6 +298,8 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     gtk_container_foreach( GTK_CONTAINER(iface), apply_table_row, &conditions_list );
 
 	nwamui_object_set_conditions(NWAMUI_OBJECT(prv->selected_object), conditions_list);
+
+    return( TRUE );
 }
 
 static gboolean

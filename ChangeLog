@@ -1,3 +1,14 @@
+2009-08-12  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_condition_vbox.c: 
+	  Fix problem where apply() wasn't returning a value.
+	* capplet/nwam_location_dialog.c: 
+	  Add a filter to the activation combo box to prevent user selection
+	  system as an option.
+	* common/nwamui_env.c: 
+	  Allow for the setting of no condtions, removing the assertion being
+	  fired causing defect#9651.
+
 2009-08-11  Lin Ma  <Lin.Ma@Sun.COM>
 
 	reviewed by: <delete if not using a buddy>

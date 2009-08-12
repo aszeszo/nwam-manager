@@ -3599,7 +3599,6 @@ nwamui_env_set_conditions (   NwamuiEnv *self,
                              const GList* conditions )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (conditions != NULL );
 
     if ( conditions != NULL ) {
         g_object_set (G_OBJECT (self),

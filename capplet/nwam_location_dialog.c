@@ -84,12 +84,12 @@ enum {
     LOCVIEW_NAME
 };
 
-enum {
+typedef enum {
     NWAMUI_LOC_ACTIVATION_MANUAL = 0,
     NWAMUI_LOC_ACTIVATION_BY_RULES,
     NWAMUI_LOC_ACTIVATION_BY_SYSTEM,
     NWAMUI_LOC_ACTIVATION_LAST
-};
+} nwamui_loc_activation_mode_t;
 
 static const gchar *combo_contents[NWAMUI_LOC_ACTIVATION_LAST] = {
     N_("manual activation only"),
@@ -168,6 +168,10 @@ static gboolean tree_model_foreach_find_enabled_env(GtkTreeModel *model,
   GtkTreePath *path,
   GtkTreeIter *iter,
   gpointer user_data);
+
+static gboolean activation_mode_filter_cb(  GtkTreeModel *model,
+                                            GtkTreeIter *iter,
+                                            gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamLocationDialog,
   nwam_location_dialog,
@@ -374,6 +378,7 @@ nwam_location_dialog_init(NwamLocationDialog *self)
       NULL);
 
     {
+        GtkTreeModel      *filter;
         GtkTreeModel      *model;
         GtkTreeIter   iter;
         int i;
@@ -387,6 +392,18 @@ nwam_location_dialog_init(NwamLocationDialog *self)
             gtk_list_store_append(GTK_LIST_STORE(model), &iter);
             gtk_list_store_set (GTK_LIST_STORE(model), &iter, 0, i, -1);
         }
+
+        /* Create a filter to hide system if activation mode is sensitive
+         * system since it shouldn't be user-selectable.
+         */
+        filter = gtk_tree_model_filter_new (model, NULL);
+        gtk_combo_box_set_model(GTK_COMBO_BOX(self->prv->location_activation_combo), 
+                                GTK_TREE_MODEL (filter));
+        gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER(filter),
+                                                activation_mode_filter_cb,
+                                                (gpointer)self->prv->location_activation_combo,
+                                                NULL);
+
     }
 
     nwam_compose_tree_view(self);
@@ -873,18 +890,28 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
     gtk_widget_set_sensitive(GTK_WIDGET(prv->location_activation_combo), count_selected_rows > 0 ? TRUE : FALSE);
 
     if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
-        NwamuiEnv *env;
+        nwamui_cond_activation_mode_t   cond;
+        NwamuiEnv                      *env;
 
         gtk_tree_model_get(model, &iter, 0, &env, -1);
         
 
-        switch (nwamui_env_get_activation_mode(env)) {
+        g_signal_handlers_block_by_func(G_OBJECT(prv->location_activation_combo), 
+                                        location_activation_combo_changed_cb, (gpointer)self);
+
+        cond = nwamui_env_get_activation_mode(env);
+
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->location_activation_combo), 
+                                            cond != NWAMUI_COND_ACTIVATION_MODE_SYSTEM);
+
+        gtk_tree_model_filter_refilter( GTK_TREE_MODEL_FILTER(
+                    gtk_combo_box_get_model(GTK_COMBO_BOX(prv->location_activation_combo))));
+
+        switch (cond) {
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->location_activation_combo), TRUE);
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_MANUAL);
             break;
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->location_activation_combo), TRUE);
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_RULES );
             break;
         case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
@@ -896,11 +923,13 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
             /* Fall-through */
         case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED: /* ?? TODO */
         default:
-            gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_SYSTEM);
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->location_activation_combo), FALSE);
             gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn), FALSE);
+            gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_SYSTEM);
             break;
         }
+
+        g_signal_handlers_unblock_by_func(G_OBJECT(prv->location_activation_combo), 
+                                        location_activation_combo_changed_cb, (gpointer)self);
 
         g_object_unref(env);
     }
@@ -1078,7 +1107,7 @@ location_switch_loc_cb_toggled(GtkToggleButton *button, gpointer user_data)
     NwamuiProf                 *prof   = nwamui_prof_get_instance ();
     NwamuiDaemon               *daemon = nwamui_daemon_get_instance ();
 
-    if (button == prv->location_switch_loc_manually_cb) {
+    if (button == GTK_TOGGLE_BUTTON(prv->location_switch_loc_manually_cb)) {
         g_object_set(prof, "switch_loc_manually",
           gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->location_switch_loc_manually_cb)),
           NULL);
@@ -1259,3 +1288,25 @@ tree_model_foreach_find_enabled_env(GtkTreeModel *model,
     }
     return FALSE;
 }
+
+static gboolean
+activation_mode_filter_cb(GtkTreeModel *model,
+  GtkTreeIter *iter,
+  gpointer data)
+{
+    GtkWidget       *combo = GTK_WIDGET(data);
+    NwamuiObject    *obj = NULL;
+    gint             active_index;
+    nwamui_loc_activation_mode_t    mode;
+
+    gtk_tree_model_get(model, iter, 0, &mode, -1);
+
+    if ( (mode == NWAMUI_LOC_ACTIVATION_BY_SYSTEM) && 
+         GTK_WIDGET_IS_SENSITIVE( combo ) ) {
+        return( FALSE );
+    }
+    else {
+        return( TRUE );
+    } 
+}
+
