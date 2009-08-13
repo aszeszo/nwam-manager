@@ -25,7 +25,7 @@
 
 /*
  * This file contains data structures and APIs of libnwam.
- * Implementation is MT safe
+ * Implementation is MT safe.
  */
 #ifndef _LIBNWAM_H
 #define	_LIBNWAM_H
@@ -120,9 +120,10 @@ typedef enum {
 } nwam_error_t;
 
 #define	NWAM_MAX_NAME_LEN		128
-#define	NWAM_MAX_VALUE_LEN		1024
-#define	NWAM_MAX_FMRI_LEN		256
+#define	NWAM_MAX_VALUE_LEN		256
+#define	NWAM_MAX_FMRI_LEN		NWAM_MAX_VALUE_LEN
 #define	NWAM_MAX_NUM_VALUES		32
+#define	NWAM_MAX_NUM_PROPERTIES		32
 
 /* used for getting and setting of properties */
 typedef enum {
@@ -133,64 +134,53 @@ typedef enum {
 	NWAM_VALUE_TYPE_UNKNOWN
 } nwam_value_type_t;
 
-/*
- * Definitions relevant to backend processing of NWAM data, as used
- * by netcfgd in processing libnwam backend door requests.
- */
-
-/*
- * Functions needed to initialize/stop processing of libnwam backend data
- * (used in netcfgd).
- */
-nwam_error_t nwam_backend_init(void);
-void nwam_backend_fini(void);
-
-/*
- * create audit session, report event, end session
- */
-void nwam_record_audit_event(const ucred_t *, au_event_t, char *, char *,
-    int, int);
-
 /* Holds values of various types for getting and setting of properties */
 /* Forward definition */
 struct nwam_value;
 typedef struct nwam_value *nwam_value_t;
 
 /* Value-related functions. */
-nwam_error_t nwam_value_create_boolean(boolean_t, nwam_value_t *);
-nwam_error_t nwam_value_create_boolean_array(boolean_t *, uint_t,
+extern nwam_error_t nwam_value_create_boolean(boolean_t, nwam_value_t *);
+extern nwam_error_t nwam_value_create_boolean_array(boolean_t *, uint_t,
     nwam_value_t *);
-nwam_error_t nwam_value_create_int64(int64_t, nwam_value_t *);
-nwam_error_t nwam_value_create_int64_array(int64_t *, uint_t, nwam_value_t *);
-nwam_error_t nwam_value_create_uint64(uint64_t, nwam_value_t *);
-nwam_error_t nwam_value_create_uint64_array(uint64_t *, uint_t, nwam_value_t *);
-nwam_error_t nwam_value_create_string(char *, nwam_value_t *);
-nwam_error_t nwam_value_create_string_array(char **, uint_t, nwam_value_t *);
+extern nwam_error_t nwam_value_create_int64(int64_t, nwam_value_t *);
+extern nwam_error_t nwam_value_create_int64_array(int64_t *, uint_t,
+    nwam_value_t *);
+extern nwam_error_t nwam_value_create_uint64(uint64_t, nwam_value_t *);
+extern nwam_error_t nwam_value_create_uint64_array(uint64_t *, uint_t,
+    nwam_value_t *);
+extern nwam_error_t nwam_value_create_string(char *, nwam_value_t *);
+extern nwam_error_t nwam_value_create_string_array(char **, uint_t,
+    nwam_value_t *);
 
-nwam_error_t nwam_value_get_boolean(nwam_value_t, boolean_t *);
-nwam_error_t nwam_value_get_boolean_array(nwam_value_t, boolean_t **, uint_t *);
-nwam_error_t nwam_value_get_int64(nwam_value_t, int64_t *);
-nwam_error_t nwam_value_get_int64_array(nwam_value_t, int64_t **, uint_t *);
-nwam_error_t nwam_value_get_uint64(nwam_value_t, uint64_t *);
-nwam_error_t nwam_value_get_uint64_array(nwam_value_t, uint64_t **, uint_t *);
-nwam_error_t nwam_value_get_string(nwam_value_t, char **);
-nwam_error_t nwam_value_get_string_array(nwam_value_t, char ***, uint_t *);
+extern nwam_error_t nwam_value_get_boolean(nwam_value_t, boolean_t *);
+extern nwam_error_t nwam_value_get_boolean_array(nwam_value_t, boolean_t **,
+    uint_t *);
+extern nwam_error_t nwam_value_get_int64(nwam_value_t, int64_t *);
+extern nwam_error_t nwam_value_get_int64_array(nwam_value_t, int64_t **,
+    uint_t *);
+extern nwam_error_t nwam_value_get_uint64(nwam_value_t, uint64_t *);
+extern nwam_error_t nwam_value_get_uint64_array(nwam_value_t, uint64_t **,
+    uint_t *);
+extern nwam_error_t nwam_value_get_string(nwam_value_t, char **);
+extern nwam_error_t nwam_value_get_string_array(nwam_value_t, char ***,
+    uint_t *);
 
-nwam_error_t nwam_value_get_type(nwam_value_t, nwam_value_type_t *);
-nwam_error_t nwam_value_get_numvalues(nwam_value_t, uint_t *);
+extern nwam_error_t nwam_value_get_type(nwam_value_t, nwam_value_type_t *);
+extern nwam_error_t nwam_value_get_numvalues(nwam_value_t, uint_t *);
 
-void nwam_value_free(nwam_value_t);
-nwam_error_t nwam_value_copy(nwam_value_t, nwam_value_t *);
+extern void nwam_value_free(nwam_value_t);
+extern nwam_error_t nwam_value_copy(nwam_value_t, nwam_value_t *);
 
-nwam_error_t nwam_uint64_get_value_string(const char *, uint64_t,
+extern nwam_error_t nwam_uint64_get_value_string(const char *, uint64_t,
     const char **);
-nwam_error_t nwam_value_string_get_uint64(const char *, const char *,
+extern nwam_error_t nwam_value_string_get_uint64(const char *, const char *,
     uint64_t *);
 
 /*
  * To retrieve a localized error string
  */
-const char *nwam_strerror(nwam_error_t);
+extern const char *nwam_strerror(nwam_error_t);
 
 /*
  * State and auxiliary state describe the state of ENMs, NCUs and locations.
@@ -362,9 +352,9 @@ typedef enum {
  * Activation condition-related functions that convert activation
  * values to an appropriate string and back.
  */
-nwam_error_t nwam_condition_to_condition_string(nwam_condition_object_type_t,
-    nwam_condition_t, const char *, char **);
-nwam_error_t nwam_condition_string_to_condition(const char *,
+extern nwam_error_t nwam_condition_to_condition_string(
+    nwam_condition_object_type_t, nwam_condition_t, const char *, char **);
+extern nwam_error_t nwam_condition_string_to_condition(const char *,
     nwam_condition_object_type_t *, nwam_condition_t *, char **);
 
 /*
@@ -389,7 +379,7 @@ nwam_error_t nwam_condition_string_to_condition(const char *,
  * - wireless ESSID is least specific
  *
  */
-nwam_error_t nwam_condition_rate(nwam_condition_object_type_t,
+extern nwam_error_t nwam_condition_rate(nwam_condition_object_type_t,
     nwam_condition_t, uint64_t *);
 
 /*
@@ -1105,15 +1095,6 @@ extern nwam_error_t nwam_events_init(void);
 extern void nwam_events_fini(void);
 extern nwam_error_t nwam_event_wait(nwam_event_t *);
 extern void nwam_event_free(nwam_event_t);
-
-/*
- * NWAM daemon functions, used to send, stop sending, initialize or finish
- * event IPC.
- */
-extern nwam_error_t nwam_event_send(nwam_event_t);
-extern void nwam_event_send_fini(void);
-extern nwam_error_t nwam_event_queue_init(const char *);
-extern void nwam_event_queue_fini(const char *);
 
 /* Event-related string conversion functions */
 extern const char *nwam_action_to_string(nwam_action_t);

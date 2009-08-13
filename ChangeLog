@@ -1,3 +1,11 @@
+2009-08-13  darren kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_net_conf_panel.c: 
+	  Fix defect#10625, disallow selection of an active ncu in an active
+	  ncp, since that's not destroyable.
+	* nwam_core/usr/include/libnwam.h:
+	  Update to latest version.
+
 2009-08-12  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_condition_vbox.c: 

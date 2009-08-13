@@ -1003,32 +1003,57 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
   GtkTreeIter       *iter,
   gpointer           data)
 {
-    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(data);
-    NwamuiObject *obj;
-    gchar *name;
+    NwamNetConfPanelPrivate    *prv = GET_PRIVATE(data);
+    GList                      *ncus = prv->ncu_selection;
+    NwamuiObject               *obj;
+    gchar                      *name;
+    gboolean                    is_active = FALSE;
+    gboolean                    is_in_ncp = FALSE;
+    NwamuiObject               *found_object = NULL;
 
     gtk_tree_model_get(model, iter, 0, &obj, -1);
 
     name = nwamui_object_get_name(obj);
 
-    if (GTK_IS_CELL_RENDERER_TOGGLE(renderer)) {
-        GList *ncus = prv->ncu_selection;
-        gchar *ncu_name;
-        gboolean hit = FALSE;
+    /* Find equivalent object in active profile */
 
-        while (ncus && !hit) {
-            ncu_name = nwamui_object_get_name(NWAMUI_OBJECT(ncus->data));
+    while (ncus && !is_in_ncp) {
+        NwamuiObject    *temp_obj = NWAMUI_OBJECT(ncus->data);
+        gchar           *ncu_name = nwamui_object_get_name(temp_obj);
 
-            if (g_ascii_strcasecmp(name, ncu_name) == 0) {
-                hit = TRUE;
-            }
-            ncus = g_list_next(ncus);
-            g_free(ncu_name);
+        if (g_ascii_strcasecmp(name, ncu_name) == 0) {
+            is_in_ncp = TRUE;
+            found_object = g_object_ref(temp_obj);
         }
-        g_object_set(renderer, "active", hit, NULL);
-    } else {
-        g_object_set(renderer, "text", name, NULL);
+        ncus = g_list_next(ncus);
+        g_free(ncu_name);
+    }
 
+    if ( found_object != NULL ) {
+        if ( nwamui_object_get_nwam_state( found_object, NULL, NULL ) == NWAM_STATE_ONLINE ) {
+            is_active = TRUE;
+        }
+        g_object_unref(found_object);
+    }
+
+    /* Set sensitivity based on whether it's active or not */
+    g_object_set( G_OBJECT(renderer), "sensitive", !is_active, NULL );
+
+    if (GTK_IS_CELL_RENDERER_TOGGLE(renderer)) {
+        g_object_set(renderer, "active", is_in_ncp, NULL);
+    } else {
+        gchar   *disp_text;
+
+        if ( is_active ) {
+            disp_text = g_strdup_printf( _("%s  (active)"), name );
+        }
+        else {
+            disp_text = g_strdup( name );
+        }
+
+        g_object_set(renderer, "text", disp_text, NULL);
+
+        g_free(disp_text);
     }
     g_free(name);
     g_object_unref(obj);
