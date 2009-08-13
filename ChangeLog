@@ -1,3 +1,9 @@
+2009-08-13  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_wifi_net.c: 
+	  Fix defect#9799 to allow for removal of all BSSIDs, unsetting the
+	  property if it's an empty list.
+
 2009-08-13  darren kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_net_conf_panel.c: 

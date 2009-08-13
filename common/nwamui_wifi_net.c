@@ -548,8 +548,9 @@ nwamui_wifi_net_set_property (  GObject         *object,
                     if ( self->prv->known_wlan_h != NULL ) {
                         GList *bssid_list = g_value_get_pointer( value );
                         gchar **bssid_strs = nwamui_util_glist_to_strv( bssid_list );
+
+                        set_nwam_known_wlan_string_array_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_BSSIDS, bssid_strs, 0 );
                         if ( bssid_strs != NULL ) {
-                            set_nwam_known_wlan_string_array_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_BSSIDS, bssid_strs, 0 );
                             g_strfreev( bssid_strs );
                         }
                     }
@@ -2040,6 +2041,13 @@ set_nwam_known_wlan_string_array_prop( nwam_known_wlan_handle_t known_wlan, cons
     }
 
     if ( strs == NULL ) {
+        if ( (nerr = nwam_known_wlan_delete_prop (known_wlan, prop_name)) != NWAM_SUCCESS ) {
+            g_debug("Unable to delete known_wlan property %s, error = %s", prop_name, nwam_strerror( nerr ) );
+        }
+        else {
+            retval = TRUE;
+        }
+
         return retval;
     }
 
