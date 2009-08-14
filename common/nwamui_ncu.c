@@ -177,7 +177,7 @@ static gboolean     get_kstat_uint64 (const gchar *device, const gchar* stat_nam
 
 static gboolean     interface_has_addresses(const char *ifname, sa_family_t family);
 
-static gchar*       get_interface_address_str(const char *ifname, sa_family_t family);
+static gchar*       get_interface_address_str( NwamuiNcu *ncu, sa_family_t family);
 
 static void         set_all_addresses_dhcp( GtkListStore *ls, gboolean is_dhcp );
 
@@ -1282,7 +1282,7 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                 gtk_list_store_set(ncu->prv->v4addresses, &iter, 0, ip, -1 );
                 g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
 
-                if ( ncu->prv->ipv6_primary_ip == NULL ) {
+                if ( ncu->prv->ipv4_primary_ip == NULL ) {
                     ncu->prv->ipv4_primary_ip = NWAMUI_IP(g_object_ref(ip));
                 }
                 if ( ptr != NULL && *ptr != NULL ) {
@@ -3843,6 +3843,73 @@ nwamui_ncu_get_signal_strength_string( NwamuiNcu* self )
     return( signal_str );
 }
 
+/* Check for dhcp or autoconf, looking in recently read nwam handle, not any
+ * possibly modified nwamui_ip objects.
+ */
+static void
+nwamui_ncu_has_dhcp_configured( NwamuiNcu *ncu, gboolean *ipv4_dhcp, gboolean *ipv6_dhcp, gboolean *ipv6_autoconf )
+{
+    guint64            *ip_version = NULL;
+    guint               ip_version_num = NULL;
+    guint               ipv4_addrsrc_num = 0;
+    guint64            *ipv4_addrsrc = NULL;
+    gchar**             ipv4_addr = NULL;
+    guint               ipv6_addrsrc_num = 0;
+    guint64            *ipv6_addrsrc =  NULL;
+    gchar**             ipv6_addr = NULL;
+
+    ip_version = get_nwam_ncu_uint64_array_prop( ncu->prv->nwam_ncu_ip, 
+                                                 NWAM_NCU_PROP_IP_VERSION, 
+                                                 &ip_version_num );
+
+    if ( ipv4_dhcp != NULL ) {
+        *ipv4_dhcp = FALSE;
+    }
+    if ( ipv6_autoconf != NULL ) {
+        *ipv6_autoconf = FALSE;
+    }
+    if ( ipv6_dhcp != NULL ) {
+        *ipv6_dhcp = FALSE;
+    }
+
+    for ( int ip_n = 0; ip_n < ip_version_num; ip_n++ ) {
+        if (ip_version[ip_n] == NWAM_IP_VERSION_IPV4) {
+            ipv4_addrsrc = get_nwam_ncu_uint64_array_prop( ncu->prv->nwam_ncu_ip, 
+                                                           NWAM_NCU_PROP_IPV4_ADDRSRC, 
+                                                           &ipv4_addrsrc_num );
+
+            for( int i = 0; i < ipv4_addrsrc_num; i++ ) {
+                if ( ipv4_addrsrc[i] == NWAM_ADDRSRC_DHCP ) {
+                    if ( ipv4_dhcp != NULL ) {
+                        *ipv4_dhcp = TRUE;
+                    }
+                }
+            }
+            g_free(ipv4_addrsrc);
+        }
+        else if (ip_version[ip_n] == NWAM_IP_VERSION_IPV6) {
+            ipv6_addrsrc = get_nwam_ncu_uint64_array_prop(  ncu->prv->nwam_ncu_ip, 
+                                                            NWAM_NCU_PROP_IPV6_ADDRSRC, 
+                                                            &ipv6_addrsrc_num );
+
+            for( int i = 0; i < ipv6_addrsrc_num; i++ ) {
+                if ( ipv6_addrsrc[i] == NWAM_ADDRSRC_AUTOCONF ) {
+                    if ( ipv6_autoconf != NULL ) {
+                        *ipv6_autoconf = TRUE;
+                    }
+                }
+                else if ( ipv6_addrsrc[i] == NWAM_ADDRSRC_DHCP ) {
+                    if ( ipv6_dhcp != NULL ) {
+                        *ipv6_dhcp = TRUE;
+                    }
+                }
+            }
+            g_free(ipv6_addrsrc);
+        }
+    }
+    g_free(ip_version);
+}
+
 static guint64
 get_ifflags(const char *name, sa_family_t family)
 {
@@ -3876,12 +3943,25 @@ get_ifflags(const char *name, sa_family_t family)
 static gboolean
 interface_has_addresses(const char *ifname, sa_family_t family)
 {
-	char msg[128];
-	icfg_if_t intf;
-	icfg_handle_t h;
-	struct sockaddr_in sin;
-	socklen_t addrlen = sizeof (struct sockaddr_in);
+	char                msg[128];
+	icfg_if_t           intf;
+	icfg_handle_t       h;
+	struct sockaddr    *sin_p;
+	struct sockaddr_in  _sin;
+	struct sockaddr_in6 _sin6;
+	socklen_t           sin_len = sizeof (struct sockaddr_in);
+	socklen_t           sin6_len = sizeof (struct sockaddr_in6);
+	socklen_t           addrlen;
 	int prefixlen = 0;
+
+    if ( family == AF_INET6 ) {
+        sin_p = (struct sockaddr *)&_sin6;
+        addrlen = sin6_len;
+    }
+    else if ( family == AF_INET ) {
+        sin_p = (struct sockaddr *)&_sin;
+        addrlen = sin_len;
+    }
 
 	(void) strlcpy(intf.if_name, ifname, sizeof (intf.if_name));
 	intf.if_protocol = family;
@@ -3889,7 +3969,7 @@ interface_has_addresses(const char *ifname, sa_family_t family)
 		g_debug( "icfg_open failed on interface %s", ifname);
 		return( FALSE );
 	}
-	if (icfg_get_addr(h, (struct sockaddr *)&sin, &addrlen, &prefixlen,
+	if (icfg_get_addr(h, sin_p, &addrlen, &prefixlen,
 	    B_TRUE) != ICFG_SUCCESS) {
 		g_debug( "icfg_get_addr failed on interface %s for family %s", ifname, (family == AF_INET6)?"v6":"v4");
 		icfg_close(h);
@@ -3901,15 +3981,39 @@ interface_has_addresses(const char *ifname, sa_family_t family)
 }
 
 static gchar*
-get_interface_address_str(const char *ifname, sa_family_t family)
+get_interface_address_str( NwamuiNcu *ncu, sa_family_t family)
 {
 	gchar              *string = NULL;
 	gchar              *address = NULL;
 	int                 prefixlen = 0;
     gboolean            is_dhcp = FALSE;
     gchar*              dhcp_str;
+    gboolean            ipv4_dhcp;
+    gboolean            ipv6_dhcp;
+    gboolean            ipv6_autoconf;
 
-    if ( nwamui_util_get_interface_address( ifname, family, &address, &prefixlen, &is_dhcp ) ) {
+    if ( nwamui_util_get_interface_address( ncu->prv->device_name, family, &address, &prefixlen, &is_dhcp ) ) {
+        /* It is possible for the DHCPRUNNING flag to be true, yet DHCP is not
+         * the source of the address.
+         *
+         * This is because NWAM can use DHCP to gather information like the
+         * nameservice to use using DHCP, thus setting the flag.
+         *
+         * So we double check using the stored nwam configuration, so get that
+         * info now.
+         */
+
+        if ( is_dhcp ) {
+            nwamui_ncu_has_dhcp_configured( ncu,  &ipv4_dhcp,  &ipv6_dhcp,  NULL );
+
+            if ( family == AF_INET && !ipv4_dhcp ) {
+                is_dhcp = FALSE; /* DHCP not being used to address source */
+            }
+            if ( family == AF_INET6 && !ipv6_dhcp ) {
+                is_dhcp = FALSE; /* DHCP not being used to address source */
+            }
+        }
+
         if ( is_dhcp ) {
             dhcp_str = _(" (DHCP)");
         }
@@ -4205,10 +4309,17 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self, gboolean use_new
     switch( state ) {
         case NWAMUI_STATE_CONNECTED:
         case NWAMUI_STATE_CONNECTED_ESSID: {
-            gchar          *v4addr = get_interface_address_str( self->prv->device_name, AF_INET );
-            gchar          *v6addr = get_interface_address_str( self->prv->device_name, AF_INET6 );
+            gchar          *v4addr = get_interface_address_str( self, AF_INET );
+            gchar          *v6addr = get_interface_address_str( self, AF_INET6 );
             guint           speed;
             const gchar    *sepr;
+
+            if ( use_newline ) {
+                sepr = "\n";
+            }
+            else {
+                sepr = ", ";
+            }
 
             if ( v4addr != NULL ) {
                 addr_part = v4addr;
@@ -4218,7 +4329,7 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self, gboolean use_new
             if ( v6addr != NULL ) {
                 if ( addr_part != NULL ) {
                     gchar* tmp = addr_part;
-                    addr_part = g_strdup_printf( _("%s, %s"), addr_part, v6addr );
+                    addr_part = g_strdup_printf( _("%s%s%s"), addr_part, sepr, v6addr );
                     g_free ( tmp );
                 }
                 else {
@@ -4244,12 +4355,6 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self, gboolean use_new
                 speed_part = g_strdup_printf( _("Speed: %d Mb/s"), speed );
             }
 
-            if ( use_newline ) {
-                sepr = "\n";
-            }
-            else {
-                sepr = ", ";
-            }
             if ( signal_part == NULL ) {
                 status_string = g_strdup_printf( _("%s%s%s"), addr_part, sepr, speed_part );
             }

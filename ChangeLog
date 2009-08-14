@@ -1,3 +1,23 @@
+2009-08-14  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_conn_stat_panel.c: 
+	  Fix vertical alignment of entires in status panel, and change the
+	  detail message to use newline, since it's quite unreadable if you
+	  have an IPv6 address too.
+	* common/nwamui_ncu.c:
+	  Change static function get_interface_address() to take an NCU
+	  argument, so that we can get information from it about the current
+	  configuriation information. This is required so that we can
+	  determine whether DHCP is even configured yet, if it's not then the
+	  address assigned is likely to not be soruced from DHCP, despite the
+	  DHCP IFF flag set - this fixes defect#10653.
+	* daemon/status_icon.c: 
+	  Only show an ncu disconnect message if it's in the active priority
+	  group.
+	* common/libnwamui.c: 
+	  Fix some issues in nwamui_util_get_interface_address() which
+	  prevented it from reading the IPv6 information.
+
 2009-08-13  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_wifi_net.c: 

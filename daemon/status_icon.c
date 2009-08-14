@@ -467,7 +467,7 @@ ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
     case NWAMUI_STATE_CONNECTED:
         if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
             nwam_notification_show_ncu_connected( ncu );
-        } else {
+        } else if ( active_ncu ) {
             nwam_notification_show_ncu_disconnected( ncu, NULL, NULL );
         }
         break;

@@ -1612,10 +1612,23 @@ nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
 {
 	icfg_if_t           intf;
 	icfg_handle_t       h;
-	struct sockaddr_in  sin;
-	socklen_t           addrlen = sizeof (struct sockaddr_in);
+	struct sockaddr    *sin_p;
+	struct sockaddr_in  _sin;
+	struct sockaddr_in6 _sin6;
+	socklen_t           sin_len = sizeof (struct sockaddr_in);
+	socklen_t           sin6_len = sizeof (struct sockaddr_in6);
+	socklen_t           addrlen;
 	int                 prefixlen = 0;
 	uint64_t            flags = 0;
+
+    if ( family == AF_INET6 ) {
+        sin_p = (struct sockaddr *)&_sin6;
+        addrlen = sin6_len;
+    }
+    else if ( family == AF_INET ) {
+        sin_p = (struct sockaddr *)&_sin;
+        addrlen = sin_len;
+    }
 
 	(void) strlcpy(intf.if_name, ifname, sizeof (intf.if_name));
 	intf.if_protocol = family;
@@ -1623,7 +1636,7 @@ nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
 		g_debug( "icfg_open failed on interface %s", ifname);
 		return( FALSE );
 	}
-	if (icfg_get_addr(h, (struct sockaddr *)&sin, &addrlen, &prefixlen,
+	if (icfg_get_addr(h, sin_p, &addrlen, &prefixlen,
 	    B_TRUE) != ICFG_SUCCESS) {
 		g_debug( "icfg_get_addr failed on interface %s for family %s", ifname, (family == AF_INET6)?"v6":"v4");
 		icfg_close(h);
@@ -1646,7 +1659,12 @@ nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
     if ( address_p != NULL ) {
         char        addr_str[INET6_ADDRSTRLEN];
 
-        inet_ntop(family, &sin.sin_addr, addr_str, addrlen);
+        if ( family == AF_INET6 ) {
+            inet_ntop(family, (const void*)&_sin6.sin6_addr, addr_str, INET6_ADDRSTRLEN);
+        }
+        else {
+            inet_ntop(family, (const void*)&_sin.sin_addr, addr_str, INET6_ADDRSTRLEN);
+        }
 
         *address_p =  g_strdup(addr_str?addr_str:"");
     }

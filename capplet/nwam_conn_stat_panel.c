@@ -107,6 +107,7 @@ static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void connview_info_width_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnStatusPanel,
                         nwam_conn_status_panel,
@@ -174,9 +175,18 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
           nwam_conn_status_update_status_cell_cb,
           (gpointer) 0,
           NULL);
+
+        g_object_set (cell,
+          "yalign", 0,
+          NULL );
+
         /* Add 2nd wireless strength icon */
         cell = gtk_cell_renderer_pixbuf_new();
         gtk_tree_view_column_pack_end(col, cell, FALSE);
+
+        g_object_set (cell,
+          "yalign", 0,
+          NULL );
 
         gtk_tree_view_column_set_cell_data_func (col,
           cell,
@@ -201,6 +211,13 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
         /* First cell */
         cell = gtk_cell_renderer_text_new();
         gtk_tree_view_column_pack_start(col, cell, TRUE);
+
+        g_signal_connect( col, "notify::width", connview_info_width_changed, cell );
+
+        g_object_set (cell,
+          "wrap-width", 200,
+          "wrap-mode", PANGO_WRAP_WORD,
+          NULL );
 
         gtk_tree_view_column_set_cell_data_func (col,
           cell,
@@ -229,6 +246,7 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
         g_object_set (cell,
           "xalign", 1.0,
           "weight", PANGO_WEIGHT_BOLD,
+          "yalign", 0,
           NULL );
 
         gtk_tree_view_column_set_cell_data_func (col,
@@ -460,7 +478,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
                 ncu_text = nwamui_ncu_get_display_name(ncu);
                 ncu_is_dhcp = nwamui_ncu_get_ipv4_auto_conf(ncu);
                 ncu_ipv4_addr = nwamui_ncu_get_ipv4_address(ncu);
-                info_string = nwamui_ncu_get_connection_state_detail_string( ncu, FALSE );
+                info_string = nwamui_ncu_get_connection_state_detail_string( ncu, TRUE );
 
                 ncu_markup= g_strdup_printf(_("<b>%s</b>\n<small>%s</small>"), ncu_text, info_string );
                 g_free (info_string);
@@ -666,3 +684,14 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
         
     g_free( enm_str );
 }
+
+static void
+connview_info_width_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    gint    width = 0;
+
+    g_object_get (gobject, "width", &width, NULL );
+
+    g_object_set (G_OBJECT(data), "wrap-width", width, NULL );
+}
+
