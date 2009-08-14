@@ -1,3 +1,19 @@
+2009-08-14 Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* img/capplet/tcp-both.png
+	* img/capplet/tcp-none.png
+	* img/capplet/tcp-manual.png
+	* img/capplet/tcp-dhcp.png
+	* img/capplet/tcp-tab.png
+
+	Update Connection Properties, Network Status and Network Profile
+	pages to accommodate possibility of simulataneous DHCP and
+	static IPv4 addresses, and to indicate to user whether IPv6
+	addresses are provided via DHCPv6 or Autoconf.
+
+	TODO: Update nwam-ui-spec.pdf to match. 
+
 2009-08-07  Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
