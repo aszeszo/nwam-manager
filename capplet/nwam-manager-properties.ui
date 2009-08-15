@@ -326,6 +326,11 @@
                         <property name="hscrollbar_policy">never</property>
                         <property name="vscrollbar_policy">never</property>
                         <property name="shadow_type">in</property>
+                        <child>
+                          <object class="NwamTreeView" id="connection_status_table">
+                            <property name="visible">True</property>
+                          </object>
+                        </child>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -776,6 +781,11 @@ Choose which connections are enabled in this profile:</property>
                             <property name="hscrollbar_policy">automatic</property>
                             <property name="vscrollbar_policy">automatic</property>
                             <property name="shadow_type">in</property>
+                            <child>
+                              <object class="NwamTreeView" id="network_profile_table">
+                                <property name="visible">True</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                         <child>
@@ -4401,6 +4411,11 @@ Disable these services when this location is active:</property>
                         <property name="hscrollbar_policy">never</property>
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">in</property>
+                        <child>
+                          <object class="NwamTreeView" id="vpn_apps_list">
+                            <property name="visible">True</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
@@ -5339,6 +5354,11 @@ Enter username and password for http://$HOST:$PORT
                 <property name="hscrollbar_policy">automatic</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">in</property>
+                <child>
+                  <object class="NwamTreeView" id="location_tree">
+                    <property name="visible">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="top_attach">1</property>
