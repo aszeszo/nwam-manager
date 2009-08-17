@@ -441,6 +441,7 @@ show_changed_cb( GtkWidget* widget, gpointer data )
 	gint idx;
     GObject *obj;
     gpointer user_data = NULL;
+    gboolean    valid = TRUE;
 
     idx = PANEL_CONF_IP;
         
@@ -482,7 +483,6 @@ show_changed_cb( GtkWidget* widget, gpointer data )
          * any changes, and attempt to validate. If validation changes, then
          * we need to re-selected the previous item.
          */
-        gboolean    valid = TRUE;
         gint        cur_idx = gtk_notebook_get_current_page (NWAM_CAPPLET_DIALOG(self)->prv->main_nb);
         gchar      *prop_name = NULL;
 
@@ -492,7 +492,7 @@ show_changed_cb( GtkWidget* widget, gpointer data )
         }
 
         /* Validate NCU */
-        if ( !nwamui_ncu_validate( NWAMUI_NCU(self->prv->prev_selected_ncu), &prop_name ) ) {
+        if ( valid && !nwamui_ncu_validate( NWAMUI_NCU(self->prv->prev_selected_ncu), &prop_name ) ) {
             gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe property '%s' caused this failure"), prop_name );
             nwamui_util_show_message (GTK_WINDOW(self->prv->capplet_dialog), 
                                       GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
@@ -501,16 +501,18 @@ show_changed_cb( GtkWidget* widget, gpointer data )
             valid = FALSE;
         }
         if ( ! valid ) {
-            nwam_capplet_dialog_select_ncu(self, self->prv->prev_selected_ncu );
             /* Reset selected_ncu, otherwise we will enter a validation loop */
             self->prv->selected_ncu = NWAMUI_NCU(g_object_ref(self->prv->prev_selected_ncu));
+            nwam_capplet_dialog_select_ncu(self, self->prv->prev_selected_ncu );
         }
     }
 
 	/* update the notetab according to the selected entry */
-    gtk_notebook_set_current_page(self->prv->main_nb, idx);
+    if ( valid ) {
+        gtk_notebook_set_current_page(self->prv->main_nb, idx);
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(obj), user_data, FALSE);
+        nwam_pref_refresh(NWAM_PREF_IFACE(obj), user_data, FALSE);
+    }
 
     if (user_data) {
         g_object_unref(user_data);

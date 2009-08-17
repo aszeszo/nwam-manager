@@ -2202,7 +2202,7 @@ nwamui_daemon_setup_dhcp_or_wep_key_timeout( NwamuiDaemon* self, NwamuiNcu* ncu 
     }
 
     if ( nwamui_ncu_get_ncu_type(ncu) != NWAMUI_NCU_TYPE_WIRELESS
-         || ! nwamui_ncu_get_ipv4_auto_conf(ncu) ) {
+         || !nwamui_ncu_get_ipv4_has_dhcp(ncu) ) {
         g_debug("nwamui_daemon_setup_dhcp_or_wep_key_timeout: Not wireless or DHCP");
         return;
     }

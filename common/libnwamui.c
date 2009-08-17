@@ -1658,15 +1658,16 @@ nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
 
     if ( address_p != NULL ) {
         char        addr_str[INET6_ADDRSTRLEN];
+        const char *addr_p;
 
         if ( family == AF_INET6 ) {
-            inet_ntop(family, (const void*)&_sin6.sin6_addr, addr_str, INET6_ADDRSTRLEN);
+            addr_p = inet_ntop(family, (const void*)&_sin6.sin6_addr, addr_str, INET6_ADDRSTRLEN);
         }
         else {
-            inet_ntop(family, (const void*)&_sin.sin_addr, addr_str, INET6_ADDRSTRLEN);
+            addr_p = inet_ntop(family, (const void*)&_sin.sin_addr, addr_str, INET6_ADDRSTRLEN);
         }
 
-        *address_p =  g_strdup(addr_str?addr_str:"");
+        *address_p =  g_strdup(addr_p?addr_p:"");
     }
 
     if ( prefixlen_p != NULL ) {

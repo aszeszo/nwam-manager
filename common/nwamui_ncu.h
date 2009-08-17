@@ -131,37 +131,29 @@ extern guint                nwamui_ncu_get_speed ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_ipv4_active ( NwamuiNcu *self, gboolean ipv4_active );
 extern gboolean             nwamui_ncu_get_ipv4_active ( NwamuiNcu *self );
 
-extern void                 nwamui_ncu_set_ipv4_dhcp ( NwamuiNcu *self, gboolean ipv4_dhcp );
-extern gboolean             nwamui_ncu_get_ipv4_dhcp ( NwamuiNcu *self );
+extern void                 nwamui_ncu_set_ipv4_has_dhcp ( NwamuiNcu *self, gboolean ipv4_has_dhcp );
+extern gboolean             nwamui_ncu_get_ipv4_has_dhcp ( NwamuiNcu *self );
 
-extern void                 nwamui_ncu_set_ipv4_auto_conf ( NwamuiNcu *self, gboolean ipv4_auto_conf );
-extern gboolean             nwamui_ncu_get_ipv4_auto_conf ( NwamuiNcu *self );
+extern gboolean             nwamui_ncu_get_ipv4_has_static (NwamuiNcu *self);
 
-
-extern void                 nwamui_ncu_set_ipv4_address ( NwamuiNcu *self, const gchar* ipv4_address );
 extern gchar*               nwamui_ncu_get_ipv4_address ( NwamuiNcu *self );
 
-
-extern void                 nwamui_ncu_set_ipv4_subnet ( NwamuiNcu *self, const gchar* ipv4_subnet );
 extern gchar*               nwamui_ncu_get_ipv4_subnet ( NwamuiNcu *self );
-
 
 extern void                 nwamui_ncu_set_ipv6_active ( NwamuiNcu *self, gboolean ipv6_active );
 extern gboolean             nwamui_ncu_get_ipv6_active ( NwamuiNcu *self );
 
 
-extern void                 nwamui_ncu_set_ipv6_dhcp ( NwamuiNcu *self, gboolean ipv6_dhcp );
-extern gboolean             nwamui_ncu_get_ipv6_dhcp ( NwamuiNcu *self );
+extern void                 nwamui_ncu_set_ipv6_has_dhcp ( NwamuiNcu *self, gboolean ipv6_has_dhcp );
+extern gboolean             nwamui_ncu_get_ipv6_has_dhcp ( NwamuiNcu *self );
 
-extern void                 nwamui_ncu_set_ipv6_auto_conf ( NwamuiNcu *self, gboolean ipv6_auto_conf );
-extern gboolean             nwamui_ncu_get_ipv6_auto_conf ( NwamuiNcu *self );
+extern void                 nwamui_ncu_set_ipv6_has_auto_conf ( NwamuiNcu *self, gboolean ipv6_has_auto_conf );
+extern gboolean             nwamui_ncu_get_ipv6_has_auto_conf ( NwamuiNcu *self );
 
+extern gboolean             nwamui_ncu_get_ipv6_has_static (NwamuiNcu *self);
 
-extern void                 nwamui_ncu_set_ipv6_address ( NwamuiNcu *self, const gchar* ipv6_address );
 extern gchar*               nwamui_ncu_get_ipv6_address ( NwamuiNcu *self );
 
-
-extern void                 nwamui_ncu_set_ipv6_prefix ( NwamuiNcu *self, const gchar* ipv6_prefix );
 extern gchar*               nwamui_ncu_get_ipv6_prefix ( NwamuiNcu *self );
 
 extern void                 nwamui_ncu_set_v4addresses ( NwamuiNcu *self, GtkListStore* v4addresses );

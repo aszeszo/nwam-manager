@@ -43,7 +43,6 @@
 #define IP_PANEL_IFACE_NOTEBOOK	"interface_notebook"
 #define IP_PANEL_IPV4_COMBO	"ipv4_combo"
 #define IP_PANEL_IPV6_COMBO	"ipv6_combo"
-#define IP_PANEL_IPV4_NOTEBOOK	"ipv4_notebook"
 #define IP_PANEL_IPV6_NOTEBOOK	"ipv6_notebook"
 #define IP_PANEL_IPV6_EXPANDER	"ipv6_expander"
 #define IP_PANEL_IPV6_EXP_LBL	"label34"
@@ -61,14 +60,16 @@
 #define IP_PANEL_WIRELESS_TAB_ADD_CBOX          "ask_before_add_cbox"
 #define IP_PANEL_WIRELESS_TAB_PREF_NET_COMBO    "no_preferred_networks_combo"
 
-#define IP_DHCP_PANEL_IPV4_ADDRESS_LBL              "dhcp_address_lbl"
-#define IP_DHCP_PANEL_IPV4_SUBNET_LBL               "dhcp_subnet_lbl"
+#define IP_DHCP_IPV4_TABLE                          "dhcp_table"
+#define IP_DHCP_IPV4_ADDRESS_LBL                    "dhcp_address_lbl"
+#define IP_DHCP_IPV4_SUBNET_LBL                     "dhcp_subnet_lbl"
+
 #define IP_DHCP_PANEL_IPV4_RENEW_BTN                "renew_lease_btn"
-#define IP_MANUAL_PANEL_IPV4_ADDRESS_ENTRY          "manual_address_entry"
-#define IP_MANUAL_PANEL_IPV4_SUBNET_ENTRY           "manual_subnet_entry"
-#define IP_MULTI_PANEL_IPV4_ADDR_TABLE_TVIEW        "address_table"
-#define IP_MULTI_PANEL_IPV4_ADD_BTN                 "multiple_add_btn"
-#define IP_MULTI_PANEL_IPV4_DEL_BTN                 "multiple_delete_btn"
+
+#define IP_STATIC_IPV4_FRAME                        "ipv4_static_frame"
+#define IP_MULTI_IPV4_ADDR_TABLE_TVIEW              "address_table"
+#define IP_MULTI_IPV4_ADD_BTN                       "multiple_add_btn"
+#define IP_MULTI_IPV4_DEL_BTN                       "multiple_delete_btn"
 
 #define IP_DHCP_PANEL_IPV6_ADDRESS_LBL              "ipv6_address_lbl"
 #define IP_DHCP_PANEL_IPV6_ROUTER_LBL               "ipv6_router_lbl"
@@ -91,18 +92,19 @@ struct _NwamConnConfIPPanelPrivate {
 	GtkNotebook *iface_nb;
 	GtkComboBox *ipv4_combo;
 	GtkComboBox *ipv6_combo;
-	GtkNotebook *ipv4_nb;
 	GtkNotebook *ipv6_nb;
 	GtkExpander *ipv6_expander;
 	GtkLabel    *ipv6_lbl;
 
+	GtkWidget   *ipv4_has_dhcp_table;
 	GtkLabel    *ipv4_addr_lbl;
 	GtkLabel    *ipv4_subnet_lbl;
-	GtkEntry    *ipv4_addr_entry;
-	GtkEntry    *ipv4_subnet_entry;
+
 	GtkButton   *ipv4_renew_btn;
-	GtkButton   *ipv4_mutli_add_btn;
-	GtkButton   *ipv4_mutli_del_btn;
+
+	GtkWidget   *ipv4_static_frame;
+	GtkButton   *ipv4_multi_add_btn;
+	GtkButton   *ipv4_multi_del_btn;
 	GtkTreeView *ipv4_tv;
         
     GtkWidget   *wireless_tab;
@@ -154,6 +156,22 @@ enum {
 	WIFI_FAV_SECURITY,
 	WIFI_FAV_SPEED,
     WIFI_CHANNEL
+};
+
+
+typedef enum {
+    IPV4_COMBO_DISABLED,
+    IPV4_COMBO_DHCP_ASSIGNED,
+    IPV4_COMBO_MANUALLY_ASSIGNED,
+    IPV4_COMBO_DHCP_AND_MANUALLY_ASSIGNED,
+    IPV4_COMBO_LAST /* Not be used directly */
+} nwamui_ipv4_combo_values_t;
+
+static const gchar  *nwamui_ipv4_combo_strings[IPV4_COMBO_LAST] = {
+    N_("Disabled"),
+    N_("DHCP assigned"),
+    N_("Manually assigned"),
+    N_("DHCP and Manually assigned"),
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
@@ -216,8 +234,6 @@ static void wireless_tab_edit_button_clicked_cb( GtkButton *button, gpointer dat
 static void wireless_tab_up_button_clicked_cb( GtkButton *button, gpointer data );
 static void wireless_tab_down_button_clicked_cb( GtkButton *button, gpointer data );
 static void refresh_clicked_cb( GtkButton *button, gpointer data );
-static void ipv4_addr_changed_cb( GtkEditable* editable, gpointer user_data );
-static void ipv4_subnet_changed_cb( GtkEditable* editable, gpointer user_data );
 static void ipv6_manual_addresses_cb_toggled(GtkToggleButton *togglebutton, gpointer user_data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnConfIPPanel,
@@ -250,7 +266,7 @@ nwam_conf_ip_panel_class_init(NwamConnConfIPPanelClass *klass)
 }
 
 /*
- * The IPv4 mutli addr and IPv6 mutli addr have the similar view
+ * The IPv4 multi addr and IPv6 multi addr have the similar view
  */
 static void
 nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
@@ -338,13 +354,14 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
     
 }
 /*
- * The IPv4 mutli addr and IPv6 mutli addr have the similar view
+ * The IPv4 multi addr and IPv6 multi addr have the similar view
  */
 static void
 nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 {
 	GtkTreeViewColumn *col;
 	GtkCellRenderer *renderer;
+    const gchar       *col_title = NULL;
 
 	g_object_set (G_OBJECT(view),
 		      "headers-clickable", FALSE,
@@ -380,11 +397,10 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       "title", _("Address"),
       "resizable", TRUE,
       "clickable", TRUE,
-      "sort-indicator", TRUE,
-      "reorderable", TRUE,
+      "min-width", 150,
       NULL);
 	renderer = capplet_column_append_cell(col,
-      gtk_cell_renderer_text_new(), FALSE,
+      gtk_cell_renderer_text_new(), TRUE,
       (GtkTreeCellDataFunc)nwam_conn_multi_ip_cell_cb, (gpointer)view, NULL);
 
 	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_ADDR);	
@@ -403,25 +419,27 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_ADDR));
 
 	// column IP_VIEW_MASK
+	if (view == self->prv->ipv4_tv) {
+		col_title =  _("Subnet Mask");
+	} else {
+		col_title =  _("Prefix Length");
+	}
     col = capplet_column_new(view,
+      "title", col_title,
       "resizable", TRUE,
       "clickable", TRUE,
-      "sort-indicator", TRUE,
-      "reorderable", TRUE,
       NULL);
 
-	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_MASK);	
+	/* gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_MASK);	 */
 
 	renderer = capplet_column_append_cell(col,
       gtk_cell_renderer_text_new(), FALSE,
       (GtkTreeCellDataFunc)nwam_conn_multi_ip_cell_cb, (gpointer)view, NULL);
 
 	if (view == self->prv->ipv4_tv) {
-		gtk_tree_view_column_set_title(col, _("Subnet Mask"));
         g_signal_connect(G_OBJECT(renderer), "edited",
           (GCallback) nwam_conn_multi_ipv4_cell_edited_cb, (gpointer)self);
 	} else {
-		gtk_tree_view_column_set_title(col, _("Prefix Length"));
         g_signal_connect(G_OBJECT(renderer), "edited",
           (GCallback) nwam_conn_multi_ipv6_cell_edited_cb, (gpointer)self);
 	}
@@ -473,33 +491,24 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 	self->prv->ipv6_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(IP_PANEL_IPV6_COMBO));
 	g_signal_connect(G_OBJECT(self->prv->ipv6_combo), "changed", (GCallback)show_changed_cb, (gpointer)self);
 
-	self->prv->ipv4_nb = GTK_NOTEBOOK(nwamui_util_glade_get_widget(IP_PANEL_IPV4_NOTEBOOK));
 	self->prv->ipv6_nb = GTK_NOTEBOOK(nwamui_util_glade_get_widget(IP_PANEL_IPV6_NOTEBOOK));
 	self->prv->ipv6_lbl = GTK_LABEL(nwamui_util_glade_get_widget(IP_PANEL_IPV6_EXP_LBL));
 	self->prv->ipv6_expander = GTK_EXPANDER(nwamui_util_glade_get_widget(IP_PANEL_IPV6_EXPANDER));
 
-	self->prv->ipv4_addr_lbl = GTK_LABEL(nwamui_util_glade_get_widget(IP_DHCP_PANEL_IPV4_ADDRESS_LBL));
-	self->prv->ipv4_subnet_lbl = GTK_LABEL(nwamui_util_glade_get_widget(IP_DHCP_PANEL_IPV4_SUBNET_LBL));
+	self->prv->ipv4_has_dhcp_table = GTK_WIDGET(nwamui_util_glade_get_widget(IP_DHCP_IPV4_TABLE));
+	self->prv->ipv4_addr_lbl = GTK_LABEL(nwamui_util_glade_get_widget(IP_DHCP_IPV4_ADDRESS_LBL));
+	self->prv->ipv4_subnet_lbl = GTK_LABEL(nwamui_util_glade_get_widget(IP_DHCP_IPV4_SUBNET_LBL));
 
 /*	self->prv->ipv4_renew_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_DHCP_PANEL_IPV4_RENEW_BTN));
 	g_signal_connect(G_OBJECT(self->prv->ipv4_renew_btn), "clicked", (GCallback)renew_cb, (gpointer)self);
 */	
-	self->prv->ipv4_addr_entry = GTK_ENTRY(nwamui_util_glade_get_widget(IP_MANUAL_PANEL_IPV4_ADDRESS_ENTRY));
-    g_signal_connect(G_OBJECT(self->prv->ipv4_addr_entry ), "changed",
-            (GCallback)ipv4_addr_changed_cb, (gpointer)self);
-    nwamui_util_set_entry_ip_address_only( self->prv->ipv4_addr_entry, FALSE, TRUE );
+    self->prv->ipv4_static_frame = GTK_WIDGET(nwamui_util_glade_get_widget(IP_STATIC_IPV4_FRAME));
+	self->prv->ipv4_tv = GTK_TREE_VIEW(nwamui_util_glade_get_widget(IP_MULTI_IPV4_ADDR_TABLE_TVIEW));
 
-	self->prv->ipv4_subnet_entry = GTK_ENTRY(nwamui_util_glade_get_widget(IP_MANUAL_PANEL_IPV4_SUBNET_ENTRY));
-    g_signal_connect(G_OBJECT(self->prv->ipv4_subnet_entry ), "changed",
-            (GCallback)ipv4_subnet_changed_cb, (gpointer)self);
-    nwamui_util_set_entry_ip_address_only( self->prv->ipv4_subnet_entry, FALSE, TRUE );
-
-	self->prv->ipv4_tv = GTK_TREE_VIEW(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV4_ADDR_TABLE_TVIEW));
-
-	self->prv->ipv4_mutli_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV4_ADD_BTN));
-	self->prv->ipv4_mutli_del_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV4_DEL_BTN));
-	g_signal_connect(G_OBJECT(self->prv->ipv4_mutli_add_btn), "clicked", (GCallback)multi_line_add_cb, (gpointer)self);
-	g_signal_connect(G_OBJECT(self->prv->ipv4_mutli_del_btn), "clicked", (GCallback)multi_line_del_cb, (gpointer)self);
+	self->prv->ipv4_multi_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_IPV4_ADD_BTN));
+	self->prv->ipv4_multi_del_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_IPV4_DEL_BTN));
+	g_signal_connect(G_OBJECT(self->prv->ipv4_multi_add_btn), "clicked", (GCallback)multi_line_add_cb, (gpointer)self);
+	g_signal_connect(G_OBJECT(self->prv->ipv4_multi_del_btn), "clicked", (GCallback)multi_line_del_cb, (gpointer)self);
 
 /*
  *      Currently not relevant
@@ -510,8 +519,8 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 	self->prv->ipv6_addr_entry = GTK_ENTRY(nwamui_util_glade_get_widget(IP_MANUAL_PANEL_IPV6_ADDRESS_ENTRY));
 	self->prv->ipv6_prefix_entry = GTK_ENTRY(nwamui_util_glade_get_widget(IP_MANUAL_PANEL_IPV6_PREFIX_ENTRY));
 
-        self->prv->ipv6_mutli_del_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_DEL_BTN));
-	g_signal_connect(G_OBJECT(self->prv->ipv6_mutli_del_btn), "clicked", (GCallback)multi_line_del_cb, (gpointer)self);
+        self->prv->ipv6_multi_del_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_DEL_BTN));
+	g_signal_connect(G_OBJECT(self->prv->ipv6_multi_del_btn), "clicked", (GCallback)multi_line_del_cb, (gpointer)self);
 	
 	self->prv->ipv6_accept_stateful_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ACCEPT_STATEFUL_CBTN));
 	self->prv->ipv6_accept_stateless_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_MULTI_PANEL_IPV6_ACCEPT_STATELESS_CBTN));
@@ -591,11 +600,15 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     NwamConnConfIPPanelPrivate* prv;
     nwamui_ncu_type_t   ncu_type;
     gboolean            modifiable;
-    gboolean            ipv4_dhcp;
+    gboolean            ipv4_active;
+    gboolean            ipv4_has_dhcp;
+    gboolean            ipv4_has_static;
     gchar*              ipv4_address;
     gchar*              ipv4_subnet;
     gboolean            ipv6_active;
-    gboolean            ipv6_dhcp;
+    gboolean            ipv6_has_dhcp;
+    gboolean            ipv6_has_autoconf;
+    gboolean            ipv6_has_static;
     gchar*              ipv6_address;
     gchar*              ipv6_prefix;
 
@@ -607,11 +620,15 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     
     ncu_type = nwamui_ncu_get_ncu_type( NWAMUI_NCU(prv->ncu) );
     modifiable = nwamui_ncu_is_modifiable( NWAMUI_NCU(prv->ncu) );
-    ipv4_dhcp = nwamui_ncu_get_ipv4_dhcp( NWAMUI_NCU(prv->ncu) );
+    ipv4_active = nwamui_ncu_get_ipv4_active( NWAMUI_NCU(prv->ncu) );
+    ipv4_has_dhcp = nwamui_ncu_get_ipv4_has_dhcp( NWAMUI_NCU(prv->ncu) );
+    ipv4_has_static = nwamui_ncu_get_ipv4_has_static( NWAMUI_NCU(prv->ncu) );
     ipv4_address = nwamui_ncu_get_ipv4_address( NWAMUI_NCU(prv->ncu) );
     ipv4_subnet = nwamui_ncu_get_ipv4_subnet( NWAMUI_NCU(prv->ncu) );
     ipv6_active = nwamui_ncu_get_ipv6_active( NWAMUI_NCU(prv->ncu) );
-    ipv6_dhcp = nwamui_ncu_get_ipv6_dhcp( NWAMUI_NCU(prv->ncu) );
+    ipv6_has_dhcp = nwamui_ncu_get_ipv6_has_dhcp( NWAMUI_NCU(prv->ncu) );
+    ipv6_has_autoconf = nwamui_ncu_get_ipv6_has_auto_conf( NWAMUI_NCU(prv->ncu) );
+    ipv6_has_static = nwamui_ncu_get_ipv6_has_static( NWAMUI_NCU(prv->ncu) );
     ipv6_address = nwamui_ncu_get_ipv6_address( NWAMUI_NCU(prv->ncu) );
     ipv6_prefix = nwamui_ncu_get_ipv6_prefix( NWAMUI_NCU(prv->ncu) );
     
@@ -627,46 +644,44 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     }
 
     if ( set_initial_state ) {
-        if ( ipv4_dhcp ) { 
-            gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv4_combo), 1); /* Select DHCP on Combo Box */
+        if ( !ipv4_active ) { 
+            gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv4_combo), IPV4_COMBO_DISABLED); 
         }
         else {
-            gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv4_combo), 2); /* Select Static IP on Combo Box */
-            /* TODO - Check for Multiple IP Addresses  and update combo to reflect */
+            if ( ipv4_has_dhcp && ipv4_has_static ) { 
+                gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv4_combo), IPV4_COMBO_DHCP_AND_MANUALLY_ASSIGNED);
+            }
+            else if ( ipv4_has_static ) {
+                gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv4_combo), IPV4_COMBO_MANUALLY_ASSIGNED);
+            }
+            else {
+                gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv4_combo), IPV4_COMBO_DHCP_ASSIGNED);
+            }
         }
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_combo), modifiable);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_tv), modifiable);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_multi_add_btn), modifiable);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_multi_del_btn), modifiable);
     }
     
-    g_signal_handlers_block_by_func(G_OBJECT(prv->ipv4_addr_entry ), (gpointer)ipv4_addr_changed_cb, (gpointer)self);
     if ( ipv4_address != NULL ) { 
-          gtk_label_set_text(GTK_LABEL(prv->ipv4_addr_lbl), ipv4_address);
-          gtk_entry_set_text(GTK_ENTRY(prv->ipv4_addr_entry), ipv4_address);
+        if ( strcmp(ipv4_address, "0.0.0.0") == 0 ) {
+            gtk_label_set_markup(GTK_LABEL(prv->ipv4_addr_lbl), _("<i>No IP Address assigned</i>"));
+        }
+        else {
+            gtk_label_set_text(GTK_LABEL(prv->ipv4_addr_lbl), ipv4_address);
+        }
     }
     else {
-          gtk_label_set_text(GTK_LABEL(prv->ipv4_addr_lbl), "");
-          gtk_entry_set_text(GTK_ENTRY(prv->ipv4_addr_entry), "");
+        gtk_label_set_text(GTK_LABEL(prv->ipv4_addr_lbl), "");
     }
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_addr_lbl), modifiable);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_addr_entry), modifiable);
 
-    g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv4_addr_entry ), (gpointer)ipv4_addr_changed_cb, (gpointer)self);
-    
-    g_signal_handlers_block_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
     if ( ipv4_subnet != NULL ) { 
-          gtk_label_set_text(GTK_LABEL(prv->ipv4_subnet_lbl), ipv4_subnet);
-          gtk_entry_set_text(GTK_ENTRY(prv->ipv4_subnet_entry), ipv4_subnet);
+        gtk_label_set_text(GTK_LABEL(prv->ipv4_subnet_lbl), ipv4_subnet);
     }
     else {
-          gtk_label_set_text(GTK_LABEL(prv->ipv4_subnet_lbl), "");
-          gtk_entry_set_text(GTK_ENTRY(prv->ipv4_subnet_entry), "");
+        gtk_label_set_text(GTK_LABEL(prv->ipv4_subnet_lbl), "");
     }
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_subnet_lbl), modifiable);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_subnet_entry), modifiable);
-
-    g_signal_handlers_block_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
-    g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
-    g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv4_subnet_entry ), (gpointer)ipv4_subnet_changed_cb, (gpointer)self);
-
     if ( set_initial_state ) {
         if ( ! ipv6_active ) { 
             gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv6_combo), 0); /* Select None On Combo Box */
@@ -680,7 +695,12 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
         g_signal_handlers_block_by_func(G_OBJECT(prv->ipv6_manual_addresses_cbox), (gpointer)ipv6_manual_addresses_cb_toggled, (gpointer)self);
 
         gtk_toggle_button_toggled(GTK_TOGGLE_BUTTON(prv->ipv6_manual_addresses_cbox));
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->ipv6_manual_addresses_cbox), !ipv6_dhcp);
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->ipv6_manual_addresses_cbox), ipv6_has_static);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_manual_addresses_cbox), modifiable);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_tv), ipv6_has_static);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_add_btn), ipv6_has_static);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_del_btn), ipv6_has_static);
+
         g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv6_manual_addresses_cbox), (gpointer)ipv6_manual_addresses_cb_toggled, (gpointer)self);
     }
 
@@ -766,17 +786,17 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 {
     NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(iface);
     NwamConnConfIPPanelPrivate* prv = self->prv;
-    
     nwamui_ncu_type_t   ncu_type;
-    gboolean            ipv4_dhcp;
+    gboolean            ipv4_has_dhcp;
     const gchar*        ipv4_address;
     const gchar*        ipv4_subnet;
     gboolean            ipv6_active;
-    gboolean            ipv6_dhcp;
+    gboolean            ipv6_has_dhcp;
     gchar*              ipv6_address;
     gchar*              ipv6_prefix;
     NwamuiWifiNet*      wifi_info = NULL; 
-    GtkTreeModel*   model;
+    GtkTreeModel*       model;
+    gboolean            rval = TRUE;
 
     if ( ! NWAMUI_IS_NCU(self->prv->ncu) ) {
         return( TRUE );
@@ -846,35 +866,64 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     }
 
     if ( nwamui_ncu_is_modifiable( prv->ncu ) ) {
+        gchar*  failed_prop = NULL;
+
         switch (gtk_combo_box_get_active(GTK_COMBO_BOX(prv->ipv4_combo))) {
-        case 1:
-            nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), TRUE);
+        case IPV4_COMBO_DISABLED:
+            nwamui_ncu_set_ipv4_active( NWAMUI_NCU(prv->ncu), FALSE);
             break;
-        case 2:
-            ipv4_address = gtk_entry_get_text(GTK_ENTRY(prv->ipv4_addr_entry));
-            ipv4_subnet = gtk_entry_get_text(GTK_ENTRY(prv->ipv4_subnet_entry));
-            nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
-            nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu),
-              ipv4_address ? ipv4_address : "");
-            nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu),
-              ipv4_subnet ? ipv4_subnet : "");
-            break;
-        case 3:
+        case IPV4_COMBO_DHCP_ASSIGNED:
+            nwamui_ncu_set_ipv4_active( NWAMUI_NCU(prv->ncu), TRUE);
+            nwamui_ncu_set_ipv4_has_dhcp( NWAMUI_NCU(prv->ncu), TRUE);
             model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv4_tv)));
+            gtk_list_store_clear(GTK_LIST_STORE(model));
             nwamui_ncu_set_v4addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
+            break;
+        case IPV4_COMBO_MANUALLY_ASSIGNED:
+            nwamui_ncu_set_ipv4_has_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+            nwamui_ncu_set_ipv4_active( NWAMUI_NCU(prv->ncu), TRUE);
+            model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv4_tv)));
+            if ( gtk_tree_model_iter_n_children( GTK_TREE_MODEL(model), NULL ) > 0 ) {
+                nwamui_ncu_set_v4addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
+            }
+            else {
+                gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe device is configured to use static IPv4 addresses, but none exist."));
+                nwamui_util_show_message (NULL, GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
+                rval = FALSE;
+            }
+            break;
+        case IPV4_COMBO_DHCP_AND_MANUALLY_ASSIGNED:
+            nwamui_ncu_set_ipv4_active( NWAMUI_NCU(prv->ncu), TRUE);
+            nwamui_ncu_set_ipv4_has_dhcp( NWAMUI_NCU(prv->ncu), TRUE);
+            model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv4_tv)));
+            if ( gtk_tree_model_iter_n_children( GTK_TREE_MODEL(model), NULL ) > 0 ) {
+                nwamui_ncu_set_v4addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
+            }
+            else {
+                gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe device is configured to use static IPv4 addresses, but none exist."));
+                nwamui_util_show_message (NULL, GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
+                rval = FALSE;
+            }
             break;
         default:
             /* Disable ipv4 dhcp */
-            nwamui_ncu_set_ipv4_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+            nwamui_ncu_set_ipv4_has_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
             break;
         }
         
-        if ( nwamui_ncu_get_ipv6_active( NWAMUI_NCU(prv->ncu) ) ) { 
+        if ( rval ) {
+            gboolean ipv6_has_static = FALSE;
+
+            ipv6_has_static = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->ipv6_manual_addresses_cbox));
+
             switch (gtk_combo_box_get_active(GTK_COMBO_BOX(prv->ipv6_combo))) {
             case 0:
-                nwamui_ncu_set_ipv6_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+                nwamui_ncu_set_ipv6_active( NWAMUI_NCU(prv->ncu), FALSE );
+                nwamui_ncu_set_ipv6_has_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+                ipv6_has_static = FALSE;
                 break;
             case 1:
+                nwamui_ncu_set_ipv6_active( NWAMUI_NCU(prv->ncu), TRUE );
                 model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv6_tv)));
                 nwamui_ncu_set_v6addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
                 break;
@@ -882,12 +931,23 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                 /* Disable ipv6 dhcp */
                 break;
             }
+            model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->ipv6_tv)));
+            if ( !ipv6_has_static ) {
+                gtk_list_store_clear(GTK_LIST_STORE(model));
+            }
+            nwamui_ncu_set_v6addresses(NWAMUI_NCU(prv->ncu), GTK_LIST_STORE(model));
+        }
+        if ( rval && !nwamui_ncu_validate( NWAMUI_NCU(prv->ncu), &failed_prop ) ) {
+            gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe property '%s' caused this failure"), failed_prop );
+            nwamui_util_show_message (NULL, GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
+            g_free(failed_prop);
+            rval = FALSE;
         }
     }
     
     g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 
-    return( TRUE );
+    return( rval );
 }
 
 /**
@@ -979,9 +1039,9 @@ renew_cb( GtkButton *button, gpointer data )
 	NwamConnConfIPPanel* self = NWAM_CONN_CONF_IP_PANEL(data);
 	g_assert (self->prv->ncu);
 	if (button == self->prv->ipv4_renew_btn) {
-		nwamui_ncu_set_ipv4_dhcp (self->prv->ncu, TRUE);
+		nwamui_ncu_set_ipv4_has_dhcp (self->prv->ncu, TRUE);
 	} else {
-		nwamui_ncu_set_ipv6_dhcp (self->prv->ncu, TRUE);
+		nwamui_ncu_set_ipv6_has_dhcp (self->prv->ncu, TRUE);
 	}
 }
 */
@@ -999,17 +1059,17 @@ multi_line_add_cb( GtkButton *button, gpointer data )
     gboolean            is_static = FALSE;
     gboolean            is_autoconf = FALSE;
 	
-	if (button == self->prv->ipv4_mutli_add_btn) {
+	if (button == self->prv->ipv4_multi_add_btn) {
 		view = self->prv->ipv4_tv;
-        is_dhcp = nwamui_ncu_get_ipv4_dhcp( self->prv->ncu );
-        is_static = !is_dhcp;
-        is_autoconf = nwamui_ncu_get_ipv4_auto_conf( self->prv->ncu );
+        is_dhcp = FALSE;
+        is_static = TRUE;
+        is_autoconf = FALSE;
 	} else {
 		view = self->prv->ipv6_tv;
         is_v6 = TRUE;
-        is_dhcp = nwamui_ncu_get_ipv6_dhcp( self->prv->ncu );
-        is_static = !is_dhcp;
-        is_autoconf = nwamui_ncu_get_ipv6_auto_conf( self->prv->ncu );
+        is_dhcp = FALSE;
+        is_static = TRUE;
+        is_autoconf = FALSE;
 	}
     g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, (gpointer)self);
 
@@ -1034,7 +1094,7 @@ multi_line_del_cb( GtkButton *button, gpointer data )
 	
     g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 
-	if (button == self->prv->ipv4_mutli_del_btn) {
+	if (button == self->prv->ipv4_multi_del_btn) {
 		selection = gtk_tree_view_get_selection (self->prv->ipv4_tv);
 		model = gtk_tree_view_get_model (self->prv->ipv4_tv);
 	} else {
@@ -1089,15 +1149,16 @@ static void
 show_changed_cb( GtkComboBox* widget, gpointer data )
 {
 	NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(data);
+    NwamConnConfIPPanelPrivate* prv = self->prv;
 	GtkNotebook         *cur_nb = NULL;
 	GtkLabel            *lbl = NULL;
 	gchar               *ipv6_lbl = NULL;
     gboolean             is_v4 = FALSE;
 
 	/* detect which combo is operated by the user before go further */
-	if ( is_v4 = (widget == self->prv->ipv4_combo) ) {
-		cur_nb = self->prv->ipv4_nb;
-	} else {
+	is_v4 = (widget == self->prv->ipv4_combo);
+
+	if ( !is_v4 ) {
 		cur_nb = self->prv->ipv6_nb;
 		lbl = self->prv->ipv6_lbl;
 	}
@@ -1126,34 +1187,91 @@ show_changed_cb( GtkComboBox* widget, gpointer data )
 	}
 
 
-	/* update the notetab according to the selected entry */
-	if (actid == 0) {
-		gtk_widget_hide (GTK_WIDGET(cur_nb));
-	} else if (actid > 0 && actid <=3) {
-		gtk_widget_show (GTK_WIDGET(cur_nb));
-		gtk_notebook_set_current_page(cur_nb, actid - 1);
-	} else {
-		g_assert_not_reached ();
-	}
-
     g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
-    if ( nwamui_ncu_is_modifiable( self->prv->ncu ) ) {
-        if (actid == 0) {
-            if ( is_v4 ) {
-                nwamui_ncu_set_ipv4_active( self->prv->ncu, FALSE );
+
+	/* update the notetab according to the selected entry */
+    if ( is_v4 ) {
+        gboolean modifiable = nwamui_ncu_is_modifiable( self->prv->ncu );
+        gboolean show_dhcp_entries = FALSE;
+        gboolean show_static_entries = FALSE;
+
+        switch (gtk_combo_box_get_active(GTK_COMBO_BOX(prv->ipv4_combo))) {
+        case IPV4_COMBO_DISABLED:
+            if ( modifiable ) {
+                nwamui_ncu_set_ipv4_active( NWAMUI_NCU(prv->ncu), FALSE);
             }
-            else {
-                nwamui_ncu_set_ipv6_active( self->prv->ncu, FALSE );
+            break;
+        case IPV4_COMBO_DHCP_ASSIGNED:
+            if ( modifiable ) {
+                nwamui_ncu_set_ipv4_active( NWAMUI_NCU(prv->ncu), TRUE);
+                nwamui_ncu_set_ipv4_has_dhcp( NWAMUI_NCU(prv->ncu), TRUE);
             }
-        } 
-        else if ( actid == 1 ) {
-            if ( is_v4 ) {
-                nwamui_ncu_set_ipv4_dhcp( self->prv->ncu, TRUE );
+            show_dhcp_entries = TRUE;
+            break;
+        case IPV4_COMBO_MANUALLY_ASSIGNED:
+            if ( modifiable ) {
+                nwamui_ncu_set_ipv4_has_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+                nwamui_ncu_set_ipv4_active( NWAMUI_NCU(prv->ncu), TRUE);
             }
+            show_static_entries = TRUE;
+            break;
+        case IPV4_COMBO_DHCP_AND_MANUALLY_ASSIGNED:
+            if ( modifiable ) {
+                nwamui_ncu_set_ipv4_active( NWAMUI_NCU(prv->ncu), TRUE);
+                nwamui_ncu_set_ipv4_has_dhcp( NWAMUI_NCU(prv->ncu), TRUE);
+            }
+            show_dhcp_entries = TRUE;
+            show_static_entries = TRUE;
+            break;
+        default:
+            /* Disable ipv4 dhcp */
+            nwamui_ncu_set_ipv4_has_dhcp( NWAMUI_NCU(prv->ncu), FALSE);
+            break;
         }
-        else if (actid > 1 && actid <=3) {
-            if ( is_v4 ) {
-                nwamui_ncu_set_ipv4_dhcp( self->prv->ncu, FALSE );
+        if ( show_dhcp_entries ) {
+            gtk_widget_show_all( prv->ipv4_has_dhcp_table );
+        }
+        else {
+            gtk_widget_hide( prv->ipv4_has_dhcp_table );
+        }
+        if ( show_static_entries ) {
+            gtk_widget_show_all( prv->ipv4_static_frame );
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_tv), modifiable);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_multi_add_btn), modifiable);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_multi_del_btn), modifiable);
+            }
+        else {
+            gtk_widget_hide( prv->ipv4_static_frame );
+        }
+    }
+    else {
+        if (actid == 0) {
+            gtk_widget_hide (GTK_WIDGET(cur_nb));
+        } else if (actid > 0 && actid <=3) {
+            gtk_widget_show (GTK_WIDGET(cur_nb));
+            gtk_notebook_set_current_page(cur_nb, actid - 1);
+        } else {
+            g_assert_not_reached ();
+        }
+
+        if ( nwamui_ncu_is_modifiable( self->prv->ncu ) ) {
+            if (actid == 0) {
+                if ( is_v4 ) {
+                    nwamui_ncu_set_ipv4_active( self->prv->ncu, FALSE );
+                }
+                else {
+                    nwamui_ncu_set_ipv6_active( self->prv->ncu, FALSE );
+                }
+            } 
+            else if ( actid == 1 ) {
+                if ( is_v4 ) {
+                    nwamui_ncu_set_ipv4_has_dhcp( self->prv->ncu, TRUE );
+                }
+            }
+            else if (actid > 1 && actid <=3) {
+                if ( is_v4 ) {
+                    nwamui_ncu_set_ipv4_has_dhcp( self->prv->ncu, FALSE );
+                }
             }
         }
     }
@@ -1278,13 +1396,16 @@ nwam_conn_multi_ip_cell_cb (    GtkTreeViewColumn *col,
     gchar*              addr;
     gchar*              subnet;
     NwamuiIp*           ip = NULL;
+    gpointer            col_id = NULL;
 
     gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &ip, -1);
     hostname = g_strdup(""); /* TODO - Remove hostname from IP address table */
     addr = nwamui_ip_get_address( ip );
     subnet = nwamui_ip_get_subnet_prefix( ip );
 
-    switch (gtk_tree_view_column_get_sort_column_id (col)) {
+    col_id = g_object_get_data(G_OBJECT(renderer), "nwam_multi_ip_column_id" );
+
+    switch ((gint)col_id) {
 /*
     case IP_VIEW_HOSTNAME:
         if ( hostname != NULL ) {
@@ -1637,64 +1758,11 @@ wireless_tab_down_button_clicked_cb( GtkButton *button, gpointer data )
 }
 
 static void
-ipv4_addr_changed_cb( GtkEditable* editable, gpointer data )
-{
-    NwamConnConfIPPanel        *self = NWAM_CONN_CONF_IP_PANEL(data);
-    NwamConnConfIPPanelPrivate* prv = self->prv;
-    const gchar*                ipv4_address = NULL;
-
-    ipv4_address = gtk_entry_get_text(GTK_ENTRY(editable));
-    if ( ipv4_address != NULL ) {
-        gchar  *address = NULL;
-        gchar  *prefix = NULL;
-
-        g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
-        nwamui_util_split_address_prefix(  FALSE, ipv4_address, &address, &prefix );
-        if ( address != NULL ) {
-            nwamui_ncu_set_ipv4_address( NWAMUI_NCU(prv->ncu), address );
-        }
-        if ( prefix != NULL ) {
-            nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu), prefix );
-        }
-        g_free( address );
-        g_free( prefix );
-        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
-    }
-}
-
-static void
-ipv4_subnet_changed_cb( GtkEditable* editable, gpointer data )
-{
-    NwamConnConfIPPanel        *self = NWAM_CONN_CONF_IP_PANEL(data);
-    NwamConnConfIPPanelPrivate* prv = self->prv;
-    const gchar*                ipv4_subnet = NULL;
-
-    ipv4_subnet = gtk_entry_get_text(GTK_ENTRY(editable));
-    if ( ipv4_subnet != NULL ) {
-        gchar  *address = NULL;
-        gchar  *prefix = NULL;
-
-        g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
-        nwamui_util_split_address_prefix(  FALSE, ipv4_subnet, &address, &prefix );
-        if ( address != NULL ) {
-            nwamui_ncu_set_ipv4_subnet( NWAMUI_NCU(prv->ncu), address );
-        }
-        g_free( address );
-        g_free( prefix );
-        g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
-    }
-}
-
-static void
 ipv6_manual_addresses_cb_toggled(GtkToggleButton *togglebutton, gpointer user_data)
 {
     NwamConnConfIPPanel        *self = NWAM_CONN_CONF_IP_PANEL(user_data);
     NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(user_data);
     gboolean active = gtk_toggle_button_get_active(togglebutton);
-
-    g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
-    nwamui_ncu_set_ipv6_dhcp( NWAMUI_NCU(prv->ncu), !active);
-    g_signal_handlers_unblock_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 
     gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_tv), active);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_add_btn), active);

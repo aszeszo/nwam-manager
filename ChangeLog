@@ -1,3 +1,25 @@
+2009-08-17  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_ncu.h, common/nwamui_ncu.c: 
+	  Change to dhcp and autoconf are handled, using booleans since this
+	  is more like how NWAM works now. The only IPs stored in the tree
+	  views are now static IPs. Needed to fix defect#10655.
+	* capplet/nwam_conn_conf_ip_panel.c:
+	  Fix defect#10655, where the IP Panel needs to be updated to be
+	  closer to actual implementation in NWAM.
+	* capplet/nwam_conn_stat_panel.c:
+	  Fix use of ipv4_autoconf.
+	* capplet/nwam_pref_dialog.c: 
+	  Fix some issues found when implementing validation of addresses.
+	  Fixes defect#10290 (also indirectly fixed by 10655 fixes too).
+	* common/libnwamui.c: 
+	  Slight change to nwamui_util_get_interface_address() to be more
+	  correct in use.
+	* common/nwamui_daemon.c:
+	  Fix mis-use of ipv4_autoconf value, should be DHCP.
+	* tests/main.c:
+	  Update for removed ipv4_autoconf.
+
 2009-08-15  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.ui:

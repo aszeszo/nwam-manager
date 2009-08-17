@@ -476,7 +476,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
                 
 	case CONNVIEW_INFO: 
                 ncu_text = nwamui_ncu_get_display_name(ncu);
-                ncu_is_dhcp = nwamui_ncu_get_ipv4_auto_conf(ncu);
+                ncu_is_dhcp = nwamui_ncu_get_ipv4_has_dhcp(ncu);
                 ncu_ipv4_addr = nwamui_ncu_get_ipv4_address(ncu);
                 info_string = nwamui_ncu_get_connection_state_detail_string( ncu, TRUE );
 

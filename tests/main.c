@@ -256,13 +256,12 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     gchar*              cfg_str;
     gboolean            active;
     gboolean            enabled;
-    gboolean            ipv4_dhcp;
-    gboolean            ipv4_auto_conf;
+    gboolean            ipv4_has_dhcp;
     gchar*              ipv4_address;
     gchar*              ipv4_subnet;
     gboolean            ipv6_active;
-    gboolean            ipv6_dhcp;
-    gboolean            ipv6_auto_conf;
+    gboolean            ipv6_has_dhcp;
+    gboolean            ipv6_has_auto_conf;
     gchar*              ipv6_address;
     gchar*              ipv6_prefix;
 
@@ -281,13 +280,12 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     state_detailstr = nwamui_ncu_get_connection_state_detail_string( ncu, TRUE );
     cfg_str = nwamui_ncu_get_configuration_summary_string( ncu );
 
-    ipv4_dhcp = nwamui_ncu_get_ipv4_dhcp( ncu );
-    ipv4_auto_conf = nwamui_ncu_get_ipv4_auto_conf( ncu );
+    ipv4_has_dhcp = nwamui_ncu_get_ipv4_has_dhcp( ncu );
     ipv4_address = nwamui_ncu_get_ipv4_address( ncu );
     ipv4_subnet = nwamui_ncu_get_ipv4_subnet( ncu );
     ipv6_active = nwamui_ncu_get_ipv6_active( ncu );
-    ipv6_dhcp = nwamui_ncu_get_ipv6_dhcp( ncu );
-    ipv6_auto_conf = nwamui_ncu_get_ipv6_auto_conf( ncu );
+    ipv6_has_dhcp = nwamui_ncu_get_ipv6_has_dhcp( ncu );
+    ipv6_has_auto_conf = nwamui_ncu_get_ipv6_has_auto_conf( ncu );
     ipv6_address = nwamui_ncu_get_ipv6_address( ncu );
     ipv6_prefix = nwamui_ncu_get_ipv6_prefix( ncu );
 
@@ -319,13 +317,12 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     printf("%-*sNcu Configuration Summary = %s\n", indent, "", cfg_str?cfg_str:"NULL" );
     printf("%-*sNcu active = %s\n", indent, "", active?"True":"False" );
     printf("%-*sNcu enabled = %s\n", indent, "", enabled?"True":"False" );
-    printf("%-*sNcu ipv4_dhcp = %s\n", indent, "", ipv4_dhcp?"True":"False" );
-    printf("%-*sNcu ipv4_auto_conf = %s\n", indent, "", ipv4_auto_conf?"True":"False" );
+    printf("%-*sNcu ipv4_has_dhcp = %s\n", indent, "", ipv4_has_dhcp?"True":"False" );
     printf("%-*sNcu ipv4_address = %s\n", indent, "", ipv4_address?ipv4_address:"NULL" );
     printf("%-*sNcu ipv4_subnet = %s\n", indent, "", ipv4_subnet?ipv4_subnet:"NULL" );
     printf("%-*sNcu ipv6_active = %s\n", indent, "", ipv6_active?"True":"False" );
-    printf("%-*sNcu ipv6_dhcp = %s\n", indent, "", ipv6_dhcp?"True":"False" );
-    printf("%-*sNcu ipv6_auto_conf = %s\n", indent, "", ipv6_auto_conf?"True":"False" );
+    printf("%-*sNcu ipv6_has_dhcp = %s\n", indent, "", ipv6_has_dhcp?"True":"False" );
+    printf("%-*sNcu ipv6_has_auto_conf = %s\n", indent, "", ipv6_has_auto_conf?"True":"False" );
     printf("%-*sNcu ipv6_address = %s\n", indent, "", ipv6_address?ipv6_address:"NULL" );
     printf("%-*sNcu ipv6_prefix = %s\n", indent, "", ipv6_prefix?ipv6_prefix:"NULL" );
 
