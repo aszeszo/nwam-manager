@@ -1,3 +1,14 @@
+2009-08-17 Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+	* img/capplet/network-profile-auto.png
+	* img/capplet/network-profile-user.png
+	* img/capplet/connection-status.png
+
+	Couple more screenshot tweaks to reflect previous change, and
+	update PDF version to match for upload to website.
+
 2009-08-14 Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
