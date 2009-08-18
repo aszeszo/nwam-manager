@@ -1,3 +1,25 @@
+2009-08-18  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_location_dialog.c (nwam_location_dialog_class_init),
+	(location_set_property), (nwam_compose_tree_view),
+	(nwam_location_dialog_init), (nwam_update_obj), (refresh), (apply),
+	(nwam_location_dialog_finalize),
+	(nwam_location_connection_enabled_toggled_cb),
+	(nwam_location_connection_view_row_activated_cb),
+	(nwam_treeview_update_widget_cb), (on_button_clicked),
+	(location_switch_loc_cb_toggled),
+	(location_activation_combo_changed_cb), (response_cb),
+	(nwam_location_connection_toggled_cell_sensitive_func):
+	* daemon/status_icon.c (daemon_active_ncp_changed),
+	(daemon_active_env_changed), (nwam_menu_update_wifi_section),
+	(nwam_status_icon_run), (nwam_status_icon_set_status),
+	(location_model_menuitems), (on_activate_static_menuitems),
+	(nwam_menu_recreate_env_menuitems),
+	(nwam_menu_create_static_menuitems):
+	Gconf value "switch_loc_manually" is only used for update location
+	menu-items, could be changed later. Fixes for 9561 cannot switch
+	locations.
+
 2009-08-17  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_ncu.h, common/nwamui_ncu.c: 

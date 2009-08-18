@@ -101,10 +101,8 @@ struct _NwamStatusIconPrivate {
     guint    enable_sync_wifi_signals_timer_id;
     gboolean need_sync_wifi_menu_items;
     gulong   activate_handler_id;
-    gboolean prof_switch_loc_manually_flag;
 
 	gboolean has_wifi;
-/* 	gboolean force_wifi_rescan_due_to_env_changed; */
 };
 
 static void nwam_status_icon_finalize (NwamStatusIcon *self);
@@ -141,12 +139,10 @@ static void join_wireless(NwamuiWifiNet *wifi, gboolean do_connect);
 static gboolean daemon_status_is_good(NwamuiDaemon *daemon);
 
 /* call back */
+static void location_model_menuitems(GtkMenuItem *menuitem, gpointer user_data);
 static void on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data);
 static void activate_test_menuitems(GtkMenuItem *menuitem, gpointer user_data);
 static void status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object);
-
-/* nwamui profile events */
-static void prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* nwamui daemon events */
 static void daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
@@ -234,26 +230,6 @@ ncu_is_higher_priority_than_active_ncu( NwamuiNcu* ncu, gboolean *is_active_ptr 
     g_object_unref(daemon);
     
     return (ncu_prio >= active_prio );
-}
-
-static void
-prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-    NwamStatusIconPrivate *prv  = NWAM_STATUS_ICON_GET_PRIVATE(data);
-    GtkCheckMenuItem      *switch_menuitem;
-    gboolean               flag = prv->prof_switch_loc_manually_flag;
-
-    g_object_get(gobject, "switch_loc_manually", &prv->prof_switch_loc_manually_flag, NULL);
-
-    if (prv->prof_switch_loc_manually_flag) {
-        switch_menuitem = GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]);
-    } else {
-        switch_menuitem = GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO]);
-    }
-
-    g_signal_handlers_block_by_func(G_OBJECT(switch_menuitem), on_activate_static_menuitems, data);
-    gtk_check_menu_item_set_active(switch_menuitem, TRUE);
-    g_signal_handlers_unblock_by_func(G_OBJECT(switch_menuitem), on_activate_static_menuitems, data);
 }
 
 static void
@@ -615,9 +591,7 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
         /* Connect ncu signals. */
         nwamui_ncp_foreach_ncu_list(prv->active_ncp, (GFunc)connect_nwam_object_signals, (gpointer)self);
 
-#if 1
         nwam_notification_show_ncp_changed( prv->active_ncp );
-#endif
 
         nwam_menu_recreate_ncu_menuitems(self);
 
@@ -645,17 +619,22 @@ daemon_active_env_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
     gchar *summary, *body;
     NwamuiEnv* env = daemon_status_is_good(prv->daemon) ? nwamui_daemon_get_active_env(prv->daemon) : NULL;
 
+    g_message("flag is %d", nwamui_daemon_env_selection_is_manual(prv->daemon));
+
+    if (nwamui_daemon_env_selection_is_manual(prv->daemon)) {
+        gtk_menu_item_activate(GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]));
+    } else {
+        gtk_menu_item_activate(GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO]));
+    }
 
     if (env) {
         
-#if 1
         nwam_notification_show_location_changed( env );
-#endif
 
-/*         prv->force_wifi_rescan_due_to_env_changed = TRUE; */
         nwam_menu_recreate_wifi_menuitems (self, FALSE);
 
         nwam_tooltip_widget_update_env(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(env));
+
         nwam_menu_recreate_env_menuitems(self);
     } else {
         /* Delete all LOCs. */
@@ -798,12 +777,10 @@ nwam_menu_update_wifi_section(NwamStatusIcon *self)
         nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_WIFI, TRUE);
 
         if (nwamui_ncp_find_ncu_list(prv->active_ncp, NULL, ncp_find_enabled_wireless_ncu)) {
-            NwamuiDaemon* daemon = nwamui_daemon_get_instance();
             /* Show wireless control since we have enabled wireless links. */
             nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_WIFI_CONTROL, TRUE);
             /* This call will clean SECTION_WIFI. Re-init wlan menu items.  */
-            nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
-            g_object_unref(daemon);
+            nwamui_daemon_dispatch_wifi_scan_events_from_cache(prv->daemon);
         } else {
             /* Hide wireless control due to no enabled wireless links. */
             nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_WIFI_CONTROL, FALSE);
@@ -1032,19 +1009,12 @@ nwam_status_icon_run(NwamStatusIcon *self)
     /* Handle all daemon signals here */
     connect_nwam_object_signals(G_OBJECT(prv->daemon), G_OBJECT(self));
 
-    g_signal_connect(prv->prof, "notify::switch-loc-manually",
-      G_CALLBACK(prof_switch_loc_manually), (gpointer)self);
-
     /* Initial place. Init code must be here. */
-    g_object_notify(prv->daemon, "status");
-    g_object_notify(prv->daemon, "active_ncp");
-    g_object_notify(prv->daemon, "active_env");
-    g_object_notify(prv->daemon, "env_list");
-    g_object_notify(prv->daemon, "enm_list");
-
-    g_object_set(prv->prof, "switch_loc_manually", 
-      nwamui_daemon_env_selection_is_manual(prv->daemon) ? TRUE : FALSE,
-      NULL);
+    g_object_notify(G_OBJECT(prv->daemon), "status");
+    g_object_notify(G_OBJECT(prv->daemon), "active_ncp");
+    g_object_notify(G_OBJECT(prv->daemon), "active_env");
+    g_object_notify(G_OBJECT(prv->daemon), "env_list");
+    g_object_notify(G_OBJECT(prv->daemon), "enm_list");
 }
 
 void
@@ -1067,10 +1037,7 @@ void
 nwam_status_icon_set_status(NwamStatusIcon *self, NwamuiNcu* wireless_ncu )
 {
     NwamStatusIconPrivate *prv        = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    NwamuiDaemon          *daemon     = nwamui_daemon_get_instance ();
-    gint                   env_status = nwamui_daemon_get_status_icon_type( daemon );
-
-    g_object_unref(G_OBJECT(daemon));
+    gint                   env_status = nwamui_daemon_get_status_icon_type( prv->daemon );
 
     prv->current_status = env_status;
 
@@ -1169,6 +1136,31 @@ ncp_deactivate_ncu (NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer user_data)
 }
 
 static void
+location_model_menuitems(GtkMenuItem *menuitem, gpointer user_data)
+{
+    NwamStatusIcon        *self        = NWAM_STATUS_ICON(user_data);
+    NwamStatusIconPrivate *prv         = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    gint                   menuitem_id = (gint)g_object_get_data(G_OBJECT(menuitem), STATIC_MENUITEM_ID);
+
+    switch (menuitem_id) {
+    case MENUITEM_SWITCH_LOC_MANUALLY:
+        g_object_set(prv->prof, "switch_loc_manually", TRUE, NULL);
+        {
+            NwamuiEnv *env = nwamui_daemon_get_active_env(prv->daemon);
+            nwamui_daemon_env_selection_set_manual(prv->daemon, TRUE, env);
+            g_object_unref(env);
+        }
+        break;
+    case MENUITEM_SWITCH_LOC_AUTO:
+        g_object_set(prv->prof, "switch_loc_manually", FALSE, NULL);
+        nwamui_daemon_env_selection_set_manual(prv->daemon, FALSE, NULL);
+        break;
+    default:
+        g_assert_not_reached();
+    }
+}
+
+static void
 on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
@@ -1177,14 +1169,6 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
     gint menuitem_id = (gint)g_object_get_data(G_OBJECT(menuitem), STATIC_MENUITEM_ID);
 
     switch (menuitem_id) {
-    case MENUITEM_SWITCH_LOC_MANUALLY:
-        g_object_set(prv->prof, "switch_loc_manually",
-          gtk_check_menu_item_get_active(GTK_CHECK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])),
-          NULL);
-        break;
-    case MENUITEM_SWITCH_LOC_AUTO:
-        nwamui_daemon_env_selection_set_manual(prv->daemon, FALSE, NULL);
-        break;
     case MENUITEM_ENV_PREF:
 		argv[0] = "-l";
         break;
@@ -1495,7 +1479,7 @@ nwam_menu_recreate_env_menuitems (NwamStatusIcon *self)
     g_list_free(env_list);
 
     /* For refresh new added env menu-items. */
-    g_object_notify(prv->prof, "switch_loc_manually");
+    g_object_notify(G_OBJECT(prv->prof), "switch_loc_manually");
 }
 
 static void
@@ -1589,15 +1573,15 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
         GSList *group = NULL;
         menu_append_item(sub_menu,
           GTK_TYPE_RADIO_MENU_ITEM, _("Switch Locations Au_tomatically"),
-          on_activate_static_menuitems, self);
+          location_model_menuitems, self);
         CACHE_STATIC_MENUITEMS(self, MENUITEM_SWITCH_LOC_AUTO);
-        gtk_radio_menu_item_set_group(menuitem, group);
-        group = gtk_radio_menu_item_get_group(menuitem);
+        gtk_radio_menu_item_set_group(GTK_RADIO_MENU_ITEM(menuitem), group);
+        group = gtk_radio_menu_item_get_group(GTK_RADIO_MENU_ITEM(menuitem));
         menu_append_item(sub_menu,
           GTK_TYPE_RADIO_MENU_ITEM, _("Switch Locations _Manually"),
-          on_activate_static_menuitems, self);
+          location_model_menuitems, self);
         CACHE_STATIC_MENUITEMS(self, MENUITEM_SWITCH_LOC_MANUALLY);
-        gtk_radio_menu_item_set_group(menuitem, group);
+        gtk_radio_menu_item_set_group(GTK_RADIO_MENU_ITEM(menuitem), group);
     }
 
     menu_append_separator(sub_menu);
