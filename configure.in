@@ -42,10 +42,39 @@ AM_CFLAGS="$AM_CFLAGS $CFLAGS_WARNINGS"
 AM_CXXFLAGS="$AM_CXXFLAGS $CXXFLAGS_WARNINGS"
 
 dnl
-dnl nwam_core headers flags
+dnl nwam_core flags
 dnl
-CFLAGS_NWAM_CORE="-I\$(top_srcdir)/nwam_core/usr/include"
-AM_CFLAGS="$AM_CFLAGS $CFLAGS_NWAM_CORE"
+AC_ARG_ENABLE(private-nwam-headers,
+  [  --enable-private-nwam-headers[=yes|no|patch_to]           Enable private nwam headers],
+  [ private_nwam_headers=$enableval ],[ private_nwam_headers=yes])
+
+if test x$private_nwam_headers = xyes; then
+   AM_CFLAGS="$AM_CFLAGS -I\$(top_srcdir)/nwam_core/usr/include"
+elif test x$private_nwam_headers != xno; then
+   AM_CFLAGS="$AM_CFLAGS -I$private_nwam_headers"
+fi
+AC_SUBST(AM_CFLAGS)
+
+AC_ARG_ENABLE(private-nwam-libs,
+  [  --enable-private-nwam-libs[=yes|no|patch_to]           Enable private nwam libs],
+  [ private_nwam_libs=$enableval ],[ private_nwam_libs=yes])
+
+_NWAM_CPU=`uname -p`
+if test x$private_nwam_libs = xyes; then
+   NWAM_LIBS="-lnsl -L\$(top_srcdir)/nwam_core/lib/${_NWAM_CPU} -R\$(top_srcdir)/nwam_core/lib/${_NWAM_CPU} -lnwam"
+elif test x$private_nwam_libs != xno; then
+   NWAM_LIBS="-lnsl -L$private_nwam_libs -R$private_nwam_libs -lnwam"
+else
+   NWAM_LIBS="-lnsl -lnwam"
+fi
+AC_CHECK_LIB(nsl $NWAM_LIBS, nwam_ncp_walk_ncus,
+   [AC_DEFINE(HAVE_NWAM, 1, [Define to 1 if the libnwam library is present.])], [AC_MSG_ERROR(
+   ***
+   *** libnwam was not found. 
+   ***
+   )
+   ])
+AC_SUBST(NWAM_LIBS)
 
 dnl
 dnl Enable debugging mode
@@ -94,30 +123,6 @@ if test x"$GCONFTOOL" = xno; then
 fi
 
 AM_GCONF_SOURCE_2
-
-dnl
-dnl NWAM checks 
-dnl TODO - Enable this when libnwam is available
-dnl
-
-NWAM_LIBS="-lnwam -lnsl"
-AC_CHECK_LIB(nwam, nwam_ncp_walk_ncus,
-[AC_DEFINE(HAVE_NWAM, 1, [Define to 1 if the libnwam library is present.])],
-[ if test -d nwam_core; then
-    dnl If not present, test again, using private copy in nwam_core directory.
-
-    _NWAM_CPU=`uname -p`
-    NWAM_LIBS="-R/lib -L\$(top_srcdir)/nwam_core/lib/${_NWAM_CPU} -lnwam -lnsl"
-    AC_CHECK_LIB(nsl -Lnwam_core/lib/${_NWAM_CPU} -lnwam , nwam_ncp_walk_ncus,
-        [AC_DEFINE(HAVE_NWAM, 1, [Define to 1 if the libnwam library is present.])], [AC_MSG_ERROR(
-         ***
-         *** libnwam was not found. 
-         ***
-        )
-        ])
-  fi])
-
-AC_SUBST(NWAM_LIBS)
 
 dnl
 dnl DLADM checks 

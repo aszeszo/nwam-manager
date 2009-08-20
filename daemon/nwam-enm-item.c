@@ -257,6 +257,19 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         GtkImage       *image = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
 
         gtk_image_set_from_icon_name( image, icon_name, GTK_ICON_SIZE_MENU );
+
+        switch (nwamui_object_get_activation_mode(object)) {
+        case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+            gtk_widget_set_sensitive(GTK_WIDGET(self), TRUE);
+            break;
+/*         case NWAMUI_COND_ACTIVATION_MODE_SYSTEM: */
+/*         case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED: */
+/*         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY: */
+/*         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL: */
+        default:
+            gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
+            break;
+        }
     }
 }
 

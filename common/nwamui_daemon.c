@@ -3549,7 +3549,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                 break;
             case NWAM_OBJECT_TYPE_KNOWN_WLAN:
                 /* fall-through */
-            case NWAM_OBJECT_TYPE_NONE:
+/*             case NWAM_OBJECT_TYPE_NONE: */
                 /* fall-through */
             default:
                 /* SKip */

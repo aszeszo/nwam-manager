@@ -1,3 +1,20 @@
+2009-08-20  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_condition_vbox.c (_cu_cond_combo_filter_visible_cb):
+	* common/nwamui_cond.c (nwamui_cond_field_to_str):
+	Fixed 9655 edit rules active connections - has incorrect options
+	listed.
+	* common/nwamui_daemon.c
+	(nwamui_daemon_update_status_from_object_state_event):
+	Removed undefined symbol due to new nwam header.
+	* configure.in:
+	Add options: --enable-private-nwam-headers/libs
+	* daemon/nwam-enm-item.c (on_nwam_enm_notify):
+	10561 right click icon menu should grey out vpn 'stop' when app
+	activated by rules
+	* daemon/nwam-menuitem.c (nwam_menuitem_notify_cb):
+	Changed log format.
+
 2009-08-18  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_location_dialog.c (nwam_location_dialog_class_init),

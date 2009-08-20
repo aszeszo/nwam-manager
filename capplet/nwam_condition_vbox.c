@@ -415,12 +415,10 @@ _cu_cond_combo_filter_visible_cb (GtkTreeModel *model,
         case NWAMUI_COND_OP_IS:
         case NWAMUI_COND_OP_IS_NOT:
             return (value != NWAMUI_COND_FIELD_NCU) &&
-                   (value != NWAMUI_COND_FIELD_LOC) &&
                    (value != NWAMUI_COND_FIELD_ENM);
         case NWAMUI_COND_OP_INCLUDE:
         case NWAMUI_COND_OP_DOES_NOT_INCLUDE:
             return (value == NWAMUI_COND_FIELD_NCU) ||
-                   (value == NWAMUI_COND_FIELD_LOC) ||
                    (value == NWAMUI_COND_FIELD_ENM);
         case NWAMUI_COND_OP_IS_IN_RANGE:
         case NWAMUI_COND_OP_IS_NOT_IN_RANGE:

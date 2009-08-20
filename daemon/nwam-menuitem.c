@@ -855,5 +855,6 @@ static void
 nwam_menuitem_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 /*     g_debug("%s 0x%p : notify '%s'", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), gobject, arg1->name); */
-    g_debug("menu-item '%s' 0x%p : notify '%s'", gtk_menu_item_get_label(GTK_MENU_ITEM(gobject)), gobject, arg1->name);
+/*     g_debug("menu-item '%s' 0x%p : notify '%s'", gtk_menu_item_get_label(GTK_MENU_ITEM(gobject)), gobject, arg1->name); */
+    g_debug("%s '%s' 0x%p : notify '%s'", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), gtk_menu_item_get_label(GTK_MENU_ITEM(gobject)), gobject, arg1->name);
 }
