@@ -1,3 +1,8 @@
+2009-08-21  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_stat_panel.c (nwam_compose_tree_view):
+	Fixed 10769 cannot launch nwam-manager-properties - sparc
+
 2009-08-20  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* configure.in: Uses absolute pathes for private headers/libs.
