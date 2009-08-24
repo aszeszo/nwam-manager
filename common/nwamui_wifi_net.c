@@ -252,7 +252,7 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
 
     g_object_class_install_property (gobject_class,
                                      PROP_WEP_KEY_INDEX,
-                                     g_param_spec_int    ("wep_key_index",
+                                     g_param_spec_uint64 ("wep_key_index",
                                                           _("Wep Key Index"),
                                                           _("Wep Key Index"),
                                                           1, /* Min */

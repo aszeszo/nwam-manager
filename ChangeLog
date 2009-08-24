@@ -1,5 +1,13 @@
 2009-08-24  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/libnwamui.c:
+	  Fix defect#10876 where comma separated string was being incorrectly
+	  constructed in nwamui_util_glist_to_comma_string().
+	* common/nwamui_wifi_net.c: 
+	  Fix mis-match of type of wep key property and declared type.
+
+2009-08-24  Darren Kenny  <darren.kenny@sun.com>
+
 	* configure.in:
 	  Bump to 0.99.7
 	* common/nwamui_daemon.c: 

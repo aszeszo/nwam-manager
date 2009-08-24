@@ -2034,7 +2034,7 @@ nwamui_util_glist_to_comma_string( GList* list )
     while ( item != NULL ) {
         gchar* str = (gchar*)item->data;
         if ( str != NULL ) {
-            if ( first ) {
+            if ( !first ) {
                 g_str = g_string_append( g_str, LIST_JOIN );
             }
             g_str = g_string_append( g_str, str );
