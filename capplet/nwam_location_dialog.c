@@ -586,7 +586,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         } else {
             env = nwamui_daemon_get_active_env(prv->daemon);
         }
-        nwamui_daemon_env_selection_set_manual(prv->daemon, prv->prof_switch_loc_manually_flag, NWAMUI_ENV(prv->toggled_env));
+        nwamui_daemon_env_selection_set_manual(prv->daemon, prv->prof_switch_loc_manually_flag, NWAMUI_ENV(env));
         g_object_unref(env);
     } else {
         nwamui_daemon_env_selection_set_manual(prv->daemon, prv->prof_switch_loc_manually_flag, NULL);
@@ -899,6 +899,7 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
     gtk_widget_set_sensitive(GTK_WIDGET(prv->location_rename_btn), count_selected_rows > 0 ? TRUE : FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn), count_selected_rows > 0 ? TRUE : FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->location_activation_combo), count_selected_rows > 0 ? TRUE : FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->location_rules_btn), FALSE);
 
     if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
         nwamui_cond_activation_mode_t   cond;
@@ -923,7 +924,9 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_MANUAL);
             break;
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
+        case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_RULES );
+            gtk_widget_set_sensitive(GTK_WIDGET(self->prv->location_rules_btn), TRUE);
             break;
         case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
             /* If Activation Mode is system, then you can't rename or remove

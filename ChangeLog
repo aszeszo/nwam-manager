@@ -1,5 +1,13 @@
 2009-08-24  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_location_dialog.c: 
+	  Fix incorrect use of toggled_env in apply() which caused a crash
+	  where it could sometimes be NULL.
+	  Fix defect#10802, where the Rules button wasn't being enabled when
+	  an activated by rules location was selected.
+
+2009-08-24  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/libnwamui.c:
 	  Fix defect#10876 where comma separated string was being incorrectly
 	  constructed in nwamui_util_glist_to_comma_string().
