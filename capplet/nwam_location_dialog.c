@@ -1017,7 +1017,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         } else if (button == (gpointer)prv->location_remove_btn) {
             gchar*  name = nwamui_env_get_name( env );
             gchar*  message = g_strdup_printf(_("Remove location '%s'?"), name?name:"" );
-            if (nwamui_util_ask_yes_no( GTK_WINDOW(prv->location_dialog), _("Remove Location?"), message )) {
+            if (nwamui_util_confirm_removal( GTK_WINDOW(prv->location_dialog), _("Remove Location?"), message )) {
                 g_debug("Removing location: '%s'", name);
             
                 gtk_list_store_remove(GTK_LIST_STORE(model), &iter);

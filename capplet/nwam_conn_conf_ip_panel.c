@@ -1644,7 +1644,7 @@ wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data )
                 
                 name = nwamui_wifi_net_get_essid(NWAMUI_WIFI_NET(wifi_net));
                 message = g_strdup_printf(_("Remove favourite with ESSID '%s'?"), name?name:"" );
-                if (nwamui_util_ask_yes_no( GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))), _("Remove Wireless Favourite?"), message )) {
+                if (nwamui_util_confirm_removal( GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))), _("Remove Wireless Favourite?"), message )) {
                     g_debug("Removing wifi favourite: '%s'", name);
 
                     nwamui_daemon_remove_wifi_fav(self->prv->daemon, wifi_net );

@@ -1,5 +1,14 @@
 2009-08-24  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/libnwamui.c, common/libnwamui.h:
+	  Add function nwamui_util_confirm_removal() to meet UI spec where
+	  it's a Cancel/Remove button set rather than No/Yes. This fixes
+	  defect#10842.
+	* capplet/nwam_conn_conf_ip_panel.c, capplet/nwam_location_dialog.c: 
+	  Update to use confirm removal function.
+
+2009-08-24  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_location_dialog.c: 
 	  Fix incorrect use of toggled_env in apply() which caused a crash
 	  where it could sometimes be NULL.

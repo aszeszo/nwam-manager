@@ -1071,6 +1071,53 @@ nwamui_util_ask_yes_no(GtkWindow* parent_window, const gchar* title, const gchar
     }
 }
 
+extern gboolean
+nwamui_util_confirm_removal(GtkWindow* parent_window, const gchar* title, const gchar* message) 
+{
+    GtkWidget          *message_dialog;
+    GtkWidget          *action_area;
+    gint                response;
+    gchar*              outstr;
+
+    g_assert( message != NULL );
+
+    g_return_val_if_fail( message != NULL, FALSE );
+
+    message_dialog = gtk_message_dialog_new(parent_window, GTK_DIALOG_MODAL |GTK_DIALOG_DESTROY_WITH_PARENT,
+                                            GTK_MESSAGE_QUESTION, GTK_BUTTONS_OK_CANCEL, message );
+    
+    if ( title != NULL ) {
+        gtk_window_set_title(GTK_WINDOW(message_dialog), title);
+    }
+    
+    gtk_message_dialog_format_secondary_text( GTK_MESSAGE_DIALOG(message_dialog), _("This operation cannot be undone.") );
+    
+    /* Change OK to be Remove button */
+    if ( (action_area = gtk_dialog_get_action_area( GTK_DIALOG(message_dialog) )) != NULL ) {
+        GList*  buttons = gtk_container_get_children( GTK_CONTAINER( action_area ) );
+
+        for ( GList *elem = buttons; buttons != NULL; elem = g_list_next(elem) ) {
+            if ( GTK_IS_BUTTON( elem->data ) ) {
+                const gchar* label = gtk_button_get_label( GTK_BUTTON( elem->data ) );
+                if ( label != NULL && strcmp( label, GTK_STOCK_OK )  == 0 ) {
+                    gtk_button_set_label( GTK_BUTTON( elem->data ), GTK_STOCK_REMOVE );
+                    break;
+                }
+            }
+        }
+
+        g_list_free( buttons );
+    }
+    switch( gtk_dialog_run(GTK_DIALOG(message_dialog)) ) {
+        case GTK_RESPONSE_OK:
+            gtk_widget_destroy(message_dialog);
+            return( TRUE );
+        default:
+            gtk_widget_destroy(message_dialog);
+            return( FALSE );
+    }
+}
+
 extern void
 nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gchar* title, const gchar* message, gboolean block )
 {

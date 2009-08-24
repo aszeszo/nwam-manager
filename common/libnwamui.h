@@ -267,6 +267,8 @@ extern gchar*                   nwamui_util_rename_dialog_run(GtkWindow* parent_
 
 extern gboolean                 nwamui_util_ask_yes_no(GtkWindow* parent_window, const gchar* title, const gchar* message);
 
+extern gboolean                 nwamui_util_confirm_removal(GtkWindow* parent_window, const gchar* title, const gchar* message);
+
 extern void                     nwamui_util_show_message(   GtkWindow* parent_window, 
                                                             GtkMessageType type, 
                                                             const gchar* title, 
