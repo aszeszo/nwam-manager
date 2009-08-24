@@ -43,6 +43,11 @@ extern "C" {
  * Common definitions
  */
 
+/* nwam FMRI and properties */
+#define	NWAM_FMRI		"svc:/network/physical:nwam"
+#define	NWAM_PG			"nwamd"
+#define	NWAM_PROP_ACTIVE_NCP	"active_ncp"
+
 /* nwam flags used for read/commit */
 /* mask off the global vs. local portions of the flags value */
 #define	NWAM_FLAG_GLOBAL_MASK		0xFFFFFFFF
@@ -241,6 +246,7 @@ typedef enum {
 	/* IP interface-specific auxiliary states */
 	NWAM_AUX_STATE_IF_WAITING_FOR_ADDR,
 	NWAM_AUX_STATE_IF_DHCP_TIMED_OUT,
+	NWAM_AUX_STATE_IF_DUPLICATE_ADDR,
 	/* Common link/interface auxiliary states */
 	NWAM_AUX_STATE_UP,
 	NWAM_AUX_STATE_DOWN,
@@ -252,37 +258,39 @@ typedef enum {
 #define	NWAM_AUX_STATE_INITIALIZED_STRING		\
 		"(re)initialized but not configured"
 #define	NWAM_AUX_STATE_CONDITIONS_NOT_MET_STRING	\
-		"conditions for activation are not met"
+		"conditions for activation are unmet"
 #define	NWAM_AUX_STATE_MANUAL_DISABLE_STRING		\
 		"disabled by administrator"
 #define	NWAM_AUX_STATE_METHOD_FAILED_STRING		\
-		"method execution or enable of service failed"
+		"method/service failed"
 #define	NWAM_AUX_STATE_METHOD_RUNNING_STRING		\
-		"method or service enable currently executing"
+		"method/service executing"
 #define	NWAM_AUX_STATE_METHOD_MISSING_STRING		\
 		"method or FMRI not specified"
 #define	NWAM_AUX_STATE_INVALID_CONFIG_STRING		\
-		"invalid or unreadable configuration values"
+		"invalid configuration values"
 #define	NWAM_AUX_STATE_ACTIVE_STRING			\
 		"active"
 #define	NWAM_AUX_STATE_LINK_WIFI_SCANNING_STRING	\
-		"scanning for available networks on WiFi link"
+		"scanning for WiFi networks"
 #define	NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION_STRING	\
-		"need WiFi wireless network selection"
+		"need WiFi network selection"
 #define	NWAM_AUX_STATE_LINK_WIFI_NEED_KEY_STRING	\
-		"need security key for selected wireless network"
+		"need WiFi security key"
 #define	NWAM_AUX_STATE_LINK_WIFI_CONNECTING_STRING	\
-		"connecting to selected wireless network"
+		"connecting to WiFi network"
 #define	NWAM_AUX_STATE_IF_WAITING_FOR_ADDR_STRING	\
-		"waiting for IP address to be assigned"
-#define	NWAM_AUX_STATE_IF_DHCP_TIMED_OUT_STRING	\
-		"dhcp wait timed out, operation still pending..."
+		"waiting for IP address to be set"
+#define	NWAM_AUX_STATE_IF_DHCP_TIMED_OUT_STRING		\
+		"DHCP wait timeout, still trying..."
+#define	NWAM_AUX_STATE_IF_DUPLICATE_ADDR_STRING		\
+		"duplicate address detected"
 #define	NWAM_AUX_STATE_UP_STRING			\
-		"interface or link is up"
+		"interface/link is up"
 #define	NWAM_AUX_STATE_DOWN_STRING			\
-		"interface or link is down"
+		"interface/link is down"
 #define	NWAM_AUX_STATE_NOT_FOUND_STRING			\
-		"interface or link is not present on system"
+		"interface/link not found"
 
 /* Activation modes */
 typedef enum {
@@ -471,6 +479,7 @@ typedef struct nwam_handle *nwam_ncp_handle_t;
 typedef struct nwam_handle *nwam_ncu_handle_t;
 
 typedef enum {
+	NWAM_NCU_TYPE_UNKNOWN = -1,
 	NWAM_NCU_TYPE_LINK,
 	NWAM_NCU_TYPE_INTERFACE,
 	NWAM_NCU_TYPE_ANY
@@ -480,6 +489,7 @@ typedef enum {
 #define	NWAM_NCU_TYPE_INTERFACE_STRING	"interface"
 
 typedef enum {
+	NWAM_NCU_CLASS_UNKNOWN = -1,
 	NWAM_NCU_CLASS_PHYS,
 	NWAM_NCU_CLASS_IP,
 	NWAM_NCU_CLASS_ANY
@@ -760,6 +770,12 @@ extern nwam_error_t nwam_ncu_prop_read_only(const char *, boolean_t *);
 /* Get whether the NCU has manual activation-mode or not */
 extern nwam_error_t nwam_ncu_is_manual(nwam_ncu_handle_t, boolean_t *);
 
+/* Get the flag from the given class for walks */
+extern uint64_t nwam_ncu_class_to_flag(nwam_ncu_class_t);
+
+/* Get the NCU type from the given class */
+extern nwam_ncu_type_t nwam_ncu_class_to_type(nwam_ncu_class_t);
+
 /* ENM functions */
 /*
  * Obtain a specific enm handle, either be creating a new enm
@@ -998,7 +1014,7 @@ extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
  * Add string representations to nwam_action_to_string() in libnwam_util.c.
  */
 typedef enum {
-	NWAM_ACTION_NONE = -1,
+	NWAM_ACTION_UNKNOWN = -1,
 	NWAM_ACTION_ADD,
 	NWAM_ACTION_REMOVE,
 	NWAM_ACTION_REFRESH,
@@ -1009,7 +1025,7 @@ typedef enum {
 } nwam_action_t;
 
 typedef enum {
-	NWAM_OBJECT_TYPE_NONE = -1,
+	NWAM_OBJECT_TYPE_UNKNOWN = -1,
 	NWAM_OBJECT_TYPE_NCP = 0,
 	NWAM_OBJECT_TYPE_NCU = 1,
 	NWAM_OBJECT_TYPE_LOC = 2,
@@ -1101,7 +1117,9 @@ extern const char *nwam_action_to_string(nwam_action_t);
 extern const char *nwam_event_type_to_string(int);
 extern const char *nwam_state_to_string(nwam_state_t);
 extern const char *nwam_aux_state_to_string(nwam_aux_state_t);
+
 extern const char *nwam_object_type_to_string(nwam_object_type_t);
+extern nwam_object_type_t nwam_string_to_object_type(const char *);
 
 #ifdef	__cplusplus
 }

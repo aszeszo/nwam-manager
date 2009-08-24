@@ -46,24 +46,25 @@
 #include <libdlwlan.h>
 
 /* Try to ensure that NWAM_AUX_STATES are translated */
-#define NWAMUI_AUX_STATE_UNINITIALIZED_STRING               N_("uninitialized")
-#define NWAMUI_AUX_STATE_INITIALIZED_STRING                 N_("(re)initialized but not configured")
-#define NWAMUI_AUX_STATE_CONDITIONS_NOT_MET_STRING          N_("conditions for activation are not met")
-#define NWAMUI_AUX_STATE_MANUAL_DISABLE_STRING              N_("disabled by administrator")
-#define NWAMUI_AUX_STATE_METHOD_FAILED_STRING               N_("method execution or enable of service failed")
-#define NWAMUI_AUX_STATE_METHOD_RUNNING_STRING              N_("method or service enable currently executing")
-#define NWAMUI_AUX_STATE_METHOD_MISSING_STRING              N_("method or FMRI not specified")
-#define NWAMUI_AUX_STATE_INVALID_CONFIG_STRING              N_("invalid or unreadable configuration values")
-#define NWAMUI_AUX_STATE_ACTIVE_STRING                      N_("active")
-#define NWAMUI_AUX_STATE_LINK_WIFI_SCANNING_STRING          N_("scanning for available networks on WiFi link")
-#define NWAMUI_AUX_STATE_LINK_WIFI_NEED_SELECTION_STRING    N_("need WiFi wireless network selection")
-#define NWAMUI_AUX_STATE_LINK_WIFI_NEED_KEY_STRING          N_("need security key for selected wireless network")
-#define NWAMUI_AUX_STATE_LINK_WIFI_CONNECTING_STRING        N_("connecting to selected wireless network")
-#define NWAMUI_AUX_STATE_IF_WAITING_FOR_ADDR_STRING         N_("waiting for IP address to be assigned")
-#define NWAMUI_AUX_STATE_IF_DHCP_TIMED_OUT_STRING           N_("dhcp wait timed out, operation still pending...")
-#define NWAMUI_AUX_STATE_UP_STRING                          N_("interface or link is up")
-#define NWAMUI_AUX_STATE_DOWN_STRING                        N_("interface or link is down")
-#define NWAMUI_AUX_STATE_NOT_FOUND_STRING                   N_("interface or link is not present on system")
+#define NWAMUI_AUX_STATE_UNINITIALIZED_STRING              N_(NWAM_AUX_STATE_UNINITIALIZED_STRING)
+#define	NWAMUI_AUX_STATE_INITIALIZED_STRING                N_(NWAM_AUX_STATE_INITIALIZED_STRING)
+#define	NWAMUI_AUX_STATE_CONDITIONS_NOT_MET_STRING         N_(NWAM_AUX_STATE_CONDITIONS_NOT_MET_STRING)
+#define	NWAMUI_AUX_STATE_MANUAL_DISABLE_STRING             N_(NWAM_AUX_STATE_MANUAL_DISABLE_STRING)
+#define	NWAMUI_AUX_STATE_METHOD_FAILED_STRING              N_(NWAM_AUX_STATE_METHOD_FAILED_STRING)
+#define	NWAMUI_AUX_STATE_METHOD_RUNNING_STRING             N_(NWAM_AUX_STATE_METHOD_RUNNING_STRING)
+#define	NWAMUI_AUX_STATE_METHOD_MISSING_STRING             N_(NWAM_AUX_STATE_METHOD_MISSING_STRING)
+#define	NWAMUI_AUX_STATE_INVALID_CONFIG_STRING             N_(NWAM_AUX_STATE_INVALID_CONFIG_STRING)
+#define	NWAMUI_AUX_STATE_ACTIVE_STRING                     N_(NWAM_AUX_STATE_ACTIVE_STRING)
+#define	NWAMUI_AUX_STATE_LINK_WIFI_SCANNING_STRING         N_(NWAM_AUX_STATE_LINK_WIFI_SCANNING_STRING)
+#define	NWAMUI_AUX_STATE_LINK_WIFI_NEED_SELECTION_STRING   N_(NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION_STRING)
+#define	NWAMUI_AUX_STATE_LINK_WIFI_NEED_KEY_STRING         N_(NWAM_AUX_STATE_LINK_WIFI_NEED_KEY_STRING)
+#define	NWAMUI_AUX_STATE_LINK_WIFI_CONNECTING_STRING       N_(NWAM_AUX_STATE_LINK_WIFI_CONNECTING_STRING)
+#define	NWAMUI_AUX_STATE_IF_WAITING_FOR_ADDR_STRING        N_(NWAM_AUX_STATE_IF_WAITING_FOR_ADDR_STRING)
+#define	NWAMUI_AUX_STATE_IF_DHCP_TIMED_OUT_STRING          N_(NWAM_AUX_STATE_IF_DHCP_TIMED_OUT_STRING)
+#define	NWAMUI_AUX_STATE_IF_DUPLICATE_ADDR_STRING          N_(NWAM_AUX_STATE_IF_DUPLICATE_ADDR_STRING)
+#define	NWAMUI_AUX_STATE_UP_STRING                         N_(NWAM_AUX_STATE_UP_STRING)
+#define	NWAMUI_AUX_STATE_DOWN_STRING                       N_(NWAM_AUX_STATE_DOWN_STRING)
+#define	NWAMUI_AUX_STATE_NOT_FOUND_STRING                  N_(NWAM_AUX_STATE_NOT_FOUND_STRING)
 
 static GObjectClass *parent_class = NULL;
 
@@ -3850,6 +3851,7 @@ static const gchar* status_string_fmt[NWAMUI_STATE_LAST] = {
     N_("Wireless Network %s Needs a Key"),  /* %s = ESSID */
     N_("Waiting for Address"),
     N_("DHCP Timed Out"),
+    N_("Duplicate Address Detected"),
     N_("Connecting"),
     N_("Connected"),
     N_("Connecting to %s"),     /* %s = ESSID */
@@ -3907,6 +3909,9 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             }
             else if ( aux_state == NWAM_AUX_STATE_IF_DHCP_TIMED_OUT ) {
                 state = NWAMUI_STATE_DHCP_TIMED_OUT;
+            }
+            else if ( aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR ) {
+                state = NWAMUI_STATE_DHCP_DUPLICATE_ADDR;
             }
             state = NWAMUI_STATE_CONNECTING;
             break;

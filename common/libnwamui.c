@@ -598,6 +598,7 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
                 else if ( connection_state == NWAMUI_STATE_CONNECTING 
                   || connection_state == NWAMUI_STATE_WAITING_FOR_ADDRESS
                   || connection_state == NWAMUI_STATE_DHCP_TIMED_OUT
+                  || connection_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR
                   || connection_state == NWAMUI_STATE_CONNECTING_ESSID ) {
                     env_status = NWAMUI_ENV_STATUS_WARNING;
                 }
@@ -801,6 +802,7 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu, gint size )
         else if ( connection_state == NWAMUI_STATE_CONNECTING 
                 || connection_state == NWAMUI_STATE_WAITING_FOR_ADDRESS
                 || connection_state == NWAMUI_STATE_DHCP_TIMED_OUT
+                || connection_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR
                 || connection_state == NWAMUI_STATE_CONNECTING_ESSID ) {
             env_state = NWAMUI_ENV_STATUS_WARNING;
         }

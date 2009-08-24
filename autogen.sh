@@ -4,7 +4,7 @@
 srcdir=`dirname $0`
 test -z "$srcdir" && srcdir=.
 
-PKG_NAME=network-manager
+PKG_NAME=nwam-manager
 
 (test -f $srcdir/configure.in \
   && test -f $srcdir/daemon/main.c) || {
