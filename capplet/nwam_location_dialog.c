@@ -637,6 +637,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                   msg, TRUE);
                 g_free (msg);
                 g_free (name);
+                g_free (prop_name);
                 g_object_unref(obj);
                 retval = FALSE;
                 break;

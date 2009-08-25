@@ -2145,13 +2145,10 @@ nwamui_env_set_nameservices_config_file (   NwamuiEnv *self,
                               const gchar*  nameservices_config_file )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (nameservices_config_file != NULL );
 
-    if ( nameservices_config_file != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "nameservices_config_file", nameservices_config_file,
-                      NULL);
-    }
+    g_object_set (G_OBJECT (self),
+                  "nameservices_config_file", nameservices_config_file,
+                  NULL);
 }
 
 /**
@@ -2620,13 +2617,10 @@ nwamui_env_set_ipfilter_config_file (   NwamuiEnv *self,
                               const gchar*  ipfilter_config_file )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (ipfilter_config_file != NULL );
 
-    if ( ipfilter_config_file != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "ipfilter_config_file", ipfilter_config_file,
-                      NULL);
-    }
+    g_object_set (G_OBJECT (self),
+                  "ipfilter_config_file", ipfilter_config_file,
+                  NULL);
 }
 
 /**
@@ -2660,13 +2654,10 @@ nwamui_env_set_ipfilter_v6_config_file (   NwamuiEnv *self,
                               const gchar*  ipfilter_v6_config_file )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (ipfilter_v6_config_file != NULL );
 
-    if ( ipfilter_v6_config_file != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "ipfilter_v6_config_file", ipfilter_v6_config_file,
-                      NULL);
-    }
+    g_object_set (G_OBJECT (self),
+                  "ipfilter_v6_config_file", ipfilter_v6_config_file,
+                  NULL);
 }
 
 /**
@@ -2700,13 +2691,10 @@ nwamui_env_set_ipnat_config_file (   NwamuiEnv *self,
                               const gchar*  ipnat_config_file )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (ipnat_config_file != NULL );
 
-    if ( ipnat_config_file != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "ipnat_config_file", ipnat_config_file,
-                      NULL);
-    }
+    g_object_set (G_OBJECT (self),
+                  "ipnat_config_file", ipnat_config_file,
+                  NULL);
 }
 
 /**
@@ -2740,13 +2728,10 @@ nwamui_env_set_ippool_config_file (   NwamuiEnv *self,
                               const gchar*  ippool_config_file )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (ippool_config_file != NULL );
 
-    if ( ippool_config_file != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "ippool_config_file", ippool_config_file,
-                      NULL);
-    }
+    g_object_set (G_OBJECT (self),
+                  "ippool_config_file", ippool_config_file,
+                  NULL);
 }
 
 /**
@@ -2780,13 +2765,10 @@ nwamui_env_set_ike_config_file (   NwamuiEnv *self,
                               const gchar*  ike_config_file )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (ike_config_file != NULL );
 
-    if ( ike_config_file != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "ike_config_file", ike_config_file,
-                      NULL);
-    }
+    g_object_set (G_OBJECT (self),
+                  "ike_config_file", ike_config_file,
+                  NULL);
 }
 
 /**
@@ -2820,13 +2802,10 @@ nwamui_env_set_ipsecpolicy_config_file (   NwamuiEnv *self,
                               const gchar*  ipsecpolicy_config_file )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    g_assert (ipsecpolicy_config_file != NULL );
 
-    if ( ipsecpolicy_config_file != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "ipsecpolicy_config_file", ipsecpolicy_config_file,
-                      NULL);
-    }
+    g_object_set (G_OBJECT (self),
+                  "ipsecpolicy_config_file", ipsecpolicy_config_file,
+                  NULL);
 }
 
 /**

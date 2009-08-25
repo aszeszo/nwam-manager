@@ -915,6 +915,19 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_service_cb), 
                             ((dns)?(num_nameservices > 1):TRUE) );
 
+    /* Pre-fill entries, and select text */
+    gtk_entry_set_text(prv->dns_search_entry, _("(optional)") );
+    gtk_entry_select_region(prv->dns_search_entry, 0, -1 );
+
+    gtk_entry_set_text(prv->dns_servers_entry, _("(required)") );
+    gtk_entry_select_region(prv->dns_servers_entry, 0, -1 );
+
+    gtk_entry_set_text(prv->nis_servers_entry, _("(optional)") );
+    gtk_entry_select_region(prv->nis_servers_entry, 0, -1 );
+
+    gtk_entry_set_text(prv->ldap_servers_entry, _("(required)") );
+    gtk_entry_select_region(prv->ldap_servers_entry, 0, -1 );
+
     if ( dns ) {
         gchar*                      dns_domain = NULL;
         GList*                      dns_servers = NULL;
@@ -1443,12 +1456,19 @@ on_ns_selection_toggled(GtkToggleButton *togglebutton, gpointer user_data)
 	NwamEnvPrefDialogPrivate   *prv = GET_PRIVATE(user_data);
     gboolean                    active = gtk_toggle_button_get_active(togglebutton);
     GList                      *nameservices = nwamui_env_get_nameservices( prv->selected_env );
-    gboolean                    files = FALSE;
+    gboolean                    files = FALSE; /* Which service is being actioned */
     gboolean                    dns = FALSE;
     gboolean                    nis = FALSE;
     gboolean                    ldap = FALSE;
+    gboolean                    files_active = FALSE; /* Which services are active now */
+    gboolean                    dns_active = FALSE;
+    gboolean                    nis_active = FALSE;
+    gboolean                    ldap_active = FALSE;
+    gboolean                    entry_sensitive = FALSE;
     guint                       num_nameservices = 0;
     nwamui_env_nameservices_t   new_service = NWAMUI_ENV_NAMESERVICES_LAST;
+    nwamui_env_config_source_t  dns_configsrc;
+    nwamui_env_config_source_t  nis_configsrc;
 
 	if ( togglebutton == (GtkToggleButton*)prv->files_service_cb ) {
         if ( active ) {
@@ -1529,26 +1549,43 @@ on_ns_selection_toggled(GtkToggleButton *togglebutton, gpointer user_data)
         }
     }
 
+    dns_configsrc = nwamui_env_get_dns_nameservice_config_source( prv->selected_env );
+    nis_configsrc = nwamui_env_get_nis_nameservice_config_source( prv->selected_env );
+
     if ( new_service != NWAMUI_ENV_NAMESERVICES_LAST ) {
         g_list_append( nameservices, (gpointer)new_service );
+
+        /* If a new service is being added, ensure there is a sensibly initial
+         * value for the config souce.
+         */
+        if ( dns && active ) {
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->dns_config_dhcp_rb), TRUE );
+            gtk_toggle_button_toggled(GTK_TOGGLE_BUTTON(prv->dns_config_dhcp_rb));
+        }
+        else if ( nis && active ) {
+            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->nis_config_dhcp_rb), TRUE );
+            gtk_toggle_button_toggled(GTK_TOGGLE_BUTTON(prv->nis_config_dhcp_rb));
+        }
+
         num_nameservices++;
     }
     
     /* If active, then set senstivity based on the number of services,
      * otherwise it's always sensitive.
      */
+    files_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->files_service_cb));
     gtk_widget_set_sensitive(GTK_WIDGET(prv->files_service_cb), 
-                            ((gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->files_service_cb)))?
-                             (num_nameservices > 1):TRUE) );
+                            (files_active?(num_nameservices > 1):TRUE) );
+    dns_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->dns_service_cb));
     gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_service_cb), 
-                            ((gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->dns_service_cb)))?
-                             (num_nameservices > 1):TRUE) );
+                            (dns_active?(num_nameservices > 1):TRUE) );
+
+    nis_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->nis_service_cb));
     gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_service_cb), 
-                            ((gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->nis_service_cb)))?
-                             (num_nameservices > 1):TRUE) );
+                            (nis_active?(num_nameservices > 1):TRUE) );
+    ldap_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->ldap_service_cb));
     gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_service_cb), 
-                            ((gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->ldap_service_cb)))?
-                             (num_nameservices > 1):TRUE) );
+                            (ldap_active?(num_nameservices > 1):TRUE) );
     
     nwamui_env_set_nameservices( prv->selected_env, nameservices );
 
@@ -1556,27 +1593,34 @@ on_ns_selection_toggled(GtkToggleButton *togglebutton, gpointer user_data)
 
     prv->num_nameservices = num_nameservices;
 
-    if ( dns ) {
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_manual_rb), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_dhcp_rb), active );
-    }
-    else if ( nis ) {
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_manual_rb), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_dhcp_rb), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), active );
-    }
-    else if (ldap ) {
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry_label), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label), active );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label_label), active );
-    }
+    /* DNS */
+    entry_sensitive = (dns_active && dns_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_manual_rb), dns_active );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_dhcp_rb), dns_active );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), entry_sensitive );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), entry_sensitive );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), entry_sensitive );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), entry_sensitive );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), entry_sensitive );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), entry_sensitive );
 
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry_label), (nis || ldap) && active );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry), (nis || ldap) && active );
+    /*NIS */
+    entry_sensitive = (nis_active && nis_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_manual_rb), nis_active );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_dhcp_rb), nis_active );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), entry_sensitive );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), entry_sensitive );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), entry_sensitive );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), entry_sensitive );
+
+    /* LDAP */
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry), ldap_active );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry_label), ldap_active );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label), ldap_active );
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label_label), ldap_active );
+
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry_label), (nis_active || ldap_active) );
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry), (nis_active || ldap_active) );
 }
 
 static void
@@ -1964,6 +2008,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
     NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(iface);
     NwamuiEnv *current_env;
+    gchar     *prop_name = NULL;
 
     g_debug("NwamEnvPrefDialog apply");
 
@@ -1997,7 +2042,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             nwamui_env_set_ipnat_config_file(current_env, config_file);
             g_free(config_file);
         } else {
-            nwamui_env_set_ipnat_config_file(current_env, "");
+            nwamui_env_set_ipnat_config_file(current_env, NULL);
         }
 
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->ipfilter_file_chooser)) &&
@@ -2005,7 +2050,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             nwamui_env_set_ipfilter_config_file(current_env, config_file);
             g_free(config_file);
         } else {
-            nwamui_env_set_ipfilter_config_file(current_env, "");
+            nwamui_env_set_ipfilter_config_file(current_env, NULL);
         }
 
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->ipfilter_v6_file_chooser)) &&
@@ -2013,7 +2058,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             nwamui_env_set_ipfilter_v6_config_file(current_env, config_file);
             g_free(config_file);
         } else {
-            nwamui_env_set_ipfilter_v6_config_file(current_env, "");
+            nwamui_env_set_ipfilter_v6_config_file(current_env, NULL);
         }
 
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->ippool_file_chooser)) &&
@@ -2021,7 +2066,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             nwamui_env_set_ippool_config_file(current_env, config_file);
             g_free(config_file);
         } else {
-            nwamui_env_set_ippool_config_file(current_env, "");
+            nwamui_env_set_ippool_config_file(current_env, NULL);
         }
 
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->ike_file_chooser)) &&
@@ -2029,7 +2074,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             nwamui_env_set_ike_config_file(current_env, config_file);
             g_free(config_file);
         } else {
-            nwamui_env_set_ike_config_file(current_env, "");
+            nwamui_env_set_ike_config_file(current_env, NULL);
         }
 
         if (GTK_WIDGET_SENSITIVE(GTK_WIDGET(prv->ipsec_policy_file_chooser)) &&
@@ -2037,7 +2082,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             nwamui_env_set_ipsecpolicy_config_file(current_env, config_file);
             g_free(config_file);
         } else {
-            nwamui_env_set_ipsecpolicy_config_file(current_env, "");
+            nwamui_env_set_ipsecpolicy_config_file(current_env, NULL);
         }
     }
     
@@ -2063,16 +2108,31 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         g_list_free(nlist);
     }
 
-    if (!nwamui_env_commit (NWAMUI_ENV (prv->selected_env))) {
+    if (nwamui_env_validate (NWAMUI_ENV (prv->selected_env), &prop_name)) {
+        if (!nwamui_env_commit (NWAMUI_ENV (prv->selected_env))) {
+            gchar *name = nwamui_env_get_name (NWAMUI_ENV (prv->selected_env));
+            gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
+            nwamui_util_show_message (GTK_WINDOW(prv->env_pref_dialog),
+              GTK_MESSAGE_ERROR,
+              _("Commit Location Error"),
+              msg, TRUE);
+            g_free (msg);
+            g_free (name);
+            return FALSE;
+        }
+    }
+    else {
         gchar *name = nwamui_env_get_name (NWAMUI_ENV (prv->selected_env));
-        gchar *msg = g_strdup_printf (_("Committing %s faild..."), name);
+        gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
+
         nwamui_util_show_message (GTK_WINDOW(prv->env_pref_dialog),
           GTK_MESSAGE_ERROR,
-          _("Commit ENV error"),
+          _("Validation error"),
           msg, TRUE);
         g_free (msg);
         g_free (name);
-        return FALSE;
+        g_free (prop_name);
+        return( FALSE );
     }
     return TRUE;
 }

@@ -1,3 +1,15 @@
+2009-08-25  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_env_pref_dialog.c: 
+	  Fix several issues found with the location preferences, specifically
+	  w.r.t. incorrect setting of config_file props, causing validation
+	  errors, as well as the incorrect behaviour of some NS toggles.
+	* capplet/nwam_location_dialog.c:
+	  Fix small memory leak.
+	* common/nwamui_env.c: 
+	  Fix nwamui_env_set_*_config_file() variations to allow NULL value,
+	  which removes the associated property.
+
 2009-08-24  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/libnwamui.c, common/libnwamui.h:
