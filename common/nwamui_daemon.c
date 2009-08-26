@@ -2563,8 +2563,8 @@ nwamd_event_handler(gpointer data)
                         nwamui_wifi_net_update_from_wlan_t( wifi, 
                                                 &(nwamevent->data.wlan_info.wlans[0]));
                     } else {
-                        wifi = nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( ncu, 
-                                                    &(nwamevent->data.wlan_info.wlans[0]));
+                        wifi = nwamui_ncu_wifi_hash_lookup_by_essid( ncu, 
+                                    nwamevent->data.wlan_info.wlans[0].essid );
                     }
                     nwamui_ncu_set_wifi_info( ncu, wifi );
                 }
@@ -2582,8 +2582,8 @@ nwamd_event_handler(gpointer data)
                             nwamui_wifi_net_update_from_wlan_t( new_wifi, 
                                                     &(nwamevent->data.wlan_info.wlans[0]));
                         } else {
-                            new_wifi = nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( ncu,
-                                                                &(nwamevent->data.wlan_info.wlans[0]));
+                            new_wifi = nwamui_ncu_wifi_hash_lookup_by_essid( ncu, 
+                                            nwamevent->data.wlan_info.wlans[0].essid );
                         }
 
                         g_debug("deWlanKeyNeeded: WifiNets differ, replacing");
@@ -2595,12 +2595,16 @@ nwamd_event_handler(gpointer data)
                     g_free(essid);
                 }
 
-                g_assert(wifi);
-
-                g_signal_emit (daemon,
-                  nwamui_daemon_signals[WIFI_KEY_NEEDED],
-                  0, /* details */
-                  wifi );
+                if ( wifi != NULL ) {
+                    g_signal_emit (daemon,
+                      nwamui_daemon_signals[WIFI_KEY_NEEDED],
+                      0, /* details */
+                      wifi );
+                }
+                else {
+                    g_warning("Unable to find wifi object for essid '%s' to request key",
+                              nwamevent->data.wlan_info.wlans[0].essid ); 
+                }
                 g_object_unref(ncu);
             }
             break;

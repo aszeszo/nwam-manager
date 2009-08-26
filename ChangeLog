@@ -1,3 +1,11 @@
+2009-08-26  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c: 
+	  Fix defect#10720 where an extra bssid was being appended to the list
+	  of bssids. This was the result of the fact that the only valid
+	  member of the wifi_info during a NEED_KEY event is the essid, all
+	  other values are random and we are using them.
+
 2009-08-26  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/nwam-wifi-item.c (wifi_net_notify):
