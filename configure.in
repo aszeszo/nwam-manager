@@ -61,9 +61,9 @@ AC_ARG_ENABLE(private-nwam-libs,
 
 _NWAM_CPU=`uname -p`
 if test x$private_nwam_libs = xyes; then
-   NWAM_LIBS="-lnsl -L$PWD/nwam_core/lib/${_NWAM_CPU} -R$PWD/nwam_core/lib/${_NWAM_CPU} -lnwam"
+   NWAM_LIBS="-lnsl -L$PWD/nwam_core/lib/${_NWAM_CPU} -lnwam"
 elif test x$private_nwam_libs != xno; then
-   NWAM_LIBS="-lnsl -L$private_nwam_libs -R$private_nwam_libs -lnwam"
+   NWAM_LIBS="-lnsl -L$private_nwam_libs -lnwam"
 else
    NWAM_LIBS="-lnsl -lnwam"
 fi

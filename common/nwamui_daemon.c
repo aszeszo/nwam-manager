@@ -756,7 +756,7 @@ nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name )
             NwamuiNcp* tmp_ncp = NWAMUI_NCP(item->data);
             gchar*     ncp_name = nwamui_ncp_get_name( tmp_ncp );
 
-            if ( strncmp( name, ncp_name, strlen(name) ) == 0 ) {
+            if ( strcmp( name, ncp_name) == 0 ) {
                 ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(tmp_ncp)));
                 g_free(ncp_name);
                 break;
@@ -793,7 +793,7 @@ nwamui_daemon_get_env_by_name( NwamuiDaemon *self, const gchar* name )
             NwamuiEnv* tmp_env = NWAMUI_ENV(item->data);
             gchar*     env_name = nwamui_env_get_name( tmp_env );
 
-            if ( strncmp( name, env_name, strlen(name) ) == 0 ) {
+            if ( strcmp( name, env_name) == 0 ) {
                 env = NWAMUI_ENV(g_object_ref(G_OBJECT(tmp_env)));
                 g_free(env_name);
                 break;
@@ -830,7 +830,7 @@ nwamui_daemon_get_enm_by_name( NwamuiDaemon *self, const gchar* name )
             NwamuiEnm* tmp_enm = NWAMUI_ENM(item->data);
             gchar*     enm_name = nwamui_enm_get_name( tmp_enm );
 
-            if ( strncmp( name, enm_name, strlen(name) ) == 0 ) {
+            if ( strcmp( name, enm_name) == 0 ) {
                 enm = NWAMUI_ENM(g_object_ref(G_OBJECT(tmp_enm)));
                 break;
             }
@@ -1389,7 +1389,7 @@ find_compare_wifi_net_with_name( gconstpointer a,
             g_debug("%s: wifi_name == NULL || name == NULL : returning %d", __func__, rval );
         }
         else {
-            int len = strnlen(name, NWAM_MAX_NAME_LEN);
+            int len = NWAM_MAX_NAME_LEN;
             rval = strncmp( wifi_name, name, len );
             g_debug("%s: strcmp( %s, %s, %d ) returning %d", __func__, wifi_name, name, len, rval);
         }
@@ -3469,7 +3469,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     }
                     else {
                         gchar*  active_name = nwamui_ncp_get_name(prv->active_ncp);
-                        if ( strncmp( active_name, object_name, strlen(object_name)) == 0 ) {
+                        if ( strcmp( active_name, object_name) == 0 ) {
                             /* Same, so don't change anything */
                         }
                         else {

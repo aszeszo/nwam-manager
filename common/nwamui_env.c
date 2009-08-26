@@ -634,7 +634,7 @@ nwamui_env_set_property (   GObject         *object,
                 const gchar*  new_name = g_value_get_string( value );
 
                 if (  self->prv->name != NULL && new_name != NULL &&
-                      strncmp(self->prv->name, new_name, strlen(self->prv->name)) == 0 ) {
+                      strcmp(self->prv->name, new_name) == 0 ) {
                     /* Nothing to do */
                     break;
                 }
@@ -1337,7 +1337,7 @@ nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh)
     }
 
     if ( prv->name != NULL ) {
-        if ( strncmp( prv->name, name, strlen(prv->name)) != 0 ) {
+        if ( strcmp( prv->name, name) != 0 ) {
             g_object_notify(G_OBJECT(self), "name");
         }
         g_free(prv->name);

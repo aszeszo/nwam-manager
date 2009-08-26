@@ -1,5 +1,17 @@
 2009-08-26  Darren Kenny  <darren.kenny@sun.com>
 
+	* configure.in:
+	  We shouldn't be adding location of private libs to the runpath.
+	  This fixes defect#10952.
+	* common/nwamui_env.c: 
+	  Fix defect#10843 where renaming of the location wasn't working if
+	  the new name was just a longer version of the old name (e.g Home and
+	  then HomeNew).
+	* common/nwamui_daemon.c: 
+	  Fix similar issues found here.
+
+2009-08-26  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_daemon.c: 
 	  Fix defect#10720 where an extra bssid was being appended to the list
 	  of bssids. This was the result of the fact that the only valid
