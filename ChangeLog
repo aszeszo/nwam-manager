@@ -1,5 +1,12 @@
 2009-08-26  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_wifi_net.c: 
+	  Fix defect#10951 by trying to ensure that the signal strength isn't
+	  updated if it's not actually changed, which in turn means that the
+	  tool-tip should remain up longer.
+
+2009-08-26  Darren Kenny  <darren.kenny@sun.com>
+
 	* configure.in:
 	  We shouldn't be adding location of private libs to the runpath.
 	  This fixes defect#10952.

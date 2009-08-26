@@ -1425,9 +1425,11 @@ nwamui_wifi_net_set_signal_strength (   NwamuiWifiNet                  *self,
     g_return_if_fail (NWAMUI_IS_WIFI_NET(self));
     g_assert (signal_strength >= NWAMUI_WIFI_STRENGTH_NONE && signal_strength < NWAMUI_WIFI_STRENGTH_LAST );
 
-    g_object_set (G_OBJECT (self),
-                  "signal_strength", signal_strength,
-                  NULL);
+    if ( signal_strength != self->prv->signal_strength ) {
+        g_object_set (G_OBJECT (self),
+                      "signal_strength", signal_strength,
+                      NULL);
+    }
 }
                                 
 extern nwamui_wifi_signal_strength_t          
