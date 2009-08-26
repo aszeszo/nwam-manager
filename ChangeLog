@@ -1,3 +1,13 @@
+2009-08-26  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/nwam-wifi-item.c (wifi_net_notify):
+	* daemon/status_icon.c (nwam_menu_scan_started),
+	(nwam_menu_create_wifi_menuitems), (connect_nwam_object_signals),
+	(status_icon_popup), (nwam_menu_stop_update_wifi_timer):
+	Fixed clicking 'join unlisted wireless network' cleans wlan menu-items.
+	Connect wifi_scan_result signal on nwam_menu_scan_started, and
+	disconnect that signal on the last wifi_scan_result signal.
+
 2009-08-25  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_env_pref_dialog.c: 

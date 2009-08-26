@@ -392,7 +392,7 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
 
     }
 
-#if 1
+#if 0
     {
         gchar *name = nwamui_wifi_net_get_essid(wifi);
         g_debug("%s update wifi 0x%p %s '%s'", __func__, wifi, gtk_menu_item_get_label(GTK_MENU_ITEM(self)), nwamui_wifi_net_get_status(wifi) == NWAMUI_WIFI_STATUS_CONNECTED ? "Active" : "Deactive");
