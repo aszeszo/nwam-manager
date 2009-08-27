@@ -68,7 +68,7 @@ struct _NwamLocationDialogPrivate {
 
     GtkRadioButton*     location_switch_loc_auto_cb;
     GtkRadioButton*     location_switch_loc_manually_cb;
-    gboolean            prof_switch_loc_manually_flag;
+    gboolean            switch_loc_manually_flag;
     NwamuiObject*       toggled_env;
 
 	/* Other Data */
@@ -579,17 +579,20 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 
     model = gtk_tree_view_get_model (prv->location_tree);
 
-    if (prv->prof_switch_loc_manually_flag) {
+    if (prv->switch_loc_manually_flag) {
         NwamuiEnv *env;
         if (prv->toggled_env) {
             env = g_object_ref(prv->toggled_env);
         } else {
             env = nwamui_daemon_get_active_env(prv->daemon);
         }
-        nwamui_daemon_env_selection_set_manual(prv->daemon, prv->prof_switch_loc_manually_flag, NWAMUI_ENV(env));
+        nwamui_env_set_enabled(env, TRUE );
         g_object_unref(env);
     } else {
-        nwamui_daemon_env_selection_set_manual(prv->daemon, prv->prof_switch_loc_manually_flag, NULL);
+        NwamuiEnv *env;
+        env = nwamui_daemon_get_active_env(prv->daemon);
+        nwamui_env_set_enabled(env, FALSE );
+        g_object_unref(env);
     }
 
     /* Apply all changes, if no errors, hide all. */
@@ -749,6 +752,8 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
         g_object_set(self, "toggled_env", env, NULL);
 
         if (env) {
+            nwamui_env_set_enabled(env, gtk_cell_renderer_toggle_get_active(cell_renderer));
+
 /*             gchar *name = nwamui_env_get_name(env); */
 
 /*             /\* Figer out which one is enabled, change it to disabled *\/ */
@@ -1119,9 +1124,9 @@ location_switch_loc_cb_toggled(GtkToggleButton *button, gpointer user_data)
     NwamLocationDialogPrivate*  prv    = GET_PRIVATE(self);
 
     if (button == GTK_TOGGLE_BUTTON(prv->location_switch_loc_manually_cb)) {
-        prv->prof_switch_loc_manually_flag = TRUE;
+        prv->switch_loc_manually_flag = TRUE;
     } else {
-        prv->prof_switch_loc_manually_flag = FALSE;
+        prv->switch_loc_manually_flag = FALSE;
     }
 
     /* Refresh the treeview anyway. */
@@ -1275,8 +1280,8 @@ nwam_location_connection_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
     }
 
     g_object_set(G_OBJECT(renderer),
-/*       "sensitive", prv->prof_switch_loc_manually_flag, */
-      "activatable", prv->prof_switch_loc_manually_flag,
+/*       "sensitive", prv->switch_loc_manually_flag, */
+      "activatable", prv->switch_loc_manually_flag,
       NULL); 
 }
 

@@ -80,7 +80,8 @@ enum {
     PROP_ENM_LIST,
     PROP_WIFI_FAV,
     PROP_STATUS,
-    PROP_NUM_SCANNED_WIFI
+    PROP_NUM_SCANNED_WIFI,
+    PROP_ENV_SELECTION_MODE
 };
 
 static guint nwamui_daemon_signals[LAST_SIGNAL] = { 0, 0 };
@@ -250,6 +251,14 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                                                          _("wifi_fav"),
                                                          _("wifi_fav"),
                                                           G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_ENV_SELECTION_MODE,
+                                     g_param_spec_boolean("env_selection_mode",
+                                                         _("env_selection_mode"),
+                                                         _("env_selection_mode"),
+                                                          FALSE,
+                                                          G_PARAM_READABLE));
 
     /* Create some signals */
     nwamui_daemon_signals[WIFI_SCAN_STARTED] =   
@@ -455,6 +464,7 @@ nwamui_daemon_set_property ( GObject         *object,
                  */
                 self->prv->active_env = env;
                 g_object_notify(G_OBJECT(self), "active_env");
+                g_object_notify(G_OBJECT(self), "env_selection_mode");
             }
             break;
         case PROP_ACTIVE_NCP: {
@@ -531,7 +541,14 @@ nwamui_daemon_get_property (GObject         *object,
                 g_value_set_int(value, self->prv->num_scanned_wireless);
             }
             break;
+        case PROP_ENV_SELECTION_MODE: {
+                gboolean is_manual;
 
+                is_manual = nwamui_daemon_env_selection_is_manual( self );
+
+                g_value_set_boolean(value, is_manual );
+            }
+            break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
@@ -3157,6 +3174,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                     if ( env != NULL ) {
                         nwamui_env_set_enabled( env, FALSE );
                     }
+                    g_object_notify(G_OBJECT(daemon), "env_selection_mode");
                 }
                 break;
             case NWAM_ACTION_ENABLE: {
@@ -3172,6 +3190,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
 
                         nwamui_env_set_enabled( env, TRUE );
                     }
+                    g_object_notify(G_OBJECT(daemon), "env_selection_mode");
                 }
                 break;
             case NWAM_ACTION_REFRESH: {

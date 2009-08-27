@@ -688,31 +688,20 @@ nwamui_env_set_property (   GObject         *object,
 
         case PROP_ACTIVE: {
                 /* Activate immediately */
-                nwamui_cond_activation_mode_t activation_mode;
+                gboolean   active;
 
-                activation_mode = (nwamui_cond_activation_mode_t)
-                    get_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
+                active = g_value_get_boolean( value );
 
-                if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL ) {
-                    nwam_state_t        state = NWAM_STATE_OFFLINE;
-                    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-
-                    /* Use cached state in nwamui_object... */
-                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL );
-
-                    gboolean active = g_value_get_boolean( value );
-                    if ( state != NWAM_STATE_ONLINE && active ) {
-                        nwam_error_t nerr;
-                        if ( (nerr = nwam_loc_enable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
-                            g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
-                        }
+                if ( active ) {
+                    nwam_error_t nerr;
+                    if ( (nerr = nwam_loc_enable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
+                        g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
                     }
-                    else if ( (state != NWAM_STATE_DISABLED && state != NWAM_STATE_OFFLINE )
-                              && !self->prv->enabled  ) {
-                        nwam_error_t nerr;
-                        if ( (nerr = nwam_loc_disable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
-                            g_warning("Failed to disable location due to error: %s", nwam_strerror(nerr));
-                        }
+                }
+                else {
+                    nwam_error_t nerr;
+                    if ( (nerr = nwam_loc_disable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
+                        g_warning("Failed to disable location due to error: %s", nwam_strerror(nerr));
                     }
                 }
             }
@@ -3854,32 +3843,39 @@ nwamui_env_commit( NwamuiEnv* self )
     g_return_val_if_fail( NWAMUI_IS_ENV(self), FALSE );
 
     if ( self->prv->nwam_loc_modified && self->prv->nwam_loc != NULL ) {
-        nwamui_cond_activation_mode_t activation_mode;
+        nwamui_cond_activation_mode_t   activation_mode;
+        nwam_state_t                    state = NWAM_STATE_OFFLINE;
+        nwam_aux_state_t                aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+        gboolean                        currently_enabled;
+
+        activation_mode = (nwamui_cond_activation_mode_t)
+            get_nwam_loc_uint64_prop( self->prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
+
 
         if ( (nerr = nwam_loc_commit( self->prv->nwam_loc, 0 ) ) != NWAM_SUCCESS ) {
             g_warning("Failed when committing LOC for %s", self->prv->name);
             return( FALSE );
         }
 
-        /* Activate immediately, if manual and is enabled */
-        activation_mode = (nwamui_cond_activation_mode_t)
-            get_nwam_loc_uint64_prop( self->prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
-
-        if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL ) {
-            nwam_state_t        state = NWAM_STATE_OFFLINE;
-            nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-
-            nwam_loc_get_state( self->prv->nwam_loc, &state, &aux_state );
-
-            if ( state != NWAM_STATE_ONLINE && self->prv->enabled ) {
+        currently_enabled = get_nwam_loc_boolean_prop( self->prv->nwam_loc, NWAM_LOC_PROP_ENABLED );
+        
+        if ( self->prv->enabled != currently_enabled ) {
+            /* Need to set enabled/disabled regardless of current state
+             * since it's possible to switch from Automatic to Manual
+             * selection, yet not change the active env, but we need to
+             * ensure it's explicitly marked as enabled/disabled.
+             */
+            if ( self->prv->enabled ) {
                 nwam_error_t nerr;
                 if ( (nerr = nwam_loc_enable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
                     g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
                     return (FALSE);
                 }
             }
-            else if ( (state != NWAM_STATE_DISABLED && state != NWAM_STATE_OFFLINE )
-                      && !self->prv->enabled  ) {
+            else {
+                /* Should only be done on a non-manual location if it's
+                 * different to existing state.
+                 */
                 nwam_error_t nerr;
                 if ( (nerr = nwam_loc_disable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
                     g_warning("Failed to disable location due to error: %s", nwam_strerror(nerr));
@@ -3887,6 +3883,7 @@ nwamui_env_commit( NwamuiEnv* self )
                 }
             }
         }
+        self->prv->nwam_loc_modified = FALSE;
     }
 
     return( TRUE );

@@ -47,7 +47,6 @@ enum {
     PROP_ACTION_ON_NO_FAV_NETWORKS,
     PROP_ACTIVE_INTERFACE,
     PROP_NOTIFICATION_DEFAULT_TIMEOUT,
-    PROP_LOCK_CURRENT_LOC,
 };
 
 static guint nwamui_prof_signals [LAST_SIGNAL] = { 0 };
@@ -61,8 +60,6 @@ static guint nwamui_prof_signals [LAST_SIGNAL] = { 0 };
     "/add_any_new_wifi_to_fav"
 #define PROF_STRING_ACTION_ON_NO_FAV_NETWORKS PROF_GCONF_ROOT \
     "/action_on_no_fav_networks"
-#define PROF_BOOL_LOCK_CURRENT_LOC PROF_GCONF_ROOT  \
-    "/switch_loc_manually"
 
 /* To Allow GNOME Netstatus Applet to follow NWAM Active interface */
 #define PROF_STRING_ACTIVE_INTERFACE PROF_GCONF_ROOT \
@@ -166,14 +163,6 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         2000,
         G_PARAM_READWRITE));
 
-    g_object_class_install_property (gobject_class,
-      PROP_LOCK_CURRENT_LOC,
-      g_param_spec_boolean ("switch_loc_manually",
-        _("Lock location manually"),
-        _("Lock location manually"),
-        FALSE,
-        G_PARAM_READWRITE));
-
 }
 
 
@@ -253,12 +242,6 @@ nwamui_prof_set_property (GObject         *object,
     }
         break;
 
-    case PROP_LOCK_CURRENT_LOC:
-        gconf_client_set_bool (prv->client, PROF_BOOL_LOCK_CURRENT_LOC,
-          g_value_get_boolean (value),
-          &err);
-        break;
-
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -321,12 +304,6 @@ nwamui_prof_get_property (GObject         *object,
             PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT,
             &err));
     }
-        break;
-
-    case PROP_LOCK_CURRENT_LOC:
-        g_value_set_boolean (value, gconf_client_get_bool (prv->client,
-            PROF_BOOL_LOCK_CURRENT_LOC,
-            &err));
         break;
 
     default:
@@ -399,9 +376,6 @@ gconf_notify_cb (GConfClient *client, guint cnxn_id, GConfEntry *entry, gpointer
     } else if (g_ascii_strcasecmp (key, PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT ) == 0) {
         g_object_set(self, "notification_default_timeout",
           gconf_value_get_int(value), NULL);
-    } else if (g_ascii_strcasecmp (key, PROF_BOOL_LOCK_CURRENT_LOC) == 0) {
-        g_object_set(self, "switch_loc_manually",
-          gconf_value_get_bool(value), NULL);
     } else {
         g_assert_not_reached ();
     }

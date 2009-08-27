@@ -1,3 +1,29 @@
+2009-08-27  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_env.c: 
+	  Fix some issues in nwamui_env when setting the active property where
+	  it was causing some settings of this to fail, meaning that location
+	  changes didn't take immediate effect as expected.
+	* common/nwamui_daemon.c: 
+	  Add an "env_selection_mode" property so that the GUI can watch it
+	  for changes in the selection mode.
+	* common/nwamui_object.c: 
+	  When the cached state is being updated, if the object has a
+	  get_active function then we will cause a notification change on the
+	  "active" property to occur too, since it's highly likely to have
+	  changed.
+	* common/nwamui_prof.c, daemon/nwam-env-item.c, daemon/status_icon.c: 
+	  Remove the use of a GConf key, and intead rely on the daemon's
+	  env_selection_mode property for changes of the activation mode
+	  toggles.
+	* capplet/nwam_location_dialog.c: 
+	  Change how locations were being activated, relying on the use of the
+	  enabled property of the locations, and the commit function rather
+	  than the nwamui_deamon_env_selecton_... functions here. This is
+	  because it caused confustion between the immediate effect of these
+	  functions and the commit and enable/disable there-in.
+	  In general all of this resolves defect#9561.
+
 2009-08-26  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_wifi_net.c: 

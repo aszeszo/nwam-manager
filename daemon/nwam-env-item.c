@@ -42,7 +42,6 @@ typedef struct _NwamEnvItemPrivate NwamEnvItemPrivate;
 
 struct _NwamEnvItemPrivate {
     gulong      toggled_handler_id;
-    NwamuiProf *prof;
 };
 
 enum {
@@ -58,9 +57,6 @@ static void nwam_env_item_get_property (GObject         *object,
   GValue          *value,
   GParamSpec      *pspec);
 static void nwam_env_item_finalize (NwamEnvItem *self);
-
-/* nwamui profile events */
-static void prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* nwamui daemon signals */
 static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
@@ -99,16 +95,19 @@ nwam_env_item_init (NwamEnvItem *self)
 {
     NwamEnvItemPrivate *prv = GET_PRIVATE(self);
 
-    prv->prof = nwamui_prof_get_instance();
-
-    g_signal_connect(prv->prof, "notify::switch-loc-manually",
-      G_CALLBACK(prof_switch_loc_manually), (gpointer)self);
-
     /* nwamui ncp signals */
     {
         NwamuiDaemon *daemon = nwamui_daemon_get_instance ();
+        gboolean      is_manual;
 
         connect_daemon_signals(G_OBJECT(self), daemon);
+
+        /* Set initial sensitivity based on whether it's manual selection or
+         * not.
+         */
+        is_manual = nwamui_daemon_env_selection_is_manual( NWAMUI_DAEMON(daemon) );
+
+        gtk_widget_set_sensitive(GTK_WIDGET(self), is_manual );
 
         g_object_unref(daemon);
     }
@@ -148,8 +147,6 @@ nwam_env_item_finalize (NwamEnvItem *self)
         g_object_unref(ncp);
         g_object_unref(daemon);
     }
-
-    g_object_unref (prv->prof);
 
 	G_OBJECT_CLASS(nwam_env_item_parent_class)->finalize(G_OBJECT (self));
 }
@@ -239,11 +236,13 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     g_assert(NWAMUI_IS_ENV(object));
 
-    if (!arg1 || g_ascii_strcasecmp(arg1->name, "active") == 0) {
+    /* arg1 could be NULL to force a refrest of all values */
+    if ( !arg1 || g_ascii_strcasecmp(arg1->name, "active") == 0) {
+        gboolean active;
 
+        active = nwamui_object_get_active(object);
         g_signal_handler_block(self, prv->toggled_handler_id);
-        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self),
-          nwamui_object_get_active(object));
+        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), active);
         g_signal_handler_unblock(self, prv->toggled_handler_id);
 
     }
@@ -287,13 +286,13 @@ nwam_env_item_set_env (NwamEnvItem *self, NwamuiEnv *env)
 }
 
 static void
-prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
+switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamEnvItem *self = NWAM_ENV_ITEM (data);
     NwamEnvItemPrivate *prv = GET_PRIVATE(self);
     gboolean flag;
 
-    g_object_get(gobject, "switch_loc_manually", &flag, NULL);
+    flag = nwamui_daemon_env_selection_is_manual( NWAMUI_DAEMON(gobject) );
 
     gtk_widget_set_sensitive(GTK_WIDGET(self), flag);
 }
@@ -301,10 +300,15 @@ prof_switch_loc_manually(GObject *gobject, GParamSpec *arg1, gpointer data)
 static void 
 connect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
 {
+    g_signal_connect(daemon, "notify::env-selection-mode",
+            G_CALLBACK(switch_loc_manually_changed), (gpointer)self);
+
 }
 
 static void 
 disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
 {
+    g_signal_handlers_disconnect_by_func(daemon, 
+            (gpointer)switch_loc_manually_changed, (gpointer)self);
 }
 

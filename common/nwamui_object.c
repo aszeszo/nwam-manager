@@ -391,8 +391,13 @@ nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_
     object->prv->nwam_state = state;
     object->prv->nwam_aux_state = aux_state;
     object->prv->nwam_state_last_update = time( NULL );;
-
     g_object_notify(G_OBJECT(object), "nwam_state" );
+
+    /* Active property is likely to have changed too, but first check if there
+     * is a get_active function, if so the active property should exist. */
+    if ( NWAMUI_OBJECT_GET_CLASS (object)->get_active != NULL ) {
+        g_object_notify(G_OBJECT(object), "active" );
+    }
 }
 
 /* Callbacks */
