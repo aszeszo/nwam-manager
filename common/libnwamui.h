@@ -303,6 +303,11 @@ extern void                     nwamui_util_set_entry_ip_address_only( GtkEntry*
 
 extern void                     nwamui_util_unset_entry_ip_address_only( GtkEntry* entry );
 
+extern gboolean                 nwamui_util_validate_prefix_value(  GtkWidget   *widget,
+                                                                    const gchar *prefix_str,
+                                                                    gboolean     is_v6,
+                                                                    gboolean     show_error_dialog );
+
 extern gboolean                 nwamui_util_validate_ip_address(    GtkWidget   *widget,
                                                                     const gchar *address_str,
                                                                     gboolean     is_v6,

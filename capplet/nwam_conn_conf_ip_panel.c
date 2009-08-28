@@ -1471,7 +1471,20 @@ nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
     g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, self);
 
     /* TODO - Validate data in editing */
-    if ( !nwamui_util_validate_ip_address( GTK_WIDGET(view), new_text, FALSE, TRUE ) ) {
+    if ( col_id == IP_VIEW_ADDR &&
+        !nwamui_util_validate_ip_address( GTK_WIDGET(view), new_text, FALSE, TRUE ) ) {
+        /* Invalid */
+        GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+        GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
+
+        gtk_tree_view_set_cursor (GTK_TREE_VIEW(view), tpath, col, FALSE);
+
+        gtk_tree_path_free(tpath);
+        return;
+    }
+
+    if ( col_id == IP_VIEW_MASK &&
+        !nwamui_util_validate_prefix_value( GTK_WIDGET(view), new_text, FALSE, TRUE ) ) {
         /* Invalid */
         GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
         GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
@@ -1551,6 +1564,19 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
         gtk_tree_path_free(tpath);
         return;
     }
+
+    if ( col_id == IP_VIEW_MASK &&
+         !nwamui_util_validate_prefix_value( GTK_WIDGET(view), new_text, TRUE, TRUE ) ) {
+        /* Invalid */
+        GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+        GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
+
+        gtk_tree_view_set_cursor (GTK_TREE_VIEW(view), tpath, col, FALSE);
+
+        gtk_tree_path_free(tpath);
+        return;
+    }
+
 	switch (col_id) {
 /*
 	case IP_VIEW_HOSTNAME:

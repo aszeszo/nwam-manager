@@ -1882,6 +1882,81 @@ insert_text_ip_only_handler (GtkEditable *editable,
     g_free (lower);
 }
 
+/* Validate an prefix values
+ * 
+ * If show_error_dialog is TRUE, then a message dialog will be shown to the
+ * user.
+ *
+ * Returns whether the prefix was valid or not.
+ */
+extern gboolean
+nwamui_util_validate_prefix_value(  GtkWidget   *widget,
+                                    const gchar *prefix_str,
+                                    gboolean     is_v6,
+                                    gboolean     show_error_dialog )
+{
+    struct lifreq           lifr;
+    struct sockaddr_in     *sin = (struct sockaddr_in *)&lifr.lifr_addr;
+    struct sockaddr_in6    *sin6 = (struct sockaddr_in6 *)&lifr.lifr_addr;
+    GtkWindow              *top_level = NULL;
+    gboolean                is_valid = TRUE;
+
+    if ( widget != NULL ) {
+        top_level = GTK_WINDOW(gtk_widget_get_toplevel(widget));
+    }
+
+    if ( (widget != NULL && !GTK_WIDGET_IS_SENSITIVE(widget)) ||
+         (top_level != NULL && !gtk_window_has_toplevel_focus (top_level)) ) {
+        /* Assume valid */
+        return( TRUE );;
+    }
+
+    if ( prefix_str == NULL || strlen (prefix_str) == 0 ) {
+        is_valid = FALSE;
+    }
+    else {
+        gchar **strs =  NULL;
+
+        /* Allow for address or numbers in format "addr/prefix" */
+        strs = g_strsplit(prefix_str, "/", 2 );
+
+        if ( strs == NULL || strs[0] == NULL ) {
+            is_valid = FALSE;
+        }
+        else {
+            if ( is_v6 ) {
+                gint64 prefix = g_ascii_strtoll( strs[0], NULL, 10 );
+                if ( prefix == 0 || prefix > 128 ) {
+                    is_valid = FALSE;
+                }
+            }
+            else {
+                if ( ! inet_pton ( AF_INET, strs[0], (void*)(&sin->sin_addr) ) ) {
+                    is_valid = FALSE;
+                }
+            }
+        }
+        if ( strs != NULL) {
+            g_strfreev( strs );
+        }
+    }
+
+    if ( ! is_valid && show_error_dialog ) {
+        const gchar*    message;
+        if ( is_v6 ) {
+            message = _("Valid prefix values are between 1 and 128");
+        }
+        else {
+            message = _("Subnets must be in the format:\n\n    w.x.y.z\n");
+        }
+
+        nwamui_util_show_message(GTK_WINDOW(top_level), 
+                                 GTK_MESSAGE_ERROR, _("Invalid Subnet or Prefix"), message, FALSE);
+    }
+
+    return( is_valid );
+}
+
 /* Validate an IP address. 
  * 
  * If show_error_dialog is TRUE, then a message dialog will be shown to the
@@ -1930,7 +2005,7 @@ nwamui_util_validate_ip_address(    GtkWidget   *widget,
                 }
                 if ( strs[1] != NULL ) { /* Handle /N */
                     gint64 prefix = g_ascii_strtoll( strs[1], NULL, 10 );
-                    if ( prefix == 0 ) {
+                    if ( prefix == 0 || prefix > 128 ) {
                         is_valid = FALSE;
                     }
                 }
@@ -1938,6 +2013,12 @@ nwamui_util_validate_ip_address(    GtkWidget   *widget,
             else {
                 if ( ! inet_pton ( AF_INET, strs[0], (void*)(&sin->sin_addr) ) ) {
                     is_valid = FALSE;
+                }
+                if ( strs[1] != NULL ) { /* Handle /N */
+                    gint64 prefix = g_ascii_strtoll( strs[1], NULL, 10 );
+                    if ( prefix == 0 || prefix > 32 ) {
+                        is_valid = FALSE;
+                    }
                 }
             }
         }
@@ -1949,10 +2030,10 @@ nwamui_util_validate_ip_address(    GtkWidget   *widget,
     if ( ! is_valid && show_error_dialog ) {
         const gchar*    message;
         if ( is_v6 ) {
-            message = _("IP addresses must be in one of the formats :\n\n   x:x:x:...\n   x:x:x:.../N");
+            message = _("IP addresses must be in one of the formats :\n\n   x:x:x:x:x:x:x:x\n   x:x::x, etc./N\n\nwhere N is between 1 and 128");
         }
         else {
-            message = _("IP addresses must be in the one of the formats:\n\n    w.x.y.z\n    w.x.y.z/N");
+            message = _("IP addresses must be in the one of the formats:\n\n    w.x.y.z\n    w.x.y.z/N\n\nwhere N is between 1 and 32");
         }
 
         nwamui_util_show_message(GTK_WINDOW(top_level), 

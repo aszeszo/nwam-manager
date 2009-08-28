@@ -1,3 +1,10 @@
+2009-08-28  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/libnwamui.c, common/libnwamui.h,
+	  capplet/nwam_conn_conf_ip_panel.c:
+	  Slightly change the IP Address validation error message, and
+	  validate prefix entry separately, providing errors as needed.
+
 2009-08-27  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_env.c: 
