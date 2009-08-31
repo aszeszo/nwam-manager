@@ -1,3 +1,7 @@
+2009-08-31  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_ncu.c: 10984 not possible to disable network interfaces
+
 2009-08-28  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/libnwamui.c, common/libnwamui.h,

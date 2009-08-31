@@ -1866,6 +1866,7 @@ extern gboolean
 nwamui_ncu_commit( NwamuiNcu* self )
 {
     nwam_error_t    nerr;
+    gboolean currently_enabled;
 
     g_return_val_if_fail( NWAMUI_IS_NCU(self), FALSE );
 
@@ -1876,6 +1877,21 @@ nwamui_ncu_commit( NwamuiNcu* self )
         }
         /* Make suer that the enabled flag is acted upon on commit */
         nwamui_ncu_set_active ( self, self->prv->enabled );
+	/* Set enabled flag. */
+	currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
+	if ( self->prv->enabled != currently_enabled ) {
+		nwam_error_t nerr;
+		if ( self->prv->enabled ) {
+			if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
+				g_warning("Failed to enable ncu_phys due to error: %s", nwam_strerror(nerr));
+			}
+		}
+		else {
+			if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
+				g_warning("Failed to disable ncu_phys due to error: %s", nwam_strerror(nerr));
+			}
+		}
+	}
     }
 
     if ( self->prv->nwam_ncu_ip_modified && self->prv->nwam_ncu_ip != NULL ) {
@@ -1884,6 +1900,21 @@ nwamui_ncu_commit( NwamuiNcu* self )
             g_warning("Failed when committing IP NCU for %s", self->prv->device_name);
             return( FALSE );
         }
+	/* Set enabled flag. */
+	currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_ENABLED );
+	if ( self->prv->enabled != currently_enabled ) {
+		nwam_error_t nerr;
+		if ( self->prv->enabled ) {
+			if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
+				g_warning("Failed to enable ncu_ip due to error: %s", nwam_strerror(nerr));
+			}
+		}
+		else {
+			if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
+				g_warning("Failed to disable ncu_ip due to error: %s", nwam_strerror(nerr));
+			}
+		}
+	}
     }
 
 #ifdef TUNNEL_SUPPORT
@@ -1892,8 +1923,24 @@ nwamui_ncu_commit( NwamuiNcu* self )
             g_warning("Failed when committing IPTUN NCU for %s", self->prv->device_name);
             return( FALSE );
         }
+	/* Set enabled flag. */
+	currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_iptun, NWAM_NCU_PROP_ENABLED );
+	if ( self->prv->enabled != currently_enabled ) {
+		nwam_error_t nerr;
+		if ( self->prv->enabled ) {
+			if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
+				g_warning("Failed to enable ncu_iptun due to error: %s", nwam_strerror(nerr));
+			}
+		}
+		else {
+			if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
+				g_warning("Failed to disable ncu_iptun due to error: %s", nwam_strerror(nerr));
+			}
+		}
+	}
     }
 #endif /* TUNNEL_SUPPORT */
+
 
     return( TRUE );
 }
