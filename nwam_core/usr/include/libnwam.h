@@ -947,8 +947,18 @@ extern nwam_error_t nwam_known_wlan_remove_from_known_wlans(const char *,
     const char *, const char *);
 
 /*
- * nwam_wlan_t is used for scan/need choice events and by
- * nwam_wlan_get_scan_results().
+ * nwam_wlan_t is used for scan/need choice/need key events and by
+ * nwam_wlan_get_scan_results().  The following fields are valid:
+ *
+ * - for scan and need choice event, ESSID, BSSID, signal strength, security
+ * mode, speed, channel, bsstype, key index, and if we already have a key
+ * (have_key), if the WLAN is the current selection (selected) and
+ * if the current WLAN is connected (connected).
+ * - for need key events, ESSID, security mode, have_key, selected and connected
+ * values are set.  The rest of the fields are not set since multiple WLANs
+ * may match the ESSID and have different speeds, channels etc.  If an
+ * ESSID/BSSID selection is specified, the BSSID will be set also.
+ *
  */
 typedef struct {
 	char essid[NWAM_MAX_NAME_LEN];

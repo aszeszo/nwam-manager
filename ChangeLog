@@ -1,3 +1,11 @@
+2009-08-31  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	  Bump to 0.99.8
+	* nwam_core/lib/i386/libnwam.so.1, nwam_core/lib/sparc/libnwam.so.1,
+	  nwam_core/usr/include/libnwam.h:
+	  Update for 08/26 build of nwam.
+
 2009-08-31  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_ncu.c: 10984 not possible to disable network interfaces
