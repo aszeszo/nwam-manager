@@ -41,6 +41,7 @@
 /* Names of Widgets in Glade file */
 #define LOCATION_DIALOG                 "nwam_location"
 #define LOCATION_TREE                   "location_tree"
+#define LOCATION_OK_BTN                 "location_ok_btn"
 #define LOCATION_ADD_BTN                "location_add_btn"
 #define LOCATION_REMOVE_BTN             "location_remove_btn"
 #define LOCATION_RENAME_BTN             "location_rename_btn"
@@ -57,6 +58,7 @@ struct _NwamLocationDialogPrivate {
 	/* Widget Pointers */
     GtkDialog*          location_dialog;
 	GtkTreeView*	    location_tree;
+    GtkButton*          location_ok_btn;
     GtkButton*          location_add_btn;
     GtkButton*          location_remove_btn;
     GtkButton*          location_rename_btn;
@@ -148,6 +150,9 @@ static void vanity_name_editing_started (GtkCellRenderer *cell,
                                          GtkCellEditable *editable,
                                          const gchar     *path,
                                          gpointer         data);
+static void vanity_name_editing_canceled (  GtkCellRenderer     *cell,
+                                            gpointer             data);
+
 static void vanity_name_edited ( GtkCellRendererText *cell,
                                  const gchar         *path_string,
                                  const gchar         *new_text,
@@ -309,6 +314,7 @@ nwam_compose_tree_view (NwamLocationDialog *self)
 	g_signal_connect (cell, "edited", G_CALLBACK(nwamui_object_name_cell_edited), (gpointer)view);
     g_signal_connect (cell, "edited", G_CALLBACK(vanity_name_edited), (gpointer)self);
     g_signal_connect (cell, "editing-started", G_CALLBACK(vanity_name_editing_started), (gpointer)self);
+    g_signal_connect (cell, "editing-canceled", G_CALLBACK(vanity_name_editing_canceled), (gpointer)self);
 
     g_object_set_data (G_OBJECT (col), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER(LOCVIEW_NAME));
 	g_object_set (cell, "weight", PANGO_WEIGHT_BOLD, NULL);
@@ -329,6 +335,7 @@ nwam_location_dialog_init(NwamLocationDialog *self)
     capplet_remove_gtk_dialog_escape_binding(GTK_DIALOG_GET_CLASS(prv->location_dialog));
 
 	prv->location_tree = GTK_TREE_VIEW(nwamui_util_glade_get_widget(LOCATION_TREE));
+    prv->location_ok_btn = GTK_BUTTON(nwamui_util_glade_get_widget(LOCATION_OK_BTN));
     prv->location_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(LOCATION_ADD_BTN));
     prv->location_remove_btn = GTK_BUTTON(nwamui_util_glade_get_widget(LOCATION_REMOVE_BTN));
     prv->location_rename_btn = GTK_BUTTON(nwamui_util_glade_get_widget(LOCATION_RENAME_BTN));
@@ -481,6 +488,9 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
         }
         nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, FALSE);
         
+        /* Ensure is OK is sensitive */
+        gtk_widget_set_sensitive( GTK_WIDGET(self->prv->location_ok_btn), TRUE);
+
         response =  gtk_dialog_run(GTK_DIALOG(self->prv->location_dialog));
 
     }
@@ -819,7 +829,17 @@ vanity_name_editing_started (GtkCellRenderer *cell,
 
             gtk_tree_path_free(tpath);
         }
+        gtk_widget_set_sensitive( GTK_WIDGET(self->prv->location_ok_btn), FALSE);
     }
+}
+
+static void 
+vanity_name_editing_canceled ( GtkCellRenderer  *cell,
+                               gpointer          data)
+{
+	NwamLocationDialog* self = NWAM_LOCATION_DIALOG(data);
+
+    gtk_widget_set_sensitive( GTK_WIDGET(self->prv->location_ok_btn), TRUE);
 }
 
 static void
@@ -828,7 +848,11 @@ vanity_name_edited ( GtkCellRendererText *cell,
                      const gchar         *new_text,
                      gpointer             data)
 {
+	NwamLocationDialog* self = NWAM_LOCATION_DIALOG(data);
+
     g_object_set (cell, "editable", FALSE, NULL);
+
+    gtk_widget_set_sensitive( GTK_WIDGET(self->prv->location_ok_btn), TRUE);
 }
 
 /*
@@ -915,7 +939,7 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         
 
         g_signal_handlers_block_by_func(G_OBJECT(prv->location_activation_combo), 
-                                        location_activation_combo_changed_cb, (gpointer)self);
+                                        (gpointer)location_activation_combo_changed_cb, (gpointer)self);
 
         cond = nwamui_env_get_activation_mode(env);
 
@@ -949,7 +973,7 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         }
 
         g_signal_handlers_unblock_by_func(G_OBJECT(prv->location_activation_combo), 
-                                        location_activation_combo_changed_cb, (gpointer)self);
+                                        (gpointer)location_activation_combo_changed_cb, (gpointer)self);
 
         g_object_unref(env);
     }

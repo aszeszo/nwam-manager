@@ -1,5 +1,12 @@
 2009-09-01  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_location_dialog.c: 
+	  Fix defect#10569 where it was felt that editing the name of the
+	  location and then clicking OK was broken since it didn't change the
+	  name - this disables the OK button while editing.
+
+2009-09-01  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_conn_stat_panel.c: 
 	  Fix some minor compile warnings.
 	  Change visiblity test to be if the NCU has state ONLINE - all others
