@@ -524,7 +524,8 @@ conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer dat
 	gtk_tree_model_get(model, iter, 0, &obj, -1);
 
     if (obj) {
-        if (nwamui_object_get_active(obj)) {
+        /* Show enabled NCUs. */
+        if (nwamui_ncu_get_enabled(NWAMUI_NCU(obj))) {
             visible = TRUE;
         }
         g_object_unref(obj);
