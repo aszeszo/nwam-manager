@@ -1467,10 +1467,17 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
         delete_nwam_ncu_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_IPV6_ADDRSRC );
     }
 
-    set_nwam_ncu_uint64_array_prop(  self->prv->nwam_ncu_ip,
-                                     NWAM_NCU_PROP_IP_VERSION, 
-                                     ip_version,
-                                     ip_version_num );
+    if ( ip_version_num > 0 ) {
+        set_nwam_ncu_uint64_array_prop(  self->prv->nwam_ncu_ip,
+                                         NWAM_NCU_PROP_IP_VERSION, 
+                                         ip_version,
+                                         ip_version_num );
+    }
+    else {
+        /* Delete IP_VERSION property, since we shouldn't store an empty list.
+         */
+        delete_nwam_ncu_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_IP_VERSION);
+    }
 }
 
 /* 

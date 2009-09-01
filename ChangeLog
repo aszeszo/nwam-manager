@@ -1,3 +1,12 @@
+2009-09-01  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c: 
+	  Fix defect#10986 by not crashing if unable to read in NCP, but
+	  instead continue as if it's not there.
+	* common/nwamui_ncu.c: 
+	  Fix for defect#10986 root-cause by deleteing the IP_VERSION property
+	  if it's empty rather than creating an empty value.
+
 2009-09-01  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_stat_panel.c (conn_view_filter_visible_cb):

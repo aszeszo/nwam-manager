@@ -394,7 +394,9 @@ nwamui_daemon_init (NwamuiDaemon *self)
     if ( (user_ncp = nwamui_daemon_get_ncp_by_name( self, NWAM_NCP_NAME_USER ) ) == NULL ) {
         if ( self->prv->auto_ncp != NULL ) { /* If Auto doesn't exist do nothing */
             user_ncp = nwamui_ncp_clone( self->prv->auto_ncp, NWAM_NCP_NAME_USER );
-            self->prv->ncp_list = g_list_append(self->prv->ncp_list, (gpointer)g_object_ref(user_ncp));
+            if ( user_ncp != NULL ) {
+                self->prv->ncp_list = g_list_append(self->prv->ncp_list, (gpointer)g_object_ref(user_ncp));
+            }
         }
     }
 
@@ -3892,11 +3894,13 @@ nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
     
     new_env = nwamui_env_new_with_handle (env);
         
-    if ( nwamui_env_get_active( new_env ) ) {
-        prv->active_env = NWAMUI_ENV(g_object_ref(new_env));
-    }
+    if ( new_env != NULL ) {
+        if ( nwamui_env_get_active( new_env ) ) {
+            prv->active_env = NWAMUI_ENV(g_object_ref(new_env));
+        }
 
-    prv->env_list = g_list_append(prv->env_list, (gpointer)new_env);
+        prv->env_list = g_list_append(prv->env_list, (gpointer)new_env);
+    }
 
     return(0);
 }
@@ -3931,20 +3935,22 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
     g_debug ("nwam_ncp_walker_cb 0x%p", ncp);
     
     new_ncp = nwamui_ncp_new_with_handle (ncp);
-
-    name = nwamui_ncp_get_name( new_ncp );
-    if ( name != NULL ) { 
-        if ( strncmp( name, NWAM_NCP_NAME_AUTOMATIC, strlen(NWAM_NCP_NAME_AUTOMATIC)) == 0 ) {
-            prv->auto_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
+    
+    if ( new_ncp != NULL ) {
+        name = nwamui_ncp_get_name( new_ncp );
+        if ( name != NULL ) { 
+            if ( strncmp( name, NWAM_NCP_NAME_AUTOMATIC, strlen(NWAM_NCP_NAME_AUTOMATIC)) == 0 ) {
+                prv->auto_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
+            }
+            g_free(name);
         }
-        g_free(name);
-    }
 
-    if ( nwamui_ncp_is_active( new_ncp ) ) {
-        prv->active_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
+        if ( nwamui_ncp_is_active( new_ncp ) ) {
+            prv->active_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
+        }
+            
+        prv->ncp_list = g_list_append(prv->ncp_list, (gpointer)new_ncp);
     }
-        
-    prv->ncp_list = g_list_append(prv->ncp_list, (gpointer)new_ncp);
 
     return(0);
 }
