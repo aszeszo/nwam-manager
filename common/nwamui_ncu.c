@@ -3914,7 +3914,6 @@ static const gchar* status_string_fmt[NWAMUI_STATE_LAST] = {
     N_("Cable Unplugged")
 };
 
-#if 1
 extern nwamui_connection_state_t
 nwamui_ncu_get_connection_state( NwamuiNcu* self ) 
 {
@@ -3922,7 +3921,8 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
     nwam_state_t                nwam_state;
     nwam_aux_state_t            aux_state;
 
-    nwam_state = nwamui_ncu_get_nwam_state(NWAMUI_OBJECT(self), &aux_state, NULL );
+    /* Use cached state */
+    nwam_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), &aux_state, NULL );
 
     switch ( nwam_state ) { 
         case NWAM_STATE_UNINITIALIZED:
@@ -3937,7 +3937,8 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             break;
         case NWAM_STATE_OFFLINE:
             if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRED && 
-                 aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET ) {
+                 ( aux_state == NWAM_AUX_STATE_DOWN || 
+                   aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET ) ) {
                 state = NWAMUI_STATE_CABLE_UNPLUGGED;
                 break;
             }
@@ -3983,85 +3984,6 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
 
     return( state );
 }
-#else
-extern nwamui_connection_state_t
-nwamui_ncu_get_connection_state( NwamuiNcu* self ) 
-{
-    dladm_handle_t              handle;
-    datalink_id_t               linkid;
-    nwamui_connection_state_t   state = NWAMUI_STATE_UNKNOWN;
-    gboolean                    if_running = FALSE;
-    gboolean                    has_addresses = FALSE;
-    guint64                     iff_flags = 0;
-
-    g_return_val_if_fail( NWAMUI_IS_NCU( self ), state );
-
-    if ( dladm_open( &handle ) != DLADM_STATUS_OK ) {
-        g_warning("Error creating dladm handle" );
-        return ( NWAMUI_STATE_UNKNOWN );
-    }
-
-    if ( dladm_name2info( handle, self->prv->device_name, &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
-        dladm_close( handle );
-        g_warning("Unable to map device to linkid");
-        return ( NWAMUI_STATE_UNKNOWN );
-    }
-
-    if ( ( iff_flags = get_ifflags(self->prv->device_name, AF_INET)) & IFF_RUNNING ) {
-        if_running = TRUE;
-    }
-    else if ( ( iff_flags = get_ifflags(self->prv->device_name, AF_INET6)) & IFF_RUNNING ) {
-        /* Attempt v6 too, if v4 failed, we only care if one of them is marked running  */
-        if_running = TRUE;
-    }
-
-    if ( if_running ) {
-        gboolean is_dhcp = (iff_flags & IFF_DHCPRUNNING)?TRUE:FALSE;
-
-        if ( interface_has_addresses( self->prv->device_name, AF_INET ) ) {
-            has_addresses = TRUE;
-        }
-        else if ( interface_has_addresses( self->prv->device_name, AF_INET6 ) ) {
-            /* Attempt v6 too, if v4 failed, we only care if one of them has addresses*/
-            has_addresses = TRUE;
-        }
-
-        if ( has_addresses ) {
-            state = NWAMUI_STATE_CONNECTED;
-        }
-        else if ( is_dhcp ) {
-            state = NWAMUI_STATE_CONNECTING;
-        }
-        else {
-            state = NWAMUI_STATE_NOT_CONNECTED;
-        }
-    }
-    else if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRED ) {
-        state = NWAMUI_STATE_CABLE_UNPLUGGED;
-    }
-    else {
-        state = NWAMUI_STATE_NOT_CONNECTED;
-    }
-
-    if ( if_running && self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-        /* Change connected/connecting to be wireless equivalent */
-        switch( state ) {
-            case NWAMUI_STATE_CONNECTING:
-                state = NWAMUI_STATE_CONNECTING_ESSID;
-                break;
-            case NWAMUI_STATE_CONNECTED:
-                state = NWAMUI_STATE_CONNECTED_ESSID;
-                break;
-            default:
-                break;
-        }
-    }
-
-    dladm_close(handle);
-
-    return( state );
-}
-#endif
 
 /*
  * Get a string that describes the status of the system, should be freed by

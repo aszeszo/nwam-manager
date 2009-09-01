@@ -212,7 +212,7 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
         cell = gtk_cell_renderer_text_new();
         gtk_tree_view_column_pack_start(col, cell, TRUE);
 
-        g_signal_connect( col, "notify::width", connview_info_width_changed, cell );
+        g_signal_connect( col, "notify::width", G_CALLBACK(connview_info_width_changed), cell );
 
         g_object_set (cell,
           "wrap-width", 200,
@@ -354,9 +354,9 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 
         model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(ncp));
         filter = gtk_tree_model_filter_new(model, NULL);
-        gtk_tree_model_filter_set_visible_func(filter, conn_view_filter_visible_cb,
+        gtk_tree_model_filter_set_visible_func(GTK_TREE_MODEL_FILTER(filter), conn_view_filter_visible_cb,
           NULL, NULL);
-        gtk_tree_model_filter_refilter(filter);
+        gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(filter));
         gtk_widget_hide(GTK_WIDGET(self->prv->conn_status_treeview));
         gtk_tree_view_set_model(self->prv->conn_status_treeview, filter);
         gtk_widget_show(GTK_WIDGET(self->prv->conn_status_treeview));
@@ -524,8 +524,12 @@ conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer dat
 	gtk_tree_model_get(model, iter, 0, &obj, -1);
 
     if (obj) {
-        /* Show enabled NCUs. */
-        if (nwamui_ncu_get_enabled(NWAMUI_NCU(obj))) {
+        nwam_state_t                nwam_state;
+
+        /* Use cached state */
+        nwam_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(obj), NULL, NULL );
+        /* Show NCUs that are not off-line */
+        if ( nwam_state != NWAM_STATE_OFFLINE ) {
             visible = TRUE;
         }
         g_object_unref(obj);
@@ -617,7 +621,7 @@ vpn_clicked_cb( GtkButton *button, gpointer data )
             self->prv->vpn_dialog = nwam_vpn_pref_dialog_new();
     }
 
-	response = capplet_dialog_run(NWAM_PREF_IFACE(self->prv->vpn_dialog), button);
+	response = capplet_dialog_run(NWAM_PREF_IFACE(self->prv->vpn_dialog), GTK_WIDGET(button));
 	
 	g_debug("VPN dialog returned %d", response);
 }

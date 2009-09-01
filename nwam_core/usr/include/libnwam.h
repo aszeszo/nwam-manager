@@ -1003,7 +1003,8 @@ extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
 #define	NWAM_EVENT_TYPE_IF_STATE		12
 #define	NWAM_EVENT_TYPE_LINK_ACTION		13
 #define	NWAM_EVENT_TYPE_LINK_STATE		14
-#define	NWAM_EVENT_MAX				NWAM_EVENT_TYPE_LINK_STATE
+#define	NWAM_EVENT_TYPE_QUEUE_QUIET		15
+#define	NWAM_EVENT_MAX				NWAM_EVENT_TYPE_QUEUE_QUIET
 
 #define	NWAM_EVENT_STATUS_OK			0
 #define	NWAM_EVENT_STATUS_NOT_HANDLED		1

@@ -2628,111 +2628,11 @@ nwamd_event_handler(gpointer data)
             }
             break;
 
-#ifdef _NEVER
-        /* FIXME: Don't see an equivalent event in Phase 1... */
-        case deWlanDisconnect: {
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, NULL, nwamevent->led_interface );
-            NwamuiWifiNet* wifi = nwamui_ncu_get_wifi_info(ncu);
-
-
-            g_debug("Wireless network '%s' disconnected", nwamevent->led_wlan.wla_essid );
-            g_assert(ncu);
-
-            if ( wifi ) {
-                nwamui_wifi_net_set_status(wifi, NWAMUI_WIFI_STATUS_DISCONNECTED);
-                /* Do not reuse wifi net instance which will mess up menus */
-/*                 nwamui_wifi_net_set_from_wlan_attrs( wifi, &nwamevent->led_wlan  ); */
-                nwamui_ncu_set_wifi_info(ncu, NULL);
+        case NWAM_EVENT_TYPE_QUEUE_QUIET: {
+                /* Nothing to do. */
             }
-            else {
-                wifi = nwamui_wifi_net_new_from_wlan_attrs( ncu, &nwamevent->led_wlan  );
-            }
-
-            g_signal_emit (daemon,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              NWAMUI_DAEMON_INFO_WLAN_DISCONNECTED,
-              wifi,
-              g_strdup_printf("%s", nwamevent->led_wlan.wla_essid ));
-
-            g_object_unref(wifi);
-            g_object_unref(ncu);
-        }
-            break;
-#endif /* _NEVER */
-
-#ifdef TODO_EVENTS
-        case deLLPSelected: {
-            NwamuiNcp * ncp = nwamui_daemon_get_active_ncp( daemon );
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, ncp, nwamevent->led_interface );
-            gchar*      name = NULL;
-
-            g_debug("Interface  '%s' selected.", nwamevent->led_interface);
-
-            g_assert(ncp && ncu);
-
-            nwamui_ncp_set_active_ncu( ncp, ncu );
-
-            name = nwamui_ncu_get_vanity_name(ncu);
-
-            nwamui_daemon_setup_dhcp_or_wep_key_timeout( daemon, ncu );
-
-            if ( nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS ) {
-                nwamui_daemon_populate_wifi_fav_list(daemon);
-            }
-
-            g_signal_emit (daemon,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              NWAMUI_DAEMON_INFO_NCU_SELECTED,
-              ncu,
-              g_strdup_printf(_("%s network interface is up."), name ));
-
-            g_free(name);
-
-            g_object_unref(ncu);
-            g_object_unref(ncp);
-        }
-            break;
-        case deLLPUnselected: {
-            NwamuiNcp * ncp = nwamui_daemon_get_active_ncp( daemon );
-            NwamuiNcu * ncu = get_ncu_by_device_name( daemon, ncp, nwamevent->led_interface );
-            NwamuiNcu * current_ncu = NULL;
-            const char* reason = NULL;
-            gchar*      name = NULL;
-            reason = nwamui_daemon_get_event_cause_string( daemon );
-
-            g_debug("'%s' network interface unselected, Reason: '%s'", nwamevent->led_interface, reason);
-
-            g_assert(ncp && ncu);
-
-            current_ncu = nwamui_ncp_get_active_ncu(ncp);
-
-            if (current_ncu) {
-                if (current_ncu == ncu) {
-                    nwamui_ncp_set_active_ncu( ncp, NULL );
-                    nwamui_daemon_disable_dhcp_or_wep_key_timeout( daemon, ncu );
-                }
-                g_object_unref(current_ncu);
-            }
-
-            name = nwamui_ncu_get_vanity_name(ncu);
-
-            g_signal_emit (daemon,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              NWAMUI_DAEMON_INFO_NCU_UNSELECTED,
-              ncu,
-              g_strdup_printf(_("%s network interface brought down\nReason: %s"), name, reason ));
-
-            g_free(name);
-
-            g_object_unref(ncu);
-            g_object_unref(ncp);
-        }
             break;
 
-#endif /* TODO _EVENTS */
         default:
             /* Directly deliver to upper consumers */
             g_signal_emit (daemon,

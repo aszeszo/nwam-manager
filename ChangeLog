@@ -1,5 +1,21 @@
 2009-09-01  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_conn_stat_panel.c: 
+	  Fix some minor compile warnings.
+	  Change visiblity test to be if the NCU has state ONLINE - all others
+	  should really be shown since there is something that needs
+	  communcation with user.
+	* common/nwamui_daemon.c: 
+	  Add empty handler to new NWAM event type QUEUE_QUIET.
+	* common/nwamui_ncu.c:
+	  Use cached nwam state values when calculating the connection_state.
+	  Fix defect#11020 where we should be also checking for aux_state of
+	  DOWN to determine if cable is unplugged or not.
+	* nwam_core/usr/include/libnwam.h:
+	  Updated to latest libnwam.h as on 9/01.
+
+2009-09-01  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_daemon.c: 
 	  Fix defect#10986 by not crashing if unable to read in NCP, but
 	  instead continue as if it's not there.
