@@ -619,7 +619,7 @@ nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
             if ( body_str == NULL ) {
                 const gchar* aux_string = NULL;
                 /* Get state reason from NWAM aux_state */
-                nwamui_object_get_nwam_state(NWAMUI_OBJECT(ncu), NULL, &aux_string );
+                nwamui_object_get_nwam_state(NWAMUI_OBJECT(ncu), NULL, &aux_string, NWAM_NCU_TYPE_LINK );
                 if ( aux_string != NULL ) {
                     body_str = g_strdup( aux_string );
                 }

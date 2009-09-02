@@ -1083,7 +1083,7 @@ set_env_disabled( gpointer obj, gpointer user_data )
     /* Only disable an env if it's not marked as offline or disabled already,
      * best to make sure we pick the correct one here.
      */
-    state = nwamui_object_get_nwam_state(nobj, &aux_state, NULL );
+    state = nwamui_object_get_nwam_state(nobj, &aux_state, NULL, 0 );
     if ( state != NWAM_STATE_OFFLINE && state != NWAM_STATE_DISABLED ) {
         nwamui_env_set_active( NWAMUI_ENV(nobj), FALSE);
     }
@@ -2846,7 +2846,7 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
             else {
                 nwam_state_t        state;
                 nwam_aux_state_t    aux_state;
-                state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(prv->active_env), &aux_state, NULL);
+                state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(prv->active_env), &aux_state, NULL, 0);
 
                 if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
                     new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
@@ -3347,7 +3347,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     if ( nwam_ncu_typed_name_to_name(object_name, &nwam_ncu_type, &device_name ) == NWAM_SUCCESS ) {
                         changed_ncu = get_ncu_by_device_name( daemon, NULL, device_name );
                         if ( changed_ncu != NULL ) {
-                            nwamui_object_set_nwam_state(NWAMUI_OBJECT(changed_ncu), object_state, object_aux_state );
+                            nwamui_object_set_nwam_state(NWAMUI_OBJECT(changed_ncu), object_state, object_aux_state, nwam_ncu_type );
                             g_object_notify( G_OBJECT(changed_ncu), "active" );
                             g_object_unref(changed_ncu);
                         }
@@ -3413,7 +3413,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                 else {
                     NwamuiNcu       *needs_wifi_selection = NULL;
                     NwamuiWifiNet   *needs_wifi_key = NULL;
-                    nwamui_object_set_nwam_state(NWAMUI_OBJECT(prv->active_ncp), object_state, object_aux_state );
+                    nwamui_object_set_nwam_state(NWAMUI_OBJECT(prv->active_ncp), object_state, object_aux_state, 0 );
                     if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
                         DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
@@ -3438,7 +3438,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     env = nwamui_daemon_get_env_by_name( daemon, object_name );
 
                     if ( env != NULL ) {
-                        nwamui_object_set_nwam_state(NWAMUI_OBJECT(env), object_state, object_aux_state );
+                        nwamui_object_set_nwam_state(NWAMUI_OBJECT(env), object_state, object_aux_state, 0 );
                         if ( prv->active_env == env ) {
                             if ( object_state != NWAM_STATE_ONLINE || object_aux_state != NWAM_AUX_STATE_ACTIVE ) {
                                 new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
@@ -3462,7 +3462,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
 
                     enm = nwamui_daemon_get_enm_by_name( daemon, object_name );
                     if ( enm ) {
-                        nwamui_object_set_nwam_state(NWAMUI_OBJECT(enm), object_state, object_aux_state );
+                        nwamui_object_set_nwam_state(NWAMUI_OBJECT(enm), object_state, object_aux_state, 0 );
                         if ( nwamui_enm_get_enabled( NWAMUI_ENM(enm) ) ) {
                             if ( object_state != NWAM_STATE_ONLINE || object_aux_state != NWAM_AUX_STATE_ACTIVE ) {
                                 new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
@@ -3507,7 +3507,7 @@ check_enm_online( gpointer obj, gpointer user_data )
     nwam_aux_state_t         aux_state;
 
     if ( nwamui_enm_get_enabled( NWAMUI_ENM(nobj) ) ) {
-        state = nwamui_object_get_nwam_state( nobj, &aux_state, NULL);
+        state = nwamui_object_get_nwam_state( nobj, &aux_state, NULL, 0);
 
         if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
             *new_status_p = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;

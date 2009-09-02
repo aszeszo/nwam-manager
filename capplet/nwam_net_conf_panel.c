@@ -1030,7 +1030,7 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
     }
 
     if ( found_object != NULL ) {
-        if ( nwamui_object_get_nwam_state( found_object, NULL, NULL ) == NWAM_STATE_ONLINE ) {
+        if ( nwamui_object_get_nwam_state( found_object, NULL, NULL, NWAM_NCU_TYPE_LINK ) == NWAM_STATE_ONLINE ) {
             is_active = TRUE;
         }
         g_object_unref(found_object);

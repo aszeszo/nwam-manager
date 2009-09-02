@@ -44,11 +44,14 @@ enum {
 
 static guint nwamui_object_signals[LAST_SIGNAL] = {0};
 
+#define NWAM_STATE_CACHE_DEFAULT    (0)
+
 struct _NwamuiObjectPrivate {
-    /* State caching */
-    nwam_state_t                    nwam_state;
-    nwam_aux_state_t                nwam_aux_state;
-    time_t                          nwam_state_last_update;
+    /* State caching, store up to NWAM_NCU_TYPE_ANY values to allow for NCU
+     * classes to have extra state per NCU class type */
+    nwam_state_t                    nwam_state[NWAM_NCU_TYPE_ANY];
+    nwam_aux_state_t                nwam_aux_state[NWAM_NCU_TYPE_ANY];
+    time_t                          nwam_state_last_update[NWAM_NCU_TYPE_ANY];
 };
 
 static GObject* nwamui_object_constructor(GType type,
@@ -109,9 +112,11 @@ nwamui_object_init(NwamuiObject *self)
 {
     self->prv = g_new0 (NwamuiObjectPrivate, 1);
 
-    self->prv->nwam_state = NWAM_STATE_UNINITIALIZED;
-    self->prv->nwam_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-    self->prv->nwam_state_last_update = 0;
+    for ( int i = 0; i < NWAM_NCU_TYPE_ANY; i++ ) {
+        self->prv->nwam_state[i] = NWAM_STATE_UNINITIALIZED;
+        self->prv->nwam_aux_state[i] = NWAM_AUX_STATE_UNINITIALIZED;
+        self->prv->nwam_state_last_update[i] = 0;
+    }
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)nwamui_object_notify_cb, (gpointer)self);
 }
@@ -141,7 +146,7 @@ nwamui_object_get_property(GObject         *object,
 
 	switch (prop_id) {
         case PROP_NWAM_STATE: {
-                g_value_set_uint( value, self->prv->nwam_state );
+                g_value_set_uint( value, (guint)self->prv->nwam_state );
             }
             break;
         default:
@@ -306,26 +311,33 @@ nwamui_object_reload(NwamuiObject *object)
 static time_t   _nwamui_state_timeout = 60; /* Seconds */
 
 extern nwam_state_t         
-nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p )
+nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type  )
 {
     nwam_state_t        rval = NWAM_STATE_UNINITIALIZED;
     nwam_state_t        _state = NWAM_STATE_UNINITIALIZED;
     nwam_aux_state_t    _aux_state = NWAM_AUX_STATE_UNINITIALIZED;
     time_t              _elapsed_time;
     time_t              _current_time;
+    guint               cache_index = NWAM_STATE_CACHE_DEFAULT;
 
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), rval );
 
+    if ( NWAMUI_IS_NCU(object) ) {
+        if ( ncu_type >= NWAM_NCU_TYPE_LINK && ncu_type < NWAM_NCU_TYPE_ANY ) {
+            cache_index = (guint)ncu_type;
+        }
+    }
+
     if ( NWAMUI_OBJECT_GET_CLASS (object)->get_nwam_state == NULL ) {
         
-        if ( object->prv->nwam_state_last_update > 0) {
+        if ( object->prv->nwam_state_last_update[cache_index] > 0) {
             /* It's possible that the object doesn't have it's own get_state
              * function, yet the state has been updated due to an event.
              *
              * If this has happened, then use that information.
              */
-            _state = object->prv->nwam_state;
-            _aux_state = object->prv->nwam_aux_state;
+            _state = object->prv->nwam_state[cache_index];
+            _aux_state = object->prv->nwam_aux_state[cache_index];
         }
 
         if ( aux_state_p ) {
@@ -341,32 +353,32 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p
 
     _current_time = time( NULL );;
 
-    _elapsed_time = _current_time - object->prv->nwam_state_last_update;
+    _elapsed_time = _current_time - object->prv->nwam_state_last_update[cache_index];
 
     if ( _elapsed_time > _nwamui_state_timeout ) {
         gboolean state_changed = FALSE;
 
-        _state = NWAMUI_OBJECT_GET_CLASS (object)->get_nwam_state(object, &_aux_state, NULL );
+        _state = NWAMUI_OBJECT_GET_CLASS (object)->get_nwam_state(object, &_aux_state, NULL, ncu_type );
 
-        if ( _state != object->prv->nwam_state ) {
+        if ( _state != object->prv->nwam_state[cache_index] ) {
             state_changed = TRUE;
         }
-        if ( _aux_state != object->prv->nwam_aux_state ) {
+        if ( _aux_state != object->prv->nwam_aux_state[cache_index] ) {
             state_changed = TRUE;
         }
 
         /* Update internal cache */
-        object->prv->nwam_state = _state;
-        object->prv->nwam_aux_state = _aux_state;
-        object->prv->nwam_state_last_update = _current_time;
+        object->prv->nwam_state[cache_index] = _state;
+        object->prv->nwam_aux_state[cache_index] = _aux_state;
+        object->prv->nwam_state_last_update[cache_index] = _current_time;
 
         if ( state_changed ) {
             g_object_notify(G_OBJECT(object), "nwam_state" );
         }
     }
     else {
-        _state = object->prv->nwam_state;
-        _aux_state = object->prv->nwam_aux_state;
+        _state = object->prv->nwam_state[cache_index];
+        _aux_state = object->prv->nwam_aux_state[cache_index];
     }
 
     rval = _state;
@@ -382,15 +394,22 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p
 }
 
 extern void
-nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state)
+nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state, nwam_ncu_type_t ncu_type )
 {
     nwam_state_t    rval = NWAM_STATE_UNINITIALIZED;
+    guint           cache_index = NWAM_STATE_CACHE_DEFAULT;
 
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
 
-    object->prv->nwam_state = state;
-    object->prv->nwam_aux_state = aux_state;
-    object->prv->nwam_state_last_update = time( NULL );;
+    if ( NWAMUI_IS_NCU(object) ) {
+        if ( ncu_type >= NWAM_NCU_TYPE_LINK && ncu_type < NWAM_NCU_TYPE_ANY ) {
+            cache_index = (guint)ncu_type;
+        }
+    }
+
+    object->prv->nwam_state[cache_index] = state;
+    object->prv->nwam_aux_state[cache_index] = aux_state;
+    object->prv->nwam_state_last_update[cache_index] = time( NULL );;
     g_object_notify(G_OBJECT(object), "nwam_state" );
 
     /* Active property is likely to have changed too, but first check if there

@@ -82,7 +82,7 @@ static gboolean     set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const
 static guint64      get_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name );
 static gboolean     set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 value );
 
-static nwam_state_t nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p );
+static nwam_state_t nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p , nwam_ncu_type_t ncu_type );
 static gboolean     nwamui_enm_destroy( NwamuiEnm* self );
 
 /* Callbacks */
@@ -372,7 +372,7 @@ nwamui_enm_get_property (   GObject         *object,
                     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
                     /* Use cached state in nwamui_object... */
-                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL );
+                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL, 0 );
 
                     if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_ACTIVE ) {
                         active = TRUE;
@@ -1362,7 +1362,7 @@ nwamui_enm_finalize (NwamuiEnm *self)
 }
 
 static nwam_state_t
-nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p )
+nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type )
 {
     nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
 

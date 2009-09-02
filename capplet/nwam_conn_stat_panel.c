@@ -527,7 +527,7 @@ conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer dat
         nwam_state_t                nwam_state;
 
         /* Use cached state */
-        nwam_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(obj), NULL, NULL );
+        nwam_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(obj), NULL, NULL, NWAM_NCU_TYPE_LINK );
         /* Show NCUs that are not off-line */
         if ( nwam_state != NWAM_STATE_OFFLINE ) {
             visible = TRUE;

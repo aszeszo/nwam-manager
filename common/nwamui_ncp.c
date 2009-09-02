@@ -112,7 +112,7 @@ static void nwamui_ncp_get_property ( GObject         *object,
 
 static void nwamui_ncp_finalize (     NwamuiNcp *self);
 
-static nwam_state_t nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p );
+static nwam_state_t nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type  );
 
 /* Default signal handlers */
 static void default_activate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer user_data);
@@ -442,7 +442,7 @@ nwamui_ncp_finalize (NwamuiNcp *self)
 }
 
 static nwam_state_t
-nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p )
+nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type  )
 {
     nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
 
@@ -795,7 +795,7 @@ check_ncu_online( gpointer obj, gpointer user_data )
     }
 
     activation_mode = nwamui_ncu_get_activation_mode( ncu );
-    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL);
+    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL, 0);
 
     if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_UP ) {
         online = TRUE;

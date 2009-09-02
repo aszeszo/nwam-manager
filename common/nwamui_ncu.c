@@ -157,7 +157,7 @@ static void nwamui_ncu_get_property ( GObject         *object,
 
 static void nwamui_ncu_finalize (     NwamuiNcu *self);
 
-static nwam_state_t nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string );
+static nwam_state_t nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type );
 
 static void set_modified_flag( NwamuiNcu* self, nwam_ncu_class_t ncu_class, gboolean value );
 
@@ -556,7 +556,7 @@ nwamui_ncu_set_property ( GObject         *object,
                     nwam_state_t        state = NWAM_STATE_OFFLINE;
                     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-                    nwam_ncu_get_state( self->prv->nwam_ncu_phys, &state, &aux_state );
+                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL, NWAM_NCU_TYPE_LINK );
 
                     /* Activate immediately */
                     gboolean active = g_value_get_boolean( value );
@@ -766,12 +766,12 @@ nwamui_ncu_get_property (GObject         *object,
 
                     activation_mode = nwamui_ncu_get_activation_mode (self);
                 
-                    nwam_ncu_get_state( self->prv->nwam_ncu_phys, &state, &aux_state );
+                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL, NWAM_NCU_TYPE_LINK );
                     if ( state == NWAM_STATE_ONLINE ) {
                         state = NWAM_STATE_OFFLINE;
                         aux_state = NWAM_AUX_STATE_UNINITIALIZED;
                         if ( self->prv->nwam_ncu_ip ) {
-                            nwam_ncu_get_state( self->prv->nwam_ncu_ip, &state, &aux_state );
+                            state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL, NWAM_NCU_TYPE_INTERFACE );
                         }
 #ifdef TUNNEL_SUPPORT
                         else if ( self->prv->nwam_ncu_iptun ) {
@@ -3073,7 +3073,7 @@ nwamui_ncu_finalize (NwamuiNcu *self)
 }
 
 static nwam_state_t
-nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p )
+nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type )
 {
     nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
 
@@ -3091,34 +3091,39 @@ nwamui_ncu_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, c
         nwam_aux_state_t    aux_state;
 
 
-        /* First look at the LINK state, then the IP */
-        if ( ncu->prv->nwam_ncu_phys &&
-             nwam_ncu_get_state( ncu->prv->nwam_ncu_phys, &state, &aux_state ) == NWAM_SUCCESS ) {
-            if ( state == NWAM_STATE_ONLINE ) {
-                nwam_state_t        ip_state;
-                nwam_aux_state_t    ip_aux_state;
-                /* LINK looks ok, so try the IP level */
-                if ( ncu->prv->nwam_ncu_ip &&
-                     nwam_ncu_get_state( ncu->prv->nwam_ncu_ip, &ip_state, &ip_aux_state ) == NWAM_SUCCESS ) {
-                    state = ip_state;
-                    aux_state = ip_aux_state;
-                }
+        if ( ncu_type == NWAM_NCU_TYPE_LINK ) {
+            nwam_state_t        _state;
+            nwam_aux_state_t    _aux_state;
+            if ( ncu->prv->nwam_ncu_phys ) {
+                 if ( nwam_ncu_get_state( ncu->prv->nwam_ncu_phys, &_state, &_aux_state ) == NWAM_SUCCESS ) {
+                    state = _state;
+                    aux_state = _aux_state;
+                 }
+            }
+        }
+        else if ( ncu_type == NWAM_NCU_TYPE_INTERFACE ) {
+            nwam_state_t        _state;
+            nwam_aux_state_t    _aux_state;
+            if ( ncu->prv->nwam_ncu_ip &&
+                 nwam_ncu_get_state( ncu->prv->nwam_ncu_ip, &_state, &_aux_state ) == NWAM_SUCCESS ) {
+                state = _state;
+                aux_state = _aux_state;
+            }
 #ifdef TUNNEL_SUPPORT
-                else if ( ncu->prv->nwam_ncu_iptun &&
-                     nwam_ncu_get_state( ncu->prv->nwam_ncu_iptun, &ip_state, &ip_aux_state ) == NWAM_SUCCESS ) {
-                    state = ip_state;
-                    aux_state = ip_aux_state;
-                }
+            else if ( ncu->prv->nwam_ncu_iptun &&
+                 nwam_ncu_get_state( ncu->prv->nwam_ncu_iptun, &_state, &_aux_state ) == NWAM_SUCCESS ) {
+                state = _state;
+                aux_state = _aux_state;
+            }
 #endif /* TUNNEL_SUPPORT */
-            }
+        }
 
-            rstate = state;
-            if ( aux_state_p ) {
-                *aux_state_p = aux_state;
-            }
-            if ( aux_state_string_p ) {
-                *aux_state_string_p = _((const gchar*)nwam_aux_state_to_string( aux_state ));
-            }
+        rstate = state;
+        if ( aux_state_p ) {
+            *aux_state_p = aux_state;
+        }
+        if ( aux_state_string_p ) {
+            *aux_state_string_p = _((const gchar*)nwam_aux_state_to_string( aux_state ));
         }
     }
 
@@ -3919,10 +3924,26 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
 {
     nwamui_connection_state_t   state = NWAMUI_STATE_UNKNOWN;
     nwam_state_t                nwam_state;
-    nwam_aux_state_t            aux_state;
+    nwam_aux_state_t            nwam_aux_state;
+    nwam_state_t                link_state;
+    nwam_aux_state_t            link_aux_state;
+    nwam_state_t                iface_state;
+    nwam_aux_state_t            iface_aux_state;
 
     /* Use cached state */
-    nwam_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), &aux_state, NULL );
+    link_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), &link_aux_state, NULL, NWAM_NCU_TYPE_LINK );
+    iface_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), &iface_aux_state, NULL, NWAM_NCU_TYPE_INTERFACE );
+
+    /* First look at the LINK state, then the IP */
+    if ( link_state == NWAM_STATE_ONLINE ) {
+        /* LINK looks ok, so try the IP level */
+        nwam_state = iface_state;
+        nwam_aux_state = iface_aux_state;
+    }
+    else {
+        nwam_state = link_state;
+        nwam_aux_state = link_aux_state;
+    }
 
     switch ( nwam_state ) { 
         case NWAM_STATE_UNINITIALIZED:
@@ -3937,8 +3958,8 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             break;
         case NWAM_STATE_OFFLINE:
             if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRED && 
-                 ( aux_state == NWAM_AUX_STATE_DOWN || 
-                   aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET ) ) {
+                 ( nwam_aux_state == NWAM_AUX_STATE_DOWN || 
+                   nwam_aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET ) ) {
                 state = NWAMUI_STATE_CABLE_UNPLUGGED;
                 break;
             }
@@ -3946,32 +3967,32 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             break;
         case NWAM_STATE_OFFLINE_TO_ONLINE:
             if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-                if ( aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
+                if ( nwam_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
                     state = NWAMUI_STATE_NEEDS_SELECTION;
                     break;
                 }
-                else if ( aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
+                else if ( nwam_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
                     state = NWAMUI_STATE_NEEDS_KEY_ESSID;
                     break;
                 }
-                else if ( aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
+                else if ( nwam_aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
                     state = NWAMUI_STATE_CONNECTING_ESSID;
                     break;
                 }
             }
-	        if ( aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR ) {
+	        if ( nwam_aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR ) {
                 state = NWAMUI_STATE_WAITING_FOR_ADDRESS;
             }
-            else if ( aux_state == NWAM_AUX_STATE_IF_DHCP_TIMED_OUT ) {
+            else if ( nwam_aux_state == NWAM_AUX_STATE_IF_DHCP_TIMED_OUT ) {
                 state = NWAMUI_STATE_DHCP_TIMED_OUT;
             }
-            else if ( aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR ) {
+            else if ( nwam_aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR ) {
                 state = NWAMUI_STATE_DHCP_DUPLICATE_ADDR;
             }
             state = NWAMUI_STATE_CONNECTING;
             break;
         case NWAM_STATE_ONLINE:
-            if ( aux_state == NWAM_AUX_STATE_UP ) {
+            if ( nwam_aux_state == NWAM_AUX_STATE_UP ) {
                 if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
                     state = NWAMUI_STATE_CONNECTED_ESSID;
                     break;
@@ -4293,18 +4314,18 @@ nwamui_ncu_get_configuration_summary_string( NwamuiNcu* self )
         }
 
         nwamui_util_free_obj_list( ipv6_list );
-    }
-    if ( self->prv->ipv6_has_dhcp ) {
-        if ( v6addr_part->len > 0 ) {
-            (void)g_string_append(v6addr_part, _(", "));
+        if ( self->prv->ipv6_has_dhcp ) {
+            if ( v6addr_part->len > 0 ) {
+                (void)g_string_append(v6addr_part, _(", "));
+            }
+            (void)g_string_append(v6addr_part, _("DHCP Assigned") );
         }
-        (void)g_string_append(v6addr_part, _("DHCP Assigned") );
-    }
-    if ( self->prv->ipv6_has_auto_conf ) {
-        if ( v6addr_part->len > 0 ) {
-            (void)g_string_append(v6addr_part, _(", "));
+        if ( self->prv->ipv6_has_auto_conf ) {
+            if ( v6addr_part->len > 0 ) {
+                (void)g_string_append(v6addr_part, _(", "));
+            }
+            (void)g_string_append(v6addr_part, _("Autoconf") );
         }
-        (void)g_string_append(v6addr_part, _("Autoconf") );
     }
 
     status_string = g_string_new("");

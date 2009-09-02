@@ -1,3 +1,20 @@
+2009-09-02  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c, common/nwamui_object.h,
+	  common/nwamui_object.c: 
+	  Add new param to nwamui_object_get_nwam_state() and
+	  nwamui_object_set_nwam_state(), to take an NCU type. It's ignored if
+	  the object is not an NCU, but if it is, it allows you to get the
+	  specific NCU state, not just a merged state.
+	* common/nwamui_enm.c, common/nwamui_env.c, common/nwamui_ncp.c,
+	  common/nwamui_ncu.c, capplet/nwam_conn_stat_panel.c,
+	  capplet/nwam_net_conf_panel.c, daemon/notify.c:
+	  Update for newly added ncu_type param for get_nwam_state()
+	* daemon/nwam-wifi-item.c: 
+	  Fix issue where the presence of a tick-mark against a wifi network
+	  is dependent on the link state only - it shouldn't be reliant on the
+	  state of the IP/INTERFACE state.
+
 2009-09-01  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_location_dialog.c: 
