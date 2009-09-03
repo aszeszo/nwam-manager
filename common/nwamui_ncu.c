@@ -45,27 +45,6 @@
 #include <libdllink.h>
 #include <libdlwlan.h>
 
-/* Try to ensure that NWAM_AUX_STATES are translated */
-#define NWAMUI_AUX_STATE_UNINITIALIZED_STRING              N_(NWAM_AUX_STATE_UNINITIALIZED_STRING)
-#define	NWAMUI_AUX_STATE_INITIALIZED_STRING                N_(NWAM_AUX_STATE_INITIALIZED_STRING)
-#define	NWAMUI_AUX_STATE_CONDITIONS_NOT_MET_STRING         N_(NWAM_AUX_STATE_CONDITIONS_NOT_MET_STRING)
-#define	NWAMUI_AUX_STATE_MANUAL_DISABLE_STRING             N_(NWAM_AUX_STATE_MANUAL_DISABLE_STRING)
-#define	NWAMUI_AUX_STATE_METHOD_FAILED_STRING              N_(NWAM_AUX_STATE_METHOD_FAILED_STRING)
-#define	NWAMUI_AUX_STATE_METHOD_RUNNING_STRING             N_(NWAM_AUX_STATE_METHOD_RUNNING_STRING)
-#define	NWAMUI_AUX_STATE_METHOD_MISSING_STRING             N_(NWAM_AUX_STATE_METHOD_MISSING_STRING)
-#define	NWAMUI_AUX_STATE_INVALID_CONFIG_STRING             N_(NWAM_AUX_STATE_INVALID_CONFIG_STRING)
-#define	NWAMUI_AUX_STATE_ACTIVE_STRING                     N_(NWAM_AUX_STATE_ACTIVE_STRING)
-#define	NWAMUI_AUX_STATE_LINK_WIFI_SCANNING_STRING         N_(NWAM_AUX_STATE_LINK_WIFI_SCANNING_STRING)
-#define	NWAMUI_AUX_STATE_LINK_WIFI_NEED_SELECTION_STRING   N_(NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION_STRING)
-#define	NWAMUI_AUX_STATE_LINK_WIFI_NEED_KEY_STRING         N_(NWAM_AUX_STATE_LINK_WIFI_NEED_KEY_STRING)
-#define	NWAMUI_AUX_STATE_LINK_WIFI_CONNECTING_STRING       N_(NWAM_AUX_STATE_LINK_WIFI_CONNECTING_STRING)
-#define	NWAMUI_AUX_STATE_IF_WAITING_FOR_ADDR_STRING        N_(NWAM_AUX_STATE_IF_WAITING_FOR_ADDR_STRING)
-#define	NWAMUI_AUX_STATE_IF_DHCP_TIMED_OUT_STRING          N_(NWAM_AUX_STATE_IF_DHCP_TIMED_OUT_STRING)
-#define	NWAMUI_AUX_STATE_IF_DUPLICATE_ADDR_STRING          N_(NWAM_AUX_STATE_IF_DUPLICATE_ADDR_STRING)
-#define	NWAMUI_AUX_STATE_UP_STRING                         N_(NWAM_AUX_STATE_UP_STRING)
-#define	NWAMUI_AUX_STATE_DOWN_STRING                       N_(NWAM_AUX_STATE_DOWN_STRING)
-#define	NWAMUI_AUX_STATE_NOT_FOUND_STRING                  N_(NWAM_AUX_STATE_NOT_FOUND_STRING)
-
 static GObjectClass *parent_class = NULL;
 
 struct _NwamuiNcuPrivate {
@@ -1093,7 +1072,7 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     gtk_list_store_clear(ncu->prv->v6addresses);
 
     for ( int ip_n = 0; ip_n < ip_version_num; ip_n++ ) {
-        if (ip_version[ip_n] == NWAM_IP_VERSION_IPV4) {
+        if (ip_version[ip_n] == IPV4_VERSION) {
             char**      ptr;
             gboolean    has_static = FALSE;
             gint        i;
@@ -1172,7 +1151,7 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                 ncu->prv->ipv4_active = TRUE;
             }
         }
-        else if (ip_version[ip_n] == NWAM_IP_VERSION_IPV6) {
+        else if (ip_version[ip_n] == IPV6_VERSION) {
             char          ** ptr;
             const char     *prefix = NULL;
             char           *delim;
@@ -1339,7 +1318,7 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
         guint               addr_index;
         gboolean            dhcp = self->prv->ipv4_has_dhcp;
 
-        ip_version[ip_version_num] = (uint64_t)NWAM_IP_VERSION_IPV4;
+        ip_version[ip_version_num] = (uint64_t)IPV4_VERSION;
         ip_version_num++;
 
         ipv4_list = convert_gtk_list_store_to_g_list( self->prv->v4addresses );
@@ -1406,7 +1385,7 @@ nwamui_ncu_sync_handle_with_ip_data( NwamuiNcu *self )
         gboolean            autoconf = self->prv->ipv6_has_auto_conf;
         gboolean            dhcp = self->prv->ipv6_has_dhcp;
 
-        ip_version[ip_version_num] = (uint64_t)NWAM_IP_VERSION_IPV6;
+        ip_version[ip_version_num] = (uint64_t)IPV6_VERSION;
         ip_version_num++;
 
         ipv6_list = convert_gtk_list_store_to_g_list( self->prv->v6addresses );
@@ -2155,9 +2134,16 @@ nwamui_ncu_get_nwam_qualified_name ( NwamuiNcu *self )
     g_return_val_if_fail (NWAMUI_IS_NCU(self), nwam_qualified_name); 
     
     if ( self->prv->device_name != NULL ) {
-        nwam_qualified_name = g_strdup_printf( "%s:%s", 
-                                               NWAM_NCU_TYPE_INTERFACE_STRING, 
-                                               self->prv->device_name );
+        char    *typed_name = NULL;
+
+        if ( nwam_ncu_name_to_typed_name( self->prv->device_name, 
+                                          NWAM_NCU_TYPE_INTERFACE,
+                                          &typed_name ) == NWAM_SUCCESS ) {
+            if ( typed_name != NULL ) {
+                nwam_qualified_name = g_strdup( typed_name );
+                free(typed_name);
+            }
+        }
     }
     
     return( nwam_qualified_name );
@@ -2957,7 +2943,7 @@ nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( NwamuiNcu    *self,
     }
 
     if ( (wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid( self, 
-                                                wlan->essid ) ) != NULL ) {
+                                                wlan->nww_essid ) ) != NULL ) {
         nwamui_wifi_net_update_from_wlan_t( wifi_net, wlan);
         g_object_ref(wifi_net);
     }
@@ -3737,7 +3723,7 @@ nwamui_ncu_has_dhcp_configured( NwamuiNcu *ncu, gboolean *ipv4_has_dhcp, gboolea
     }
 
     for ( int ip_n = 0; ip_n < ip_version_num; ip_n++ ) {
-        if (ip_version[ip_n] == NWAM_IP_VERSION_IPV4) {
+        if (ip_version[ip_n] == IPV4_VERSION) {
             ipv4_addrsrc = get_nwam_ncu_uint64_array_prop( ncu->prv->nwam_ncu_ip, 
                                                            NWAM_NCU_PROP_IPV4_ADDRSRC, 
                                                            &ipv4_addrsrc_num );
@@ -3751,7 +3737,7 @@ nwamui_ncu_has_dhcp_configured( NwamuiNcu *ncu, gboolean *ipv4_has_dhcp, gboolea
             }
             g_free(ipv4_addrsrc);
         }
-        else if (ip_version[ip_n] == NWAM_IP_VERSION_IPV6) {
+        else if (ip_version[ip_n] == IPV6_VERSION) {
             ipv6_addrsrc = get_nwam_ncu_uint64_array_prop(  ncu->prv->nwam_ncu_ip, 
                                                             NWAM_NCU_PROP_IPV6_ADDRSRC, 
                                                             &ipv6_addrsrc_num );

@@ -907,7 +907,7 @@ nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self,
                                         nwam_wlan_t               *wlan )
 {
     if ( wlan != NULL ) {
-        const gchar*                    essid = wlan->essid;
+        const gchar*                    essid = wlan->nww_essid;
         nwamui_wifi_security_t          security;
         GList                          *bssid_list;
         nwamui_wifi_bss_type_t          bss_type;
@@ -916,22 +916,22 @@ nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self,
         guint                           speed;
         
         bssid_list = nwamui_wifi_net_get_bssid_list( self );
-        if ( wlan->bssid != NULL ) {
+        if ( wlan->nww_bssid != NULL ) {
             /* Merge list */
             GList *match = g_list_find_custom( bssid_list, 
-                                wlan->bssid, (GCompareFunc)strcmp );
+                                wlan->nww_bssid, (GCompareFunc)strcmp );
             if ( match == NULL ) {
                 bssid_list = g_list_append( bssid_list, 
-                            g_strdup(wlan->bssid) );
+                            g_strdup(wlan->nww_bssid) );
             }
         }
         security = nwamui_wifi_net_security_map (
-                        wlan->security_mode);
-        channel = wlan->channel;
-        speed = wlan->speed / 2; /* dladm_wlan_speed_t needs to be div by 2 */
-        bss_type = nwamui_wifi_net_bss_type_map( wlan->bsstype );
+                        wlan->nww_security_mode);
+        channel = wlan->nww_channel;
+        speed = wlan->nww_speed / 2; /* dladm_wlan_speed_t needs to be div by 2 */
+        bss_type = nwamui_wifi_net_bss_type_map( wlan->nww_bsstype );
 
-        signal_strength = nwamui_wifi_net_strength_map(wlan->signal_strength);
+        signal_strength = nwamui_wifi_net_strength_map(wlan->nww_signal_strength);
 
         if ( self != NULL ) {
             g_object_set (G_OBJECT (self),

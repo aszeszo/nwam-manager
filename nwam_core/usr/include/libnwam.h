@@ -36,6 +36,8 @@ extern "C" {
 
 #include <bsm/adt.h>
 #include <net/if.h>
+#include <inet/ip.h>
+#include <inet/ip6.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 
@@ -49,11 +51,6 @@ extern "C" {
 #define	NWAM_PROP_ACTIVE_NCP	"active_ncp"
 
 /* nwam flags used for read/commit */
-/* mask off the global vs. local portions of the flags value */
-#define	NWAM_FLAG_GLOBAL_MASK		0xFFFFFFFF
-#define	NWAM_FLAG_LOCAL_MASK		0xFFFFFFFFULL << 32
-#define	NWAM_WALK_FILTER_MASK		NWAM_FLAG_LOCAL_MASK
-
 /* Block waiting for commit if necessary */
 #define	NWAM_FLAG_BLOCKING		0x00000001
 /* Committed object must be new */
@@ -212,20 +209,10 @@ typedef enum {
 			NWAM_STATE_DEGRADED | \
 			NWAM_STATE_DISABLED)
 
-#define	NWAM_STATE_UNINITIALIZED_STRING		"uninitialized"
-#define	NWAM_STATE_INITIALIZED_STRING		"initialized"
-#define	NWAM_STATE_OFFLINE_STRING		"offline"
-#define	NWAM_STATE_OFFLINE_TO_ONLINE_STRING	"offline*"
-#define	NWAM_STATE_ONLINE_TO_OFFLINE_STRING	"online*"
-#define	NWAM_STATE_ONLINE_STRING		"online"
-#define	NWAM_STATE_MAINTENANCE_STRING		"maintenance"
-#define	NWAM_STATE_DEGRADED_STRING		"degraded"
-#define	NWAM_STATE_DISABLED_STRING		"disabled"
-
 /*
- * In the future, aux state will be used to signify supplemental
- * reasons why an object is in a particular state (e.g. "script failed",
- * "disabled by administrator", "waiting for DHCP response").
+ * The auxiliary state denotes specific reasons why an object is in a particular
+ * state (e.g. "script failed", "disabled by administrator", "waiting for DHCP
+ * response").
  */
 typedef enum {
 	/* General auxiliary states */
@@ -253,45 +240,6 @@ typedef enum {
 	NWAM_AUX_STATE_NOT_FOUND
 } nwam_aux_state_t;
 
-#define	NWAM_AUX_STATE_UNINITIALIZED_STRING		\
-		"uninitialized"
-#define	NWAM_AUX_STATE_INITIALIZED_STRING		\
-		"(re)initialized but not configured"
-#define	NWAM_AUX_STATE_CONDITIONS_NOT_MET_STRING	\
-		"conditions for activation are unmet"
-#define	NWAM_AUX_STATE_MANUAL_DISABLE_STRING		\
-		"disabled by administrator"
-#define	NWAM_AUX_STATE_METHOD_FAILED_STRING		\
-		"method/service failed"
-#define	NWAM_AUX_STATE_METHOD_RUNNING_STRING		\
-		"method/service executing"
-#define	NWAM_AUX_STATE_METHOD_MISSING_STRING		\
-		"method or FMRI not specified"
-#define	NWAM_AUX_STATE_INVALID_CONFIG_STRING		\
-		"invalid configuration values"
-#define	NWAM_AUX_STATE_ACTIVE_STRING			\
-		"active"
-#define	NWAM_AUX_STATE_LINK_WIFI_SCANNING_STRING	\
-		"scanning for WiFi networks"
-#define	NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION_STRING	\
-		"need WiFi network selection"
-#define	NWAM_AUX_STATE_LINK_WIFI_NEED_KEY_STRING	\
-		"need WiFi security key"
-#define	NWAM_AUX_STATE_LINK_WIFI_CONNECTING_STRING	\
-		"connecting to WiFi network"
-#define	NWAM_AUX_STATE_IF_WAITING_FOR_ADDR_STRING	\
-		"waiting for IP address to be set"
-#define	NWAM_AUX_STATE_IF_DHCP_TIMED_OUT_STRING		\
-		"DHCP wait timeout, still trying..."
-#define	NWAM_AUX_STATE_IF_DUPLICATE_ADDR_STRING		\
-		"duplicate address detected"
-#define	NWAM_AUX_STATE_UP_STRING			\
-		"interface/link is up"
-#define	NWAM_AUX_STATE_DOWN_STRING			\
-		"interface/link is down"
-#define	NWAM_AUX_STATE_NOT_FOUND_STRING			\
-		"interface/link not found"
-
 /* Activation modes */
 typedef enum {
 	NWAM_ACTIVATION_MODE_MANUAL,
@@ -300,12 +248,6 @@ typedef enum {
 	NWAM_ACTIVATION_MODE_CONDITIONAL_ALL,
 	NWAM_ACTIVATION_MODE_PRIORITIZED
 } nwam_activation_mode_t;
-
-#define	NWAM_ACTIVATION_MODE_MANUAL_STRING		"manual"
-#define	NWAM_ACTIVATION_MODE_SYSTEM_STRING		"system"
-#define	NWAM_ACTIVATION_MODE_PRIORITIZED_STRING		"prioritized"
-#define	NWAM_ACTIVATION_MODE_CONDITIONAL_ANY_STRING	"conditional-any"
-#define	NWAM_ACTIVATION_MODE_CONDITIONAL_ALL_STRING	"conditional-all"
 
 /*
  * Conditions are of the form
@@ -327,13 +269,6 @@ typedef enum {
 	NWAM_CONDITION_DOES_NOT_CONTAIN
 } nwam_condition_t;
 
-#define	NWAM_CONDITION_IS_STRING			"is"
-#define	NWAM_CONDITION_IS_NOT_STRING			"is-not"
-#define	NWAM_CONDITION_IS_IN_RANGE_STRING		"is-in-range"
-#define	NWAM_CONDITION_IS_NOT_IN_RANGE_STRING		"is-not-in-range"
-#define	NWAM_CONDITION_CONTAINS_STRING			"contains"
-#define	NWAM_CONDITION_DOES_NOT_CONTAIN_STRING		"does-not-contain"
-
 typedef enum {
 	NWAM_CONDITION_OBJECT_TYPE_NCU,
 	NWAM_CONDITION_OBJECT_TYPE_ENM,
@@ -344,17 +279,6 @@ typedef enum {
 	NWAM_CONDITION_OBJECT_TYPE_ESSID,
 	NWAM_CONDITION_OBJECT_TYPE_BSSID
 } nwam_condition_object_type_t;
-
-#define	NWAM_CONDITION_OBJECT_TYPE_NCU_STRING		"ncu"
-#define	NWAM_CONDITION_OBJECT_TYPE_ENM_STRING		"enm"
-#define	NWAM_CONDITION_OBJECT_TYPE_LOC_STRING		"loc"
-#define	NWAM_CONDITION_OBJECT_TYPE_IP_ADDRESS_STRING	"ip-address"
-#define	NWAM_CONDITION_OBJECT_TYPE_ADV_DOMAIN_STRING	"advertised-domain"
-#define	NWAM_CONDITION_OBJECT_TYPE_SYS_DOMAIN_STRING	"system-domain"
-#define	NWAM_CONDITION_OBJECT_TYPE_ESSID_STRING		"essid"
-#define	NWAM_CONDITION_OBJECT_TYPE_BSSID_STRING		"bssid"
-
-#define	NWAM_CONDITION_ACTIVE_STRING			"active"
 
 /*
  * Activation condition-related functions that convert activation
@@ -417,18 +341,10 @@ typedef enum {
 	NWAM_NAMESERVICES_LDAP
 } nwam_nameservices_t;
 
-#define	NWAM_NAMESERVICES_DNS_STRING		"dns"
-#define	NWAM_NAMESERVICES_FILES_STRING		"files"
-#define	NWAM_NAMESERVICES_NIS_STRING		"nis"
-#define	NWAM_NAMESERVICES_LDAP_STRING		"ldap"
-
 typedef enum {
 	NWAM_CONFIGSRC_MANUAL,
 	NWAM_CONFIGSRC_DHCP
 } nwam_configsrc_t;
-
-#define	NWAM_CONFIGSRC_MANUAL_STRING		"manual"
-#define	NWAM_CONFIGSRC_DHCP_STRING		"dhcp"
 
 #define	NWAM_LOC_PROP_ACTIVATION_MODE		"activation-mode"
 #define	NWAM_LOC_PROP_CONDITIONS		"conditions"
@@ -485,9 +401,6 @@ typedef enum {
 	NWAM_NCU_TYPE_ANY
 } nwam_ncu_type_t;
 
-#define	NWAM_NCU_TYPE_LINK_STRING	"link"
-#define	NWAM_NCU_TYPE_INTERFACE_STRING	"interface"
-
 typedef enum {
 	NWAM_NCU_CLASS_UNKNOWN = -1,
 	NWAM_NCU_CLASS_PHYS,
@@ -495,36 +408,17 @@ typedef enum {
 	NWAM_NCU_CLASS_ANY
 } nwam_ncu_class_t;
 
-#define	NWAM_NCU_CLASS_PHYS_STRING	"phys"
-#define	NWAM_NCU_CLASS_IP_STRING	"ip"
-
-typedef enum {
-	NWAM_IP_VERSION_IPV4,
-	NWAM_IP_VERSION_IPV6
-} nwam_ip_version_t;
-
-#define	NWAM_IP_VERSION_IPV4_STRING	"ipv4"
-#define	NWAM_IP_VERSION_IPV6_STRING	"ipv6"
-
 typedef enum {
 	NWAM_ADDRSRC_DHCP,
 	NWAM_ADDRSRC_AUTOCONF,
 	NWAM_ADDRSRC_STATIC
 } nwam_addrsrc_t;
 
-#define	NWAM_ADDRSRC_DHCP_STRING	"dhcp"
-#define	NWAM_ADDRSRC_AUTOCONF_STRING	"autoconf"
-#define	NWAM_ADDRSRC_STATIC_STRING	"static"
-
 typedef enum {
 	NWAM_PRIORITY_MODE_EXCLUSIVE,
 	NWAM_PRIORITY_MODE_SHARED,
 	NWAM_PRIORITY_MODE_ALL
 } nwam_priority_mode_t;
-
-#define	NWAM_PRIORITY_MODE_EXCLUSIVE_STRING	"exclusive"
-#define	NWAM_PRIORITY_MODE_SHARED_STRING	"shared"
-#define	NWAM_PRIORITY_MODE_ALL_STRING		"all"
 
 /* NCU properties common to all type/classes */
 #define	NWAM_NCU_PROP_TYPE		"type"
@@ -961,17 +855,17 @@ extern nwam_error_t nwam_known_wlan_remove_from_known_wlans(const char *,
  *
  */
 typedef struct {
-	char essid[NWAM_MAX_NAME_LEN];
-	char bssid[NWAM_MAX_NAME_LEN];
-	char signal_strength[NWAM_MAX_NAME_LEN];
-	uint32_t security_mode; /* a dladm_wlan_secmode_t */
-	uint32_t speed; /* a dladm_wlan_speed_t */
-	uint32_t channel; /* a dladm_wlan_channel_t */
-	uint32_t bsstype; /* a dladm_wlan_bsstype_t */
-	uint_t keyindex;
-	boolean_t have_key;
-	boolean_t selected;
-	boolean_t connected;
+	char nww_essid[NWAM_MAX_NAME_LEN];
+	char nww_bssid[NWAM_MAX_NAME_LEN];
+	char nww_signal_strength[NWAM_MAX_NAME_LEN];
+	uint32_t nww_security_mode; /* a dladm_wlan_secmode_t */
+	uint32_t nww_speed; /* a dladm_wlan_speed_t */
+	uint32_t nww_channel; /* a dladm_wlan_channel_t */
+	uint32_t nww_bsstype; /* a dladm_wlan_bsstype_t */
+	uint_t nww_keyindex;
+	boolean_t nww_have_key;
+	boolean_t nww_selected;
+	boolean_t nww_connected;
 } nwam_wlan_t;
 
 /*
@@ -1003,8 +897,7 @@ extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
 #define	NWAM_EVENT_TYPE_IF_STATE		12
 #define	NWAM_EVENT_TYPE_LINK_ACTION		13
 #define	NWAM_EVENT_TYPE_LINK_STATE		14
-#define	NWAM_EVENT_TYPE_QUEUE_QUIET		15
-#define	NWAM_EVENT_MAX				NWAM_EVENT_TYPE_QUEUE_QUIET
+#define	NWAM_EVENT_MAX				NWAM_EVENT_TYPE_LINK_STATE
 
 #define	NWAM_EVENT_STATUS_OK			0
 #define	NWAM_EVENT_STATUS_NOT_HANDLED		1
@@ -1046,31 +939,31 @@ typedef enum {
 
 typedef struct nwam_event *nwam_event_t;
 struct nwam_event {
-	int type;
-	uint32_t size;
+	int nwe_type;
+	uint32_t nwe_size;
 
 	union {
 		struct {
-			nwam_object_type_t object_type;
-			char name[NWAM_MAX_NAME_LEN];
-			char parent[NWAM_MAX_NAME_LEN];
-			nwam_action_t action;
-		} object_action;
+			nwam_object_type_t nwe_object_type;
+			char nwe_name[NWAM_MAX_NAME_LEN];
+			char nwe_parent[NWAM_MAX_NAME_LEN];
+			nwam_action_t nwe_action;
+		} nwe_object_action;
 
 		struct {
-			nwam_object_type_t object_type;
-			char name[NWAM_MAX_NAME_LEN];
-			nwam_state_t state;
-			nwam_aux_state_t aux_state;
-		} object_state;
+			nwam_object_type_t nwe_object_type;
+			char nwe_name[NWAM_MAX_NAME_LEN];
+			nwam_state_t nwe_state;
+			nwam_aux_state_t nwe_aux_state;
+		} nwe_object_state;
 
 		struct {
-			int64_t priority;
-		} priority_group_info;
+			int64_t nwe_priority;
+		} nwe_priority_group_info;
 
 		struct {
-			char message[NWAM_MAX_VALUE_LEN];
-		} info;
+			char nwe_message[NWAM_MAX_VALUE_LEN];
+		} nwe_info;
 
 		/*
 		 * wlan_info stores both scan results and the single
@@ -1080,41 +973,42 @@ struct nwam_event {
 		 * success/failure using the 'connected' boolean.
 		 */
 		struct {
-			char name[NWAM_MAX_NAME_LEN];
-			boolean_t connected;
-			uint16_t num_wlans;
-			nwam_wlan_t wlans[1];
+			char nwe_name[NWAM_MAX_NAME_LEN];
+			boolean_t nwe_connected;
+			uint16_t nwe_num_wlans;
+			nwam_wlan_t nwe_wlans[1];
 			/*
 			 * space may be allocated by user here for the
 			 * number of wlans
 			 */
-		} wlan_info;
+		} nwe_wlan_info;
 
 		struct {
-			char name[NWAM_MAX_NAME_LEN];
-			nwam_action_t action;
-		} if_action;
+			char nwe_name[NWAM_MAX_NAME_LEN];
+			nwam_action_t nwe_action;
+		} nwe_if_action;
 
 		struct {
-			char name[NWAM_MAX_NAME_LEN];
-			uint32_t flags;
-			uint32_t index;
-			uint32_t addr_valid; /* boolean */
-			uint32_t addr_added; /* boolean */
-			struct sockaddr_storage addr;
+			char nwe_name[NWAM_MAX_NAME_LEN];
+			uint32_t nwe_flags;
+			uint32_t nwe_index;
+			uint32_t nwe_addr_valid; /* boolean */
+			uint32_t nwe_addr_added; /* boolean */
+			struct sockaddr_storage nwe_addr;
 			/* might be longer then sizeof(if_state) for addr */
-		} if_state;
+		} nwe_if_state;
 
 		struct {
-			char name[NWAM_MAX_NAME_LEN];
-			int32_t link_state; /* link_state_t from sys/mac.h */
-		} link_state;
+			char nwe_name[NWAM_MAX_NAME_LEN];
+			int32_t nwe_link_state;
+			/* link_state_t from sys/mac.h */
+		} nwe_link_state;
 
 		struct {
-			char name[NWAM_MAX_NAME_LEN];
-			nwam_action_t action;
-		} link_action;
-	} data;
+			char nwe_name[NWAM_MAX_NAME_LEN];
+			nwam_action_t nwe_action;
+		} nwe_link_action;
+	} nwe_data;
 };
 
 /* NWAM client functions, used to register/unregister and receive events */
