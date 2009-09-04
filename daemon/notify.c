@@ -84,6 +84,14 @@ static void notify_notification_adjust_nth(GQueue *q, guint nth, gint new_timeou
 
 static void on_prof_notification_default_timeout(GObject *gobject, GParamSpec *arg1, gpointer data);
 
+static notification_style_t     notification_style = NOTIFICATION_STYLE_CREATE_ALWAYS;
+
+extern void
+notify_notification_set_notification_style( notification_style_t style )
+{
+    notification_style = style;
+}
+
 static msg *
 nwam_notification_msg_new(NotifyNotification *n,
   const gchar *summary,
@@ -121,6 +129,12 @@ nwam_notification_msg_new(NotifyNotification *n,
 static void
 nwam_notification_msg_free(msg *m)
 {
+    if ( notification_style != NOTIFICATION_STYLE_REUSE ) {
+        notify_notification_close(m->n, NULL); /* Close notification now! */
+        g_object_unref(m->n);
+        m->n = NULL;
+    }
+
     g_free(m->summary);
     g_free(m->body);
     if (m->icon)
@@ -182,13 +196,32 @@ on_notification_closed(NotifyNotification *n,
 static NotifyNotification *
 get_notification( void )
 {
+    gboolean always_new = FALSE;
+    gboolean with_status_icon = TRUE;
     
     g_assert ( parent_status_icon != NULL );
 
-    if ( notification == NULL ) {
-        notify_init( PACKAGE );
+    switch( notification_style ) {
+        case NOTIFICATION_STYLE_CREATE_ALWAYS_NO_STATUS_ICON:
+            with_status_icon = FALSE;
+            /* Fall-Through */
+        case NOTIFICATION_STYLE_CREATE_ALWAYS:
+            always_new = TRUE;
+            break;
+        case NOTIFICATION_STYLE_REUSE:
+            /* Fall-Through */
+        default:
+            /* Use default */
+            break;
+    }
+    if ( always_new || notification == NULL ) {
         
-        notification = notify_notification_new_with_status_icon(" ", " ", NULL, parent_status_icon  );
+        if ( with_status_icon ) {
+            notification = notify_notification_new_with_status_icon(" ", " ", NULL, parent_status_icon  );
+        }
+        else {
+            notification = notify_notification_new(" ", " ", NULL, NULL  );
+        }
 
         g_signal_connect(notification, "closed",
           G_CALLBACK(on_notification_closed),
@@ -907,6 +940,8 @@ nwam_notification_init( GtkStatusIcon* status_icon )
 {
     g_assert ( status_icon != NULL );
     
+    notify_init( PACKAGE );
+
     g_object_ref( status_icon );
     parent_status_icon = status_icon;
 }

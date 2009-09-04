@@ -40,6 +40,7 @@
 #include "nwam_tree_view.h"
 
 #include "status_icon.h"
+#include "notify.h"
 
 /*
  * Security Auth needed for NWAM to work. Console User and Network Management
@@ -49,9 +50,15 @@
 
 /* Command-line options */
 static gboolean debug = FALSE;
+static gboolean notify_reuse = FALSE;
+static gboolean notify_create_always = FALSE;
+static gboolean notify_create_nostatus = FALSE;
 
 static GOptionEntry option_entries[] = {
     {"debug", 'D', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
+    {"notify-reuse", 'a', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &notify_reuse, N_("Always re-use notification message"), NULL },
+    {"notify-create-always", 'a', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &notify_create_always, N_("Always create notification message, rather than re-use"), NULL },
+    {"notify-create-always-nostatus", 'n', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &notify_create_nostatus, N_("Always create notification message, rather than re-use, and don't link to status icon"), NULL },
     {NULL}
 };
 
@@ -240,6 +247,17 @@ main( int argc, char* argv[] )
     nwamui_util_default_log_handler_init();
 
     nwamui_util_set_debug_mode( debug );
+
+    if ( notify_reuse ) {
+        notify_notification_set_notification_style( NOTIFICATION_STYLE_REUSE );
+    }
+    if ( notify_create_always ) {
+        notify_notification_set_notification_style( NOTIFICATION_STYLE_CREATE_ALWAYS );
+    }
+
+    if ( notify_create_nostatus ) {
+        notify_notification_set_notification_style( NOTIFICATION_STYLE_CREATE_ALWAYS_NO_STATUS_ICON );
+    }
 
     act.sa_sigaction = cleanup_and_exit;
     sigemptyset (&act.sa_mask);

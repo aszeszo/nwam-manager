@@ -1,3 +1,17 @@
+2009-09-04  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_ncu.c: 
+	  Fix minor bug, where setting prv->active after calling
+	  g_object_notify() causes the notification to happen twice.
+	* daemon/notify.h, daemon/notify.c: 
+	  Add notify_notification_set_notification_style() to allow you to set
+	  how notifications are re-used or not, etc. Set the default behaviour
+	  to always create a new notification message, rather than re-use.
+	  This fixes a11y defect#11156.
+	* daemon/main.c: 
+	  Add some CLI options, hidden, which allow setting of the
+	  notification styles to testing purposes.
+
 2009-09-03  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_daemon.c, common/nwamui_ncu.c,

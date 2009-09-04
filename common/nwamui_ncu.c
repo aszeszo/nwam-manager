@@ -775,8 +775,8 @@ nwamui_ncu_get_property (GObject         *object,
                     }
                 }
                 if ( active != self->prv->active ) {
-                    g_object_notify(G_OBJECT(self), "active" );
                     self->prv->active = active;
+                    g_object_notify(G_OBJECT(self), "active" );
                 }
                 g_value_set_boolean( value, active );
             }

@@ -34,12 +34,23 @@
 
 G_BEGIN_DECLS
 
+typedef enum {
+    NOTIFICATION_STYLE_REUSE,
+    NOTIFICATION_STYLE_CREATE_ALWAYS,
+    NOTIFICATION_STYLE_CREATE_ALWAYS_NO_STATUS_ICON
+} notification_style_t;    
+
 /* 
  * Should be called before trying to display any messages.
  *
  * Requires a StatusIcon to link the popup text to.
  */
 void nwam_notification_init( GtkStatusIcon* status_icon );
+
+/*
+ * Different notification icon styles
+ */
+void notify_notification_set_notification_style( notification_style_t style );
 
 /* 
  * Show a message to tell the user that the nwam daemon is unavailable.
