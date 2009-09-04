@@ -369,12 +369,14 @@ nwamui_wifi_net_set_property (  GObject         *object,
                         if ( prv->essid != NULL ) {
                             g_debug("Renaming Favourite WLAN with name : '%s' to '%s'", prv->essid, essid );
 
-                            if ( (nerr = nwam_known_wlan_set_name(prv->known_wlan_h, essid)) != NWAM_SUCCESS) {
-                                g_warning("Error renaming favourite wlan: %s", nwam_strerror(nerr));
-                            }
-                            else {
-                                g_free( prv->essid );
-                                prv->essid = g_strdup(essid);
+                            if ( strcmp( prv->essid, essid) != 0 ) {
+                                if ( (nerr = nwam_known_wlan_set_name(prv->known_wlan_h, essid)) != NWAM_SUCCESS) {
+                                    g_warning("Error renaming favourite wlan: %s", nwam_strerror(nerr));
+                                }
+                                else {
+                                    g_free( prv->essid );
+                                    prv->essid = g_strdup(essid);
+                                }
                             }
                         }
                         else {
@@ -478,7 +480,7 @@ nwamui_wifi_net_set_property (  GObject         *object,
             break;
 
         case PROP_WEP_KEY_INDEX: {
-                prv->wep_key_index = g_value_get_int (value); 
+                prv->wep_key_index = g_value_get_uint64(value); 
                 nwamui_debug("Setting WifiNet keyslot to %ul", prv->wep_key_index);
                 if ( prv->is_favourite && prv->known_wlan_h != NULL ) {
                     set_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_KEYSLOT, 
@@ -814,6 +816,11 @@ nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_
     nwam_error_t                nerr;
     uint32_t                    sec_mode;
     nwamui_wifi_security_t      security;
+
+    if ( self->prv->modified ) {
+        nwamui_debug("Not updating wlan %s from system due to unsaved modifications", self->prv->essid );
+        return( TRUE ); 
+    }
 
     /* Accept NULL to allow for simple re-read from system */
     if ( handle != NULL ) {
@@ -1215,7 +1222,8 @@ nwamui_wifi_net_commit_favourite ( NwamuiWifiNet *self )
     g_debug("Committing Favourite WLAN with NWAM : %s", self->prv->essid );
 
     if ( self->prv->is_favourite && 
-         (nerr = nwam_known_wlan_commit(self->prv->known_wlan_h, 0) ) != NWAM_SUCCESS ) {
+         (nerr = nwam_known_wlan_commit(self->prv->known_wlan_h, 
+                                        NWAM_FLAG_KNOWN_WLAN_NO_COLLISION_CHECK) ) != NWAM_SUCCESS ) {
 		if (nerr == NWAM_ENTITY_MISSING_MEMBER) {
             const char* errprop = NULL;
 			nwam_known_wlan_validate(self->prv->known_wlan_h, &errprop);
@@ -1223,6 +1231,9 @@ nwamui_wifi_net_commit_favourite ( NwamuiWifiNet *self )
             return( FALSE );
         }
     }
+
+    /* Not modified by user */
+    self->prv->modified = FALSE;
 
     return( TRUE );
 }

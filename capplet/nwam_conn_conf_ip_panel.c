@@ -1719,6 +1719,7 @@ wireless_tab_edit_button_clicked_cb( GtkButton *button, gpointer data )
 
                 nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, wifi_net );
                 nwam_wireless_dialog_set_title( self->prv->wifi_dialog, NWAMUI_WIRELESS_DIALOG_TITLE_EDIT);
+                nwam_wireless_dialog_set_do_connect( self->prv->wifi_dialog, FALSE );
 
                 switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
                     case GTK_RESPONSE_OK:

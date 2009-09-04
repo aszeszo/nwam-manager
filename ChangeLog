@@ -1,5 +1,23 @@
 2009-09-04  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_conn_conf_ip_panel.c:
+	  Ensure that do_connect on wifi_dialog is false when editing.
+	* capplet/nwam_wireless_dialog.c:
+	  Fix defect#10900 to add key length and format checking to WEP and
+	  WPA keys input.
+	* common/nwamui_daemon.c:
+	  Don't re-populate the wifi fav list on connect to a wlan, we will
+	  get events to do it for us.
+	* common/nwamui_ncu.c:
+	  Fix minor bug where some states we're defaulting to NOT_CONNECTED
+	  when there was a more specific state to use.
+	* common/nwamui_wifi_net.c: 
+	  Don't set the name of a wlan if it's the same. Also fix mis-match of
+	  gvalue types for wep key index, and if a wlan is modifed then don't
+	  reload from the system.
+
+2009-09-04  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_ncu.c: 
 	  Fix minor bug, where setting prv->active after calling
 	  g_object_notify() causes the notification to happen twice.

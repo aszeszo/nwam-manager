@@ -3968,12 +3968,15 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             }
 	        if ( nwam_aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR ) {
                 state = NWAMUI_STATE_WAITING_FOR_ADDRESS;
+                break;
             }
             else if ( nwam_aux_state == NWAM_AUX_STATE_IF_DHCP_TIMED_OUT ) {
                 state = NWAMUI_STATE_DHCP_TIMED_OUT;
+                break;
             }
             else if ( nwam_aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR ) {
                 state = NWAMUI_STATE_DHCP_DUPLICATE_ADDR;
+                break;
             }
             state = NWAMUI_STATE_CONNECTING;
             break;
@@ -4011,6 +4014,9 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
         case NWAMUI_STATE_UNKNOWN:
         case NWAMUI_STATE_NOT_CONNECTED:
         case NWAMUI_STATE_NEEDS_SELECTION:
+        case NWAMUI_STATE_WAITING_FOR_ADDRESS:
+        case NWAMUI_STATE_DHCP_TIMED_OUT:
+        case NWAMUI_STATE_DHCP_DUPLICATE_ADDR:
         case NWAMUI_STATE_CONNECTING:
         case NWAMUI_STATE_CONNECTED:
         case NWAMUI_STATE_NETWORK_UNAVAILABLE:

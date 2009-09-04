@@ -1387,6 +1387,8 @@ validate_information( NwamWirelessDialog* self )
     NwamuiWifiNet  *tmp_wifi = NULL;
     gchar          *error_prop = NULL;
     const char     *rval = NULL;
+    nwamui_wifi_security_t security;
+    gboolean        is_wep = FALSE;
 
     ret_str[0] = '\0'; /* For use where we need to printf things */
 
@@ -1433,7 +1435,7 @@ validate_information( NwamWirelessDialog* self )
         }
     }
 
-    switch( nwam_wireless_dialog_get_security(self) ) {
+    switch( security = nwam_wireless_dialog_get_security(self) ) {
         case NWAMUI_WIFI_SEC_NONE: 
             break;
 
@@ -1443,17 +1445,53 @@ validate_information( NwamWirelessDialog* self )
         case NWAMUI_WIFI_SEC_WEP_HEX:
         case NWAMUI_WIFI_SEC_WEP_ASCII:
 #endif /* WEP_ASCII_EQ_HEX */
+            is_wep = TRUE;
+            /* Fall-through */
         case NWAMUI_WIFI_SEC_WPA_PERSONAL:
             {
                 const gchar* key =        gtk_entry_get_text(GTK_ENTRY(self->prv->key_entry));
                 const gchar *key_conf =   gtk_entry_get_text(GTK_ENTRY(self->prv->key_conf_entry));
+                gchar       *rval = NULL;
                 
                 if ( key == NULL && key_conf == NULL ) {    /* Same, so TRUE */
-                    return( NULL );
+                    rval = NULL;
                 }
                 else if( key == NULL || key_conf == NULL ||
                          strcmp( key, key_conf ) != 0 ) { /* Different, so FALSE */
-                    return( _("Keys entered are different" ));
+                    rval = _("Keys entered are different" );
+                }
+
+                if ( rval == NULL ) {
+                    guint        len;
+                    gboolean     is_all_hex;
+
+                    len = strlen( key );
+                    is_all_hex = TRUE;
+                    for ( int i  = 0; i < len; i++ ) {
+                        if ( !g_ascii_isxdigit( key[i] ) ) {
+                            is_all_hex = FALSE;
+                        }
+                    }
+
+                    if ( is_wep ) {
+                        if ( len == 10 || len == 26 ) {
+                            if ( !is_all_hex ) {
+                                rval = _("WEP keys of length 10 or 26 should be hexadecimal values only");
+                            }
+                        }
+                        else if ( len != 5 && len != 13 ) {
+                            rval = _("WEP keys should be either 5 or 13 ASCII characters,\nor a hexadecimal value of length 10 or 26");   
+                        }
+                    }
+                    else { /* is WPA */
+                        if ( len < 8 || len > 63 ) {
+                            rval = _("WPA keys should be between 8 and 63 characters in length");
+                        }
+                    }
+                }
+
+                if ( rval != NULL ) {
+                    return( rval );
                 }
             }
             break;

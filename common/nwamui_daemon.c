@@ -2507,9 +2507,6 @@ nwamd_event_handler(gpointer data)
                     /* Is this needed for Phase 1? */
                     /* nwamui_daemon_setup_dhcp_or_wep_key_timeout( daemon, ncu ); */
 
-                    /* Retrieve fav wifi list */
-                    nwamui_daemon_populate_wifi_fav_list(daemon);
-
                     g_signal_emit (daemon,
                       nwamui_daemon_signals[DAEMON_INFO],
                       0, /* details */
