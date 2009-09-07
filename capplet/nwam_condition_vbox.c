@@ -853,22 +853,27 @@ select_item_with_value( GtkComboBox*  combo, const gchar* value )
     gpointer       *ptr = NULL;
     GtkTreeIter     iter;
     GtkTreeModel   *model;
-    gchar          *obj_name = NULL;
+    gboolean        match = FALSE;
 
     model = gtk_combo_box_get_model (GTK_COMBO_BOX(combo));
 
     if ( gtk_tree_model_get_iter_first( model, &iter ) ) {
+        gchar  *obj_name = NULL;
+
         do {
+            GObject* obj;
+
             gtk_tree_model_get (model, &iter, 0, &ptr, -1);
+
+            obj = (GObject*)ptr;
 
             if ( gtk_tree_model_get_column_type(model, 0) == G_TYPE_OBJECT 
                  || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_NCU
                  || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_ENM
                  || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_ENV ) {
-                GObject* obj = (GObject*)ptr;
 
                 if ( NWAMUI_IS_NCU( obj ) ) {
-                    obj_name = nwamui_ncu_get_device_name( NWAMUI_NCU(obj) );
+                    obj_name = nwamui_ncu_get_nwam_qualified_name( NWAMUI_NCU(obj) );
                 }
                 else if ( NWAMUI_IS_ENM( obj ) ) {
                     obj_name = nwamui_enm_get_name( NWAMUI_ENM(obj) );
@@ -882,17 +887,44 @@ select_item_with_value( GtkComboBox*  combo, const gchar* value )
                 obj_name = g_strdup((gchar*)ptr);
             }
 
-            if ( strcmp(obj_name?obj_name:"", value?value:"") == 0 ) {
+            if ( g_strcmp0(obj_name, value) == 0 ) {
+                match = TRUE;
+            }
+            else if ( NWAMUI_IS_NCU( obj ) ) {
+                /* Just to be 100% sure, let's check without qualified name */
+                gchar** obj_split = g_strsplit( obj_name?obj_name:"", ":", 2);
+                gchar** value_split = g_strsplit( value?value:"", ":", 2);
+
+                if ( obj_split != NULL && value_split != NULL ) {
+                    const gchar *obj_str = NULL;
+                    const gchar *value_str = NULL;
+
+                    if ( obj_split[0] != NULL && obj_split[1] != NULL ) {
+                        obj_str = obj_split[1];
+                    }
+                    if ( value_split[0] != NULL && value_split[1] != NULL ) {
+                        value_str = value_split[1];
+                    }
+                    if ( g_strcmp0( obj_str, value_str ) == 0 ) {
+                        match = TRUE;
+                    }
+                }
+                g_strfreev( obj_split );
+                g_strfreev( value_split );
+            }
+            if ( match ) {
                 gtk_combo_box_set_active_iter( combo, &iter );
-                break;
+            }
+
+            if ( obj ) {
+                g_object_unref(obj);
             }
             g_free(obj_name);
-            obj_name = NULL;
         }
-        while (gtk_tree_model_iter_next(model, &iter));
+        while (!match && gtk_tree_model_iter_next(model, &iter));
     }
 
-    if ( obj_name == NULL ) {
+    if ( !match ) {
         if ( GTK_IS_COMBO_BOX_ENTRY( combo ) ) {
             GtkEntry*   entry = GTK_ENTRY(gtk_bin_get_child( GTK_BIN(combo) ));
 

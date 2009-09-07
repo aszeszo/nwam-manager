@@ -189,7 +189,6 @@ nwam_rules_dialog_init (NwamRulesDialog *self)
 
     rules_name_lbl = GTK_LABEL(nwamui_util_glade_get_widget(RULES_NAME_LABEL));
     nwamui_util_set_a11y_label_for_widget( rules_name_lbl, GTK_WIDGET(prv->rules_vbox_sw) );
-    g_object_unref(rules_name_lbl);
 
     gtk_widget_show(prv->rules_vbox_sw);
 

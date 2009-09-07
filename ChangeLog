@@ -1,5 +1,15 @@
 2009-09-07  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_condition_vbox.c: 
+	  Fix defect#11048 where the configured NCU wasn't being located since
+	  the rule used the qualified name, but we were comparing against the
+	  device name.
+	* capplet/nwam_rules_dialog.c: 
+	  Don't unref the label widget after setting the a11y label-for
+	  relationship since it wasn't ref-ed in the first place.
+
+2009-09-07  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/capplet-utils.c: 
 	  Fix an issue with capplet_model_find_object, where it wasn't ever
 	  finding an object, causing the UI to not see a row-changed event
