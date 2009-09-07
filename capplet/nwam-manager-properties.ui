@@ -286,6 +286,9 @@
                     <property name="label" translatable="yes">Sho_w:</property>
                     <property name="use_underline">True</property>
                     <property name="justify">right</property>
+                    <accessibility>
+		                <relation target="show_combo" type="label-for"/>
+                    </accessibility>
                   </object>
                   <packing>
                     <property name="x_options"></property>
@@ -312,6 +315,9 @@
                         <property name="visible">True</property>
                         <property name="xalign">0</property>
                         <property name="label" translatable="yes">Enabled connections:</property>
+                        <accessibility>
+                            <relation target="connection_status_vbox" type="label-for"/>
+                        </accessibility>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -364,6 +370,9 @@
                             <property name="label" translatable="yes">&lt;b&gt;Network Profile:&lt;/b&gt;</property>
                             <property name="use_markup">True</property>
                             <property name="justify">right</property>
+                            <accessibility>
+                                <relation target="current_profile_lbl" type="label-for"/>
+                            </accessibility>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -479,6 +488,9 @@
                             <property name="xalign">1</property>
                             <property name="label" translatable="yes">&lt;b&gt;Location:&lt;/b&gt;</property>
                             <property name="use_markup">True</property>
+                            <accessibility>
+                                <relation target="current_env_lbl" type="label-for"/>
+                            </accessibility>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -549,6 +561,9 @@
                             <property name="xalign">1</property>
                             <property name="label" translatable="yes">&lt;b&gt;VPN:&lt;/b&gt;</property>
                             <property name="use_markup">True</property>
+                            <accessibility>
+                                <relation target="current_vpn_lbl" type="label-for"/>
+                            </accessibility>
                           </object>
                           <packing>
                             <property name="left_attach">1</property>
@@ -615,6 +630,9 @@
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Active _Profile:</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="profile_name_combo" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -675,6 +693,9 @@
                             <property name="xalign">0</property>
                             <property name="label" translatable="yes">_View/Edit Profile:</property>
                             <property name="use_underline">True</property>
+                            <accessibility>
+                                <relation target="edit_profile_name_combo" type="label-for"/>
+                            </accessibility>
                           </object>
                           <packing>
                             <property name="expand">False</property>
@@ -721,6 +742,9 @@
                         <property name="xalign">0</property>
                         <property name="label" translatable="yes">
 Choose which connections are enabled in this profile:</property>
+                        <accessibility>
+                            <relation target="connection_list_table" type="label-for"/>
+                        </accessibility>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -745,6 +769,9 @@ Choose which connections are enabled in this profile:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Selected gro_up:</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="connection_activation_combo" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -1050,6 +1077,9 @@ Choose which connections are enabled in this profile:</property>
                                 <property name="label" translatable="yes">_Manual Addresses:</property>
                                 <property name="use_markup">True</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="address_table" type="label-for"/>
+                                </accessibility>
                               </object>
                             </child>
                           </object>
@@ -1464,6 +1494,9 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="xalign">1</property>
                                     <property name="label" translatable="yes">IPv6 I_P:</property>
                                     <property name="use_underline">True</property>
+                                    <accessibility>
+                                        <relation target="ipv6_combo" type="label-for"/>
+                                    </accessibility>
                                   </object>
                                   <packing>
                                     <property name="x_options">GTK_FILL</property>
@@ -1496,6 +1529,9 @@ Choose which connections are enabled in this profile:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">IPv4 I_P:</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="ipv4_combo" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -1539,6 +1575,9 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">_Subnet Mask:</property>
                                     <property name="use_underline">True</property>
+                                    <accessibility>
+                                        <relation target="dhcp_address_lbl" type="label-for"/>
+                                    </accessibility>
                                   </object>
                                   <packing>
                                     <property name="top_attach">1</property>
@@ -1553,6 +1592,9 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="xalign">0</property>
                                     <property name="label" translatable="yes">DHCP _Address:</property>
                                     <property name="use_underline">True</property>
+                                    <accessibility>
+                                        <relation target="dhcp_subnet_lbl" type="label-for"/>
+                                    </accessibility>
                                   </object>
                                   <packing>
                                     <property name="x_options">GTK_FILL</property>
@@ -1763,6 +1805,9 @@ connection will be attempted:</property>
                                 <property name="visible">True</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">If no favorite networks are available:</property>
+                                <accessibility>
+                                    <relation target="no_preferred_networks_combo" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -2683,6 +2728,9 @@ connection will be attempted:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">D_omain:</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="dns_domain_entry" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="left_attach">3</property>
@@ -2698,6 +2746,9 @@ connection will be attempted:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Ser_vers:</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="dns_servers_entry" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="left_attach">3</property>
@@ -2715,6 +2766,9 @@ connection will be attempted:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Sear_ch:</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="dns_search_entry" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="left_attach">3</property>
@@ -2731,6 +2785,9 @@ connection will be attempted:</property>
                                 <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Domain:</property>
+                                <accessibility>
+                                    <relation target="nis_domain_label" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="left_attach">3</property>
@@ -2763,6 +2820,9 @@ connection will be attempted:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">S_ervers:</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="nis_servers_entry" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="left_attach">3</property>
@@ -2779,6 +2839,9 @@ connection will be attempted:</property>
                                 <property name="sensitive">False</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Domain:</property>
+                                <accessibility>
+                                    <relation target="ldap_domain_label" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="left_attach">3</property>
@@ -2923,6 +2986,9 @@ connection will be attempted:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">S_ervers:</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="ldap_servers_entry" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="left_attach">3</property>
@@ -3009,6 +3075,9 @@ connection will be attempted:</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">nsswitch file:</property>
+                                <accessibility>
+                                    <relation target="nsswitch_file_btn" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="top_attach">2</property>
@@ -3067,6 +3136,9 @@ connection will be attempted:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">De_fault domain:</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="default_domain_entry" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="x_options">GTK_FILL</property>
@@ -3084,6 +3156,9 @@ connection will be attempted:</property>
                                     <property name="xalign">1</property>
                                     <property name="label" translatable="yes">&lt;i&gt;&lt;small&gt;Used by manual NIS and LDAP configurations&lt;/small&gt;&lt;/i&gt;</property>
                                     <property name="use_markup">True</property>
+                                    <accessibility>
+                                        <relation target="default_domain_entry" type="label-for"/>
+                                    </accessibility>
                                   </object>
                                 </child>
                               </object>
@@ -3432,6 +3507,9 @@ connection will be attempted:</property>
                         <property name="visible">True</property>
                         <property name="xalign">0</property>
                         <property name="label" translatable="yes">Enable these services when this location is active:</property>
+                        <accessibility>
+                            <relation target="enabled_netservices_list" type="label-for"/>
+                        </accessibility>
                       </object>
                       <packing>
                         <property name="right_attach">2</property>
@@ -3444,6 +3522,9 @@ connection will be attempted:</property>
                         <property name="xalign">0</property>
                         <property name="label" translatable="yes">
 Disable these services when this location is active:</property>
+                        <accessibility>
+                            <relation target="disabled_netservices_list" type="label-for"/>
+                        </accessibility>
                       </object>
                       <packing>
                         <property name="right_attach">2</property>
@@ -3703,6 +3784,9 @@ Disable these services when this location is active:</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">_Security type:</property>
                     <property name="use_underline">True</property>
+                    <accessibility>
+                        <relation target="security_combo" type="label-for"/>
+                    </accessibility>
                   </object>
                   <packing>
                     <property name="top_attach">1</property>
@@ -3717,6 +3801,9 @@ Disable these services when this location is active:</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">_Network name (ESSID):</property>
                     <property name="use_underline">True</property>
+                    <accessibility>
+                        <relation target="ssid_combo_entry" type="label-for"/>
+                    </accessibility>
                   </object>
                   <packing>
                     <property name="y_options"></property>
@@ -3755,6 +3842,9 @@ Disable these services when this location is active:</property>
                             <property name="label" translatable="yes">_Password:</property>
                             <property name="use_underline">True</property>
                             <property name="mnemonic_widget">wep_password_entry</property>
+                            <accessibility>
+                                <relation target="wep_password_entry" type="label-for"/>
+                            </accessibility>
                           </object>
                           <packing>
                             <property name="y_options"></property>
@@ -3827,6 +3917,9 @@ Disable these services when this location is active:</property>
                             <property name="label" translatable="yes">_Username:</property>
                             <property name="use_underline">True</property>
                             <property name="mnemonic_widget">wpa_username_entry</property>
+                            <accessibility>
+                                <relation target="wpa_username_entry" type="label-for"/>
+                            </accessibility>
                           </object>
                           <packing>
                             <property name="y_options"></property>
@@ -3839,6 +3932,9 @@ Disable these services when this location is active:</property>
                             <property name="label" translatable="yes">_Password:</property>
                             <property name="use_underline">True</property>
                             <property name="mnemonic_widget">wpa_password_entry</property>
+                            <accessibility>
+                                <relation target="wpa_password_entry" type="label-for"/>
+                            </accessibility>
                           </object>
                           <packing>
                             <property name="top_attach">1</property>
@@ -3884,6 +3980,9 @@ Disable these services when this location is active:</property>
                             <property name="xalign">1</property>
                             <property name="label" translatable="yes">_Configuration:</property>
                             <property name="use_underline">True</property>
+                            <accessibility>
+                                <relation target="wpa_config_combo" type="label-for"/>
+                            </accessibility>
                           </object>
                           <packing>
                             <property name="top_attach">2</property>
@@ -3909,6 +4008,9 @@ Disable these services when this location is active:</property>
                             <property name="xalign">1</property>
                             <property name="label" translatable="yes">Certificate _File:</property>
                             <property name="use_underline">True</property>
+                            <accessibility>
+                                <relation target="wpa_certificate_filechooser_btn" type="label-for"/>
+                            </accessibility>
                           </object>
                           <packing>
                             <property name="top_attach">3</property>
@@ -4021,6 +4123,9 @@ Disable these services when this location is active:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Known access points (_BSSIDs):</property>
                                 <property name="use_underline">True</property>
+                                <accessibility>
+                                    <relation target="bssid_list" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="right_attach">3</property>
@@ -4032,6 +4137,9 @@ Disable these services when this location is active:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">&lt;small&gt;&lt;i&gt;Double-click rows to edit&lt;/i&gt;&lt;/small&gt;</property>
                                 <property name="use_markup">True</property>
+                                <accessibility>
+                                    <relation target="bssid_list" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="top_attach">2</property>
@@ -4206,6 +4314,9 @@ Disable these services when this location is active:</property>
                 <property name="xalign">0</property>
                 <property name="label" translatable="yes">The following wireless networks were detected at your location:</property>
                 <property name="wrap">True</property>
+                <accessibility>
+                    <relation target="wireless_list" type="label-for"/>
+                </accessibility>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -4353,6 +4464,9 @@ Disable these services when this location is active:</property>
                     <property name="visible">True</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">Available VPN applications:</property>
+                    <accessibility>
+                        <relation target="vpn_apps_list" type="label-for"/>
+                    </accessibility>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -4566,6 +4680,9 @@ Disable these services when this location is active:</property>
                                 <property name="label" translatable="yes">Start _Command:</property>
                                 <property name="use_underline">True</property>
                                 <property name="mnemonic_widget">start_cmd_entry</property>
+                                <accessibility>
+                                    <relation target="start_cmd_entry" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="x_options">GTK_FILL</property>
@@ -4579,6 +4696,9 @@ Disable these services when this location is active:</property>
                                 <property name="label" translatable="yes">Stop Co_mmand:</property>
                                 <property name="use_underline">True</property>
                                 <property name="mnemonic_widget">stop_cmd_entry</property>
+                                <accessibility>
+                                    <relation target="stop_cmd_entry" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="top_attach">1</property>
@@ -4758,6 +4878,9 @@ Disable these services when this location is active:</property>
                                 <property name="label" translatable="yes">Service _FMRI:</property>
                                 <property name="use_underline">True</property>
                                 <property name="mnemonic_widget">process_entry</property>
+                                <accessibility>
+                                    <relation target="process_entry" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="x_options">GTK_FILL</property>
@@ -4789,6 +4912,9 @@ system/system-log:default
 &lt;/i&gt;&lt;/small&gt;</property>
                                 <property name="use_markup">True</property>
                                 <property name="wrap">True</property>
+                                <accessibility>
+                                    <relation target="process_entry" type="label-for"/>
+                                </accessibility>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -5341,6 +5467,9 @@ Enter username and password for http://$HOST:$PORT
                 <property name="xalign">0</property>
                 <property name="label" translatable="yes">_Locations:</property>
                 <property name="use_underline">True</property>
+                <accessibility>
+                    <relation target="location_tree" type="label-for"/>
+                </accessibility>
               </object>
               <packing>
                 <property name="right_attach">2</property>
@@ -5470,6 +5599,9 @@ Enter username and password for http://$HOST:$PORT
                         <property name="xalign">0</property>
                         <property name="label" translatable="yes">_Selected location is:</property>
                         <property name="use_underline">True</property>
+                        <accessibility>
+                            <relation target="location_activation_combo" type="label-for"/>
+                        </accessibility>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -5965,6 +6097,9 @@ system/system-log:default
                 <property name="xalign">0</property>
                 <property name="ypad">2</property>
                 <property name="label" translatable="yes">Check the connections that you wish to include in this profil: </property>
+                <accessibility>
+                    <relation target="connection_treeview" type="label-for"/>
+                </accessibility>
               </object>
               <packing>
                 <property name="expand">False</property>

@@ -34,6 +34,7 @@
 typedef struct _CappletForeachData {
 	GtkTreeModelForeachFunc foreach_func;
 	gpointer user_data;
+	gpointer user_data1;
 	gpointer ret_data;
 } CappletForeachData;
 
@@ -81,19 +82,22 @@ capplet_model_foreach_find_by_name(GtkTreeModel *model,
     gpointer user_data)
 {
     CappletForeachData *data = (CappletForeachData *)user_data;
-    GObject        *object;
-    const gchar    *search_name = (const gchar*)data->user_data;
+    NwamuiObject   *object;
+    NwamuiObject   *search_obj = NWAMUI_OBJECT(data->user_data);
+    const gchar    *search_name = (const gchar*)data->user_data1;
     gboolean       *found_p = (gboolean*)data->ret_data;
 
-    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
+    if ( search_obj != NULL ) {
+        gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
 
-    if ( object ) {
-        gchar   *name;
+        if ( object && object != search_obj ) { /* Don't check self or NULL object */
+            gchar   *name;
 
-        name = nwamui_object_get_name(NWAMUI_OBJECT(object));
+            name = nwamui_object_get_name(NWAMUI_OBJECT(object));
 
-        if ( name != NULL && strcmp(name, search_name) == 0 ) {
-            *found_p = TRUE;
+            if ( name != NULL && strcmp(name, search_name) == 0 ) {
+                *found_p = TRUE;
+            }
         }
     }
 
@@ -101,15 +105,16 @@ capplet_model_foreach_find_by_name(GtkTreeModel *model,
 }
 
 static gboolean 
-capplet_model_check_exists( GtkTreeModel *model, const gchar *name )
+capplet_model_check_name_exists( GtkTreeModel *model, NwamuiObject* obj, const gchar* new_text )
 {
     CappletForeachData  data;
     gboolean            exists = FALSE;
     NwamuiDaemon       *daemon;
 
-    g_return_val_if_fail( model != NULL && name != NULL, exists );
+    g_return_val_if_fail( model != NULL && obj != NULL, exists );
 
-	data.user_data = (gpointer)name;
+	data.user_data = (gpointer)obj;
+	data.user_data1 = (gpointer)new_text;
 	data.ret_data = (gpointer)&exists;
 
 	gtk_tree_model_foreach(model, capplet_model_foreach_find_by_name,
@@ -361,7 +366,7 @@ nwamui_object_name_cell_edited ( GtkCellRendererText *cell,
 		NwamuiObject*  object;
 		gtk_tree_model_get(model, &iter, 0, &object, -1);
 
-        if ( !capplet_model_check_exists( model, new_text ) ) {
+        if ( !capplet_model_check_name_exists( model, NWAMUI_OBJECT(object), new_text ) ) {
             nwamui_object_set_name(object, new_text);
         }
         else {

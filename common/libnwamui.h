@@ -275,6 +275,13 @@ extern void                     nwamui_util_show_message(   GtkWindow* parent_wi
                                                             const gchar* message, 
                                                             gboolean block );
 
+extern void nwamui_util_set_widget_a11y_info(   GtkWidget      *widget, 
+                                                const gchar    *name,
+                                                const gchar    *description );
+
+extern void nwamui_util_set_a11y_label_for_widget(  GtkLabel       *label,
+                                                    GtkWidget      *widget );
+
 extern GList*                   nwamui_util_map_condition_strings_to_object_list( char** conditions );
 
 extern char**                   nwamui_util_map_object_list_to_condition_strings( GList* conditions, guint *len );

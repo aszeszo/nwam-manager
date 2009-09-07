@@ -1,5 +1,23 @@
 2009-09-07  Darren Kenny  <darren.kenny@sun.com>
 
+	* daemon/nwam-wifi-item.c:
+	  Add descriptions for wireless strength and security icons, 
+	  fixing defect#11157.
+	* capplet/nwam-manager-properties.ui:
+	  Add 'label-for' to labels, fixing defect#10761.
+	* capplet/nwam_rules_dialog.c: 
+	  Add 'label-for' to label for created conditions table, also 
+	  fixing defect#10761.
+	* common/libnwamui.h, common/libnwamui.c: 
+	  Add some a11y utility functions used for above fixes:
+	  - nwamui_util_set_a11y_label_for_widget
+	  - nwamui_util_set_widget_a11y_info.
+	* capplet/capplet-utils.c: 
+	  Fix issue found with duplicate name checking where it was checking
+	  self too giving error.
+
+2009-09-07  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/capplet-utils.c: 
 	  Fix defect#10875 where duplicate names are allowed to be given to
 	  locations. Adds a check before setting the name whether it

@@ -1150,6 +1150,49 @@ nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gc
 
 }
 
+extern void
+nwamui_util_set_a11y_label_for_widget(  GtkLabel       *label,
+                                        GtkWidget      *widget )
+{
+    AtkObject       *atk_widget, *atk_label;
+    AtkRelationSet  *relation_set;
+    AtkRelation     *relation;
+    AtkObject       *targets[1];
+
+    atk_widget = gtk_widget_get_accessible(widget);
+    atk_label = gtk_widget_get_accessible (GTK_WIDGET(label));
+
+    relation_set = atk_object_ref_relation_set (atk_label);
+
+    targets[0] = atk_widget;
+    relation = atk_relation_new(targets,1, ATK_RELATION_LABEL_FOR);
+
+    atk_relation_set_add(relation_set,relation);
+
+    g_object_unref(G_OBJECT(relation));
+}
+
+extern void
+nwamui_util_set_widget_a11y_info(   GtkWidget      *widget, 
+                                    const gchar    *name,
+                                    const gchar    *description )
+{
+    AtkObject *obj;
+
+    g_return_if_fail( widget != NULL && GTK_IS_WIDGET(widget) );
+
+    obj = gtk_widget_get_accessible(widget);
+
+    if ( obj ) {
+        if ( name != NULL ) {
+            atk_object_set_name(obj, name );
+        }
+        if ( description != NULL ) {
+            atk_object_set_description(obj, description);
+        }
+    }
+}
+
 extern GList*
 nwamui_util_map_condition_strings_to_object_list( char** conditions )
 {

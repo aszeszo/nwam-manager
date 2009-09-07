@@ -36,6 +36,7 @@
 #include "nwam_rules_dialog.h"
 
 #define RULES_DIALOG "rules_dialog"
+#define RULES_NAME_LABEL "rules_name_lbl"
 #define RULES_VBOX_SW "rules_vbox_sw"
 #define RULES_MATCH_ALL_RB "rules_match_all_rb"
 #define RULES_MATCH_ANY_RB "rules_match_any_rb"
@@ -167,6 +168,8 @@ static void
 nwam_rules_dialog_init (NwamRulesDialog *self)
 {
 	NwamRulesDialogPrivate *prv = GET_PRIVATE(self);
+    GtkLabel               *rules_name_lbl;
+
 	self->prv = prv;
 
 	prv->rules_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(RULES_DIALOG));
@@ -176,13 +179,20 @@ nwam_rules_dialog_init (NwamRulesDialog *self)
 	prv->rules_match_all_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(RULES_MATCH_ALL_RB));
 	prv->rules_match_any_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(RULES_MATCH_ANY_RB));
 
+
 	prv->rules_vbox = nwam_condition_vbox_new();
 	prv->rules_vbox_sw = gtk_scrolled_window_new(NULL, NULL);
     gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(prv->rules_vbox_sw), GTK_SHADOW_IN);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(prv->rules_vbox_sw), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
     gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(prv->rules_vbox_sw), GTK_WIDGET(prv->rules_vbox));
     gtk_box_pack_start(GTK_BOX(prv->rules_dialog_vbox), prv->rules_vbox_sw, TRUE, TRUE, 2);
+
+    rules_name_lbl = GTK_LABEL(nwamui_util_glade_get_widget(RULES_NAME_LABEL));
+    nwamui_util_set_a11y_label_for_widget( rules_name_lbl, GTK_WIDGET(prv->rules_vbox_sw) );
+    g_object_unref(rules_name_lbl);
+
     gtk_widget_show(prv->rules_vbox_sw);
+
 
 	/* Initializing */
 	nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);

@@ -332,7 +332,13 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "signal-strength") == 0) {
 
-          img = gtk_image_new_from_pixbuf (nwamui_util_get_wireless_strength_icon_with_size(nwamui_wifi_net_get_signal_strength(wifi), NWAMUI_WIRELESS_ICON_TYPE_BARS, 16 ));
+          img = gtk_image_new_from_pixbuf
+              (nwamui_util_get_wireless_strength_icon_with_size(nwamui_wifi_net_get_signal_strength(wifi),
+                                                                NWAMUI_WIRELESS_ICON_TYPE_BARS,
+                                                                16 ));
+          nwamui_util_set_widget_a11y_info( GTK_WIDGET(img), NULL,
+                  nwamui_wifi_net_get_signal_strength_string(wifi));
+
           nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, img);
 
     }
@@ -386,8 +392,21 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
     }
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "security") == 0) {
+          nwamui_wifi_security_t security = nwamui_wifi_net_get_security (wifi);
+          const gchar           *secure_str;
 
-          img = gtk_image_new_from_pixbuf (nwamui_util_get_network_security_icon(nwamui_wifi_net_get_security (wifi), TRUE )); 
+          img = gtk_image_new_from_pixbuf(
+                  nwamui_util_get_network_security_icon( security, TRUE) ); 
+
+          if ( security == NWAMUI_WIFI_SEC_NONE ) {
+              secure_str = _("Insecure");
+          }
+          else {
+              secure_str = _("Secure");
+          }
+
+          nwamui_util_set_widget_a11y_info( GTK_WIDGET(img), NULL, secure_str );
+
           nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 1, img);
 
     }
