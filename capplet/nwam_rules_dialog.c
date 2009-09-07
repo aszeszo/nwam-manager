@@ -39,6 +39,7 @@
 #define RULES_VBOX_SW "rules_vbox_sw"
 #define RULES_MATCH_ALL_RB "rules_match_all_rb"
 #define RULES_MATCH_ANY_RB "rules_match_any_rb"
+#define RULES_DIALOG_VBOX "rules_dialog_vbox"
 
 enum {
 	PLACE_HOLDER,
@@ -51,12 +52,14 @@ static guint cond_signals[LAST_SIGNAL] = {0};
 	NWAM_TYPE_RULES_DIALOG, NwamRulesDialogPrivate)) 
 
 struct _NwamRulesDialogPrivate {
-	GtkDialog *rules_dialog;
-	GtkRadioButton *rules_match_any_rb;
-	GtkRadioButton *rules_match_all_rb;
+	GtkDialog         *rules_dialog;
+	GtkRadioButton    *rules_match_any_rb;
+	GtkRadioButton    *rules_match_all_rb;
+	GtkWidget         *rules_vbox_sw;
+	GtkWidget         *rules_dialog_vbox;
 	NwamConditionVBox *rules_vbox;
 
-	NwamuiObject*                  selected_object;
+	NwamuiObject *selected_object;
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
@@ -115,7 +118,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 	NwamRulesDialogPrivate *prv = GET_PRIVATE(iface);
 
     /* Set the activation mode based on the toggle */
-    cond_all = gtk_toggle_button_get_active( prv->rules_match_all_rb );
+    cond_all = gtk_toggle_button_get_active( GTK_TOGGLE_BUTTON(prv->rules_match_all_rb) );
 
     if (cond_all) {
         nwamui_object_set_activation_mode(  prv->selected_object, 
@@ -164,18 +167,22 @@ static void
 nwam_rules_dialog_init (NwamRulesDialog *self)
 {
 	NwamRulesDialogPrivate *prv = GET_PRIVATE(self);
-	GtkScrolledWindow *rules_vbox_sw;
-
 	self->prv = prv;
+
 	prv->rules_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(RULES_DIALOG));
 	g_signal_connect(GTK_DIALOG(self->prv->rules_dialog), "response", (GCallback)response_cb, (gpointer)self);
 
+	prv->rules_dialog_vbox = nwamui_util_glade_get_widget(RULES_DIALOG_VBOX);
 	prv->rules_match_all_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(RULES_MATCH_ALL_RB));
 	prv->rules_match_any_rb = GTK_RADIO_BUTTON(nwamui_util_glade_get_widget(RULES_MATCH_ANY_RB));
 
 	prv->rules_vbox = nwam_condition_vbox_new();
-	rules_vbox_sw = GTK_SCROLLED_WINDOW(nwamui_util_glade_get_widget(RULES_VBOX_SW));
-	gtk_scrolled_window_add_with_viewport(rules_vbox_sw, GTK_WIDGET(prv->rules_vbox));
+	prv->rules_vbox_sw = gtk_scrolled_window_new(NULL, NULL);
+    gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(prv->rules_vbox_sw), GTK_SHADOW_IN);
+    gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(prv->rules_vbox_sw), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
+    gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(prv->rules_vbox_sw), GTK_WIDGET(prv->rules_vbox));
+    gtk_box_pack_start(GTK_BOX(prv->rules_dialog_vbox), prv->rules_vbox_sw, TRUE, TRUE, 2);
+    gtk_widget_show(prv->rules_vbox_sw);
 
 	/* Initializing */
 	nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
@@ -186,7 +193,15 @@ nwam_rules_dialog_finalize (NwamRulesDialog *self)
 {
 	NwamRulesDialogPrivate *prv = GET_PRIVATE(self);
 
-	g_object_unref(prv->rules_vbox);
+    g_signal_handlers_disconnect_matched(prv->rules_dialog,
+      G_SIGNAL_MATCH_FUNC,
+      0,
+      NULL,
+      NULL,
+      (gpointer)response_cb,
+      NULL);
+
+    gtk_container_remove(GTK_CONTAINER(prv->rules_dialog_vbox), prv->rules_vbox_sw);
 
 	if (prv->selected_object) {
 		g_object_unref(prv->selected_object);
@@ -209,8 +224,9 @@ nwam_rules_dialog_new (void)
 }
 
 gint
-nwam_rules_dialog_run(NwamRulesDialog  *self, GtkWindow* parent)
+nwam_rules_dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 {
+    NwamRulesDialog  *self = NWAM_RULES_DIALOG(iface);
 	gint response = GTK_RESPONSE_NONE;
     
 	g_assert(NWAM_IS_RULES_DIALOG(self));
@@ -234,7 +250,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer user_data)
 {
 	NwamRulesDialog *self = NWAM_RULES_DIALOG(user_data);
 	gboolean           stop_emission = FALSE;
-	
+
 	switch (responseid) {
 	case GTK_RESPONSE_NONE:
 		g_debug("GTK_RESPONSE_NONE");
@@ -245,10 +261,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer user_data)
 		break;
 	case GTK_RESPONSE_OK:
 		g_debug("GTK_RESPONSE_OK");
-		if (nwam_pref_apply(NWAM_PREF_IFACE(self), self->prv->selected_object)) {
-			gtk_widget_hide (GTK_WIDGET(self->prv->rules_dialog));
-		}
-		else {
+		if (!nwam_pref_apply(NWAM_PREF_IFACE(self), self->prv->selected_object)) {
 			/* TODO - report error to user */
             g_debug("GTK_RESPONSE failed to apply, emission stopped");
 			stop_emission = TRUE;
@@ -268,6 +281,6 @@ response_cb(GtkWidget* widget, gint responseid, gpointer user_data)
 	if ( stop_emission ) {
 		g_signal_stop_emission_by_name(widget, "response" );
 	} else {
-		gtk_widget_hide(GTK_WIDGET(self->prv->rules_dialog));
+		gtk_widget_hide(widget);
 	}
 }

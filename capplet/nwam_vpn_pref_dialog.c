@@ -1131,7 +1131,6 @@ on_rules_button_clicked(GtkButton *button, gpointer user_data)
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(user_data);
     GtkTreeModel*               model;
     GtkTreeIter                 iter;
-    static NwamRulesDialog *rules_dialog = NULL;
 
     if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->view), &model, &iter ) ) {
         NwamuiEnm *enm;
@@ -1140,11 +1139,10 @@ on_rules_button_clicked(GtkButton *button, gpointer user_data)
 
         /* TODO */
         if (button == (gpointer)prv->vpn_rules_btn) {
-            if (rules_dialog == NULL)
-                rules_dialog = nwam_rules_dialog_new();
-
+            NwamPrefIFace *rules_dialog = NWAM_PREF_IFACE(nwam_rules_dialog_new());
             nwam_pref_refresh(NWAM_PREF_IFACE(rules_dialog), NWAMUI_OBJECT(enm), TRUE);
-            nwam_rules_dialog_run(rules_dialog, GTK_WINDOW(prv->vpn_pref_dialog));
+            capplet_dialog_run(rules_dialog, GTK_WIDGET(prv->vpn_pref_dialog));
+            g_object_unref(rules_dialog);
         }
 
         g_object_unref(enm);

@@ -5783,7 +5783,7 @@ system/system-log:default
       <object class="GtkVBox" id="dialog-vbox11">
         <property name="visible">True</property>
         <child>
-          <object class="GtkVBox" id="vbox1">
+          <object class="GtkVBox" id="rules_dialog_vbox">
             <property name="visible">True</property>
             <property name="spacing">6</property>
             <child>
@@ -5858,20 +5858,7 @@ system/system-log:default
               </packing>
             </child>
             <child>
-              <object class="GtkScrolledWindow" id="rules_vbox_sw">
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="hscrollbar_policy">never</property>
-                <property name="vscrollbar_policy">automatic</property>
-                <property name="shadow_type">in</property>
-                <child>
-                  <placeholder/>
-                </child>
-              </object>
-              <packing>
-                <property name="padding">2</property>
-                <property name="position">1</property>
-              </packing>
+              <placeholder/>
             </child>
           </object>
           <packing>

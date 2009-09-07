@@ -1124,14 +1124,10 @@ on_button_clicked(GtkButton *button, gpointer user_data)
                 gtk_tree_path_free(tpath);
             }
         } else if (button == (gpointer)prv->location_rules_btn) {
-            static NwamPrefIFace *rules_dialog = NULL;
-
-            if (rules_dialog == NULL)
-                rules_dialog = NWAM_PREF_IFACE(nwam_rules_dialog_new());
-
+            NwamPrefIFace *rules_dialog = NWAM_PREF_IFACE(nwam_rules_dialog_new());
             nwam_pref_refresh(rules_dialog, NWAMUI_OBJECT(env), TRUE);
             capplet_dialog_run(rules_dialog, GTK_WIDGET(button));
-
+            g_object_unref(rules_dialog);
         } else {
             g_assert_not_reached();
         }

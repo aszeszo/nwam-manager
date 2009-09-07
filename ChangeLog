@@ -1,3 +1,16 @@
+2009-09-07  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam-manager-properties.ui:
+	* capplet/nwam_location_dialog.c (on_button_clicked):
+	* capplet/nwam_rules_dialog.c (apply), (nwam_rules_dialog_init),
+	(nwam_rules_dialog_finalize), (nwam_rules_dialog_run),
+	(response_cb):
+	* capplet/nwam_rules_dialog.h:
+	* capplet/nwam_vpn_pref_dialog.c (on_rules_button_clicked):
+	Scrollwindow doesn't support remove an inserted panel, so use vbox.
+	Fixed 10787 [A11y] The Edit VPN rules window fails to adjust window
+	size to expose all the widgets inside.
+
 2009-09-04  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_conf_ip_panel.c:
