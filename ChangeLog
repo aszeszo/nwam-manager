@@ -1,3 +1,10 @@
+2009-09-07  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/capplet-utils.c: 
+	  Fix defect#10875 where duplicate names are allowed to be given to
+	  locations. Adds a check before setting the name whether it
+	  already exists or not.
+
 2009-09-07  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam-manager-properties.ui:
