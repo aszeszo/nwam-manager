@@ -759,6 +759,21 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
 
         gtk_tree_model_get(model, &iter, 0, &env, -1);
 
+        /* First change prior selection, before changing new one */
+        if ( prv->toggled_env != NULL ) {
+            nwamui_env_set_enabled(prv->toggled_env, FALSE );
+        }
+        else {
+            NwamuiEnv *active_env;
+
+            active_env = nwamui_daemon_get_active_env(prv->daemon);
+
+            /* Use active env */
+            nwamui_env_set_enabled(active_env, FALSE );
+
+            g_object_unref(active_env);
+        }
+
         g_object_set(self, "toggled_env", env, NULL);
 
         if (env) {
@@ -971,6 +986,9 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_SYSTEM);
             break;
         }
+
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn), 
+                                 !nwamui_object_get_active(NWAMUI_OBJECT(env)));
 
         g_signal_handlers_unblock_by_func(G_OBJECT(prv->location_activation_combo), 
                                         (gpointer)location_activation_combo_changed_cb, (gpointer)self);

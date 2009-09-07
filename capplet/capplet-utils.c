@@ -50,14 +50,16 @@ capplet_model_foreach_find_object(GtkTreeModel *model,
     gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
 
     if (object == data->user_data) {
-        *(GtkTreeIter *)data->ret_data = *iter;
-        /* Stop flag. */
-        data->ret_data = NULL;
+        /* Fill in passed GtkTreeIter */
+        *(GtkTreeIter *)data->user_data1 = *iter;
+        /* return value now */
+        data->ret_data = data->user_data1;
     }
+
 	if (object)
 		g_object_unref(object);
 
-	return data->ret_data == NULL;
+	return data->ret_data != NULL;
 }
 
 void
@@ -136,12 +138,13 @@ capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *ite
     g_return_val_if_fail(iter, FALSE);
 
 	data.user_data = (gpointer)object;
-	data.ret_data = iter;
+	data.user_data1 = (gpointer)iter;
+	data.ret_data = NULL;
 
 	gtk_tree_model_foreach(model, capplet_model_foreach_find_object,
       (gpointer)&data);
 
-	return data.ret_data == NULL;
+	return data.ret_data != NULL;
 }
 
 gboolean
@@ -154,7 +157,8 @@ capplet_model_find_object_with_parent(GtkTreeModel *model, GtkTreeIter *parent, 
     g_return_val_if_fail(iter, FALSE);
 
 	data.user_data = (gpointer)object;
-	data.ret_data = iter;
+	data.user_data1 = (gpointer)iter;
+	data.ret_data = NULL;
 
     for (valid = gtk_tree_model_iter_children(model, &i, parent);
          valid;
@@ -766,7 +770,7 @@ capplet_util_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data
     GtkTreeIter     iter;
     gboolean        valid_iter = FALSE;
 
-    g_debug("capplet-utils: %s's notify '%s' changed", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), arg1->name);
+    nwamui_debug("%s's notify '%s' changed", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), arg1->name);
 
     if (capplet_model_find_object(model, gobject, &iter)) {
         GtkTreePath *path;

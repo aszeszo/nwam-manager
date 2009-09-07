@@ -1,5 +1,16 @@
 2009-09-07  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/capplet-utils.c: 
+	  Fix an issue with capplet_model_find_object, where it wasn't ever
+	  finding an object, causing the UI to not see a row-changed event
+	  when toggling locations.
+	* capplet/nwam_location_dialog.c, capplet/nwam_vpn_pref_dialog.c:
+	  Fix defect#11045 where the remove button wasn't disabled for the
+	  currently active ENM or Location, and for locations, also unset the
+	  enabled flag on the prior location.
+
+2009-09-07  Darren Kenny  <darren.kenny@sun.com>
+
 	* daemon/nwam-wifi-item.c:
 	  Add descriptions for wireless strength and security icons, 
 	  fixing defect#11157.

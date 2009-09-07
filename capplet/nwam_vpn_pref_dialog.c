@@ -1027,6 +1027,9 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
             gboolean    fmri_value = FALSE;
             gboolean    init_editting = FALSE;
             gboolean    cli_value = FALSE;
+            gboolean    is_active;
+
+            is_active = nwamui_enm_get_active (NWAMUI_ENM(obj));
 
 			txt = nwamui_enm_get_start_command (NWAMUI_ENM(obj));
 			gtk_entry_set_text (prv->start_cmd_entry, txt?txt:"");
@@ -1079,7 +1082,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
             } else {
                 gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->vpn_conditional_cb), FALSE);
                 gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
-                if (nwamui_enm_get_active (NWAMUI_ENM(obj))) {
+                if (is_active) {
                     gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
                     gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), TRUE);
                 } else {
@@ -1087,6 +1090,8 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
                     gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
                 }
             }
+
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), !is_active );
 
             g_free(name);
             g_free(title);
