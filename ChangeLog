@@ -1,5 +1,13 @@
 2009-09-08  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam-manager-properties.ui:
+	  Fix duplicate ids on various widgets.
+	* common/libnwamui.c: 
+	  Make get_gtk_builder() generate warnings for issues loading the .ui
+	  file.
+
+2009-09-08  Darren Kenny  <darren.kenny@sun.com>
+
 	* configure.in:
 	  Bump to 0.99.9 for new build.
 

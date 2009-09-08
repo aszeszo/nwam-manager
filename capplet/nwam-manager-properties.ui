@@ -280,7 +280,7 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="label2">
+                  <object class="GtkLabel" id="pref_label2">
                     <property name="visible">True</property>
                     <property name="xalign">1</property>
                     <property name="label" translatable="yes">Sho_w:</property>
@@ -989,7 +989,7 @@ Choose which connections are enabled in this profile:</property>
                             <property name="label_xalign">0</property>
                             <property name="shadow_type">none</property>
                             <child>
-                              <object class="GtkAlignment" id="alignment1">
+                              <object class="GtkAlignment" id="ipv4_alignment1">
                                 <property name="visible">True</property>
                                 <property name="left_padding">12</property>
                                 <child>
@@ -1072,7 +1072,7 @@ Choose which connections are enabled in this profile:</property>
                               </object>
                             </child>
                             <child type="label">
-                              <object class="GtkLabel" id="label4">
+                              <object class="GtkLabel" id="ipv4_label4">
                                 <property name="visible">True</property>
                                 <property name="label" translatable="yes">_Manual Addresses:</property>
                                 <property name="use_markup">True</property>
@@ -1162,7 +1162,7 @@ Choose which connections are enabled in this profile:</property>
                                             <property name="label_xalign">0</property>
                                             <property name="shadow_type">none</property>
                                             <child>
-                                              <object class="GtkAlignment" id="alignment4">
+                                              <object class="GtkAlignment" id="ipv6_alignment4">
                                                 <property name="visible">True</property>
                                                 <property name="left_padding">12</property>
                                                 <child>
@@ -1190,7 +1190,7 @@ Choose which connections are enabled in this profile:</property>
                                                       </packing>
                                                     </child>
                                                     <child>
-                                                      <object class="GtkHBox" id="hbox1">
+                                                      <object class="GtkHBox" id="ipv6_hbox1">
                                                         <property name="visible">True</property>
                                                         <property name="spacing">6</property>
                                                         <child>
@@ -1520,11 +1520,11 @@ Choose which connections are enabled in this profile:</property>
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkHBox" id="hbox2">
+                          <object class="GtkHBox" id="ipv4_hbox2">
                             <property name="visible">True</property>
                             <property name="spacing">12</property>
                             <child>
-                              <object class="GtkLabel" id="label1">
+                              <object class="GtkLabel" id="ipv4_label1">
                                 <property name="visible">True</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">IPv4 I_P:</property>
@@ -2089,7 +2089,7 @@ connection will be attempted:</property>
                     <property name="border_width">6</property>
                     <property name="spacing">6</property>
                     <child>
-                      <object class="GtkAlignment" id="alignment1">
+                      <object class="GtkAlignment" id="proxy_alignment1">
                         <property name="visible">True</property>
                         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                         <property name="top_padding">6</property>
@@ -4106,7 +4106,7 @@ Disable these services when this location is active:</property>
                     <property name="label_xalign">0</property>
                     <property name="shadow_type">none</property>
                     <child>
-                      <object class="GtkAlignment" id="alignment4">
+                      <object class="GtkAlignment" id="bssid_alignment4">
                         <property name="visible">True</property>
                         <property name="left_padding">25</property>
                         <child>
@@ -4132,7 +4132,7 @@ Disable these services when this location is active:</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="label4">
+                              <object class="GtkLabel" id="bssid_label4">
                                 <property name="visible">True</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">&lt;small&gt;&lt;i&gt;Double-click rows to edit&lt;/i&gt;&lt;/small&gt;</property>
@@ -4482,7 +4482,7 @@ Disable these services when this location is active:</property>
                     <property name="column_spacing">3</property>
                     <property name="row_spacing">6</property>
                     <child>
-                      <object class="GtkHBox" id="hbox2">
+                      <object class="GtkHBox" id="vpn_hbox2">
                         <property name="visible">True</property>
                         <property name="spacing">12</property>
                         <child>
@@ -4654,7 +4654,7 @@ Disable these services when this location is active:</property>
               </packing>
             </child>
             <child>
-              <object class="GtkVBox" id="vbox2">
+              <object class="GtkVBox" id="vpn_vbox2">
                 <property name="visible">True</property>
                 <property name="spacing">12</property>
                 <child>
@@ -5152,7 +5152,7 @@ system/system-log:default
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label1">
+              <object class="GtkLabel" id="proxy_label1">
                 <property name="visible">True</property>
                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                 <property name="xalign">0</property>
@@ -5652,7 +5652,7 @@ Enter username and password for http://$HOST:$PORT
               </packing>
             </child>
             <child>
-              <object class="GtkAlignment" id="alignment1">
+              <object class="GtkAlignment" id="locations_alignment1">
                 <property name="visible">True</property>
                 <property name="bottom_padding">24</property>
                 <child>
@@ -5696,7 +5696,7 @@ Enter username and password for http://$HOST:$PORT
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label1">
+              <object class="GtkLabel" id="loc_label1">
                 <property name="visible">True</property>
               </object>
               <packing>
@@ -5708,7 +5708,7 @@ Enter username and password for http://$HOST:$PORT
               </packing>
             </child>
             <child>
-              <object class="GtkLabel" id="label2">
+              <object class="GtkLabel" id="loc_label2">
                 <property name="visible">True</property>
               </object>
               <packing>
@@ -5919,7 +5919,7 @@ system/system-log:default
             <property name="visible">True</property>
             <property name="spacing">6</property>
             <child>
-              <object class="GtkHBox" id="hbox1">
+              <object class="GtkHBox" id="dialog_hbox1">
                 <property name="visible">True</property>
                 <child>
                   <object class="GtkLabel" id="rules_name_lbl">
@@ -6088,11 +6088,11 @@ system/system-log:default
           </packing>
         </child>
         <child>
-          <object class="GtkVBox" id="vbox2">
+          <object class="GtkVBox" id="conn_vbox2">
             <property name="visible">True</property>
             <property name="orientation">vertical</property>
             <child>
-              <object class="GtkLabel" id="label1">
+              <object class="GtkLabel" id="conn_label1">
                 <property name="visible">True</property>
                 <property name="xalign">0</property>
                 <property name="ypad">2</property>

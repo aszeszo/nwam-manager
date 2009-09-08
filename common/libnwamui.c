@@ -183,7 +183,7 @@ get_gtk_builder( void ) {
                 gtk_builder = new_builder;
             }
             else if ( err ) {
-                nwamui_debug("Error loading glade file : %s", err->message);
+                nwamui_warning("Error loading glade file : %s", err->message);
                 g_error_free(err);
                 err = NULL;
             }
@@ -197,7 +197,7 @@ get_gtk_builder( void ) {
                     gtk_builder = new_builder;
                 }
                 else if ( err ) {
-                    nwamui_debug("Error loading glade file : %s", err->message);
+                    nwamui_warning("Error loading glade file : %s", err->message);
                     g_error_free(err);
                     err = NULL;
                 }
@@ -217,7 +217,7 @@ get_gtk_builder( void ) {
                     break;
                 }
                 else if ( err ) {
-                    nwamui_debug("Error loading glade file : %s", err->message);
+                    nwamui_warning("Error loading glade file : %s", err->message);
                     g_error_free(err);
                     err = NULL;
                 }
@@ -232,7 +232,7 @@ get_gtk_builder( void ) {
                     break;
                 }
                 else if ( err ) {
-                    nwamui_debug("Error loading glade file : %s", err->message);
+                    nwamui_warning("Error loading glade file : %s", err->message);
                     g_error_free(err);
                     err = NULL;
                 }
