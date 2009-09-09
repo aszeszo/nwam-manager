@@ -1,3 +1,12 @@
+2009-09-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c (nwam_conf_ip_panel_init):
+	Make addr/subnet labels selectable.
+	* capplet/nwam_net_conf_panel.c (nwam_compose_tree_view),
+	(refresh):
+	Fixed select edit combo refresh current profile combo. Default
+	do not show expanders in treeview.
+
 2009-09-08  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.ui:

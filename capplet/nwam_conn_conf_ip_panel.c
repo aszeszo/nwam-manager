@@ -499,6 +499,14 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 	self->prv->ipv4_addr_lbl = GTK_LABEL(nwamui_util_glade_get_widget(IP_DHCP_IPV4_ADDRESS_LBL));
 	self->prv->ipv4_subnet_lbl = GTK_LABEL(nwamui_util_glade_get_widget(IP_DHCP_IPV4_SUBNET_LBL));
 
+    /* For accessibility */
+    g_object_set(self->prv->ipv4_addr_lbl,
+      "selectable", TRUE,
+      NULL);
+    g_object_set(self->prv->ipv4_subnet_lbl,
+      "selectable", TRUE,
+      NULL);
+
 /*	self->prv->ipv4_renew_btn = GTK_BUTTON(nwamui_util_glade_get_widget(IP_DHCP_PANEL_IPV4_RENEW_BTN));
 	g_signal_connect(G_OBJECT(self->prv->ipv4_renew_btn), "clicked", (GCallback)renew_cb, (gpointer)self);
 */	

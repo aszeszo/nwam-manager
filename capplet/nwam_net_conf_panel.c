@@ -375,9 +375,15 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
       "rules-hint", FALSE,
       "reorderable", FALSE,
       "enable-search", FALSE,
-      "show-expanders", TRUE,
+      "show-expanders", FALSE,
       "level-indentation", 40,
       NULL);
+
+    if (nwamui_util_is_debug_mode()) {
+        g_object_set (view,
+          "show-expanders", TRUE,
+          NULL);
+    }
 
 	g_signal_connect(view,
       "row-activated",
@@ -433,7 +439,7 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
     col = capplet_column_new(view,
       "title",_("Details"),
       "expand", TRUE,
-      "resizable", TRUE,
+      "resizable", FALSE,
       "clickable", TRUE,
       "sort-indicator", FALSE,
       "reorderable", FALSE,
@@ -662,19 +668,18 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     NwamuiObject *combo_object;
     NwamuiNcp *old_ncp = prv->selected_ncp;
 
+    if (force) {
+        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+        NwamuiNcp *active_ncp = nwamui_daemon_get_active_ncp(daemon);
+        /* Update active ncp combo. */
+        capplet_combo_set_active_object(prv->profile_name_combo, G_OBJECT(active_ncp));
+        g_object_unref(active_ncp);
+        g_object_unref(daemon);
+    }
 
 	/* data could be null or prv->selected_ncp */
     if (user_data != NULL) {
         GtkTreeModel *model;
-
-        {
-            NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-            NwamuiNcp *active_ncp = nwamui_daemon_get_active_ncp(daemon);
-            /* Update active ncp combo. */
-            capplet_combo_set_active_object(prv->profile_name_combo, G_OBJECT(active_ncp));
-            g_object_unref(active_ncp);
-            g_object_unref(daemon);
-        }
 
         /* Update ncp combo first if the selected ncp isn't the same to what we
          * are refreshing */
@@ -748,9 +753,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         }
     }
     
-    if (force) {
-    }
-
     return( TRUE );
 }
 
