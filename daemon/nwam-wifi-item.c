@@ -336,9 +336,6 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
               (nwamui_util_get_wireless_strength_icon_with_size(nwamui_wifi_net_get_signal_strength(wifi),
                                                                 NWAMUI_WIRELESS_ICON_TYPE_BARS,
                                                                 16 ));
-          nwamui_util_set_widget_a11y_info( GTK_WIDGET(img), NULL,
-                  nwamui_wifi_net_get_signal_strength_string(wifi));
-
           nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, img);
 
     }
@@ -398,17 +395,19 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
           img = gtk_image_new_from_pixbuf(
                   nwamui_util_get_network_security_icon( security, TRUE) ); 
 
-          if ( security == NWAMUI_WIFI_SEC_NONE ) {
-              secure_str = _("Insecure");
-          }
-          else {
-              secure_str = _("Secure");
-          }
-
-          nwamui_util_set_widget_a11y_info( GTK_WIDGET(img), NULL, secure_str );
-
           nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 1, img);
 
+    }
+
+    /* a11y information */
+    {
+        gchar*  a11y_str = nwamui_wifi_net_get_a11y_description( wifi );
+
+        if ( a11y_str ) {
+            nwamui_util_set_widget_a11y_info( GTK_WIDGET(self), NULL, a11y_str );
+            nwamui_warning("wifi-menu: %s", a11y_str );
+            g_free( a11y_str );
+        }
     }
 
 #if 0

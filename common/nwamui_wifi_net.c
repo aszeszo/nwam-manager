@@ -2277,6 +2277,47 @@ nwamui_wifi_net_has_modifications( NwamuiWifiNet* self )
     return( FALSE );
 }
 
+extern gchar*
+nwamui_wifi_net_get_a11y_description( NwamuiWifiNet* self )
+{
+    gchar*          ret_str = NULL;
+    const gchar*    state_str;
+    const gchar*    secure_str;
+    const gchar*    signal_str;
+
+
+    g_return_val_if_fail( NWAMUI_IS_WIFI_NET(self), ret_str );
+
+    /* Compose a string like : ESSID, connected, secure, strong */
+    switch (self->prv->status ) {
+        case NWAMUI_WIFI_STATUS_CONNECTED:
+            state_str = _("Connected");
+            break;
+        case NWAMUI_WIFI_STATUS_DISCONNECTED:
+        case NWAMUI_WIFI_STATUS_FAILED:
+            state_str = _("Not Connected");
+            ;;
+    }
+
+    signal_str = nwamui_wifi_net_get_signal_strength_string(self);
+
+    if ( self->prv->security == NWAMUI_WIFI_SEC_NONE ) {
+        secure_str = _("Open");
+    }
+    else {
+        secure_str = _("Secure");
+    }
+
+    ret_str = g_strdup_printf(  "%s, %s, %s, %s",
+                                self->prv->essid,
+                                state_str,
+                                secure_str,
+                                signal_str );
+
+    return( ret_str );
+}
+
+
 /* Callbacks */
 
 static void

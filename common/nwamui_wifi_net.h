@@ -240,6 +240,8 @@ extern nwamui_wifi_signal_strength_t nwamui_wifi_net_strength_map (const gchar *
 
 
 extern nwamui_wifi_bss_type_t       nwamui_wifi_net_bss_type_map( uint32_t _bsstype );
+
+extern gchar*                       nwamui_wifi_net_get_a11y_description( NwamuiWifiNet* self );
 G_END_DECLS
         
 #endif	/* _NWAMUI_WIFI_NET_H */

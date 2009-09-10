@@ -1,5 +1,12 @@
 2009-09-10  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_wifi_net.c, common/nwamui_wifi_net.h,
+	  daemon/nwam-wifi-item.c: 
+	  Fix defect#11157 differently by setting the menu widget's (parent
+	  class) AtkObject's description property to be a descriptive string.
+
+2009-09-10  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_daemon.c: 
 	  Refactor the initialisation of objects in the daemon to better
 	  support restart of NWAM daemon. Populationg of the lists of objects
