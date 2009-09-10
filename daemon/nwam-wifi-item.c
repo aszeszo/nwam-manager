@@ -405,7 +405,6 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
 
         if ( a11y_str ) {
             nwamui_util_set_widget_a11y_info( GTK_WIDGET(self), NULL, a11y_str );
-            nwamui_warning("wifi-menu: %s", a11y_str );
             g_free( a11y_str );
         }
     }
