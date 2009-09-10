@@ -310,6 +310,15 @@ default_log_handler( const gchar    *log_domain,
         return;
     }
 
+    /* Uncomment if want to assert on critical errors, most useful when
+     * debugging. 
+     */
+    /*
+    if ((log_level & G_LOG_LEVEL_MASK) == G_LOG_LEVEL_CRITICAL ) {
+        g_assert_not_reached();
+    }
+    */
+
     /* Otherwise just log as usual */
     g_log_default_handler (log_domain, log_level, message, unused_data);
 }

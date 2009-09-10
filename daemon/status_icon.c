@@ -93,6 +93,8 @@ struct _NwamStatusIconPrivate {
 	NwamuiDaemon *daemon;
     NwamuiNcp    *active_ncp;
     gint          current_status;
+    NwamuiNcu    *needs_wifi_selection;
+    NwamuiWifiNet*needs_wifi_key;
 
     gint icon_stock_index;
     guint animation_icon_update_timeout_id;
@@ -390,11 +392,13 @@ static void
 daemon_wifi_key_needed (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer user_data)
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
-	if (wifi) {
+	if (wifi && wifi != prv->needs_wifi_key) {
         nwam_status_icon_set_activate_callback(self,
           (GCallback)status_icon_wifi_key_needed, G_OBJECT(wifi) );
 
+        prv->needs_wifi_key = wifi; /* no need to ref, we don't use contents */
         nwam_notification_show_ncu_wifi_key_needed( wifi, notifyaction_wifi_key_need );
     } else {
         g_assert_not_reached();
@@ -405,15 +409,18 @@ static void
 daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data)
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
     gboolean        active_ncu = FALSE;
 
     /* Only show the message when it's relevant */
-	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
+	if (ncu && ncu != prv->needs_wifi_selection &&
+        ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
 
         if ( active_ncu ) {
             nwam_status_icon_set_status(self, ncu );
         }
 
+        prv->needs_wifi_selection = ncu; /* no need to ref, we don't use contents */
         nwam_notification_show_ncu_wifi_selection_needed( ncu, notifyaction_popup_menus, G_OBJECT(self) );
     } 
 }
@@ -422,6 +429,7 @@ static void
 ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamStatusIcon *self       = NWAM_STATUS_ICON(data);
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
     NwamuiNcu      *ncu        = NWAMUI_NCU(gobject);
     gboolean        active_ncu = FALSE;
 
@@ -433,18 +441,18 @@ ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
 
     /* Ncu state filter. */
     switch(nwamui_ncu_get_connection_state(ncu)) {
-    case NWAMUI_STATE_CABLE_UNPLUGGED:
-    case NWAMUI_STATE_NEEDS_KEY_ESSID:
-    case NWAMUI_STATE_CONNECTING_ESSID:
     case NWAMUI_STATE_CONNECTED_ESSID:
-    case NWAMUI_STATE_NEEDS_SELECTION:
     case NWAMUI_STATE_CONNECTED:
+        prv->needs_wifi_selection = NULL;
+        prv->needs_wifi_key = NULL;
         if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
             nwam_notification_show_ncu_connected( ncu );
-        } else if ( active_ncu ) {
-            nwam_notification_show_ncu_disconnected( ncu, NULL, NULL );
         }
         break;
+    case NWAMUI_STATE_CONNECTING_ESSID:
+    case NWAMUI_STATE_CABLE_UNPLUGGED:
+    case NWAMUI_STATE_NEEDS_KEY_ESSID:
+    case NWAMUI_STATE_NEEDS_SELECTION:
     case NWAMUI_STATE_UNKNOWN:
     case NWAMUI_STATE_NOT_CONNECTED:
     case NWAMUI_STATE_CONNECTING:
@@ -1387,6 +1395,8 @@ nwam_status_icon_init (NwamStatusIcon *self)
 {
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
     prv->tooltip_widget = nwam_tooltip_widget_new();
+    prv->needs_wifi_selection = NULL;
+    prv->needs_wifi_key = NULL;
 }
 
 static void

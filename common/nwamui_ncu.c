@@ -3892,6 +3892,7 @@ static const gchar* status_string_fmt[NWAMUI_STATE_LAST] = {
     N_("Unknown"),
     N_("Disabled"),
     N_("Not Connected"),
+    N_("Scanning for Networks"),
     N_("Needs Network Selection"),
     N_("Wireless Network %s Needs a Key"),  /* %s = ESSID */
     N_("Waiting for Address"),
@@ -3953,7 +3954,11 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             break;
         case NWAM_STATE_OFFLINE_TO_ONLINE:
             if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-                if ( nwam_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
+                if ( nwam_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
+                    state = NWAMUI_STATE_SCANNING;
+                    break;
+                }
+                else if ( nwam_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
                     state = NWAMUI_STATE_NEEDS_SELECTION;
                     break;
                 }
@@ -4013,6 +4018,7 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
     switch( state ) {
         case NWAMUI_STATE_UNKNOWN:
         case NWAMUI_STATE_NOT_CONNECTED:
+        case NWAMUI_STATE_SCANNING:
         case NWAMUI_STATE_NEEDS_SELECTION:
         case NWAMUI_STATE_WAITING_FOR_ADDRESS:
         case NWAMUI_STATE_DHCP_TIMED_OUT:

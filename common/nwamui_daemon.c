@@ -96,6 +96,8 @@ struct _NwamuiDaemonPrivate {
     GList       *enm_list;
     GList       *wifi_fav_list;
 
+    GList       *temp_list; /* Used to temporarily track not found objects in walkers */
+
     /* others */
     gboolean                     connected_to_nwamd;
     nwamui_daemon_status_t       status;
@@ -116,6 +118,8 @@ typedef struct _NwamuiEvent {
     nwam_event_t  nwamevent;	/* daemon data */
     NwamuiDaemon* daemon;
 } NwamuiEvent;
+
+static void nwamui_daemon_init_lists (NwamuiDaemon *self);
 
 static gboolean nwamd_event_handler(gpointer data);
 
@@ -369,21 +373,47 @@ nwamui_daemon_init (NwamuiDaemon *self)
     self->prv->active_env = NULL;
     self->prv->active_ncp = NULL;
     self->prv->auto_ncp = NULL;
-
+    self->prv->ncp_list = NULL;
+    self->prv->env_list = NULL;
+    self->prv->enm_list = NULL;
 
     self->prv->nwam_events_gthread = g_thread_create(nwam_events_thread, g_object_ref(self), TRUE, &error);
     if( self->prv->nwam_events_gthread == NULL ) {
         g_debug("Error creating nwam events thread: %s", (error && error->message)?error->message:"" );
     }
 
+    nwamui_daemon_init_lists ( self ); 
+
+    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
+}
+
+
+static void
+nwamui_daemon_init_lists (NwamuiDaemon *self)
+{
+    GError                 *error = NULL;
+    NwamuiWifiNet          *wifi_net = NULL;
+    NwamuiEnm              *new_enm = NULL;
+    nwam_error_t            nerr;
+    NwamuiNcp*              user_ncp;
+    
+    /* NCPs */
+
     /* Get list of Ncps from libnwam */
-    self->prv->ncp_list = NULL;
+    self->prv->temp_list = g_list_copy( self->prv->ncp_list ); /* not worried about refs here */
     {
         nwam_error_t nerr;
         int cbret;
         nerr = nwam_walk_ncps (nwam_ncp_walker_cb, (void *)self, 0, &cbret);
         if (nerr != NWAM_SUCCESS) {
             g_debug ("[libnwam] nwam_walk_ncps %s", nwam_strerror (nerr));
+        }
+    }
+    if ( self->prv->temp_list != NULL ) {
+        for( GList* item = g_list_first( self->prv->temp_list ); 
+             item != NULL;
+             item = g_list_next( item ) ) {
+            nwamui_daemon_ncp_remove( self, NWAMUI_NCP(item->data));
         }
     }
 
@@ -400,8 +430,8 @@ nwamui_daemon_init (NwamuiDaemon *self)
         }
     }
 
-    self->prv->env_list = NULL;
-
+    /* Env / Locations */
+    self->prv->temp_list = g_list_copy( self->prv->env_list ); /* not worried about refs here */
     {
         nwam_error_t nerr;
         int cbret;
@@ -419,10 +449,16 @@ nwamui_daemon_init (NwamuiDaemon *self)
         }
         
     }
+    if ( self->prv->temp_list != NULL ) {
+        for( GList* item = g_list_first( self->prv->temp_list ); 
+             item != NULL;
+             item = g_list_next( item ) ) {
+            nwamui_daemon_env_remove( self, NWAMUI_ENV(item->data));
+        }
+    }
 
-    
-    /* TODO - Get list of ENM from libnwam */
-    self->prv->enm_list = NULL;
+    /* ENMs */
+    self->prv->temp_list = g_list_copy( self->prv->enm_list ); /* not worried about refs here */
     {
         nwam_error_t nerr;
         int cbret;
@@ -431,11 +467,16 @@ nwamui_daemon_init (NwamuiDaemon *self)
             g_debug ("[libnwam] nwam_walk_enms %s", nwam_strerror (nerr));
         }
     }
+    if ( self->prv->temp_list != NULL ) {
+        for( GList* item = g_list_first( self->prv->temp_list ); 
+             item != NULL;
+             item = g_list_next( item ) ) {
+            nwamui_daemon_enm_remove( self, NWAMUI_ENM(item->data));
+        }
+    }
 
     /* Populate Wifi Favourites List */
     nwamui_daemon_populate_wifi_fav_list( self );
-
-    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
 
 static void
@@ -2292,13 +2333,17 @@ nwamd_event_handler(gpointer data)
 
         nwamui_daemon_set_status(daemon, NWAMUI_DAEMON_STATUS_UNINITIALIZED);
 
-		/* should repopulate data here */
-        nwamui_ncp_reload(daemon->prv->active_ncp);
-        nwamui_daemon_populate_wifi_fav_list(daemon);
+		/* Now repopulate data here */
+        nwamui_daemon_init_lists ( daemon );
+
         nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
 
         /* Will generate an event if status changes */
         nwamui_daemon_update_status( daemon );
+
+        /* Trigger notification of active_ncp/env to ensure widgets update */
+        g_object_notify(G_OBJECT(daemon), "active_ncp");
+        g_object_notify(G_OBJECT(daemon), "active_env");
 
         break;
     case NWAMUI_DAEMON_INFO_RAW:
@@ -2751,6 +2796,12 @@ nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, n
 #endif /* 0 */
 }
 
+typedef struct _to_emit {
+    guint       signal_id;
+    GQuark      detaiil;
+    gpointer    param1;
+} to_emit_t;
+
 /*
  * The daemon's state is determined by the following criteria:
  *
@@ -2794,6 +2845,8 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
     nwamui_daemon_status_t  old_status;
     nwamui_daemon_status_t  new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
     NwamuiDaemonPrivate    *prv;
+    GQueue                 *signal_queue = g_queue_new();
+    gpointer                ptr;
 
     /* 
      * Determine status from objects 
@@ -2823,16 +2876,18 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
             if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                 new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
                 if ( needs_wifi_selection != NULL ) {
-                    g_signal_emit (daemon,
-                      nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
-                      0, /* details */
-                      needs_wifi_selection );
+                    to_emit_t *sig = (to_emit_t*)g_malloc0( sizeof( to_emit_t ) );
+                    sig->signal_id = nwamui_daemon_signals[WIFI_SELECTION_NEEDED];
+                    sig->detaiil = 0;
+                    sig->param1 = needs_wifi_selection;
+                    g_queue_push_tail( signal_queue, (gpointer)sig );
                 }
                 if ( needs_wifi_key != NULL ) {
-                    g_signal_emit (daemon,
-                      nwamui_daemon_signals[WIFI_KEY_NEEDED],
-                      0, /* details */
-                      needs_wifi_key );
+                    to_emit_t *sig = (to_emit_t*)g_malloc0( sizeof( to_emit_t ) );
+                    sig->signal_id = nwamui_daemon_signals[WIFI_KEY_NEEDED];
+                    sig->detaiil = 0;
+                    sig->param1 = needs_wifi_key;
+                    g_queue_push_tail( signal_queue, (gpointer)sig );
                 }
             }
         }
@@ -2869,6 +2924,19 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
     if ( new_status != old_status ) {
         nwamui_daemon_set_status(daemon, new_status );
     }
+
+    /* Now it's safe to emit any signals generated while gathering status */
+    while ( (ptr = g_queue_pop_head( signal_queue )) != NULL ) {
+        to_emit_t *sig = (to_emit_t*)ptr;
+
+        g_signal_emit (daemon,
+                       sig->signal_id,
+                       sig->detaiil,
+                       sig->param1 );
+
+        g_free(ptr);
+    }
+    g_queue_free(signal_queue);
 }
 
 static void
@@ -3356,6 +3424,11 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
                         DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
+                        /*
+                         * Don't do this since there are already events to
+                         * handle this.
+                         */
+#if 0
                         if ( needs_wifi_selection != NULL ) {
                             g_signal_emit (daemon,
                               nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
@@ -3368,6 +3441,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                               0, /* details */
                               needs_wifi_key );
                         }
+#endif
                     }
                 }
                 break;
@@ -3667,17 +3741,20 @@ nwam_events_thread ( gpointer data )
                 continue;
             }
 			if (err != NWAM_SUCCESS ) {
-				g_debug("Attempting to reopen connection to daemon");
-                nwamui_daemon_nwam_disconnect();
-                if ( nwamui_daemon_nwam_connect( TRUE ) ) {
-                    g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
-                      nwamd_event_handler,
-                      (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_ACTIVE, NULL),
-                      (GDestroyNotify) nwamui_event_free);
+                /* Try again */
+                if ( (err = nwam_event_wait( &nwamevent)) != NWAM_SUCCESS ) {
+                    g_debug("Attempting to reopen connection to daemon");
+                    nwamui_daemon_nwam_disconnect();
+                    if ( nwamui_daemon_nwam_connect( TRUE ) ) {
+                        g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+                          nwamd_event_handler,
+                          (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_ACTIVE, NULL),
+                          (GDestroyNotify) nwamui_event_free);
 
-                    connected_to_nwamd = TRUE;
+                        connected_to_nwamd = TRUE;
 
-					continue;
+                        continue;
+                    }
                 }
                 else {
                     g_debug("nwam_event_wait() error: %s", nwam_strerror(err));
@@ -3787,18 +3864,33 @@ nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
     nwam_error_t nerr;
     NwamuiEnv* new_env;
         
-    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON(data)->prv;
+    NwamuiDaemon        *self = NWAMUI_DAEMON(data);
+    NwamuiDaemonPrivate *prv = self->prv;
 
     g_debug ("nwam_loc_walker_cb 0x%p", env);
     
-    new_env = nwamui_env_new_with_handle (env);
-        
+    if ( (nerr = nwam_loc_get_name (env, &name)) != NWAM_SUCCESS ) {
+        g_debug ("Failed to get name for loc, error: %s", nwam_strerror (nerr));
+        name = NULL;
+    }
+
+    if ( name && (new_env = nwamui_daemon_get_env_by_name( self, name )) != NULL ) {
+        /* Reload */
+        nwamui_env_reload( new_env );
+        /* Found it, so remove from temp list of ones to be removed */
+        self->prv->temp_list = g_list_remove( self->prv->temp_list, new_env );
+
+        free(name);
+    }
+    else {
+        new_env = nwamui_env_new_with_handle (env);
+        prv->env_list = g_list_append(prv->env_list, (gpointer)new_env);
+    }
+            
     if ( new_env != NULL ) {
         if ( nwamui_env_get_active( new_env ) ) {
             prv->active_env = NWAMUI_ENV(g_object_ref(new_env));
         }
-
-        prv->env_list = g_list_append(prv->env_list, (gpointer)new_env);
     }
 
     return(0);
@@ -3811,13 +3903,28 @@ nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data)
     nwam_error_t nerr;
     NwamuiEnm* new_enm;
     
-    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON(data)->prv;
+    NwamuiDaemon        *self = NWAMUI_DAEMON(data);
+    NwamuiDaemonPrivate *prv = self->prv;
 
     g_debug ("nwam_enm_walker_cb 0x%p", enm);
     
-    new_enm = nwamui_enm_new_with_handle (enm);
-        
-    prv->enm_list = g_list_append(prv->enm_list, (gpointer)new_enm);
+    if ( (nerr = nwam_enm_get_name (enm, &name)) != NWAM_SUCCESS ) {
+        g_debug ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
+        name = NULL;
+    }
+
+    if ( name && (new_enm = nwamui_daemon_get_enm_by_name( self, name )) != NULL ) {
+        /* Reload */
+        nwamui_enm_reload( new_enm );
+        /* Found it, so remove from temp list of ones to be removed */
+        self->prv->temp_list = g_list_remove( self->prv->temp_list, new_enm );
+
+        free(name);
+    }
+    else {
+        new_enm = nwamui_enm_new_with_handle (enm);
+        prv->enm_list = g_list_append(prv->enm_list, (gpointer)new_enm);
+    }
 
     return(0);
 }
@@ -3829,26 +3936,43 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
     nwam_error_t    nerr;
     NwamuiNcp      *new_ncp;
     
-    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON(data)->prv;
+    NwamuiDaemon        *self = NWAMUI_DAEMON(data);
+    NwamuiDaemonPrivate *prv = self->prv;
 
     g_debug ("nwam_ncp_walker_cb 0x%p", ncp);
     
-    new_ncp = nwamui_ncp_new_with_handle (ncp);
-    
+    if ( (nerr = nwam_ncp_get_name (ncp, &name)) != NWAM_SUCCESS ) {
+        g_debug ("Failed to get name for ncp, error: %s", nwam_strerror (nerr));
+        name = NULL;
+    }
+
+    if ( name && (new_ncp = nwamui_daemon_get_ncp_by_name( self, name )) != NULL ) {
+        /* Reload */
+        nwamui_ncp_reload( new_ncp );
+        /* Found it, so remove from temp list of ones to be removed */
+        self->prv->temp_list = g_list_remove( self->prv->temp_list, new_ncp );
+
+        free(name);
+    }
+    else {
+        new_ncp = nwamui_ncp_new_with_handle (ncp);
+        prv->ncp_list = g_list_append(prv->ncp_list, (gpointer)new_ncp);
+    }
+        
     if ( new_ncp != NULL ) {
         name = nwamui_ncp_get_name( new_ncp );
         if ( name != NULL ) { 
             if ( strncmp( name, NWAM_NCP_NAME_AUTOMATIC, strlen(NWAM_NCP_NAME_AUTOMATIC)) == 0 ) {
-                prv->auto_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
+                if ( prv->auto_ncp != new_ncp ) {
+                    prv->auto_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
+                }
             }
             g_free(name);
         }
+    }
 
-        if ( nwamui_ncp_is_active( new_ncp ) ) {
-            prv->active_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
-        }
-            
-        prv->ncp_list = g_list_append(prv->ncp_list, (gpointer)new_ncp);
+    if ( nwamui_ncp_is_active( new_ncp ) ) {
+        prv->active_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
     }
 
     return(0);

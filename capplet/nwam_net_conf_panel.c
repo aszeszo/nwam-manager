@@ -376,7 +376,7 @@ nwam_compose_tree_view (NwamNetConfPanel *self)
       "reorderable", FALSE,
       "enable-search", FALSE,
       "show-expanders", FALSE,
-      "level-indentation", 40,
+      "level-indentation", 24,
       NULL);
 
     if (nwamui_util_is_debug_mode()) {

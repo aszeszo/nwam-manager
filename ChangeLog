@@ -1,3 +1,26 @@
+2009-09-10  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c: 
+	  Refactor the initialisation of objects in the daemon to better
+	  support restart of NWAM daemon. Populationg of the lists of objects
+	  has been separated out to a function that can be called on first
+	  init and on restarts of nwamd. Tries to reuse objects if they
+	  already exist and handle add/removes that occurred while nwam was
+	  down.
+	* capplet/nwam_net_conf_panel.c: 
+	  Reduce indentation in conf panel to 24. After speakinig with Calum
+	  40 just looks too much.
+	* common/libnwamui.c: 
+	  Add comment to default_log_handler as placeholder of how to fire
+	  assertion on critical errors if using --debug.
+	* common/nwamui_ncu.c, common/nwamui_ncu.h:
+	  Add SCANNING state for ncus, and status strings.
+	* daemon/status_icon.c: 
+	  Try to avoid a lot of noise about key and selection needed events,
+	  remembering the ncu or wifi we last prompted on, and if it's the
+	  same then don't prompt. Resets the remembered values on a successful
+	  connection. 
+
 2009-09-10  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_ncp.c (nwamui_ncp_add_ncu):
