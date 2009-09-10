@@ -1194,7 +1194,7 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
         self->prv->ncus_removed = g_list_remove(self->prv->ncus_removed, found_ncu );
         nwamui_debug("Found already removed NCU : %s, re-using...", device_name );
         nwamui_ncu_reload( found_ncu );
-        return;
+        new_ncu = found_ncu;
     }
 
     /* NCU isn't already in the list, so add it */
