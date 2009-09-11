@@ -41,7 +41,7 @@ typedef struct _NwamEnvItemPrivate NwamEnvItemPrivate;
         NWAM_TYPE_ENV_ITEM, NwamEnvItemPrivate))
 
 struct _NwamEnvItemPrivate {
-    gulong      toggled_handler_id;
+    NwamuiDaemon *daemon;
 };
 
 enum {
@@ -58,16 +58,13 @@ static void nwam_env_item_get_property (GObject         *object,
   GParamSpec      *pspec);
 static void nwam_env_item_finalize (NwamEnvItem *self);
 
-/* nwamui daemon signals */
-static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
-static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
-
 /* nwamui env net signals */
 static void connect_env_signals(NwamEnvItem *self, NwamuiEnv *env);
 static void disconnect_env_signals(NwamEnvItem *self, NwamuiEnv *env);
 static void sync_env(NwamEnvItem *self, NwamuiEnv *env, gpointer user_data);
 static void on_nwam_env_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
+static void switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE(NwamEnvItem, nwam_env_item, NWAM_TYPE_MENU_ITEM)
 
@@ -83,9 +80,9 @@ nwam_env_item_class_init (NwamEnvItemClass *klass)
 	gobject_class->finalize = (void (*)(GObject*)) nwam_env_item_finalize;
 	
     nwam_menu_item_class = NWAM_MENU_ITEM_CLASS(klass);
-    nwam_menu_item_class->connect_object = connect_env_signals;
-    nwam_menu_item_class->disconnect_object = disconnect_env_signals;
-    nwam_menu_item_class->sync_object = sync_env;
+    nwam_menu_item_class->connect_object = (nwam_menuitem_connect_object_t)connect_env_signals;
+    nwam_menu_item_class->disconnect_object = (nwam_menuitem_disconnect_object_t)disconnect_env_signals;
+    nwam_menu_item_class->sync_object = (nwam_menuitem_sync_object_t)sync_env;
 
 	g_type_class_add_private (klass, sizeof (NwamEnvItemPrivate));
 }
@@ -94,26 +91,23 @@ static void
 nwam_env_item_init (NwamEnvItem *self)
 {
     NwamEnvItemPrivate *prv = GET_PRIVATE(self);
+    gboolean      is_manual;
 
     /* nwamui ncp signals */
-    {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance ();
-        gboolean      is_manual;
+    prv->daemon = nwamui_daemon_get_instance ();
 
-        connect_daemon_signals(G_OBJECT(self), daemon);
+    g_signal_connect(prv->daemon, "notify::env-selection-mode",
+      G_CALLBACK(switch_loc_manually_changed), (gpointer)self);
 
-        /* Set initial sensitivity based on whether it's manual selection or
-         * not.
-         */
-        is_manual = nwamui_daemon_env_selection_is_manual( NWAMUI_DAEMON(daemon) );
+    /* Set initial sensitivity based on whether it's manual selection or
+     * not.
+     */
+    is_manual = nwamui_daemon_env_selection_is_manual(prv->daemon);
 
-        gtk_widget_set_sensitive(GTK_WIDGET(self), is_manual );
+    gtk_widget_set_sensitive(GTK_WIDGET(self), is_manual );
 
-        g_object_unref(daemon);
-    }
-
-    prv->toggled_handler_id = g_signal_connect(self,
-      "toggled", G_CALLBACK(on_nwam_env_toggled), NULL);
+    g_signal_connect(self, "toggled",
+      G_CALLBACK(on_nwam_env_toggled), NULL);
 
     /* Must set it initially, because there are no check elsewhere. */
     nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, gtk_image_new());
@@ -137,16 +131,10 @@ nwam_env_item_finalize (NwamEnvItem *self)
     NwamEnvItemPrivate *prv = GET_PRIVATE(self);
     int i;
 
-    /* nwamui ncp signals */
-    {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance ();
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
+    g_signal_handlers_disconnect_by_func(prv->daemon, 
+      (gpointer)switch_loc_manually_changed, (gpointer)self);
 
-        disconnect_daemon_signals(G_OBJECT(self), daemon);
-
-        g_object_unref(ncp);
-        g_object_unref(daemon);
-    }
+    g_object_unref(prv->daemon);
 
 	G_OBJECT_CLASS(nwam_env_item_parent_class)->finalize(G_OBJECT (self));
 }
@@ -211,20 +199,19 @@ sync_env(NwamEnvItem *self, NwamuiEnv *env, gpointer user_data)
 static void
 on_nwam_env_toggled (GtkCheckMenuItem *item, gpointer data)
 {
-	NwamEnvItem *self = NWAM_ENV_ITEM (item);
-    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
-    NwamuiDaemon *daemon = nwamui_daemon_get_instance ();
-    NwamuiEnv *env = NWAMUI_ENV(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self)));
+    NwamEnvItemPrivate *prv   = GET_PRIVATE(item);
+    NwamuiEnv *env   = NWAMUI_ENV(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(item)));
+    gboolean   active = nwamui_daemon_is_active_env(prv->daemon, env);
 
-    g_signal_handler_block(self, prv->toggled_handler_id);
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE);
-    g_signal_handler_unblock(self, prv->toggled_handler_id);
+    /* Keep the current state until nwamuiobject refresh it. */
+    g_signal_handlers_block_by_func(item, on_nwam_env_toggled, data);
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), active);
+    g_signal_handlers_unblock_by_func(item, on_nwam_env_toggled, data);
 
-	if (!nwamui_daemon_is_active_env(daemon, env)) {
-        nwamui_daemon_env_selection_set_manual(daemon, TRUE, env);
+	if (!active) {
+        nwamui_daemon_env_selection_set_manual(prv->daemon, TRUE, env);
 /* 		nwamui_env_activate(env); */
 	}
-    g_object_unref(daemon);
 }
 
 static void
@@ -241,9 +228,9 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         gboolean active;
 
         active = nwamui_object_get_active(object);
-        g_signal_handler_block(self, prv->toggled_handler_id);
+        g_signal_handlers_block_by_func(self, on_nwam_env_toggled, NULL);
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), active);
-        g_signal_handler_unblock(self, prv->toggled_handler_id);
+        g_signal_handlers_unblock_by_func(self, on_nwam_env_toggled, NULL);
 
     }
 
@@ -295,20 +282,5 @@ switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
     flag = nwamui_daemon_env_selection_is_manual( NWAMUI_DAEMON(gobject) );
 
     gtk_widget_set_sensitive(GTK_WIDGET(self), flag);
-}
-
-static void 
-connect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
-{
-    g_signal_connect(daemon, "notify::env-selection-mode",
-            G_CALLBACK(switch_loc_manually_changed), (gpointer)self);
-
-}
-
-static void 
-disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
-{
-    g_signal_handlers_disconnect_by_func(daemon, 
-            (gpointer)switch_loc_manually_changed, (gpointer)self);
 }
 

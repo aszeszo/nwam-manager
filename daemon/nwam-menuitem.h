@@ -48,13 +48,18 @@ struct _NwamMenuItem
     GtkCheckMenuItem menu_item;
 };
 
+typedef void (*nwam_menuitem_connect_object_t)(NwamMenuItem *self, GObject *object);
+typedef void (*nwam_menuitem_disconnect_object_t)(NwamMenuItem *self, GObject *object);
+typedef void (*nwam_menuitem_sync_object_t)(NwamMenuItem *self, GObject *object, gpointer user_data);
+typedef gint (*nwam_menuitem_compare_t)(NwamMenuItem *self, NwamMenuItem *other);
+
 struct _NwamMenuItemClass
 {
-    GtkCheckMenuItemClass parent_class;
-    void (*connect_object)(NwamMenuItem *self, GObject *object);
-    void (*disconnect_object)(NwamMenuItem *self, GObject *object);
-    void (*sync_object)(NwamMenuItem *self, GObject *object, gpointer user_data);
-    gint (*compare)(NwamMenuItem *self, NwamMenuItem *other);
+    GtkCheckMenuItemClass             parent_class;
+    nwam_menuitem_connect_object_t    connect_object;
+    nwam_menuitem_disconnect_object_t disconnect_object;
+    nwam_menuitem_sync_object_t       sync_object;
+    nwam_menuitem_compare_t           compare;
 };
 
 

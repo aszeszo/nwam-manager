@@ -79,9 +79,9 @@ nwam_object_tooltip_widget_class_init (NwamObjectTooltipWidgetClass *klass)
 	gobject_class->finalize = (void (*)(GObject*)) nwam_object_tooltip_widget_finalize;
 
     nwam_menu_item_class = NWAM_MENU_ITEM_CLASS(klass);
-    nwam_menu_item_class->connect_object = connect_object;
-    nwam_menu_item_class->disconnect_object = disconnect_object;
-    nwam_menu_item_class->sync_object = sync_object;
+    nwam_menu_item_class->connect_object = (nwam_menuitem_connect_object_t)connect_object;
+    nwam_menu_item_class->disconnect_object = (nwam_menuitem_disconnect_object_t)disconnect_object;
+    nwam_menu_item_class->sync_object = (nwam_menuitem_sync_object_t)sync_object;
 	
 	g_type_class_add_private (klass, sizeof (NwamObjectTooltipWidgetPrivate));
 }
@@ -237,10 +237,10 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 static void
 nwam_ncu_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 {
-    GtkImage *img = gtk_image_new_from_pixbuf(nwamui_util_get_ncu_status_icon(NWAMUI_NCU(gobject), 24));
+    GtkWidget *img = gtk_image_new_from_pixbuf(nwamui_util_get_ncu_status_icon(NWAMUI_NCU(gobject), 24));
 
     nwam_menu_item_set_widget(NWAM_MENU_ITEM(user_data),
       0,
-      GTK_WIDGET(img));
+      img);
 }
 

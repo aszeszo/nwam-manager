@@ -42,7 +42,6 @@ typedef struct _NwamWifiItemPrivate NwamWifiItemPrivate;
 
 struct _NwamWifiItemPrivate {
 	NwamuiDaemon *daemon;
-    gulong toggled_handler_id;
 };
 
 enum {
@@ -58,10 +57,6 @@ static void nwam_wifi_item_get_property (GObject         *object,
   GValue          *value,
   GParamSpec      *pspec);
 static void nwam_wifi_item_finalize (NwamWifiItem *self);
-
-/* nwamui daemon signals */
-static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
-static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 
 /* nwamui wifi net signals */
 static gint menu_wifi_item_compare(NwamMenuItem *self, NwamMenuItem *other);
@@ -86,10 +81,10 @@ nwam_wifi_item_class_init (NwamWifiItemClass *klass)
 	gobject_class->finalize = (void (*)(GObject*)) nwam_wifi_item_finalize;
 	
     nwam_menu_item_class = NWAM_MENU_ITEM_CLASS(klass);
-    nwam_menu_item_class->connect_object = connect_wifi_net_signals;
-    nwam_menu_item_class->disconnect_object = disconnect_wifi_net_signals;
-    nwam_menu_item_class->sync_object = sync_wifi_net;
-    nwam_menu_item_class->compare = menu_wifi_item_compare;
+    nwam_menu_item_class->connect_object = (nwam_menuitem_connect_object_t)connect_wifi_net_signals;
+    nwam_menu_item_class->disconnect_object = (nwam_menuitem_disconnect_object_t)disconnect_wifi_net_signals;
+    nwam_menu_item_class->sync_object = (nwam_menuitem_sync_object_t)sync_wifi_net;
+    nwam_menu_item_class->compare = (nwam_menuitem_compare_t)menu_wifi_item_compare;
 
 	g_type_class_add_private (klass, sizeof (NwamWifiItemPrivate));
 }
@@ -99,21 +94,10 @@ nwam_wifi_item_init (NwamWifiItem *self)
 {
     NwamWifiItemPrivate *prv = GET_PRIVATE(self);
 
-    /* nwamui ncp signals */
-    {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance ();
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
+    prv->daemon = nwamui_daemon_get_instance ();
 
-        connect_daemon_signals(G_OBJECT(self), daemon);
-
-        g_object_unref(ncp);
-
-        prv->daemon = daemon;
-
-    }
-
-    prv->toggled_handler_id = g_signal_connect(self,
-      "toggled", G_CALLBACK(on_nwam_wifi_toggled), NULL);
+    g_signal_connect(self, "toggled",
+      G_CALLBACK(on_nwam_wifi_toggled), NULL);
 }
 
 GtkWidget *
@@ -134,16 +118,7 @@ nwam_wifi_item_finalize (NwamWifiItem *self)
 {
     NwamWifiItemPrivate *prv = GET_PRIVATE(self);
 
-    /* nwamui ncp signals */
-    if ( prv->daemon ) {
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
-
-        disconnect_daemon_signals(G_OBJECT(self), prv->daemon);
-
-        g_object_unref(ncp);
-
-        g_object_unref(prv->daemon);
-    }
+    g_object_unref(prv->daemon);
 
 	G_OBJECT_CLASS(nwam_wifi_item_parent_class)->finalize(G_OBJECT (self));
 }
@@ -180,21 +155,66 @@ nwam_wifi_item_get_property (GObject         *object,
 	}
 }
 
+static gboolean
+is_wifi_active(NwamuiWifiNet *wifi)
+{
+    gboolean active = FALSE;
+
+    /* Wifi status is not good maintained, so uses the state of
+     * the parent ncu to detect its status.
+     */
+
+/*     switch (nwamui_wifi_net_get_status(wifi)) { */
+/*     case NWAMUI_WIFI_STATUS_CONNECTED: */
+/*         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), TRUE); */
+/*         break; */
+/*     case NWAMUI_WIFI_STATUS_DISCONNECTED: */
+/*     case NWAMUI_WIFI_STATUS_FAILED: */
+/*     default: */
+/*         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE); */
+/*         break; */
+/*     } */
+    if (nwamui_wifi_net_get_status(wifi) == NWAMUI_WIFI_STATUS_CONNECTED) {
+        NwamuiNcu                 *ncu              = nwamui_wifi_net_get_ncu(wifi);
+        nwamui_connection_state_t  connection_state = NWAMUI_STATE_UNKNOWN;
+        nwam_state_t               state;
+        nwam_aux_state_t           aux_state;
+        if(ncu) {
+            state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL, NWAM_NCU_TYPE_LINK);
+
+            if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_UP ) {
+                connection_state = nwamui_ncu_get_connection_state( ncu);
+                if ( connection_state == NWAMUI_STATE_CONNECTED 
+                  || connection_state == NWAMUI_STATE_CONNECTED_ESSID ) {
+                    active = TRUE;
+                }
+/*                 else if ( connection_state == NWAMUI_STATE_CONNECTING */
+/*                   || connection_state == NWAMUI_STATE_WAITING_FOR_ADDRESS */
+/*                   || connection_state == NWAMUI_STATE_DHCP_TIMED_OUT */
+/*                   || connection_state == NWAMUI_STATE_CONNECTING_ESSID ) { */
+/*                 } */
+/*                 else { */
+/*                 } */
+            }
+            g_object_unref(ncu);
+        }
+    }
+    return active;
+}
+
 static void
 on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
 {
-    NwamWifiItem *self = NWAM_WIFI_ITEM(item);
-    NwamWifiItemPrivate *prv = GET_PRIVATE(self);
-    NwamuiNcp* ncp = nwamui_daemon_get_active_ncp (prv->daemon);
+    NwamWifiItemPrivate *prv = GET_PRIVATE(item);
     NwamuiNcu *ncu = NULL;
-    NwamuiWifiNet *wifi = NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self)));
+    NwamuiWifiNet *wifi = NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(item)));
     gchar *name;
 
     /* Should we temporary set active to false for self, and wait for
      * wifi_net_notify to update self? */
-    g_signal_handler_block(self, prv->toggled_handler_id);
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE);
-    g_signal_handler_unblock(self, prv->toggled_handler_id);
+    g_signal_handlers_block_by_func(item, on_nwam_wifi_toggled, data);
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), is_wifi_active(wifi));
+    g_signal_handlers_unblock_by_func(item, on_nwam_wifi_toggled, data);
 
 /*     g_debug("******** toggled %s ***** status %s ***** wifi 0x%p ****", */
 /*       gtk_action_get_name(item), */
@@ -226,7 +246,6 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
     }
 
     g_free(name);
-    g_object_unref(ncp);
 }
 
 NwamuiWifiNet *
@@ -269,16 +288,6 @@ menu_wifi_item_compare(NwamMenuItem *self, NwamMenuItem *other)
 }
 
 static void 
-connect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
-{
-}
-
-static void 
-disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
-{
-}
-
-static void 
 connect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi)
 {
     g_signal_connect (wifi, "notify",
@@ -314,8 +323,7 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
     g_assert(self);
 
     {
-        NwamuiDaemon* daemon = nwamui_daemon_get_instance();
-        NwamuiNcp*    ncp = nwamui_daemon_get_active_ncp( daemon );
+        NwamuiNcp*    ncp = nwamui_daemon_get_active_ncp(prv->daemon);
 
         gchar *label = nwamui_wifi_net_get_display_string(wifi, nwamui_ncp_get_wireless_link_num( ncp ) > 1);
 
@@ -327,7 +335,6 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
         menu_item_set_label(GTK_MENU_ITEM(self), label);
         g_free(label);
         g_object_unref(ncp);
-        g_object_unref(daemon);
     }
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "signal-strength") == 0) {
@@ -341,51 +348,11 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
     }
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "status") == 0) {
-        gboolean active = FALSE;
+        gboolean active = is_wifi_active(wifi);
 
-        g_signal_handler_block(self, prv->toggled_handler_id);
-        /* Wifi status is not good maintained, so uses the state of
-         * the parent ncu to detect its status.
-         */
-
-/*         switch (nwamui_wifi_net_get_status(wifi)) { */
-/*         case NWAMUI_WIFI_STATUS_CONNECTED: */
-/*             gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), TRUE); */
-/*             break; */
-/*         case NWAMUI_WIFI_STATUS_DISCONNECTED: */
-/*         case NWAMUI_WIFI_STATUS_FAILED: */
-/*         default: */
-/*             gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE); */
-/*             break; */
-/*         } */
-        if (nwamui_wifi_net_get_status(wifi) == NWAMUI_WIFI_STATUS_CONNECTED) {
-            NwamuiNcu                 *ncu              = nwamui_wifi_net_get_ncu(wifi);
-            nwamui_connection_state_t  connection_state = NWAMUI_STATE_UNKNOWN;
-            nwam_state_t               state;
-            nwam_aux_state_t           aux_state;
-            if(ncu) {
-                state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL, NWAM_NCU_TYPE_LINK);
-
-                if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_UP ) {
-                    connection_state = nwamui_ncu_get_connection_state( ncu);
-                    if ( connection_state == NWAMUI_STATE_CONNECTED 
-                      || connection_state == NWAMUI_STATE_CONNECTED_ESSID ) {
-                        active = TRUE;
-                    }
-/*                     else if ( connection_state == NWAMUI_STATE_CONNECTING */
-/*                       || connection_state == NWAMUI_STATE_WAITING_FOR_ADDRESS */
-/*                       || connection_state == NWAMUI_STATE_DHCP_TIMED_OUT */
-/*                       || connection_state == NWAMUI_STATE_CONNECTING_ESSID ) { */
-/*                     } */
-/*                     else { */
-/*                     } */
-                }
-                g_object_unref(ncu);
-            }
-        }
+        g_signal_handlers_block_by_func(self, on_nwam_wifi_toggled, NULL);
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), active);
-
-        g_signal_handler_unblock(self, prv->toggled_handler_id);
+        g_signal_handlers_unblock_by_func(self, on_nwam_wifi_toggled, NULL);
     }
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "security") == 0) {

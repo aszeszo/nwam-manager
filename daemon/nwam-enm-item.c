@@ -40,7 +40,7 @@ typedef struct _NwamEnmItemPrivate NwamEnmItemPrivate;
         NWAM_TYPE_ENM_ITEM, NwamEnmItemPrivate))
 
 struct _NwamEnmItemPrivate {
-    gulong toggled_handler_id;
+    NwamuiDaemon *daemon;
 };
 
 enum {
@@ -56,10 +56,6 @@ static void nwam_enm_item_get_property (GObject         *object,
   GValue          *value,
   GParamSpec      *pspec);
 static void nwam_enm_item_finalize (NwamEnmItem *self);
-
-/* nwamui daemon signals */
-static void connect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
-static void disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon);
 
 /* nwamui enm net signals */
 static void connect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm);
@@ -82,9 +78,9 @@ nwam_enm_item_class_init (NwamEnmItemClass *klass)
 	gobject_class->finalize = (void (*)(GObject*)) nwam_enm_item_finalize;
 
     nwam_menu_item_class = NWAM_MENU_ITEM_CLASS(klass);
-    nwam_menu_item_class->connect_object = connect_enm_signals;
-    nwam_menu_item_class->disconnect_object = disconnect_enm_signals;
-    nwam_menu_item_class->sync_object = sync_enm;
+    nwam_menu_item_class->connect_object = (nwam_menuitem_connect_object_t)connect_enm_signals;
+    nwam_menu_item_class->disconnect_object = (nwam_menuitem_disconnect_object_t)disconnect_enm_signals;
+    nwam_menu_item_class->sync_object = (nwam_menuitem_sync_object_t)sync_enm;
 	
 	g_type_class_add_private (klass, sizeof (NwamEnmItemPrivate));
 }
@@ -95,16 +91,10 @@ nwam_enm_item_init (NwamEnmItem *self)
     NwamEnmItemPrivate *prv = GET_PRIVATE(self);
 
     /* nwamui ncp signals */
-    {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance ();
+    prv->daemon = nwamui_daemon_get_instance ();
 
-        connect_daemon_signals(G_OBJECT(self), daemon);
-
-        g_object_unref(daemon);
-    }
-
-    prv->toggled_handler_id = g_signal_connect(self,
-      "toggled", G_CALLBACK(on_nwam_enm_toggled), NULL);
+    g_signal_connect(self, "toggled",
+      G_CALLBACK(on_nwam_enm_toggled), NULL);
 
     /* Must set it initially, because there are no check elsewhere. */
     nwam_menu_item_set_widget(NWAM_MENU_ITEM(self), 0, gtk_image_new());
@@ -127,18 +117,8 @@ static void
 nwam_enm_item_finalize (NwamEnmItem *self)
 {
     NwamEnmItemPrivate *prv = GET_PRIVATE(self);
-    int i;
 
-    /* nwamui ncp signals */
-    {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance ();
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
-
-        disconnect_daemon_signals(G_OBJECT(self), daemon);
-
-        g_object_unref(ncp);
-        g_object_unref(daemon);
-    }
+    g_object_unref(prv->daemon);
 
 	G_OBJECT_CLASS(nwam_enm_item_parent_class)->finalize(G_OBJECT (self));
 }
@@ -203,17 +183,16 @@ sync_enm(NwamEnmItem *self, NwamuiEnm *enm, gpointer user_data)
 static void
 on_nwam_enm_toggled (GtkCheckMenuItem *item, gpointer data)
 {
-	NwamEnmItem *self = NWAM_ENM_ITEM (item);
-    NwamEnmItemPrivate *prv = GET_PRIVATE(self);
-    NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self)));
-
-    g_signal_handler_block(self, prv->toggled_handler_id);
-    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE);
-    g_signal_handler_unblock(self, prv->toggled_handler_id);
+    NwamEnmItemPrivate *prv = GET_PRIVATE(item);
+    NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(item)));
 
 	if (nwamui_object_get_active(object)) {
 		nwamui_object_set_active(object, FALSE);
 	} else {
+        g_signal_handlers_block_by_func(item, on_nwam_enm_toggled, data);
+        gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), FALSE);
+        g_signal_handlers_unblock_by_func(item, on_nwam_enm_toggled, data);
+
 		nwamui_object_set_active (object, TRUE);
     }
 }
@@ -254,9 +233,9 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
         const gchar    *icon_name = nwamui_util_get_active_mode_icon( object );
-        GtkImage       *image = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
+        GtkWidget      *image = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
 
-        gtk_image_set_from_icon_name( image, icon_name, GTK_ICON_SIZE_MENU );
+        gtk_image_set_from_icon_name( GTK_IMAGE(image), icon_name, GTK_ICON_SIZE_MENU );
 
         switch (nwamui_object_get_activation_mode(object)) {
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
@@ -290,14 +269,3 @@ nwam_enm_item_set_enm (NwamEnmItem *self, NwamuiEnm *enm)
 
     g_object_set(self, "proxy-object", enm, NULL);
 }
-
-static void 
-connect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
-{
-}
-
-static void 
-disconnect_daemon_signals(GObject *self, NwamuiDaemon *daemon)
-{
-}
-

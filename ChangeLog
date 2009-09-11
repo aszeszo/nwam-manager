@@ -1,3 +1,24 @@
+2009-09-11  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/nwam-enm-item.c (nwam_enm_item_class_init),
+	(nwam_enm_item_init), (nwam_enm_item_finalize),
+	(on_nwam_enm_toggled), (on_nwam_enm_notify),
+	(nwam_enm_item_set_enm):
+	* daemon/nwam-env-item.c (nwam_env_item_class_init),
+	(nwam_env_item_init), (nwam_env_item_finalize),
+	(on_nwam_env_toggled), (on_nwam_env_notify):
+	* daemon/nwam-menuitem.h:
+	* daemon/nwam-ncu-item.c (nwam_ncu_item_class_init),
+	(nwam_ncu_item_init), (nwam_ncu_item_finalize),
+	(on_nwam_ncu_toggled), (on_nwam_ncu_notify):
+	* daemon/nwam-tooltip-widget.c
+	(nwam_object_tooltip_widget_class_init), (nwam_ncu_notify):
+	* daemon/nwam-wifi-item.c (nwam_wifi_item_class_init),
+	(nwam_wifi_item_init), (nwam_wifi_item_finalize), (is_wifi_active),
+	(on_nwam_wifi_toggled), (wifi_net_notify):
+	Fixed 11305 Click the active menuitem will remove the toggle flag
+	Fixed some build warnings.
+
 2009-09-10  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_wifi_net.c, common/nwamui_wifi_net.h,
