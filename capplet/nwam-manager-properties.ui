@@ -3454,7 +3454,7 @@ connection will be attempted:</property>
                 </child>
                 <child>
                   <object class="GtkTable" id="network_services_tab_table">
-                    <property name="visible">True</property>
+                    <property name="visible">False</property>
                     <property name="border_width">12</property>
                     <property name="n_rows">4</property>
                     <property name="n_columns">2</property>

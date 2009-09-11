@@ -463,8 +463,10 @@ process_env( gpointer data, gpointer user_data )
     gchar*      ippool_config_file  =  nwamui_env_get_ippool_config_file ( env );
     gchar*      ike_config_file  =  nwamui_env_get_ike_config_file ( env );
     gchar*      ipsecpolicy_config_file  =  nwamui_env_get_ipsecpolicy_config_file ( env );
+#ifdef ENABLE_NETSERVICES
     GList*      svcs_enable  =  nwamui_env_get_svcs_enable ( env );
     GList*      svcs_disable  =  nwamui_env_get_svcs_disable ( env );
+#endif /* ENABLE_NETSERVICES */
     
     name = nwamui_env_get_name( env );
     printf("%-*s*************************************************************\n", indent, "");
@@ -493,8 +495,10 @@ process_env( gpointer data, gpointer user_data )
     printf("%-*sEnv ippool_config_file  = %s\n", indent, "", ippool_config_file ?ippool_config_file :"NULL" );
     printf("%-*sEnv ike_config_file  = %s\n", indent, "", ike_config_file ?ike_config_file :"NULL" );
     printf("%-*sEnv ipsecpolicy_config_file  = %s\n", indent, "", ipsecpolicy_config_file ?ipsecpolicy_config_file :"NULL" );
+#ifdef ENABLE_NETSERVICES
     print_string_list_and_free( "Env", "svcs_enable", svcs_enable );
     print_string_list_and_free( "Env", "svcs_disable", svcs_disable );
+#endif /* ENABLE_NETSERVICES */
 
     print_conditions( G_OBJECT(env) );
 

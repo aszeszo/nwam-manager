@@ -98,8 +98,10 @@ enum {
     PROP_IPPOOL_CONFIG_FILE,
     PROP_IKE_CONFIG_FILE,
     PROP_IPSECPOLICY_CONFIG_FILE,
+#ifdef ENABLE_NETSERVICES
     PROP_SVCS_ENABLE,
     PROP_SVCS_DISABLE,
+#endif /* ENABLE_NETSERVICES */
     PROP_CONDITIONS,
     PROP_ACTIVATION_MODE,
     PROP_NWAM_ENV,
@@ -398,6 +400,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           "",
                                                           G_PARAM_READWRITE));
 
+#ifdef ENABLE_NETSERVICES
     g_object_class_install_property (gobject_class,
                                      PROP_SVCS_ENABLE,
                                      g_param_spec_pointer ("svcs_enable",
@@ -411,6 +414,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           _("svcs_disable"),
                                                           _("svcs_disable"),
                                                           G_PARAM_READWRITE));
+#endif /* ENABLE_NETSERVICES */
 
     g_object_class_install_property (gobject_class,
                                      PROP_CONDITIONS,
@@ -839,6 +843,7 @@ nwamui_env_set_property (   GObject         *object,
             }
             break;
 
+#ifdef ENABLE_NETSERVICES
         case PROP_SVCS_ENABLE: {
                 GList*  fmri = g_value_get_pointer( value );
                 gchar** fmri_strs = nwamui_util_glist_to_strv( fmri );
@@ -854,6 +859,7 @@ nwamui_env_set_property (   GObject         *object,
                 g_strfreev(fmri_strs);
             }
             break;
+#endif /* ENABLE_NETSERVICES */
 
 #ifdef ENABLE_PROXY
         case PROP_PROXY_TYPE: {
@@ -1180,6 +1186,7 @@ nwamui_env_get_property (GObject         *object,
             }
             break;
 
+#ifdef ENABLE_NETSERVICES
         case PROP_SVCS_ENABLE: {
                 gchar **strv = get_nwam_loc_string_array_prop( prv->nwam_loc, NWAM_LOC_PROP_SVCS_ENABLE );
                 g_value_set_pointer( value, nwamui_util_strv_to_glist( strv ) );
@@ -1193,6 +1200,7 @@ nwamui_env_get_property (GObject         *object,
                 g_strfreev( strv );
             }
             break;
+#endif /* ENABLE_NETSERVICES */
 
         case PROP_SVCS: {
                 g_value_set_object (value, self->prv->svcs_model);
@@ -2817,6 +2825,7 @@ nwamui_env_get_ipsecpolicy_config_file (NwamuiEnv *self)
     return( ipsecpolicy_config_file );
 }
 
+#ifdef ENABLE_NETSERVICES
 /** 
  * nwamui_env_set_svcs_enable:
  * @nwamui_env: a #NwamuiEnv.
@@ -2890,6 +2899,7 @@ nwamui_env_get_svcs_disable (NwamuiEnv *self)
 
     return( svcs_disable );
 }
+#endif /* ENABLE_NETSERVICES */
 
 #ifdef ENABLE_PROXY
 /** 

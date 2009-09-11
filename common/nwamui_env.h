@@ -198,12 +198,14 @@ extern void                 nwamui_env_set_ipsecpolicy_config_file ( NwamuiEnv *
 extern gchar*               nwamui_env_get_ipsecpolicy_config_file ( NwamuiEnv *self );
 
 
+#ifdef ENABLE_NETSERVICES
 extern void                 nwamui_env_set_svcs_enable ( NwamuiEnv *self, const GList*   svcs_enable );
 extern GList*               nwamui_env_get_svcs_enable ( NwamuiEnv *self );
 
 
 extern void                 nwamui_env_set_svcs_disable ( NwamuiEnv *self, const GList*   svcs_disable );
 extern GList*               nwamui_env_get_svcs_disable ( NwamuiEnv *self );
+#endif /* ENABLE_NETSERVICES */
 
 #ifdef ENABLE_PROXY
 extern void                     nwamui_env_set_proxy_type ( NwamuiEnv *self, nwamui_env_proxy_type_t proxy_type );

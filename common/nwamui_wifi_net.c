@@ -2281,14 +2281,26 @@ extern gchar*
 nwamui_wifi_net_get_a11y_description( NwamuiWifiNet* self )
 {
     gchar*          ret_str = NULL;
+    gchar*          essid_str;
     const gchar*    state_str;
     const gchar*    secure_str;
     const gchar*    signal_str;
-
+    NwamuiDaemon*   daemon;
+    NwamuiNcp*      ncp;
+    gboolean        has_many_wifi;
 
     g_return_val_if_fail( NWAMUI_IS_WIFI_NET(self), ret_str );
 
+    daemon = nwamui_daemon_get_instance();
+    ncp = nwamui_daemon_get_active_ncp( daemon );
+    has_many_wifi = nwamui_ncp_get_wireless_link_num( ncp ) > 1;
+    g_object_unref(G_OBJECT(ncp));
+    g_object_unref(G_OBJECT(daemon));
+
     /* Compose a string like : ESSID, connected, secure, strong */
+
+    essid_str = nwamui_wifi_net_get_display_string(self, has_many_wifi );
+
     switch (self->prv->status ) {
         case NWAMUI_WIFI_STATUS_CONNECTED:
             state_str = _("Connected");
@@ -2309,10 +2321,12 @@ nwamui_wifi_net_get_a11y_description( NwamuiWifiNet* self )
     }
 
     ret_str = g_strdup_printf(  "%s, %s, %s, %s",
-                                self->prv->essid,
+                                essid_str,
                                 state_str,
                                 secure_str,
                                 signal_str );
+
+    g_free( essid_str );
 
     return( ret_str );
 }

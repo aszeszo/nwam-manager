@@ -1,3 +1,14 @@
+2009-09-11  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam-manager-properties.ui, capplet/nwam_env_pref_dialog.c,
+	  common/nwamui_env.c, common/nwamui_env.h, tests/main.c: 
+	  Fix defect#11290 to remove all references to the enable-svcs and
+	  disable-svcs GUI elements.
+	* common/nwamui_wifi_net.c: 
+	  Fix a minor nit, to use the display string instead of the essid for
+	  generating the a11y text, since it has more detail about the type of
+	  the network AP.
+
 2009-09-11  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/nwam-enm-item.c (nwam_enm_item_class_init),

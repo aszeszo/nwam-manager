@@ -44,12 +44,15 @@
 /* Names of Widgets in Glade file */
 #define     ENV_PREF_DIALOG_NAME           "nwam_location_properties"
 #define     ENVIRONMENT_NOTEBOOK           "environment_notebook"
+
+#ifdef ENABLE_NETSERVICES
 #define     ENABLED_NETSERVICES_LIST       "enabled_netservices_list"
 #define     DISABLED_NETSERVICES_LIST      "disabled_netservices_list"
 #define     ADD_ENABLED_NETSERVICE_BTN     "add_enabled_netservice_btn"
 #define     DELETE_ENABLED_NETSERVICE_BTN  "delete_enabled_netservice_btn"
 #define     ADD_DISABLED_NETSERVICE_BTN    "add_disabled_netservice_btn"
 #define     DELETE_DISABLED_NETSERVICE_BTN "delete_disabled_netservice_btn"
+#endif /* ENABLE_NETSERVICES */
 
 #define     NAMESERVICE_FILES_CHECK_BUTTON              "files_service_cb"
 #define     NAMESERVICE_DNS_CHECK_BUTTON                "dns_service_cb"
@@ -209,12 +212,14 @@ struct _NwamEnvPrefDialogPrivate {
     GtkFileChooserButton*       nsswitch_file_btn;
     GtkButton*                  nsswitch_default_btn;
 
+#ifdef ENABLE_NETSERVICES
     GtkTreeView*                enabled_netservices_list;
     GtkTreeView*                disabled_netservices_list;
     GtkButton*                  add_enabled_netservice_btn;
     GtkButton*                  delete_enabled_netservice_btn;
     GtkButton*                  add_disabled_netservice_btn;
     GtkButton*                  delete_disabled_netservice_btn;
+#endif /* ENABLE_NETSERVICES */
 
     GtkCheckButton*             ippool_config_cb;
     GtkCheckButton*             nat_config_cb;
@@ -253,7 +258,10 @@ static void         nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self);
 static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_proxy_type_t proxy_type );
 #endif /* ENABLE_PROXY */
 
+#ifdef ENABLE_NETSERVICES
 static void nwam_compose_tree_view (NwamEnvPrefDialog *self);
+#endif /* ENABLE_NETSERVICES */
+
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 
 static void fmri_dialog_response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
@@ -429,6 +437,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     prv->nsswitch_file_btn = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_FILE_BTN));
     prv->nsswitch_default_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_DEFAULT_BTN));
 
+#ifdef ENABLE_NETSERVICES
     /* Newtwork Services Page */
     prv->enabled_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( ENABLED_NETSERVICES_LIST ));
     prv->disabled_netservices_list = GTK_TREE_VIEW(nwamui_util_glade_get_widget( DISABLED_NETSERVICES_LIST ));
@@ -436,6 +445,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     prv->delete_enabled_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_ENABLED_NETSERVICE_BTN ));
     prv->add_disabled_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( ADD_DISABLED_NETSERVICE_BTN ));
     prv->delete_disabled_netservice_btn = GTK_BUTTON(nwamui_util_glade_get_widget( DELETE_DISABLED_NETSERVICE_BTN ));
+#endif /* ENABLE_NETSERVICES */
 
     /* Security Page */
     prv->ippool_config_cb = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget( IPPOOL_CONFIG_CB ));
@@ -545,6 +555,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
     g_signal_connect(prv->ipsec_policy_cb,
       "toggled", (GCallback)on_button_toggled, (gpointer)self);
 
+#ifdef ENABLE_NETSERVICES
     {
         GtkTreeModel      *model;
 
@@ -569,6 +580,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
         g_signal_connect(prv->delete_disabled_netservice_btn,
           "clicked", G_CALLBACK(svc_button_clicked), (gpointer)self);
     }
+#endif /* ENABLE_NETSERVICES */
 }
 
 static void
@@ -697,6 +709,7 @@ block_nameservices_signals( NwamEnvPrefDialog* self, gboolean block )
     }
 }
 
+#ifdef ENABLE_NETSERVICES
 static void
 nwam_compose_tree_view (NwamEnvPrefDialog *self)
 {
@@ -762,6 +775,7 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
                        GINT_TO_POINTER (SVC_INFO));
 
 }
+#endif /* ENABLE_NETSERVICES */
 
 static void
 populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
@@ -1141,6 +1155,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     /*
      * SVC Tab
      */
+#ifdef ENABLE_NETSERVICES
     {
         GtkTreeModel *model;
         GList *obj_list;
@@ -1163,6 +1178,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         gtk_widget_show(GTK_WIDGET(prv->disabled_netservices_list));
         g_list_free(obj_list);
     }
+#endif /* ENABLE_NETSERVICES */
 }
 
 #ifdef ENABLE_PROXY
@@ -1662,6 +1678,7 @@ on_ns_text_changed(GtkEntry *entry, gpointer  user_data)
     }
 }
     
+#ifdef ENABLE_NETSERVICES
 static void
 svc_button_clicked(GtkButton *button, gpointer  user_data)
 {
@@ -1723,6 +1740,7 @@ svc_button_clicked(GtkButton *button, gpointer  user_data)
         }
     }
 }
+#endif /* ENABLE_NETSERVICES */
 
 #if 0
 static void
@@ -2089,6 +2107,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     /*
      * SVC Tab
      */
+#ifdef ENABLE_NETSERVICES
     {
         GtkTreeModel *model;
         GList *nlist;
@@ -2107,6 +2126,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         g_list_foreach(nlist, (GFunc)g_free, NULL);
         g_list_free(nlist);
     }
+#endif /* ENABLE_NETSERVICES */
 
     if (nwamui_env_validate (NWAMUI_ENV (prv->selected_env), &prop_name)) {
         if (!nwamui_env_commit (NWAMUI_ENV (prv->selected_env))) {
