@@ -43,10 +43,10 @@
 #include "nwam_net_conf_panel.h"
 
 /* Names of Widgets in Glade file */
-#define CAPPLET_DIALOG_NAME		"nwam_capplet"
-#define CAPPLET_DIALOG_SHOW_COMBO	"show_combo"
-#define CAPPLET_DIALOG_MAIN_NOTEBOOK	"mainview_notebook"
-#define CAPPLET_DIALOG_REFRESH_BUTTON	"refresh_button"
+#define CAPPLET_DIALOG_NAME           "nwam_capplet"
+#define CAPPLET_DIALOG_SHOW_COMBO     "show_combo"
+#define CAPPLET_DIALOG_MAIN_NOTEBOOK  "mainview_notebook"
+#define CAPPLET_DIALOG_REFRESH_BUTTON "refresh_button"
 
 #define NWAM_CAPPLET_DIALOG_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_CAPPLET_DIALOG, NwamCappletDialogPrivate))
 
@@ -55,8 +55,8 @@ struct _NwamCappletDialogPrivate {
 	GtkDialog*                  capplet_dialog;
 	GtkComboBox*                show_combo;
 	GtkNotebook*                main_nb;
-	
-        /* Panel Objects */
+
+    /* Panel Objects */
 	NwamPrefIFace* panel[N_PANELS];
                 
     /* Other Data */
@@ -132,31 +132,32 @@ nwam_capplet_dialog_class_init(NwamCappletDialogClass *klass)
 static void
 nwam_capplet_dialog_init(NwamCappletDialog *self)
 {
+    NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(self);
     GtkButton      *btn = NULL;
     NwamuiDaemon   *daemon = NULL;
 
-    self->prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(self);
+    self->prv = prv;
     
     /* Iniialise pointers to important widgets */
-    self->prv->capplet_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(CAPPLET_DIALOG_NAME));
-    self->prv->show_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CAPPLET_DIALOG_SHOW_COMBO));
-    self->prv->main_nb = GTK_NOTEBOOK(nwamui_util_glade_get_widget(CAPPLET_DIALOG_MAIN_NOTEBOOK));
+    prv->capplet_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(CAPPLET_DIALOG_NAME));
+    prv->show_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CAPPLET_DIALOG_SHOW_COMBO));
+    prv->main_nb = GTK_NOTEBOOK(nwamui_util_glade_get_widget(CAPPLET_DIALOG_MAIN_NOTEBOOK));
         
     /* Get NCPs and Current NCP */
     daemon = nwamui_daemon_get_instance();
-    self->prv->active_ncp = nwamui_daemon_get_active_ncp( daemon );
-    self->prv->ncp_list = nwamui_daemon_get_ncp_list( daemon );
+    prv->active_ncp = nwamui_daemon_get_active_ncp( daemon );
+    prv->ncp_list = nwamui_daemon_get_ncp_list( daemon );
 
-    self->prv->selected_ncu = NULL;
-    self->prv->prev_selected_ncu = NULL;
+    prv->selected_ncu = NULL;
+    prv->prev_selected_ncu = NULL;
 
-    if ( self->prv->active_ncp == NULL && self->prv->ncp_list  != NULL ) {
+    if ( prv->active_ncp == NULL && prv->ncp_list  != NULL ) {
         /* FIXME: Show multiple NCPs */
-        GList* first_element = g_list_first( self->prv->ncp_list );
+        GList* first_element = g_list_first( prv->ncp_list );
 
 
         if ( first_element != NULL && first_element->data != NULL )  {
-            self->prv->active_ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(first_element->data)));
+            prv->active_ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(first_element->data)));
         }
         
     }
@@ -165,15 +166,15 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     daemon = NULL;
 
     /* Set title to include hostname */
-    nwamui_util_window_title_append_hostname( self->prv->capplet_dialog );
+    nwamui_util_window_title_append_hostname( prv->capplet_dialog );
 
     /* Construct the Notebook Panels Handling objects. */
-    self->prv->panel[PANEL_CONN_STATUS] = NWAM_PREF_IFACE(nwam_conn_status_panel_new( self ));
-    self->prv->panel[PANEL_NET_PREF] = NWAM_PREF_IFACE(nwam_net_conf_panel_new(self));
-    self->prv->panel[PANEL_CONF_IP] = NWAM_PREF_IFACE(nwam_conf_ip_panel_new());
+    prv->panel[PANEL_CONN_STATUS] = NWAM_PREF_IFACE(nwam_conn_status_panel_new( self ));
+    prv->panel[PANEL_NET_PREF] = NWAM_PREF_IFACE(nwam_net_conf_panel_new(self));
+    prv->panel[PANEL_CONF_IP] = NWAM_PREF_IFACE(nwam_conf_ip_panel_new(self));
 
     /* Change Model */
-	capplet_compose_combo(self->prv->show_combo,
+	capplet_compose_combo(prv->show_combo,
       GTK_TYPE_TREE_STORE,
       G_TYPE_OBJECT,
       show_combo_cell_cb,
@@ -182,17 +183,20 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
       (gpointer)self,
       NULL);
 
-	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_CONN_STATUS]));
-	show_comob_add (self->prv->show_combo, G_OBJECT(self->prv->panel[PANEL_NET_PREF])); 
+	show_comob_add (prv->show_combo, G_OBJECT(prv->panel[PANEL_CONN_STATUS]));
+	show_comob_add (prv->show_combo, G_OBJECT(prv->panel[PANEL_NET_PREF])); 
 
     g_signal_connect(self, "notify", (GCallback)object_notify_cb, NULL);
-    g_signal_connect(GTK_DIALOG(self->prv->capplet_dialog), "response", (GCallback)response_cb, (gpointer)self);
+    g_signal_connect(GTK_DIALOG(prv->capplet_dialog), "response", (GCallback)response_cb, (gpointer)self);
     
     btn = GTK_BUTTON(nwamui_util_glade_get_widget(CAPPLET_DIALOG_REFRESH_BUTTON));
     g_signal_connect(btn, "clicked", (GCallback)refresh_clicked_cb, (gpointer)self);
 
+    /* Sync nwam_capplet_dialog_set_ok_sensitive_by_voting count. */
+    gtk_dialog_set_response_sensitive(prv->capplet_dialog, GTK_RESPONSE_OK, TRUE);
+
     /* default select "Connection Status" */
-    gtk_combo_box_set_active (GTK_COMBO_BOX(self->prv->show_combo), 0);
+    gtk_combo_box_set_active (GTK_COMBO_BOX(prv->show_combo), 0);
 
     /* Initial */
     nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
@@ -255,25 +259,22 @@ dialog_get_window(NwamPrefIFace *iface)
 static void
 nwam_capplet_dialog_finalize(NwamCappletDialog *self)
 {
-	if ( self->prv->capplet_dialog != NULL )
-		g_object_unref(G_OBJECT(self->prv->capplet_dialog));
-	if ( self->prv->show_combo != NULL )
-		g_object_unref(G_OBJECT(self->prv->show_combo));
-	if ( self->prv->main_nb != NULL )
-		g_object_unref(G_OBJECT(self->prv->main_nb));
-	
+    NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(self);
+
+    g_object_unref(G_OBJECT(prv->capplet_dialog));
+    g_object_unref(G_OBJECT(prv->show_combo));
+    g_object_unref(G_OBJECT(prv->main_nb));
+
 	for (int i = 0; i < N_PANELS; i ++) {
-		if (self->prv->panel[i]) {
-			g_object_unref(G_OBJECT(self->prv->panel[i]));
+		if (prv->panel[i]) {
+			g_object_unref(G_OBJECT(prv->panel[i]));
 		}
 	}
-	if ( self->prv->active_ncp != NULL )
-		g_object_unref(G_OBJECT(self->prv->active_ncp));
+	if ( prv->active_ncp != NULL )
+		g_object_unref(G_OBJECT(prv->active_ncp));
 	
-    g_list_foreach(self->prv->ncp_list, nwamui_util_obj_unref, NULL );
+    g_list_foreach(prv->ncp_list, nwamui_util_obj_unref, NULL );
 
-	self->prv = NULL;
-	
 	G_OBJECT_CLASS(nwam_capplet_dialog_parent_class)->finalize(G_OBJECT(self));
 }
 
@@ -745,4 +746,19 @@ nwam_capplet_dialog_select_ncu(NwamCappletDialog  *self, NwamuiNcu*  ncu )
     }
 }
 
+extern void
+nwam_capplet_dialog_set_ok_sensitive_by_voting(NwamCappletDialog *self, gboolean setting)
+{
+    NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(self);
+    static gint insensitive_voting_count = 0;
 
+    g_assert(insensitive_voting_count >= 0);
+
+    if (setting) {
+        insensitive_voting_count--;
+    } else {
+        insensitive_voting_count++;
+    }
+    
+    gtk_dialog_set_response_sensitive(prv->capplet_dialog, GTK_RESPONSE_OK, insensitive_voting_count == 0 ? TRUE : FALSE);
+}

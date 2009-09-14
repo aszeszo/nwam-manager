@@ -1,3 +1,23 @@
+2009-09-14  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c
+	(nwam_compose_multi_ip_tree_view), (populate_wifi_fav),
+	(populate_panel), (nwam_conf_ip_panel_new), (apply),
+	(nwam_conf_ip_panel_finalize), (show_changed_cb),
+	(nwam_conn_common_multi_cell_editing_started_cb),
+	(nwam_conn_common_multi_cell_editing_canceled_cb),
+	(nwam_conn_multi_ipv4_cell_edited_cb),
+	(nwam_conn_multi_ipv6_cell_edited_cb),
+	(wireless_tab_up_button_clicked_cb),
+	(wireless_tab_down_button_clicked_cb):
+	* capplet/nwam_conn_conf_ip_panel.h:
+	* capplet/nwam_pref_dialog.c (nwam_capplet_dialog_init),
+	(nwam_capplet_dialog_finalize),
+	(nwam_capplet_dialog_set_ok_sensitive_by_voting):
+	* capplet/nwam_pref_dialog.h:
+	Fixed 11018 adding prefix 16 in ipv6 address results in prefix zero
+	being added.
+
 2009-09-11  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.ui, capplet/nwam_env_pref_dialog.c,

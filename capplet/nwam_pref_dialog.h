@@ -69,17 +69,14 @@ enum {
 };
 
 extern GType                   nwam_capplet_dialog_get_type (void) G_GNUC_CONST;
-extern NwamCappletDialog*     nwam_capplet_dialog_new (void);
 
-extern void			nwam_capplet_dialog_refresh(NwamCappletDialog *self);
-/*
- * NwamPrefIFace instance should be added, so it can be refreshed or applied.
- */
-extern void nwam_capplet_dialog_add_pref_instance (NwamPrefIFace*, gpointer);
+extern NwamCappletDialog* nwam_capplet_dialog_new (void);
 
-extern void nwam_capplet_dialog_remove_pref_instance (NwamPrefIFace*);
+extern void	nwam_capplet_dialog_refresh(NwamCappletDialog *self);
 
-extern void nwam_capplet_dialog_select_ncu(NwamCappletDialog  *self, NwamuiNcu*  ncu );
+extern void nwam_capplet_dialog_select_ncu(NwamCappletDialog *self, NwamuiNcu *ncu );
+
+extern void nwam_capplet_dialog_set_ok_sensitive_by_voting(NwamCappletDialog *self, gboolean setting);
 
 
 G_END_DECLS

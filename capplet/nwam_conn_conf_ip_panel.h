@@ -64,7 +64,7 @@ struct _NwamConnConfIPPanelClass
 
 GType nwam_conf_ip_panel_get_type (void) G_GNUC_CONST;
 
-extern NwamConnConfIPPanel*     nwam_conf_ip_panel_new (void);
+extern NwamConnConfIPPanel* nwam_conf_ip_panel_new(NwamCappletDialog *pref_dialog);
 
 
 G_END_DECLS
