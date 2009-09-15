@@ -861,16 +861,17 @@ select_item_with_value( GtkComboBox*  combo, const gchar* value )
         gchar  *obj_name = NULL;
 
         do {
-            GObject* obj;
+            GObject* obj = NULL;
 
             gtk_tree_model_get (model, &iter, 0, &ptr, -1);
 
-            obj = (GObject*)ptr;
 
             if ( gtk_tree_model_get_column_type(model, 0) == G_TYPE_OBJECT 
                  || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_NCU
                  || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_ENM
                  || gtk_tree_model_get_column_type(model, 0) == NWAMUI_TYPE_ENV ) {
+
+                obj = (GObject*)ptr;
 
                 if ( NWAMUI_IS_NCU( obj ) ) {
                     obj_name = nwamui_ncu_get_nwam_qualified_name( NWAMUI_NCU(obj) );
@@ -890,7 +891,7 @@ select_item_with_value( GtkComboBox*  combo, const gchar* value )
             if ( g_strcmp0(obj_name, value) == 0 ) {
                 match = TRUE;
             }
-            else if ( NWAMUI_IS_NCU( obj ) ) {
+            else if ( obj && NWAMUI_IS_NCU( obj ) ) {
                 /* Just to be 100% sure, let's check without qualified name */
                 gchar** obj_split = g_strsplit( obj_name?obj_name:"", ":", 2);
                 gchar** value_split = g_strsplit( value?value:"", ":", 2);
@@ -1323,17 +1324,46 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
             else {
                 gtk_widget_set_sensitive( GTK_WIDGET(entry), !no_conditions);
                 if (field == NWAMUI_COND_FIELD_IP_ADDRESS) {
-                    nwamui_util_set_entry_ip_address_only( GTK_ENTRY(entry), FALSE, TRUE );
+                    nwamui_cond_op_t    op;
+                    gboolean            allow_prefix = FALSE;
+
+                    op = nwamui_cond_get_oper( cond );
+                    switch ( op ) {
+                    case NWAMUI_COND_OP_IS_IN_RANGE:
+                    case NWAMUI_COND_OP_IS_NOT_IN_RANGE:
+                        allow_prefix = TRUE;
+                    default:
+                        break;
+                    }
+                    nwamui_util_set_entry_ip_address_only( GTK_ENTRY(entry), FALSE, FALSE, allow_prefix, TRUE );
                 }
                 else {
                     nwamui_util_unset_entry_ip_address_only( GTK_ENTRY(entry) );
+                    gtk_entry_set_text( GTK_ENTRY(entry), "" );
                 }
                 gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
                 gtk_entry_set_text (GTK_ENTRY(entry), value?value:"" );
             }
             g_free(value);
         } else {
-            nwamui_cond_set_oper( cond, (nwamui_cond_op_t)index);
+            nwamui_cond_op_t    op = (nwamui_cond_op_t)index;
+
+            if ( nwamui_cond_get_field( cond ) == NWAMUI_COND_FIELD_IP_ADDRESS) {
+                GtkEntry   *entry = GTK_ENTRY(g_object_get_data(G_OBJECT(data), TABLE_ROW_ENTRY));
+                gboolean    allow_prefix = FALSE;
+
+                switch ( op ) {
+                case NWAMUI_COND_OP_IS_IN_RANGE:
+                case NWAMUI_COND_OP_IS_NOT_IN_RANGE:
+                    allow_prefix = TRUE;
+                default:
+                    break;
+                }
+                nwamui_util_set_entry_ip_address_validation_flags(  GTK_ENTRY(entry),
+                                                                    FALSE, FALSE, allow_prefix );
+            }
+
+            nwamui_cond_set_oper( cond, op);
         }
     }
 }

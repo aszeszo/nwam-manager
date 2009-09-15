@@ -1,3 +1,17 @@
+2009-09-15  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_condition_vbox.c: 
+	  Fix a crash in select_item_with_value() where it assumed that obj
+	  pointed to a valid pointer, but it could be a string which caused a
+	  SEGV.
+	  Fix defect#9648 and provide errors if invalid IP address is entered
+	  for DNS servers.
+	* common/libnwamui.h, common/libnwamui.c: 
+	  Fix defect#9648 by enhancing the validation mechanisms to handle
+	  lists and 
+	* capplet/nwam_conn_conf_ip_panel.c, capplet/nwam_env_pref_dialog.c: 
+	  Update due to API changes above.
+
 2009-09-15  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_conf_ip_panel.c

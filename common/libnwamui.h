@@ -40,9 +40,6 @@ G_BEGIN_DECLS
 #include <libnwam.h>
 #endif /* _LIBNWAM_H */
 
-/* TODO: Figure out a replacement for these Phase 0.5 types */
-typedef guint64 libnwam_diag_cause_t;
-
 #ifndef __GTK_H__
 #include <gtk/gtk.h>
 #endif /* __GTK_H__ */
@@ -304,9 +301,16 @@ extern gboolean                 nwamui_util_get_interface_address(  const char  
 
 extern gboolean                 nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry );
 
-extern void                     nwamui_util_set_entry_ip_address_only( GtkEntry* entry, 
-                                                                       gboolean is_v6, 
-                                                                       gboolean validate_on_focus_out );
+extern void                     nwamui_util_set_entry_ip_address_only(  GtkEntry* entry, 
+                                                                        gboolean is_v6, 
+                                                                        gboolean allow_list, 
+                                                                        gboolean allow_prefix, 
+                                                                        gboolean validate_on_focus_out );
+
+extern void                     nwamui_util_set_entry_ip_address_validation_flags(  GtkEntry* entry, 
+                                                                                    gboolean is_v6, 
+                                                                                    gboolean allow_list, 
+                                                                                    gboolean allow_prefix );
 
 extern void                     nwamui_util_unset_entry_ip_address_only( GtkEntry* entry );
 
@@ -318,7 +322,9 @@ extern gboolean                 nwamui_util_validate_prefix_value(  GtkWidget   
 extern gboolean                 nwamui_util_validate_ip_address(    GtkWidget   *widget,
                                                                     const gchar *address_str,
                                                                     gboolean     is_v6,
-                                                                    gboolean     show_error_dialog );
+                                                                    gboolean     allow_prefix,
+                                                                    gboolean     show_error_dialog,
+                                                                    gboolean     show_error_dialog_blocks );
 
 extern void                     nwamui_util_window_title_append_hostname( GtkDialog* dialog );
 

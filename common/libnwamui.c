@@ -1907,18 +1907,32 @@ insert_text_ip_only_handler (GtkEditable *editable,
                              gint        *position,
                              gpointer     data)
 {
-    gboolean    is_v6 = (gboolean)data;
+    gboolean    allow_list;
+    gboolean    allow_prefix;
+    gboolean    is_v6;
     gboolean    is_valid = TRUE;
     gchar      *lower = g_ascii_strdown(text, length);
 
+    allow_prefix = (gboolean)g_object_get_data( G_OBJECT(editable), "allow_prefix" );
+    allow_list = (gboolean)g_object_get_data( G_OBJECT(editable), "allow_list" );
+    is_v6 = (gboolean)g_object_get_data( G_OBJECT(editable), "is_v6" );
+
     for ( int i = 0; i < length && is_valid; i++ ) {
-        if ( is_v6 ) {
-            /* Valid chars for v6 are ASCII [0-9a-f:./] */
-            is_valid = (g_ascii_isxdigit( lower[i] ) || text[i] == '/' || text[i] == ':' || text[i] == '.' );   
+        if ( allow_list && (text[i] == ',' || text[i] == ' ') ) {
+            /* Allow comma-separated list mode to be entered */
+            is_valid = TRUE;
+        }
+        else if ( allow_prefix && (text[i] == '/' ) ) {
+            /* Allow comma-separated list mode to be entered */
+            is_valid = TRUE;
+        }
+        else if ( is_v6 ) {
+            /* Valid chars for v6 are ASCII [0-9a-f:.] */
+            is_valid = (g_ascii_isxdigit( lower[i] ) || text[i] == ':' || text[i] == '.' );   
         }
         else {
-            /* Valid chars for v4 are ASCII [0-9./] */
-            is_valid = (g_ascii_isdigit( lower[i] ) || text[i] == '.' || text[i] == '/' );   
+            /* Valid chars for v4 are ASCII [0-9.] */
+            is_valid = (g_ascii_isdigit( lower[i] ) || text[i] == '.' );   
         }
     }
     
@@ -2020,7 +2034,9 @@ extern gboolean
 nwamui_util_validate_ip_address(    GtkWidget   *widget,
                                     const gchar *address_str,
                                     gboolean     is_v6,
-                                    gboolean     show_error_dialog )
+                                    gboolean     allow_prefix,
+                                    gboolean     show_error_dialog,
+                                    gboolean     show_error_dialog_blocks )
 {
     struct lifreq           lifr;
     struct sockaddr_in     *sin = (struct sockaddr_in *)&lifr.lifr_addr;
@@ -2082,14 +2098,24 @@ nwamui_util_validate_ip_address(    GtkWidget   *widget,
     if ( ! is_valid && show_error_dialog ) {
         const gchar*    message;
         if ( is_v6 ) {
-            message = _("IP addresses must be in one of the formats :\n\n   x:x:x:x:x:x:x:x\n   x:x::x, etc./N\n\nwhere N is between 1 and 128");
+            if ( allow_prefix ) {
+                message = _("IP addresses must be in one of the formats :\n\n   x:x:x:x:x:x:x:x\n   x:x:x:x:x:x:x:x/N\n   x:x::x, etc.\n\nwhere N is between 1 and 128");
+            }
+            else {
+                message = _("IP addresses must be in one of the formats :\n\n   x:x:x:x:x:x:x:x\n   x:x::x, etc.");
+            }
         }
         else {
-            message = _("IP addresses must be in the one of the formats:\n\n    w.x.y.z\n    w.x.y.z/N\n\nwhere N is between 1 and 32");
+            if ( allow_prefix ) {
+                message = _("IP addresses must be in the one of the formats:\n\n    w.x.y.z\n    w.x.y.z/N\n\nwhere N is between 1 and 32");
+            }
+            else {
+                message = _("IP addresses must be in the format:\n\n    w.x.y.z\n");
+            }
         }
 
         nwamui_util_show_message(GTK_WINDOW(top_level), 
-                                 GTK_MESSAGE_ERROR, _("Invalid IP address"), message, TRUE);
+                                 GTK_MESSAGE_ERROR, _("Invalid IP address"), message, show_error_dialog_blocks);
     }
 
     return( is_valid );
@@ -2100,10 +2126,16 @@ validate_ip_on_focus_exit(GtkWidget     *widget,
                           GdkEventFocus *event,
                           gpointer       data)
 {
-    gboolean                is_v6 = (gboolean)data;
+    gboolean                allow_prefix;
+    gboolean                allow_list;
+    gboolean                is_v6;
     gboolean                is_valid = TRUE;
     GtkWindow              *top_level = GTK_WINDOW(gtk_widget_get_toplevel(widget));
     const gchar            *address_str;
+
+    allow_list = (gboolean)g_object_get_data( G_OBJECT(widget), "allow_list" );
+    allow_prefix = (gboolean)g_object_get_data( G_OBJECT(widget), "allow_prefix" );
+    is_v6 = (gboolean)g_object_get_data( G_OBJECT(widget), "is_v6" );
 
     if ( !GTK_WIDGET_IS_SENSITIVE(widget) || !gtk_window_has_toplevel_focus (top_level)) {
         /* If not sensitive, do nothing, since user can't edit it */
@@ -2114,10 +2146,32 @@ validate_ip_on_focus_exit(GtkWidget     *widget,
                    (gpointer) validate_ip_on_focus_exit, data);
 
     address_str = gtk_entry_get_text(GTK_ENTRY(widget));
-    
 
-    if ( ! nwamui_util_validate_ip_address( widget, address_str, is_v6, TRUE) ) {
-        gtk_widget_grab_focus( widget );
+    if ( strlen( address_str ) > 0 ) {
+        if ( allow_list ) {
+            gchar     **addresses = NULL;
+
+            addresses = g_strsplit_set(address_str, ", ", 0 );
+
+            for( int i = 0; addresses && addresses[i] != NULL; i++ ) {
+                /* Skip blank entries caused by combination of comma and space */
+                if ( strlen( addresses[i] ) == 0 ) {
+                    continue;
+                }
+                if ( ! nwamui_util_validate_ip_address( widget, addresses[i], is_v6, allow_prefix, TRUE, FALSE) ) {
+                    gtk_widget_grab_focus( widget );
+                    break;
+                }
+            }
+            if ( addresses ) {
+                g_strfreev( addresses );
+            }
+        }
+        else {
+            if ( ! nwamui_util_validate_ip_address( widget, address_str, is_v6, allow_prefix, TRUE, FALSE) ) {
+                gtk_widget_grab_focus( widget );
+            }
+        }
     }
 
     g_signal_handlers_unblock_by_func (widget,
@@ -2131,15 +2185,39 @@ validate_ip_on_focus_exit(GtkWidget     *widget,
  * it's input to be characters acceptable to a valid IP address format.
  */
 extern void
-nwamui_util_set_entry_ip_address_only( GtkEntry* entry, gboolean is_v6, gboolean validate_on_focus_out )
+nwamui_util_set_entry_ip_address_only(  GtkEntry* entry, 
+                                        gboolean is_v6, 
+                                        gboolean allow_list, 
+                                        gboolean allow_prefix, 
+                                        gboolean validate_on_focus_out )
 {
     if ( entry != NULL ) {
+        g_object_set_data( G_OBJECT(entry), "allow_list", (gpointer)allow_list );
+        g_object_set_data( G_OBJECT(entry), "allow_prefix", (gpointer)allow_prefix );
+        g_object_set_data( G_OBJECT(entry), "is_v6", (gpointer)is_v6 );
+
         g_signal_connect(G_OBJECT(entry), "insert_text", 
-                         (GCallback)insert_text_ip_only_handler, (gpointer)is_v6);
+                         (GCallback)insert_text_ip_only_handler, NULL);
         if ( validate_on_focus_out ) {
             g_signal_connect(G_OBJECT(entry), "focus-out-event", 
-                             (GCallback)validate_ip_on_focus_exit, (gpointer)is_v6);
+                             (GCallback)validate_ip_on_focus_exit, NULL);
         }
+    }
+}
+
+/*
+ * Change the flags set when checking ip address.
+ */
+extern void
+nwamui_util_set_entry_ip_address_validation_flags(  GtkEntry* entry, 
+                                                    gboolean is_v6, 
+                                                    gboolean allow_list, 
+                                                    gboolean allow_prefix )
+{
+    if ( entry != NULL ) {
+        g_object_set_data( G_OBJECT(entry), "allow_list", (gpointer)allow_list );
+        g_object_set_data( G_OBJECT(entry), "allow_prefix", (gpointer)allow_prefix );
+        g_object_set_data( G_OBJECT(entry), "is_v6", (gpointer)is_v6 );
     }
 }
 
@@ -2196,7 +2274,13 @@ nwamui_util_parse_string_to_glist( const gchar* str )
     words = g_strsplit_set(str, LIST_DELIM, 0 );
 
     for( int i = 0; words && words[i] != NULL; i++ ) {
-        list = g_list_append( list, (gpointer)words[i] );
+        /* Skip empty entries caused by delims side by side (e.g ', ') */
+        if ( strlen( words[i] ) != 0 ) {
+            list = g_list_append( list, (gpointer)words[i] );
+        }
+        else {
+            g_free( words[i] ); /* Free empty strings or we leak them */
+        }
     }
                 
     /* Don't free words[] since memory is now in GList */
