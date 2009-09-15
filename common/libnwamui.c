@@ -2003,7 +2003,7 @@ nwamui_util_validate_prefix_value(  GtkWidget   *widget,
         }
 
         nwamui_util_show_message(GTK_WINDOW(top_level), 
-                                 GTK_MESSAGE_ERROR, _("Invalid Subnet or Prefix"), message, FALSE);
+                                 GTK_MESSAGE_ERROR, _("Invalid Subnet or Prefix"), message, TRUE);
     }
 
     return( is_valid );
@@ -2089,7 +2089,7 @@ nwamui_util_validate_ip_address(    GtkWidget   *widget,
         }
 
         nwamui_util_show_message(GTK_WINDOW(top_level), 
-                                 GTK_MESSAGE_ERROR, _("Invalid IP address"), message, FALSE);
+                                 GTK_MESSAGE_ERROR, _("Invalid IP address"), message, TRUE);
     }
 
     return( is_valid );

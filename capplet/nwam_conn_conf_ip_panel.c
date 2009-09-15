@@ -1519,7 +1519,7 @@ nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
         GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
         GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
 
-        gtk_tree_view_set_cursor (GTK_TREE_VIEW(view), tpath, col, FALSE);
+        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), TRUE);
 
         gtk_tree_path_free(tpath);
         goto L_exit;
@@ -1531,7 +1531,7 @@ nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
         GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
         GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
 
-        gtk_tree_view_set_cursor (GTK_TREE_VIEW(view), tpath, col, FALSE);
+        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), TRUE);
 
         gtk_tree_path_free(tpath);
         goto L_exit;
@@ -1602,7 +1602,7 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
         GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
         GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
 
-        gtk_tree_view_set_cursor (GTK_TREE_VIEW(view), tpath, col, FALSE);
+        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), TRUE);
 
         gtk_tree_path_free(tpath);
         goto L_exit;
@@ -1614,7 +1614,7 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
         GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
         GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
 
-        gtk_tree_view_set_cursor (GTK_TREE_VIEW(view), tpath, col, FALSE);
+        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), TRUE);
 
         gtk_tree_path_free(tpath);
         goto L_exit;

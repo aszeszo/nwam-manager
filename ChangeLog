@@ -1,3 +1,13 @@
+2009-09-15  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c
+	(nwam_conn_multi_ipv4_cell_edited_cb),
+	(nwam_conn_multi_ipv6_cell_edited_cb):
+	* common/libnwamui.c (nwamui_util_validate_prefix_value),
+	(nwamui_util_validate_ip_address):
+	Fixed 11050 prefix field does not return error on entering
+	invalid prefix.
+
 2009-09-14  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_conf_ip_panel.c
