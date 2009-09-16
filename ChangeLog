@@ -1,5 +1,24 @@
 2009-09-16  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c: 
+	  Fix defect#9799 where removal of bssids didn't appear to be working.
+	  What was in fact happening was that the list was being repopulated
+	  by scanned wlans. This was fixed by allowing direct access to the
+	  favourites only list as a separate property, while the existing
+	  bssid list property remains a combination of both the favourites and
+	  the scanned APs.
+	* capplet/nwam_wireless_dialog.c: 
+	  Ensure that we're using the favourites list when editing or adding a
+	  network. If joining a network we want to see the joined list.
+	  Also put in code to not validate or set the WEP key if the user
+	  didn't change it in the UI - if the user switches security mode,
+	  then we will validate and set the key.
+	* tests/main.c: 
+	  Update to turn off gtype debugging by default (caused a lot of
+	  noise) and write out the contents of the favourites bssid list.
+
+2009-09-16  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_daemon.c: 
 	  Change some g_errors to warnings.
 	* daemon/nwam-menu.h, daemon/nwam-menu.c: 

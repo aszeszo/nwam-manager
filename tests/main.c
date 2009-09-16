@@ -73,7 +73,7 @@ main(int argc, char** argv)
     /* Initialise Thread Support */
     g_thread_init( NULL );
 
-    g_type_init_with_debug_flags( G_TYPE_DEBUG_OBJECTS | G_TYPE_DEBUG_SIGNALS  );
+    /* g_type_init_with_debug_flags( G_TYPE_DEBUG_OBJECTS | G_TYPE_DEBUG_SIGNALS  ); */
     
     /* Initialize i18n support */
     gtk_set_locale ();
@@ -616,6 +616,7 @@ process_known_wlan( gpointer data, gpointer user_data )
     
     if ( wifi != NULL ) {
         gchar * essid = nwamui_wifi_net_get_essid( wifi );
+        GList * fav_bssid_list = nwamui_wifi_net_get_fav_bssid_list( wifi );
         GList * bssid_list = nwamui_wifi_net_get_bssid_list( wifi );
 
         printf("%-*s=============================================================\n", indent, "");
@@ -626,6 +627,7 @@ process_known_wlan( gpointer data, gpointer user_data )
 
         printf("%-*sWLAN : signal = %s\n", indent, "", signal_str?signal_str:"NULL" );
 
+        print_string_list_and_free( "WLAN", "fav_bssid_list", fav_bssid_list );
         print_string_list_and_free( "WLAN", "bssid_list", bssid_list );
 
         indent -=4;

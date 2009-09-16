@@ -227,6 +227,9 @@ extern gchar*                       nwamui_wifi_net_get_wpa_cert_file ( NwamuiWi
 extern void                         nwamui_wifi_net_set_bssid_list ( NwamuiWifiNet *self, const GList*   bssid_list );
 extern GList*                       nwamui_wifi_net_get_bssid_list ( NwamuiWifiNet *self );
                           
+extern void                         nwamui_wifi_net_set_fav_bssid_list ( NwamuiWifiNet *self, const GList*   bssid_list );
+extern GList*                       nwamui_wifi_net_get_fav_bssid_list ( NwamuiWifiNet *self );
+                          
                           
 extern void                         nwamui_wifi_net_set_priority ( NwamuiWifiNet *self, guint64 priority );
 extern guint64                      nwamui_wifi_net_get_priority ( NwamuiWifiNet *self );

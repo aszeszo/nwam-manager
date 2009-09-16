@@ -122,6 +122,7 @@ enum {
         PROP_WPA_USERNAME,
         PROP_WPA_PASSWORD,
         PROP_WPA_CERT_FILE,
+        PROP_FAV_BSSID_LIST,
         PROP_BSSID_LIST,
         PROP_PRIORITY
 };
@@ -292,6 +293,13 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
+                                     PROP_FAV_BSSID_LIST,
+                                     g_param_spec_pointer ("fav_bssid_list",
+                                                          _("fav_bssid_list"),
+                                                          _("fav_bssid_list"),
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
                                      PROP_PRIORITY,
                                      g_param_spec_uint64 ("priority",
                                                        _("priority"),
@@ -369,7 +377,7 @@ nwamui_wifi_net_set_property (  GObject         *object,
                         if ( prv->essid != NULL ) {
                             g_debug("Renaming Favourite WLAN with name : '%s' to '%s'", prv->essid, essid );
 
-                            if ( strcmp( prv->essid, essid) != 0 ) {
+                            if ( g_strcmp0( prv->essid, essid) != 0 ) {
                                 if ( (nerr = nwam_known_wlan_set_name(prv->known_wlan_h, essid)) != NWAM_SUCCESS) {
                                     g_warning("Error renaming favourite wlan: %s", nwam_strerror(nerr));
                                 }
@@ -545,7 +553,7 @@ nwamui_wifi_net_set_property (  GObject         *object,
             }
             break;
 
-        case PROP_BSSID_LIST: {
+        case PROP_FAV_BSSID_LIST: {
                 if ( prv->is_favourite ) {
                     if ( self->prv->known_wlan_h != NULL ) {
                         GList *bssid_list = g_value_get_pointer( value );
@@ -560,18 +568,57 @@ nwamui_wifi_net_set_property (  GObject         *object,
                         g_warning("Unexpected empty known_wlan handle");
                     }
                 }
-                else {
-                    /* Not favourite, so store in internal structure */
-                    GList *bssid_list = g_value_get_pointer( value );
-                    gchar **bssid_strv = nwamui_util_glist_to_strv( bssid_list );
+            }
+            break;
 
-                    g_debug("Setting non-favourite WifiNet bssid_strv");
+        case PROP_BSSID_LIST: {
+                /* Store in internal structure */
+                GList *bssid_list = g_value_get_pointer( value );
+                GList *fav_bssid_list = NULL;
+                gchar **bssid_strv;
 
-                    if ( prv->bssid_strv ) {
-                        g_strfreev( prv->bssid_strv );
+                g_debug("Setting non-favourite WifiNet bssid_strv");
+
+                /* Remove any entries already in favourites bssid_list */
+                if ( prv->is_favourite ) {
+                    if ( self->prv->known_wlan_h != NULL ) {
+                        gchar **fav_bssid_strv = get_nwam_known_wlan_string_array_prop( self->prv->known_wlan_h, 
+                                                                                    NWAM_KNOWN_WLAN_PROP_BSSIDS );
+                        fav_bssid_list = nwamui_util_strv_to_glist( fav_bssid_strv );
+
+                        g_strfreev( fav_bssid_strv );
                     }
-                    prv->bssid_strv = bssid_strv;
                 }
+
+                bssid_list = nwamui_util_strv_to_glist( prv->bssid_strv );
+
+                /* Merge lists */
+                if ( fav_bssid_list != NULL ) {
+                    if ( bssid_list != NULL ) {
+                        for (GList *elem = g_list_first(fav_bssid_list);
+                             elem != NULL;
+                             elem = g_list_next(elem) ) {
+                            if ( elem->data != NULL ) {
+                                GList  *found;
+                                if ( (found = g_list_find_custom( bssid_list, elem->data, 
+                                            (GCompareFunc)g_strcmp0)) != NULL ) {
+                                    /* Already in fav_bssid_list, so remove it */
+                                    g_free(found->data); /* Free it now */
+                                    bssid_list = g_list_remove_link( bssid_list, found );
+                                }
+                            }
+                        }
+                        g_list_foreach( fav_bssid_list, (GFunc)g_free, NULL );
+                        g_list_free(fav_bssid_list);
+                    }
+                }
+                
+
+                bssid_strv = nwamui_util_glist_to_strv( bssid_list );
+                if ( prv->bssid_strv ) {
+                    g_strfreev( prv->bssid_strv );
+                }
+                prv->bssid_strv = bssid_strv;
             }
             break;
 
@@ -683,7 +730,7 @@ nwamui_wifi_net_get_property (GObject         *object,
                 g_value_set_int(value, self->prv->status);
             }
             break;
-        case PROP_BSSID_LIST: {
+        case PROP_FAV_BSSID_LIST: {
                 GList  *bssid_list = NULL;
 
                 if ( prv->is_favourite ) {
@@ -698,9 +745,53 @@ nwamui_wifi_net_get_property (GObject         *object,
                         g_warning("Unexpected empty known_wlan handle");
                     }
                 }
-                else {
-                    bssid_list = nwamui_util_strv_to_glist( prv->bssid_strv );
+                g_value_set_pointer( value, bssid_list );
+            }
+            break;
+        case PROP_BSSID_LIST: {
+                GList  *fav_bssid_list = NULL;
+                GList  *bssid_list = NULL;
+
+                if ( prv->is_favourite ) {
+                    if ( self->prv->known_wlan_h != NULL ) {
+                        gchar **bssid_strv = get_nwam_known_wlan_string_array_prop( self->prv->known_wlan_h, 
+                                                                                    NWAM_KNOWN_WLAN_PROP_BSSIDS );
+                        fav_bssid_list = nwamui_util_strv_to_glist( bssid_strv );
+
+                        g_strfreev( bssid_strv );
+                    }
+                    else {
+                        g_warning("Unexpected empty known_wlan handle");
+                    }
                 }
+
+                bssid_list = nwamui_util_strv_to_glist( prv->bssid_strv );
+
+                /* Merge lists */
+                if ( fav_bssid_list != NULL ) {
+                    if ( bssid_list == NULL ) {
+                        /* Just use fav_bssid_list */
+                        bssid_list = fav_bssid_list;
+                    }
+                    else {
+                        for (GList *elem = g_list_first(fav_bssid_list);
+                             elem != NULL;
+                             elem = g_list_next(elem) ) {
+                            if ( elem->data != NULL ) {
+                                if ( g_list_find_custom( bssid_list, elem->data, 
+                                            (GCompareFunc)g_strcmp0) != NULL ) {
+                                    /* Already in bssid_list, so don't add it */
+                                    g_free(elem->data); /* Free it now */
+                                }
+                                else {
+                                    bssid_list = g_list_prepend( bssid_list, elem->data );
+                                }
+                            }
+                        }
+                        g_list_free(fav_bssid_list);
+                    }
+                }
+
                 g_value_set_pointer( value, bssid_list );
             }
             break;
@@ -853,7 +944,7 @@ nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_
     }
 
     if (self->prv->essid != NULL && name != NULL) {
-        if ( strcmp( self->prv->essid, name ) == 0 ) {
+        if ( g_strcmp0( self->prv->essid, name ) == 0 ) {
             essid_changed = FALSE;
         }
     }
@@ -926,7 +1017,7 @@ nwamui_wifi_net_update_from_wlan_t(     NwamuiWifiNet* self,
         if ( wlan->nww_bssid != NULL ) {
             /* Merge list */
             GList *match = g_list_find_custom( bssid_list, 
-                                wlan->nww_bssid, (GCompareFunc)strcmp );
+                                wlan->nww_bssid, (GCompareFunc)g_strcmp0 );
             if ( match == NULL ) {
                 bssid_list = g_list_append( bssid_list, 
                             g_strdup(wlan->nww_bssid) );
@@ -1012,7 +1103,7 @@ nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other )
     else if ( self->prv->essid == NULL || other->prv->essid == NULL ) {
         rval = self->prv->essid == NULL ? -1:1;
     }
-    else if ( ( rval = strcmp(self->prv->essid, other->prv->essid)) == 0 ) {
+    else if ( ( rval = g_strcmp0(self->prv->essid, other->prv->essid)) == 0 ) {
 #ifdef _CARE_FOR_BSSID
         /* Now need to look at BSSID List too if we've no match so far */
         if ( self_bssid_list == NULL && other_bssid_list == NULL ) {
@@ -1022,7 +1113,7 @@ nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other )
             if ( self_bssid_list != NULL ) {
                 /* Look for a match between other bssid and an entry in the
                  * own bssid_list */
-                GList *match = g_list_find_custom( self_bssid_list, other->prv->bssid, (GCompareFunc)strcmp );
+                GList *match = g_list_find_custom( self_bssid_list, other->prv->bssid, (GCompareFunc)g_strcmp0 );
                 if ( match != NULL ) {
                     rval = 0;
                 }
@@ -1030,7 +1121,7 @@ nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other )
             if ( rval != 0 && other_bssid_list != NULL ) {
                 /* Look for a match between own bssid and an entry in the
                  * other bssid_list */
-                GList *match = g_list_find_custom( other_bssid_list, self->prv->bssid, (GCompareFunc)strcmp );
+                GList *match = g_list_find_custom( other_bssid_list, self->prv->bssid, (GCompareFunc)g_strcmp0 );
                 if ( match != NULL ) {
                     rval = 0;
                 }
@@ -1764,6 +1855,47 @@ nwamui_wifi_net_get_wpa_cert_file (NwamuiWifiNet *self )
 }
 
 /** 
+ * nwamui_wifi_net_set_fav_bssid_list:
+ * @nwamui_wifi_net: a #NwamuiWifiNet.
+ * @fav_bssid_list: Value to set fav_bssid_list to.
+ * 
+ **/ 
+extern void
+nwamui_wifi_net_set_fav_bssid_list (   NwamuiWifiNet *self,
+                              const GList*    fav_bssid_list )
+{
+    g_return_if_fail (NWAMUI_IS_WIFI_NET (self));
+    g_assert (fav_bssid_list != NULL );
+
+    if ( fav_bssid_list != NULL ) {
+        g_object_set (G_OBJECT (self),
+                      "fav_bssid_list", fav_bssid_list,
+                      NULL);
+    }
+}
+
+/**
+ * nwamui_wifi_net_get_fav_bssid_list:
+ * @nwamui_wifi_net: a #NwamuiWifiNet.
+ *
+ * @returns: the fav_bssid_list.
+ *
+ **/
+extern GList*  
+nwamui_wifi_net_get_fav_bssid_list (NwamuiWifiNet *self )
+{
+    GList*    fav_bssid_list = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), fav_bssid_list);
+
+    g_object_get (G_OBJECT (self),
+                  "fav_bssid_list", &fav_bssid_list,
+                  NULL);
+
+    return( fav_bssid_list );
+}
+
+/** 
  * nwamui_wifi_net_set_bssid_list:
  * @nwamui_wifi_net: a #NwamuiWifiNet.
  * @bssid_list: Value to set bssid_list to.
@@ -1786,11 +1918,12 @@ nwamui_wifi_net_set_bssid_list (   NwamuiWifiNet *self,
 /**
  * nwamui_wifi_net_get_bssid_list:
  * @nwamui_wifi_net: a #NwamuiWifiNet.
+ *
  * @returns: the bssid_list.
  *
  **/
 extern GList*  
-nwamui_wifi_net_get_bssid_list (NwamuiWifiNet *self)
+nwamui_wifi_net_get_bssid_list (NwamuiWifiNet *self )
 {
     GList*    bssid_list = NULL; 
 
