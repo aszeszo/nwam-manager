@@ -141,11 +141,13 @@ GType            nwam_menu_get_type          (void) G_GNUC_CONST;
 #define REMOVE_MENU_ITEM(menu, item)                            \
     {                                                           \
         g_assert(GTK_IS_MENU(menu) && GTK_IS_MENU_ITEM(item));  \
-        gtk_container_remove(GTK_CONTAINER(menu), item);        \
+        nwam_menu_remove_widget(NWAM_MENU(menu), item);        \
     }
 
 
 extern GtkWidget* nwam_menu_new(gint n_sections);
+
+extern void nwam_menu_remove_widget(NwamMenu *nwam_menu, GtkWidget *child);
 
 /* NwamMenu section utils */
 extern void nwam_menu_section_set_left(NwamMenu *self, gint sec_id, GtkWidget *w);

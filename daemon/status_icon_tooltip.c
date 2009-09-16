@@ -391,8 +391,6 @@ nwam_tooltip_widget_remove_ncu(NwamTooltipWidget *self, NwamuiObject *object)
         if (old == (gpointer)object) {
             g_assert(w_list->data != prv->env_widget && w_list->data != prv->ncp_widget);
             gtk_container_remove(GTK_CONTAINER(self), GTK_WIDGET(w_list->data));
-
-            g_list_free(w_list);
             break;
         }
         w_list = g_list_delete_link(w_list, w_list);

@@ -1,3 +1,18 @@
+2009-09-16  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c: 
+	  Change some g_errors to warnings.
+	* daemon/nwam-menu.h, daemon/nwam-menu.c: 
+	  Fix issue when unplugging a USB wifi adaptor where
+	  gtk_container_remove was firing an assertion since the container
+	  wasn't the parent of the widget - which it's not due to how things
+	  are added to sub-menus.  Add function nwam_menu_remove_widget()
+	  which is then used instead of gtk_container_remove in the
+	  REMOVE_MENU_ITEM macro.
+	* daemon/status_icon_tooltip.c: 
+	  Fix double-free of g_list in nwam_tooltip_widget_remove_ncu() which
+	  occurs when an NCU is removed from the system.
+
 2009-09-15  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_condition_vbox.c: 

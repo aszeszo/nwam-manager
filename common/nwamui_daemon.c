@@ -2464,7 +2464,7 @@ nwamd_event_handler(gpointer data)
                     g_debug("Interface %s removed", name );
                 }
                 else {
-                    g_error("LINK Action : %d recieved and unhandled", 
+                    nwamui_warning("LINK Action : %d recieved and unhandled", 
                                 nwamevent->nwe_data.nwe_object_action.nwe_action );
                 }
                 if ( ncp ) {
@@ -2997,7 +2997,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
 
                     }
                     else {
-                        g_error("Couldn't find NCP object for '%s'", object_name );
+                        nwamui_warning("Couldn't find NCP object for '%s'", object_name );
                     }
                 }
                 break;
@@ -3063,7 +3063,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                         }
                     }
                     else {
-                        g_error("Couldn't find NCU object for '%s'", object_name );
+                        nwamui_warning("Couldn't find NCU object for '%s'", object_name );
                     }
                 }
                 break;
@@ -3086,7 +3086,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
 
                     }
                     else {
-                        g_error("Couldn't find NCU object for '%s'", nwamevent->nwe_data.nwe_object_action.nwe_name );
+                        nwamui_warning("Couldn't find NCU object for '%s'", nwamevent->nwe_data.nwe_object_action.nwe_name );
                     }
                 }
                 break;

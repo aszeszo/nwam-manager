@@ -234,6 +234,21 @@ nwam_menu_get_property(GObject         *object,
 	}
 }
 
+/* Implement alternative to gtk_container_remove since it checks the parent of
+ * the widget, and in some cases (e.g sub-menu) this may not match.
+ */
+extern void
+nwam_menu_remove_widget(NwamMenu *nwam_menu, GtkWidget *child)
+{
+    GtkContainer *class;
+
+    g_return_if_fail (NWAM_IS_MENU (nwam_menu));
+    g_return_if_fail (GTK_IS_MENU_SHELL (nwam_menu));
+    g_return_if_fail (GTK_IS_MENU_ITEM (child));
+
+    nwam_menu_real_remove(GTK_CONTAINER(nwam_menu), child);
+}
+
 static void
 nwam_menu_real_add(GtkContainer *container, GtkWidget *widget)
 {
@@ -329,6 +344,7 @@ nwam_menu_real_insert(GtkMenuShell *menu_shell,
     } else {
         GTK_MENU_SHELL_CLASS(nwam_menu_parent_class)->insert(menu_shell, child, position);
     }
+
 }
 
 static void
