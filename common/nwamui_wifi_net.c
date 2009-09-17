@@ -643,7 +643,9 @@ nwamui_wifi_net_set_property (  GObject         *object,
             break;
     }
 
-    self->prv->modified = TRUE;
+    if ( prop_id != PROP_STATUS ) {
+        self->prv->modified = TRUE;
+    }
 }
 
 static void
@@ -1229,7 +1231,7 @@ nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  )
             sec_mode_str = "???";
     }
 
-    nwamui_warning("nwam_wlan_select( %s, %s, NULL, %s[%d], %s[%d])", 
+    nwamui_debug("nwam_wlan_select( %s, %s, NULL, %s[%d], %s[%d])", 
                     device, self->prv->essid, 
                     sec_mode_str, sec_mode,
                     add_to_favourites?"TRUE":"FALSE",

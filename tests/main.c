@@ -328,6 +328,10 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
 
     indent -= 4;
 
+    if ( nwamui_ncu_has_modifications( ncu ) ) {
+        g_error("Object shouldn't have modifications");
+    }
+
     if ( vname != NULL )
         g_free(vname);
     if ( dname != NULL )
@@ -504,6 +508,9 @@ process_env( gpointer data, gpointer user_data )
 
     indent -= 4;
     printf("%-*s*************************************************************\n", indent, "");
+    if ( nwamui_env_has_modifications( env ) ) {
+        g_error("Object shouldn't have modifications");
+    }
 
     if ( name != NULL ) g_free( name );
 }
@@ -570,6 +577,10 @@ process_enm( gpointer data, gpointer user_data )
 
     printf("%-*s*************************************************************\n", indent, "");
 
+    if ( nwamui_enm_has_modifications( enm ) ) {
+        g_error("Object shouldn't have modifications");
+    }
+
     if (name != NULL ) {
         g_free( name );
     }
@@ -633,6 +644,9 @@ process_known_wlan( gpointer data, gpointer user_data )
         indent -=4;
         printf("%-*s=============================================================\n", indent, "");
 
+        if ( nwamui_wifi_net_has_modifications( wifi ) ) {
+            g_error("Object shouldn't have modifications");
+        }
         g_free(essid);
         g_object_unref(G_OBJECT(wifi));
     }
