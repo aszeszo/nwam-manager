@@ -1214,7 +1214,12 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 
         /* Don't show the persist flag if we're not connecting, since it's
          * meaningless in that case. */
-        gtk_widget_set_visible(GTK_WIDGET(self->prv->persistant_cbutton), self->prv->do_connect);
+        if ( self->prv->do_connect ) {
+            gtk_widget_show(GTK_WIDGET(self->prv->persistant_cbutton) );
+        }
+        else {
+            gtk_widget_hide(GTK_WIDGET(self->prv->persistant_cbutton) );
+        }
 
         response = gtk_dialog_run(GTK_DIALOG(self->prv->wireless_dialog));
         

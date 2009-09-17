@@ -1,3 +1,9 @@
+2009-09-17  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_wireless_dialog.c:
+	  Don't use gtk_widget_set_visible() since it doesn't exist in GNOME
+	  2.26 stack, causing a build failure.
+
 2009-09-16  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_wifi_net.h, common/nwamui_wifi_net.c: 
