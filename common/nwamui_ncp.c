@@ -895,7 +895,7 @@ nwamui_ncp_all_ncus_online (NwamuiNcp       *self,
     if ( info.num_manual_enabled != info.num_manual_online ) {
         all_online = FALSE;
     }
-    else if ( info.num_prio_excl != info.num_prio_excl_online ) {
+    else if ( info.num_prio_excl > 0 && info.num_prio_excl_online == 0 ) {
         all_online = FALSE;
     }
     else if ( info.num_prio_shared != info.num_prio_shared_online ) {
@@ -905,13 +905,26 @@ nwamui_ncp_all_ncus_online (NwamuiNcp       *self,
         all_online = FALSE;
     }
 
-    if ( needs_wifi_selection != NULL ) {
-        /* No need to ref, since will already by ref-ed */
-        *needs_wifi_selection = info.needs_wifi_selection;
+    if ( ! all_online ) {
+        /* Only care about these values if we see something off-line that
+         * should be on-line.
+         */
+        if ( needs_wifi_selection != NULL ) {
+            /* No need to ref, since will already by ref-ed */
+            *needs_wifi_selection = info.needs_wifi_selection;
+        }
+        if ( needs_wifi_key != NULL ) {
+            /* No need to ref, since will already by ref-ed */
+            *needs_wifi_key = info.needs_wifi_key;
+        }
     }
-    if ( needs_wifi_key != NULL ) {
-        /* No need to ref, since will already by ref-ed */
-        *needs_wifi_key = info.needs_wifi_key;
+    else {
+        if ( info.needs_wifi_selection != NULL ) {
+            g_object_unref(G_OBJECT(info.needs_wifi_selection));
+        }
+        if ( info.needs_wifi_key != NULL ) {
+            g_object_unref(G_OBJECT(info.needs_wifi_key));
+        }
     }
 
     return( all_online );

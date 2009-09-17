@@ -1,5 +1,27 @@
 2009-09-17  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam-manager-properties.ui, capplet/nwam_wireless_chooser.c:
+	  Make the wireless chooser dialog actually do something.
+	* common/libnwamui.c: 
+	  Change nwamui_util_get_env_status_icon() to be more careful about
+	  how it flags an error, if the priority group mode is exclusive then
+	  we should only seek 1 active link, otherwise we could cause an error
+	  icon to be displayed when in fact it's all ok.
+	* common/nwamui_daemon.c: 
+	  Don't react so much to LINK and IF_STATE events, focus mainly on the
+	  object state changes since it's possible for LINK/IF state changes
+	  to cause noise when in reality nothing has really changed (e.g.
+	  temporary glich in the wireless signal).
+	* common/nwamui_ncp.c: 
+	  Fix a minor issue in nwamui_ncp_all_ncus_online() where it was
+	  incorrectly evaluating the exclusive priority group mode, causing a
+	  mark as error if the weren't all active, which they never would be.
+	* common/nwamui_object.c: 
+	  Only send notify changes in nwamui_object_set_nwam_state() if
+	  something has actually changed.
+
+2009-09-17  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_wifi_net.c: 
 	  Shouldn't be setting modified flag when updating status by daemon.
 	* tests/main.c: 

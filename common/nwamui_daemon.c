@@ -61,6 +61,19 @@ static gboolean nwam_init_done = FALSE; /* Whether to call nwam_events_fini() or
 #define WLAN_TIMEOUT_SCAN_RATE_SEC (60)
 #define WEP_TIMEOUT_SEC (20)
 
+#define DEBUG_STATUS( name, status, state, aux_state  )  \
+    nwamui_warning("line: %d : name = %s : status = %d (%s) : state = %d (%s) : aux_state = %d (%s)",\
+                   __LINE__, name, \
+                  (status), nwamui_deamon_status_to_string(status), \
+                  (state), nwam_state_to_string(state), \
+                  (aux_state), nwam_aux_state_to_string(aux_state))
+
+typedef struct _to_emit {
+    guint       signal_id;
+    GQuark      detaiil;
+    gpointer    param1;
+} to_emit_t;
+
 enum {
     DAEMON_INFO,
     WIFI_SCAN_STARTED,
@@ -2401,21 +2414,6 @@ nwamd_event_handler(gpointer data)
                 g_debug("Link %s state changed to %s",
                          nwamevent->nwe_data.nwe_link_state.nwe_name,
                          nwamevent->nwe_data.nwe_link_state.nwe_link_state == 0 ? "down" : "up" );
-
-                if ( nwamevent->nwe_data.nwe_link_state.nwe_link_state == 0 ) {
-                    /* Interface Down */
-
-                    /* Directly deliver to upper consumers */
-                    ncu = get_ncu_by_device_name( daemon, NULL, name );
-
-                    if ( ncu ) {
-                        g_object_notify(G_OBJECT(ncu), "active");
-                        g_object_unref(ncu);
-                    }
-                    else {
-                        g_debug("%s: Got link state event for device %s, but didn't find an NCU object", __func__, name );
-                    }
-                }
             }
             break;
         case NWAM_EVENT_TYPE_IF_STATE: {
@@ -2423,7 +2421,6 @@ nwamd_event_handler(gpointer data)
                 const gchar*    name = nwamevent->nwe_data.nwe_if_state.nwe_name;
                 const gchar*    address = NULL;
 
-                ncu = get_ncu_by_device_name( daemon, NULL, name );
 
                 if (nwamevent->nwe_data.nwe_if_state.nwe_addr_valid) {
                     struct sockaddr_in *sin;
@@ -2432,15 +2429,6 @@ nwamd_event_handler(gpointer data)
                         &(nwamevent->nwe_data.nwe_if_state.nwe_addr);
                     address = inet_ntoa(sin->sin_addr);
                     g_debug ("Interface %s is up with address %s", name, address );
-
-                    /* Directly deliver to upper consumers */
-                    if ( ncu ) {
-                        g_object_notify(G_OBJECT(ncu), "active");
-                        g_object_unref(ncu);
-                    }
-                    else {
-                        g_debug("%s: Got i/f state event for device %s, but didn't find an NCU object", __func__, name );
-                    }
                 } 
             }
             break;
@@ -2485,6 +2473,8 @@ nwamd_event_handler(gpointer data)
 
                 daemon->prv->emit_wlan_changed_signals = TRUE;
 
+                nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
+
                 g_signal_emit (daemon,
                   nwamui_daemon_signals[DAEMON_INFO],
                   0, /* details */
@@ -2492,7 +2482,6 @@ nwamd_event_handler(gpointer data)
                   ncu,
                   g_strdup_printf(_("New wireless networks found.")));
 
-                dispatch_wifi_scan_events_from_event( daemon, nwamevent );
                 g_object_unref(ncu);
             }
             break;
@@ -2592,14 +2581,14 @@ nwamd_event_handler(gpointer data)
                 g_debug("No suitable wireless networks found, selection needed.");
 
                 if (daemon->prv->emit_wlan_changed_signals) {
+                    nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
+
                     g_signal_emit (daemon,
                       nwamui_daemon_signals[DAEMON_INFO],
                       0, /* details */
                       NWAMUI_DAEMON_INFO_WLAN_CHANGED,
                       NULL,
                       g_strdup_printf(_("New wireless networks found.")));
-
-                    dispatch_wifi_scan_events_from_event( daemon, nwamevent );
                 }
 
                 g_signal_emit (daemon,
@@ -2796,12 +2785,6 @@ nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, n
 #endif /* 0 */
 }
 
-typedef struct _to_emit {
-    guint       signal_id;
-    GQuark      detaiil;
-    gpointer    param1;
-} to_emit_t;
-
 /*
  * The daemon's state is determined by the following criteria:
  *
@@ -2924,6 +2907,9 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
     if ( new_status != old_status ) {
         nwamui_daemon_set_status(daemon, new_status );
     }
+
+    nwamui_warning("line: %d : status = %d (%s) ", __LINE__, new_status, 
+                   nwamui_deamon_status_to_string(new_status) );
 
     /* Now it's safe to emit any signals generated while gathering status */
     while ( (ptr = g_queue_pop_head( signal_queue )) != NULL ) {
@@ -3292,7 +3278,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                     if ( wifi == NULL ) {
                         nerr = nwam_known_wlan_read(object_name, 0, &known_wlan_h);
                         if (nerr != NWAM_SUCCESS) {
-                            g_warning("Error reading new known wlan: %s", nwam_strerror(nerr));
+                            nwamui_warning("Error reading new known wlan: %s", nwam_strerror(nerr));
                         }
                         else {
                             wifi = nwamui_wifi_net_new_with_handle( wireless_ncu, known_wlan_h );
@@ -3358,13 +3344,6 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
     daemon->prv->communicate_change_to_daemon = TRUE;
 }
 
-#define DEBUG_STATUS( name, status, state, aux_state  )  \
-    nwamui_warning("line: %d : name = %s : status = %d (%s) : state = %d (%s) : aux_state = %d (%s)",\
-                   __LINE__, name, \
-                  (status), nwamui_deamon_status_to_string(status), \
-                  (state), nwam_state_to_string(state), \
-                  (aux_state), nwam_aux_state_to_string(aux_state))
-
 static void
 nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent )
 {
@@ -3415,7 +3394,6 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                         changed_ncu = get_ncu_by_device_name( daemon, NULL, device_name );
                         if ( changed_ncu != NULL ) {
                             nwamui_object_set_nwam_state(NWAMUI_OBJECT(changed_ncu), object_state, object_aux_state, nwam_ncu_type );
-                            g_object_notify( G_OBJECT(changed_ncu), "active" );
                             g_object_unref(changed_ncu);
                         }
                         free(device_name);

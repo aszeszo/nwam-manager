@@ -398,6 +398,7 @@ nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_
 {
     nwam_state_t    rval = NWAM_STATE_UNINITIALIZED;
     guint           cache_index = NWAM_STATE_CACHE_DEFAULT;
+    gboolean        state_changed = FALSE;
 
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
 
@@ -407,14 +408,21 @@ nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_
         }
     }
 
+    if ( object->prv->nwam_state[cache_index] != state ||
+         object->prv->nwam_aux_state[cache_index] != aux_state ) {
+        state_changed = TRUE;
+    }
+
     object->prv->nwam_state[cache_index] = state;
     object->prv->nwam_aux_state[cache_index] = aux_state;
     object->prv->nwam_state_last_update[cache_index] = time( NULL );;
-    g_object_notify(G_OBJECT(object), "nwam_state" );
+    if ( state_changed ) {
+        g_object_notify(G_OBJECT(object), "nwam_state" );
+    }
 
     /* Active property is likely to have changed too, but first check if there
      * is a get_active function, if so the active property should exist. */
-    if ( NWAMUI_OBJECT_GET_CLASS (object)->get_active != NULL ) {
+    if ( state_changed && NWAMUI_OBJECT_GET_CLASS (object)->get_active != NULL ) {
         g_object_notify(G_OBJECT(object), "active" );
     }
 }

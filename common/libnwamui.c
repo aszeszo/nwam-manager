@@ -548,6 +548,7 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
     gint                      activate_wired_num      = 0;
     gint                      activate_wireless_num   = 0;
     gint                      average_signal_strength = 0;
+    gint                      signal_strength;
     nwamui_ncu_type_t         ncu_type;
     nwamui_connection_state_t connection_state        = NWAMUI_STATE_UNKNOWN;
     nwamui_env_status_t       env_status              = NWAMUI_ENV_STATUS_ERROR;
@@ -565,67 +566,68 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
     }
     {
         NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
-        GList *ncu_list;
-        NwamuiNcu *ncu;
+        NwamuiNcp  *ncp = nwamui_daemon_get_active_ncp(daemon);
+        GList      *ncu_list = NULL;
+        NwamuiNcu  *ncu;
+        gint64      ncp_prio = 0;
+        gint64      ncu_prio;
+        gboolean    found_excl_ncu = FALSE;
 
         g_object_unref(daemon);
 
-        ncu_list = nwamui_ncp_get_ncu_list(ncp);
-
         if ( ncp ) {
+            ncu_list = nwamui_ncp_get_ncu_list(ncp);
+            ncp_prio = nwamui_ncp_get_current_prio_group(ncp);
             g_object_unref(ncp);
         }
 
         while (ncu_list) {
             ncu = NWAMUI_NCU(ncu_list->data);
             ncu_list = g_list_delete_link(ncu_list, ncu_list);
+            ncu_prio = nwamui_ncu_get_priority_group( ncu );
 
-            if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
-                switch(nwamui_ncu_get_ncu_type(ncu)) {
+             /* Only care about current prio ncus, and first exclusive NCU
+              * that's in UP state 
+              */
+            if ( ncu_prio == ncp_prio && !found_excl_ncu ) {
+                if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
+                    nwam_state_t            state;
+                    nwam_aux_state_t        aux_state;
+                    nwamui_cond_activation_mode_t 
+                                            activation_mode;
+                    nwamui_cond_priority_group_mode_t 
+                                            prio_group_mode;
+                    
+                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL, 0);
+                    activation_mode = nwamui_ncu_get_activation_mode( ncu );
+                    prio_group_mode = nwamui_ncu_get_priority_group_mode( ncu );
+
+                    if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED ) {
+                        if ( prio_group_mode == NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE ) {
+                            if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_UP ) {
+                                found_excl_ncu = TRUE;
+                            }
+                        }
+                    }
+
+                    switch(nwamui_ncu_get_ncu_type(ncu)) {
 #ifdef TUNNEL_SUPPORT
-                case NWAMUI_NCU_TYPE_TUNNEL:
+                    case NWAMUI_NCU_TYPE_TUNNEL:
 #endif /* TUNNEL_SUPPORT */
-                case NWAMUI_NCU_TYPE_WIRED:
-                    activate_wired_num++;
-                    break;
-                case NWAMUI_NCU_TYPE_WIRELESS:
-                    activate_wireless_num++;
-                    average_signal_strength += nwamui_ncu_get_wifi_signal_strength(ncu);
-                    break;
-                default:
-                    g_assert_not_reached();
-                    break;
+                    case NWAMUI_NCU_TYPE_WIRED:
+                        activate_wired_num++;
+                        break;
+                    case NWAMUI_NCU_TYPE_WIRELESS:
+                        activate_wireless_num++;
+                        average_signal_strength += nwamui_ncu_get_wifi_signal_strength(ncu);
+                        break;
+                    default:
+                        g_assert_not_reached();
+                        break;
+                    }
                 }
-
-                /* Double check the state using nwam state */
-                connection_state = nwamui_ncu_get_connection_state( ncu);
-                if ( connection_state == NWAMUI_STATE_CONNECTED 
-                  || connection_state == NWAMUI_STATE_CONNECTED_ESSID ) {
-                    env_status = NWAMUI_ENV_STATUS_CONNECTED;
-                }
-                else if ( connection_state == NWAMUI_STATE_CONNECTING 
-                  || connection_state == NWAMUI_STATE_WAITING_FOR_ADDRESS
-                  || connection_state == NWAMUI_STATE_DHCP_TIMED_OUT
-                  || connection_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR
-                  || connection_state == NWAMUI_STATE_CONNECTING_ESSID ) {
-                    env_status = NWAMUI_ENV_STATUS_WARNING;
-                }
-                else {
-                    env_status = NWAMUI_ENV_STATUS_ERROR;
-                }
-            } else {
-                /* Default */
-                /* env_status = NWAMUI_ENV_STATUS_ERROR; */
             }
         }
-    }
-
-    /* 
-     * Make sure it's daemon status AND all ncu status.
-     */
-    if (daemon_status == NWAMUI_ENV_STATUS_CONNECTED) {
-        daemon_status = env_status;
     }
 
     if (activate_wireless_num > 0) {

@@ -4412,7 +4412,7 @@ Disable these services when this location is active:</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="okbutton2">
+              <object class="GtkButton" id="connect_wireless_connect_btn">
                 <property name="label">gtk-connect</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -4438,8 +4438,8 @@ Disable these services when this location is active:</property>
     <action-widgets>
       <action-widget response="-1">helpbutton4</action-widget>
       <action-widget response="-6">cancelbutton2</action-widget>
-      <action-widget response="0">join_unlisted_btn</action-widget>
-      <action-widget response="-5">okbutton2</action-widget>
+      <action-widget response="-10">join_unlisted_btn</action-widget>
+      <action-widget response="-5">connect_wireless_connect_btn</action-widget>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="vpn_config">
