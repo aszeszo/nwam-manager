@@ -1,3 +1,24 @@
+2009-09-18  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/libnwamui.c, common/libnwamui.h:
+	  Change the ip validation function to be a more general entry
+	  validation mechanism to allow it to be used for validation of
+	  IPv4/6, BSSIDs and prefixes. Also provide better error message as a
+	  result of this validation.
+	* capplet/nwam_condition_vbox.c: 
+	  Update to use the new validation API, and add validation for the
+	  BSSID string. Also fix IP address validation to allow for IPv4 AND
+	  IPv6 since the condition should accept either.
+	* capplet/nwam_conn_conf_ip_panel.c:
+	  Again, update to use new validation functions.
+	  Fix crash in nwam_conn_multi_ipv4_cell_edited_cb and
+	  nwam_conn_multi_ipv6_cell_edited_cb where the request to edit a cell
+	  with an error was firing a critical assertion from GTK+. Reverted to
+	  passing FALSE as last argument to
+	  gtk_tree_view_set_cursor_on_cell().
+	* capplet/nwam_env_pref_dialog.c: 
+	  Update to new API for validation of dns servers.
+
 2009-09-17  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam-manager-properties.ui, capplet/nwam_wireless_chooser.c:

@@ -521,7 +521,9 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 	g_signal_connect(prv->dns_domain_entry,
       "changed", (GCallback)on_ns_text_changed, (gpointer)self);
 
-    nwamui_util_set_entry_ip_address_only( prv->dns_servers_entry, FALSE, TRUE, FALSE, TRUE );
+    nwamui_util_set_entry_validation(   prv->dns_servers_entry, 
+                                        NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST,
+                                        TRUE );
 
 	g_signal_connect(prv->nis_service_cb,
       "toggled", (GCallback)on_ns_selection_toggled, (gpointer)self);

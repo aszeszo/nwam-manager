@@ -172,6 +172,17 @@ typedef enum {
 #define nwamui_error        g_error
 #endif
 
+enum {
+    NWAMUI_ENTRY_VALIDATION_IS_V4               = (1 << 1),     /* Validate IPv4 Style Address */
+    NWAMUI_ENTRY_VALIDATION_IS_V6               = (1 << 2),     /* Validate IPv6 Style Address */
+    NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY      = (1 << 3),     /* Validate Prefix or Subnet only (should also specify v4/v6 flags */
+    NWAMUI_ENTRY_VALIDATION_IS_ETHERS           = (1 << 4),     /* Validate Ethernet (BSSID) Style Address */
+    NWAMUI_ENTRY_VALIDATION_ALLOW_LIST          = (1 << 5),     /* Entry can have comma or space separated list */
+    NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX        = (1 << 6),     /* v4 or v6 address can use /N to specify prefix/subnet */
+    NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY         = (1 << 7),     /* Allow an empty text field */
+};
+typedef guint32 nwamui_entry_validation_flags_t;
+
 /* if no favorite networks are available, what should we do ? */
 enum 
 {
@@ -301,30 +312,26 @@ extern gboolean                 nwamui_util_get_interface_address(  const char  
 
 extern gboolean                 nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry );
 
-extern void                     nwamui_util_set_entry_ip_address_only(  GtkEntry* entry, 
-                                                                        gboolean is_v6, 
-                                                                        gboolean allow_list, 
-                                                                        gboolean allow_prefix, 
-                                                                        gboolean validate_on_focus_out );
+extern void                     nwamui_util_set_entry_validation(   GtkEntry*           entry, 
+                                                                    nwamui_entry_validation_flags_t  flags,
+                                                                    gboolean            validate_on_focus_out );
 
-extern void                     nwamui_util_set_entry_ip_address_validation_flags(  GtkEntry* entry, 
-                                                                                    gboolean is_v6, 
-                                                                                    gboolean allow_list, 
-                                                                                    gboolean allow_prefix );
+extern gboolean                 nwamui_util_validate_text_entry(    GtkWidget           *widget,
+                                                                    const gchar         *text,
+                                                                    nwamui_entry_validation_flags_t  flags,
+                                                                    gboolean            show_error_dialog,
+                                                                    gboolean            show_error_dialog_blocks );
 
-extern void                     nwamui_util_unset_entry_ip_address_only( GtkEntry* entry );
+extern void                     nwamui_util_set_entry_validation_flags(  GtkEntry* entry, 
+                                                                         nwamui_entry_validation_flags_t  flags );
 
-extern gboolean                 nwamui_util_validate_prefix_value(  GtkWidget   *widget,
-                                                                    const gchar *prefix_str,
-                                                                    gboolean     is_v6,
-                                                                    gboolean     show_error_dialog );
+extern void                     nwamui_util_unset_entry_validation( GtkEntry* entry );
 
-extern gboolean                 nwamui_util_validate_ip_address(    GtkWidget   *widget,
-                                                                    const gchar *address_str,
-                                                                    gboolean     is_v6,
-                                                                    gboolean     allow_prefix,
-                                                                    gboolean     show_error_dialog,
-                                                                    gboolean     show_error_dialog_blocks );
+extern gboolean                 nwamui_util_validate_text_entry(    GtkWidget           *widget,
+                                                                    const gchar         *text,
+                                                                    nwamui_entry_validation_flags_t  flags,
+                                                                    gboolean            show_error_dialog,
+                                                                    gboolean            show_error_dialog_blocks );
 
 extern void                     nwamui_util_window_title_append_hostname( GtkDialog* dialog );
 

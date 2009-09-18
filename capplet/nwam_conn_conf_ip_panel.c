@@ -417,12 +417,14 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
         g_signal_connect(G_OBJECT(renderer), "edited",
           (GCallback) nwam_conn_multi_ipv4_cell_edited_cb, (gpointer)self);
         g_signal_connect(G_OBJECT(renderer), "editing-started",
-          (GCallback) nwam_conn_multi_cell_editing_started_cb, (gpointer)FALSE);
+          (GCallback) nwam_conn_multi_cell_editing_started_cb, 
+          (gpointer) (NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX | NWAMUI_ENTRY_VALIDATION_IS_V4));
     } else {
         g_signal_connect(G_OBJECT(renderer), "edited",
           (GCallback) nwam_conn_multi_ipv6_cell_edited_cb, (gpointer)self);
         g_signal_connect(G_OBJECT(renderer), "editing-started",
-          (GCallback) nwam_conn_multi_cell_editing_started_cb, (gpointer)TRUE);
+          (GCallback) nwam_conn_multi_cell_editing_started_cb, 
+          (gpointer) (NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX | NWAMUI_ENTRY_VALIDATION_IS_V6));
     }
     g_signal_connect(G_OBJECT(renderer), "editing-started",
       (GCallback) nwam_conn_common_multi_cell_editing_started_cb, (gpointer)self);
@@ -451,9 +453,15 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 	if (view == self->prv->ipv4_tv) {
         g_signal_connect(G_OBJECT(renderer), "edited",
           (GCallback) nwam_conn_multi_ipv4_cell_edited_cb, (gpointer)self);
+        g_signal_connect(G_OBJECT(renderer), "editing-started",
+          (GCallback) nwam_conn_multi_cell_editing_started_cb, 
+          (gpointer) (NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY | NWAMUI_ENTRY_VALIDATION_IS_V4));
 	} else {
         g_signal_connect(G_OBJECT(renderer), "edited",
           (GCallback) nwam_conn_multi_ipv6_cell_edited_cb, (gpointer)self);
+        g_signal_connect(G_OBJECT(renderer), "editing-started",
+          (GCallback) nwam_conn_multi_cell_editing_started_cb, 
+          (gpointer) (NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY | NWAMUI_ENTRY_VALIDATION_IS_V6));
 	}
     g_signal_connect(G_OBJECT(renderer), "editing-started",
       (GCallback) nwam_conn_common_multi_cell_editing_started_cb, (gpointer)self);
@@ -1470,9 +1478,9 @@ nwam_conn_multi_cell_editing_started_cb(GtkCellRenderer *cell,
 {
     if (GTK_IS_ENTRY (editable)) {
         GtkEntry *entry = GTK_ENTRY (editable);
-        gboolean  is_v6 = (gboolean)data;
+        nwamui_entry_validation_flags_t flags = (nwamui_entry_validation_flags_t)data;
 
-        nwamui_util_set_entry_ip_address_only(entry, is_v6, FALSE, TRUE, FALSE);
+        nwamui_util_set_entry_validation(entry, flags, FALSE);
     }
 }
 
@@ -1495,10 +1503,10 @@ nwam_conn_common_multi_cell_editing_canceled_cb(GtkCellRenderer *cell,
 }
 
 static void
-nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
-                                    gchar               *path,
-                                    gchar               *new_text,
-                                    gpointer             data)
+nwam_conn_multi_ipv4_cell_edited_cb (   GtkCellRendererText *renderer,
+                                        gchar               *path,
+                                        gchar               *new_text,
+                                        gpointer             data)
 {
     NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(data);
     GtkTreeView        *view = prv->ipv4_tv;
@@ -1514,24 +1522,28 @@ nwam_conn_multi_ipv4_cell_edited_cb ( GtkCellRendererText *renderer,
 
     /* TODO - Validate data in editing */
     if ( col_id == IP_VIEW_ADDR &&
-        !nwamui_util_validate_ip_address( GTK_WIDGET(view), new_text, FALSE, TRUE, TRUE, TRUE ) ) {
+        !nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
+                                          NWAMUI_ENTRY_VALIDATION_IS_V4 | NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX,
+                                          TRUE, TRUE ) ) {
         /* Invalid */
         GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
         GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
 
-        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), TRUE);
+        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), FALSE);
 
         gtk_tree_path_free(tpath);
         goto L_exit;
     }
 
     if ( col_id == IP_VIEW_MASK &&
-        !nwamui_util_validate_prefix_value( GTK_WIDGET(view), new_text, FALSE, TRUE ) ) {
+        !nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
+                                          NWAMUI_ENTRY_VALIDATION_IS_V4 | NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY,
+                                          TRUE, TRUE ) ) {
         /* Invalid */
         GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
         GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
 
-        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), TRUE);
+        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), FALSE);
 
         gtk_tree_path_free(tpath);
         goto L_exit;
@@ -1597,24 +1609,28 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
 
     /* TODO - Validate data in editing */
     if ( col_id == IP_VIEW_ADDR &&
-         !nwamui_util_validate_ip_address( GTK_WIDGET(view), new_text, TRUE, TRUE, TRUE, TRUE) ) {
+         !nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
+                                           NWAMUI_ENTRY_VALIDATION_IS_V6 | NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX,
+                                           TRUE, TRUE ) ) {
         /* Invalid */
         GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
         GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
 
-        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), TRUE);
+        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), FALSE);
 
         gtk_tree_path_free(tpath);
         goto L_exit;
     }
 
     if ( col_id == IP_VIEW_MASK &&
-         !nwamui_util_validate_prefix_value( GTK_WIDGET(view), new_text, TRUE, TRUE ) ) {
+         !nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
+                                           NWAMUI_ENTRY_VALIDATION_IS_V6 | NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY,
+                                           TRUE, TRUE ) ) {
         /* Invalid */
         GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
         GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
 
-        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), TRUE);
+        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), FALSE);
 
         gtk_tree_path_free(tpath);
         goto L_exit;

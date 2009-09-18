@@ -1324,21 +1324,29 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
             else {
                 gtk_widget_set_sensitive( GTK_WIDGET(entry), !no_conditions);
                 if (field == NWAMUI_COND_FIELD_IP_ADDRESS) {
-                    nwamui_cond_op_t    op;
-                    gboolean            allow_prefix = FALSE;
+                    nwamui_cond_op_t                op;
+                    nwamui_entry_validation_flags_t flags;
+
+                    flags = NWAMUI_ENTRY_VALIDATION_IS_V4|
+                            NWAMUI_ENTRY_VALIDATION_IS_V6|
+                            NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY;
 
                     op = nwamui_cond_get_oper( cond );
                     switch ( op ) {
                     case NWAMUI_COND_OP_IS_IN_RANGE:
                     case NWAMUI_COND_OP_IS_NOT_IN_RANGE:
-                        allow_prefix = TRUE;
+                        flags |= NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX;
                     default:
                         break;
                     }
-                    nwamui_util_set_entry_ip_address_only( GTK_ENTRY(entry), FALSE, FALSE, allow_prefix, TRUE );
+                    nwamui_util_set_entry_validation( GTK_ENTRY(entry), flags, TRUE );
+                }
+                else if ( nwamui_cond_get_field( cond ) == NWAMUI_COND_FIELD_BSSID) {
+                    nwamui_util_set_entry_validation( GTK_ENTRY(entry), 
+                                                      NWAMUI_ENTRY_VALIDATION_IS_ETHERS|NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY, TRUE );
                 }
                 else {
-                    nwamui_util_unset_entry_ip_address_only( GTK_ENTRY(entry) );
+                    nwamui_util_unset_entry_validation( GTK_ENTRY(entry) );
                     gtk_entry_set_text( GTK_ENTRY(entry), "" );
                 }
                 gtk_notebook_set_current_page( value_nb, VALUE_ENTRY_PAGE );
@@ -1346,21 +1354,30 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
             }
             g_free(value);
         } else {
-            nwamui_cond_op_t    op = (nwamui_cond_op_t)index;
+            nwamui_cond_op_t                op = (nwamui_cond_op_t)index;
 
             if ( nwamui_cond_get_field( cond ) == NWAMUI_COND_FIELD_IP_ADDRESS) {
                 GtkEntry   *entry = GTK_ENTRY(g_object_get_data(G_OBJECT(data), TABLE_ROW_ENTRY));
-                gboolean    allow_prefix = FALSE;
+                nwamui_entry_validation_flags_t flags;
+
+                flags = NWAMUI_ENTRY_VALIDATION_IS_V4|
+                        NWAMUI_ENTRY_VALIDATION_IS_V6|
+                        NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY;
+
 
                 switch ( op ) {
                 case NWAMUI_COND_OP_IS_IN_RANGE:
                 case NWAMUI_COND_OP_IS_NOT_IN_RANGE:
-                    allow_prefix = TRUE;
+                    flags |= NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX;
                 default:
                     break;
                 }
-                nwamui_util_set_entry_ip_address_validation_flags(  GTK_ENTRY(entry),
-                                                                    FALSE, FALSE, allow_prefix );
+                nwamui_util_set_entry_validation_flags( GTK_ENTRY(entry), flags );
+            }
+            else if ( nwamui_cond_get_field( cond ) == NWAMUI_COND_FIELD_BSSID) {
+                GtkEntry   *entry = GTK_ENTRY(g_object_get_data(G_OBJECT(data), TABLE_ROW_ENTRY));
+
+                nwamui_util_set_entry_validation_flags( GTK_ENTRY(entry), NWAMUI_ENTRY_VALIDATION_IS_ETHERS|NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY ) ;
             }
 
             nwamui_cond_set_oper( cond, op);

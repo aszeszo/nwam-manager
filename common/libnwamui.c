@@ -40,6 +40,7 @@
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <inet/ip.h>
+#include <sys/ethernet.h>
 #include <inetcfg.h>
 #include <libscf.h>
 
@@ -1903,21 +1904,30 @@ nwamui_util_set_entry_smf_fmri_completion( GtkEntry* entry )
 }
 
 static void
-insert_text_ip_only_handler (GtkEditable *editable,
+insert_entry_valid_text_handler (GtkEditable *editable,
                              const gchar *text,
                              gint         length,
                              gint        *position,
                              gpointer     data)
 {
+    gboolean    is_v4;
+    gboolean    is_v6;
+    gboolean    is_prefix_only;
+    gboolean    is_ethers;
     gboolean    allow_list;
     gboolean    allow_prefix;
-    gboolean    is_v6;
     gboolean    is_valid = TRUE;
     gchar      *lower = g_ascii_strdown(text, length);
+    nwamui_entry_validation_flags_t  flags;
 
-    allow_prefix = (gboolean)g_object_get_data( G_OBJECT(editable), "allow_prefix" );
-    allow_list = (gboolean)g_object_get_data( G_OBJECT(editable), "allow_list" );
-    is_v6 = (gboolean)g_object_get_data( G_OBJECT(editable), "is_v6" );
+    flags = (gboolean)g_object_get_data( G_OBJECT(editable), "validation_flags" );
+
+    is_v4 = (flags & NWAMUI_ENTRY_VALIDATION_IS_V4);
+    is_v6 = (flags & NWAMUI_ENTRY_VALIDATION_IS_V6);
+    is_prefix_only = (flags & NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY);
+    is_ethers = (flags & NWAMUI_ENTRY_VALIDATION_IS_ETHERS);
+    allow_list = (flags & NWAMUI_ENTRY_VALIDATION_ALLOW_LIST);
+    allow_prefix = (flags & NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX);
 
     for ( int i = 0; i < length && is_valid; i++ ) {
         if ( allow_list && (text[i] == ',' || text[i] == ' ') ) {
@@ -1929,45 +1939,64 @@ insert_text_ip_only_handler (GtkEditable *editable,
             is_valid = TRUE;
         }
         else if ( is_v6 ) {
-            /* Valid chars for v6 are ASCII [0-9a-f:.] */
-            is_valid = (g_ascii_isxdigit( lower[i] ) || text[i] == ':' || text[i] == '.' );   
+            if ( is_prefix_only ) {
+                /* Valid chars for v6 prefix are ASCII [0-9] */
+                is_valid = g_ascii_isdigit( lower[i] );
+            }
+            else {
+                /* Valid chars for v6 are ASCII [0-9a-f:.] */
+                is_valid = (g_ascii_isxdigit( lower[i] ) || text[i] == ':' || text[i] == '.' );   
+            }
         }
-        else {
+        else if ( is_v4 ) { /* Also handles is_prefix_only for IPv4 subnet */
             /* Valid chars for v4 are ASCII [0-9.] */
             is_valid = (g_ascii_isdigit( lower[i] ) || text[i] == '.' );   
+        }
+        else if ( is_ethers ) {
+            /* Valid chars for ethers are ASCII [0-9a-f:] */
+            is_valid = (g_ascii_isxdigit( lower[i] ) || text[i] == ':' );
         }
     }
     
     if ( is_valid ) {
         g_signal_handlers_block_by_func (editable,
-                       (gpointer) insert_text_ip_only_handler, data);
+                       (gpointer) insert_entry_valid_text_handler, data);
 
         gtk_editable_insert_text (editable, lower, length, position);
         g_signal_handlers_unblock_by_func (editable,
-                                         (gpointer) insert_text_ip_only_handler, data);
+                                         (gpointer) insert_entry_valid_text_handler, data);
     }
     g_signal_stop_emission_by_name (editable, "insert_text");
     g_free (lower);
 }
 
-/* Validate an prefix values
+/* Validate a text entry
  * 
  * If show_error_dialog is TRUE, then a message dialog will be shown to the
  * user.
  *
- * Returns whether the prefix was valid or not.
+ * Returns whether the entry was valid or not.
  */
 extern gboolean
-nwamui_util_validate_prefix_value(  GtkWidget   *widget,
-                                    const gchar *prefix_str,
-                                    gboolean     is_v6,
-                                    gboolean     show_error_dialog )
+nwamui_util_validate_text_entry(    GtkWidget           *widget,
+                                    const gchar         *text,
+                                    nwamui_entry_validation_flags_t  flags,
+                                    gboolean            show_error_dialog,
+                                    gboolean            show_error_dialog_blocks )
 {
     struct lifreq           lifr;
     struct sockaddr_in     *sin = (struct sockaddr_in *)&lifr.lifr_addr;
     struct sockaddr_in6    *sin6 = (struct sockaddr_in6 *)&lifr.lifr_addr;
     GtkWindow              *top_level = NULL;
+    gboolean                is_v4 = (flags & NWAMUI_ENTRY_VALIDATION_IS_V4);
+    gboolean                is_v6 = (flags & NWAMUI_ENTRY_VALIDATION_IS_V6);
+    gboolean                is_prefix_only = (flags & NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY);
+    gboolean                is_ethers = (flags & NWAMUI_ENTRY_VALIDATION_IS_ETHERS);
+    gboolean                allow_list = (flags & NWAMUI_ENTRY_VALIDATION_ALLOW_LIST);
+    gboolean                allow_prefix = (flags & NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX);
+    gboolean                allow_empty = (flags & NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY);
     gboolean                is_valid = TRUE;
+    gchar                  *error_string = NULL;
 
     if ( widget != NULL ) {
         top_level = GTK_WINDOW(gtk_widget_get_toplevel(widget));
@@ -1979,115 +2008,111 @@ nwamui_util_validate_prefix_value(  GtkWidget   *widget,
         return( TRUE );;
     }
 
-    if ( prefix_str == NULL || strlen (prefix_str) == 0 ) {
-        is_valid = FALSE;
-    }
-    else {
-        gchar **strs =  NULL;
-
-        /* Allow for address or numbers in format "addr/prefix" */
-        strs = g_strsplit(prefix_str, "/", 2 );
-
-        if ( strs == NULL || strs[0] == NULL ) {
+    if ( text == NULL || strlen (text) == 0 ) {
+        if ( !allow_empty ) {
             is_valid = FALSE;
+            error_string = g_strdup(_("Empty values are not permitted"));
         }
-        else {
-            if ( is_v6 ) {
-                gint64 prefix = g_ascii_strtoll( strs[0], NULL, 10 );
-                if ( prefix == 0 || prefix > 128 ) {
-                    is_valid = FALSE;
-                }
+    }
+    else if ( allow_list ) {
+        /* Split list and call self recursively */
+        nwamui_entry_validation_flags_t     no_list_flags;
+        gchar                             **entries = NULL;
+
+        no_list_flags = flags & (~ NWAMUI_ENTRY_VALIDATION_ALLOW_LIST); /* Turn off allow list flag */
+        entries = g_strsplit_set(text, ", ", 0 );
+
+        for( int i = 0; entries && entries[i] != NULL; i++ ) {
+            /* Skip blank entries caused by combination of comma and space */
+            if ( strlen( entries[i] ) == 0 ) {
+                continue;
             }
-            else {
-                if ( ! inet_pton ( AF_INET, strs[0], (void*)(&sin->sin_addr) ) ) {
-                    is_valid = FALSE;
-                }
+            if ( ! nwamui_util_validate_text_entry( widget, entries[i], no_list_flags, FALSE, FALSE) ) {
+                error_string = g_strdup_printf(_("The value '%s' is invalid."), entries[i] );
+                gtk_widget_grab_focus( widget );
+                is_valid = FALSE;
+                break;
             }
         }
-        if ( strs != NULL) {
-            g_strfreev( strs );
+        if ( entries ) {
+            g_strfreev( entries );
         }
     }
-
-    if ( ! is_valid && show_error_dialog ) {
-        const gchar*    message;
-        if ( is_v6 ) {
-            message = _("Valid prefix values are between 1 and 128");
-        }
-        else {
-            message = _("Subnets must be in the format:\n\n    w.x.y.z\n");
-        }
-
-        nwamui_util_show_message(GTK_WINDOW(top_level), 
-                                 GTK_MESSAGE_ERROR, _("Invalid Subnet or Prefix"), message, TRUE);
-    }
-
-    return( is_valid );
-}
-
-/* Validate an IP address. 
- * 
- * If show_error_dialog is TRUE, then a message dialog will be shown to the
- * user.
- *
- * Returns whether the address was valid or not.
- */
-extern gboolean
-nwamui_util_validate_ip_address(    GtkWidget   *widget,
-                                    const gchar *address_str,
-                                    gboolean     is_v6,
-                                    gboolean     allow_prefix,
-                                    gboolean     show_error_dialog,
-                                    gboolean     show_error_dialog_blocks )
-{
-    struct lifreq           lifr;
-    struct sockaddr_in     *sin = (struct sockaddr_in *)&lifr.lifr_addr;
-    struct sockaddr_in6    *sin6 = (struct sockaddr_in6 *)&lifr.lifr_addr;
-    GtkWindow              *top_level = NULL;
-    gboolean                is_valid = TRUE;
-
-    if ( widget != NULL ) {
-        top_level = GTK_WINDOW(gtk_widget_get_toplevel(widget));
-    }
-
-    if ( (widget != NULL && !GTK_WIDGET_IS_SENSITIVE(widget)) ||
-         (top_level != NULL && !gtk_window_has_toplevel_focus (top_level)) ) {
-        /* Assume valid */
-        return( TRUE );;
-    }
-
-    if ( address_str == NULL || strlen (address_str) == 0 ) {
-        is_valid = FALSE;
-    }
-    else {
+    else { /* Not list and not empty */
         gchar **strs =  NULL;
 
         /* Allow for address in format "addr/prefix" */
-        strs = g_strsplit(address_str, "/", 2 );
+        strs = g_strsplit(text, "/", 2 );
 
         if ( strs == NULL || strs[0] == NULL ) {
             is_valid = FALSE;
         }
+        else if ( !allow_prefix && strs[1] != NULL ) {
+            /* Prefix found, but it's not allowed here */
+            is_valid = FALSE;
+            error_string = g_strdup(_("Specifying a network prefix value is not permitted in this context."));
+        }
         else {
-            if ( is_v6 ) {
-                if ( ! inet_pton ( AF_INET6, strs[0], (void*)(&sin6->sin6_addr) ) ) {
-                    is_valid = FALSE;
+            if ( is_prefix_only ) { /* Need to check first since can conflict with IPv4/6 flag */
+                if ( is_v4 )  {
+                    if ( ! inet_pton ( AF_INET, strs[0], (void*)(&sin->sin_addr) ) ) {
+                        is_valid = FALSE;
+                        error_string = g_strdup_printf(_("The value '%s' is not a valid IPv4 subnet."), strs[0] );
+                    }
                 }
-                if ( strs[1] != NULL ) { /* Handle /N */
-                    gint64 prefix = g_ascii_strtoll( strs[1], NULL, 10 );
+                else if ( is_v6 ) {
+                    gint64 prefix = g_ascii_strtoll( strs[0], NULL, 10 );
                     if ( prefix == 0 || prefix > 128 ) {
                         is_valid = FALSE;
+                        error_string = g_strdup_printf(_("The value '%s' is not a valid IPv6 network prefix."), strs[0] );
                     }
                 }
             }
-            else {
-                if ( ! inet_pton ( AF_INET, strs[0], (void*)(&sin->sin_addr) ) ) {
+            else if ( is_ethers ) {
+                struct ether_addr *ether = ether_aton( strs[0] );
+                if ( ether == NULL ) {
                     is_valid = FALSE;
+                    error_string = g_strdup_printf(_("The value '%s' is not a valid ethernet address."), strs[0] );
                 }
-                if ( strs[1] != NULL ) { /* Handle /N */
-                    gint64 prefix = g_ascii_strtoll( strs[1], NULL, 10 );
-                    if ( prefix == 0 || prefix > 32 ) {
+            }
+            else {  /* Is either V4 ot V6 address, could allow either, so need to check both */
+                if ( is_v4 ) {
+                    /* Validate an IPv4 Address */
+                    if ( ! inet_pton ( AF_INET, strs[0], (void*)(&sin->sin_addr) ) ) {
                         is_valid = FALSE;
+                        error_string = g_strdup_printf(_("The value '%s' is not a valid IPv4 address."), strs[0] );
+                    }
+                    if ( is_valid && strs[1] != NULL ) { /* Handle /N */
+                        gint64 prefix = g_ascii_strtoll( strs[1], NULL, 10 );
+                        if ( prefix == 0 || prefix > 32 ) {
+                            is_valid = FALSE;
+                            error_string = g_strdup_printf(_("The value '%s' is not a valid IPv4 network prefix."), strs[1] );
+                        }
+                    }
+                }
+                /* Only check v6 if we've not checked v4 address or we have
+                 * checked the v4 address and it's not valid.
+                 */
+                if ( is_v6 && (!is_v4 || (is_v4 && !is_valid)) ) {
+                    /* Validate an IPv6 Address */
+                    if ( ! inet_pton ( AF_INET6, strs[0], (void*)(&sin6->sin6_addr) ) ) {
+                        is_valid = FALSE;
+                        if ( is_v4 ) {
+                            error_string = g_strdup_printf(_("The value '%s' is not a valid IPv4 or IPv6 address."), strs[0] );
+                        }
+                        else {
+                            error_string = g_strdup_printf(_("The value '%s' is not a valid IPv6 address."), strs[0] );
+                        }
+                    }
+                    else {
+                        is_valid = TRUE; /* Need to reset since could have been set to FALSE by v4 check */
+                    }
+                    if ( is_valid && strs[1] != NULL ) { /* Handle /N */
+                        gint64 prefix = g_ascii_strtoll( strs[1], NULL, 10 );
+                        if ( prefix == 0 || prefix > 128 ) {
+                            is_valid = FALSE;
+                            error_string = g_strdup_printf(_("The value '%s' is not a valid IPv6 network prefix."), strs[1] );
+                        }
                     }
                 }
             }
@@ -2098,46 +2123,73 @@ nwamui_util_validate_ip_address(    GtkWidget   *widget,
     }
 
     if ( ! is_valid && show_error_dialog ) {
-        const gchar*    message;
-        if ( is_v6 ) {
-            if ( allow_prefix ) {
-                message = _("IP addresses must be in one of the formats :\n\n   x:x:x:x:x:x:x:x\n   x:x:x:x:x:x:x:x/N\n   x:x::x, etc.\n\nwhere N is between 1 and 128");
-            }
-            else {
-                message = _("IP addresses must be in one of the formats :\n\n   x:x:x:x:x:x:x:x\n   x:x::x, etc.");
-            }
+        GString*        message_str;
+
+        if ( error_string != NULL ) {
+            message_str = g_string_new(error_string);
+            g_string_append(message_str, "\n\n");
         }
         else {
-            if ( allow_prefix ) {
-                message = _("IP addresses must be in the one of the formats:\n\n    w.x.y.z\n    w.x.y.z/N\n\nwhere N is between 1 and 32");
+            message_str = g_string_new("");
+        }
+
+        if ( is_prefix_only ) {
+            if ( is_v6 ) {
+                g_string_append( message_str, _("Valid prefix values are between 1 and 128\n\n"));
             }
             else {
-                message = _("IP addresses must be in the format:\n\n    w.x.y.z\n");
+                g_string_append( message_str, _("Subnets must be in the format:\n\n    w.x.y.z\n\n"));
+            }
+        }
+        else if ( is_ethers ) {
+            g_string_append( message_str, _("Valid ethernet addresses or BSSIDs must be in the format::\n\n    xx:xx:xx:xx:xx:xx:xx:xx\n\n"));
+        }
+        else {
+            if ( is_v4 ) {
+                g_string_append( message_str,_("IPv4 addresses must be in the format:\n\n    w.x.y.z\n\n"));
+                if ( allow_prefix ) {
+                    g_string_append( message_str, _("If specifying a network prefix, you may append /N to the address:\n\n    w.x.y.z/N\n\nwhere N is between 1 and 32\n\n"));
+                }
+            }
+            if ( is_v6 ) {
+                g_string_append( message_str,_("IPv6 addresses must be in one of the formats :\n\n   x:x:x:x:x:x:x:x\n   x:x::x, etc.\n\n"));
+
+                if ( allow_prefix ) {
+                    g_string_append( message_str, _("If specifying a network prefix, you may append /N to the address:\n\n   x:x:x:x:x:x:x:x\n   x:x:x:x:x:x:x:x/N\n\nwhere N is between 1 and 128\n\n"));
+                }
             }
         }
 
-        nwamui_util_show_message(GTK_WINDOW(top_level), 
-                                 GTK_MESSAGE_ERROR, _("Invalid IP address"), message, show_error_dialog_blocks);
+        if ( message_str != NULL ) {
+            if ( allow_list ) {
+                g_string_append(message_str, "You may also specify a list by separating entries using a comma (,) or space ( )");
+            }
+            nwamui_util_show_message(GTK_WINDOW(top_level), 
+                                     GTK_MESSAGE_ERROR, _("Invalid IP address"), message_str->str, show_error_dialog_blocks);
+
+            g_string_free( message_str, TRUE );
+        }
+    }
+
+    if ( error_string != NULL ) {
+        g_free( error_string );
     }
 
     return( is_valid );
 }
 
 static gboolean
-validate_ip_on_focus_exit(GtkWidget     *widget,
+validate_text_entry_on_focus_exit(GtkWidget     *widget,
                           GdkEventFocus *event,
                           gpointer       data)
 {
-    gboolean                allow_prefix;
-    gboolean                allow_list;
-    gboolean                is_v6;
     gboolean                is_valid = TRUE;
     GtkWindow              *top_level = GTK_WINDOW(gtk_widget_get_toplevel(widget));
-    const gchar            *address_str;
+    const gchar            *text_str;
+    nwamui_entry_validation_flags_t     
+                            validation_flags;
 
-    allow_list = (gboolean)g_object_get_data( G_OBJECT(widget), "allow_list" );
-    allow_prefix = (gboolean)g_object_get_data( G_OBJECT(widget), "allow_prefix" );
-    is_v6 = (gboolean)g_object_get_data( G_OBJECT(widget), "is_v6" );
+    validation_flags = (gboolean)g_object_get_data( G_OBJECT(widget), "validation_flags" );
 
     if ( !GTK_WIDGET_IS_SENSITIVE(widget) || !gtk_window_has_toplevel_focus (top_level)) {
         /* If not sensitive, do nothing, since user can't edit it */
@@ -2145,39 +2197,16 @@ validate_ip_on_focus_exit(GtkWidget     *widget,
     }
 
     g_signal_handlers_block_by_func (widget,
-                   (gpointer) validate_ip_on_focus_exit, data);
+                   (gpointer) validate_text_entry_on_focus_exit, data);
 
-    address_str = gtk_entry_get_text(GTK_ENTRY(widget));
+    text_str = gtk_entry_get_text(GTK_ENTRY(widget));
 
-    if ( strlen( address_str ) > 0 ) {
-        if ( allow_list ) {
-            gchar     **addresses = NULL;
-
-            addresses = g_strsplit_set(address_str, ", ", 0 );
-
-            for( int i = 0; addresses && addresses[i] != NULL; i++ ) {
-                /* Skip blank entries caused by combination of comma and space */
-                if ( strlen( addresses[i] ) == 0 ) {
-                    continue;
-                }
-                if ( ! nwamui_util_validate_ip_address( widget, addresses[i], is_v6, allow_prefix, TRUE, FALSE) ) {
-                    gtk_widget_grab_focus( widget );
-                    break;
-                }
-            }
-            if ( addresses ) {
-                g_strfreev( addresses );
-            }
-        }
-        else {
-            if ( ! nwamui_util_validate_ip_address( widget, address_str, is_v6, allow_prefix, TRUE, FALSE) ) {
-                gtk_widget_grab_focus( widget );
-            }
-        }
+    if ( ! nwamui_util_validate_text_entry( widget, text_str, validation_flags, TRUE, FALSE) ) {
+        gtk_widget_grab_focus( widget );
     }
 
     g_signal_handlers_unblock_by_func (widget,
-                   (gpointer) validate_ip_on_focus_exit, data);
+                   (gpointer) validate_text_entry_on_focus_exit, data);
 
     return(FALSE); /* Must return FALSE since GtkEntry expects it */
 }
@@ -2187,22 +2216,18 @@ validate_ip_on_focus_exit(GtkWidget     *widget,
  * it's input to be characters acceptable to a valid IP address format.
  */
 extern void
-nwamui_util_set_entry_ip_address_only(  GtkEntry* entry, 
-                                        gboolean is_v6, 
-                                        gboolean allow_list, 
-                                        gboolean allow_prefix, 
-                                        gboolean validate_on_focus_out )
+nwamui_util_set_entry_validation(   GtkEntry                        *entry, 
+                                    nwamui_entry_validation_flags_t  flags,
+                                    gboolean                         validate_on_focus_out )
 {
     if ( entry != NULL ) {
-        g_object_set_data( G_OBJECT(entry), "allow_list", (gpointer)allow_list );
-        g_object_set_data( G_OBJECT(entry), "allow_prefix", (gpointer)allow_prefix );
-        g_object_set_data( G_OBJECT(entry), "is_v6", (gpointer)is_v6 );
+        g_object_set_data( G_OBJECT(entry), "validation_flags", (gpointer)flags );
 
         g_signal_connect(G_OBJECT(entry), "insert_text", 
-                         (GCallback)insert_text_ip_only_handler, NULL);
+                         (GCallback)insert_entry_valid_text_handler, NULL);
         if ( validate_on_focus_out ) {
             g_signal_connect(G_OBJECT(entry), "focus-out-event", 
-                             (GCallback)validate_ip_on_focus_exit, NULL);
+                             (GCallback)validate_text_entry_on_focus_exit, NULL);
         }
     }
 }
@@ -2211,24 +2236,20 @@ nwamui_util_set_entry_ip_address_only(  GtkEntry* entry,
  * Change the flags set when checking ip address.
  */
 extern void
-nwamui_util_set_entry_ip_address_validation_flags(  GtkEntry* entry, 
-                                                    gboolean is_v6, 
-                                                    gboolean allow_list, 
-                                                    gboolean allow_prefix )
+nwamui_util_set_entry_validation_flags(  GtkEntry                        *entry, 
+                                         nwamui_entry_validation_flags_t  flags )
 {
     if ( entry != NULL ) {
-        g_object_set_data( G_OBJECT(entry), "allow_list", (gpointer)allow_list );
-        g_object_set_data( G_OBJECT(entry), "allow_prefix", (gpointer)allow_prefix );
-        g_object_set_data( G_OBJECT(entry), "is_v6", (gpointer)is_v6 );
+        g_object_set_data( G_OBJECT(entry), "validation_flags", (gpointer)flags );
     }
 }
 
 extern void
-nwamui_util_unset_entry_ip_address_only( GtkEntry* entry )
+nwamui_util_unset_entry_validation( GtkEntry* entry )
 {
     if ( entry != NULL ) {
-        g_signal_handlers_disconnect_by_func( G_OBJECT(entry), (gpointer)insert_text_ip_only_handler, NULL );
-        g_signal_handlers_disconnect_by_func( G_OBJECT(entry), (gpointer)validate_ip_on_focus_exit, NULL );
+        g_signal_handlers_disconnect_by_func( G_OBJECT(entry), (gpointer)insert_entry_valid_text_handler, NULL );
+        g_signal_handlers_disconnect_by_func( G_OBJECT(entry), (gpointer)validate_text_entry_on_focus_exit, NULL );
     }
 }
 
