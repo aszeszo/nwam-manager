@@ -691,7 +691,7 @@ nwamui_cond_op_to_str( nwamui_cond_op_t op )
         case NWAMUI_COND_OP_IS:                 return(_("is"));
         case NWAMUI_COND_OP_IS_NOT:             return(_("is not"));
         case NWAMUI_COND_OP_INCLUDE:            return(_("include"));
-        case NWAMUI_COND_OP_DOES_NOT_INCLUDE:   return(_("does not include"));
+        case NWAMUI_COND_OP_DOES_NOT_INCLUDE:   return(_("do not include"));
         case NWAMUI_COND_OP_IS_IN_RANGE:        return(_("is in the range"));
         case NWAMUI_COND_OP_IS_NOT_IN_RANGE:    return(_("is not in the range"));
         case NWAMUI_COND_OP_CONTAINS:           return(_("contains"));

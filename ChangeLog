@@ -1,5 +1,27 @@
 2009-09-21  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_rules_dialog.c: 
+	  Fix defect#9656 where the selection of All or Any was possible when
+	  only one condition was available.
+	* common/nwamui_cond.c: 
+	  Fix defect#9650 - change 'does not include' to 'do not include'
+	* capplet/nwam_condition_vbox.h, capplet/nwam_condition_vbox.c: 
+	  Several fixes:
+	  - Hide selection of Location when setting conditions on a location.
+	  - Don't call table_lines_free() when refreshing table since
+	    table_lines_init() expects rows to still be there to add them to the
+	    cache.
+	  - Move reloading of ENM and LOC model to the table_lines_init()
+	    function since otherwise adding a row emptied already visible ENM
+	    and LOC selection combo boxes causing a crash later when clicking
+	    OK since nothing was selected.
+	  - Add some minimal validation to the rules on OK, so that we can
+	    catch empty selections as above and check IP addresses again.
+	* common/libnwamui.c: 
+	  Change validation message dialog title to be more generic.
+
+2009-09-21  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_env_pref_dialog.c: 
 	  Fix defect#9649 where the nsswitch default button wasn't being
 	  handled. 

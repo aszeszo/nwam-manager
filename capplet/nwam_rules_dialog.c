@@ -70,6 +70,7 @@ static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 
 static void nwam_rules_dialog_finalize (NwamRulesDialog *self);
 static void response_cb(GtkWidget* widget, gint responseid, gpointer user_data);
+static void condition_cb(NwamConditionVBox *self, GObject* data, gpointer user_data);
 
 G_DEFINE_TYPE_EXTENDED (NwamRulesDialog,
     nwam_rules_dialog,
@@ -187,6 +188,9 @@ nwam_rules_dialog_init (NwamRulesDialog *self)
     gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(prv->rules_vbox_sw), GTK_WIDGET(prv->rules_vbox));
     gtk_box_pack_start(GTK_BOX(prv->rules_dialog_vbox), prv->rules_vbox_sw, TRUE, TRUE, 2);
 
+    g_signal_connect( prv->rules_vbox, "condition_add", (GCallback)condition_cb, (gpointer)self );
+    g_signal_connect( prv->rules_vbox, "condition_remove", (GCallback)condition_cb, (gpointer)self );
+
     rules_name_lbl = GTK_LABEL(nwamui_util_glade_get_widget(RULES_NAME_LABEL));
     nwamui_util_set_a11y_label_for_widget( rules_name_lbl, GTK_WIDGET(prv->rules_vbox_sw) );
 
@@ -292,4 +296,18 @@ response_cb(GtkWidget* widget, gint responseid, gpointer user_data)
 	} else {
 		gtk_widget_hide(widget);
 	}
+}
+
+static void
+condition_cb(NwamConditionVBox *vbox, GObject* data, gpointer user_data)
+{
+	NwamRulesDialog *self = NWAM_RULES_DIALOG(user_data);
+    gboolean         sensitivity = FALSE;
+
+    if ( nwam_condition_vbox_get_num_lines (vbox) > 1 ) {
+        sensitivity = TRUE;
+    }
+
+	gtk_widget_set_sensitive( GTK_WIDGET(self->prv->rules_match_all_rb), sensitivity );
+	gtk_widget_set_sensitive( GTK_WIDGET(self->prv->rules_match_any_rb), sensitivity );
 }

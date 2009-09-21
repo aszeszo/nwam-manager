@@ -2165,7 +2165,7 @@ nwamui_util_validate_text_entry(    GtkWidget           *widget,
                 g_string_append(message_str, "You may also specify a list by separating entries using a comma (,) or space ( )");
             }
             nwamui_util_show_message(GTK_WINDOW(top_level), 
-                                     GTK_MESSAGE_ERROR, _("Invalid IP address"), message_str->str, show_error_dialog_blocks);
+                                     GTK_MESSAGE_ERROR, _("Invalid Value"), message_str->str, show_error_dialog_blocks);
 
             g_string_free( message_str, TRUE );
         }

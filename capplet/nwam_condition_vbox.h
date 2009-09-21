@@ -60,6 +60,7 @@ struct _NwamConditionVBoxClass
 
 extern  GType                   nwam_condition_vbox_get_type (void) G_GNUC_CONST;
 extern  NwamConditionVBox*      nwam_condition_vbox_new (void);
+extern guint                    nwam_condition_vbox_get_num_lines (NwamConditionVBox *self);
 
 G_END_DECLS
 
