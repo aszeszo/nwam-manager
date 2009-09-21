@@ -3,7 +3,7 @@
     "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd" [
    <!ENTITY appversion "1.0"> 
    <!ENTITY manrevision "1.0"> 
-   <!ENTITY date "June 2009"> 
+   <!ENTITY date "September 2009"> 
    <!ENTITY app "<application>OpenSolaris Network Auto-Magic Configuration</application>"> 
    <!ENTITY appname "nwam-manager"> 
 ]>
@@ -20,7 +20,7 @@
 <revhistory>
   <revision>
     <revnumber>OpenSolaris Network Auto-Magic Configuration Manual V1.0</revnumber>
-      <date>June 2009</date>
+      <date>September 2009</date>
 	<revdescription>
           <para role="author">Sun Documentation Team </para>
           <para role="publisher">Sun Microsystems, Inc.</para>
@@ -55,17 +55,17 @@
 <chapter id="intro"><title>Introduction</title>
 <para>Use this help document to find out more about configuring your automatic network connection using the Network Auto-Magic (NWAM) graphical user interface (GUI). Links within the application take you to pages in this help that provide more detailed information. You can also navigate through this help by using links that appear within the text or by clicking the various topics in the side pane.</para>
 <sect1 id="nwam-components"><title>About the Network Auto-Magic Process</title>
-<para>The NWAM service simplifies and automates basic network configuration by automatically configuring and managing your wired and wireless networks. The NWAM service addresses basic Ethernet and wireless configurations and enables you to perform various networking tasks, such as connecting to your wired or wireless network at startup and configuring new wired or wireless networks. The NWAM service also simplifies more complex network configurations, such as system-wide network profile configuration. In addition, this feature displays informational messages about the current status of your network connection, as well as information about the overall health of your network.</para>
+<para>The NWAM service simplifies and automates basic network configuration by automatically configuring and managing your wired and wireless networks. The NWAM service addresses basic Ethernet and wireless configurations and enables you to perform various networking tasks, such as connecting to your wired or wireless network at startup and configuring new wired or wireless networks. The NWAM service also simplifies more complex network configurations, such as system-wide network configuration. In addition, this feature displays informational messages about the current status of your network connection, as well as information about the overall health of your network.</para>
 <para>Other feature capabilities include:</para>
 <itemizedlist><listitem><para>Multiple concurrent network connections</para>
 </listitem>
 <listitem><para>Detection of hot-plug events</para>
 </listitem>
-<listitem><para>Virtual Private Network (VPN) support</para>
+<listitem><para>Virtual private network (VPN) support</para>
 </listitem>
 </itemizedlist>
 <para>Network configuration is managed by storing desired property values in the form of profiles. The service determines which profile should be active at a given time, depending on the current network conditions, then activates that profile.</para>
-<para>There are two primary profile types: the <emphasis>network profile</emphasis>, which specifies the configuration of individual network interfaces, and <emphasis>locations</emphasis>, which specify system-wide network configuration. The individual components that make up the network profile are referred to as <emphasis>network connections</emphasis>. You can use this application to configure and manage both types of network profiles.</para>
+<para>There are two primary profile types: the <emphasis>Network Profile</emphasis>, which specifies the configuration of individual network interfaces, and <emphasis>Locations</emphasis>, which specify system-wide network configuration. The individual components that make up the network profile are referred to as <emphasis>network connections</emphasis>. You can use this application to configure and manage both types of profiles.</para>
 <para><emphasis role="strong">Related Information</emphasis></para>
 <para><xref linkend="configure-network"/>.</para>
 <para><xref linkend="nwprofiles-configuring"/>.</para>
@@ -73,8 +73,8 @@
 </sect1>
 </chapter>
 <chapter id="nwstatus-icon"><title>About the Network Status Notification Icon</title>
-<para>This <literal>Network Status</literal> notification icon is shown in the desktop panel's notification area at all times. The icon is the primary method for viewing the status of your network and for interacting with automatic network configuration processes. The <literal>Network Status</literal> notification icon is also where informational messages appear. The notification icon menu enables quick access to essential network functionality.</para>
-<para>The icon's appearance indicates the overall health of your network.</para>
+<para>The <literal>Network Status</literal> notification icon is displayed in the desktop panel's notification area at all times. The icon is the primary method for viewing the status of your network and for interacting with automatic network configuration processes. The <literal>Network Status</literal> notification icon is also where informational messages appear. The icon menu enables quick access to essential network functionality.</para>
+<para>The icon's appearance indicates the overall condition of your network.</para>
 <para>The following table illustrates the individual icon elements that are displayed on the desktop, along with a description.</para>
 <informaltable frame="all"><tgroup cols="2" colsep="1" rowsep="1"><colspec colwidth="41.11*"/>
 <colspec colwidth="58.89*"/>
@@ -124,7 +124,7 @@
 <para><xref linkend="status-contxtmenu"/>.</para>
 <sect1 id="connection-names"><title>How Connection Names Are Displayed</title>
 <para>When viewing information about your network, note that connection names are displayed with the format, <replaceable>interface-type</replaceable> (<emphasis>link-name</emphasis>):</para>
-<itemizedlist><listitem><para><replaceable>interface-type</replaceable> is "Wired" or "Wireless". If multiple network interface cards (NICs) of the same type are installed, numbers are appended as required to make the name unique, for example, "Wired 1" or "Wireless 2".</para>
+<itemizedlist><listitem><para><replaceable>interface-type</replaceable> is "Wired" or "Wireless". If multiple network interface cards (NICs) of the same type are installed, numbers are appended to make the name unique, for example, "Wired 1" or "Wireless 2".</para>
 </listitem>
 <listitem><para><emphasis>link-name</emphasis> is the link's vanity name, for example <literal>net0</literal>.</para>
 <para>If the vanity name has not been defined, <emphasis>link-name</emphasis> is the default device name.</para>
@@ -135,7 +135,7 @@
 <para>To display the contents of this menu, right-click the <literal>Network Status</literal> notification icon.</para>
 <mediaobject><imageobject><imagedata fileref="graphics/nwstatus-context-menu.png" /></imageobject>
 </mediaobject>
-<para>The <literal>Network Status</literal> notification icon menu is made up of the following five sections:</para>
+<para>The <literal>Network Status</literal> notification's icon menu is made up of the following five sections:</para>
 <itemizedlist><listitem><para><guimenuitem>Location</guimenuitem></para>
 <para>This section contains a submenu that lists each available network location (shown in the following table). The current location is indicated by a radio button indicator.</para>
 <informaltable frame="all"><tgroup cols="3" colsep="1" rowsep="1"><colspec colwidth="26.42*"/>
@@ -176,15 +176,16 @@
 </tbody>
 </tgroup>
 </informaltable>
-<para>To switch to a Manual location other than the current location, select that location.</para>
-<note><para>Conditional and system locations are grayed-out, because you cannot switch to a conditional or system location in this submenu.</para>
-</note>
-<para>This submenu also contains a <guimenuitem>Network Locations</guimenuitem> menu item that opens the dialog when selected. See <xref linkend="locationprefs-dialog"/>.</para>
-<para>For more information about locations and activation types, see <xref linkend="nwlocations-overview"/>.</para>
+<para>To activate a location other than the current location, choose the new location from the menu.</para>
+<itemizedlist><listitem><para>When the <guilabel>Switch locations automatically</guilabel> option is selected on the menu, you have no manual control over location changes. In this case, all of the locations in the submenu are unavailable (grayed-out), and the most appropriate System or Conditional location will be activated automatically in response to changes in the network environment.</para>
+</listitem>
+<listitem><para>When the <guilabel>Switch locations manually</guilabel> option is selected on the menu, you have full control over location changes. In this case, any location in the submenu can be activated by choosing it, regardless of its activation type. Any location you activate in this manner remains active until you either activate a different location or choose the <guilabel>Switch locations automatically</guilabel> menu option.</para>
+</listitem>
+</itemizedlist>
 </listitem>
 <listitem><para><guimenuitem>Connections</guimenuitem></para>
 <para>This section contains a list of network connections in the current network profile. Enabled connections are indicated by a check mark. To manually enable or disable a connection, check or uncheck it in the menu.</para>
-<note><para>Connections that belong to a priority group in the current profile cannot be enabled or disabled manually, and are shown as grayed-out in the submenu. For more about priority groups, see <xref linkend="prioritygrp-tasks"/>.</para>
+<note><para>Connections that belong to a priority group in the current network profile cannot be enabled or disabled manually, and are shown as unavailable (grayed-out) in the submenu. For more about priority groups, see <xref linkend="prioritygrp-tasks"/>.</para>
 </note>
 <para>This submenu also contains a <guimenuitem>Network Profile</guimenuitem> menu item that opens the <literal>Network Preferences</literal> dialog, where the network profile can be switched or edited. <xref linkend="profiles-switching"/></para>
 </listitem>
@@ -193,11 +194,15 @@
 <para>Each available wireless network name is displayed, along with icons that represent its current signal strength and security type (open or secure). Any networks to which you are currently connected are indicated with a check mark.</para>
 <para>If multiple wireless interfaces are enabled in the current network profile, each wireless network name appears on the submenu once per enabled wireless interface. A wireless link name is shown in parentheses after each network name, to enable you to view and control which wireless interface is connected to which network.</para>
 <para>If a wireless network is an ad-hoc (peer-to-peer) network, "ad-hoc" is shown in parentheses next to its network name.</para>
-<para>If no networks are available, a single disabled "No wireless networks detected" menu item is shown.</para>
+<para>If no networks are available, a single disabled <guimenuitem>No wireless networks detected</guimenuitem> menu item is displayed.</para>
+<para>If all wireless connections are disabled in the active network profile, a single disabled menu item, <guimenuitem>No wireless connections enabled</guimenuitem>, is shown. If there are no wireless connections configured in any network profile, this section of the menu is hidden.</para>
 <para>For more information about changing wireless networks, see <xref linkend="chwireless-towireless"/>.</para>
 </listitem>
+<listitem><para><guimenuitem>Refresh Wireless Networks</guimenuitem></para>
+<para>This menu item causes the list of available wireless networks and signal strengths in the menu to be re-scanned and updated. This menu item is disabled if all wireless connections are disabled in the active network profile. If there are no wireless connections configured in any network profile, this menu item is hidden.</para>
+</listitem>
 <listitem><para><guimenuitem>Join Unlisted Wireless Network</guimenuitem></para>
-<para>This menu item opens the <literal>Join Wireless Network</literal> dialog, when selected. Use this dialog to connect to a wireless network that is <emphasis>not</emphasis> broadcasting its network name. See <xref linkend="addjoinedit-dialog"/>.</para>
+<para>This menu item opens the <literal>Join Wireless Network</literal> dialog, when selected. Use this dialog to connect to a wireless network that is <emphasis>not</emphasis> broadcasting its network name. This menu item is disabled if all wireless connections are disabled in the active network profile. If there are no wireless connections configured in any network profile, this menu item is hidden. .See <xref linkend="addjoinedit-dialog"/> for more information.</para>
 </listitem>
 <listitem><para><guimenuitem>VPN Applications</guimenuitem></para>
 <para>This section contains a submenu that includes one menu entry for each VPN application that is defined in the <literal>VPN Applications</literal> dialog. The menu entry for each application enables you to start or stop that application, depending on whether it is already running.</para>
@@ -233,7 +238,7 @@
 </tgroup>
 </informaltable>
 <para>For more information, see <xref linkend="vpn-configuring"/>.</para>
-<note><para>Conditional VPN applications are grayed-out, because you cannot start or stop a conditional VPN application from this submenu.</para>
+<note><para>Conditional VPN applications are unavailable (grayed-out) because you cannot start or stop a conditional VPN application from this submenu.</para>
 </note>
 <para>This submenu also includes a <guimenuitem>VPN Applications</guimenuitem> menu item that opens the <literal>VPN Applications</literal> dialog. See <xref linkend="vpnprefs-dialog"/>.</para>
 </listitem>
@@ -249,9 +254,9 @@
 <para><xref linkend="nwlocations-overview"/>.</para>
 </sect1>
 </chapter>
-<chapter id="viewstatus-info"><title>Obtaining Information About Network Status</title>
-<para>There are several ways you can check the status of your network connection. The quickest way to obtain essential information about your network is to look at the <literal>Network Status</literal> notification icon that is displayed in the desktop panel's notification area at all times. The icon's appearance indicates the overall status of enabled network connections.</para>
-<para>Other ways you can obtain information about the status of your network include:</para>
+<chapter id="viewstatus-info"><title>Obtaining Information About Your Network's Status</title>
+<para>There are several ways that you can check the status of your network connection. The quickest way to obtain essential information about your network is to look at the <literal>Network Status</literal> notification icon that is displayed in the desktop panel's notification area at all times. The icon's appearance indicates the overall status of enabled network connections.</para>
+<para>Other ways that you can obtain information about the status of your network include the following:</para>
 <itemizedlist><listitem><para>Hovering your mouse over the <literal>Network Status</literal> notification icon to display a tooltip that provides information about the status of all enabled connections.</para>
 </listitem>
 <listitem><para>Viewing informational messages that are displayed in the desktop panel's notification area.</para>
@@ -267,43 +272,43 @@
 <para><xref linkend="connectstatus-view"/>.</para>
 <para><xref linkend="obtainstatus-current"/>.</para>
 <sect1 id="obtainstatus-current"><title>To Show Details of Enabled Network Connections</title>
-<para>Open the <literal>Network Preferences</literal> dialog, and select <literal>Connection Status</literal> from the drop-down list, if required. This method provides the most information about enabled network connections. </para>
+<para>Open the <literal>Network Preferences</literal> dialog, and select <guimenuitem>Connection Status</guimenuitem> from the drop-down list, if required. This method provides the most information about enabled network connections. </para>
 <para>Do one of the following:</para>
-<itemizedlist><listitem><para>Choose System > Administration > Network from the desktop Main Menubar.</para>
+<itemizedlist><listitem><para>Choose System > Administration > Network from the Main Menubar on the desktop panel.</para>
 </listitem>
-<listitem><para>Right click the <literal>Network Status</literal> notification icon to open its menu, then select Network Preferences...</para>
+<listitem><para>Right click the <literal>Network Status</literal> notification icon to open its menu, then select <guimenuitem>Network Preferences...</guimenuitem>.</para>
 </listitem>
 </itemizedlist>
 <mediaobject><imageobject><imagedata fileref="graphics/connection-status.png" /></imageobject>
 </mediaobject>
-<para>For <emphasis role="strong">wired network connections</emphasis>, the IP address, connection speed and connection status is displayed.</para>
-<para>For <emphasis role="strong">wireless network connections</emphasis>, the IP address, signal strength, connection speed connection status and security type is displayed. </para>
+<para>For <emphasis role="strong">wired network connections</emphasis>, the IP address, connection speed and connection status are displayed.</para>
+<para>For <emphasis role="strong">wireless network connections</emphasis>, the IP address, signal strength, connection speed connection status and security type are displayed.</para>
 <para>To view the properties of a specific network connection, double-click the connection in the list.</para>
 <para>Alternately, you can use these methods to view the status of each network connection:</para>
-<itemizedlist><listitem><para>Open the <literal>Network Preferences</literal> dialog and select a connection from the <guilabel>Show</guilabel> drop-down list at the top of the dialog.</para>
+<itemizedlist><listitem><para>Open the <literal>Network Preferences</literal> dialog, and from the <guilabel>Show</guilabel> drop-down list that is located at the top of the dialog, select a connection.</para>
 </listitem>
-<listitem><para>Double-click a connection in the <literal>Network Profile</literal> view of the <literal>Network Preferences</literal> dialog. </para>
+<listitem><para>Double-click a connection in the <literal>Network Profile</literal> view of the <literal>Network Preferences</literal> dialog.</para>
 </listitem>
 </itemizedlist>
 </sect1>
 </chapter>
 <chapter id="configure-network"><title>Controlling Network Connections</title>
-<para>By default, NWAM attempts to maintain a network connection at all times. If a wired network connection fails, an attempt is made to connect to one of your favorite wireless networks. If the attempt fails, other available wireless networks are tried, with your permission.</para>
+<para>By default, NWAM attempts to maintain a network connection at all times. If a wired network connection fails, an attempt is made to connect to one of your favorite wireless networks. If the attempt fails, other available wireless networks are tried, with your permission. For information about managing your favorite wireless networks, see <xref linkend="favorite-networks"/>.</para>
 <para>You can also manually switch between wired and wireless networks, as required.</para>
-<note><para>For all connection types, the connection behavior is set for the current session <emphasis role="strong">only</emphasis>. When you reboot the system or disconnect, an attempt is made to establish network connections according to the priorities that are defined by the active network profile.</para>
+<note><para>For all connection types, the connection behavior is set for the current session <emphasis role="strong">only</emphasis>. When you reboot the system or disconnect, an attempt is made to establish network connections, according to the priorities that are defined by the active network profile.</para>
 </note>
 <sect1 id="connectwireless-startup"><title>To Modify the Default Connection Priority</title>
-<para>By default, all wired network connections take priority over all wireless network connections. That is, a wireless network connection is only attempted if a wired connection cannot be established. If more than one wireless network is available at the current location, you are prompted to select which network to join. This behavior is defined by the Automatic network profile, which is activated by default. To enforce a different behavior, you must create and activate a different network profile.</para>
+<para>By default, all wired network connections take priority over all wireless network connections. That is, a wireless network connection is only attempted if a wired connection cannot be established. If more than one wireless networks are available at the current location, you are prompted to select which network to join. This behavior is defined by the Automatic network profile, which is activated by default. To enforce a different behavior, you must create and activate a different network profile.</para>
 <para><emphasis role="strong">Related Information</emphasis></para>
 <para><xref linkend="addjoinedit-dialog"/></para>
 <para><xref linkend="nwprofiles-configuring"/></para>
 </sect1>
 <sect1 id="chgwired-towireless"><title>To Switch From a Wired Network to a Wireless Network</title>
 <para>If the Automatic network profile is active, disconnect any network cables from all enabled wired interfaces.</para>
-<para>By default, if any of your favorite wireless networks are available, an attempt will be made to join them in the order in which they appear in the favorites list. Otherwise, the <literal>Wireless Chooser</literal> dialog is displayed, from which you can select which network to join.</para>
+<para>By default, if any of your favorite wireless networks are available, an attempt will be made to join them in the order in which they appear in the favorites list. Otherwise, the <literal>Wireless Chooser</literal> dialog is displayed. In this dialog you can select which network to join.</para>
 <note><para>You can change the way wireless networks are joined on the <guilabel>Wireless</guilabel> tab of the <literal>Connection Properties</literal> view. See <xref linkend="connectprop-view"/>.</para>
 </note>
-<para>If the User network profile is active, the method you use to switch to a wireless network depends on the definition of the User profile.</para>
+<para>If the User network profile is active, the method that you use to switch to a wireless network depends on the definition of the User network profile.</para>
 <para>Choose from one of the following methods:</para>
 <itemizedlist><listitem><para>Use the <guisubmenu>Connections</guisubmenu> submenu of the <literal>Networks Status</literal> notification icon to disable the wired connection and then enable a wireless connection. Note that this method is only possible if both connections have the Manual activation type.</para>
 </listitem>
@@ -327,20 +332,20 @@
 <para>For more information, see <xref linkend="nwprofiles-configuring"/>.</para>
 </sect1>
 <sect1 id="chwireless-towireless"><title>To Switch From One Wireless Network to Another Wireless Network</title>
-<para>If you wish to join a wireless network other than the one to which you are currently connected:</para>
+<para>If you want to join a wireless network other than the one to which you are currently connected:</para>
 <orderedlist><listitem><para>Right-click the <literal>Network Status</literal> notification icon to access its menu.</para>
 </listitem>
 <listitem><para>Select the wireless network of your choice.</para>
 <para>If the network is secure, you might be prompted for a password.</para>
-<para>When the wireless connection is established, a notification message is displayed.</para>
 </listitem>
 </orderedlist>
+<para>When the wireless connection is established, a notification message is displayed.</para>
 </sect1>
 <sect1 id="chgwired-towired"><title>To Switch From One Wired Network Connection to Another Wired Network Connection</title>
 <para>If you are using the Automatic network profile, it is not possible to choose which wired connection is active at any given time. The most appropriate connection is automatically chosen.</para>
 <para>If the User network profile is active, the method you use to switch to a wired network depends on the definition of the User profile.</para>
 <para>Choose from one of the following methods:</para>
-<itemizedlist><listitem><para>Use the <guisubmenu>Connections</guisubmenu> submenu of the <literal>Networks Status</literal> notification icon to enable and disable wired connections as required. Note that this method is only possible if both connections have the Manual activation type.</para>
+<itemizedlist><listitem><para>Use the <guisubmenu>Connections</guisubmenu> submenu of the <literal>Networks Status</literal> panel notification icon to enable and disable wired connections as required. Note that this method is only possible if both connections have the Manual activation type.</para>
 </listitem>
 <listitem><para>Edit the User network profile to activate the required wired connections and deactivate the others.</para>
 </listitem>
@@ -350,48 +355,49 @@
 </sect1>
 </chapter>
 <chapter id="addjoinedit-dialog"><title>About Joining Wireless Networks</title>
-<para>By default, when any wireless network connections are enabled, NWAM attempts to connect to any available network in the favorites list, without asking, in the order in which they are listed. If no favorite networks are available, the <literal>Wireless Chooser</literal> dialog opens. In this dialog you can choose which wireless network to join. See <xref linkend="wireless-chooser"/>.</para>
-<para>You can modify the way in which wireless connections are attempted in the <guilabel>Wireless</guilabel> tab of the <literal>Network Preferences</literal> dialog, <literal>Connection Properties</literal> view. See <xref linkend="wirelessprops-configure"/>. If required, you can manually connect to a different wireless network by accessing the <literal>Network Status</literal> notification icon right-click menu. See <xref linkend="status-contxtmenu"/>.</para>
+<para>By default, when any wireless network connections are enabled, NWAM attempts to connect to any available network in the favorites list, without asking, in the order in which the connections are listed. If no favorite networks are available, the <literal>Wireless Chooser</literal> dialog opens. In this dialog you can choose which wireless network to join. See <xref linkend="wireless-chooser"/>.</para>
+<para>You can also modify the way in which wireless connections are attempted in the <guilabel>Wireless</guilabel> tab of the <literal>Network Preferences</literal> dialog's <literal>Connection Properties</literal> view. See <xref linkend="wirelessprops-configure"/>. If required, you can manually connect to a different wireless network by accessing the <literal>Network Status</literal> notification icon right-click menu. See <xref linkend="status-contxtmenu"/>.</para>
 <sect1 id="join-network"><title>Joining a Wireless Network</title>
 <para>By default, NWAM attempts to join the most appropriate wireless network without further intervention.</para>
-<para>To manually connect to a different wireless network, you can do the following:</para>
+<para>To manually connect to a different wireless network, you can do one of the following:</para>
 <itemizedlist><listitem><para>Select an available wireless network from the <literal>Network Status</literal> notification icon's right-click menu.</para>
 </listitem>
-<listitem><para>Select &#8220;Join unlisted wireless network&#8221; from the <literal>Network Status</literal> notification icon menu.</para>
-<para>An unlisted wireless network is one that has been configured not to broadcast its network name, but is still available to join.</para>
+<listitem><para>Select &#8220;Join unlisted wireless network&#8221; from the <literal>Network Status</literal> notification's icon menu.</para>
+<para>An unlisted wireless network is one that has been configured so that it does not broadcast its network name, yet is still available to join.</para>
 </listitem>
 <listitem><para>Select an available wireless network from the <literal>Wireless Network Chooser</literal> dialog. The dialog is displayed automatically, when required. See <xref linkend="wireless-chooser"/>.</para>
 </listitem>
 </itemizedlist>
 <para>If you need to provide more information to complete the connection, the <literal>Join Wireless Network</literal> dialog opens.</para>
 <para>In the dialog, enter the following information:</para>
-<variablelist><varlistentry><term><guimenuitem>Network Name</guimenuitem></term>
+<variablelist><varlistentry><term><guilabel>Network Name</guilabel></term>
 <listitem><para>The name of the wireless network that you want to connect to. This information is pre-filled, unless you are joining an unlisted network.</para>
 </listitem>
 </varlistentry>
-<varlistentry><term><guimenuitem>Security Type</guimenuitem></term>
+<varlistentry><term><guilabel>Security Type</guilabel></term>
 <listitem><para>A drop-down list of all the currently supported security protocols. If the network is broadcasting its network name, the security type is preselected when the dialog opens or when the network name is provided. The password field varies, depending on the security protocol that is selected.</para>
-<para><emphasis role="strong">Security types include:</emphasis></para>
-<itemizedlist><listitem><para>None &#45; Open network. No password is required to join the specified network.</para>
+<para><emphasis role="strong">Three security types are supported:</emphasis></para>
+<itemizedlist><listitem><para>None &#8211; No password is required to join the specified network.</para>
 </listitem>
-<listitem><para>WEP Hex &#8211; A password is required to join the specified network.</para>
+<listitem><para>WEP (Wired Equivalence Privacy) &#8211; A password is required to join the specified network. A password must have either 5 or 13 ASCII characters or 10 or 26 hexadecimal digits (0-9, A-F).</para>
+<para>A <guilabel>Key Index</guilabel> field is also displayed. This value is only used if a 5- or 13-character ASCII password is provided. Possible values are 1, 2, 3 or 4. If the wireless network administrator has not specified which value to use, leave the default setting, which is 1.</para>
 </listitem>
-<listitem><para>WEP ASCII and WPA Personal &#8211; A password of 5- or 13-characters is required to join the specified network. The password field initially blank. A <guilabel>Key Index</guilabel> field is also displayed. Use the WEP key (Valid range, 1&#8211;4), that is generated after typing the password.</para>
+<listitem><para>WPA-PSK (Wi-Fi Protected Access Pre-Shared Key, also known as WPA Personal) &#8211; A password is required to join the specified network. The password can be between 8 and 63 ASCII characters.</para>
 </listitem>
 </itemizedlist>
 </listitem>
 </varlistentry>
-<varlistentry><term><guimenuitem>Show passwords while typing</guimenuitem></term>
+<varlistentry><term><guilabel>Show passwords while typing</guilabel></term>
 <listitem><para>Check this option to see passwords displayed in plain text as you type. If unchecked, passwords will be masked as you type.</para>
 </listitem>
 </varlistentry>
-<varlistentry><term><guimenuitem>Add to favorite networks list</guimenuitem></term>
+<varlistentry><term><guilabel>Add to favorite networks list</guilabel></term>
 <listitem><para>To automatically add the new network to your list of favorites, check this box.</para>
 <note><para>The <guimenuitem>Add to favorite networks list</guimenuitem> check box is displayed <emphasis>only</emphasis> if the <guimenuitem>Ask before adding any networks to favorites preference</guimenuitem> is checked on the <guimenuitem>Wireless</guimenuitem> tab of the <literal>Connection Properties</literal> view. Otherwise, the network is added to your favorites list automatically. For more information, see <xref linkend="wirelessprops-configure"/>.</para>
 </note>
 </listitem>
 </varlistentry>
-<varlistentry><term><guimenuitem>More Options</guimenuitem></term>
+<varlistentry><term><guilabel>More Options</guilabel></term>
 <listitem><para>An expandable section that displays the Known BSSIDs list. This is a list of the MAC addresses of access points that are associated with this wireless network's ESSID. This information, which is optional, enables the NWAM process to distinguish different wireless networks that have the same network name. You can edit the Known BSSIDs list, adding or removing items. See <xref linkend="editing-tables"/>.</para>
 </listitem>
 </varlistentry>
@@ -417,8 +423,8 @@
 <para>Clicking <guibutton>Join Unlisted...</guibutton> enables you to join a network that is not broadcasting its network name. After connecting to any such network, the network is displayed in the menu and in the list of favorite networks. If the network was not added to the list of favorites when you initially connected, it will disappear from the favorites list after you disconnect or end your session.</para>
 </sect1>
 <sect1 id="favorites-overview"><title>Working With Favorite Networks</title>
-<para>By default, when you join a wireless network for the first time, a check box labelled "Add to List of Favorite Networks on Successful Connection" is shown in the <literal>Join Wireless Network</literal> dialog.</para>
-<itemizedlist><listitem><para>To add the network to your list of favorites if the connection is successful, check this box. If you do not want the network to be added to your list of favorites, uncheck the box. Note that the box is checked by default.</para>
+<para>By default, when you join a wireless network for the first time, a check box labeled, <guilabel>Add to List of Favorite Networks on Successful Connection</guilabel>, is displayed in the <literal>Join Wireless Network</literal> dialog.</para>
+<itemizedlist><listitem><para>To add the network to your list of favorites, if the connection is successful, check this box. If you do not want the network to be added to your list of favorites, uncheck the box. Note that the box is checked by default.</para>
 </listitem>
 <listitem><para>To add a network that is not currently available, or not currently broadcasting its network name to your favorites list, go to the <guilabel>Wireless</guilabel> tab of the <literal>Connection Properties</literal> view, then click the <guibutton>Add</guibutton> button. To add the network, you will need to know its network name, security type and security key. </para>
 </listitem>
@@ -428,30 +434,34 @@
 </sect1>
 </chapter>
 <chapter id="nwprefs-dialog"><title>About the Network Preferences Dialog</title>
-<para>The <literal>Network Preferences</literal> dialog is where you can configure individual network connections and view the current state of each network connection. The window provides access to various views, to which you can switch by using the drop-down list that is located at the top of the dialog.</para>
+<para>The <literal>Network Preferences</literal> dialog is where you can configure individual network connections and view the current state of each network connection. The window provides access to various views that you can switch to by using the drop-down list that is located at the top of the dialog.</para>
 <para>You can open the dialog two ways:</para>
-<itemizedlist><listitem><para>By selecting System > Administration > Network from the desktop Main Menubar.</para>
+<itemizedlist><listitem><para>By selecting System > Administration > Network from the Main Menubar on the desktop panel.</para>
 </listitem>
-<listitem><para>By selecting Network Preferences... from the <literal>Network Status</literal> notification icon menu.</para>
+<listitem><para>By selecting <guimenuitem>Network Preferences...</guimenuitem> from the <literal>Network Status</literal> notification's icon menu.</para>
 </listitem>
 </itemizedlist>
-<para>At the top of the <literal>Network Preferences</literal> dialog is a drop-down list, labelled "Show". This list enables you to switc between the <literal>Connection Status</literal> view, the <literal>Network Profile</literal> View, and the <literal>Connection Properties</literal> view for each network connection in each network profile.</para>
+<para>At the top of the <literal>Network Preferences</literal> dialog is a drop-down list that is labeled, <guilabel>Show</guilabel>. This list enables you to switch between the <literal>Connection Status</literal> view, the <literal>Network Profile</literal> view, and the <literal>Connection Properties</literal> view for every network connection in each network profile.</para>
 <sect1 id="connectstatus-view"><title> Connection Status View</title>
-<para>The <literal>Connection Status</literal> view displays information about each enabled network connection in the active network profile, as configured in the <literal>Network Profile</literal> view. The <emphasis>Enabled Connections</emphasis> section lists all of the enabled connections, in the same order that they are listed in the <literal>Network Profile</literal> view.</para>
+<para>The <literal>Connection Status</literal> view displays information about each enabled network connection in the active network profile, as configured in the <literal>Network Profile</literal> view. The <guilabel>Enabled Connections:</guilabel> section lists all of the enabled connections, in the same order that they are listed in the <literal>Network Profile</literal> view.</para>
 <mediaobject><imageobject><imagedata fileref="graphics/connection-status.png" /></imageobject>
 </mediaobject>
 <para>For each connection, the following information is shown:</para>
 <itemizedlist><listitem><para><emphasis role="strong">Type of connection (wired or wireless)</emphasis></para>
 </listitem>
-<listitem><para><emphasis role="strong">Current status (connected, connecting, or disconnected for wired and wireless)</emphasis></para>
+<listitem><para>Link name</para>
 </listitem>
-<listitem><para><emphasis role="strong">Signal strength (wireless)</emphasis></para>
+<listitem><para><emphasis role="strong">Current status (connected, connecting, or disconnected)</emphasis></para>
 </listitem>
-<listitem><para><emphasis role="strong">Link name</emphasis></para>
+<listitem><para>IPv4 and IPv6 addresses, if assigned</para>
+</listitem>
+<listitem><para>Information about whether addresses were obtained through DHCP (IPv4), DHCPv6 (IPv6), or Autconf (IPv6)</para>
+</listitem>
+<listitem><para><emphasis role="strong">Signal strength (for wireless connections only)</emphasis></para>
 </listitem>
 </itemizedlist>
-<para>A security icon, which is displayed on the right side of the connection, indicates whether the network is secured or unsecured. Note that this icon is only for wireless connections.</para>
-<note><para>You cannot change the order in which connections are attempted in this view. To change the order, you need to modify and activate the User network profile in the <literal>Network Profile</literal> view.</para>
+<para>A security icon that is displayed on the right side of the connection indicates whether the network is secured or unsecured. Note that this icon is only for wireless connections.</para>
+<note><para>When you are in this view, you cannot change the order in which connections are attempted. To change the order in which connections are attempted, you will need to modify and activate the User network profile in <literal>Network Profile</literal> view. For more information, see <xref linkend="profiles-switching"/>.</para>
 </note>
 <para><emphasis role="strong">The current status includes the following possible states:</emphasis></para>
 <variablelist><varlistentry><term><guilabel>Connecting</guilabel></term>
@@ -483,8 +493,8 @@
 </listitem>
 </varlistentry>
 </variablelist>
-<para>To switch to the <emphasis>properties view</emphasis> for a particular connection, double-click the connection.</para>
-<para>Other information that can be viewed or changed in the <literal>Connection Status</literal> view:</para>
+<para>To switch to the properties view of a particular connection, double-click the connection.</para>
+<para>Other information that you can view or change in the <literal>Connection Status</literal> view include the following:</para>
 <variablelist><varlistentry><term><guilabel>Network profile</guilabel></term>
 <listitem><para>Displays the name of the active network profile.</para>
 </listitem>
@@ -495,7 +505,7 @@
 </listitem>
 </varlistentry>
 <varlistentry><term><guilabel>VPN</guilabel></term>
-<listitem><para>Lists any currently-running VPN applications. For example, if you were running the Cisco VPN application, the words, &#8220;CiscoVPN active&#8221;, would be displayed.</para>
+<listitem><para>Lists any VPN applications that are currently running. For example, if you were running the Cisco VPN application, the words, &#8220;CiscoVPN active&#8221;, would be displayed.</para>
 <para>To open the <literal>VPN Applications</literal> dialog, click <guibutton>Edit VPN</guibutton>. In this dialog, you can configure, start, and stop VPN applications.</para>
 </listitem>
 </varlistentry>
@@ -503,13 +513,13 @@
 <para>For more information, see <xref linkend="viewstatus-info"/>.</para>
 </sect1>
 <sect1 id="networkprofile-view"><title>Network Profile View</title>
-<para>This view enables you to configure network profiles. The two profiles that you can select when you open the <literal>Network Profile</literal> view are <emphasis>Automatic</emphasis> and <emphasis>User</emphasis>. The default profile is Automatic. Note that the User profile is initially a copy of the Automatic profile. This profile can be customized.</para>
+<para>This view enables you to configure network profiles. The two network profiles you can select when you open the <literal>Network Profile</literal> view are <emphasis>Automatic</emphasis> and <emphasis>User</emphasis>. The default network profile is Automatic. Note that the User network profile is initially a copy of the Automatic network profile. The User network profile can be customized.</para>
 <mediaobject><imageobject><imagedata fileref="graphics/nwprofile-user.png" /></imageobject>
 </mediaobject>
 <para>For more information, see <xref linkend="nwprofiles-configuring"/>.</para>
 </sect1>
 <sect1 id="connectprop-view"><title>Connection Properties View</title>
-<para>To switch to the <literal>Connection Properties</literal> view for a specified network connection, select the connection name from the <literal>Show</literal> drop-down list or double-click the connection name while in either the <literal>Connection Status</literal> or the <literal>Network Profile</literal> view. A tabbed view appears, enabling you to view or edit the interface's properties. </para>
+<para>To switch to the <literal>Connection Properties</literal> view for a specified network connection, select the connection name from the <guilabel>Show</guilabel> drop-down list or double-click the connection name while in either the <literal>Connection Status</literal> or the <literal>Network Profile</literal> view. A tabbed view appears, enabling you to view or edit the interface's properties.</para>
 <itemizedlist><listitem><para>The first tab for all connection types is the <guilabel>IP Address</guilabel> tab. Both IPv4 and IPv6 addresses can be configured on this tab.</para>
 <mediaobject><imageobject><imagedata fileref="graphics/connection-properties-ipv4.png" /></imageobject>
 </mediaobject>
@@ -523,58 +533,58 @@
 </sect1>
 </chapter>
 <chapter id="nwprofiles-configuring"><title>Working With Network Profiles</title>
-<para>A network profile specifies which network interfaces can be enabled or disabled at any given time. Using profiles can be helpful in situations where you have more than one network interface available. For example, most modern laptop brands have both a wired and a wireless interface. Depending on your physical location, and your work environment, you might want to use only one of those interfaces and disable the other interface for security or other reasons.</para>
-<para>The default network profile is called Automatic. It attempts to activate one wired connection by default, and if it fails to do so, it attempts to activate one wireless connection instead. You cannot edit the Automatic network profile. However, the User network profile can be modified and activated, as required.</para>
+<para>A network profile specifies which network interfaces can be enabled or disabled at any given time. Using network profiles can be helpful in situations where you have more than one network interface available. For example, most modern laptop brands have both a wired and a wireless interface. Depending on your physical location, and your work environment, you might want to use only one of those interfaces and disable the other interface for security or other reasons.</para>
+<para>The default network profile is called Automatic. By default, the Automatic network profile first attempts to activate one wired connection. If the attempt fails, it then attempts to activate one wireless connection. You cannot edit the Automatic network profile. However, you can modify and activate the User network profile, as required.</para>
 <sect1 id="profile-viewinfo"><title>Viewing Information About Your Network Profile</title>
 <para>Network profile information can be viewed in the <literal>Network profile</literal> view of the <literal>Network Preferences</literal> dialog.</para>
-<para>To display this view, select <guimenuitem>Network Profile</guimenuitem> in the drop-down list at the top of the <literal>Network Preferences</literal> dialog.</para>
-<note><para> The Automatic profile cannot be changed or deleted. Any time the Automatic profile is selected in the View/Edit Profile drop-down list, all of the profile editing buttons and drop-down lists are disabled.</para>
-</note>
-<itemizedlist><listitem><para>The <emphasis>Active Profile</emphasis> drop-down list displays all of the available network profiles and displays the currently active network profile.</para>
+<para>To display this view, select <literal>Network Profile</literal> in the drop-down list that is located at the top of the <literal>Network Preferences</literal> dialog.</para>
+<itemizedlist><listitem><para>The <guilabel>Active Profile</guilabel> drop-down list displays all of the available network profiles and displays the currently active network profile.</para>
 </listitem>
-<listitem><para>The <emphasis>View/Edit Profile</emphasis> drop-down list displays all of the available network profiles and displays the currently active network profile by default.</para>
+<listitem><para>The <guilabel>View/Edit Profile</guilabel> drop-down list displays all of the available network profiles and displays the currently active network profile by default.</para>
 </listitem>
-<listitem><para>The network connections units (NCUs) of the selected profile are displayed in a list.</para>
+<listitem><para>The network connections of the selected profile are displayed in a list.</para>
 </listitem>
 </itemizedlist>
-<para>The list of network profiles consists of a minimum of two top level group descriptions. For example, the Automatic profile , shown in the following figure, contains four group descriptions, which are described in the following sections.</para>
+<para>The list of network profiles consists of a minimum of two top level group descriptions. For example, the Automatic profile, which is shown in the following figure, contains four group descriptions that are explained in more detail in the following sections.</para>
+<note><para>The Automatic network profile cannot be changed or deleted. Any time the Automatic network profile is selected in the View/Edit Profile drop-down list, all of the profile editing buttons and drop-down lists are disabled.</para>
+</note>
 <mediaobject><imageobject><imagedata fileref="graphics/nwprofile-auto.png" /></imageobject>
 </mediaobject>
 <itemizedlist><listitem><para><emphasis role="strong">Always enable these connections:</emphasis></para>
-<para>This group is always present in a network profile, at the top of the list. It contains network connections that are always enabled when the profile is active. In the Automatic profile, there are no such connections, so "None" is shown.</para>
+<para>This group is always present in a network profile, at the top of the list. The group contains network connections that are always enabled when the network profile is active. In the Automatic network profile, there are no such connections, so "None" is shown.</para>
 </listitem>
 <listitem><para><emphasis role="strong">Then enable any one of these connections:</emphasis></para>
-<para>This is a "priority group" of connections. There may be zero, one or more priority groups in a network profile. In the Automatic profile, this group contains all available wired network connections.</para>
+<para>This is a <emphasis>priority group</emphasis> that is comprised of connections. There may be zero, one, or more priority groups in a network profile. In the Automatic network profile, this group contains all of the available wired network connections.</para>
 </listitem>
 <listitem><para><emphasis role="strong">Else enable any one of these connections: </emphasis></para>
-<para>This is another "priority group". Priority groups are listed in priority order, so this group has a lower priority than the one that appears above it. In the Automatic profile, this group contains all available wireless network connections.</para>
+<para>This is another priority group. These groups are listed in priority order, so this group has a lower priority than the group that is listed above it. In the Automatic network profile, this group contains all of the available wireless network connections.</para>
 </listitem>
 <listitem><para><emphasis role="strong">Always disable these connections:</emphasis></para>
-<para>This group is always present in a network profile, appearing at the bottom of the list. It contains network connections that are always disabled when the profile is active. In the Automatic profile, there are no such connections, so "None" is shown.</para>
+<para>This group is always present in a network profile and appears at the bottom of the list. The group contains network connections that are always disabled when the network profile is active. In the Automatic network profile, there are no such connections, so "None" is shown.</para>
 </listitem>
 </itemizedlist>
 <para>For more information, see <xref linkend="prioritygrp-tasks"/>.</para>
-<para>The first line of text for each network connection in the profile shows its interface type and interface name. The second line shows its IP address and MAC address.</para>
-<para>To switch from the profile view to the properties view for a specified connection, double-click the specified connection. See <xref linkend="connectprop-view"/>.</para>
+<para>The first line of text for each network connection in the network profile displays its interface type and interface name. The second line displays its IP address and MAC address.</para>
+<para>To switch from the Profile view to the Properties view for a specified connection, double-click the specified connection. For more information, see <xref linkend="connectprop-view"/>.</para>
 </sect1>
 <sect1 id="profiles-switching"><title>To Switch From One Network Profile to Another Network Profile</title>
 <orderedlist><listitem><para>Open the <literal>Network Profile</literal> view of the <literal>Network Preferences</literal> dialog.</para>
 </listitem>
-<listitem><para>From the <guilabel>Active Profile</guilabel> drop-down list, select the network profile you wish to activate.</para>
-<para>The profile name is also displayed in the <literal>Active Profile</literal> and the <literal>View/Edit Profile</literal> drop-down lists.</para>
+<listitem><para>From the <guilabel>Active Profile</guilabel> drop-down list, select the network profile that you want to activate.</para>
+<para>The network profile name is also displayed in the <guilabel>Active Profile</guilabel> and the <guilabel>View/Edit Profile</guilabel> drop-down lists.</para>
 </listitem>
-<listitem><para>To switch profiles, click <guibutton>OK</guibutton> or click Cancel to close the dialog without switching profiles.</para>
+<listitem><para>To switch network profiles, click <guibutton>OK</guibutton> or click Cancel to close the dialog without switching profiles.</para>
 </listitem>
 </orderedlist>
 </sect1>
 <sect1 id="gikar"><title>To Add or Remove Connections from the User Network Profile</title>
-<para>The Connections button is enabled only when the User profile is selected for editing in the View/Edit Profile drop-down list.</para>
+<para>The Connections button is enabled only when the User network profile is selected for editing in the <guilabel>View/Edit Profile</guilabel> drop-down list.</para>
 <orderedlist><listitem><para>Open the <literal>Edit Connections</literal> dialog by clicking the <guibutton>Connections...</guibutton> button.</para>
-<para>The list displays all of the connections that are currently available in the Automatic profile.</para>
+<para>The list displays all of the connections that are currently available in the Automatic network profile.</para>
 </listitem>
-<listitem><para>To include a connection in the user profile, place a check mark by the connection.</para>
-<para>To remove a connection from the user profile, remove the check mark.</para>
-<note><para>One connection must be checked at all times. It is not possible to uncheck a connection if it is currently the only checked connection in the profile.</para>
+<listitem><para>To include a connection in the User network profile, place a check mark by the connection.</para>
+<para>To remove a connection from the User network profile, remove the check mark.</para>
+<note><para>One connection must be checked at all times. It is not possible to uncheck a connection if it is currently the only checked connection in the network profile.</para>
 </note>
 </listitem>
 </orderedlist>
@@ -599,7 +609,7 @@
 <sect1 id="rename-connection"><title>To Rename Connections in the User Network Profile</title>
 <para>Renaming connections enables you to provide more meaningful names for those connections and to separate network configuration from networking hardware. The new name is an alias or a "vanity name" for the original device name.</para>
 <para>For example, if you configured your network based on the presence of a device called <literal>bge0</literal>, then replaced that device with one called<literal> hme0</literal>, the change could potentially result in you having to edit the device name in several configuration files. Instead, you can create a vanity name for each device, for example, <literal>net0</literal>, and use that vanity name in your subsequent configuration. If you need to replace one device with another device, the only reconfiguration required is to change the vanity name of the new device.</para>
-<para>To change a connection's vanity name:</para>
+<para><emphasis role="strong">To change a connection's vanity name:</emphasis></para>
 <orderedlist><listitem><para>Open the <literal>Network Profile</literal> view of the <literal>Network Preferences</literal> dialog.</para>
 </listitem>
 <listitem><para>Select the network connection and click the <guibutton>Rename</guibutton> button.</para>
@@ -611,85 +621,85 @@
 </orderedlist>
 </sect1>
 <sect1 id="prioritygrp-tasks"><title>Working With Priority Groups</title>
-<para>Groups are managed in the <literal>Network Profile</literal> view of the <literal>Network Preferences</literal> dialog. To display this view, select <guimenuitem>Network Profile</guimenuitem> in the drop-down list at the top of the <literal>Network Preferences</literal> dialog.</para>
+<para>Groups are managed in the <literal>Network Profile</literal> view of the <literal>Network Preferences</literal> dialog. To display this view, select <guimenuitem>Network Profile</guimenuitem> in the drop-down list that is located at the top of the dialog.</para>
 <itemizedlist><listitem><para><emphasis role="strong">To Create a Priority Group in the User Network Profile:</emphasis></para>
-<para>You can create a profile that treats one or more network interfaces as a group. If one or more of the interfaces in the highest priority group cannot be enabled, according to the group's priority type, then the group with the next highest priority is considered.</para>
+<para>You can create a network profile that treats one or more network interfaces as a group. If one or more of the interfaces in the highest priority group cannot be enabled, according to the group's priority type, then the group with the next highest priority is considered.</para>
 <para>The following table describes the three different priority groups that are available.</para>
 <informaltable frame="all"><tgroup cols="2" colsep="1" rowsep="1"><colspec colwidth="34.40*"/>
 <colspec colwidth="65.60*"/>
 <thead><row><entry><para>Priority Type</para>
 </entry>
-<entry><para>Explanation</para>
+<entry><para>Description</para>
 </entry>
 </row>
 </thead>
-<tbody><row><entry><para>Exclusive</para>
+<tbody><row><entry><para><literal>Exclusive</literal></para>
 </entry>
-<entry><para>One connection in the group is enabled, and all the other connections are disabled. As long as at least one connection in the group is kept alive (not necessarily the same one all the time), no attempt is made to enable connections in any of the lower priority groups.</para>
-</entry>
-</row>
-<row><entry><para>Shared</para>
-</entry>
-<entry><para>All connections in the group that can be enabled are enabled. As long as at least one connection in the group remains alive, no attempt is made to enable connections in any of the lower priority groups.</para>
+<entry><para>One connection in the group is enabled, and all the other connections are disabled. As long as at least one connection in the group is enabled (not necessarily the same one all the time), no attempt is made to enable connections in any of the lower priority groups.</para>
 </entry>
 </row>
-<row><entry><para>All</para>
+<row><entry><para><literal>Shared</literal></para>
 </entry>
-<entry><para>All of the connections in the group are enabled. If any one of the connections is lost, all the connections in the group are disabled. As long as all of the connections remain alive, no attempt is made to enable connections in any of the lower priority groups.</para>
+<entry><para>All of the connections in the group that can be enabled are enabled. As long as at least one connection in the group remains enabled, no attempt is made to enable connections in any of the lower priority groups.</para>
+</entry>
+</row>
+<row><entry><para><literal>All</literal></para>
+</entry>
+<entry><para>All of the connections in the group are enabled. If any of the connections are lost, all of the connections in the group are disabled. As long as all of the connections remain enabled, no attempt is made to enable connections in any of the lower priority groups.</para>
 </entry>
 </row>
 </tbody>
 </tgroup>
 </informaltable>
-<para>For example, the default Automatic profile contains two exclusive priority groups. The higher priority group contains all wired network connections, and the lower priority group contains all wireless network connections.</para>
-<para>To create a priority group:</para>
-<orderedlist><listitem><para>Open the <literal>Network Preferences</literal> dialog, then select the <literal>Network Profile</literal> view from the drop-down list at the top of the dialog.</para>
-<para>The <guibutton>New Group</guibutton> button is enabled when one or more network connections are selected or when the &#8220;always enabled&#8221; or the &#8220;always disabled&#8221; group description is selected.</para>
+<para>For example, the default Automatic network profile contains two exclusive priority groups. The higher priority group contains all of the <emphasis>wired</emphasis> network connections. The lower priority group contains all of the <emphasis>wireless</emphasis> network connections.</para>
+<para><emphasis role="strong">To create a priority group:</emphasis></para>
+<orderedlist><listitem><para>Open the <literal>Network Preferences</literal> dialog, then select the <literal>Network Profile</literal> view from the drop-down list that is located at the top of the dialog.</para>
+<para>The <guibutton>New Group</guibutton> button is enabled when one or more network connections are selected or when the <guilabel>always enabled</guilabel> or the <guilabel>always disabled</guilabel> group description is selected.</para>
 </listitem>
 <listitem><para>To create a new priority group comprised of selected network connections, click the <guibutton>New Group</guibutton> button.</para>
-<para>The new group, with the type <guilabel>Exclusive</guilabel>, is created. Note that this new group will have a lower priority than any existing priority groups.</para>
+<para>The new group, with the type Exclusive, is created. Note that this new group will have a lower priority than any of the existing priority groups.</para>
 </listitem>
 </orderedlist>
 </listitem>
 <listitem><para><emphasis role="strong">To Edit the Contents of a Priority Group:</emphasis></para>
 <itemizedlist><listitem><para>To move a network connection in or out of a priority group, click the <guibutton>Up</guibutton> or <guibutton>Down</guibutton> button.</para>
-<para>The <guibutton>Up</guibutton> button is enabled when any network connection that is not in the &#8220;always enabled&#8221; group is selected. The <guibutton>Down</guibutton> button is enabled when any network connection that is not in the &#8220;always disabled&#8221; group is selected. </para>
+<para>The <guibutton>Up</guibutton> button is enabled when any network connection that is not in the &#8220;always enabled&#8221; group is selected. The <guibutton>Down</guibutton> button is enabled when any network connection that is not in the <guilabel>always disabled</guilabel> group is selected.</para>
 </listitem>
-<listitem><para>To move a specified network connection out of its current group to a group with a higher or lower priority, which might be a priority group or the &#8220;always enabled&#8221; group, click the <guibutton>Up</guibutton> or <guibutton>Down</guibutton> button.</para>
+<listitem><para>To move a specified network connection out of its current group to a group with a higher or lower priority, which might be a priority group or the <guilabel>always enabled</guilabel> group, click the <guibutton>Up</guibutton> or <guibutton>Down</guibutton> button.</para>
 </listitem>
-<listitem><para>To move a network connection out of a priority group, which might be a priority group, or the &#8220;always enabled&#8221; or &#8220;always disabled&#8221; group, click <guibutton>Up</guibutton> or <guibutton>Down</guibutton> button. </para>
+<listitem><para>To move a network connection out of a priority group, which might be a priority group, or the <guilabel>always enabled</guilabel> or <guilabel>always disabled</guilabel> group, click <guibutton>Up</guibutton> or <guibutton>Down</guibutton> button. </para>
 </listitem>
 <listitem><para>Alternately, you can drag and drop network connections in or out of priority groups.</para>
-<para>When the last network connection has been moved out of a priority group, the group no longer exists and is removed from the list.</para>
+<para>When the last network connection has been moved out of a priority group, the group no longer exists, and it is then removed from the list.</para>
 </listitem>
 </itemizedlist>
 </listitem>
 <listitem><para><emphasis role="strong">To Change the Priority Mode of a Priority Group:</emphasis></para>
-<para>To change the priority mode of a priority group, select its top-level group description or any of the connections it contains. The <literal>Selected group</literal> drop-down list is displayed, with the priority mode of the group you selected.</para>
+<para>To change the priority mode of a priority group, select its top-level group description or any of the connections that it contains. The <guilabel>Selected group</guilabel> drop-down list is displayed, along with the priority mode of the group that you selected.</para>
 <para>To change the selected group's priority mode, choose from one of the following values in the drop-down list:</para>
-<itemizedlist><listitem><para><emphasis role="strong">Exactly one connection is enabled:</emphasis> One connection in the group is enabled and all the other connections are disabled. </para>
+<itemizedlist><listitem><para><guilabel>Exactly one connection is enabled:</guilabel> One connection in the group is enabled and all the other connections are disabled. </para>
 <para>As long as at least one connection in the group is kept alive (not necessarily the same one all the time), no attempt is made to enable connections in any of the lower priority groups. This value corresponds to the Exclusive priority type.</para>
 </listitem>
-<listitem><para><emphasis role="strong">One or more connections may be enabled:</emphasis> All connections in the group that can be enabled are enabled. </para>
+<listitem><para><guilabel>One or more connections may be enabled:</guilabel> All connections in the group that can be enabled are enabled. </para>
 <para>As long as at least one connection in the group remains alive, no attempt is made to enable connections in any of the lower priority groups. This value corresponds to the Shared priority type.</para>
 </listitem>
-<listitem><para><emphasis role="strong">All connections must be enabled:</emphasis> All of the connections in the group are enabled.</para>
+<listitem><para><guilabel>All connections must be enabled:</guilabel> All of the connections in the group are enabled.</para>
 <para>As long as all of the connections remain alive, no attempt is made to enable connections in any of the lower priority groups. If any one of the connections is lost, all the connections in the group are disabled. This value corresponds to the All priority type.</para>
 </listitem>
 </itemizedlist>
 </listitem>
 <listitem><para><emphasis role="strong">To Increase or Decrease the Priority of a Group:</emphasis></para>
 <itemizedlist><listitem><para>To increase a group's priority, select its group description, then click the <guibutton>Up</guibutton> button.</para>
-<para>The <guibutton>Up</guibutton> button is disabled if the selected group already has the highest priority in the profile.</para>
+<para>The <guibutton>Up</guibutton> button is disabled if the selected group already has the highest priority in the network profile.</para>
 </listitem>
 <listitem><para>To decrease a group's priority, select its group description, then click the <guibutton>Down</guibutton> button.</para>
-<para>The <guibutton>Down</guibutton> button is disabled if the selected group already has the lowest priority in the profile.</para>
+<para>The <guibutton>Down</guibutton> button is disabled if the selected group already has the lowest priority in the network profile.</para>
 </listitem>
 </itemizedlist>
 </listitem>
 <listitem><para><emphasis role="strong">To Delete a Priority Group:</emphasis></para>
 <orderedlist><listitem><para>Select its group description.</para>
-<para>The label of the <guilabel>New Group</guilabel> button changes to <guilabel>Remove Group</guilabel>.</para>
+<para>The label of the <guibutton>New Group</guibutton> button changes to <guilabel>Remove Group</guilabel>.</para>
 </listitem>
 <listitem><para>To remove the priority group, click <guibutton>Remove Group</guibutton>.</para>
 <para>The priority group is removed from the list and no longer exists.</para>
@@ -701,65 +711,64 @@
 </sect1>
 </chapter>
 <chapter id="connectprops-config"><title>Configuring Network Connection Properties</title>
-<para>Connection properties are configured in the <literal>Properties</literal> view of the <literal>Network Preferences</literal> dialog. This view enables you to choose how the IP address for a specific network interface is obtained. For wireless interfaces, this view also enables you to choose how and when wireless connections are automatically attempted. To display the network interface, select it from the <literal>Show</literal> drop-down list at the top of the dialog.</para>
-<para>After selecting a network interface, a tabbed view is shown, enabling you to edit the connection's properties. For all connection types, the first tab is the <literal>IP Address</literal> tab, on which you can configure IPv4 and IPv6 addresses. For wireless connections, a <literal>Wireless tab</literal> also appears, on which you can maintain a list of favorite wireless networks and choose the way a wireless interface connects to available wireless networks.</para>
+<para>Connection properties are configured in the <literal>Properties</literal> view of the <literal>Network Preferences</literal> dialog. This view enables you to choose how the IP address for a specific network interface is obtained. For wireless interfaces, this view also enables you to choose how and when wireless connections are automatically attempted. To display the network interface, select it from the <literal>Show</literal> drop-down list that is located at the top of the dialog.</para>
+<para>After selecting a network interface, a tabbed view is shown, enabling you to edit the connection's properties. For all connection types, the first tab is the <literal>IP Address</literal> tab. In this tab you can configure IPv4 and IPv6 addresses. For wireless connections, a <literal>Wireless tab</literal> is also available. In this tab you can maintain a list of favorite wireless networks and choose the way a wireless interface connects to available wireless networks.</para>
 <sect1 id="connectprops-setupipv4"><title>To Set Up IPv4 Addresses</title>
-<para>IPv4 addresses can be assigned automatically, manually, or disabled for each network interface.</para>
-<para>The controls that are shown vary dynamically, based on the selection that is made from the <literal>Current IPv4 setting</literal> drop-down list:</para>
+<para>IPv4 addresses can be assigned automatically, manually, or both, or disabled for each network interface.</para>
+<para>The controls that are shown vary dynamically, based on the selection that is made from the <guilabel>IPv4 IP</guilabel> drop-down list:</para>
 <variablelist><varlistentry><term><guilabel>Disabled</guilabel></term>
-<listitem><para>No IPv4 address is assigned to this network interface.</para>
+<listitem><para>No IP address is assigned to this network connection.</para>
 </listitem>
 </varlistentry>
-<varlistentry><term><guilabel>DHCP Assigned</guilabel></term>
-<listitem><para>When this option is selected, the Address and Subnet fields are provided through DHCP and displayed as static labels.</para>
+<varlistentry><term><guilabel>DHCP assigned</guilabel></term>
+<listitem><para>An IP address and subnet mask are assigned automatically for this network connection by a DHCP server on your network. </para>
 </listitem>
 </varlistentry>
-<varlistentry><term><guilabel>Manually Assigned</guilabel></term>
-<listitem><para>When this option is selected, you can edit the Address and Subnet fields.</para>
+<varlistentry><term><guilabel>Manually assigned</guilabel></term>
+<listitem><para>When this option is selected, you can specify one or more IP address and subnet mask pairs for the specified network connection. See <xref linkend="editing-tables"/>. </para>
 </listitem>
 </varlistentry>
-<varlistentry><term><guilabel>Multiple Addresses</guilabel></term>
-<listitem><para>When this option is selected, you can add multiple Address and Subnet entries for the network interface. See <xref linkend="editing-tables"/>.</para>
+<varlistentry><term>DHCP and Manually assigned</term>
+<listitem><para>When this option is selected, one IP address and subnet mask is assigned automatically for the specified network connection by a DHCP server on your network. You can also specify one or more additional IP address and subnet mask pairs. See <xref linkend="editing-tables"/>.</para>
 </listitem>
 </varlistentry>
 </variablelist>
 <para><emphasis role="strong">Address Format and Validation</emphasis></para>
-<para>For the Manually Assigned and Multiple IP addresses, you can type the IP address and subnet values separately, using the format, w.x.y.z. Alternatively, you can provide an IP address that uses the format, w.x.y.z/n. </para>
-<para>When switching between DHCP assigned, Manually assigned, and Multiple IP addresses, any data that you provided previously is stored in case you switch back to that view later. This information is also remembered between sessions.</para>
+<para>For the manually assigned IP addresses, you can type the IP address and subnet values separately using the format, <literal>w.x.y.z</literal>. Alternatively, you can provide an IP address that uses the format, <literal>w.x.y.z/n</literal>. </para>
+<para>When switching between DHCP assigned, manually assigned, and multiple IP addresses, any data that you provided previously is stored, in case you switch back to that view later. This information is also remembered between sessions.</para>
 </sect1>
 <sect1 id="connectprops-setupipv6"><title>To Set Up IPv6 Addresses</title>
-<para>IPv6 addresses can be assigned automatically, manually, or disabled for each network interface.</para>
+<para>IPv6 addresses can be assigned automatically or manually, or disabled for each network interface.</para>
 <para>The controls that are shown vary dynamically, based on the selection that is made from the <literal>Current IPv6 setting</literal> drop-down list:</para>
 <variablelist><varlistentry><term><guilabel>Disabled</guilabel></term>
 <listitem><para>No IPv6 address is assigned to this network interface.</para>
 </listitem>
 </varlistentry>
 <varlistentry><term><guilabel>Enabled</guilabel></term>
-<listitem><para>When this option is selected, the network interface attempts to obtain an IPv6 address through DHCP. The exception is if the <guilabel>Static Addresses</guilabel> check box is also checked.</para>
+<listitem><para>An IPv6 address is assigned automatically for this network connection by a router on your network. The router will choose whether a stateful (DHCPv6) or stateless (Autoconf) IPv6 address is assigned.</para>
 </listitem>
 </varlistentry>
 <varlistentry><term><guilabel>Static Addresses</guilabel></term>
-<listitem><para>When checked, the table row below the check box is enabled to allow assignment of additional, manual IPv6 addresses to the network interface.</para>
-<para>See <xref linkend="editing-tables"/>.</para>
+<listitem><para>When checked, you can specify one or more IPv6 addresses in the table for the specified network connection. See <xref linkend="editing-tables"/>.</para>
 </listitem>
 </varlistentry>
 </variablelist>
-<para>When switching between DHCP assigned, Manually assigned, and Multiple IP addresses, any data you provided previously is stored in case you switch back to that view later. This data is also remembered between sessions.</para>
+<para>When switching between DHCP assigned, manually assigned, and multiple IP addresses, any data you provided previously is stored in case you switch back to that view later. This data is also remembered between sessions.</para>
 </sect1>
 <sect1 id="favorite-networks"><title>To Manage a List of Favorite Wireless Networks</title>
-<para>You manage your list of favorite wireless networks on the <guilabel>Wireless</guilabel> tab. The <guilabel>Wireless</guilabel> tab is shown when a wireless network interface is selected from the <literal>Show</literal> drop-down list located at the top of the <literal>Network Preferences</literal> dialog.</para>
+<para>You manage your list of favorite wireless networks on the <guilabel>Wireless</guilabel> tab of the <literal>Connection Properties</literal> view. The <guilabel>Wireless</guilabel> tab becomes available when a wireless network interface is selected from the <guilabel>Show</guilabel> drop-down list that is located at the top of the <literal>Network Preferences</literal> dialog.</para>
 <para>For more information, see <xref linkend="favorites-overview"/>.</para>
 <para>The four-column list displays your current favorite (or "bookmarked") networks, in the order in which any automatic connection will be attempted.</para>
-<itemizedlist><listitem><para>The first column displays signal strength and the network name, or Extended Service Set Identifier (ESSID).</para>
+<itemizedlist><listitem><para>The first column displays signal strength and the network name, or the Extended Service Set Identifier (ESSID).</para>
 </listitem>
 <listitem><para>The second column displays the wireless channel.</para>
 </listitem>
-<listitem><para>The third column displays maximum transfer speed.</para>
+<listitem><para>The third column displays the maximum transfer speed.</para>
 </listitem>
-<listitem><para>The fourth column displays level of security, with secure networks indicated by an icon.</para>
+<listitem><para>The fourth column displays the level of security, with secure networks indicated by an icon.</para>
 </listitem>
 </itemizedlist>
-<para><emphasis role="strong">To set the order in which connection to favorite networks will be attempted:</emphasis></para>
+<para><emphasis role="strong">To set the order in which connections to favorite networks are attempted, follow these steps:</emphasis></para>
 <orderedlist><listitem><para>Open the <literal>Network Preferences</literal> dialog and switch to the <literal>Properties</literal> view for the specified network connection.</para>
 </listitem>
 <listitem><para>To display a list of your favorite networks, click the <guilabel>Wireless</guilabel> tab.</para>
@@ -767,39 +776,36 @@
 <listitem><para>To reorder the list, drag and drop the items to the new position or use the <guibutton>Up</guibutton> and <guibutton>Down</guibutton> buttons.</para>
 </listitem>
 </orderedlist>
-<para>Additional options in the <guilabel>Wireless</guilabel> tab in include the following:</para>
+<para>The <guilabel>Wireless</guilabel> tab includes the following additional options:</para>
 <itemizedlist><listitem><para>To add a wireless network to the list, click the <guibutton>Add</guibutton> button to open the <literal>Add Wireless Network</literal> dialog.</para>
 </listitem>
 <listitem><para>To delete the selected wireless network from the list, click the <guibutton>Remove</guibutton> button.</para>
 </listitem>
-<listitem><para>To edit the network name (ESSID), security type or password of the selected network, click the <guibutton>Edit</guibutton> button.</para>
+<listitem><para>To edit the network name (ESSID), security type, or password of a selected network, click the <guibutton>Edit</guibutton> button.</para>
 </listitem>
 </itemizedlist>
 </sect1>
 <sect1 id="wirelessprops-configure"><title>To Configure Wireless Connection Preferences</title>
-<para>You configure wireless connection preferences on the <guilabel>Wireless</guilabel> tab. The <guilabel>Wireless</guilabel> tab is shown when a wireless network interface is selected from the <literal>Show</literal> drop-down list located at the top of the <literal>Network Preferences</literal> dialog.</para>
-<para>A drop-down list with the following options indicate how to proceed if no favorite networks are available when a wireless connection is attempted:</para>
-<itemizedlist><listitem><para><emphasis role="strong">Show list of available networks:</emphasis> Opens the <literal>Wireless Chooser</literal> dialog, where you can select another other wireless network to join.</para>
+<para>Wireless connection preferences are configured on the <guilabel>Wireless</guilabel> tab of the <literal>Connection Properties</literal> view. The <guilabel>Wireless</guilabel> tab becomes available when a wireless network interface is selected from the <guilabel>Show</guilabel> drop-down list that is located at the top of the <literal>Network Preferences</literal> dialog.</para>
+<para>A drop-down list with the following options indicates how to proceed if no favorite networks are available when a wireless connection is attempted:</para>
+<itemizedlist><listitem><para><guilabel>Show list of available networks:</guilabel> Opens the <literal>Wireless Chooser</literal> dialog, where you can select another other wireless network to join.</para>
 </listitem>
-<listitem><para><emphasis role="strong">Join an open network:</emphasis> Attempts to join any available unsecured wireless network, starting with the one with the strongest signal.</para>
-<para>If the Ask before joining a new open network preference is checked, you are asked to confirm before joining any open networks. See <xref linkend="addjoinedit-dialog"/>.</para>
+<listitem><para><guilabel>Join an open network:</guilabel> Attempts to join any available unsecured wireless network, starting with the network that has the strongest signal.</para>
+<para>If the <guilabel>Ask before joining a new open network</guilabel> preference is checked, you are asked to confirm before joining any open networks. See <xref linkend="addjoinedit-dialog"/>.</para>
 </listitem>
-<listitem><para><emphasis role="strong">Do not connect:</emphasis> Prevents a connection to any other wireless network until new networks are detected or a different network profile or location is selected.</para>
+<listitem><para><guilabel>Do not connect:</guilabel> Prevents a connection to any other wireless network until new networks are detected or a different network profile or location is selected.</para>
 <para><emphasis role="strong">Related Information</emphasis></para>
 <para><xref linkend="profiles-switching"/>.</para>
 <para><xref linkend="locations-switching"/>.</para>
 </listitem>
 </itemizedlist>
-<para>The <emphasis>Ask before</emphasis> section of the <literal>Wireless</literal> tab controls how many questions you are asked when joining wireless networks. This is an expandable list that is collapsed, by default. Checking one or more of these questions also affects the application's behavior.</para>
-<itemizedlist><listitem><para><emphasis role="strong">Joining an open network that is not in your favorites list (Default is yes)</emphasis> &#8211; When this question is checked, the <literal>Join a Wireless Network</literal> dialog opens, when there are no favorite networks available.</para>
-<note><para>If this question is unchecked, open networks are joined automatically, when no favorite networks are available. No user interaction is necessary.</para>
+<para>The <guilabel>Ask before</guilabel> section of the <literal>Wireless</literal> tab controls how many questions you are asked when joining wireless networks. This is an expandable list that is collapsed, by default. Checking one or more of these questions also affects the application's behavior.</para>
+<itemizedlist><listitem><para><emphasis role="strong">Joining an open network that is not in your favorites list (Default is yes)</emphasis> &#8211; When this question is checked, the <literal>Join a Wireless Network</literal> dialog opens when there are no favorite networks available.</para>
+<note><para>If this question is unchecked, open networks are joined automatically when no favorite networks are available. No user interaction is necessary.</para>
 </note>
 </listitem>
-<listitem><para><emphasis role="strong">Joining any favorite network (Default is no)</emphasis> &#8211; When this question is checked, the <literal>Add Wireless Network</literal> dialog opens whenever an attempt is made to join a favorite network (either open or secure).</para>
-<para>If unchecked, favorite networks are joined automatically, provided all necessary credentials have been previously provided and saved.</para>
-</listitem>
 <listitem><para><emphasis role="strong">Adding any new network to your favorites list (Default is yes)</emphasis> &#45; When this question is checked, the Add to favorite networks check box is shown in the <literal>Add Wireless Network</literal> and the <literal>Wireless Chooser</literal> dialogs, whenever they are shown.</para>
-<para>If unchecked, new networks are automatically added to the favorites list, on the first connection, with no user interaction necessary.</para>
+<para>If unchecked, new networks are automatically added to the favorites list on the first connection, with no user interaction necessary.</para>
 </listitem>
 </itemizedlist>
 <para><emphasis role="strong">Related Information</emphasis></para>
@@ -808,15 +814,15 @@
 </sect1>
 </chapter>
 <chapter id="nwlocations-overview"><title>Working With Locations</title>
-<para>A location is a profile that comprises certain elements of a network configuration, for example a name service and firewall settings, that are applied together, when required. Or, since these locations do not need to correspond to physical locations, you might set up two different locations for use in the workplace. One location could be used when you are connected to the company intranet. The other location could be used when you are connected to the public Internet by using a wireless access point that is located in your office.</para>
-<para>For example, a laptop user might set up one location for a home office and another location for an office network. Since locations do not necessarily correspond to a physical locations, a server administrator might set up different locations that distinguish a web server from a file server, so that the server can quickly be used for a different purpose, as needed.</para>
-<para>Locations can be activated manually, or automatically according to environmental conditions, such as the IP address that is obtained by a network connection.</para>
+<para>A location is a profile that comprises certain elements of a network configuration, for example a name service and firewall settings, that are applied together, when required. Or, because these locations do not necessarily correspond to physical locations, you might set up two different locations for use in the workplace. One location could be used when you are connected to the company intranet. The other location could be used when you are connected to the public Internet using a wireless access point that is located in your office.</para>
+<para>For example, a laptop user might set up one location for a home office and another location for an office network. Because locations do not necessarily correspond to a physical location, a server administrator might set up different locations that distinguish a web server from a file server, so that the server can quickly be used for a different purpose, if required.</para>
+<para>Locations can be activated manually or automatically, according to environmental conditions, such as the IP address that is obtained by a network connection.</para>
 <sect1 id="locationprefs-dialog"><title>About the Network Locations Dialog</title>
-<para>This dialog enables you to change locations, edit location properties, and create new locations.</para>
+<para>The <literal>Network Locations</literal> dialog enables you to change locations, edit location properties, and create new locations.</para>
 <mediaobject><imageobject><imagedata fileref="graphics/locationprefs-dialog.png" /></imageobject>
 </mediaobject>
-<para>To open the dialog, choose <literal>Network Locations</literal> from the Network Status notification icon's right-click menu, or from the desktop Main Menubar, choose System > Administration > Network Locations.</para>
-<para>The Locations list is similar to the list on the <literal>Network Status</literal> notification icon menu. Each available location, with an icon that represents its activation type, is listed. </para>
+<para>To open the dialog, choose <literal>Network Locations</literal> from the <literal>Network Status</literal> notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System > Administration > Network Locations.</para>
+<para>The Locations list is similar to the list on the <literal>Network Status</literal> notification's icon menu. Each available location, with an icon that represents its activation type, is listed. </para>
 <para>The following table describes the location activation types.</para>
 <informaltable frame="all"><tgroup cols="3" colsep="1" rowsep="1"><colspec colwidth="26.42*"/>
 <colspec colwidth="28.45*"/>
@@ -856,55 +862,53 @@
 </tbody>
 </tgroup>
 </informaltable>
-<para>The activation type of the selected location is also displayed in the Selected location drop-down list. The active location is represented by a selected radio button in the first column of the list.</para>
-<note><para>You cannot manually switch to either a conditional or a system location.</para>
-</note>
+<para>The activation type of the selected location is also displayed in the <literal>Selected location</literal> drop-down list. The active location is represented by a selected radio button that is displayed in the first column of the list.</para>
 </sect1>
 <sect1 id="activationmode-chg"><title>To Change a Location's Activation Mode</title>
-<orderedlist><listitem><para>Choose <literal>Network Locations</literal> from the desktop notification icon's right-click menu, or from the desktop Main Menubar, choose System > Administration > Network Locations.</para>
+<orderedlist><listitem><para>Choose <literal>Network Locations</literal> from the desktop notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System > Administration > Network Locations.</para>
 </listitem>
-<listitem><para>To change the activation mode of a location, select the location in the list, then select the new activation mode the <literal>Selected location</literal> drop-down list.</para>
-<para>Note that when a system location is selected, the drop-down list shows "Activated by system", and both the drop-down list and the <guibutton>Edit Rules</guibutton> button are disabled.</para>
-<para>When a manual or conditional location is selected, the drop-down list options are:</para>
-<itemizedlist><listitem><para><emphasis role="strong">manual activation only:</emphasis> This location is only enabled when it is manually selected. When this option is selected, the <guibutton>Edit Rules</guibutton> button is <emphasis>disabled</emphasis>.</para>
+<listitem><para>To change the activation mode of a location, select the location in the list, then select the new activation mode the <guilabel>Selected location</guilabel> drop-down list.</para>
+<para>Note that when a system location is selected, the drop-down list shows <guilabel>Activated by system</guilabel>, and both the drop-down list and the <guibutton>Edit Rules</guibutton> button are disabled.</para>
+<para>When a Manual or a Conditional location is selected, the drop-down list options are as follows:</para>
+<itemizedlist><listitem><para><guilabel>Manual activation only:</guilabel> This location is only enabled when it is manually selected. When this option is selected, the <guibutton>Edit Rules</guibutton> button is <emphasis>disabled</emphasis>.</para>
 </listitem>
-<listitem><para><emphasis role="strong">activated by rules:</emphasis> This location is automatically selected under certain network conditions. When this option is selected, the <guibutton>Edit Rules</guibutton> button is <emphasis>enabled</emphasis>. </para>
+<listitem><para><guilabel>Activated by rules</guilabel>: This location is automatically selected under certain network conditions. When this option is selected, the <guibutton>Edit Rules</guibutton> button is <emphasis>enabled</emphasis>. </para>
 </listitem>
 </itemizedlist>
 </listitem>
-<listitem><para>(Optional) To set rules for how and when the location is activated, click the <guibutton>Edit Rules</guibutton> button. For more information, see <xref linkend="rules-dialog"/>.</para>
+<listitem><para>(Optional) To set rules for how and when a location is activated, click the <guibutton>Edit Rules</guibutton> button. For more information, see <xref linkend="rules-dialog"/>.</para>
 </listitem>
 </orderedlist>
 </sect1>
 <sect1 id="locations-switching"><title>To Switch From One Location to Another Location</title>
-<para>From the <literal>Network Status</literal> notification icon's <guisubmenu>Locations</guisubmenu> submenu, select the location you wish to activate. The location must have the Manual activation type.</para>
-<para>Alternately, you can open the <literal>Network Locations</literal> dialog from the desktop panel applet's right-click menu, or from the desktop Main Menubar, choose System > Administration > Network Locations.</para>
-<para>To switch to a different location, select the radio button of that location, then click <guibutton>OK</guibutton>.</para>
-<para>Note that the location must have the Manual activation type.</para>
-<note><para>You cannot manually switch to either a Conditional or a System location.</para>
-</note>
+<para>From the <literal>Network Status</literal> notification icon's <guisubmenu>Location</guisubmenu> submenu, choose the location that you want to activate.</para>
+<itemizedlist><listitem><para>If the <guilabel>Switch Locations Automatically</guilabel> option is selected on the <guisubmenu>Locations</guisubmenu> submenu, you cannot manually choose a location to activate. The most appropriate System or Conditional location will be activated automatically at any given time, according to changes in the network environment.</para>
+</listitem>
+<listitem><para>If the <guilabel>Switch Locations Manually</guilabel> option is selected on the <guisubmenu>Location</guisubmenu> submenu, you can activate any available location, regardless of its activation type. That location remains active indefinitely.</para>
+</listitem>
+</itemizedlist>
+<para>Alternately, you can open the <literal>Network Locations</literal> dialog from the desktop panel applet's right-click menu. Or, from the Main Menubar on the desktop panel, choose System > Administration > Network Locations. To switch to a different location, select the radio button of that location, then click <guibutton>OK</guibutton>. </para>
+<itemizedlist><listitem><para>If the <guibutton>Switch Locations Automatically</guibutton> radio button is selected in the <literal>Network Locations</literal> dialog, you cannot manually choose a location to activate. The most appropriate System or Conditional location will be activated automatically at any given time, according to changes in the network environment.</para>
+</listitem>
+<listitem><para>If the <guibutton>Switch Locations Manually</guibutton> radio button is selected in the <literal>Network Locations</literal> dialog, you can activate any available location, regardless of its activation type. That location remains active indefinitely.</para>
+</listitem>
+</itemizedlist>
 </sect1>
 <sect1 id="location-edit"><title>Editing Locations</title>
-<para>Open the <literal>Network Locations</literal> dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu, or from the desktop Main Menubar by choosing System > Preferences > Locations.</para>
-<note><para>You cannot edit System locations (Automatic and No Network). However, you can duplicate a System location and edit the duplicate location.</para>
-</note>
-<para>To edit a the properties of a location, select the location in the list, then click <guibutton>Edit</guibutton>. </para>
+<para>To edit a location, open the <literal>Network Locations</literal> dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System > Preferences > Locations.</para>
+<para>To edit the properties of a specified location, select the location in the list, then click <guibutton>Edit</guibutton>. </para>
 <para>Alternatively, you can double-click the location in the list.</para>
-<para>The <literal>Edit Location</literal> dialog opens, with the following three tabs available:</para>
+<para>The <literal>Edit Location</literal> dialog opens, with the following two tabs available:</para>
 <variablelist><varlistentry><term><guilabel>Name Services</guilabel></term>
-<listitem><para>Allows you to configure name services in the specified location.</para>
+<listitem><para>Enables you to configure name services in the specified location.</para>
 </listitem>
 </varlistentry>
 <varlistentry><term><guilabel>Security</guilabel></term>
-<listitem><para>Enables you to select configuration files to be used by IPFilter and IPsec features, when the specified location is active.</para>
-</listitem>
-</varlistentry>
-<varlistentry><term><guilabel>Network Services</guilabel></term>
-<listitem><para>Enables you to specify Service Management Facility (SMF) services that should be enabled when the specified location is active.</para>
+<listitem><para>Enables you to select configuration files to be used by IP Filter and IPsec features, when the specified location is active.</para>
 </listitem>
 </varlistentry>
 </variablelist>
-<para>Select the appropriate tab to display the information to be edited.</para>
+<para>To display the information to be edited, select the appropriate tab.</para>
 <para><emphasis role="strong">Related Information</emphasis></para>
 <para><xref linkend="editlocations-namesvc"/>.</para>
 <para><xref linkend="editlocations-security"/>.</para>
@@ -912,7 +916,7 @@
 </sect1>
 <sect1 id="location-confignew"><title>To Add a Location</title>
 <para>New locations are added in the <literal>Network Locations</literal> dialog.</para>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu, or from the desktop Main Menubar, choose System > Administration > Network Locations.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System > Administration > Network Locations.</para>
 </listitem>
 <listitem><para>To add a new location with default settings, click the <guibutton>Add </guibutton> button.</para>
 <para>A new location that has the Manual activation type, is created with a temporary name. The name is selected so that you can type a new name immediately.</para>
@@ -925,7 +929,7 @@
 </sect1>
 <sect1 id="location-remove"><title>To Remove a Location</title>
 <para>Locations are removed in the <literal>Network Locations</literal> dialog.</para>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the Network Status notification icon's right-click menu, or from the desktop Main Menubar, choose System > Administration > Network Locations.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the Network Status notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System > Administration > Network Locations.</para>
 </listitem>
 <listitem><para>Select the location to remove, then click the <guibutton>Remove</guibutton> button.</para>
 <para>The <guibutton>Remove</guibutton> button is disabled when a system location (Automatic or No Network) is selected. These locations cannot be deleted.</para>
@@ -936,7 +940,7 @@
 </sect1>
 <sect1 id="location-rename"><title>To Rename a Location</title>
 <para>Locations are renamed in the <literal>Network Locations</literal> dialog.</para>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu, or from the desktop Main Menubar, choose System > Administration > Network Locations.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System > Administration > Network Locations.</para>
 </listitem>
 <listitem><para>Select the location to rename, then click the <guibutton>Rename</guibutton> button.</para>
 <para>The location name is replaced by an <emphasis>in-place</emphasis> editable text field in the list.</para>
@@ -948,12 +952,12 @@
 </sect1>
 <sect1 id="location-duplicate"><title>To Duplicate a Location </title>
 <para>Locations are duplicated in the <literal>Network Locations</literal> dialog.</para>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu, or from the desktop Main Menubar, choose System > Administration > Network Locations.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System > Administration > Network Locations.</para>
 </listitem>
 <listitem><para>Select the location, then click the <guibutton>Duplicate</guibutton> button.</para>
 <para>A new location is created with a temporary name.</para>
 </listitem>
-<listitem><para>Type a new location name for the location, then press <keycap>Enter</keycap>.</para>
+<listitem><para>Type a new location name, then press <keycap>Enter</keycap>.</para>
 <para>To cancel your changes, press <keycap>Esc</keycap>.</para>
 </listitem>
 <listitem><para>To activate the location, select the radio button next to the location, then click OK.</para>
@@ -968,11 +972,11 @@
 </listitem>
 </itemizedlist>
 <para><emphasis role="strong">Network Information Service (NIS)</emphasis></para>
-<itemizedlist><listitem><para>Can be configured manually or through DHCP, by selecting the appropriate radio button. When configured manually, a domain name must be specified in the <guilabel>Default Domain</guilabel> text field. One or more name servers may also be specified in the <guilabel>Servers</guilabel> text field.</para>
+<itemizedlist><listitem><para>Can be configured manually or through DHCP, by selecting the appropriate radio button. When configured manually, a domain name must be specified in the <literal>Default Domain</literal> text field. One or more name servers may also be specified in the <literal>Servers</literal> text field.</para>
 </listitem>
 </itemizedlist>
 <para><emphasis role="strong">Lightweight Directory Access Protocol (LDAP)</emphasis></para>
-<itemizedlist><listitem><para>Can only be configured manually. A domain name must be specified in the <guilabel>Default Domain</guilabel> text field, and one or more name servers must be specified in the <guilabel>Servers</guilabel> text field.</para>
+<itemizedlist><listitem><para>Can only be configured manually. A domain name must be specified in the <literal>Default Domain</literal> text field, and one or more name servers must be specified in the <literal>Servers</literal> text field.</para>
 </listitem>
 </itemizedlist>
 <para><emphasis role="strong">Files</emphasis></para>
@@ -980,14 +984,14 @@
 </listitem>
 </itemizedlist>
 <para>Where required, multiple servers or search domains can be separated by spaces or commas.</para>
-<note><para>Separate domain names cannot be specified for the NIS and LDAP protocols. Both must use the same default domain name.</para>
+<note><para>Separate domain names cannot be specified for the NIS and LDAP protocols. Both protocols must use the same default domain name.</para>
 </note>
 <para>The <guibutton>Nsswitch File</guibutton> button enables you to choose the name service configuration file that to use for this location.</para>
 <para>To restore the default value for the name service configuration file, click the <guibutton>Default</guibutton> button. If the default configuration file is already selected, the <guibutton>Default</guibutton> button is disabled.</para>
 <para>The default value for the name service configuration file depends on how many services have been enabled:</para>
-<itemizedlist><listitem><para>If only one name service is enabled, the default value that is used is the <filename>nsswitch</filename> file for that service. For example, if only DNS is checked, the default value is the <filename>/etc/nsswitch.dns</filename> file . If only Files is checked, the default value that is used is <filename>/etc/nsswitch.file</filename>.</para>
+<itemizedlist><listitem><para>If only one name service is enabled, the default value that is used is the <filename>nsswitch</filename> file for that service. For example, if only DNS is checked, the default value is the <filename>/etc/nsswitch.dns</filename> file. If only Files is checked, the default value that is used is the <filename>/etc/nsswitch.file</filename> file.</para>
 </listitem>
-<listitem><para>If more than one name service is enabled, the default value is the <filename>/etc/nsswitch.conf</filename> file.</para>
+<listitem><para>If more than one name service is enabled, the default value that is used is the <filename>/etc/nsswitch.conf</filename> file.</para>
 </listitem>
 </itemizedlist>
 <note><para>Editing the values in this dialog does not result in any changes being written to the <filename>nsswitch</filename> configuration file. Therefore, you might need to manually edit the selected file to achieve the desired behavior.</para>
@@ -995,44 +999,21 @@
 </sect1>
 <sect1 id="editlocations-security"><title>To Configure Security Features for a Location</title>
 <para>The <guilabel>Security</guilabel> tab of the <literal>Edit Location</literal> dialog enables you to select configuration files that are used by the IPfilter and IPsec security features when a specified location is active.</para>
-<para>The check boxes and file chooser buttons behave as follows:</para>
-<itemizedlist><listitem><para><emphasis role="strong">When you check a box</emphasis> &#8211; The corresponding file chooser button is enabled. If no file name is currently associated with the feature, a file selection dialog immediately opens. Here, you can choose a configuration file. Otherwise, the file name that was previously shown is used, until you click the file chooser button.</para>
+<para>The behavior of the check boxes and file chooser buttons are as follows:</para>
+<itemizedlist><listitem><para><emphasis role="strong">When you check a box</emphasis> &#8211; The corresponding file chooser button is enabled. If no file name is currently associated with the feature, a file selection dialog immediately opens. Here, you can choose a configuration file. Otherwise, the file name that was previously shown is used until you click the file chooser button.</para>
 </listitem>
 <listitem><para><emphasis role="strong">When you uncheck a box</emphasis> &#8211; The corresponding file chooser button is disabled. The file name that is shown iis no longer associated with that feature when the location is active. The last-used file name remains visible in the disabled control and is remembered between sessions.</para>
 </listitem>
 </itemizedlist>
 </sect1>
-<sect1 id="editlocations-smfsvc"><title>Enabling and Disabling SMF Services for a Location</title>
-<para>The <guilabel>Network Services</guilabel> tab of the <literal>Edit Location</literal> dialog is where you specify which SMF services to enable or disable when a location is active.</para>
-<para>The <guilabel>Enable these services when this location is active</guilabel> list includes all of the SMF services to be explicitly <emphasis>enabled</emphasis> when the location becomes active. The name of the service and its Fault Management Resource Identifier (FMRI) are listed.</para>
-<para>Similarly, the <guilabel>Disable these services when this location is active</guilabel> list includes all of the SMF services to be explicitly <emphasis>disabled</emphasis> when the location becomes active.</para>
-<para>By default, when a new location is created, both of these lists are empty.</para>
-<orderedlist><listitem><para>To add a service to either list, click the <filename>Add</filename> button.</para>
-<para>A sub-dialog opens.</para>
-</listitem>
-<listitem><para>Type the FMRI of the SMF service using any of the following three formats:</para>
-<itemizedlist><listitem><para>By specifying the absolute path:</para>
-<screen><filename>svc://localhost/network/vpn:default</filename></screen>
-</listitem>
-<listitem><para>By specifying a path that is relative to the local system:</para>
-<screen><filename>svc:/network/vpn:default</filename></screen>
-</listitem>
-<listitem><para>By specifying just the service identifier, with the string prefixes implied:</para>
-<screen><filename>network/vpn:default</filename></screen>
-</listitem>
-</itemizedlist>
-</listitem>
-<listitem><para>To add the service, click <guibutton>OK</guibutton>.</para>
-</listitem>
-</orderedlist>
-<para>To remove a service, select the service, then click the <guibutton>Remove</guibutton> button.</para>
-</sect1>
 </chapter>
 <chapter id="vpn-configuring"><title>Configuring VPN Applications</title>
-<para>The <literal>VPN Applications</literal> dialog enables you to configure and monitor applications that allow your network connections to communicate with a Virtual Private Network. </para>
-<para>A VPN application can be started and stopped manually, as required. A VPN application can also be started automatically, according to user-defined rules. Note that to be managed by using this dialog, a VPN application must either be implemented as a command line tool, or as an SMF service.</para>
+<para>The <literal>VPN Applications</literal> dialog enables you to configure and monitor applications that allow your network connections to communicate with a virtual private network.</para>
+<note><para>Before you can manage your VPN application using the VPN Applications dialog, you must manually install the VPN application or service, then complete any initial setup, such as the installation of a certificate or shared secret.</para>
+</note>
+<para>A VPN application can be started and stopped manually, as required. A VPN application can also be started automatically, according to user-defined rules. To be managed by using this dialog, a VPN application must either be implemented as a command-line tool, or as an SMF service.</para>
 <sect1 id="vpnprefs-dialog"><title>About the VPN Applications Dialog</title>
-<para>Use this dialog to add or remove, start and stop, and edit VPN applications</para>
+<para>Use this dialog to add or remove, start and stop, and edit VPN applications.</para>
 <mediaobject><imageobject><imagedata fileref="graphics/vpn-dialog.png" /></imageobject>
 </mediaobject>
 <para>Open the dialog using one of the following methods:</para>
@@ -1044,7 +1025,7 @@
 <para>The main section of the dialog is a three-column list that displays the following information for each VPN application:</para>
 <itemizedlist><listitem><para>Activation state (Manual or Conditional) </para>
 </listitem>
-<listitem><para>User-defined name, for example, Cisco VPN</para>
+<listitem><para>User-defined name, for example, &#8220;Cisco VPN&#8221;</para>
 </listitem>
 <listitem><para>Current status, &#8220;Running&#8221; or &#8220;Stopped&#8221;</para>
 </listitem>
@@ -1064,8 +1045,8 @@
 <listitem><para>Type the name of the new VPN application.</para>
 </listitem>
 <listitem><para>Do one of the following:</para>
-<itemizedlist><listitem><para>Press <keycap>Enter</keycap> or <keycap>Tab</keycap> to add the new entry that will have the Manual activation type, by default.</para>
-<para>The two <guibutton>Manage VPN</guibutton> radio buttons are enabled. The first of these, <guibutton>Command Line Applications</guibutton>, is selected by default. The Start and Stop command fields, and the two <guibutton>Browse</guibutton> buttons, are also enabled.</para>
+<itemizedlist><listitem><para>To add a new entry that will have the Manual activation type, by default, press <keycap>Enter</keycap> or <keycap>Tab</keycap>.</para>
+<para>The two <guibutton>Manage VPN</guibutton> radio buttons are enabled. The first of these, <guibutton>Command Line Applications</guibutton>, is selected by default. The <guilabel>Start</guilabel> and <guilabel>Stop</guilabel> command fields, and the two <guibutton>Browse</guibutton> buttons, are also enabled.</para>
 </listitem>
 <listitem><para>To cancel your changes, press <keycap>Esc</keycap>.</para>
 </listitem>
@@ -1105,16 +1086,16 @@
 <listitem><para>Select the <guibutton>Manage VPN Using an SMF Service</guibutton> radio button.</para>
 <para>When the <guibutton>Manage VPN Using an SMF Service</guibutton> radio button is selected, the <literal>Service FMRI</literal> field is enabled.</para>
 </listitem>
-<listitem><para>Type the FMRI of the SMF service using any of the following three formats:</para>
+<listitem><para>Type the FMRI of the SMF service using any of the following formats:</para>
 <itemizedlist><listitem><para>By specifying the absolute path:</para>
 <screen><filename>svc://localhost/system/system-log:default</filename></screen>
 </listitem>
 <listitem><para>By specifying a path that is relative to the local system:</para>
 <screen><filename>svc:/system/system-log:default</filename></screen>
 </listitem>
-<listitem><para>By specifying just the service identifier, with the string prefixes implied:</para>
+<listitem><para>By specifying only the service identifier, with the string prefixes implied:</para>
 <screen><filename>system/system-log:default</filename></screen>
-<para>The <guibutton>Start</guibutton> and <guibutton>Stop</guibutton> buttons remained disabled for the VPN application until a valid FMRI has been typed in this field.</para>
+<para>The <guibutton>Start</guibutton> and <guibutton>Stop</guibutton> buttons remain disabled for the VPN application until a valid FMRI has been typed in this field.</para>
 </listitem>
 </itemizedlist>
 </listitem>
@@ -1132,12 +1113,12 @@
 </listitem>
 </itemizedlist>
 </listitem>
-<listitem><para>To start a VPN application manually, select it in the list, then click <guibutton>Start</guibutton>.</para>
+<listitem><para>To start a VPN application manually, select the application in the list, then click <guibutton>Start</guibutton>.</para>
 </listitem>
 </orderedlist>
 <para><emphasis role="strong">To manually stop a VPN application:</emphasis></para>
 <itemizedlist><listitem><para>Select the application in the list, then click <guibutton>Stop</guibutton>.</para>
-<para>The <guibutton>Stop</guibutton> button is enabled <emphasis>only</emphasis> for applications that are not currently running.</para>
+<para>The <guibutton>Stop</guibutton> button is enabled <emphasis>only</emphasis> for applications that are currently running.</para>
 </listitem>
 </itemizedlist>
 <para><emphasis role="strong">To automatically start and stop a VPN application:</emphasis></para>
@@ -1146,8 +1127,8 @@
 </itemizedlist>
 </sect1>
 <sect1 id="vpn-setrules"><title>To Set Rules for a VPN Application</title>
-<para>You can set rules that enable a VPN application to start and stop automatically, as follows:</para>
-<orderedlist><listitem><para>Open the <literal>VPN Applications</literal> dialog using one of the following methods:</para>
+<para>You can set rules that enable a VPN application to start and stop automatically.</para>
+<orderedlist><listitem><para>Open the <literal>VPN Applications</literal> dialog in one of the following ways:</para>
 <itemizedlist><listitem><para>Click the <guibutton>VPN</guibutton> button in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog.</para>
 </listitem>
 <listitem><para>Right-click the <literal>Network Status</literal> notification icon, then select the <guimenuitem>VPN Applications...</guimenuitem> menu item.</para>
@@ -1159,20 +1140,21 @@
 <listitem><para>Click the <guibutton>Edit Rules</guibutton> button to open the <literal>Edit Rules</literal> dialog. </para>
 </listitem>
 <listitem><para>Specify the conditions under which the selected VPN application should be started.</para>
-<para>Whenever the conditions are no longer met, the application will be stopped.</para>
+<note><para>Whenever the conditions are no longer met, the application will be stopped.</para>
+</note>
 <para>For more information about editing rules, see <xref linkend="rules-dialog"/>.</para>
 </listitem>
 </orderedlist>
 </sect1>
 <sect1 id="vpnapplication-remove"><title>To Remove a VPN Application</title>
-<orderedlist><listitem><para>Open the <literal>VPN Applications</literal> dialog using one of the following methods:</para>
+<orderedlist><listitem><para>Open the <literal>VPN Applications</literal> dialog in one of the following ways:</para>
 <itemizedlist><listitem><para>Click the <guibutton>VPN</guibutton> button in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog.</para>
 </listitem>
 <listitem><para>Right-click the <literal>Network Status</literal> notification icon, then select the <guimenuitem>VPN Applications...</guimenuitem> menu item.</para>
 </listitem>
 </itemizedlist>
 </listitem>
-<listitem><para>To remove a VPN application from the list, select the application, then click the <guibutton>Remove</guibutton> button.</para>
+<listitem><para>To remove a VPN application from the list, first select it, then click the <guibutton>Remove</guibutton> button.</para>
 <para>If the selected VPN application is running, the <guibutton>Remove</guibutton> button is disabled. Stop the application before attempting to remove it.</para>
 </listitem>
 </orderedlist>
@@ -1186,14 +1168,14 @@
 </listitem>
 </itemizedlist>
 <sect1 id="editing-tables"><title>Working With Editable Tables</title>
-<para>The <literal>Network Preferences</literal> and the <literal>Network Locations</literal> dialogs include tables whose contents can be edited, for example when adding multiple IP addresses in the <replaceable>connection</replaceable> <literal>Properties</literal> view of the <literal>Network Preferences</literal> dialog.</para>
+<para>The <literal>Network Preferences</literal> and the <literal>Network Locations</literal> dialogs include tables whose contents can be edited, for example when adding multiple IP addresses in the <literal>Connection Properties</literal> view of the <literal>Network Preferences</literal> dialog.</para>
 <para>When editing tables, follow these general instructions:</para>
 <para><emphasis role="strong">Showing hidden information:</emphasis></para>
 <para>If the contents of a table's cells are not fully visible, an ellipsis is displayed. To display any hidden content in a tooltip, hover your mouse over the table cell.</para>
 <para><emphasis role="strong">Adding a new row:</emphasis></para>
 <para>To add a new row, place your cursor in any empty cell, then click the <guibutton>Add</guibutton> button. Alternately, you can add a new row by double-clicking any cell within an empty row. Depending on the type of information that is being added, the first cell in a new row might be a text field, a combo box, or a menu.</para>
 <orderedlist><listitem><para><emphasis role="strong">To complete the entry for the new cell:</emphasis></para>
-<para>Type some text into the cell, or select a menu item from the drop-down list or menu. Then, press <keycap>Return </keycap> or <keycap>Tab</keycap> to move the keyboard focus to the next cell. When you have finished typing information in the last cell of a row, pressing <keycap>Return</keycap> or <keycap>Tab</keycap> moves the focus to the first cell of the next row.</para>
+<para>Type some text into the cell, or select a menu item from the drop-down list or menu. Then, press <keycap>Return</keycap> or <keycap>Tab</keycap> to move the keyboard focus to the next cell. When you have finished typing information in the last cell of a row, pressing <keycap>Return</keycap> or <keycap>Tab</keycap> moves the focus to the first cell of the next row.</para>
 </listitem>
 <listitem><para><emphasis role="strong">To move to another cell:</emphasis></para>
 <para>To move to the next cell in a row, press the <keycap>Tab</keycap> key. To move to the previous cell in a row, press the <keycap>Shift+Tab</keycap> keys. </para>
@@ -1207,7 +1189,7 @@
 <para>To edit a cell:</para>
 <orderedlist><listitem><para>Double-click the cell you want to edit.</para>
 </listitem>
-<listitem><para>Then, type the new information in the cell or select a different item from the popup menu or the drop-down list.</para>
+<listitem><para>Type the new information in the cell or select a different item from the popup menu or the drop-down list.</para>
 <para>To cancel any pending changes, press <keycap>Esc</keycap>.</para>
 </listitem>
 </orderedlist>
@@ -1223,8 +1205,8 @@
 <sect1 id="rules-dialog"><title>Working With the Rules Dialog</title>
 <para>The <literal>Rules</literal> dialog is accessed from the <literal>Network Locations</literal> and the <literal>VPN Applications</literal> dialogs.</para>
 <para>The <literal>Rules</literal> dialog enables you to specify the conditions under which certain actions should be performed, such as when a particular location should become active. </para>
-<para>You create a rule by specifying one or more conditions. You then specify whether all of those conditions need to be met, or only one of the conditions needs to be met, before the action is performed. </para>
-<para>If you are creating a new rule, the dialog opens with one incomplete condition shown. To complete the condition, select the condition type from the drop-down list that shows, "Select condition..." All possible condition types are listed in the following table, but their availability varies, depending on the action that is performed when the conditions are met:</para>
+<para>You create a rule by specifying one or more conditions. You then specify whether all of those conditions need to be met, or only one of the conditions needs to be met, before the action is performed.</para>
+<para>If you are creating a new rule, the dialog opens with one incomplete condition shown. To complete the condition, select the condition type from the drop-down list that shows, <guilabel>Select condition...</guilabel>. All of the possible condition types are listed in the following table. Note that the availability of each condition type varies, depending on the action that is performed when the conditions are met.</para>
 <informaltable frame="all"><tgroup cols="2" colsep="1" rowsep="1"><colspec colwidth="33.17*"/>
 <colspec colwidth="66.83*"/>
 <thead><row><entry><para>Condition Type</para>
@@ -1276,15 +1258,15 @@
 </tbody>
 </tgroup>
 </informaltable>
-<para>Having selected the condition type:</para>
+<para>Having selected the condition type, do one of the following:</para>
 <itemizedlist><listitem><para>Complete the condition by choosing or typing the appropriate terms in the adjacent controls.</para>
-<para>For example, to enter the condition "Wireless network name is OfficeNet", first select the condition type, "Wireless network name". From the second drop-down list, select "is", and type "OfficeNet" into the adjacent text field.</para>
+<para>For example, to enter the condition "Wireless network name is OfficeNet", first select the condition type, <literal>Wireless network name</literal>. From the second drop-down list, select <guimenuitem>is</guimenuitem>, then type "OfficeNet" into the adjacent text field.</para>
 </listitem>
-<listitem><para>To add another condition, click the <guibutton>Add</guibutton> (<guibutton>+</guibutton>) button that is appears next to any existing condition. To remove an existing condition, click the <guibutton>Remove</guibutton> (<guibutton>-</guibutton>) button that appears next to that condition.</para>
+<listitem><para>To add another condition, click the <guibutton>Add</guibutton> (<guibutton>+</guibutton>) button that is displayed next to any existing condition. To remove an existing condition, click the <guibutton>Remove</guibutton> (<guibutton>-</guibutton>) button that is displayed next to that condition.</para>
 </listitem>
-<listitem><para>If the action is to be performed when any one of the conditions is met, click the <guibutton>Match Any</guibutton> button. Use the <guibutton>Match All</guibutton> button if all of the conditions must be met before the action is performed.</para>
+<listitem><para>If the action is to be performed when any one of the conditions is met, click the <guibutton>Match Any</guibutton> button. Use the <guibutton>Match All</guibutton> button, if all of the conditions must be met before the action is performed.</para>
 </listitem>
-<listitem><para>To discard any of the changes you made to the rules since opening the dialog, click the <guibutton>Revert</guibutton> button. The dialog remains open for further editing.</para>
+<listitem><para>To discard any changes you made to the rules since opening the dialog, click the <guibutton>Revert</guibutton> button. The dialog remains open for further editing.</para>
 </listitem>
 </itemizedlist>
 </sect1>

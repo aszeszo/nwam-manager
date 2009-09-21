@@ -1,5 +1,14 @@
 2009-09-21  Darren Kenny  <darren.kenny@sun.com>
 
+	* help/C/nwam-manager.xml:
+	  Update to latest version of OLH (09/16)
+	* capplet/nwam_wireless_chooser.c, daemon/status_icon.c:
+	  Point help items are appropriate locations in help documents.
+	* capplet/nwam-manager-properties.ui:
+	  Fix help button response code for wireless chooser dialog.
+
+2009-09-21  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_rules_dialog.c: 
 	  Fix defect#9656 where the selection of All or Any was possible when
 	  only one condition was available.

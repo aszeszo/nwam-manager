@@ -4436,7 +4436,7 @@ Disable these services when this location is active:</property>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="-1">helpbutton4</action-widget>
+      <action-widget response="-11">helpbutton4</action-widget>
       <action-widget response="-6">cancelbutton2</action-widget>
       <action-widget response="-10">join_unlisted_btn</action-widget>
       <action-widget response="-5">connect_wireless_connect_btn</action-widget>

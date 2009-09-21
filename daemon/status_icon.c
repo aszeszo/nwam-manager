@@ -1231,7 +1231,7 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
 		argv[0] = "-p";
         break;
     case MENUITEM_HELP:
-        nwamui_util_show_help ("");
+        nwamui_util_show_help (HELP_REF_NWSTATUS_ICON);
         break;
     default:
         g_assert_not_reached ();
