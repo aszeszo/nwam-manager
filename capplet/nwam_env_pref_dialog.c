@@ -41,6 +41,12 @@
 #include "nwam_proxy_password_dialog.h"
 #include "capplet-utils.h"
 
+/* Nameservices default file strings */
+#define  NSSWITCH_FILE_FILES    (SYSCONFDIR "/nsswitch.files")
+#define  NSSWITCH_FILE_DNS      (SYSCONFDIR "/nsswitch.dns")
+#define  NSSWITCH_FILE_NIS      (SYSCONFDIR "/nsswitch.nis")
+#define  NSSWITCH_FILE_LDAP     (SYSCONFDIR "/nsswitch.ldap")
+
 /* Names of Widgets in Glade file */
 #define     ENV_PREF_DIALOG_NAME           "nwam_location_properties"
 #define     ENVIRONMENT_NOTEBOOK           "environment_notebook"
@@ -293,7 +299,8 @@ static void         on_ns_selection_toggled(GtkToggleButton *togglebutton, gpoin
 static void         on_ns_text_changed(GtkEntry *entry, gpointer  user_data);
     
 static void         svc_button_clicked(GtkButton *button, gpointer  user_data);
-static void         nameservices_button_clicked(GtkButton *button, gpointer  user_data);
+
+static void         nsswitch_default_clicked_cb(GtkButton *button, gpointer  user_data);
 
 static void vanity_name_edited ( GtkCellRendererText *cell,
   const gchar         *path_string,
@@ -543,7 +550,8 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
       "changed", (GCallback)on_ns_text_changed, (gpointer)self);
     
     /* TODO: Handle the nameservices file */
-
+    g_signal_connect(prv->nsswitch_default_btn,
+      "clicked", (GCallback)nsswitch_default_clicked_cb, (gpointer)self );
 
     /* Security Page Callbacks */
 	g_signal_connect(prv->ippool_config_cb,
@@ -1084,6 +1092,9 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
           config_file);
         g_free(config_file);
     }
+
+    /* nsswitch default button is active only if exactly 1 NS selected */
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), prv->num_nameservices == 1);
 
     block_nameservices_signals( self, FALSE );
 
@@ -1641,6 +1652,9 @@ on_ns_selection_toggled(GtkToggleButton *togglebutton, gpointer user_data)
 
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry_label), (nis_active || ldap_active) );
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry), (nis_active || ldap_active) );
+
+    /* nsswitch default button is active only if exactly 1 NS selected */
+	gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), prv->num_nameservices == 1);
 }
 
 static void
@@ -1681,7 +1695,53 @@ on_ns_text_changed(GtkEntry *entry, gpointer  user_data)
         nwamui_env_set_default_domainname( prv->selected_env, text );
     }
 }
-    
+
+static void
+nsswitch_default_clicked_cb(GtkButton *button, gpointer  user_data)
+{
+    NwamEnvPrefDialog          *self = NWAM_ENV_PREF_DIALOG(user_data);
+	NwamEnvPrefDialogPrivate   *prv = GET_PRIVATE(user_data);
+    GList                      *nameservices;
+    guint                       num_nameservices = 0;
+    const gchar*                nss_file = NULL;
+
+    /* Assume if we got this far, then the button is active and we have only 1
+     * nameservice selected.
+     */
+    nameservices = nwamui_env_get_nameservices( prv->selected_env );
+
+    for (GList* elem = g_list_first(nameservices);
+         elem != NULL;
+         elem = g_list_next(elem) ) {
+        nwamui_env_nameservices_t service = (nwamui_env_nameservices_t)elem->data;
+
+        switch( service ) {
+            case NWAMUI_ENV_NAMESERVICES_DNS:
+                nss_file = NSSWITCH_FILE_DNS;
+                break;
+            case NWAMUI_ENV_NAMESERVICES_FILES:
+                nss_file = NSSWITCH_FILE_FILES;
+                break;
+            case NWAMUI_ENV_NAMESERVICES_NIS:
+                nss_file = NSSWITCH_FILE_NIS;
+                break;
+            case NWAMUI_ENV_NAMESERVICES_LDAP:
+                nss_file = NSSWITCH_FILE_LDAP;
+                break;
+        }
+
+        num_nameservices++;
+    }
+
+    if ( num_nameservices > 1 ) {
+        nwamui_warning( "Unexpectedly got %d nameservces when expected 1", num_nameservices );
+    }
+
+    if (nss_file != NULL) {
+        gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn), nss_file);
+    }
+}
+
 #ifdef ENABLE_NETSERVICES
 static void
 svc_button_clicked(GtkButton *button, gpointer  user_data)
@@ -1745,53 +1805,6 @@ svc_button_clicked(GtkButton *button, gpointer  user_data)
     }
 }
 #endif /* ENABLE_NETSERVICES */
-
-#if 0
-static void
-nameservices_button_clicked(GtkButton *button, gpointer  user_data)
-{
-	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(user_data);
-    NwamEnvPrefDialog *self = NWAM_ENV_PREF_DIALOG(user_data);
-    GtkTreeView *treeview;
-    GtkTreeModel *model;
-    gboolean is_adding = TRUE;
-
-    g_assert(button == (gpointer)prv->nameservice_add_btn ||
-      button == (gpointer)prv->nameservice_delete_btn);
-
-    treeview = prv->nameservices_table;
-    is_adding = (button == (gpointer)prv->nameservice_add_btn);
-
-    model = gtk_tree_view_get_model(treeview);
-
-    if (is_adding) {
-        GtkTreeIter iter;
-        gint nstype;
-
-        /* TODO. We actually should select a flag to indicate a empty row */
-        nstype = -1;
-        /* Simpley append a empty/null row */
-        gtk_list_store_append(GTK_LIST_STORE(model), &iter);
-        gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, nstype, -1);
-    } else {
-        GtkTreeIter iter;
-        GtkTreeSelection *selection = gtk_tree_view_get_selection(treeview);
-
-        if (gtk_tree_selection_get_selected (selection, NULL, &iter)) {
-            gint ns;
-
-            gtk_tree_model_get(model, &iter, 0, &ns, -1);
-
-            gtk_list_store_remove (GTK_LIST_STORE(model), &iter);
-
-            /* Enable current menu */
-            action_menu_group_set_visible(prv->menugroup,
-              nwam_nameservices_enum_to_string(ns),
-              TRUE);
-        }
-    }
-}
-#endif /* 0 */
 
 static void
 default_svc_status_cb (GtkTreeViewColumn *tree_column,

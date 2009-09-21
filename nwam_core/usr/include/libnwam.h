@@ -376,10 +376,6 @@ typedef enum {
 #define	NWAM_LOC_PROP_IKE_CONFIG_FILE		"ike-config-file"
 #define	NWAM_LOC_PROP_IPSECPOLICY_CONFIG_FILE	"ipsecpolicy-config-file"
 
-/* List of SMF services to enable/disable */
-#define	NWAM_LOC_PROP_SVCS_ENABLE		"svcs-enable"
-#define	NWAM_LOC_PROP_SVCS_DISABLE		"svcs-disable"
-
 /*
  * NCP/NCU definitions.
  */
@@ -943,25 +939,25 @@ struct nwam_event {
 	uint32_t nwe_size;
 
 	union {
-		struct {
+		struct nwam_event_object_action {
 			nwam_object_type_t nwe_object_type;
 			char nwe_name[NWAM_MAX_NAME_LEN];
 			char nwe_parent[NWAM_MAX_NAME_LEN];
 			nwam_action_t nwe_action;
 		} nwe_object_action;
 
-		struct {
+		struct nwam_event_object_state {
 			nwam_object_type_t nwe_object_type;
 			char nwe_name[NWAM_MAX_NAME_LEN];
 			nwam_state_t nwe_state;
 			nwam_aux_state_t nwe_aux_state;
 		} nwe_object_state;
 
-		struct {
+		struct nwam_event_priority_group_info {
 			int64_t nwe_priority;
 		} nwe_priority_group_info;
 
-		struct {
+		struct nwam_event_info {
 			char nwe_message[NWAM_MAX_VALUE_LEN];
 		} nwe_info;
 
@@ -972,7 +968,7 @@ struct nwam_event {
 		 * the WLAN the connection succeeded/failed for, indicating
 		 * success/failure using the 'connected' boolean.
 		 */
-		struct {
+		struct nwam_event_wlan_info {
 			char nwe_name[NWAM_MAX_NAME_LEN];
 			boolean_t nwe_connected;
 			uint16_t nwe_num_wlans;
@@ -983,12 +979,12 @@ struct nwam_event {
 			 */
 		} nwe_wlan_info;
 
-		struct {
+		struct nwam_event_if_action {
 			char nwe_name[NWAM_MAX_NAME_LEN];
 			nwam_action_t nwe_action;
 		} nwe_if_action;
 
-		struct {
+		struct nwam_event_if_state {
 			char nwe_name[NWAM_MAX_NAME_LEN];
 			uint32_t nwe_flags;
 			uint32_t nwe_index;
@@ -998,13 +994,13 @@ struct nwam_event {
 			/* might be longer then sizeof(if_state) for addr */
 		} nwe_if_state;
 
-		struct {
+		struct nwam_event_link_state {
 			char nwe_name[NWAM_MAX_NAME_LEN];
 			int32_t nwe_link_state;
 			/* link_state_t from sys/mac.h */
 		} nwe_link_state;
 
-		struct {
+		struct nwam_event_link_action {
 			char nwe_name[NWAM_MAX_NAME_LEN];
 			nwam_action_t nwe_action;
 		} nwe_link_action;
