@@ -2413,7 +2413,7 @@ nwamd_event_handler(gpointer data)
 
                 g_debug("Link %s state changed to %s",
                          nwamevent->nwe_data.nwe_link_state.nwe_name,
-                         nwamevent->nwe_data.nwe_link_state.nwe_link_state == 0 ? "down" : "up" );
+                         nwamevent->nwe_data.nwe_link_state.nwe_link_up? "up" : "down" );
             }
             break;
         case NWAM_EVENT_TYPE_IF_STATE: {

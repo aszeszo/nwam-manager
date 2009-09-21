@@ -42,6 +42,11 @@ extern "C" {
 #include <sys/socket.h>
 
 /*
+ * Note - several interface functions below are not utilized in ON, but are
+ * used by the GNOME nwam-manager.  One example is nwam_enm_get_name().
+ */
+
+/*
  * Common definitions
  */
 
@@ -996,7 +1001,7 @@ struct nwam_event {
 
 		struct nwam_event_link_state {
 			char nwe_name[NWAM_MAX_NAME_LEN];
-			int32_t nwe_link_state;
+			boolean_t nwe_link_up;
 			/* link_state_t from sys/mac.h */
 		} nwe_link_state;
 
