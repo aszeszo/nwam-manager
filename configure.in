@@ -214,6 +214,7 @@ pixmaps/48x48/Makefile
 pixmaps/48x48/apps/Makefile
 pixmaps/48x48/status/Makefile
 data/Makefile
+ui/Makefile
 ])
 
 AC_OUTPUT([

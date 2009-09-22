@@ -287,24 +287,42 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     self->prv = g_new0 (NwamWirelessDialogPrivate, 1);
     
     /* Iniialise pointers to important widgets */
-    self->prv->wireless_dialog =        GTK_DIALOG(nwamui_util_glade_get_widget(WIRELESS_DIALOG_NAME));
-    self->prv->essid_combo =            GTK_COMBO_BOX_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_ESSID_CBENTRY));
-    self->prv->essid_cbentry =          GTK_ENTRY(gtk_bin_get_child(GTK_BIN(self->prv->essid_combo)));
-    self->prv->security_combo =         GTK_COMBO_BOX(nwamui_util_glade_get_widget(WIRELESS_DIALOG_SEC_COMBO));
-    self->prv->password_notebook =      GTK_NOTEBOOK(nwamui_util_glade_get_widget(WIRELESS_PASSWORD_NOTEBOOK));
-    self->prv->key_entry =              GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_ENTRY));
-    self->prv->key_index_lbl =          GTK_LABEL(nwamui_util_glade_get_widget(WIRELESS_DIALOG_KEY_INDEX_LBL));
-    self->prv->key_index_spinbtn =      GTK_SPIN_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_KEY_INDEX_SPINBTN));
-    /* self->prv->key_conf_entry =         GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_CONF_ENTRY)); */
-    self->prv->key_conf_entry =         GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WEP_KEY_ENTRY));
-    self->prv->bssid_list_tv =          GTK_TREE_VIEW(nwamui_util_glade_get_widget(WIRELESS_DIALOG_BSSID_LIST));
-    self->prv->bssid_add_btn =          GTK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_BSSID_ADD_BUTTON));
-    self->prv->bssid_remove_btn =       GTK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_BSSID_REMOVE_BUTTON));
-    self->prv->wpa_config_combo =       GTK_COMBO_BOX(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_CONFIG_COMBO));
-    self->prv->wpa_username_entry =     GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_USERNAME_ENTRY));
-    self->prv->wpa_password_entry =     GTK_ENTRY(nwamui_util_glade_get_widget(WIRELESS_DIALOG_WPA_PASSWORD_ENTRY));
-    self->prv->persistant_cbutton =      GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_PERSIST_CBUTTON));
-    self->prv->show_password_cbutton =  GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_DIALOG_SHOW_PASSWORD_CBUTTON));
+    self->prv->wireless_dialog =        
+        GTK_DIALOG(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_NAME));
+    self->prv->essid_combo = 
+        GTK_COMBO_BOX_ENTRY(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_ESSID_CBENTRY));
+    self->prv->essid_cbentry =
+        GTK_ENTRY(gtk_bin_get_child(GTK_BIN(self->prv->essid_combo)));
+    self->prv->security_combo =
+        GTK_COMBO_BOX(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_SEC_COMBO));
+    self->prv->password_notebook =
+        GTK_NOTEBOOK(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_PASSWORD_NOTEBOOK));
+    self->prv->key_entry =
+        GTK_ENTRY(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_WEP_KEY_ENTRY));
+    self->prv->key_index_lbl =
+        GTK_LABEL(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_KEY_INDEX_LBL));
+    self->prv->key_index_spinbtn =
+        GTK_SPIN_BUTTON(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_KEY_INDEX_SPINBTN));
+    /* self->prv->key_conf_entry =
+     * GTK_ENTRY(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_WEP_KEY_CONF_ENTRY)); */
+    self->prv->key_conf_entry =
+        GTK_ENTRY(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_WEP_KEY_ENTRY));
+    self->prv->bssid_list_tv =
+        GTK_TREE_VIEW(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_BSSID_LIST));
+    self->prv->bssid_add_btn =
+        GTK_BUTTON(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_BSSID_ADD_BUTTON));
+    self->prv->bssid_remove_btn =
+        GTK_BUTTON(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_BSSID_REMOVE_BUTTON));
+    self->prv->wpa_config_combo =
+        GTK_COMBO_BOX(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_WPA_CONFIG_COMBO));
+    self->prv->wpa_username_entry =
+        GTK_ENTRY(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_WPA_USERNAME_ENTRY));
+    self->prv->wpa_password_entry =
+        GTK_ENTRY(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_WPA_PASSWORD_ENTRY));
+    self->prv->persistant_cbutton =
+        GTK_CHECK_BUTTON(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_PERSIST_CBUTTON));
+    self->prv->show_password_cbutton =  
+        GTK_CHECK_BUTTON(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_DIALOG_SHOW_PASSWORD_CBUTTON));
     
     self->prv->ncu = NULL;
     self->prv->do_connect = FALSE;

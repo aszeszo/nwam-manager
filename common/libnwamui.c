@@ -44,15 +44,6 @@
 #include <inetcfg.h>
 #include <libscf.h>
 
-#define USE_GLADE 0
-
-#if USE_GLADE
-#define NWAM_MANAGER_PROPERTIES_GLADE_FILE  "nwam-manager-properties.glade"
-#else /* Use GtkBuilder */
-#define NWAM_MANAGER_PROPERTIES_UI_FILE  "nwam-manager-properties.ui"
-#endif
-
-
 #define NWAM_ENVIRONMENT_RENAME     "nwam_environment_rename"
 #define RENAME_ENVIRONMENT_ENTRY    "rename_environment_entry"
 #define RENAME_ENVIRONMENT_OK_BTN   "rename_environment_ok_btn"
@@ -67,105 +58,22 @@
       (double)gdk_pixbuf_get_height(dest)/gdk_pixbuf_get_height(src),   \
       GDK_INTERP_NEAREST, 255)
 
-#if USE_GLADE
-/* Load the Glade file and maintain a single reference */
-static GladeXML *glade_xml_tree = NULL;
+/* Use GtkBuilder */
 
-static GladeXML* 
-get_glade_xml( void ) {
-    static const gchar *build_datadir = NWAM_MANAGER_DATADIR;
-
-    if ( glade_xml_tree == NULL ) {
-        const gchar * const *sys_data_dirs;
-        const gchar *glade_file;
-        gint i;
-
-        sys_data_dirs = g_get_system_data_dirs ();
-        if ( g_file_test(build_datadir, G_FILE_TEST_EXISTS|G_FILE_TEST_IS_DIR) ) {
-            gchar *glade_file;
-            /* First try with the package name in the path */
-            glade_file = g_build_filename (build_datadir, PACKAGE, NWAM_MANAGER_PROPERTIES_GLADE_FILE, NULL );
-            g_debug("Attempting to load : %s", glade_file);
-            if ( (glade_xml_tree = glade_xml_new(glade_file, NULL, NULL)) != NULL ) {
-                g_debug("Found glade file at : %s", glade_file );
-            }
-            g_free (glade_file);
-            if ( glade_xml_tree == NULL ) {
-                /* Now try without it */
-                glade_file = g_build_filename (build_datadir, NWAM_MANAGER_PROPERTIES_GLADE_FILE, NULL );
-                g_debug("Attempting to load : %s", glade_file);
-                if ( (glade_xml_tree = glade_xml_new(glade_file, NULL, NULL)) != NULL ) {
-                    g_debug("Found glade file at : %s", glade_file );
-                    g_free (glade_file);
-                }
-            }
-        }
-        if (glade_xml_tree == NULL ) {
-            for (i = 0; sys_data_dirs[i] != NULL; i++) {
-                gchar *glade_file;
-                /* First try with the package name in the path */
-                glade_file = g_build_filename (sys_data_dirs[i], PACKAGE, NWAM_MANAGER_PROPERTIES_GLADE_FILE, NULL );
-                g_debug("Attempting to load : %s", glade_file);
-                if ( (glade_xml_tree = glade_xml_new(glade_file, NULL, NULL)) != NULL ) {
-                    g_debug("Found glade file at : %s", glade_file );
-                    break;
-                }
-                g_free (glade_file);
-                /* Now try without it */
-                glade_file = g_build_filename (sys_data_dirs[i], NWAM_MANAGER_PROPERTIES_GLADE_FILE, NULL );
-                g_debug("Attempting to load : %s", glade_file);
-                if ( (glade_xml_tree = glade_xml_new(glade_file, NULL, NULL)) != NULL ) {
-                    g_debug("Found glade file at : %s", glade_file );
-                    g_free (glade_file);
-                    break;
-                }
-            }
-        }
-
-        g_assert( glade_xml_tree != NULL );
-    }
-    return glade_xml_tree;
-}
-
-/**
- * nwamui_util_glade_get_widget:
- * @widget_name: name of the widget to load.
- * @returns: the widget loaded from the Glade file.
- *
- **/
-extern GtkWidget*
-nwamui_util_glade_get_widget( const gchar* widget_name ) 
-{
-    GladeXML*   xml;
-    GtkWidget*  widget;
-
-    g_assert( widget_name != NULL );
-    
-    g_return_val_if_fail( widget_name != NULL, NULL );
-    
-    xml = get_glade_xml();
-    g_return_val_if_fail( xml != NULL, NULL );
-    
-    widget = glade_xml_get_widget(xml, widget_name );
-    
-    if ( widget == NULL )
-        g_error("Failed to get widget by name %s", widget_name );
-    
-    g_assert( widget != NULL );
-    
-    return widget;
-}
-        
-#else /* Use GtkBuilder */
+const   gchar* nwamui_ui_file_names[NWAMUI_UI_FILE_LAST + 1] = {
+    "nwam-manager-properties.ui",
+    "nwam-manager-wireless.ui",
+    NULL
+};
 
 /* Load the GtkBuilder file and maintain a single reference */
-static GtkBuilder *gtk_builder = NULL;
+static GtkBuilder *gtk_builder[NWAMUI_UI_FILE_LAST] = { NULL };
 
 static GtkBuilder* 
-get_gtk_builder( void ) {
+get_gtk_builder( nwamui_ui_file_index_t index ) {
     static const gchar *build_datadir = NWAM_MANAGER_DATADIR;
 
-    if ( gtk_builder == NULL ) {
+    if ( gtk_builder[index] == NULL ) {
         GtkBuilder  *new_builder = gtk_builder_new();
         const gchar * const *sys_data_dirs;
         const gchar *ui_file;
@@ -177,11 +85,11 @@ get_gtk_builder( void ) {
             gchar      *ui_file;
 
             /* First try with the package name in the path */
-            ui_file = g_build_filename (build_datadir, PACKAGE, NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
+            ui_file = g_build_filename (build_datadir, PACKAGE, nwamui_ui_file_names[index], NULL );
             nwamui_debug("Attempting to load : %s", ui_file);
             if ( (gtk_builder_add_from_file(new_builder, ui_file, &err )) != 0 ) {
                 nwamui_debug("Found gtk builder file at : %s", ui_file );
-                gtk_builder = new_builder;
+                gtk_builder[index] = new_builder;
             }
             else if ( err ) {
                 nwamui_warning("Error loading glade file : %s", err->message);
@@ -189,13 +97,13 @@ get_gtk_builder( void ) {
                 err = NULL;
             }
             g_free (ui_file);
-            if ( gtk_builder == NULL ) {
+            if ( gtk_builder[index]  == NULL ) {
                 /* Now try without it */
-                ui_file = g_build_filename (build_datadir, NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
+                ui_file = g_build_filename (build_datadir, nwamui_ui_file_names[index], NULL );
                 nwamui_debug("Attempting to load : %s", ui_file);
                 if ( (gtk_builder_add_from_file(new_builder, ui_file, &err )) != 0 ) {
                     nwamui_debug("Found gtk builder file at : %s", ui_file );
-                    gtk_builder = new_builder;
+                    gtk_builder[index]  = new_builder;
                 }
                 else if ( err ) {
                     nwamui_warning("Error loading glade file : %s", err->message);
@@ -205,15 +113,15 @@ get_gtk_builder( void ) {
                 g_free (ui_file);
             }
         }
-        if (gtk_builder == NULL ) {
+        if (gtk_builder[index]  == NULL ) {
             for (i = 0; sys_data_dirs[i] != NULL; i++) {
                 gchar *ui_file;
                 /* First try with the package name in the path */
-                ui_file = g_build_filename (sys_data_dirs[i], PACKAGE, NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
+                ui_file = g_build_filename (sys_data_dirs[i], PACKAGE, nwamui_ui_file_names[index], NULL );
                 nwamui_debug("Attempting to load : %s", ui_file);
                 if ( (gtk_builder_add_from_file(new_builder, ui_file, &err )) != 0 ) {
                     nwamui_debug("Found gtk builder file at : %s", ui_file );
-                    gtk_builder = new_builder;
+                    gtk_builder[index]  = new_builder;
                     g_free (ui_file);
                     break;
                 }
@@ -224,11 +132,11 @@ get_gtk_builder( void ) {
                 }
                 g_free (ui_file);
                 /* Now try without it */
-                ui_file = g_build_filename (sys_data_dirs[i], NWAM_MANAGER_PROPERTIES_UI_FILE, NULL );
+                ui_file = g_build_filename (sys_data_dirs[i], nwamui_ui_file_names[index], NULL );
                 nwamui_debug("Attempting to load : %s", ui_file);
                 if ( (gtk_builder_add_from_file(new_builder, ui_file, &err )) != 0 ) {
                     nwamui_debug("Found gtk builder file at : %s", ui_file );
-                    gtk_builder = new_builder;
+                    gtk_builder[index]  = new_builder;
                     g_free (ui_file);
                     break;
                 }
@@ -240,23 +148,23 @@ get_gtk_builder( void ) {
             }
         }
 
-        if ( gtk_builder == NULL ) {
-            nwamui_error("Error locating UI file %s", NWAM_MANAGER_PROPERTIES_UI_FILE );
+        if ( gtk_builder[index]  == NULL ) {
+            nwamui_error("Error locating UI file %s", nwamui_ui_file_names[index] );
             g_object_unref( new_builder );
         }
     }
-    return gtk_builder;
+    return gtk_builder[index];
 }
 
 /**
- * nwamui_util_glade_get_widget:
+ * nwamui_util_ui_get_widget_from:
+ * @index: nwamui_ui_file_index_t index of file to load widget from.
  * @widget_name: name of the widget to load.
  * @returns: the widget loaded from the GktBuilder file.
  *
- * (The glade name is kept for code compatibility, for now)
  **/
 extern GtkWidget*
-nwamui_util_glade_get_widget( const gchar* widget_name ) 
+nwamui_util_ui_get_widget_from( nwamui_ui_file_index_t index,  const gchar* widget_name ) 
 {
     GtkBuilder* builder;;
     GtkWidget*  widget;
@@ -265,7 +173,7 @@ nwamui_util_glade_get_widget( const gchar* widget_name )
     
     g_return_val_if_fail( widget_name != NULL, NULL );
     
-    builder = get_gtk_builder();
+    builder = get_gtk_builder( index );
     g_return_val_if_fail( builder != NULL, NULL );
     
     widget = GTK_WIDGET(gtk_builder_get_object(builder, widget_name ));
@@ -276,8 +184,6 @@ nwamui_util_glade_get_widget( const gchar* widget_name )
     return widget;
 }
         
-#endif /* USE_GLADE */
-
 static gboolean _debug = FALSE;
 
 /*

@@ -28,7 +28,6 @@
  */
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <glib/gi18n.h>
 
 #include "libnwamui.h"
@@ -207,10 +206,15 @@ nwam_wireless_chooser_init(NwamWirelessChooser *self)
     self->prv->daemon = nwamui_daemon_get_instance();
     
 	/* Iniialise pointers to important widgets */
-    self->prv->wireless_chooser = GTK_DIALOG(nwamui_util_glade_get_widget(WIRELESS_CHOOSER_DIALOG));
-    self->prv->wifi_tv  = GTK_TREE_VIEW(nwamui_util_glade_get_widget(WIRELESS_TABLE));
-    self->prv->connect_wireless_connect_btn = GTK_WIDGET(nwamui_util_glade_get_widget(WIRELESS_CONNECT_WIRELESS_OK_BTN));
-    self->prv->add_to_preferred_cbox = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(WIRELESS_ADD_TO_PREFERRED_CBOX));
+    self->prv->wireless_chooser = 
+        GTK_DIALOG(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_CHOOSER_DIALOG));
+    self->prv->wifi_tv  = 
+        GTK_TREE_VIEW(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_TABLE));
+    self->prv->connect_wireless_connect_btn = 
+        GTK_WIDGET(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_CONNECT_WIRELESS_OK_BTN));
+    self->prv->add_to_preferred_cbox = 
+        GTK_CHECK_BUTTON(nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_WIRELESS, WIRELESS_ADD_TO_PREFERRED_CBOX));
+
     nwam_compose_wifi_chooser_view ( self, self->prv->wifi_tv );
 
     self->prv->selected_wifi = NULL;

@@ -227,9 +227,23 @@ void marshal_VOID__OBJECT_POINTER(GClosure     *closure,
   gpointer      invocation_hint G_GNUC_UNUSED,
   gpointer      marshal_data);
 
-/* Utility Functions */
-extern GtkWidget*               nwamui_util_glade_get_widget( const gchar* widget_name );
+/* UI (GtkBuilder) Handling */
+typedef enum {
+    NWAMUI_UI_FILE_DEFAULT = 0,
+    NWAMUI_UI_FILE_WIRELESS,
+    NWAMUI_UI_FILE_LAST,
+}
+nwamui_ui_file_index_t;
 
+extern GtkWidget*               nwamui_util_ui_get_widget_from( nwamui_ui_file_index_t  index,  
+                                                                const gchar*            widget_name );
+
+/*
+ * (The glade name is kept for code compatibility, for now)
+ */
+#define nwamui_util_glade_get_widget( x )   nwamui_util_ui_get_widget_from(NWAMUI_UI_FILE_DEFAULT, (x))
+
+/* Utility Functions */
 extern void                     nwamui_util_default_log_handler_init( void );
 
 extern void                     nwamui_util_set_debug_mode( gboolean enabled );

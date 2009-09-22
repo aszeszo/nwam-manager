@@ -1,5 +1,21 @@
 2009-09-22  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam-manager-properties.ui,
+	  capplet/nwam-manager-wireless.ui:
+	  Split out wireless dialog and chooser to separate ui file to speed
+	  up loading and lower memory consumption for panel applet.
+	* common/libnwamui.c, common/libnwamui.h:
+	  Remove old GLADE code, and update gtk builder loading to support
+	  multiple XML file sources.
+	* capplet/nwam_wireless_chooser.c, capplet/nwam_wireless_dialog.c: 
+	  Update to use changed API to load wireless specific .ui file.
+	* capplet/Makefile.am:
+	  Remove .ui files.
+	* configure.in, ui/Makefile.am, Makefile.am:
+	  Prepare a new location for the .ui files.
+
+2009-09-22  Darren Kenny  <darren.kenny@sun.com>
+
 	* configure.in:
 	  Bump to 0.99.10
 	* nwam_core/lib/i386/libnwam.so.1, nwam_core/lib/sparc/libnwam.so.1:

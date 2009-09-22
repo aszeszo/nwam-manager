@@ -27,7 +27,7 @@ AM_CPPFLAGS = \
 	$(NWAM_MANAGER_CFLAGS)		\
 	-DNWAM_MANAGER_DATADIR=\""$(pkgdatadir)"\"			\
 	-DNWAM_MANAGER_LOCALEDIR=\""$(prefix)/$(DATADIRNAME)/locale"\"	\
-	-DGLADEDIR=\""$(gladedir)"\"			\
+	-DGLADEDIR=\""$(pkgdatadir)"\"			\
 	-DSYSCONFDIR=\"$(sysconfdir)\"				\
 	-DPRINTER_HELPER_PATH=\"$(libexecdir)\"			\
 	$(NULL)
@@ -94,10 +94,6 @@ libnwamuicapplet_la_LIBADD =			\
 	$(NULL)
 
 install-data-local:
-
-gladedir   = $(pkgdatadir)
-glade_DATA = nwam-manager-properties.ui
-# 			 nwam-manager-properties.glade 
 
 EXTRA_DIST = 		\
 	capplet-utils.h	\
