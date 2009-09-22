@@ -1,3 +1,10 @@
+2009-09-22  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	  Bump to 0.99.10
+	* nwam_core/lib/i386/libnwam.so.1, nwam_core/lib/sparc/libnwam.so.1:
+	  Update for 09/21 nwamd build with new API.
+
 2009-09-21  Darren Kenny  <darren.kenny@sun.com>
 
 	* nwam_core/usr/include/libnwam.h:
