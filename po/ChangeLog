@@ -1,3 +1,9 @@
+2009-09-22  Darren Kenny  <darren.kenny@sun.com>
+
+	* POTFILES.in:
+	  Update for split of .ui file into two, and relocation to ui/
+	  directory.
+
 2009-09-14  Darren Kenny  <darren.kenny@sun.com>
 
 	* POTFILES.in:

@@ -42,4 +42,5 @@ capplet/nwam_env_pref_dialog.c
 capplet/nwam_tree_view.c
 capplet/nwam_net_conf_panel.c
 capplet/nwam_condition_vbox.c
-[type: gettext/glade]capplet/nwam-manager-properties.ui
+[type: gettext/glade]ui/nwam-manager-properties.ui
+[type: gettext/glade]ui/nwam-manager-wireless.ui
