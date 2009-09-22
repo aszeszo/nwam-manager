@@ -22,11 +22,12 @@ NULL =
 
 install-data-local:
 
-gladedir   = $(pkgdatadir)
-glade_DATA = nwam-manager-properties.ui \
+uidir   = $(pkgdatadir)
+ui_DATA = nwam-manager-properties.ui \
 			 nwam-manager-wireless.ui
 
 EXTRA_DIST = 		\
+	$(ui_DATA) \
 	$(NULL)
 
 DISTCLEANFILES =	\

@@ -1,5 +1,10 @@
 2009-09-22  Darren Kenny  <darren.kenny@sun.com>
 
+	* ui/Makefile.am:
+	  Fix missing .ui files from EXTRA_DIST.
+
+2009-09-22  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam-manager-properties.ui,
 	  capplet/nwam-manager-wireless.ui:
 	  Split out wireless dialog and chooser to separate ui file to speed
