@@ -533,8 +533,12 @@ extern nwam_error_t nwam_loc_validate_prop(nwam_loc_handle_t, const char *,
 /* Get the read-only value for a particular loc property */
 extern nwam_error_t nwam_loc_prop_read_only(const char *, boolean_t *);
 
+/* Whether the property is multi-valued or not */
+extern nwam_error_t nwam_loc_prop_multivalued(const char *, boolean_t *);
+
 /* Retrieve data type */
 extern nwam_error_t nwam_loc_get_prop_type(const char *, nwam_value_type_t *);
+
 /* Retrieve description */
 extern nwam_error_t nwam_loc_get_prop_description(const char *, const char **);
 
@@ -621,6 +625,13 @@ extern nwam_error_t nwam_ncu_disable(nwam_ncu_handle_t);
 extern nwam_error_t nwam_ncu_get_state(nwam_ncu_handle_t, nwam_state_t *,
 	nwam_aux_state_t *);
 
+/* Get NCU type */
+extern nwam_error_t nwam_ncu_get_ncu_type(nwam_ncu_handle_t, nwam_ncu_type_t *);
+
+/* Get NCU class */
+extern nwam_error_t nwam_ncu_get_ncu_class(nwam_ncu_handle_t,
+	nwam_ncu_class_t *);
+
 /* Validate ncu content */
 extern nwam_error_t nwam_ncu_validate(nwam_ncu_handle_t, const char **);
 
@@ -661,6 +672,9 @@ extern nwam_error_t nwam_ncu_get_read_only(nwam_ncu_handle_t, boolean_t *);
 
 /* Get the read-only value for a particular NCU property */
 extern nwam_error_t nwam_ncu_prop_read_only(const char *, boolean_t *);
+
+/* Whether the property is multi-valued or not */
+extern nwam_error_t nwam_ncu_prop_multivalued(const char *, boolean_t *);
 
 /* Get whether the NCU has manual activation-mode or not */
 extern nwam_error_t nwam_ncu_is_manual(nwam_ncu_handle_t, boolean_t *);
@@ -734,6 +748,9 @@ extern nwam_error_t nwam_enm_get_default_proplist(const char ***, uint_t *);
 
 /* Get the read-only value for a particular ENM property */
 extern nwam_error_t nwam_enm_prop_read_only(const char *, boolean_t *);
+
+/* Whether the property is multi-valued or not */
+extern nwam_error_t nwam_enm_prop_multivalued(const char *, boolean_t *);
 
 /*
  * Walk all properties of a specific enm.  For each property, specified
@@ -832,6 +849,9 @@ extern nwam_error_t nwam_known_wlan_get_prop_description(const char *,
 /* get default known WLAN props */
 extern nwam_error_t nwam_known_wlan_get_default_proplist(const char ***,
     uint_t *);
+
+/* Whether the property is multi-valued or not */
+extern nwam_error_t nwam_known_wlan_prop_multivalued(const char *, boolean_t *);
 
 /* Add a bssid to the known WLANs */
 extern nwam_error_t nwam_known_wlan_add_to_known_wlans(const char *,
@@ -991,6 +1011,7 @@ struct nwam_event {
 
 		struct nwam_event_if_state {
 			char nwe_name[NWAM_MAX_NAME_LEN];
+			char nwe_ifname[NWAM_MAX_NAME_LEN];
 			uint32_t nwe_flags;
 			uint32_t nwe_index;
 			uint32_t nwe_addr_valid; /* boolean */
@@ -1026,6 +1047,9 @@ extern const char *nwam_aux_state_to_string(nwam_aux_state_t);
 
 extern const char *nwam_object_type_to_string(nwam_object_type_t);
 extern nwam_object_type_t nwam_string_to_object_type(const char *);
+
+/* Utility strtok_r-like function */
+extern char *nwam_tokenize_by_unescaped_delim(char *, char, char **);
 
 #ifdef	__cplusplus
 }

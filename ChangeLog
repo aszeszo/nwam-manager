@@ -1,3 +1,18 @@
+2009-09-25  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	  Bump to 0.99.11.
+	* nwam_core/usr/include/libnwam.h, nwam_core/lib/i386/libnwam.so.1,
+	  nwam_core/lib/sparc/libnwam.so.1:
+	  Bump to 09/23 build since there was an API change again in the event
+	  structure where a new field was added.
+	* nwam_core/usr/include/libdladm.h,
+	  nwam_core/usr/include/libdladm_impl.h,
+	  nwam_core/usr/include/libdllink.h,
+	  nwam_core/usr/include/sys/dls_mgmt.h,
+	  nwam_core/usr/include/sys/mac.h:
+	  Updated to match snv_124 versions.
+
 2009-09-22  Darren Kenny  <darren.kenny@sun.com>
 
 	* ui/Makefile.am:
