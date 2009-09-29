@@ -142,7 +142,9 @@ struct _NwamConnConfIPPanelPrivate {
     gboolean            join_open;
     gboolean            join_preferred;
     gboolean            add_any_wifi;
-    gint                action_if_no_fav;
+    nwamui_action_on_no_fav_networks_t 
+                        action_if_no_fav;
+
     gulong              ncu_handler_id;
     NwamWirelessDialog* wifi_dialog;
 };
@@ -566,6 +568,27 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 	g_signal_connect(G_OBJECT(self->prv->ipv6_del_btn), "clicked", (GCallback)multi_line_del_cb, (gpointer)self);
 	g_signal_connect(G_OBJECT(self->prv->ipv6_manual_addresses_cbox), "toggled", (GCallback)ipv6_manual_addresses_cb_toggled, (gpointer)self);
 
+    /* Populate contensts of no_preferred_networks_combo */
+    {
+        GtkTreeModel    *model = gtk_combo_box_get_model(self->prv->no_preferred_networks_combo);
+
+        if ( GTK_IS_LIST_STORE( model ) ) {
+            gtk_list_store_clear( GTK_LIST_STORE( model ) );
+        }
+        else if ( GTK_IS_TREE_STORE( model ) ) {
+            gtk_tree_store_clear( GTK_TREE_STORE( model ) );
+        }
+
+        for ( int i = NWAMUI_NO_FAV_ACTION_NONE; i < NWAMUI_NO_FAV_ACTION_LAST; i++ ) {
+            const gchar* str = nwamui_prof_get_no_fav_action_string( i );
+
+            if ( str != NULL ) {
+                gtk_combo_box_append_text(GTK_COMBO_BOX(self->prv->no_preferred_networks_combo), str );
+            }
+        }
+    }
+
+
     nwam_compose_multi_ip_tree_view (self, self->prv->ipv4_tv);
 
     nwam_compose_multi_ip_tree_view (self, self->prv->ipv6_tv);
@@ -585,6 +608,10 @@ populate_wifi_fav( NwamConnConfIPPanel* self, gboolean set_initial_state )
     
     gtk_widget_show_all( GTK_WIDGET(self->prv->wireless_tab) );
     
+#ifndef ENABLE_WIRELESS_OPTS_EXPANDER
+    gtk_widget_hide_all(GTK_WIDGET(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_WIRELESS_OPT_EXPANDER)));
+#endif
+
     /* Populate WiFi Favourites */
     model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->wifi_fav_tv)));
     gtk_list_store_clear(GTK_LIST_STORE(model));
@@ -613,8 +640,7 @@ populate_wifi_fav( NwamConnConfIPPanel* self, gboolean set_initial_state )
           "add_any_new_wifi_to_fav", &prv->add_any_wifi,
           NULL);
         
-        gtk_combo_box_set_active (prv->no_preferred_networks_combo,
-          prv->action_if_no_fav);
+        gtk_combo_box_set_active (prv->no_preferred_networks_combo, (gint)prv->action_if_no_fav);
 
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->join_open_cbox), prv->join_open);
         gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (prv->join_preferred_cbox), prv->join_preferred);
@@ -857,11 +883,13 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         {
             NwamuiProf*     prof;
             gboolean join_open, join_preferred, add_any_wifi;
-            gint action_if_no_fav;
+            nwamui_action_on_no_fav_networks_t action_if_no_fav;
         
             prof = nwamui_prof_get_instance ();
             
-            action_if_no_fav = gtk_combo_box_get_active (prv->no_preferred_networks_combo);
+            action_if_no_fav = (nwamui_action_on_no_fav_networks_t)
+                gtk_combo_box_get_active( prv->no_preferred_networks_combo);
+
             join_open = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->join_open_cbox));
             join_preferred = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->join_preferred_cbox));
             add_any_wifi = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (prv->add_cbox));

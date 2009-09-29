@@ -81,11 +81,9 @@ extern const char *icfg_errmsg(int);
 extern int icfg_open(icfg_handle_t *, const icfg_if_t *);
 extern void icfg_close(icfg_handle_t);
 extern boolean_t icfg_is_logical(icfg_handle_t);
-extern boolean_t icfg_is_loopback(icfg_handle_t);
 
-/* get interface name and protocol */
+/* get interface name */
 extern const char *icfg_if_name(icfg_handle_t);
-extern int icfg_if_protocol(icfg_handle_t);
 
 /* set tunnel parameters */
 extern int icfg_refresh_tunnel_cache(icfg_handle_t);
@@ -140,7 +138,6 @@ extern int icfg_get_if_list(icfg_if_t **, int *, int, int);
 extern void icfg_free_if_list(icfg_if_t *);
 extern int icfg_iterate_if(int, int, void *, int (*)(icfg_if_t *, void *));
 
-extern int icfg_get_linkinfo(icfg_handle_t, lif_ifinfo_req_t *);
 extern int icfg_sockaddr_to_str(sa_family_t, const struct sockaddr *,
     char *, size_t);
 extern int icfg_str_to_sockaddr(sa_family_t, const char *, struct sockaddr *,

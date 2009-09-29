@@ -221,9 +221,17 @@ nwamui_prof_set_property (GObject         *object,
         break;
 
     case PROP_ACTION_ON_NO_FAV_NETWORKS: {
+        gint conf_value;
+
+        conf_value = g_value_get_int (value);
+
+        if ( conf_value < (gint)NWAMUI_NO_FAV_ACTION_NONE ||
+             conf_value >= (gint)NWAMUI_NO_FAV_ACTION_LAST ) {
+            conf_value = (gint)NWAMUI_NO_FAV_ACTION_NONE;
+        }
+
         gconf_client_set_int (prv->client, PROF_STRING_ACTION_ON_NO_FAV_NETWORKS,
-          g_value_get_int (value),
-          &err);
+                              conf_value, &err);
     }
         break;
 
@@ -265,45 +273,52 @@ nwamui_prof_get_property (GObject         *object,
 
     switch (prop_id) {
     case PROP_JOIN_WIFI_NOT_IN_FAV: {
-        g_value_set_boolean (value, gconf_client_get_bool (prv->client,
-                               PROF_BOOL_JOIN_WIFI_NOT_IN_FAV,
-                               &err));
-    }
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_JOIN_WIFI_NOT_IN_FAV,
+                                   &err));
+        }
         break;
 
     case PROP_JOIN_ANY_FAV_WIFI: {
-        g_value_set_boolean (value, gconf_client_get_bool (prv->client,
-                               PROF_BOOL_JOIN_ANY_FAV_WIFI,
-                               &err));
-    }
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_JOIN_ANY_FAV_WIFI,
+                                   &err));
+        }
         break;
 
     case PROP_ADD_ANY_NEW_WIFI_TO_FAV: {
-        g_value_set_boolean (value, gconf_client_get_bool (prv->client,
-                               PROF_BOOL_ADD_ANY_NEW_WIFI_TO_FAV,
-                               &err));
-    }
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_ADD_ANY_NEW_WIFI_TO_FAV,
+                                   &err));
+        }
         break;
 
     case PROP_ACTION_ON_NO_FAV_NETWORKS: {
-        g_value_set_int (value, gconf_client_get_int (prv->client,
-                           PROF_STRING_ACTION_ON_NO_FAV_NETWORKS,
-                           &err));
-    }
+            gint conf_value;
+
+            conf_value = gconf_client_get_int (prv->client, PROF_STRING_ACTION_ON_NO_FAV_NETWORKS, &err);
+
+            if ( conf_value < (gint)NWAMUI_NO_FAV_ACTION_NONE ||
+                 conf_value >= (gint)NWAMUI_NO_FAV_ACTION_LAST ) {
+                conf_value = (gint)NWAMUI_NO_FAV_ACTION_NONE;
+            }
+
+            g_value_set_int (value, conf_value );
+        }
         break;
 
     case PROP_ACTIVE_INTERFACE: {
-        g_value_set_string (value, gconf_client_get_string (prv->client,
-                           PROF_STRING_ACTION_ON_NO_FAV_NETWORKS,
-                           &err));
-    }
+            g_value_set_string (value, gconf_client_get_string (prv->client,
+                               PROF_STRING_ACTION_ON_NO_FAV_NETWORKS,
+                               &err));
+        }
         break;
 
     case PROP_NOTIFICATION_DEFAULT_TIMEOUT: {
-        g_value_set_int (value, gconf_client_get_int (prv->client,
-            PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT,
-            &err));
-    }
+            g_value_set_int (value, gconf_client_get_int (prv->client,
+                PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT,
+                &err));
+        }
         break;
 
     default:
@@ -472,3 +487,17 @@ nwamui_prof_notify_begin (NwamuiProf* self)
         g_error_free (err);
     }
 }
+
+const gchar*
+nwamui_prof_get_no_fav_action_string( nwamui_action_on_no_fav_networks_t action )
+{
+    switch( action ) {
+        case NWAMUI_NO_FAV_ACTION_NONE:
+            return( _("Do nothing") );
+        case NWAMUI_NO_FAV_ACTION_SHOW_LIST_DIALOG:
+            return( _("Show list of available networks") );
+        default:
+            return( NULL );
+    }
+}
+

@@ -78,6 +78,7 @@ nwam_manager_properties_LDADD =			\
 noinst_LTLIBRARIES = libnwamuicapplet.la
 
 libnwamuicapplet_la_SOURCES =		\
+	nwam_wireless_chooser.c	\
 	nwam_wireless_dialog.c	\
 	capplet-utils.c \
 	nwam_tree_view.c \

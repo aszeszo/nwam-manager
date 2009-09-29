@@ -989,6 +989,42 @@ nwamui_util_ask_yes_no(GtkWindow* parent_window, const gchar* title, const gchar
     }
 }
 
+static GdkCursor    *busy_cursor = NULL;
+
+extern void
+nwamui_util_set_busy_cursor( GtkWidget *widget )
+{
+    GdkWindow   *window = NULL;
+
+    if ( widget != NULL ) {
+        window = gtk_widget_get_window( widget );
+    }
+
+    if ( window != NULL ) {
+        if ( busy_cursor == NULL ) {
+            GdkDisplay *display = gtk_widget_get_display( widget );
+            if ( display != NULL ) {
+                busy_cursor = gdk_cursor_new_for_display( display, GDK_WATCH );
+            }
+        }
+        gdk_window_set_cursor( window, busy_cursor );
+    }
+}
+
+extern void
+nwamui_util_restore_default_cursor( GtkWidget *widget )
+{
+    GdkWindow   *window = NULL;
+
+    if ( widget != NULL ) {
+        window = gtk_widget_get_window( widget );
+    }
+
+    if ( window != NULL ) {
+        gdk_window_set_cursor( window, NULL );
+    }
+}
+
 extern gboolean
 nwamui_util_confirm_removal(GtkWindow* parent_window, const gchar* title, const gchar* message) 
 {

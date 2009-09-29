@@ -118,6 +118,7 @@ struct _NwamuiDaemonPrivate {
     gboolean                     communicate_change_to_daemon;
     guint                        wep_timeout_id;
     gboolean                     emit_wlan_changed_signals;
+    GQueue                       *wlan_scan_queue;
     gint                         num_scanned_wireless;
 };
 
@@ -389,6 +390,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     self->prv->ncp_list = NULL;
     self->prv->env_list = NULL;
     self->prv->enm_list = NULL;
+    self->prv->wlan_scan_queue = g_queue_new();
 
     self->prv->nwam_events_gthread = g_thread_create(nwam_events_thread, g_object_ref(self), TRUE, &error);
     if( self->prv->nwam_events_gthread == NULL ) {
@@ -659,6 +661,10 @@ nwamui_daemon_finalize (NwamuiDaemon *self)
         g_list_free( self->prv->wifi_fav_list );
     }
     
+    if ( self->prv->wlan_scan_queue != NULL ) {
+        g_queue_free( self->prv->wlan_scan_queue );
+    }
+
     g_list_foreach( self->prv->env_list, nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
     g_list_free(self->prv->env_list);
     
@@ -1828,6 +1834,7 @@ static void
 nwamui_daemon_emit_scan_started_event( NwamuiDaemon *daemon )
 {
     if (daemon->prv->emit_wlan_changed_signals) {
+        g_queue_clear( daemon->prv->wlan_scan_queue );
         /* Signal Scan Start */
         g_signal_emit (daemon,
           nwamui_daemon_signals[WIFI_SCAN_STARTED],
@@ -1837,8 +1844,21 @@ nwamui_daemon_emit_scan_started_event( NwamuiDaemon *daemon )
 
 /* Assumes ownership of wifi_net, so should not be unref-ed by caller */
 static void
-nwamui_daemon_emit_scan_result( NwamuiDaemon *daemon, NwamuiWifiNet *wifi_net )
+nwamui_daemon_queue_scan_result( NwamuiDaemon *daemon, NwamuiWifiNet *wifi_net )
 {
+    if (daemon->prv->emit_wlan_changed_signals) {
+        if ( g_queue_find( daemon->prv->wlan_scan_queue, (gpointer)wifi_net) == NULL ) {
+            g_queue_push_tail(daemon->prv->wlan_scan_queue, (gpointer)wifi_net);
+        }
+    }
+}
+
+/* Assumes ownership of wifi_net, so should not be unref-ed by caller */
+static void
+nwamui_daemon_emit_scan_result( NwamuiWifiNet *wifi_net, gpointer data )
+{
+    NwamuiDaemon *daemon = NWAMUI_DAEMON(data);
+
     if (daemon->prv->emit_wlan_changed_signals) {
         /* trigger event */
         g_signal_emit (daemon,
@@ -1846,6 +1866,17 @@ nwamui_daemon_emit_scan_result( NwamuiDaemon *daemon, NwamuiWifiNet *wifi_net )
           0, /* details */
           wifi_net); /* Hand off ownership of wifi_net */
     }
+}
+
+/* Assumes ownership of wifi_net, so should not be unref-ed by caller */
+static void
+nwamui_daemon_emit_queued_scan_results( NwamuiDaemon *daemon )
+{
+    if (daemon->prv->emit_wlan_changed_signals) {
+        g_queue_foreach( daemon->prv->wlan_scan_queue, 
+                         (GFunc)nwamui_daemon_emit_scan_result, (gpointer)daemon );
+    }
+    g_queue_clear( daemon->prv->wlan_scan_queue );
 }
 
 static void
@@ -1975,9 +2006,11 @@ dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  ui
                         nwamui_wifi_net_set_status(wifi_net, NWAMUI_WIFI_STATUS_DISCONNECTED);
                     }
 
-                    nwamui_daemon_emit_scan_result( daemon, wifi_net );
+                    nwamui_daemon_queue_scan_result( daemon, wifi_net );
                 }
             }
+            nwamui_daemon_emit_queued_scan_results( daemon );
+
             g_free(sorted_wlans);
         }
         else {

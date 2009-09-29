@@ -62,17 +62,6 @@ static GOptionEntry option_entries[] = {
     {NULL}
 };
 
-gint prof_action_if_no_fav_networks = NULL;
-gboolean prof_ask_join_open_network;
-gboolean prof_ask_join_fav_network;
-gboolean prof_ask_add_to_fav;
-
-/* nwamui preference signal */
-static void join_wifi_not_in_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
-static void join_any_fav_wifi(GObject *gobject, GParamSpec *arg1, gpointer data);
-static void add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
-static void action_on_no_fav_networks(GObject *gobject, GParamSpec *arg1, gpointer data);
-
 /* others */
 static gboolean find_wireless_interface(GtkTreeModel *model,
   GtkTreePath *path,
@@ -83,54 +72,6 @@ static void
 cleanup_and_exit(int sig, siginfo_t *sip, void *data)
 {
     gtk_main_quit ();
-}
-
-static void
-join_wifi_not_in_fav(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-    NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
-    gchar *body;
-    
-    g_object_get(gobject, "join_wifi_not_in_fav", &prof_ask_join_open_network, NULL);
-    body = g_strdup_printf ("prof_ask_join_open_network = %d", prof_ask_join_open_network);
-/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
-    g_free (body);
-}
-
-static void
-join_any_fav_wifi(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-    NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
-    gchar *body;
-
-    g_object_get(gobject, "join_any_fav_wifi", &prof_ask_join_fav_network, NULL);
-    body = g_strdup_printf ("prof_ask_join_fav_network = %d", prof_ask_join_fav_network);
-/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
-    g_free (body);
-}
-
-static void
-add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-    NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
-    gchar *body;
-
-    g_object_get(gobject, "add_any_new_wifi_to_fav", &prof_ask_add_to_fav, NULL);
-    body = g_strdup_printf ("prof_ask_add_to_fav = %d", prof_ask_add_to_fav);
-/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
-    g_free (body);
-}
-
-static void
-action_on_no_fav_networks(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-    NwamuiDaemon* daemon = NWAMUI_DAEMON (data);
-    gchar *body;
-
-    g_object_get(gobject, "action_on_no_fav_networks", &prof_action_if_no_fav_networks, NULL);
-    body = g_strdup_printf ("prof_action_if_no_fav_networks = %d", prof_action_if_no_fav_networks);
-/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
-    g_free (body);
 }
 
 /**
@@ -303,35 +244,6 @@ main( int argc, char* argv[] )
     NWAM_TYPE_TREE_VIEW; /* Dummy to cause NwamTreeView to be loaded for GtkBuilder to find symbol */
 
     
-    /* nwamui preference signals */
-    {
-        NwamuiDaemon* daemon;
-        NwamuiProf* prof;
-
-        daemon = nwamui_daemon_get_instance ();
-        prof = nwamui_prof_get_instance ();
-
-        g_signal_connect(prof, "notify::join-wifi-not-in-fav",
-          G_CALLBACK(join_wifi_not_in_fav), (gpointer) daemon);
-        g_signal_connect(prof, "notify::join-any-fav-wifi",
-          G_CALLBACK(join_any_fav_wifi), (gpointer) daemon);
-        g_signal_connect(prof, "notify::add-any-new-wifi-to-fav",
-          G_CALLBACK(add_any_new_wifi_to_fav), (gpointer) daemon);
-        g_signal_connect(prof, "notify::action-on-no-fav-networks",
-          G_CALLBACK(action_on_no_fav_networks), (gpointer) daemon);
-
-        g_object_get (prof,
-          "action_on_no_fav_networks", &prof_action_if_no_fav_networks,
-          "join_wifi_not_in_fav", &prof_ask_join_open_network,
-          "join_any_fav_wifi", &prof_ask_join_fav_network,
-          "add_any_new_wifi_to_fav", &prof_ask_add_to_fav,
-          NULL);
-
-/*         nwamui_prof_notify_begin (prof); */
-        g_object_unref (prof);
-        g_object_unref (daemon);
-    }
-
     /* Setup function to be called after the mainloop has been created
      * this is to avoid confusion when calling gtk_main_iteration to get to
      * the point where the status icon's embedded flag is correctly set

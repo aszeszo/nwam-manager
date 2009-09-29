@@ -43,6 +43,12 @@ G_BEGIN_DECLS
 #define NWAMUI_IS_PROF_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE ((klass), NWAMUI_TYPE_PROF))
 #define NWAMUI_PROF_GET_CLASS(obj)     (G_TYPE_INSTANCE_GET_CLASS ((obj), NWAMUI_TYPE_PROF, NwamuiProfClass))
 
+typedef enum {
+    NWAMUI_NO_FAV_ACTION_NONE = 0,
+    NWAMUI_NO_FAV_ACTION_SHOW_LIST_DIALOG,
+    NWAMUI_NO_FAV_ACTION_LAST           /* Not to be used directly */
+} nwamui_action_on_no_fav_networks_t;
+
 
 typedef struct _NwamuiProf		      NwamuiProf;
 typedef struct _NwamuiProfClass       NwamuiProfClass;
@@ -75,6 +81,7 @@ extern void                 nwamui_prof_set_notification_default_timeout ( Nwamu
 
 extern gint                 nwamui_prof_get_notification_default_timeout (NwamuiProf* self);
 
+const gchar*                nwamui_prof_get_no_fav_action_string( nwamui_action_on_no_fav_networks_t action );
 G_END_DECLS
 
 #endif	/* _NWAMUI_PROF_H */

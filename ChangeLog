@@ -1,3 +1,33 @@
+2009-09-29  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Handle get/set of behaviour if no favourites found.
+	  Hide the "Ask before..." expander and children since nothing in
+	  there is implemented on nwamd side.
+	* capplet/nwam_wireless_chooser.c: 
+	  Set a busy cursor while waiting for scan data to be filled.
+	* common/nwamui_daemon.c: 
+	  Queue up wifi scan events, sending only one one event per network.
+	* daemon/main.c: 
+	  Remove nwamui_prof settings from here and put in status_icon.c since
+	  they are used there.
+	* capplet/Makefile.am:
+	  Add wireless_chooser_dialog to the libcapplet library, so it can be
+	  used in the daemon.
+	* daemon/status_icon.c: 
+	  Handle the configured behaviour where no favourites networks are
+	  found. Don't show a notify message, just the wireless chooser
+	  dialog, if set.
+	* data/nwam-manager.schemas.in:
+	  Add schema entry for configuration key action_on_no_fav_networks.
+	  Default is to show the wireless chooser dialog.
+	* common/nwamui_prof.c, common/nwamui_prof.h:
+	  Add enum for action types if no favourite networks are found.
+	* nwam_core/usr/include/inetcfg.h:
+	  Update to latest header.
+	* common/libnwamui.c, common/libnwamui.h:
+	  Add utility functions to set the busy cursor, and restore to default.
+
 2009-09-25  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in:

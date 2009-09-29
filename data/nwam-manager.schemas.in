@@ -64,5 +64,19 @@
       </locale>
     </schema>
 
+    <schema>
+      <key>/schemas/apps/nwam-manager/action_on_no_fav_networks</key>
+      <applyto>/apps/nwam-manager/action_on_no_fav_networks</applyto>
+      <owner>nwam-manager</owner>
+      <type>int</type>
+      <default>1</default>
+      <locale name="C">
+         <short>action_on_no_fav_networks</short>
+         <long>
+         Action to do if no favourite networks found.
+         </long>
+      </locale>
+    </schema>
+
   </schemalist>  
 </gconfschemafile>

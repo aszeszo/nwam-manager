@@ -297,6 +297,10 @@ extern void                     nwamui_util_show_message(   GtkWindow* parent_wi
                                                             const gchar* message, 
                                                             gboolean block );
 
+extern void                     nwamui_util_set_busy_cursor( GtkWidget *widget );
+
+extern void                     nwamui_util_restore_default_cursor( GtkWidget *widget );
+
 extern void nwamui_util_set_widget_a11y_info(   GtkWidget      *widget, 
                                                 const gchar    *name,
                                                 const gchar    *description );

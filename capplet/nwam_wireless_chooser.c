@@ -317,6 +317,7 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 		response =  gtk_dialog_run(GTK_DIALOG(self->prv->wireless_chooser));
 		
 		gtk_widget_hide( GTK_WIDGET(self->prv->wireless_chooser) );
+        nwamui_util_restore_default_cursor(GTK_WIDGET(self->prv->wireless_chooser) );
 	}
 	return(response);
 }
@@ -546,6 +547,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
     if ( stop_emission ) {
         g_signal_stop_emission_by_name(widget, "response" );
     }
+    nwamui_util_restore_default_cursor(GTK_WIDGET(self->prv->wireless_chooser) );
 }
 
 /*
@@ -640,6 +642,8 @@ nwam_wifi_scan_start (GObject *daemon, gpointer data)
     model = gtk_tree_view_get_model (self->prv->wifi_tv);
 
     gtk_widget_hide (GTK_WIDGET(self->prv->wifi_tv));
+
+    nwamui_util_set_busy_cursor( GTK_WIDGET(self->prv->wireless_chooser) );
     
     gtk_list_store_clear (GTK_LIST_STORE(model));
 
@@ -660,6 +664,7 @@ nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data)
 	} else {
         /* scan is over */
         gtk_widget_show (GTK_WIDGET(self->prv->wifi_tv));
+        nwamui_util_restore_default_cursor(GTK_WIDGET(self->prv->wireless_chooser) );
     }
 }
 

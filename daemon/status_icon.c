@@ -51,7 +51,19 @@ typedef struct _NwamStatusIconPrivate NwamStatusIconPrivate;
 #define NWAM_MANAGER_PROPERTIES "nwam-manager-properties"
 #define STATIC_MENUITEM_ID "static_item_id"
 
+/* nwamui preference signal */
+static void join_wifi_not_in_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void join_any_fav_wifi(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void action_on_no_fav_networks(GObject *gobject, GParamSpec *arg1, gpointer data);
+
 static glong                    update_wifi_timer_interval = 5*1000;
+static nwamui_action_on_no_fav_networks_t 
+                                prof_action_if_no_fav_networks = NWAMUI_NO_FAV_ACTION_NONE;
+static gboolean                 prof_ask_join_open_network = FALSE;
+static gboolean                 prof_ask_join_fav_network = FALSE;
+static gboolean                 prof_ask_add_to_fav = TRUE;
+
 
 enum {
 	SECTION_GLOBAL = 0,         /* Not really used */
@@ -93,7 +105,7 @@ struct _NwamStatusIconPrivate {
 	NwamuiDaemon *daemon;
     NwamuiNcp    *active_ncp;
     gint          current_status;
-    NwamuiNcu    *needs_wifi_selection;
+    gboolean      needs_wifi_selection_seen;
     NwamuiWifiNet*needs_wifi_key;
 
     gint icon_stock_index;
@@ -135,6 +147,7 @@ static gint ncp_find_enabled_wireless_ncu(gconstpointer a, gconstpointer b);
 static void nwam_menu_update_wifi_section(NwamStatusIcon *self);
 
 /* nwamui utilies */
+static void show_wireless_chooser( NwamStatusIcon *self );
 static void join_wireless(NwamuiWifiNet *wifi, gboolean do_connect);
 static gboolean daemon_status_is_good(NwamuiDaemon *daemon);
 
@@ -413,15 +426,28 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
     gboolean        active_ncu = FALSE;
 
     /* Only show the message when it's relevant */
-	if (ncu && ncu != prv->needs_wifi_selection &&
+	if (ncu && !prv->needs_wifi_selection_seen &&
         ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
 
         if ( active_ncu ) {
             nwam_status_icon_set_status(self, ncu );
         }
 
-        prv->needs_wifi_selection = ncu; /* no need to ref, we don't use contents */
-        nwam_notification_show_ncu_wifi_selection_needed( ncu, notifyaction_popup_menus, G_OBJECT(self) );
+        prv->needs_wifi_selection_seen = TRUE; 
+
+        if ( prof_action_if_no_fav_networks == NWAMUI_NO_FAV_ACTION_SHOW_LIST_DIALOG ) {
+            show_wireless_chooser( self );
+        }
+
+        /*
+         * After discussing with Calum, it is cleaner to simply not show
+         * anything unless asked to, but we won't show a notification message
+         * either for now.
+         *
+        else {
+            nwam_notification_show_ncu_wifi_selection_needed( ncu, notifyaction_popup_menus, G_OBJECT(self) );
+        }
+        */
     } 
 }
 
@@ -443,7 +469,7 @@ ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
     switch(nwamui_ncu_get_connection_state(ncu)) {
     case NWAMUI_STATE_CONNECTED_ESSID:
     case NWAMUI_STATE_CONNECTED:
-        prv->needs_wifi_selection = NULL;
+        prv->needs_wifi_selection_seen = FALSE;
         prv->needs_wifi_key = NULL;
         if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
             nwam_notification_show_ncu_connected( ncu );
@@ -510,7 +536,7 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
 	} else {
         g_debug("----------- menu item creation is  over -------------");
         g_signal_handlers_disconnect_by_func(prv->daemon,
-          (GCallback)nwam_menu_create_wifi_menuitems, self);
+          (gpointer)nwam_menu_create_wifi_menuitems, (gpointer)self);
     }
 }
 
@@ -626,9 +652,9 @@ switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
     g_signal_handlers_block_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO])),
-                                      location_model_menuitems, self );
+                                      (gpointer)location_model_menuitems, self );
     g_signal_handlers_block_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])),
-                                      location_model_menuitems, self );
+                                      (gpointer)location_model_menuitems, self );
 
     if (nwamui_daemon_env_selection_is_manual(prv->daemon)) {
         gtk_menu_item_activate(GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]));
@@ -637,9 +663,9 @@ switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
     }
 
     g_signal_handlers_unblock_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO])),
-                                        location_model_menuitems, self );
+                                        (gpointer)location_model_menuitems, self );
     g_signal_handlers_unblock_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])),
-                                        location_model_menuitems, self );
+                                        (gpointer)location_model_menuitems, self );
 }
 
 static void
@@ -654,9 +680,9 @@ daemon_active_env_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
     g_message("flag is %d", nwamui_daemon_env_selection_is_manual(prv->daemon));
 
     g_signal_handlers_block_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO])),
-                                      location_model_menuitems, self );
+                                      (gpointer)location_model_menuitems, self );
     g_signal_handlers_block_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])),
-                                      location_model_menuitems, self );
+                                      (gpointer)location_model_menuitems, self );
 
     if (nwamui_daemon_env_selection_is_manual(prv->daemon)) {
         gtk_menu_item_activate(GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]));
@@ -665,9 +691,9 @@ daemon_active_env_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
     }
 
     g_signal_handlers_unblock_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO])),
-                                        location_model_menuitems, self );
+                                        (gpointer)location_model_menuitems, self );
     g_signal_handlers_unblock_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])),
-                                        location_model_menuitems, self );
+                                        (gpointer)location_model_menuitems, self );
 
     if (env) {
         
@@ -861,6 +887,21 @@ find_wireless_interface(GtkTreeModel *model,
 }
 
 static void
+show_wireless_chooser( NwamStatusIcon *self )
+{
+    static NwamPrefIFace   *chooser_dialog = NULL;
+    NwamStatusIconPrivate  *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+
+    if ( chooser_dialog == NULL ) {
+        chooser_dialog = NWAM_PREF_IFACE(nwam_wireless_chooser_new());
+    }
+
+    nwamui_daemon_dispatch_wifi_scan_events_from_cache(prv->daemon );
+
+    capplet_dialog_run(chooser_dialog, NULL);
+}
+
+static void
 join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
 {
     static NwamWirelessDialog *wifi_dialog = NULL;
@@ -1013,7 +1054,7 @@ nwam_status_icon_run(NwamStatusIcon *self)
 {
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
-    g_assert(prv->daemon == NULL && prv->menu == NULL);
+    g_assert(prv->menu == NULL);
 
     g_debug("%s: Hide self firstly!", __func__);
     gtk_status_icon_set_visible(GTK_STATUS_ICON(self), FALSE);
@@ -1023,8 +1064,6 @@ nwam_status_icon_run(NwamStatusIcon *self)
      */
     nwam_notification_init(GTK_STATUS_ICON(self));
 
-    prv->prof = nwamui_prof_get_instance ();
-	prv->daemon = nwamui_daemon_get_instance ();
     prv->menu = g_object_ref_sink(nwam_menu_new(N_SECTION));
     g_signal_connect(G_OBJECT(prv->menu), "get_section_index",
       G_CALLBACK(nwam_menu_get_section_index), (gpointer)self);
@@ -1206,7 +1245,7 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    gchar *argv[3] = { NULL, NULL, NULL };
+    const gchar *argv[3] = { NULL, NULL, NULL };
     gint menuitem_id = (gint)g_object_get_data(G_OBJECT(menuitem), STATIC_MENUITEM_ID);
 
     switch (menuitem_id) {
@@ -1375,7 +1414,7 @@ notification_listwireless(NotifyNotification *n,
   gchar *action,
   gpointer data)
 {
-    gchar *argv[2] = {"--list-fav-wireless=", NULL};
+    const gchar *argv[2] = {"--list-fav-wireless=", NULL};
     nwam_exec(argv);
 }
 
@@ -1395,8 +1434,27 @@ nwam_status_icon_init (NwamStatusIcon *self)
 {
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
     prv->tooltip_widget = nwam_tooltip_widget_new();
-    prv->needs_wifi_selection = NULL;
+    prv->needs_wifi_selection_seen = FALSE;
     prv->needs_wifi_key = NULL;
+    prv->prof = nwamui_prof_get_instance ();
+	prv->daemon = nwamui_daemon_get_instance ();
+
+    /* nwamui preference signals */
+    g_signal_connect(prv->prof, "notify::join-wifi-not-in-fav",
+      G_CALLBACK(join_wifi_not_in_fav), (gpointer) self);
+    g_signal_connect(prv->prof, "notify::join-any-fav-wifi",
+      G_CALLBACK(join_any_fav_wifi), (gpointer) self);
+    g_signal_connect(prv->prof, "notify::add-any-new-wifi-to-fav",
+      G_CALLBACK(add_any_new_wifi_to_fav), (gpointer) self);
+    g_signal_connect(prv->prof, "notify::action-on-no-fav-networks",
+      G_CALLBACK(action_on_no_fav_networks), (gpointer) self);
+
+    g_object_get (prv->prof,
+      "action_on_no_fav_networks", &prof_action_if_no_fav_networks,
+      "join_wifi_not_in_fav", &prof_ask_join_open_network,
+      "join_any_fav_wifi", &prof_ask_join_fav_network,
+      "add_any_new_wifi_to_fav", &prof_ask_add_to_fav,
+      NULL);
 }
 
 static void
@@ -1768,7 +1826,7 @@ nwam_exec (const gchar **nwam_arg)
 	gchar **argv = NULL;
 	gint argc = 0;
 
-    argv = g_malloc(sizeof(gchar *) * (g_strv_length(nwam_arg) + 2));
+    argv = g_malloc(sizeof(gchar *) * (g_strv_length((gchar**)nwam_arg) + 2));
 	argv[argc++] = g_find_program_in_path (NWAM_MANAGER_PROPERTIES);
 	/* FIXME, seems to be Solaris specific */
 	if (argv[0] == NULL) {
@@ -1778,7 +1836,7 @@ nwam_exec (const gchar **nwam_arg)
 		g_free (base);
 	}
     for (;nwam_arg[argc - 1]; argc++) {
-        argv[argc] = nwam_arg[argc - 1];
+        argv[argc] = (char*)nwam_arg[argc - 1];
     }
     argv[argc] = NULL;
 
@@ -1795,5 +1853,53 @@ nwam_exec (const gchar **nwam_arg)
 	}
 	g_free (argv[0]);
 	g_free (argv);
+}
+
+static void
+join_wifi_not_in_fav(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(data);
+    gchar *body;
+    
+    g_object_get(gobject, "join_wifi_not_in_fav", &prof_ask_join_open_network, NULL);
+    body = g_strdup_printf ("prof_ask_join_open_network = %d", prof_ask_join_open_network);
+/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
+    g_free (body);
+}
+
+static void
+join_any_fav_wifi(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(data);
+    gchar *body;
+
+    g_object_get(gobject, "join_any_fav_wifi", &prof_ask_join_fav_network, NULL);
+    body = g_strdup_printf ("prof_ask_join_fav_network = %d", prof_ask_join_fav_network);
+/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
+    g_free (body);
+}
+
+static void
+add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(data);
+    gchar *body;
+
+    g_object_get(gobject, "add_any_new_wifi_to_fav", &prof_ask_add_to_fav, NULL);
+    body = g_strdup_printf ("prof_ask_add_to_fav = %d", prof_ask_add_to_fav);
+/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
+    g_free (body);
+}
+
+static void
+action_on_no_fav_networks(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(data);
+    gchar *body;
+
+    g_object_get(gobject, "action_on_no_fav_networks", &prof_action_if_no_fav_networks, NULL);
+    body = g_strdup_printf ("prof_action_if_no_fav_networks = %d", prof_action_if_no_fav_networks);
+/*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
+    g_free (body);
 }
 
