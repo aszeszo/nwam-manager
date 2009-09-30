@@ -1,3 +1,10 @@
+2009-09-30  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_wireless_chooser.c: 
+	  Use the display string rather than just essid for rendering the
+	  network name, since it is more informative, especially if you have
+	  more than one wifi device.
+
 2009-09-29  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_conf_ip_panel.c: 

@@ -314,6 +314,8 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 	}
 	
 	if ( self->prv->wireless_chooser != NULL ) {
+        /* Set busy cursor from start */
+        nwamui_util_set_busy_cursor( GTK_WIDGET(self->prv->wireless_chooser) );
 		response =  gtk_dialog_run(GTK_DIALOG(self->prv->wireless_chooser));
 		
 		gtk_widget_hide( GTK_WIDGET(self->prv->wireless_chooser) );
@@ -577,6 +579,15 @@ nwam_wifi_chooser_cell_cb (GtkTreeViewColumn *col,
 {
     NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(data);
     NwamuiWifiNet       *wifi_info  = NULL;
+    NwamuiDaemon        *daemon;
+    NwamuiNcp           *ncp;
+    gboolean             has_many_wifi;
+
+    daemon = nwamui_daemon_get_instance();
+    ncp = nwamui_daemon_get_active_ncp( daemon );
+    has_many_wifi = nwamui_ncp_get_wireless_link_num( ncp ) > 1;
+    g_object_unref(G_OBJECT(ncp));
+    g_object_unref(G_OBJECT(daemon));
 
     gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &wifi_info, -1);
     
@@ -585,8 +596,8 @@ nwam_wifi_chooser_cell_cb (GtkTreeViewColumn *col,
     switch (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (renderer), "nwam_wifi_fav_column_id"))) {
     case WIFI_FAV_ESSID:
     {   
-        gchar*  essid = nwamui_wifi_net_get_essid(wifi_info);
-            
+        gchar*  essid = nwamui_wifi_net_get_display_string(wifi_info, has_many_wifi );
+
         g_object_set (G_OBJECT(renderer),
           "text", essid?essid:"",
           NULL);
