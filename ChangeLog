@@ -1,5 +1,11 @@
 2009-10-01  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_net_conf_panel.c: 
+	  Hide renaming of NCUs since it's not currently supported by NWAM
+	  itself.
+
+2009-10-01  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_wireless_chooser.c: 
 	  Hide chooser dialog if emission isn't being stopped.
 	* common/nwamui_daemon.c: 

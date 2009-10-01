@@ -2221,7 +2221,11 @@ update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection)
     gtk_widget_set_sensitive(GTK_WIDGET(prv->connection_disable_btn), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->connection_move_up_btn), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->connection_move_down_btn), FALSE);
+#ifdef ENABLE_NCU_RENAME
     gtk_widget_set_sensitive(GTK_WIDGET(prv->connection_rename_btn), FALSE);
+#else
+    gtk_widget_hide(GTK_WIDGET(prv->connection_rename_btn));
+#endif
     gtk_widget_set_sensitive(GTK_WIDGET(prv->connection_group_btn), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->connection_activation_combo), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->activation_mode_lbl), FALSE);
@@ -2259,8 +2263,10 @@ update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection)
 #endif
         if (count_selected_rows == 1) {
             if (on_child_num + child_num > 0) {
+#ifdef ENABLE_NCU_RENAME
                 /* Enable Rename */
                 gtk_widget_set_sensitive(GTK_WIDGET(prv->connection_rename_btn), TRUE);
+#endif
                 /* Enable Disable */
                 gtk_widget_set_sensitive(GTK_WIDGET(prv->connection_disable_btn), TRUE);
             }
