@@ -1969,8 +1969,9 @@ dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  ui
             for (int i = 0; i < nwlan; i++) {
                 nwam_wlan_t* wlan_p = sorted_wlans[i];
 
-                nwamui_debug( "%d: ESSID %s BSSID %s", i + 1,
-                              wlan_p->nww_essid, wlan_p->nww_bssid);
+                nwamui_debug( "%d: ESSID %s BSSID %s : connected = %s : selected = %s", i + 1,
+                              wlan_p->nww_essid, wlan_p->nww_bssid, 
+                              wlan_p->nww_connected?"TRUE":"FALSE", wlan_p->nww_selected?"TRUE":"FALSE" );
 
                 /* Skipping empty ESSID seems wrong here, what if we actually connect
                  * to this... Will it still appear in menu??

@@ -1,3 +1,17 @@
+2009-10-01  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_wireless_chooser.c: 
+	  Hide chooser dialog if emission isn't being stopped.
+	* common/nwamui_daemon.c: 
+	  Minor debug message change.
+	* daemon/status_icon.c: 
+	  Change slightly the logic of the showing of the wifi selection
+	  dialog. If the dialog is still visible, then set it's urgency flag
+	  to draw some attention to it.
+	* data/Makefile.am:
+	  Fix install issue, where it was installing the schema from the
+	  daemon directory instead of the data directory as expected.
+
 2009-09-30  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_wireless_chooser.c: 

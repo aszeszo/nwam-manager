@@ -43,6 +43,7 @@
 #include "nwam-env-item.h"
 #include "nwam-ncu-item.h"
 #include "capplet/nwam_wireless_dialog.h"
+#include "capplet/nwam_wireless_chooser.h"
 #include "capplet/capplet-utils.h"
 
 typedef struct _NwamStatusIconPrivate NwamStatusIconPrivate;
@@ -115,6 +116,8 @@ struct _NwamStatusIconPrivate {
     guint    enable_sync_wifi_signals_timer_id;
     gulong   activate_handler_id;
 
+    NwamPrefIFace   *chooser_dialog;
+
 	gboolean has_wifi;
 };
 
@@ -148,6 +151,7 @@ static void nwam_menu_update_wifi_section(NwamStatusIcon *self);
 
 /* nwamui utilies */
 static void show_wireless_chooser( NwamStatusIcon *self );
+static void set_wireless_chooser_urgency( NwamStatusIcon *self, gboolean urgent );
 static void join_wireless(NwamuiWifiNet *wifi, gboolean do_connect);
 static gboolean daemon_status_is_good(NwamuiDaemon *daemon);
 
@@ -413,8 +417,6 @@ daemon_wifi_key_needed (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer user
 
         prv->needs_wifi_key = wifi; /* no need to ref, we don't use contents */
         nwam_notification_show_ncu_wifi_key_needed( wifi, notifyaction_wifi_key_need );
-    } else {
-        g_assert_not_reached();
     }
 }
 
@@ -426,28 +428,32 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
     gboolean        active_ncu = FALSE;
 
     /* Only show the message when it's relevant */
-	if (ncu && !prv->needs_wifi_selection_seen &&
-        ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
+	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
 
         if ( active_ncu ) {
             nwam_status_icon_set_status(self, ncu );
         }
 
-        prv->needs_wifi_selection_seen = TRUE; 
+        if (!prv->needs_wifi_selection_seen) {
+            if ( prof_action_if_no_fav_networks == NWAMUI_NO_FAV_ACTION_SHOW_LIST_DIALOG ) {
+                show_wireless_chooser( self );
+            }
 
-        if ( prof_action_if_no_fav_networks == NWAMUI_NO_FAV_ACTION_SHOW_LIST_DIALOG ) {
-            show_wireless_chooser( self );
-        }
+            /*
+             * After discussing with Calum, it is cleaner to simply not show
+             * anything unless asked to, but we won't show a notification message
+             * either for now.
+             *
+            else {
+                nwam_notification_show_ncu_wifi_selection_needed( ncu, notifyaction_popup_menus, G_OBJECT(self) );
+            }
+            */
 
-        /*
-         * After discussing with Calum, it is cleaner to simply not show
-         * anything unless asked to, but we won't show a notification message
-         * either for now.
-         *
-        else {
-            nwam_notification_show_ncu_wifi_selection_needed( ncu, notifyaction_popup_menus, G_OBJECT(self) );
+            prv->needs_wifi_selection_seen = TRUE; 
         }
-        */
+        else { /* If dialog still visibie raise it */
+            set_wireless_chooser_urgency( self, TRUE );
+        }
     } 
 }
 
@@ -886,19 +892,51 @@ find_wireless_interface(GtkTreeModel *model,
     return FALSE;
 }
 
+static NwamPrefIFace*
+get_chooser_dialog(  NwamStatusIcon *self )
+{
+    NwamStatusIconPrivate  *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+
+    if ( prv->chooser_dialog == NULL ) {
+        prv->chooser_dialog = NWAM_PREF_IFACE(nwam_wireless_chooser_new());
+    }
+
+    return( prv->chooser_dialog );
+}
+
 static void
 show_wireless_chooser( NwamStatusIcon *self )
 {
-    static NwamPrefIFace   *chooser_dialog = NULL;
+    NwamPrefIFace          *chooser_dialog;
     NwamStatusIconPrivate  *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    GtkWindow              *window = NULL;
 
-    if ( chooser_dialog == NULL ) {
-        chooser_dialog = NWAM_PREF_IFACE(nwam_wireless_chooser_new());
-    }
+    chooser_dialog = get_chooser_dialog( self );
 
     nwamui_daemon_dispatch_wifi_scan_events_from_cache(prv->daemon );
 
-    capplet_dialog_run(chooser_dialog, NULL);
+    window = nwam_pref_dialog_get_window(chooser_dialog);
+
+    if ( window != NULL ) {
+        set_wireless_chooser_urgency( self, FALSE ); /* Reset urgency flag to FALSE */
+        gtk_widget_show_all( GTK_WIDGET(window) );
+    }
+}
+
+static void
+set_wireless_chooser_urgency( NwamStatusIcon *self, gboolean urgent )
+{
+    NwamPrefIFace          *chooser_dialog;
+    NwamStatusIconPrivate  *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    GtkWindow              *window = NULL;
+
+    chooser_dialog = get_chooser_dialog( self );
+
+    window = nwam_pref_dialog_get_window(chooser_dialog);
+
+    if ( window != NULL ) {
+        gtk_window_set_urgency_hint( GTK_WINDOW(window), urgent );
+    }
 }
 
 static void
