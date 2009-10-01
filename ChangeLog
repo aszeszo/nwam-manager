@@ -1,5 +1,13 @@
 2009-10-01  Darren Kenny  <darren.kenny@sun.com>
 
+	* nbproject/Makefile-capplet.mk, nbproject/Makefile-daemon.mk,
+	  nbproject/Makefile-impl.mk, nbproject/configurations.xml,
+	  nbproject/private/configurations.xml, nbproject/private/private.xml,
+	  nbproject/project.xml:
+	  Remove obsolete nbproject files.
+
+2009-10-01  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_net_conf_panel.c: 
 	  Hide renaming of NCUs since it's not currently supported by NWAM
 	  itself.
