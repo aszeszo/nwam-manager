@@ -178,6 +178,23 @@ nwamui_object_finalize(NwamuiObject *self)
 	G_OBJECT_CLASS(nwamui_object_parent_class)->finalize(G_OBJECT (self));
 }
 
+/**
+ * nwamui_object_can_rename:
+ * @nwamui_object: a #NwamuiObject.
+ * @returns: TRUE if the name.can be changed.
+ *
+ **/
+extern gboolean
+nwamui_object_can_rename (NwamuiObject *object)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
+
+    if (NWAMUI_OBJECT_GET_CLASS (object)->can_rename) {
+        return NWAMUI_OBJECT_GET_CLASS (object)->can_rename(object);
+    }
+    return FALSE;
+}
+
 /** 
  * nwamui_object_set_name:
  * @nwamui_object: a #NwamuiObject.
@@ -205,8 +222,6 @@ extern gchar *
 nwamui_object_get_name (NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), NULL);
-/*     g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_name, NULL); */
-    /* For debugging. */
 
     if (NWAMUI_OBJECT_GET_CLASS (object)->get_name) {
         return NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);

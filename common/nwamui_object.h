@@ -56,6 +56,7 @@ struct _NwamuiObject
     NwamuiObjectPrivate         *prv;
 };
 
+typedef    gboolean             (*nwamui_object_can_rename_func_t)(NwamuiObject *object);
 typedef    gchar*               (*nwamui_object_get_name_func_t)(NwamuiObject *object);
 typedef    void                 (*nwamui_object_set_name_func_t)(NwamuiObject *object, const gchar* name);
 typedef    GList*               (*nwamui_object_get_conditions_func_t)(NwamuiObject *object);
@@ -74,6 +75,7 @@ struct _NwamuiObjectClass
 	GObjectClass                                parent_class;
 
     nwamui_object_get_name_func_t               get_name;
+    nwamui_object_can_rename_func_t             can_rename;
     nwamui_object_set_name_func_t               set_name;
     nwamui_object_get_conditions_func_t         get_conditions;
     nwamui_object_set_conditions_func_t         set_conditions;
@@ -90,6 +92,7 @@ struct _NwamuiObjectClass
 extern  GType               nwamui_object_get_type (void) G_GNUC_CONST;
 
 extern gchar*               nwamui_object_get_name(NwamuiObject *object);
+extern gboolean             nwamui_object_can_rename (NwamuiObject *object);
 extern void                 nwamui_object_set_name(NwamuiObject *object, const gchar* name);
 extern void                 nwamui_object_set_conditions ( NwamuiObject *object, const GList* conditions );
 extern GList*               nwamui_object_get_conditions ( NwamuiObject *object );

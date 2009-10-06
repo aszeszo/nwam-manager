@@ -1,3 +1,31 @@
+2009-10-06  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/capplet-utils.c, capplet/nwam_conn_conf_ip_panel.c: 
+	  Fix defect#11686 by converting tree model to ordered list rather
+	  than in reverse order, and then applying a priority value to each
+	  before committing.
+	* common/nwamui_object.h, common/nwamui_object.c: 
+	  Fix defect #11667 by adding a  function nwamui_object_can_rename()
+	  to check if it's possible to do a rename.
+	* common/nwamui_enm.c, common/nwamui_enm.h, common/nwamui_env.c,
+	  common/nwamui_env.h, common/nwamui_wifi_net.c,
+	  common/nwamui_wifi_net.h:
+	  Implement can_rename() function for each object where it's possible.
+	* capplet/nwam_location_dialog.c, capplet/nwam_vpn_pref_dialog.c,
+	  capplet/nwam_wireless_dialog.c: 
+	  Update GUI elements to handle the ability to rename or not.
+	* common/nwamui_daemon.c:
+	  Update for the removal of the RENAME action in the daemon.
+	* nwam_core/usr/include/inetcfg.h, nwam_core/usr/include/libdladm.h,
+	  nwam_core/usr/include/libdladm_impl.h,
+	  nwam_core/usr/include/libdllink.h,
+	  nwam_core/usr/include/libdlmgmt.h, nwam_core/usr/include/libnwam.h,
+	  nwam_core/usr/include/sys/dld.h,
+	  nwam_core/usr/include/sys/dls_mgmt.h,
+	  nwam_core/usr/include/sys/mac.h, nwam_core/lib/i386/libnwam.so.1,
+	  nwam_core/lib/sparc/libnwam.so.1:
+	  Update to match RC1 (10/05) build.
+
 2009-10-01  Darren Kenny  <darren.kenny@sun.com>
 
 	* nbproject/Makefile-capplet.mk, nbproject/Makefile-daemon.mk,

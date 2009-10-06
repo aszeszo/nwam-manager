@@ -145,6 +145,7 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
     gobject_class->finalize = (void (*)(GObject*)) nwamui_wifi_net_finalize;
 
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_wifi_net_get_essid;
+    nwamuiobject_class->can_rename = (nwamui_object_can_rename_func_t)nwamui_wifi_net_can_rename;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_wifi_net_set_essid;
 
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_wifi_net_reload;
@@ -1359,6 +1360,28 @@ nwamui_wifi_net_get_ncu ( NwamuiWifiNet *self )
                   NULL);
     
     return( ncu );
+}
+
+/**
+ * nwamui_wifi_net_can_rename:
+ * @self: a #NwamuiWifiNet.
+ * @returns: TRUE if the name.can be changed.
+ *
+ **/
+extern gboolean
+nwamui_wifi_net_can_rename (NwamuiWifiNet *object)
+{
+    NwamuiWifiNet *self = NWAMUI_WIFI_NET(object);
+    NwamuiWifiNetPrivate *prv = NWAMUI_WIFI_NET(object)->prv;
+
+    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (object), FALSE);
+
+    if ( prv->is_favourite && prv->known_wlan_h != NULL ) {
+        if (nwam_known_wlan_can_set_name( prv->known_wlan_h )) {
+            return( TRUE );
+        }
+    }
+    return FALSE;
 }
 
 /* Get/Set ESSID */

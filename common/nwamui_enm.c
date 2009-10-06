@@ -106,6 +106,7 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
     gobject_class->finalize = (void (*)(GObject*)) nwamui_enm_finalize;
 
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_enm_get_name;
+    nwamuiobject_class->can_rename = (nwamui_object_can_rename_func_t)nwamui_enm_can_rename;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_enm_set_name;
     nwamuiobject_class->get_conditions = (nwamui_object_get_conditions_func_t)nwamui_enm_get_selection_conditions;
     nwamuiobject_class->set_conditions = (nwamui_object_set_conditions_func_t)nwamui_enm_set_selection_conditions;
@@ -871,6 +872,27 @@ nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
     }
     
     return( self );
+}
+
+/**
+ * nwamui_enm_can_rename:
+ * @self: a #NwamuiEnm.
+ * @returns: TRUE if the name.can be changed.
+ *
+ **/
+extern gboolean
+nwamui_enm_can_rename (NwamuiEnm *object)
+{
+    NwamuiEnm *self = NWAMUI_ENM(object);
+    NwamuiEnmPrivate *prv = NWAMUI_ENM(object)->prv;
+
+    g_return_val_if_fail (NWAMUI_IS_ENM (object), FALSE);
+    if ( prv->nwam_enm != NULL ) {
+        if (nwam_enm_can_set_name( prv->nwam_enm )) {
+            return( TRUE );
+        }
+    }
+    return FALSE;
 }
 
 /** 

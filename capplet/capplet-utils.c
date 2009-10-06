@@ -367,10 +367,24 @@ nwamui_object_name_cell_edited ( GtkCellRendererText *cell,
 	GtkTreeIter iter;
 
 	if ( gtk_tree_model_get_iter (model, &iter, path)) {
-		NwamuiObject*  object;
+		NwamuiObject*   object;
+        gboolean        editable;
+
 		gtk_tree_model_get(model, &iter, 0, &object, -1);
 
-        if ( !capplet_model_check_name_exists( model, NWAMUI_OBJECT(object), new_text ) ) {
+        editable = nwamui_object_can_rename( NWAMUI_OBJECT(object) );
+
+        if ( !editable ) {
+            GtkWindow  *top_level = GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(treeview)));
+            gchar      *message;
+
+            message = g_strdup(_("\n\nThe name of a committed object cannot be changed."));
+
+            nwamui_util_show_message( top_level, GTK_MESSAGE_ERROR, _("Renaming Failed"), message, FALSE);
+
+            g_free(message);
+        }
+        else if ( !capplet_model_check_name_exists( model, NWAMUI_OBJECT(object), new_text ) ) {
             nwamui_object_set_name(object, new_text);
         }
         else {
@@ -636,7 +650,7 @@ capplet_model_foreach_add_to_list(GtkTreeModel *model,
 	GObject *object;
 
         gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
-	list = g_list_prepend(list, object);
+	list = g_list_append(list, object);
 	data->ret_data = (gpointer)list;
 
 	return FALSE;

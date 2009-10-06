@@ -71,7 +71,6 @@ typedef struct icfg_if {
 typedef struct icfg_handle {
 	int ifh_sock;				/* socket to interface */
 	icfg_if_t ifh_interface;		/* interface definition */
-	struct iftun_req *ifh_tunnel_params;	/* tunnel parameters */
 } *icfg_handle_t;
 
 /* retrieve error string */
@@ -84,23 +83,6 @@ extern boolean_t icfg_is_logical(icfg_handle_t);
 
 /* get interface name */
 extern const char *icfg_if_name(icfg_handle_t);
-
-/* set tunnel parameters */
-extern int icfg_refresh_tunnel_cache(icfg_handle_t);
-extern int icfg_set_tunnel_dest(icfg_handle_t, const struct sockaddr *,
-    socklen_t);
-extern int icfg_set_tunnel_src(icfg_handle_t, const struct sockaddr *,
-    socklen_t);
-extern int icfg_set_tunnel_hoplimit(icfg_handle_t, uint8_t);
-extern int icfg_set_tunnel_encaplimit(icfg_handle_t, int16_t);
-
-/* get tunnel parameters */
-extern int icfg_get_tunnel_dest(icfg_handle_t, struct sockaddr *, socklen_t *);
-extern int icfg_get_tunnel_src(icfg_handle_t, struct sockaddr *, socklen_t *);
-extern int icfg_get_tunnel_hoplimit(icfg_handle_t, uint8_t *);
-extern int icfg_get_tunnel_encaplimit(icfg_handle_t, int16_t *);
-extern int icfg_get_tunnel_lower(icfg_handle_t, int *);
-extern int icfg_get_tunnel_upper(icfg_handle_t, int *);
 
 /* set interface properties */
 extern int icfg_set_flags(icfg_handle_t, uint64_t);

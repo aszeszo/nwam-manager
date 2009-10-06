@@ -43,7 +43,7 @@ extern "C" {
 /*
  * MAC Information (text emitted by modinfo(1m))
  */
-#define	MAC_INFO	"MAC Services v1.20"
+#define	MAC_INFO	"MAC Services"
 
 /*
  * MAC-Type version identifier.  This is used by mactype_alloc() and
@@ -66,8 +66,6 @@ typedef	struct __mac_group_handle	*mac_group_handle_t;
 #define	DATALINK_INVALID_LINKID	0
 #define	DATALINK_ALL_LINKID	0
 #define	DATALINK_MAX_LINKID	0xffffffff
-
-#define	MAC_MAX_MINOR	1000
 
 typedef enum {
 	LINK_STATE_UNKNOWN = -1,
@@ -180,6 +178,8 @@ typedef enum {
 	MAC_PROP_EN_10HDX_CAP,
 	MAC_PROP_ADV_100T4_CAP,
 	MAC_PROP_EN_100T4_CAP,
+	MAC_PROP_IPTUN_HOPLIMIT,
+	MAC_PROP_IPTUN_ENCAPLIMIT,
 	MAC_PROP_WL_ESSID,
 	MAC_PROP_WL_BSSID,
 	MAC_PROP_WL_BSSTYPE,
@@ -346,6 +346,7 @@ typedef enum {
 	MAC_NOTE_DEVPROMISC,
 	MAC_NOTE_FASTPATH_FLUSH,
 	MAC_NOTE_SDU_SIZE,
+	MAC_NOTE_DEST,
 	MAC_NOTE_MARGIN,
 	MAC_NOTE_CAPAB_CHG,
 	MAC_NOTE_LOWLINK,
@@ -588,6 +589,8 @@ extern minor_t			mac_minor_hold(boolean_t);
 extern void			mac_minor_rele(minor_t);
 extern void			mac_sdu_get(mac_handle_t, uint_t *, uint_t *);
 extern int			mac_maxsdu_update(mac_handle_t, uint_t);
+extern uint_t			mac_addr_len(mac_handle_t);
+extern int			mac_type(mac_handle_t);
 
 extern void 			mac_unicst_update(mac_handle_t,
 				    const uint8_t *);

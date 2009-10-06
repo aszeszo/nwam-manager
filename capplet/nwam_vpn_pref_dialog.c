@@ -1,28 +1,28 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* vim:set expandtab ts=4 shiftwidth=4: */
-/* 
+/*
  * Copyright 2007-2009 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  *
  * CDDL HEADER START
- * 
+ *
  * The contents of this file are subject to the terms of the
  * Common Development and Distribution License (the "License").
  * You may not use this file except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the license at usr/src/OPENSOLARIS.LICENSE
  * or http://www.opensolaris.org/os/licensing.
  * See the License for the specific language governing permissions
  * and limitations under the License.
- * 
+ *
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at usr/src/OPENSOLARIS.LICENSE.
  * If applicable, add the following below this CDDL HEADER, with the
  * fields enclosed by brackets "[]" replaced with your own identifying
  * information: Portions Copyright [yyyy] [name of copyright owner]
- * 
+ *
  * CDDL HEADER END
- * 
+ *
  */
 #include <gtk/gtk.h>
 #include <glade/glade.h>
@@ -64,8 +64,8 @@ enum {
 };
 
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
-	NWAM_TYPE_VPN_PREF_DIALOG, NwamVPNPrefDialogPrivate)) 
-	
+	NWAM_TYPE_VPN_PREF_DIALOG, NwamVPNPrefDialogPrivate))
+
 struct _NwamVPNPrefDialogPrivate {
 	/* Widget Pointers */
 	GtkDialog	*vpn_pref_dialog;
@@ -87,7 +87,7 @@ struct _NwamVPNPrefDialogPrivate {
 	GtkLabel	*desc_lbl;
     GtkRadioButton *vpn_cli_rb;
     GtkRadioButton *vpn_smf_rb;
-	
+
 	/* nwam data related */
 	NwamuiDaemon	*daemon;
 	//GList	*enm_list;
@@ -164,13 +164,13 @@ nwam_vpn_pref_dialog_class_init(NwamVPNPrefDialogClass *klass)
 {
 	/* Pointer to GObject Part of Class */
 	GObjectClass *gobject_class = (GObjectClass*) klass;
-	
+
 	gobject_class->set_property = set_property;
 	gobject_class->get_property = get_property;
 
 	/* Override Some Function Pointers */
 	gobject_class->finalize = (void (*)(GObject*)) nwam_vpn_pref_dialog_finalize;
-	
+
 	g_type_class_add_private (klass, sizeof (NwamVPNPrefDialogPrivate));
 }
 
@@ -183,7 +183,7 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 
 	/* daemon */
 	prv->daemon = nwamui_daemon_get_instance ();
-	
+
 	/* Iniialise pointers to important widgets */
 	prv->vpn_pref_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(VPN_PREF_DIALOG_NAME));
 	prv->view = GTK_TREE_VIEW(nwamui_util_glade_get_widget(VPN_PREF_TREE_VIEW));
@@ -229,13 +229,13 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
       "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
 	g_signal_connect(prv->browse_stop_cmd_btn,
       "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
-	
+
     g_signal_connect(prv->vpn_conditional_cb, "toggled",
       (GCallback)conditional_toggled_cb, (gpointer)self);
 
 	g_signal_connect(self, "notify", (GCallback)object_notify_cb, NULL);
 	g_signal_connect(prv->vpn_pref_dialog, "response", (GCallback)response_cb, (gpointer)self);
-	
+
     g_signal_connect(self->prv->vpn_rules_btn, "clicked",
       G_CALLBACK(on_rules_button_clicked), (gpointer)self);
 	g_signal_connect(prv->vpn_cli_rb, "toggled",
@@ -244,7 +244,7 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 /*       (GCallback)on_radio_button_toggled, (gpointer)self); */
 
 	nwam_compose_tree_view (self);
-	
+
 	/* Initializing */
 	nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
 }
@@ -253,7 +253,7 @@ static void
 nwam_vpn_pref_dialog_finalize(NwamVPNPrefDialog *self)
 {
 	g_object_unref (G_OBJECT(self->prv->daemon));
-	
+
 	G_OBJECT_CLASS(nwam_vpn_pref_dialog_parent_class)->finalize(G_OBJECT(self));
 }
 
@@ -262,7 +262,7 @@ static void set_property (GObject         *object,
                           const GValue    *value,
                           GParamSpec      *pspec)
 {
-	
+
 }
 
 static void get_property (GObject         *object,
@@ -270,7 +270,7 @@ static void get_property (GObject         *object,
                           GValue          *value,
                           GParamSpec      *pspec)
 {
-	
+
 }
 
 static void
@@ -279,8 +279,7 @@ capplet_tree_model_row_changed_func(GtkTreeModel *tree_model,
   GtkTreeIter  *iter,
   gpointer      user_data)
 {
-	NwamVPNPrefDialog *self = GET_PRIVATE(user_data);
-	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(user_data);
+    NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(user_data);
     GtkTreeSelection *selection = gtk_tree_view_get_selection(prv->view);
 
     if (gtk_tree_selection_path_is_selected(selection, path)) {
@@ -296,7 +295,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
 	GtkTreeViewColumn *col;
 	GtkCellRenderer *renderer;
 	GtkTreeView *view = self->prv->view;
-	
+
     g_object_set(view,
       "headers-clickable", FALSE,
       "headers-visible", TRUE,
@@ -371,7 +370,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       NULL);
 
 #if 0
-	gtk_tree_view_column_set_sort_column_id (col, APP_STATE);	
+	gtk_tree_view_column_set_sort_column_id (col, APP_STATE);
 #endif
 
     /* First cell */
@@ -409,10 +408,10 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
     if (cli_value) {
         prev_txt = nwamui_enm_get_start_command(NWAMUI_ENM(obj));
         txt = gtk_entry_get_text(prv->start_cmd_entry);
-        if ( (prev_txt == NULL || strlen( prev_txt ) == 0 ) 
+        if ( (prev_txt == NULL || strlen( prev_txt ) == 0 )
               || strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
             if ( !nwamui_enm_set_start_command(NWAMUI_ENM(obj), txt?txt:"") ) {
-                nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"), 
+                nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"),
                   _("Invalid value specified for Start Command"), TRUE );
                 g_free(prev_txt);
                 return( FALSE );
@@ -422,10 +421,10 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
 
         prev_txt = nwamui_enm_get_stop_command(NWAMUI_ENM(obj));
         txt = gtk_entry_get_text(prv->stop_cmd_entry);
-        if ( (prev_txt == NULL || strlen( prev_txt ) == 0 ) 
+        if ( (prev_txt == NULL || strlen( prev_txt ) == 0 )
               || strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
             if ( !nwamui_enm_set_stop_command(NWAMUI_ENM(obj), txt?txt:"") ) {
-                nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"), 
+                nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"),
                   _("Invalid value specified for Stop Command"), TRUE );
                 g_free(prev_txt);
                 return( FALSE );
@@ -440,7 +439,7 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
         txt = gtk_entry_get_text(prv->process_entry);
         if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
             if ( !nwamui_enm_set_smf_fmri(NWAMUI_ENM(obj), txt?txt:"") ) {
-                nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"), 
+                nwamui_util_show_message (GTK_WINDOW(self->prv->vpn_pref_dialog), GTK_MESSAGE_ERROR, _("Validation Error"),
                   _("Invalid value specified for SMF FMRI"), TRUE );
                 g_free(prev_txt);
                 return( FALSE );
@@ -469,7 +468,7 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
     else {
         /* Check that some conditions exist */
         if ( conditions_list == NULL ) {
-            nwamui_util_show_message (GTK_WINDOW(GTK_WINDOW(self->prv->vpn_pref_dialog)), GTK_MESSAGE_ERROR, _("Validation Error"), 
+            nwamui_util_show_message (GTK_WINDOW(GTK_WINDOW(self->prv->vpn_pref_dialog)), GTK_MESSAGE_ERROR, _("Validation Error"),
               _("Activation mode is set to Conditional,\nbut no rules have been configured."), TRUE );
             return( FALSE );
         }
@@ -504,26 +503,26 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
 	gint response = GTK_RESPONSE_NONE;
-	
+
 	g_assert(NWAM_IS_VPN_PREF_DIALOG(self));
 	if (parent) {
 		gtk_window_set_transient_for (GTK_WINDOW(self->prv->vpn_pref_dialog), parent);
 		gtk_window_set_modal (GTK_WINDOW(self->prv->vpn_pref_dialog), TRUE);
 	} else {
 		gtk_window_set_transient_for (GTK_WINDOW(self->prv->vpn_pref_dialog), NULL);
-		gtk_window_set_modal (GTK_WINDOW(self->prv->vpn_pref_dialog), FALSE);		
+		gtk_window_set_modal (GTK_WINDOW(self->prv->vpn_pref_dialog), FALSE);
 	}
-	
+
 	if ( self->prv->vpn_pref_dialog != NULL ) {
         nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
 		response =  gtk_dialog_run(GTK_DIALOG(self->prv->vpn_pref_dialog));
-		
+
 		gtk_widget_hide( GTK_WIDGET(self->prv->vpn_pref_dialog) );
 	}
 	return(response);
 }
 
-static GtkWindow* 
+static GtkWindow*
 dialog_get_window(NwamPrefIFace *iface)
 {
 	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
@@ -537,10 +536,10 @@ dialog_get_window(NwamPrefIFace *iface)
 
 static gboolean
 refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
-{        
+{
 	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
-	
+
     NwamuiDaemon *daemon = nwamui_daemon_get_instance();
     gtk_widget_hide(GTK_WIDGET(prv->view));
     capplet_update_model_from_daemon(gtk_tree_view_get_model(prv->view), daemon, NWAMUI_TYPE_ENM);
@@ -732,7 +731,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
     }
 }
 
-static void 
+static void
 command_entry_changed(GtkEditable *editable, gpointer data)
 {
 	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(data);
@@ -745,7 +744,7 @@ command_entry_changed(GtkEditable *editable, gpointer data)
         if ( gtk_entry_get_text_length( GTK_ENTRY( prv->start_cmd_entry ) ) > 0 ) {
             fmri_visible = FALSE;
         }
-    } 
+    }
     else if ( editable == GTK_EDITABLE(prv->stop_cmd_entry ) ) {
         if ( gtk_entry_get_text_length( GTK_ENTRY( prv->stop_cmd_entry ) ) > 0 ) {
             fmri_visible = FALSE;
@@ -757,7 +756,7 @@ command_entry_changed(GtkEditable *editable, gpointer data)
             stop_visible = FALSE;
         }
     }
-            
+
     gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), start_visible);
 	gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), start_visible);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_entry), stop_visible);
@@ -774,7 +773,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 	GtkTreeModel *model = NULL;
 	NwamuiEnm *obj;
 	GtkTreeIter iter;
-	
+
     if (button == (gpointer)self->prv->add_btn) {
         gchar *name;
         NwamuiObject *object;
@@ -820,18 +819,18 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 		g_list_free (list);
 		return;
 	}
-	
+
 	selection = gtk_tree_view_get_selection (self->prv->view);
 	model = gtk_tree_view_get_model (self->prv->view);
 	gtk_tree_selection_get_selected(selection, NULL, &iter);
 	gtk_tree_model_get (model, &iter, 0, &obj, -1);
-	
+
 	if (button == self->prv->browse_start_cmd_btn || button == self->prv->browse_stop_cmd_btn) {
 		GtkWidget *toplevel;
 		GtkWidget *filedlg = NULL;
 		GtkEntry *active_entry;
 		gchar *title = NULL;
-	
+
 		toplevel = gtk_widget_get_toplevel (GTK_WIDGET(button));
 		if (!GTK_WIDGET_TOPLEVEL(toplevel)) {
 			toplevel = NULL;
@@ -844,14 +843,14 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 			title = _("Select stop command");
 		}
 		filedlg = gtk_file_chooser_dialog_new(title,
-			toplevel,
+			GTK_WINDOW(toplevel),
 			GTK_FILE_CHOOSER_ACTION_OPEN,
 			GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 			GTK_STOCK_OPEN, GTK_RESPONSE_ACCEPT,
 			NULL);
 		if (gtk_dialog_run(GTK_DIALOG(filedlg)) == GTK_RESPONSE_ACCEPT) {
 			char *filename;
-			
+
 			filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(filedlg));
 			/* FIXME, also set NwamuiEnm object and verify the existance of the filepath */
 			gtk_entry_set_text (active_entry, filename);
@@ -868,7 +867,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
       (gpointer)nwam_vpn_selection_changed, (gpointer)self);
 
     if (!nwam_update_obj (self, self->prv->cur_obj) ||
-      !nwamui_object_commit(self->prv->cur_obj)) {
+      !nwamui_object_commit(NWAMUI_OBJECT(self->prv->cur_obj))) {
 
         g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
           (gpointer)nwam_vpn_selection_changed, (gpointer)self);
@@ -898,7 +897,7 @@ nwam_vpn_state_cell_cb (GtkTreeViewColumn *col,
 {
 	NwamVPNPrefDialog*self = NWAM_VPN_PREF_DIALOG(data);
 	GObject *obj;
-	
+
 	gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &obj, -1);
 
     if (obj) {
@@ -929,7 +928,7 @@ nwam_vpn_cell_comp_cb (GtkTreeModel *model,
 	return 0;
 }
 
-static gboolean 
+static gboolean
 nwam_vpn_pre_selection_validate(   GtkTreeSelection *selection,
                                    GtkTreeModel *model,
                                    GtkTreePath *path,
@@ -945,7 +944,7 @@ nwam_vpn_pre_selection_validate(   GtkTreeSelection *selection,
         g_debug( "Same VPN selected, do nothing" );
         return( TRUE );
     }
-	
+
 	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
 		GtkTreeModel *model = gtk_tree_view_get_model (prv->view);
 		GObject *obj;
@@ -972,7 +971,7 @@ nwam_vpn_pre_selection_validate(   GtkTreeSelection *selection,
 
             if ( !nwamui_enm_validate( NWAMUI_ENM(obj), &prop_name ) ) {
                 gchar* message = g_strdup_printf(_("An error occurred validating the VPN configuration.\nThe property '%s' caused this failure"), prop_name );
-                nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog), 
+                nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
                                           GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
                 g_free(prop_name);
                 retval = FALSE;
@@ -989,9 +988,9 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	gpointer          data)
 {
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
-	
+
 	GtkTreeIter iter;
-	
+
 	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
 		GtkTreeModel *model = gtk_tree_view_get_model (prv->view);
 		GObject *obj;
@@ -1000,7 +999,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 		gtk_tree_model_get (model, &iter, 0, &obj, -1);
 
         /* The current object will have been updated by the selection function
-         * which attempted to verify the object before changing the selection 
+         * which attempted to verify the object before changing the selection
          */
 
 		prv->cur_obj = obj;
@@ -1018,7 +1017,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_conditional_cb), TRUE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_cli_rb), TRUE);
 		gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_smf_rb), TRUE);
-		
+
 		if (obj) {
             gchar *title;
             gchar *name;
@@ -1154,7 +1153,7 @@ on_rules_button_clicked(GtkButton *button, gpointer user_data)
     }
 }
 
-static void 
+static void
 conditional_toggled_cb(GtkToggleButton *button, gpointer user_data)
 {
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(user_data);
@@ -1188,4 +1187,3 @@ on_radio_button_toggled(GtkToggleButton *button, gpointer user_data)
     gtk_widget_set_sensitive (GTK_WIDGET(prv->desc_lbl), !toggled);
 
 }
-

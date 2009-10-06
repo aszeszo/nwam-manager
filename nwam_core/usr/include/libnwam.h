@@ -510,6 +510,7 @@ extern nwam_error_t nwam_walk_locs(int (*)(nwam_loc_handle_t, void *), void *,
 /* get/set loc name */
 extern nwam_error_t nwam_loc_get_name(nwam_loc_handle_t, char **);
 extern nwam_error_t nwam_loc_set_name(nwam_loc_handle_t, const char *);
+extern boolean_t nwam_loc_can_set_name(nwam_loc_handle_t);
 
 /* activate/deactivate loc */
 extern nwam_error_t nwam_loc_enable(nwam_loc_handle_t);
@@ -646,7 +647,6 @@ extern nwam_error_t nwam_ncu_name_to_typed_name(const char *, nwam_ncu_type_t,
     char **);
 extern nwam_error_t nwam_ncu_typed_name_to_name(const char *, nwam_ncu_type_t *,
     char **);
-extern nwam_error_t nwam_ncu_set_name(nwam_ncu_handle_t, const char *);
 extern nwam_error_t nwam_ncu_get_default_proplist(nwam_ncu_type_t,
     nwam_ncu_class_t, const char ***, uint_t *);
 extern nwam_error_t nwam_ncu_get_ncp(nwam_ncu_handle_t, nwam_ncp_handle_t *);
@@ -767,6 +767,7 @@ extern nwam_error_t nwam_enm_walk_props(nwam_enm_handle_t,
  */
 extern nwam_error_t nwam_enm_get_name(nwam_enm_handle_t, char **);
 extern nwam_error_t nwam_enm_set_name(nwam_enm_handle_t, const char *);
+extern boolean_t nwam_enm_can_set_name(nwam_enm_handle_t);
 
 /*
  * Start/stop an enm.
@@ -823,6 +824,7 @@ extern nwam_error_t nwam_walk_known_wlans
 extern nwam_error_t nwam_known_wlan_get_name(nwam_known_wlan_handle_t, char **);
 extern nwam_error_t nwam_known_wlan_set_name(nwam_known_wlan_handle_t,
     const char *);
+extern boolean_t nwam_known_wlan_can_set_name(nwam_known_wlan_handle_t);
 
 /* walk all properties of an in-memory known WLAN */
 extern nwam_error_t nwam_known_wlan_walk_props(nwam_known_wlan_handle_t,
@@ -945,7 +947,6 @@ typedef enum {
 	NWAM_ACTION_REFRESH,
 	NWAM_ACTION_ENABLE,
 	NWAM_ACTION_DISABLE,
-	NWAM_ACTION_RENAME,
 	NWAM_ACTION_DESTROY
 } nwam_action_t;
 

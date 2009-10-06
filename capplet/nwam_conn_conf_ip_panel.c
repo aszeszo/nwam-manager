@@ -840,6 +840,17 @@ cancel(NwamPrefIFace *iface, gpointer user_data)
 {
 }
 
+static void
+wifi_fav_set_prio_next( gpointer data, gpointer user_data)
+{
+    NwamuiWifiNet  *wifi = NWAMUI_WIFI_NET(data);
+    guint64        *prio_p = (guint64*)user_data;
+
+    nwamui_wifi_net_set_priority(wifi, *prio_p);
+
+    *prio_p = *prio_p + 1;
+}
+
 static gboolean
 apply(NwamPrefIFace *iface, gpointer user_data)
 {
@@ -868,12 +879,14 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     if ( ncu_type == NWAMUI_NCU_TYPE_WIRELESS) {
         GList*          fav_list;
         GtkTreeIter     iter;
+        guint64         prio = 0;
         
         wifi_info = nwamui_ncu_get_wifi_info( NWAMUI_NCU(prv->ncu) );
         
         /* Populate WiFi Favourites */
         model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->wifi_fav_tv)));
         fav_list = capplet_model_to_list(model);
+        g_list_foreach( fav_list, wifi_fav_set_prio_next, &prio );
         nwamui_daemon_set_fav_wifi_networks( NWAMUI_DAEMON(prv->daemon),  fav_list);
         if (fav_list) {
             nwamui_util_free_obj_list( fav_list );
@@ -1713,6 +1726,7 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
     
     g_debug("wireless_tab_add_button clicked");
 
+    nwam_wireless_dialog_set_wifi_net(self->prv->wifi_dialog, NULL );
     nwam_wireless_dialog_set_title( self->prv->wifi_dialog, NWAMUI_WIRELESS_DIALOG_TITLE_ADD);
 
     switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {

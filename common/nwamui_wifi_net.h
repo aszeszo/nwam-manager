@@ -162,7 +162,9 @@ extern void                         nwamui_wifi_net_set_ncu ( NwamuiWifiNet *sel
 extern struct _NwamuiNcu*           nwamui_wifi_net_get_ncu ( NwamuiWifiNet *self );
 
 extern void                         nwamui_wifi_net_set_essid ( NwamuiWifiNet *self, const gchar *essid );
-                                
+
+extern gboolean                     nwamui_wifi_net_can_rename (NwamuiWifiNet *object);
+
 extern gchar*                       nwamui_wifi_net_get_essid ( NwamuiWifiNet *self );
 
 extern gchar*                       nwamui_wifi_net_get_unique_name ( NwamuiWifiNet *self );

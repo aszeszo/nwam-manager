@@ -741,8 +741,9 @@ nwam_wireless_dialog_set_title( NwamWirelessDialog  *self, nwamui_wireless_dialo
             title_str = _("Edit Wireless Network");
             break;
     }
-
+    
     if ( title_str != NULL ) {
+        self->prv->title = title;
         gtk_window_set_title( GTK_WINDOW(self->prv->wireless_dialog), title_str );
     }
 }
@@ -795,6 +796,13 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
         else {
             /* Want to see all knowns bssids */
             bssid_list = nwamui_wifi_net_get_bssid_list(wifi_net);
+        }
+
+        if ( self->prv->title == NWAMUI_WIRELESS_DIALOG_TITLE_EDIT ) {
+            /* Don't allow user to edit the text if it's not possible */
+            gboolean    editable = nwamui_object_can_rename( NWAMUI_OBJECT(wifi_net) );
+
+            gtk_widget_set_sensitive(( GTK_WIDGET(self->prv->essid_combo) ), editable );
         }
 
         g_object_set(G_OBJECT (self),
@@ -1229,6 +1237,19 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
     if ( self->prv->wireless_dialog != NULL ) {
         self->prv->key_entry_changed = FALSE; /* Mark key entry as unchanged */
         self->prv->sec_mode_changed = FALSE; /* Mark sec_mode as unchanged */
+
+        if ( self->prv->title == NWAMUI_WIRELESS_DIALOG_TITLE_EDIT &&
+             self->prv->wifi_net != NULL ) {
+            /* Don't allow user to edit the text if it's not possible */
+            gboolean    editable = nwamui_object_can_rename( NWAMUI_OBJECT(self->prv->wifi_net) );
+
+            gtk_widget_set_sensitive(( GTK_WIDGET(self->prv->essid_combo) ), editable );
+        }
+        else {
+            gtk_widget_set_sensitive(( GTK_WIDGET(self->prv->essid_combo) ), TRUE );
+        }
+
+
 
         /* Don't show the persist flag if we're not connecting, since it's
          * meaningless in that case. */

@@ -198,6 +198,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     gobject_class->finalize = (void (*)(GObject*)) nwamui_env_finalize;
 
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_env_get_name;
+    nwamuiobject_class->can_rename = (nwamui_object_can_rename_func_t)nwamui_env_can_rename;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_env_set_name;
     nwamuiobject_class->get_conditions = (nwamui_object_get_conditions_func_t)nwamui_env_get_conditions;
     nwamuiobject_class->set_conditions = (nwamui_object_set_conditions_func_t)nwamui_env_set_conditions;
@@ -1975,7 +1976,28 @@ populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t prv->nwam_loc )
 }
 #endif /* 0 */
 
-    
+/**
+ * nwamui_env_can_rename:
+ * @object: a #NwamuiEnv.
+ * @returns: TRUE if the name.can be changed.
+ *
+ **/
+extern gboolean
+nwamui_env_can_rename (NwamuiEnv *object)
+{
+    NwamuiEnv *self = NWAMUI_ENV(object);
+    NwamuiEnvPrivate *prv = NWAMUI_ENV(object)->prv;
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (object), FALSE);
+
+    if ( prv->nwam_loc != NULL ) {
+        if (nwam_loc_can_set_name( prv->nwam_loc )) {
+            return( TRUE );
+        }
+    }
+    return FALSE;
+}
+
 /** 
  * nwamui_env_set_name:
  * @nwamui_env: a #NwamuiEnv.
@@ -1984,7 +2006,7 @@ populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t prv->nwam_loc )
  **/ 
 extern void
 nwamui_env_set_name (   NwamuiEnv *self,
-                              const gchar*  name )
+                        const gchar*  name )
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
     g_assert (name != NULL );

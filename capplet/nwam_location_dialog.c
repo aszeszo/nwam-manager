@@ -952,6 +952,8 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
 
         gtk_tree_model_get(model, &iter, 0, &env, -1);
         
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->location_rename_btn),
+                                 nwamui_object_can_rename(NWAMUI_OBJECT(env)));
 
         g_signal_handlers_block_by_func(G_OBJECT(prv->location_activation_combo), 
                                         (gpointer)location_activation_combo_changed_cb, (gpointer)self);

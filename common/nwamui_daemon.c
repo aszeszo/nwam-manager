@@ -3030,11 +3030,6 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                     }
                 }
                 break;
-            case NWAM_ACTION_RENAME: {
-                    nwamui_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
-                            object_name );
-                }
-                break;
             case NWAM_ACTION_REMOVE: {
                     nwamui_debug("Got NWAM_ACTION_REMOVE for object %s, removing NCP...", 
                             object_name );
@@ -3126,11 +3121,6 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                     /* This is being handled by the LINK_ACTION events type */
                 }
                 break;
-            case NWAM_ACTION_RENAME: {
-                    nwamui_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
-                            object_name );
-                }
-                break;
             case NWAM_ACTION_DESTROY: {
                     nwamui_debug("Got NWAM_ACTION_DESTROY for object %s, doing nothing...", 
                             object_name );
@@ -3184,14 +3174,6 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 break;
             case NWAM_ACTION_REFRESH: {
                     nwamui_debug("Got NWAM_ACTION_REFRESH for object %s, doing nothing...", 
-                            object_name );
-                    if ( env != NULL ) {
-                        nwamui_env_reload( env );
-                    }
-                }
-                break;
-            case NWAM_ACTION_RENAME: {
-                    nwamui_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
                             object_name );
                     if ( env != NULL ) {
                         nwamui_env_reload( env );
@@ -3266,14 +3248,6 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                     }
                 }
                 break;
-            case NWAM_ACTION_RENAME: {
-                    nwamui_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
-                            object_name );
-                    if ( enm != NULL ) {
-                        nwamui_enm_reload( enm );
-                    }
-                }
-                break;
             case NWAM_ACTION_REMOVE: {
                     nwamui_debug("Got NWAM_ACTION_REMOVE for object %s, removing from daemon...", 
                             object_name );
@@ -3336,14 +3310,6 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                             object_name );
 
                     /* Need to refresh to catch update to priorities */
-                    if ( wifi != NULL ) {
-                        nwamui_object_reload( NWAMUI_OBJECT(wifi) );
-                    }
-                }
-                break;
-            case NWAM_ACTION_RENAME: {
-                    nwamui_debug("Got NWAM_ACTION_RENAME for object %s, doing nothing...", 
-                            object_name );
                     if ( wifi != NULL ) {
                         nwamui_object_reload( NWAMUI_OBJECT(wifi) );
                     }
