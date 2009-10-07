@@ -1,5 +1,10 @@
 2009-10-06  Darren Kenny  <darren.kenny@sun.com>
 
+	* configure.in:
+	  Bump to 0.99.91 for RC1.
+
+2009-10-06  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/capplet-utils.c, capplet/nwam_conn_conf_ip_panel.c: 
 	  Fix defect#11686 by converting tree model to ordered list rather
 	  than in reverse order, and then applying a priority value to each
