@@ -196,7 +196,7 @@ main(int argc, char** argv)
 
 #if 0
     /*
-     * FIXME, we probably don't need this any more if we are using
+     * We probably don't need this any more if we are using
      * gnome_program_init.
      */
     if (gtk_init_with_args(&argc, &argv, _("NWAM Configuration Capplet"), application_options, NULL, &err) == FALSE ) {
@@ -244,96 +244,6 @@ main(int argc, char** argv)
     else if ( add_wireless_dialog ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_wireless_dialog_new());
         
-#if 0
-        static NwamWirelessDialog *wifi_dialog = NULL;
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
-        NwamuiNcu *ncu = NULL;
-
-        /* TODO popup key dialog */
-        if (wifi_dialog == NULL) {
-            wifi_dialog = nwam_wireless_dialog_new();
-        }
-
-        /* ncu could be NULL due to daemon may not know the active llp */
-        if ((ncu = nwamui_ncp_get_active_ncu(ncp)) == NULL ||
-          nwamui_ncu_get_ncu_type(ncu) != NWAMUI_NCU_TYPE_WIRELESS) {
-            /* we need find a wireless interface */
-            nwamui_ncp_foreach_ncu(ncp,
-              (GtkTreeModelForeachFunc)find_wireless_interface,
-              (gpointer)&ncu);
-        }
-
-        g_object_unref(ncp);
-        g_object_unref(daemon);
-
-        if (ncu && nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
-            gchar *device = nwamui_ncu_get_device_name(ncu);
-            nwam_wireless_dialog_set_ncu(wifi_dialog, device);
-            g_free(device);
-        } else {
-            if (ncu) {
-                g_object_unref(ncu);
-            }
-            return;
-        }
-
-        /* wifi may be NULL -- join a wireless */
-        {
-            gchar *name = NULL;
-            if (wifi) {
-                name = nwamui_wifi_net_get_unique_name(wifi);
-            }
-            g_debug("%s ## wifi 0x%p %s", __func__, wifi, name ? name : "nil");
-            g_free(name);
-        }
-        nwam_wireless_dialog_set_wifi_net(wifi_dialog, wifi);
-
-        if (capplet_dialog_run(NWAM_PREF_IFACE(wifi_dialog), NULL) == GTK_RESPONSE_OK) {
-            gchar *name = NULL;
-            gchar *passwd = NULL;
-
-            /* get new wifi */
-            wifi = nwam_wireless_dialog_get_wifi_net(wifi_dialog);
-            g_assert(wifi);
-
-            switch (nwam_wireless_dialog_get_security(wifi_dialog)) {
-            case NWAMUI_WIFI_SEC_NONE:
-                break;
-            case NWAMUI_WIFI_SEC_WEP_HEX:
-            case NWAMUI_WIFI_SEC_WEP_ASCII:
-                passwd = nwam_wireless_dialog_get_key(wifi_dialog);
-                nwamui_wifi_net_set_wep_password(wifi, passwd);
-                g_debug("\nWIRELESS WEP '%s'", passwd);
-                break;
-            case NWAMUI_WIFI_SEC_WPA_PERSONAL:
-            case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
-                name = nwam_wireless_dialog_get_wpa_username(wifi_dialog);
-                passwd = nwam_wireless_dialog_get_wpa_password(wifi_dialog);
-                nwamui_wifi_net_set_wpa_username(wifi, name);
-                nwamui_wifi_net_set_wpa_password(wifi, passwd);
-                g_debug("\nWIRELESS WAP '%s : %s'", name, passwd);
-                break;
-            default:
-                g_assert_not_reached();
-                break;
-            }
-
-            g_free(name);
-            g_free(passwd);
-
-            /* try to connect */
-            if (nwamui_wifi_net_get_status(wifi) != NWAMUI_WIFI_STATUS_CONNECTED) {
-                nwamui_ncu_set_wifi_info(ncu, wifi);
-                nwamui_wifi_net_connect(wifi);
-            } else {
-                g_debug("wireless is connected, just need a key!!!");
-            }
-        }
-
-        g_object_unref(ncu);
-#endif    
-
         if (*add_wireless_dialog != '\0') {
             nwam_wireless_dialog_set_essid (NWAM_WIRELESS_DIALOG(capplet_dialog), add_wireless_dialog);
         }

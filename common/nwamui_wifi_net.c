@@ -1188,7 +1188,7 @@ nwamui_wifi_net_store_key ( NwamuiWifiNet *self )
         case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
             nwamui_wifi_wpa_config_t wpa_config_type = nwamui_wifi_net_get_wpa_config(wifi_net);
 
-            /* FIXME: Make this work */
+            /* FIXME: Make this work when ENTERPRISE supported */
             switch( wpa_config_type ) {
                 case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC:
                     break;

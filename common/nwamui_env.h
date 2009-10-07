@@ -77,7 +77,7 @@ typedef enum {
     NWAMUI_ENV_STATUS_WARNING,
     NWAMUI_ENV_STATUS_ERROR,
     NWAMUI_ENV_STATUS_LAST /* Not to be used directly */
-} nwamui_env_status_t; /* TODO - provide means to get status in env */
+} nwamui_env_status_t; 
 
 typedef enum {
 	NWAMUI_ENV_NAMESERVICES_DNS   = NWAM_NAMESERVICES_DNS,

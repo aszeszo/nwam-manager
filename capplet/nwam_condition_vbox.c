@@ -883,7 +883,7 @@ table_lines_init (NwamConditionVBox *self, NwamuiObject *object)
             GtkWidget *remove;
             cond = nwamui_cond_new();
             nwamui_cond_set_field( cond, NWAMUI_COND_FIELD_LAST  );
-            /* FIXME - Why are we adding here, after removing? */
+            /* If there is no entry, then add one for the "No Conditions" selection */
             crow = table_condition_insert (GTK_WIDGET(self), 0, cond); 
             
             /* Disable add button while No conditions selected */
@@ -1392,8 +1392,8 @@ table_delete_condition_cb(GtkButton *button, gpointer data)
     if (prv->table_line_num == 0) {
         GtkWidget *remove;
         cond = nwamui_cond_new();
-        /* FIXME - Why are we adding here, after removing? */
-        crow = table_condition_insert (clist, 0, cond); /* XXX - NULL = cdata = cond obj? */
+        /* Ensure we have an entry for the "No Conditions" selection. */
+        crow = table_condition_insert (clist, 0, cond); 
     }
     gtk_container_foreach( GTK_CONTAINER(clist), update_remove_button, clist );
 }
@@ -1647,19 +1647,11 @@ static void
 default_condition_add_signal_handler (NwamConditionVBox *self, GObject* data, gpointer user_data)
 {
     g_debug("Condition Add : 0x%p", data);
-    /* TODO - Move this from default sig handler to specific handler. */
-/*     if ( self->prv->selected_object != NULL && data != NULL ) { */
-/*         nwamui_object_condition_add(self->prv->selected_object, NWAMUI_COND(data) ); */
-/*     } */
 }
 
 static void
 default_condition_remove_signal_handler (NwamConditionVBox *self, GObject* data, gpointer user_data)
 {
     g_debug("Condition Remove : 0x%p", data);
-    /* TODO - Move this from default sig handler to specific handler. */
-/*     if ( self->prv->selected_object != NULL && data != NULL ) { */
-/*         nwamui_object_condition_remove(self->prv->selected_object, NWAMUI_COND(data) ); */
-/*     } */
 }
 

@@ -289,7 +289,7 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
                      (GCallback)nwam_conn_status_conn_view_row_activated_cb,
                      (gpointer)self);
 
-    /* FIXME should connect daemon update enm list signal to get the latest enm list */
+    /* Connect daemon update enm list signal to get the latest enm list */
     GList*                  enm_elem;
     NwamuiEnm*              enm;
     for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(self->prv->daemon)));

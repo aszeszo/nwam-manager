@@ -1387,7 +1387,6 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
 
     g_debug ("nwam_ncu_walker_cb 0x%p", ncu);
 
-    /* FIXME: Check if NCU already exists... */
     if ( (nerr = nwam_ncu_get_name (ncu, &name)) != NWAM_SUCCESS ) {
         g_debug ("Failed to get name for ncu, error: %s", nwam_strerror (nerr));
     }

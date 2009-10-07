@@ -213,7 +213,6 @@ capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon, GTyp
 {
 	GList *obj_list;
 
-	/* TODO clean all */
 	gtk_list_store_clear(GTK_LIST_STORE(model));
 
 	if (type == NWAMUI_TYPE_NCP) {

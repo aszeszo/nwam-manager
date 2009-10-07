@@ -101,7 +101,7 @@ struct _NwamWirelessDialogPrivate {
         GtkComboBox*            wpa_config_combo;
         GtkEntry*		        wpa_username_entry;
         GtkEntry*		        wpa_password_entry;
-        /* TODO - Handle CERT FILE */
+        /* TODO - Handle CERT FILE when supported */
 
         /* Other Data */
         NwamuiNcu*              ncu;
@@ -536,7 +536,7 @@ nwam_wireless_dialog_set_property ( GObject         *object,
             }
             break;
 	case PROP_WPA_CERT_FILE:
-            /* TODO - Handle CERT FILE
+            /* TODO - Handle CERT FILE when supported
             tmpstr = (gchar *) g_value_get_string (value);
 
             g_assert( tmpstr != NULL );
@@ -625,7 +625,7 @@ nwam_wireless_dialog_get_property (GObject         *object,
             }
             break;
 	case PROP_WPA_CERT_FILE:
-            /* TODO - Handle CERT FILE
+            /* TODO - Handle CERT FILE when supported
             if (self->prv->leap_password_entry != NULL) {
                 g_value_set_string( value, g_strdup(gtk_entry_get_text(GTK_ENTRY(self->prv->leap_password_entry))) );
             }
@@ -1328,7 +1328,7 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
                         case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
                             nwamui_wifi_wpa_config_t wpa_config_type = nwamui_wifi_net_get_wpa_config(wifi_net);
 
-                            /* FIXME: Make this work */
+                            /* FIXME: Make WPA_ENTERPRISE work when supported */
                             switch( wpa_config_type ) {
                                 case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC:
                                     break;
@@ -1444,7 +1444,7 @@ nwam_wireless_dialog_finalize (NwamWirelessDialog *self)
     gtk_widget_unref(GTK_WIDGET(self->prv->wpa_config_combo));
     gtk_widget_unref(GTK_WIDGET(self->prv->wpa_username_entry));
     gtk_widget_unref(GTK_WIDGET(self->prv->wpa_password_entry));
-    /* gtk_widget_unref(GTK_WIDGET(self->prv->wpa_cert_file_entry)); TODO - Handle CERT FILE */
+    /* gtk_widget_unref(GTK_WIDGET(self->prv->wpa_cert_file_entry)); TODO - Handle CERT FILE when supported */
     gtk_widget_unref(GTK_WIDGET(self->prv->persistant_cbutton ));
     gtk_widget_unref(GTK_WIDGET(self->prv->show_password_cbutton ));
  
@@ -1586,7 +1586,7 @@ validate_information( NwamWirelessDialog* self )
                     if ( username != NULL && strlen(username) > 0  && password != NULL ) {
                         return( NULL );
                     }
-                    /* TODO - Determine more WPA Validation criteria */
+                    /* TODO - Determine more WPA Validation criteria when ENTERPRISE supported */
                 }
                 break;
 #endif
@@ -1625,7 +1625,7 @@ validate_information( NwamWirelessDialog* self )
             case NWAMUI_WIFI_SEC_WPA_ENTERPRISE:
                 nwamui_wifi_wpa_config_t wpa_config_type = nwamui_wifi_net_get_wpa_config(wifi_net);
 
-                /* FIXME: Make this work */
+                /* FIXME: Make this work when supported */
                 switch( wpa_config_type ) {
                     case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC:
                         break;

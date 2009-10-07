@@ -586,7 +586,6 @@ nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type, gboolean
     static GdkPixbuf       *secured_icon = NULL;
     static GdkPixbuf       *open_icon = NULL;
 
-    /* TODO - get REAL icons for drop-downlist, these are borrowed */
     if ( secured_icon == NULL ) {
         secured_icon = get_pixbuf(NWAM_ICON_NETWORK_SECURE, small);
     }

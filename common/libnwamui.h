@@ -151,12 +151,6 @@ typedef enum {
 #define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_SHARED    "priority-group-2"
 #define  NWAM_ICON_COND_PRIORITY_GROUP_MODE_ALL       "priority-group-3"
 
-/* TODO test icons */
-#define  NWAM_ICON_NCU_STATUS_ENABLED     GTK_STOCK_YES
-#define  NWAM_ICON_NCU_STATUS_DISABLED    GTK_STOCK_NO
-#define  NWAM_ICON_NCU_STATUS_CONDITIONAL GTK_STOCK_STOP
-#define  NWAM_ICON_NCU_STATUS_PRIORITIZED GTK_STOCK_GO_FORWARD
-
 /* NWAM Versions of g_log functions, to prefix with function names */
 #ifdef G_HAVE_ISO_VARARGS
 #define nwamui_debug(_fmt, ...)         g_debug("%s: " _fmt, __func__, __VA_ARGS__)

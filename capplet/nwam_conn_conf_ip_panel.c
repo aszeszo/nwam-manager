@@ -742,7 +742,6 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
         }
         else {
             gtk_combo_box_set_active(GTK_COMBO_BOX(prv->ipv6_combo), 1); /* Select Enabled On Combo Box */
-            /* TODO - Check for Multiple IP Addresses  and update combo to reflect */
         }
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_combo), modifiable);
         /* Hack, because set false doesn't trigger the signal initially. */
@@ -760,7 +759,7 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
 
 
 /*
- *  TODO - Handle IPv6 Accept buttons 
+ *  TODO - when supported, handle IPv6 Accept buttons
  *
 	GtkCheckButton *ipv6_accept_stateful_cb;
 	GtkCheckButton *ipv6_accept_stateless_cb;
@@ -1032,33 +1031,6 @@ help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamConnConfIPPanel: Help");
     nwamui_util_show_help (HELP_REF_CONNECTPROPS_CONFIG);
-}
-
-/**
- * nwam_multi_ip_add:
- * @self,
- * @connection: FIXME should be a specific type.
- * 
- * Add an ip to tree view.
- */
-static void
-nwam_multi_ip_add (NwamConnConfIPPanel *self, gpointer connection)
-{
-	/* FIXME
-	GtkTreeIter iter;
-	gtk_tree_store_append (GTK_TREE_STORE(self->prv->model), &iter, NULL);
-	gtk_tree_store_set (GTK_TREE_STORE(self->prv->model), &iter,
-			    0, connection,
-			    -1);
-	*/
-}
-
-static void
-nwam_multi_ip_clear (NwamConnConfIPPanel *self)
-{
-	/* FIXME
-	gtk_tree_store_clear (GTK_TREE_STORE(self->prv->model));
-	*/
 }
 
 static void
@@ -1561,7 +1533,7 @@ nwam_conn_multi_ipv4_cell_edited_cb (   GtkCellRendererText *renderer,
 
     g_signal_handlers_block_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data);
 
-    /* TODO - Validate data in editing */
+    /* Validate data in editing */
     if ( col_id == IP_VIEW_ADDR &&
         !nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
                                           NWAMUI_ENTRY_VALIDATION_IS_V4 | NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX,
@@ -1648,7 +1620,7 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
 
     g_signal_handlers_block_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data);
 
-    /* TODO - Validate data in editing */
+    /* Validate data in editing */
     if ( col_id == IP_VIEW_ADDR &&
          !nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
                                            NWAMUI_ENTRY_VALIDATION_IS_V6 | NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX,
@@ -1853,7 +1825,6 @@ wireless_tab_up_button_clicked_cb( GtkButton *button, gpointer data )
     GtkTreeIter                 iter;
     GtkTreeSelection*           selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(prv->wifi_fav_tv));
 
-    /* TODO - Feedback favourites order changes to the daemon */
     if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
         GtkTreePath*    path = gtk_tree_model_get_path(model, &iter);
         

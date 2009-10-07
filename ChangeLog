@@ -1,3 +1,16 @@
+2009-10-07  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/capplet-utils.c, capplet/main.c,
+	  capplet/nwam_condition_vbox.c, capplet/nwam_conn_conf_ip_panel.c,
+	  capplet/nwam_conn_stat_panel.c, capplet/nwam_env_pref_dialog.c,
+	  capplet/nwam_location_dialog.c, capplet/nwam_net_conf_panel.c,
+	  capplet/nwam_pref_dialog.c, capplet/nwam_vpn_pref_dialog.c,
+	  capplet/nwam_wireless_chooser.c, capplet/nwam_wireless_dialog.c,
+	  common/libnwamui.c, common/libnwamui.h, common/nwamui_daemon.c,
+	  common/nwamui_daemon.h, common/nwamui_env.h, common/nwamui_ncp.c,
+	  common/nwamui_ncu.c, common/nwamui_wifi_net.c, daemon/status_icon.c:
+	  Some comment cleanup, and removal of some unused code.
+
 2009-10-06  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in:

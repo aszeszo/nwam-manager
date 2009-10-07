@@ -91,7 +91,6 @@ static gint nwam_wifi_chooser_comp_cb (GtkTreeModel *model,
   GtkTreeIter *b,
   gpointer user_data);
 static void wifi_add (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi);
-static void wifi_remove (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi);
 
 G_DEFINE_TYPE_EXTENDED (NwamWirelessChooser,
                         nwam_wireless_chooser,
@@ -263,12 +262,6 @@ wifi_add (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi)
 	
 	gtk_list_store_prepend(GTK_LIST_STORE(model), &iter );
 	gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, wifi, -1);
-}
-
-static void
-wifi_remove (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi)
-{
-    /* TODO - seems we dont need to remove a wifi */
 }
 
 static void
@@ -673,9 +666,9 @@ nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data)
     model = gtk_tree_view_get_model (self->prv->wifi_tv);
 
     /* TODO - Make this more efficient */
-	if (wifi) {
+    if (wifi) {
         wifi_add (self, model, NWAMUI_WIFI_NET(wifi));
-	} else {
+    } else {
         /* scan is over */
         gtk_widget_show (GTK_WIDGET(self->prv->wifi_tv));
         nwamui_util_restore_default_cursor(GTK_WIDGET(self->prv->wireless_chooser) );

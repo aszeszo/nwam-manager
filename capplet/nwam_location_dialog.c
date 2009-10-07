@@ -454,19 +454,6 @@ nwam_update_obj (NwamLocationDialog *self, GObject *obj)
         return( FALSE );
     }
 
-#if 0
-	prev_txt = nwamui_env_get_start_command(NWAMUI_ENV(obj));
-	txt = gtk_entry_get_text(prv->start_cmd_entry);
-	if ( strcmp( prev_txt?prev_txt:"", txt?txt:"") != 0 ) {
-        if ( !nwamui_env_set_start_command(NWAMUI_ENV(obj), txt?txt:"") ) {
-            nwamui_util_show_message (self->prv->vpn_pref_dialog, GTK_MESSAGE_ERROR, _("Validation Error"), 
-                    _("Invalid value specified for Start Command"), TRUE );
-            return( FALSE );
-        }
-    }
-    g_free(prev_txt);
-#endif
-
 	return TRUE;
 }
 
@@ -982,7 +969,7 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
             gtk_widget_set_sensitive(GTK_WIDGET(prv->location_rename_btn), FALSE );
             gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn), FALSE );
             /* Fall-through */
-        case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED: /* ?? TODO */
+        case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED: /* Not supported, so just assume default if see it. */
         default:
             gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn), FALSE);
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_SYSTEM);

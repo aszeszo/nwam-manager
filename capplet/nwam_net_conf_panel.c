@@ -572,7 +572,6 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     capplet_update_model_from_daemon(gtk_combo_box_get_model(GTK_COMBO_BOX(prv->profile_name_combo)), daemon, NWAMUI_TYPE_NCP);
     gtk_widget_show(GTK_WIDGET(prv->profile_name_combo));
 
-    /* FIXME: How about zero ncp? */
     CAPPLET_COMPOSE_NWAMUI_OBJECT_COMBO(GTK_COMBO_BOX(prv->edit_profile_name_combo), NWAM_PREF_IFACE(self));
 
     gtk_widget_hide(GTK_WIDGET(prv->edit_profile_name_combo));

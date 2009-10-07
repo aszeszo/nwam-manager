@@ -645,7 +645,6 @@ nwamui_daemon_finalize (NwamuiDaemon *self)
     int             err;
     nwam_error_t    nerr;
     
-    /* TODO - kill tid before destruct self */
     nwamui_daemon_nwam_disconnect();
 
     if ( self->prv->nwam_events_gthread != NULL ) {
@@ -2732,91 +2731,6 @@ nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message )
       NWAMUI_DAEMON_INFO_GENERIC,
       NULL,
       g_strdup(message?message:""));
-}
-
-extern void
-nwamui_daemon_emit_signals_from_event_msg( NwamuiDaemon* self, NwamuiNcu* ncu, nwam_event_t event )
-{
-    gchar *vanity_name = NULL;
-
-    g_return_if_fail( self != NULL && ncu != NULL && event != NULL );
-
-    if ( event->nwe_type != NWAM_EVENT_TYPE_WLAN_SCAN_REPORT ) {
-        g_debug("Tried to emit wifi info from event != NWAM_EVENT_TYPE_WLAN_SCAN_REPORT");
-        return;
-    }
-    
-    /* TODO - Implement emit signals from event message */
-#if 0
-    vanity_name = nwamui_ncu_get_vanity_name( ncu );
-
-    if ( nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS ) {
-        /* We need to first send events about what Wifi Nets are available,
-         * also fills in the wifi_info.  */
-        self->prv->emit_wlan_changed_signals = TRUE;
-        dispatch_wifi_scan_events_from_cache( self );
-    }
-
-
-    g_assert( vanity_name != NULL );
-
-    g_debug("nwamui_daemon_emit_signals_from_event_msg called");
-
-    if ( llp->llp_link_up  ) {
-        g_debug("\tllp_link_up set");
-        /* TODO - Not the same as InterfaceUp event, so not sure how to handle
-         */
-    }
-
-    if ( llp->llp_link_failed  ) {
-        g_debug("\tllp_link_failed set");
-        g_signal_emit (self,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              NWAMUI_DAEMON_INFO_GENERIC,
-              NULL,
-              g_strdup_printf(_("%s network interface failed to start DHCP request."), vanity_name ));
-    }
-
-    if ( llp->llp_dhcp_failed  ) {
-        g_debug("\tllp_dhcp_failed set");
-        g_signal_emit (self,
-              nwamui_daemon_signals[DAEMON_INFO],
-              0, /* details */
-              NWAMUI_DAEMON_INFO_GENERIC,
-              NULL,
-              g_strdup_printf(_("%s network interface failed to get response from DHCP request."), vanity_name ));
-    }
-
-    if ( llp->llp_need_wlan  ) {
-        g_debug("\tllp_need_wlan set");
-        g_signal_emit (self,
-          nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
-          0, /* details */
-          ncu );
-    }
-
-    if ( llp->llp_need_key  ) {
-        g_debug("\tllp_need_key set");
-        NwamuiWifiNet *wifi = NULL;
-
-        wifi = nwamui_ncu_get_wifi_info( ncu );
-
-        if ( wifi != NULL ) {
-            g_signal_emit (self,
-              nwamui_daemon_signals[WIFI_KEY_NEEDED],
-              0, /* details */
-              (gpointer)wifi );
-            g_object_unref(wifi);
-        }
-
-        g_object_unref(ncu);
-    }
-
-    g_free(vanity_name);
-
-    g_debug("nwamui_daemon_emit_signals_from_event_msg returning");
-#endif /* 0 */
 }
 
 /*

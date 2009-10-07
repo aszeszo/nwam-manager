@@ -951,7 +951,7 @@ get_if_type( const gchar* device )
             strncmp(device, "ip6.tun", 7) == 0 ||
             strncmp(device, "ip.6to4tun", 10) == 0)
             /*
-             * TODO
+             * TODO - Tunnel support
              *
              * We'll need to update our tunnel detection once
              * the clearview/tun project is integrated; tunnel

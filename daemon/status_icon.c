@@ -948,7 +948,6 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
     NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
     NwamuiNcu *ncu = NULL;
 
-    /* TODO popup key dialog */
     if (wifi_dialog == NULL) {
         wifi_dialog = nwam_wireless_dialog_new();
     }
@@ -1121,9 +1120,6 @@ nwam_status_icon_run(NwamStatusIcon *self)
 
     /* Enable tooltip. */
     gtk_status_icon_set_has_tooltip(GTK_STATUS_ICON(self), TRUE);
-
-    /* TODO - For Phase 1 */
-    /* nwam_status_icon_set_activate_callback(self, G_CALLBACK(activate_cb), NULL); */
 
     /* Handle all daemon signals here */
     connect_nwam_object_signals(G_OBJECT(prv->daemon), G_OBJECT(self));
@@ -1362,7 +1358,7 @@ update_wifi_timer_func(gpointer user_data)
     NwamuiNcu *ncu;
     NwamuiWifiNet *wifi_net;
 
-    /* TODO, it is required only the ncp has at least one active wireless link. */
+    /* It is required only is the ncp has at least one active wireless link. */
     if (nwamui_ncp_get_wireless_link_num(prv->active_ncp) > 0) {
         ncu_list = nwamui_ncp_get_ncu_list(prv->active_ncp);
 
@@ -1866,7 +1862,7 @@ nwam_exec (const gchar **nwam_arg)
 
     argv = g_malloc(sizeof(gchar *) * (g_strv_length((gchar**)nwam_arg) + 2));
 	argv[argc++] = g_find_program_in_path (NWAM_MANAGER_PROPERTIES);
-	/* FIXME, seems to be Solaris specific */
+	/* Seems to be Solaris specific to specify argvv[0] */
 	if (argv[0] == NULL) {
 		gchar *base = NULL;
 		base = g_path_get_dirname (getexecname());

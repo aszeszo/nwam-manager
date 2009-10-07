@@ -388,7 +388,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       "row-changed", G_CALLBACK(capplet_tree_model_row_changed_func), (gpointer)self);
 }
 
-/* FIXME, if update failed, popup dialog and return FALSE */
+/* If update failed, popup dialog and return FALSE */
 static gboolean
 nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
 {
@@ -602,7 +602,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
     }
 
-    /* FIXME, ok need call into separated panel/instance
+    /* Call into separated panel/instance
      * apply all changes, if no errors, hide all
      */
     if (retval && gtk_tree_model_get_iter_first (model, &iter)) {
@@ -1141,7 +1141,6 @@ on_rules_button_clicked(GtkButton *button, gpointer user_data)
 
         gtk_tree_model_get(model, &iter, 0, &enm, -1);
 
-        /* TODO */
         if (button == (gpointer)prv->vpn_rules_btn) {
             NwamPrefIFace *rules_dialog = NWAM_PREF_IFACE(nwam_rules_dialog_new());
             nwam_pref_refresh(NWAM_PREF_IFACE(rules_dialog), NWAMUI_OBJECT(enm), TRUE);

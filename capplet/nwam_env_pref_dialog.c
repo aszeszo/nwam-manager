@@ -549,7 +549,6 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 	g_signal_connect(prv->default_domain_entry,
       "changed", (GCallback)on_ns_text_changed, (gpointer)self);
     
-    /* TODO: Handle the nameservices file */
     g_signal_connect(prv->nsswitch_default_btn,
       "clicked", (GCallback)nsswitch_default_clicked_cb, (gpointer)self );
 
@@ -1983,9 +1982,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
     NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(iface);
-
-    /* TODO nameservices_config_combo need it */
-    /* Maintain for quick access elsewhere */
 
 	if (prv->selected_env != user_data) {
 		if (prv->selected_env) {
