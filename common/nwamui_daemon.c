@@ -808,6 +808,70 @@ nwamui_daemon_wifi_start_scan(NwamuiDaemon *self)
     }
 }
 
+typedef struct {
+    const gchar    *essid;
+    NwamuiWifiNet  *wifi_net;
+}
+find_wifi_net_info_t;
+
+static gboolean
+find_wifi_net(  GtkTreeModel *model,
+                           GtkTreePath *path,
+                           GtkTreeIter *iter,
+                           gpointer data)
+{
+	NwamuiNcu              *ncu = NULL;
+    NwamuiWifiNet          *wifi = NULL;
+    find_wifi_net_info_t   *find_info_p = (find_wifi_net_info_t*)data;
+	
+  	gtk_tree_model_get(model, iter, 0, &ncu, -1);
+
+    if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) || find_info_p == NULL ) {
+        return( FALSE );
+    }
+    g_assert( NWAMUI_IS_NCU(ncu) );
+    
+	if (nwamui_ncu_get_ncu_type (ncu) != NWAMUI_NCU_TYPE_WIRELESS ) {
+        g_object_unref( ncu );
+        return( FALSE );
+	}
+    
+    wifi = nwamui_ncu_wifi_hash_lookup_by_essid( ncu, find_info_p->essid );
+
+    if ( wifi != NULL ) {
+        find_info_p->wifi_net = wifi;
+    }
+    
+    g_object_unref( ncu );
+    
+    return( find_info_p->wifi_net != NULL );
+}
+
+/**
+ * nwamui_daemon_find_wifi_net_in_ncus:
+ *
+ * Searches for a wireless network by essid in the ncus on the system.
+ *
+ **/
+static NwamuiWifiNet*
+nwamui_daemon_find_wifi_net_in_ncus( NwamuiDaemon *self, const gchar* essid )
+{
+    NwamuiNcp              *ncp;
+    find_wifi_net_info_t    find_info;
+    
+    ncp = nwamui_daemon_get_active_ncp (self);
+
+    if ( ncp != NULL ) {
+        find_info.essid = essid;
+        find_info.wifi_net = NULL;
+
+        nwamui_ncp_foreach_ncu (ncp, find_wifi_net, (gpointer)&find_info );
+        g_object_unref(ncp);
+    }
+
+    return( find_info.wifi_net );
+}
+
 /**
  * nwamui_daemon_get_ncp_by_name:
  * @self: NwamuiDaemon*
@@ -1520,7 +1584,7 @@ nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name )
     GList          *found_elem = NULL;
 
     if ( self == NULL || name == NULL || self->prv->wifi_fav_list == NULL ) {
-        g_debug("%s: Searching for wifi_net '%s', returning NULL", __func__, name );
+        nwamui_debug("%s: Searching for wifi_net '%s', returning NULL", name );
         return( found_wifi_net );
     }
 
@@ -1531,7 +1595,7 @@ nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name )
         }
     }
     
-    g_debug("%s: Searching for wifi_net '%s', returning 0x%08x", __func__, name, found_wifi_net );
+    nwamui_debug("Searching for wifi_net '%s', returning 0x%08x", name, found_wifi_net );
     return( found_wifi_net );
 }
 
@@ -3194,17 +3258,28 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                     nwam_error_t                nerr;
                     nwam_known_wlan_handle_t    known_wlan_h;
 
-                    nwamui_debug("Got NWAM_ACTION_ADD for object %s, doing nothing...", 
+                    nwamui_debug("Got NWAM_ACTION_ADD for object %s", 
                             object_name );
 
                     if ( wifi == NULL ) {
-                        nerr = nwam_known_wlan_read(object_name, 0, &known_wlan_h);
-                        if (nerr != NWAM_SUCCESS) {
-                            nwamui_warning("Error reading new known wlan: %s", nwam_strerror(nerr));
+                        /* Check to see if it exists in an NCU hash anywhere
+                         */
+                        wifi = nwamui_daemon_find_wifi_net_in_ncus( daemon, object_name );
+
+                        if ( wifi == NULL ) {
+                            /* Still didn't find one, so create new fav entry. */
+                            nerr = nwam_known_wlan_read(object_name, 0, &known_wlan_h);
+                            if (nerr != NWAM_SUCCESS) {
+                                nwamui_warning("Error reading new known wlan: %s", nwam_strerror(nerr));
+                            }
+                            else {
+                                wifi = nwamui_wifi_net_new_with_handle( wireless_ncu, known_wlan_h );
+                                nwam_known_wlan_free( known_wlan_h );
+                            }
                         }
                         else {
-                            wifi = nwamui_wifi_net_new_with_handle( wireless_ncu, known_wlan_h );
-                            nwam_known_wlan_free( known_wlan_h );
+                            /* NULL will read directly from system */
+                            nwamui_wifi_net_update_with_handle( wifi, NULL ); 
                         }
                     }
                 }

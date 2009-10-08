@@ -1,3 +1,9 @@
+2009-10-08  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c, common/nwamui_ncu.c:
+	  Fix minor issue where an added wifi_fav could result in a duplicate
+	  object for a WifiNet if it already existed in ncu cache.
+
 2009-10-07  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/capplet-utils.c, capplet/main.c,

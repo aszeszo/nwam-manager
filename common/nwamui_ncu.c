@@ -2903,6 +2903,8 @@ nwamui_ncu_wifi_hash_lookup_by_essid( NwamuiNcu    *self,
         wifi_net = NWAMUI_WIFI_NET(value);
     }
 
+    nwamui_debug("search for essid '%s' - returning %08x", essid, wifi_net );
+
     return(wifi_net);
 }
 
