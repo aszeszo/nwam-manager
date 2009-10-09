@@ -1,5 +1,10 @@
 2009-10-09  Darren Kenny  <darren.kenny@sun.com>
 
+	* configure.in:
+	  Bump to 0.99.92 for RC2
+
+2009-10-09  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_condition_vbox.c, capplet/nwam_conn_conf_ip_panel.c,
 	  capplet/nwam_conn_stat_panel.c, capplet/nwam_env_pref_dialog.c,
 	  capplet/nwam_env_svc.c, capplet/nwam_location_dialog.c,
