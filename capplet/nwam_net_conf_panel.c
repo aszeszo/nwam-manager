@@ -26,7 +26,6 @@
  */
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <glib/gi18n.h>
 
 #include "libnwamui.h"

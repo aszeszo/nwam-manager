@@ -33,7 +33,6 @@
 #include <gdk/gdkx.h>
 #include <glib/gi18n.h>
 #include <libnwamui.h>
-#include <glade/glade.h>
 #include <libgnome/libgnome.h>
 #include <string.h>
 #include <unistd.h>

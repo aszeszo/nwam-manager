@@ -28,7 +28,6 @@
 #define DEF_CUSTOM_TREEVIEW_TOOLTIP 0
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <glib/gi18n.h>
 #include <strings.h>
 #include <stdlib.h>

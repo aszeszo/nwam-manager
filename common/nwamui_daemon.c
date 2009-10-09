@@ -2146,7 +2146,7 @@ nwamui_daemon_dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon )
  
     ncp = nwamui_daemon_get_active_ncp (daemon);
 
-    if ( ncp != NULL ) {
+    if ( ncp != NULL && nwamui_ncp_get_wireless_link_num(ncp) > 0 ) {
         daemon->prv->emit_wlan_changed_signals = TRUE;
 
         nwamui_daemon_emit_scan_started_event( daemon );
@@ -2565,21 +2565,26 @@ nwamd_event_handler(gpointer data)
 
 		case NWAM_EVENT_TYPE_WLAN_SCAN_REPORT: {
                 const gchar*    name = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
-                NwamuiNcu * ncu = get_ncu_by_device_name( daemon, NULL, name );
-                g_debug("Wireless networks found.", name );
+                g_debug("Wireless networks found on %s", name );
 
-                daemon->prv->emit_wlan_changed_signals = TRUE;
+                if ( nwamui_ncp_get_wireless_link_num(daemon->prv->auto_ncp) > 0 ) {
+                    NwamuiNcu * ncu = get_ncu_by_device_name( daemon, NULL, name );
+                    daemon->prv->emit_wlan_changed_signals = TRUE;
 
-                nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
+                    nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
 
-                g_signal_emit (daemon,
-                  nwamui_daemon_signals[DAEMON_INFO],
-                  0, /* details */
-                  NWAMUI_DAEMON_INFO_WLAN_CHANGED,
-                  ncu,
-                  g_strdup_printf(_("New wireless networks found.")));
+                    g_signal_emit (daemon,
+                      nwamui_daemon_signals[DAEMON_INFO],
+                      0, /* details */
+                      NWAMUI_DAEMON_INFO_WLAN_CHANGED,
+                      ncu,
+                      g_strdup_printf(_("New wireless networks found.")));
 
-                g_object_unref(ncu);
+                    g_object_unref(ncu);
+                }
+                else {
+                    g_debug("Num wifi i/fs returned 0");
+                }
             }
             break;
         case NWAM_EVENT_TYPE_WLAN_CONNECTION_REPORT: {

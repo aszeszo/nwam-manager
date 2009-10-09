@@ -31,6 +31,7 @@
 #include <glib/gi18n.h>
 
 #include "libnwamui.h"
+#include "capplet-utils.h"
 #include "nwam_wireless_chooser.h"
 #include "nwam_pref_iface.h"
 #include "nwam_wireless_dialog.h"

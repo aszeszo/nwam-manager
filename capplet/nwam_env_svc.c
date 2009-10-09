@@ -30,7 +30,6 @@
  */
 
 #include <gtk/gtk.h>
-#include <glade/glade.h>
 #include <glib/gi18n.h>
 
 #include "nwam_env_svc.h"

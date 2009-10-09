@@ -1,5 +1,20 @@
 2009-10-09  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_condition_vbox.c, capplet/nwam_conn_conf_ip_panel.c,
+	  capplet/nwam_conn_stat_panel.c, capplet/nwam_env_pref_dialog.c,
+	  capplet/nwam_env_svc.c, capplet/nwam_location_dialog.c,
+	  capplet/nwam_net_conf_panel.c, capplet/nwam_pref_dialog.c,
+	  capplet/nwam_proxy_password_dialog.c, capplet/nwam_rules_dialog.c,
+	  capplet/nwam_vpn_pref_dialog.c, capplet/nwam_wireless_chooser.c,
+	  capplet/nwam_wireless_dialog.c, common/libnwamui.c,
+	  daemon/status_icon_tooltip.c:
+	  Don't include glade header anymore.
+	* common/nwamui_daemon.c:
+	  Don't emit wireless scan events if there isn't any wireless
+	  interfaces.
+
+2009-10-09  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/libnwamui.c: 
 	  Getting an empty obj list is not a critical error in 
 	  nwamui_util_copy_obj_list().
