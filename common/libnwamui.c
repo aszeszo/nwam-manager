@@ -365,7 +365,9 @@ nwamui_util_copy_obj_list( GList*   obj_list )
 {
     GList*  new_list = NULL;
     
-    g_return_val_if_fail( obj_list != NULL, NULL );
+    if ( obj_list == NULL ) {
+        return( NULL );
+    }
     
     new_list = g_list_copy( obj_list );
     

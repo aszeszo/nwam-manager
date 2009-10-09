@@ -3338,6 +3338,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
 {
     nwamui_daemon_status_t  old_status;
     nwamui_daemon_status_t  new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
+    gboolean                force_status_event = FALSE;
     NwamuiDaemonPrivate    *prv;
     nwam_object_type_t      object_type = nwamevent->nwe_data.nwe_object_state.nwe_object_type;
     const char*             object_name = nwamevent->nwe_data.nwe_object_state.nwe_name;
@@ -3391,11 +3392,12 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
                         DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
+
+#if 0
                         /*
                          * Don't do this since there are already events to
                          * handle this.
                          */
-#if 0
                         if ( needs_wifi_selection != NULL ) {
                             g_signal_emit (daemon,
                               nwamui_daemon_signals[WIFI_SELECTION_NEEDED],
@@ -3409,6 +3411,11 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                               needs_wifi_key );
                         }
 #endif
+
+                        if ( needs_wifi_selection != NULL ||
+                             needs_wifi_key != NULL ) {
+                            force_status_event = TRUE;
+                        }
                     }
                 }
                 break;
@@ -3532,7 +3539,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
     }
 
     /* If status has changed, set it, and this will generate an event */
-    if ( new_status != old_status ) {
+    if ( new_status != old_status || force_status_event ) {
         DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
         nwamui_daemon_set_status(daemon, new_status );
     }

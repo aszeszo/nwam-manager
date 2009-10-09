@@ -890,6 +890,13 @@ nwamui_ncp_all_ncus_online (NwamuiNcp       *self,
     
     info.current_prio = nwamui_ncp_get_current_prio_group( self );
 
+    if ( self->prv->ncu_list == NULL ) {
+        /* If there are no NCUs then something is wrong and 
+         * we are not on-line 
+         */
+        return( FALSE );
+    }
+
     g_list_foreach(self->prv->ncu_list, check_ncu_online, &info );
 
     if ( info.num_manual_enabled != info.num_manual_online ) {

@@ -1,3 +1,19 @@
+2009-10-09  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/libnwamui.c: 
+	  Getting an empty obj list is not a critical error in 
+	  nwamui_util_copy_obj_list().
+	* common/nwamui_daemon.c:
+	  If we check ncus, and we see that it needs selection or a key, then
+	  ensure the status reflects this.
+	* common/nwamui_ncp.c: 
+	  In nwamui_ncp_all_ncus_online, if the ncu_list is empty, then
+	  obviously we're not on-line, so return FALSE.
+	* daemon/status_icon.c: 
+	  If we add an ncu, ensure that the no-ncu item is removed.
+	  Also ensure that a wifi_control section made visible is also
+	  sensitive.
+
 2009-10-08  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_daemon.c, common/nwamui_ncu.c:

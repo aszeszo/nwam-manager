@@ -554,6 +554,7 @@ ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
 
     connect_nwam_object_signals(G_OBJECT(ncu), G_OBJECT(self));
     nwam_menu_item_create(NWAM_MENU(prv->menu), NWAMUI_OBJECT(ncu));
+    REMOVE_MENU_ITEM(NWAM_MENU(prv->menu), prv->static_menuitems[MENUITEM_NONCU]);
     nwam_tooltip_widget_add_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu));
 }
 
@@ -853,6 +854,7 @@ nwam_menu_update_wifi_section(NwamStatusIcon *self)
         if (nwamui_ncp_find_ncu_list(prv->active_ncp, NULL, ncp_find_enabled_wireless_ncu)) {
             /* Show wireless control since we have enabled wireless links. */
             nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_WIFI_CONTROL, TRUE);
+            nwam_menu_section_set_sensitive(NWAM_MENU(prv->menu), SECTION_WIFI_CONTROL, TRUE);
             /* This call will clean SECTION_WIFI. Re-init wlan menu items.  */
             nwamui_daemon_dispatch_wifi_scan_events_from_cache(prv->daemon);
         } else {
