@@ -133,7 +133,7 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
 
     g_object_set (G_OBJECT(view),
       "headers-clickable", FALSE,
-      "reorderable", TRUE,
+      "reorderable", FALSE,
       NULL);
 
     // Column:	WIFI_FAV_ESSID

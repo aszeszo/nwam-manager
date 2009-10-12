@@ -1,3 +1,11 @@
+2009-10-12  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_wireless_chooser.c:
+	  Fix monit nit, where wireless chooser dialog was re-orderable, when
+	  infact it's not.
+	* nwam_core/usr/include/inetcfg.h:
+	  Update to latest from ON.
+
 2009-10-09  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in:

@@ -126,10 +126,9 @@ extern int icfg_str_to_sockaddr(sa_family_t, const char *, struct sockaddr *,
     socklen_t *);
 
 /* plumb or unplumb interfaces, add or remove IP */
-extern int icfg_add_ipaddr(icfg_handle_t, icfg_handle_t *,
+extern int icfg_add_addr(icfg_handle_t, icfg_handle_t *,
     const struct sockaddr *, socklen_t);
-extern int icfg_remove_ipaddr(icfg_handle_t, const struct sockaddr *,
-    socklen_t);
+extern int icfg_remove_addr(icfg_handle_t, const struct sockaddr *, socklen_t);
 
 extern int icfg_plumb(icfg_handle_t);
 extern int icfg_unplumb(icfg_handle_t);
