@@ -1584,7 +1584,7 @@ nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name )
     GList          *found_elem = NULL;
 
     if ( self == NULL || name == NULL || self->prv->wifi_fav_list == NULL ) {
-        nwamui_debug("%s: Searching for wifi_net '%s', returning NULL", name );
+        nwamui_debug("Searching for wifi_net '%s', returning NULL", name?name:"NULL" );
         return( found_wifi_net );
     }
 

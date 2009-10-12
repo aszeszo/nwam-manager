@@ -184,6 +184,7 @@ static void on_ncp_notify( GObject *gobject, GParamSpec *arg1, gpointer user_dat
 static void on_ncp_notify_many_wireless( GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
 /* nwamui ncu signals */
+static void ncu_notify_nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* GtkStatusIcon callbacks */
@@ -458,7 +459,7 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
 }
 
 static void
-ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
+ncu_notify_nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamStatusIcon *self       = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
@@ -466,8 +467,38 @@ ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
     gboolean        active_ncu = FALSE;
 
 	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
+       /* Wired only, wireless handled elsewhere. */
+        if ( active_ncu &&
+            nwamui_ncu_get_ncu_type( ncu ) == NWAMUI_NCU_TYPE_WIRED ) {
+                nwam_state_t                link_state;
+                nwam_aux_state_t            link_aux_state;
+
+                /* Use cached state */
+                link_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(ncu),
+                                                          &link_aux_state, NULL, NWAM_NCU_TYPE_LINK );
+
+                if ( link_state == NWAM_STATE_ONLINE_TO_OFFLINE  &&
+                     link_aux_state == NWAM_AUX_STATE_DOWN ) {
+                    /* Only show if in transition to down for sure */
+                    nwam_notification_show_ncu_disconnected(ncu, NULL, NULL);
+                }
+        }
+    }
+}
+
+static void
+ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamStatusIcon *self       = NWAM_STATUS_ICON(data);
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    NwamuiNcu      *ncu        = NWAMUI_NCU(gobject);
+    gboolean        active_ncu = FALSE;
+    gboolean        show_messages = FALSE;
+
+	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
         if ( active_ncu ) {
             nwam_status_icon_set_status(self, ncu);
+            show_messages = TRUE;
         }
     }
 
@@ -482,7 +513,7 @@ ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
         }
         break;
     case NWAMUI_STATE_CONNECTING_ESSID:
-    case NWAMUI_STATE_CABLE_UNPLUGGED:
+    case NWAMUI_STATE_CABLE_UNPLUGGED: 
     case NWAMUI_STATE_NEEDS_KEY_ESSID:
     case NWAMUI_STATE_NEEDS_SELECTION:
     case NWAMUI_STATE_UNKNOWN:
@@ -791,6 +822,11 @@ connect_nwam_object_signals(GObject *obj, GObject *self)
 
         g_signal_connect(ncu, "notify::active",
           G_CALLBACK(ncu_notify_active), (gpointer)self);
+
+        g_signal_connect(ncu, "notify::nwam-state",
+          G_CALLBACK(ncu_notify_nwam_state_changed), (gpointer)self);
+
+
         
 /* 	} else if (type == NWAMUI_TYPE_ENV) { */
 /* 	} else if (type == NWAMUI_TYPE_ENM) { */

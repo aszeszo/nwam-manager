@@ -1,5 +1,18 @@
 2009-10-12  Darren Kenny  <darren.kenny@sun.com>
 
+	* configure.in:
+	  Bump to 0.99.92.1 for RC2 respin to fix crash if no wlans present.
+	* common/nwamui_daemon.c:
+	  Fix bug in nwamui_daemon_find_fav_wifi_net_by_name() which could
+	  cause a crash due to invalid %s refs.
+	* common/nwamui_ncu.c: 
+	  Make an NCU that's waiting for address be seen as active - stops the
+	  icon from switching to wired if wireless is waiting.
+	* daemon/status_icon.c: 
+	  Add back wired disconnect message, as per defect#10944.
+
+2009-10-12  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_wireless_chooser.c:
 	  Fix monit nit, where wireless chooser dialog was re-orderable, when
 	  infact it's not.

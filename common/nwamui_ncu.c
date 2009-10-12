@@ -757,7 +757,12 @@ nwamui_ncu_get_property (GObject         *object,
                             nwam_ncu_get_state( self->prv->nwam_ncu_iptun, &state, &aux_state );
                         }
 #endif /* TUNNEL_SUPPORT */
-                        if ( state == NWAM_STATE_ONLINE ) {
+                        /* Consider active if ONLINE or is in transient
+                         * state to online waiting for an address
+                         */
+                        if ( state == NWAM_STATE_ONLINE ||
+                             (state == NWAM_STATE_OFFLINE_TO_ONLINE &&
+                              aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR) )  {
                             active = TRUE;
                         }
                     }
