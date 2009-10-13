@@ -1,5 +1,19 @@
 2009-10-13  Darren Kenny  <darren.kenny@sun.com>
 
+	* common/nwamui_ncp.h, common/nwamui_ncp.c: 
+	  Add two functions - nwamui_ncp_freeze_notify_ncus and 
+	  nwamui_ncp_thaw_notify_ncus to freeze and thaw the notifications on
+	  an ncu. 
+	* capplet/nwam_conn_stat_panel.c: 
+	  In refresh() we need to freeze notify signals on the ncus while
+	  doing a refilter, otherwise we seem to end up with duplicate entries
+	  in the view, eventhough the model is unchanged (GKT+ Bug?)
+	  Fixes defect#11910.
+	* common/nwamui_prof.c: 
+	  Remove accidently duplicated property we're attempting to add twice.
+
+2009-10-13  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_prof.h, common/nwamui_prof.c: 
 	  Fix issue where a set prefernce (e.g. via gconftool-2) was caused a
 	  busy loop in notifications since we set the pref again in the

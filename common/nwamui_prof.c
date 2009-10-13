@@ -260,15 +260,6 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         TRUE,
         G_PARAM_READWRITE));
 
-    g_object_class_install_property (gobject_class,
-      PROP_ADD_ANY_NEW_WIFI_TO_FAV,
-      g_param_spec_boolean ("add_any_new_wifi_to_fav",
-        _("Adding any new network to your favorites list"),
-        _("Adding any new network to your favorites list"),
-        TRUE,
-        G_PARAM_READWRITE));
-
-
 }
 
 

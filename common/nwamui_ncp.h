@@ -123,6 +123,11 @@ extern gint64                   nwamui_ncp_get_current_prio_group( NwamuiNcp* se
 
 extern void                     nwamui_ncp_set_current_prio_group( NwamuiNcp* self, gint64 new_prio );
 
+extern void                     nwamui_ncp_freeze_notify_ncus( NwamuiNcp* self );
+
+extern void                     nwamui_ncp_thaw_notify_ncus( NwamuiNcp* self );
+
+
 G_END_DECLS
 
 #endif	/* _NWAMUI_NCP_H */

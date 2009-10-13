@@ -352,12 +352,14 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         GtkTreeModel *filter;
 
         model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(ncp));
+        nwamui_ncp_freeze_notify_ncus( ncp ); /* Freeze notify on NCUS or refilter results in duplicate entries! */
         filter = gtk_tree_model_filter_new(model, NULL);
         gtk_tree_model_filter_set_visible_func(GTK_TREE_MODEL_FILTER(filter), conn_view_filter_visible_cb,
           NULL, NULL);
         gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(filter));
         gtk_widget_hide(GTK_WIDGET(self->prv->conn_status_treeview));
         gtk_tree_view_set_model(self->prv->conn_status_treeview, filter);
+        nwamui_ncp_thaw_notify_ncus( ncp );
         gtk_widget_show(GTK_WIDGET(self->prv->conn_status_treeview));
         g_object_unref(model);
         g_object_unref(filter);
@@ -520,7 +522,7 @@ conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer dat
     NwamuiObject *obj;
     gboolean      visible = FALSE;
 
-	gtk_tree_model_get(model, iter, 0, &obj, -1);
+    gtk_tree_model_get(model, iter, 0, &obj, -1);
 
     if (obj) {
         nwam_state_t                nwam_state;

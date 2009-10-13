@@ -1443,16 +1443,17 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
     /* NCU isn't already in the list, so add it */
     if ( new_ncu != NULL ) {
         prv->ncu_list = g_list_append( prv->ncu_list, g_object_ref(new_ncu) );
-        g_signal_emit (ncp,
-          nwamui_ncp_signals[ADD_NCU],
-          0, /* details */
-          new_ncu);
 
         gtk_list_store_append( prv->ncu_list_store, &iter );
         gtk_list_store_set( prv->ncu_list_store, &iter, 0, new_ncu, -1 );
 
         gtk_tree_store_append( prv->ncu_tree_store, &iter, NULL );
         gtk_tree_store_set( prv->ncu_tree_store, &iter, 0, new_ncu, -1 );
+
+        g_signal_emit (ncp,
+          nwamui_ncp_signals[ADD_NCU],
+          0, /* details */
+          new_ncu);
 
         g_signal_connect(G_OBJECT(new_ncu), "notify",
                          (GCallback)ncu_notify_cb, (gpointer)ncp);
@@ -1580,6 +1581,30 @@ nwamui_ncp_get_wireless_link_num( NwamuiNcp* self )
                   NULL);
 
     return( many_wireless );
+}
+
+static void
+freeze_thaw( gpointer obj, gpointer data ) {
+    if ( obj ) {
+        if ( (gboolean) data ) {
+            g_object_freeze_notify(G_OBJECT(obj));
+        }
+        else {
+            g_object_thaw_notify(G_OBJECT(obj));
+        }
+    }
+}
+
+extern void
+nwamui_ncp_freeze_notify_ncus( NwamuiNcp* self )
+{
+    nwamui_ncp_foreach_ncu_list( self, (GFunc)freeze_thaw, (gpointer)TRUE );
+}
+
+extern void
+nwamui_ncp_thaw_notify_ncus( NwamuiNcp* self )
+{
+    nwamui_ncp_foreach_ncu_list( self, (GFunc)freeze_thaw, (gpointer)FALSE );
 }
 
 /* Callbacks */
