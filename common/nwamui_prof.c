@@ -47,6 +47,16 @@ enum {
     PROP_ACTION_ON_NO_FAV_NETWORKS,
     PROP_ACTIVE_INTERFACE,
     PROP_NOTIFICATION_DEFAULT_TIMEOUT,
+    PROP_NOTIFICATION_FLAGS,
+    PROP_NOTIFICATION_NCU_CONNECTED,
+    PROP_NOTIFICATION_NCU_DISCONNECTED,
+    PROP_NOTIFICATION_NCU_WIFI_CONNECT_FAILED,
+    PROP_NOTIFICATION_NCU_WIFI_SELECTION_NEEDED,
+    PROP_NOTIFICATION_NCU_WIFI_KEY_NEEDED,
+    PROP_NOTIFICATION_NO_WIFI_NETWORKS,
+    PROP_NOTIFICATION_NCP_CHANGED,
+    PROP_NOTIFICATION_LOCATION_CHANGED,
+    PROP_NOTIFICATION_NWAM_UNAVAILABLE,
 };
 
 static guint nwamui_prof_signals [LAST_SIGNAL] = { 0 };
@@ -69,11 +79,34 @@ static guint nwamui_prof_signals [LAST_SIGNAL] = { 0 };
 #define PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT PROF_GCONF_ROOT \
     "/notification_default_timeout"
 
+/* Notification flags, what to show and what not to show */
+#define PROF_GCONF_NOTIFICATION_ROOT \
+    PROF_GCONF_ROOT "/notifications"
+#define PROF_BOOL_NOTIFICATION_NCU_CONNECTED \
+    PROF_GCONF_NOTIFICATION_ROOT "/ncu_connected"
+#define PROF_BOOL_NOTIFICATION_NCU_DISCONNECTED \
+    PROF_GCONF_NOTIFICATION_ROOT "/ncu_disconnected"
+#define PROF_BOOL_NOTIFICATION_NCU_WIFI_CONNECT_FAILED \
+    PROF_GCONF_NOTIFICATION_ROOT "/ncu_wifi_connect_failed"
+#define PROF_BOOL_NOTIFICATION_NCU_WIFI_SELECTION_NEEDED \
+    PROF_GCONF_NOTIFICATION_ROOT "/ncu_wifi_selection_needed"
+#define PROF_BOOL_NOTIFICATION_NCU_WIFI_KEY_NEEDED \
+    PROF_GCONF_NOTIFICATION_ROOT "/ncu_wifi_key_needed"
+#define PROF_BOOL_NOTIFICATION_NO_WIFI_NETWORKS \
+    PROF_GCONF_NOTIFICATION_ROOT "/no_wifi_networks"
+#define PROF_BOOL_NOTIFICATION_NCP_CHANGED \
+    PROF_GCONF_NOTIFICATION_ROOT "/ncp_changed"
+#define PROF_BOOL_NOTIFICATION_LOCATION_CHANGED \
+    PROF_GCONF_NOTIFICATION_ROOT "/location_changed"
+#define PROF_BOOL_NOTIFICATION_NWAM_UNAVAILABLE \
+    PROF_GCONF_NOTIFICATION_ROOT "/nwam_unavailable"
+
+
 struct _NwamuiProfPrivate {
 
     /*<private>*/
-    GConfClient* client;
-    guint gconf_notify_id;
+    GConfClient                *client;
+    guint                       gconf_notify_id;
 };
 
 static void nwamui_prof_set_property ( GObject         *object,
@@ -146,14 +179,6 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-      PROP_ACTIVE_INTERFACE,
-      g_param_spec_string ("active_interface",
-        _("Active Interface"),
-        _("Active Interface"),
-        "",
-        G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
       PROP_NOTIFICATION_DEFAULT_TIMEOUT,
       g_param_spec_int ("notification_default_timeout",
         _("Active Interface"),
@@ -162,6 +187,87 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
         G_MAXINT,
         2000,
         G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NOTIFICATION_NCU_CONNECTED,
+      g_param_spec_boolean ("ncu_connected",
+        _("Show notifications for ncu connected"),
+        _("Show notifications for ncu connected"),
+        TRUE,
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NOTIFICATION_NCU_DISCONNECTED,
+      g_param_spec_boolean ("ncu_disconnected",
+        _("Show notifications for ncu disconnected"),
+        _("Show notifications for ncu disconnected"),
+        TRUE,
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NOTIFICATION_NCU_WIFI_CONNECT_FAILED,
+      g_param_spec_boolean ("ncu_wifi_connect_failed",
+        _("Show notifications for wifi connect failed"),
+        _("Show notifications for wifi connect failed"),
+        TRUE,
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NOTIFICATION_NCU_WIFI_SELECTION_NEEDED,
+      g_param_spec_boolean ("ncu_wifi_selection_needed",
+        _("Show notifications for wifi selection needed"),
+        _("Show notifications for wifi selection needed"),
+        TRUE,
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NOTIFICATION_NCU_WIFI_KEY_NEEDED,
+      g_param_spec_boolean ("ncu_wifi_key_needed",
+        _("Show notifications for wifi key needed"),
+        _("Show notifications for wifi key needed"),
+        TRUE,
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NOTIFICATION_NO_WIFI_NETWORKS,
+      g_param_spec_boolean ("no_wifi_networks",
+        _("Show notifications for no wifi networks found"),
+        _("Show notifications for no wifi networks found"),
+        TRUE,
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NOTIFICATION_NCP_CHANGED,
+      g_param_spec_boolean ("ncp_changed",
+        _("Show notifications for ncp changed"),
+        _("Show notifications for ncp changed"),
+        TRUE,
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NOTIFICATION_LOCATION_CHANGED,
+      g_param_spec_boolean ("location_changed",
+        _("Show notifications for location changed"),
+        _("Show notifications for location changed"),
+        TRUE,
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NOTIFICATION_NWAM_UNAVAILABLE,
+      g_param_spec_boolean ("nwam_unavailable",
+        _("Show notifications for nwam unavailable"),
+        _("Show notifications for nwam unavailable"),
+        TRUE,
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_ADD_ANY_NEW_WIFI_TO_FAV,
+      g_param_spec_boolean ("add_any_new_wifi_to_fav",
+        _("Adding any new network to your favorites list"),
+        _("Adding any new network to your favorites list"),
+        TRUE,
+        G_PARAM_READWRITE));
+
 
 }
 
@@ -177,7 +283,7 @@ nwamui_prof_init (NwamuiProf *self)
 
     gconf_client_add_dir (prv->client,
       PROF_GCONF_ROOT,
-      GCONF_CLIENT_PRELOAD_ONELEVEL,
+      GCONF_CLIENT_PRELOAD_RECURSIVE,
       &err);
 
     if (err) {
@@ -246,6 +352,70 @@ nwamui_prof_set_property (GObject         *object,
         gconf_client_set_int (prv->client,
           PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT,
           g_value_get_int (value),
+          &err);
+    }
+        break;
+
+
+    case PROP_NOTIFICATION_NCU_CONNECTED: {
+        gconf_client_set_bool (prv->client, PROF_BOOL_NOTIFICATION_NCU_CONNECTED,
+          g_value_get_boolean (value),
+          &err);
+    }
+        break;
+
+    case PROP_NOTIFICATION_NCU_DISCONNECTED: {
+        gconf_client_set_bool (prv->client, PROF_BOOL_NOTIFICATION_NCU_DISCONNECTED,
+          g_value_get_boolean (value),
+          &err);
+    }
+        break;
+
+    case PROP_NOTIFICATION_NCU_WIFI_CONNECT_FAILED: {
+        gconf_client_set_bool (prv->client, PROF_BOOL_NOTIFICATION_NCU_WIFI_CONNECT_FAILED,
+          g_value_get_boolean (value),
+          &err);
+    }
+        break;
+
+    case PROP_NOTIFICATION_NCU_WIFI_SELECTION_NEEDED: {
+        gconf_client_set_bool (prv->client, PROF_BOOL_NOTIFICATION_NCU_WIFI_SELECTION_NEEDED,
+          g_value_get_boolean (value),
+          &err);
+    }
+        break;
+
+    case PROP_NOTIFICATION_NCU_WIFI_KEY_NEEDED: {
+        gconf_client_set_bool (prv->client, PROF_BOOL_NOTIFICATION_NCU_WIFI_KEY_NEEDED,
+          g_value_get_boolean (value),
+          &err);
+    }
+        break;
+
+    case PROP_NOTIFICATION_NO_WIFI_NETWORKS: {
+        gconf_client_set_bool (prv->client, PROF_BOOL_NOTIFICATION_NO_WIFI_NETWORKS,
+          g_value_get_boolean (value),
+          &err);
+    }
+        break;
+
+    case PROP_NOTIFICATION_NCP_CHANGED: {
+        gconf_client_set_bool (prv->client, PROF_BOOL_NOTIFICATION_NCP_CHANGED,
+          g_value_get_boolean (value),
+          &err);
+    }
+        break;
+
+    case PROP_NOTIFICATION_LOCATION_CHANGED: {
+        gconf_client_set_bool (prv->client, PROF_BOOL_NOTIFICATION_LOCATION_CHANGED,
+          g_value_get_boolean (value),
+          &err);
+    }
+        break;
+
+    case PROP_NOTIFICATION_NWAM_UNAVAILABLE: {
+        gconf_client_set_bool (prv->client, PROF_BOOL_NOTIFICATION_NWAM_UNAVAILABLE,
+          g_value_get_boolean (value),
           &err);
     }
         break;
@@ -321,6 +491,69 @@ nwamui_prof_get_property (GObject         *object,
         }
         break;
 
+    case PROP_NOTIFICATION_NCU_CONNECTED: {
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_NOTIFICATION_NCU_CONNECTED,
+                                   &err));
+        }
+        break;
+
+    case PROP_NOTIFICATION_NCU_DISCONNECTED: {
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_NOTIFICATION_NCU_DISCONNECTED,
+                                   &err));
+        }
+        break;
+
+    case PROP_NOTIFICATION_NCU_WIFI_CONNECT_FAILED: {
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_NOTIFICATION_NCU_WIFI_CONNECT_FAILED,
+                                   &err));
+        }
+        break;
+
+    case PROP_NOTIFICATION_NCU_WIFI_SELECTION_NEEDED: {
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_NOTIFICATION_NCU_WIFI_SELECTION_NEEDED,
+                                   &err));
+        }
+        break;
+
+    case PROP_NOTIFICATION_NCU_WIFI_KEY_NEEDED: {
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_NOTIFICATION_NCU_WIFI_KEY_NEEDED,
+                                   &err));
+        }
+        break;
+
+    case PROP_NOTIFICATION_NO_WIFI_NETWORKS: {
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_NOTIFICATION_NO_WIFI_NETWORKS,
+                                   &err));
+        }
+        break;
+
+    case PROP_NOTIFICATION_NCP_CHANGED: {
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_NOTIFICATION_NCP_CHANGED,
+                                   &err));
+        }
+        break;
+
+    case PROP_NOTIFICATION_LOCATION_CHANGED: {
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_NOTIFICATION_LOCATION_CHANGED,
+                                   &err));
+        }
+        break;
+
+    case PROP_NOTIFICATION_NWAM_UNAVAILABLE: {
+            g_value_set_boolean (value, gconf_client_get_bool (prv->client,
+                                   PROF_BOOL_NOTIFICATION_NWAM_UNAVAILABLE,
+                                   &err));
+        }
+        break;
+
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
@@ -374,26 +607,63 @@ gconf_notify_cb (GConfClient *client, guint cnxn_id, GConfEntry *entry, gpointer
     value = gconf_entry_get_value (entry);
     
     if (g_ascii_strcasecmp (key, PROF_BOOL_JOIN_WIFI_NOT_IN_FAV) == 0) {
-        g_object_set(self, "join_wifi_not_in_fav",
-          gconf_value_get_bool(value), NULL);
+        nwamui_debug( "join_wifi_not_in_fav set to %d",
+          gconf_value_get_bool(value));
     } else if (g_ascii_strcasecmp (key, PROF_BOOL_JOIN_ANY_FAV_WIFI) == 0) {
-        g_object_set(self, "join_any_fav_wifi",
-          gconf_value_get_bool(value), NULL);
+        nwamui_debug( "join_any_fav_wifi set to %d",
+          gconf_value_get_bool(value));
     } else if (g_ascii_strcasecmp (key, PROF_BOOL_ADD_ANY_NEW_WIFI_TO_FAV) == 0) {
-        g_object_set(self, "add_any_new_wifi_to_fav",
-          gconf_value_get_bool(value), NULL);
+        nwamui_debug( "add_any_new_wifi_to_fav set to %d",
+          gconf_value_get_bool(value));
     } else if (g_ascii_strcasecmp (key, PROF_STRING_ACTION_ON_NO_FAV_NETWORKS) == 0) {
-        g_object_set(self, "action_on_no_fav_networks",
-          gconf_value_get_int(value), NULL);
-    } else if (g_ascii_strcasecmp (key, PROF_STRING_ACTIVE_INTERFACE ) == 0) {
-        g_object_set(self, "active_interface",
-          gconf_value_get_string(value), NULL);
+        nwamui_debug( "action_on_no_fav_networks set to %d",
+          gconf_value_get_int(value));
     } else if (g_ascii_strcasecmp (key, PROF_INT_NOTIFICATION_DEFAULT_TIMEOUT ) == 0) {
-        g_object_set(self, "notification_default_timeout",
-          gconf_value_get_int(value), NULL);
-    } else {
-        g_assert_not_reached ();
+        nwamui_debug( "notification_default_timeout set to %d",
+          gconf_value_get_int(value));
+    } else if (g_ascii_strcasecmp (key, PROF_BOOL_NOTIFICATION_NCU_CONNECTED) == 0) {
+        nwamui_debug( "ncu_connected set to %d",
+          gconf_value_get_bool(value));
+    } else if (g_ascii_strcasecmp (key, PROF_BOOL_NOTIFICATION_NCU_DISCONNECTED) == 0) {
+        nwamui_debug( "ncu_disconnected set to %d",
+          gconf_value_get_bool(value));
+    } else if (g_ascii_strcasecmp (key, PROF_BOOL_NOTIFICATION_NCU_WIFI_CONNECT_FAILED) == 0) {
+        nwamui_debug( "ncu_wifi_connect_failed set to %d",
+          gconf_value_get_bool(value));
+    } else if (g_ascii_strcasecmp (key, PROF_BOOL_NOTIFICATION_NCU_WIFI_SELECTION_NEEDED) == 0) {
+        nwamui_debug( "ncu_wifi_selection_needed set to %d",
+          gconf_value_get_bool(value));
+    } else if (g_ascii_strcasecmp (key, PROF_BOOL_NOTIFICATION_NCU_WIFI_KEY_NEEDED) == 0) {
+        nwamui_debug( "ncu_wifi_key_needed set to %d",
+          gconf_value_get_bool(value));
+    } else if (g_ascii_strcasecmp (key, PROF_BOOL_NOTIFICATION_NO_WIFI_NETWORKS) == 0) {
+        nwamui_debug( "no_wifi_networks set to %d",
+          gconf_value_get_bool(value));
+    } else if (g_ascii_strcasecmp (key, PROF_BOOL_NOTIFICATION_NCP_CHANGED) == 0) {
+        nwamui_debug( "ncp_changed set to %d",
+          gconf_value_get_bool(value));
+    } else if (g_ascii_strcasecmp (key, PROF_BOOL_NOTIFICATION_LOCATION_CHANGED) == 0) {
+        nwamui_debug( "location_changed set to %d",
+          gconf_value_get_bool(value));
+    } else if (g_ascii_strcasecmp (key, PROF_BOOL_NOTIFICATION_NWAM_UNAVAILABLE) == 0) {
+        nwamui_debug( "nwam_unavailable set to %d",
+          gconf_value_get_bool(value));
     }
+}
+
+/**
+ * nwamui_prof_get_instance_noref:
+ * @returns: a #NwamuiProf without updateing ref count.
+ *
+ **/
+NwamuiProf*
+nwamui_prof_get_instance_noref ()
+{
+    if ( instance == NULL ) {
+        instance = NWAMUI_PROF (g_object_new (NWAMUI_TYPE_PROF, NULL));
+    }
+    
+    return (instance);
 }
 
 /**
@@ -406,40 +676,12 @@ NwamuiProf*
 nwamui_prof_get_instance ()
 {
     if ( instance == NULL ) {
-        instance = NWAMUI_PROF (g_object_new (NWAMUI_TYPE_PROF, NULL));
+        nwamui_prof_get_instance_noref();
     }
+
     g_object_ref (instance);
-    
+
     return (instance);
-}
-
-extern gchar*
-nwamui_prof_get_active_interface (NwamuiProf* self)
-{
-    gchar*  interface = NULL;
-    
-    g_return_val_if_fail (NWAMUI_IS_PROF(self), interface); 
-    
-    g_object_get (G_OBJECT (self),
-                  "active_interface", &interface,
-                  NULL);
-
-    return( interface );
-
-}
-
-extern void
-nwamui_prof_set_active_interface ( NwamuiProf *self, const gchar* active_interface )
-{
-    g_return_if_fail (NWAMUI_IS_PROF(self)); 
-    
-    g_assert (active_interface != NULL );
-
-    if ( active_interface != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "active_interface", active_interface,
-                      NULL);
-    }
 }
 
 extern gint
@@ -499,5 +741,239 @@ nwamui_prof_get_no_fav_action_string( nwamui_action_on_no_fav_networks_t action 
         default:
             return( NULL );
     }
+}
+
+
+extern gboolean
+nwamui_prof_get_notification_ncu_connected (NwamuiProf* self)
+{
+    gboolean value;
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), value);
+
+    g_object_get (G_OBJECT (self),
+      "ncu_connected", &value,
+      NULL);
+
+    return( value );
+
+}
+
+extern void
+nwamui_prof_set_notification_ncu_connected ( NwamuiProf *self, gboolean notification_ncu_connected )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self));
+
+    g_object_set (G_OBJECT (self),
+      "ncu_connected", notification_ncu_connected,
+      NULL);
+}
+
+
+extern gboolean
+nwamui_prof_get_notification_ncu_disconnected (NwamuiProf* self)
+{
+    gboolean value;
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), value);
+
+    g_object_get (G_OBJECT (self),
+      "ncu_disconnected", &value,
+      NULL);
+
+    return( value );
+
+}
+
+extern void
+nwamui_prof_set_notification_ncu_disconnected ( NwamuiProf *self, gboolean notification_ncu_disconnected )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self));
+
+    g_object_set (G_OBJECT (self),
+      "ncu_disconnected", notification_ncu_disconnected,
+      NULL);
+}
+
+
+extern gboolean
+nwamui_prof_get_notification_ncu_wifi_connect_failed (NwamuiProf* self)
+{
+    gboolean value;
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), value);
+
+    g_object_get (G_OBJECT (self),
+      "ncu_wifi_connect_failed", &value,
+      NULL);
+
+    return( value );
+
+}
+
+extern void
+nwamui_prof_set_notification_ncu_wifi_connect_failed ( NwamuiProf *self, gboolean notification_ncu_wifi_connect_failed )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self));
+
+    g_object_set (G_OBJECT (self),
+      "ncu_wifi_connect_failed", notification_ncu_wifi_connect_failed,
+      NULL);
+}
+
+
+extern gboolean
+nwamui_prof_get_notification_ncu_wifi_selection_needed (NwamuiProf* self)
+{
+    gboolean value;
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), value);
+
+    g_object_get (G_OBJECT (self),
+      "ncu_wifi_selection_needed", &value,
+      NULL);
+
+    return( value );
+
+}
+
+extern void
+nwamui_prof_set_notification_ncu_wifi_selection_needed ( NwamuiProf *self, gboolean notification_ncu_wifi_selection_needed )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self));
+
+    g_object_set (G_OBJECT (self),
+      "ncu_wifi_selection_needed", notification_ncu_wifi_selection_needed,
+      NULL);
+}
+
+
+extern gboolean
+nwamui_prof_get_notification_ncu_wifi_key_needed (NwamuiProf* self)
+{
+    gboolean value;
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), value);
+
+    g_object_get (G_OBJECT (self),
+      "ncu_wifi_key_needed", &value,
+      NULL);
+
+    return( value );
+
+}
+
+extern void
+nwamui_prof_set_notification_ncu_wifi_key_needed ( NwamuiProf *self, gboolean notification_ncu_wifi_key_needed )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self));
+
+    g_object_set (G_OBJECT (self),
+      "ncu_wifi_key_needed", notification_ncu_wifi_key_needed,
+      NULL);
+}
+
+
+extern gboolean
+nwamui_prof_get_notification_no_wifi_networks (NwamuiProf* self)
+{
+    gboolean value;
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), value);
+
+    g_object_get (G_OBJECT (self),
+      "no_wifi_networks", &value,
+      NULL);
+
+    return( value );
+
+}
+
+extern void
+nwamui_prof_set_notification_no_wifi_networks ( NwamuiProf *self, gboolean notification_no_wifi_networks )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self));
+
+    g_object_set (G_OBJECT (self),
+      "no_wifi_networks", notification_no_wifi_networks,
+      NULL);
+}
+
+
+extern gboolean
+nwamui_prof_get_notification_ncp_changed (NwamuiProf* self)
+{
+    gboolean value;
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), value);
+
+    g_object_get (G_OBJECT (self),
+      "ncp_changed", &value,
+      NULL);
+
+    return( value );
+
+}
+
+extern void
+nwamui_prof_set_notification_ncp_changed ( NwamuiProf *self, gboolean notification_ncp_changed )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self));
+
+    g_object_set (G_OBJECT (self),
+      "ncp_changed", notification_ncp_changed,
+      NULL);
+}
+
+
+extern gboolean
+nwamui_prof_get_notification_location_changed (NwamuiProf* self)
+{
+    gboolean value;
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), value);
+
+    g_object_get (G_OBJECT (self),
+      "location_changed", &value,
+      NULL);
+
+    return( value );
+
+}
+
+extern void
+nwamui_prof_set_notification_location_changed ( NwamuiProf *self, gboolean notification_location_changed )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self));
+
+    g_object_set (G_OBJECT (self),
+      "location_changed", notification_location_changed,
+      NULL);
+}
+
+
+extern gboolean
+nwamui_prof_get_notification_nwam_unavailable (NwamuiProf* self)
+{
+    gboolean value;
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), value);
+
+    g_object_get (G_OBJECT (self),
+      "nwam_unavailable", &value,
+      NULL);
+
+    return( value );
+
+}
+
+extern void
+nwamui_prof_set_notification_nwam_unavailable ( NwamuiProf *self, gboolean notification_nwam_unavailable )
+{
+    g_return_if_fail (NWAMUI_IS_PROF(self));
+
+    g_object_set (G_OBJECT (self),
+      "nwam_unavailable", notification_nwam_unavailable,
+      NULL);
 }
 

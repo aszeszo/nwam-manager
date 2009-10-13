@@ -78,5 +78,131 @@
       </locale>
     </schema>
 
+    <schema>
+      <key>/schemas/apps/nwam-manager/notifications/ncu_connected</key>
+      <applyto>/apps/nwam-manager/notifications/ncu_connected</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>ncu_connected</short>
+         <long>
+		Show notifications for when an NCU connects
+         </long>
+      </locale>
+    </schema>
+
+    <schema>
+      <key>/schemas/apps/nwam-manager/notifications/ncu_disconnected</key>
+      <applyto>/apps/nwam-manager/notifications/ncu_disconnected</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>ncu_disconnected</short>
+         <long>
+		Show notifications for when an NCU disconnects
+         </long>
+      </locale>
+    </schema>
+
+    <schema>
+      <key>/schemas/apps/nwam-manager/notifications/ncu_wifi_connect_failed</key>
+      <applyto>/apps/nwam-manager/notifications/ncu_wifi_connect_failed</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>ncu_wifi_connect_failed</short>
+         <long>
+		Show notifications for when a Wireless connection fails.
+         </long>
+      </locale>
+    </schema>
+
+    <schema>
+      <key>/schemas/apps/nwam-manager/notifications/ncu_wifi_selection_needed</key>
+      <applyto>/apps/nwam-manager/notifications/ncu_wifi_selection_needed</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>ncu_wifi_selection_needed</short>
+         <long>
+		Show notifications for when a Wireless network selection is required.
+         </long>
+      </locale>
+    </schema>
+
+    <schema>
+      <key>/schemas/apps/nwam-manager/notifications/ncu_wifi_key_needed</key>
+      <applyto>/apps/nwam-manager/notifications/ncu_wifi_key_needed</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>ncu_wifi_key_needed</short>
+         <long>
+		Show notifications for when a Wireless connection requires a key.
+         </long>
+      </locale>
+    </schema>
+
+    <schema>
+      <key>/schemas/apps/nwam-manager/notifications/no_wifi_networks</key>
+      <applyto>/apps/nwam-manager/notifications/no_wifi_networks</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>no_wifi_networks</short>
+         <long>
+		Show notifications for when there are no visible wireless networks.
+         </long>
+      </locale>
+    </schema>
+
+    <schema>
+      <key>/schemas/apps/nwam-manager/notifications/ncp_changed</key>
+      <applyto>/apps/nwam-manager/notifications/ncp_changed</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>ncp_changed</short>
+         <long>
+		Show notifications for when the NCP has changed.
+         </long>
+      </locale>
+    </schema>
+
+    <schema>
+      <key>/schemas/apps/nwam-manager/notifications/location_changed</key>
+      <applyto>/apps/nwam-manager/notifications/location_changed</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>location_changed</short>
+         <long>
+		Show notifications for when the Location has changed.
+         </long>
+      </locale>
+    </schema>
+
+    <schema>
+      <key>/schemas/apps/nwam-manager/notifications/nwam_unavailable</key>
+      <applyto>/apps/nwam-manager/notifications/nwam_unavailable</applyto>
+      <owner>nwam-manager</owner>
+      <type>bool</type>
+      <default>true</default>
+      <locale name="C">
+         <short>nwam_unavailable</short>
+         <long>
+		Show notifications for NWAM is unavailable.
+         </long>
+      </locale>
+    </schema>
+
   </schemalist>  
 </gconfschemafile>

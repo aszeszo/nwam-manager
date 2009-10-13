@@ -28,6 +28,14 @@
 #include <glib/gi18n.h>
 #include "notify.h"
 
+#define     TEST_PROF_SET_OR_RETURN(pref) \
+    { \
+        NwamuiProf* prof = nwamui_prof_get_instance(); \
+        if ( ! nwamui_prof_get_notification_#pref( prof )) ) \
+            return; \
+        g_object_unref(G_OBJECT( prof )); \
+    }
+
 static NotifyNotification*   notification           = NULL;
 static GtkStatusIcon*        parent_status_icon     = NULL;
 static GdkPixbuf            *default_icon           = NULL;
@@ -510,6 +518,11 @@ nwam_notification_show_nwam_unavailable( void )
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     GdkPixbuf       *icon = NULL;
 
+    if ( !nwamui_prof_get_notification_nwam_unavailable(nwamui_prof_get_instance_noref()) ) {
+        nwamui_debug("returning early since gconf settings is FALSE", NULL);
+        return;
+    }
+
     if ( daemon ) {
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
@@ -542,6 +555,11 @@ nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
     
 
     g_return_if_fail( ncu != NULL );
+
+    if ( !nwamui_prof_get_notification_ncu_connected(nwamui_prof_get_instance_noref()) ) {
+        nwamui_debug("returning early since gconf settings is FALSE", NULL);
+        return;
+    }
 
     if ( daemon ) {
 /*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
@@ -611,6 +629,11 @@ nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
     
 
     g_return_if_fail( ncu != NULL );
+
+    if ( !nwamui_prof_get_notification_ncu_disconnected(nwamui_prof_get_instance_noref()) ) {
+        nwamui_debug("returning early since gconf settings is FALSE", NULL);
+        return;
+    }
 
     if ( daemon ) {
 /*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
@@ -699,6 +722,11 @@ nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu )
 
     g_return_if_fail( ncu != NULL );
 
+    if ( !nwamui_prof_get_notification_ncu_wifi_connect_failed(nwamui_prof_get_instance_noref()) ) {
+        nwamui_debug("returning early since gconf settings is FALSE", NULL);
+        return;
+    }
+
     if ( daemon ) {
 /*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
         icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
@@ -761,6 +789,11 @@ nwam_notification_show_ncu_wifi_selection_needed(   NwamuiNcu           *ncu,
 
     g_return_if_fail( ncu != NULL );
 
+    if ( !nwamui_prof_get_notification_ncu_wifi_selection_needed(nwamui_prof_get_instance_noref()) ) {
+        nwamui_debug("returning early since gconf settings is FALSE", NULL);
+        return;
+    }
+
     if ( daemon ) {
 /*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
         icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
@@ -780,7 +813,7 @@ nwam_notification_show_ncu_wifi_selection_needed(   NwamuiNcu           *ncu,
                 callback,
                 (gpointer)  user_object?g_object_ref(user_object):NULL,
                 (GFreeFunc) user_object?g_object_unref:NULL,
-                NOTIFY_EXPIRES_NEVER);
+                NOTIFY_EXPIRES_DEFAULT);
 		
     g_free(body);
     g_free(summary);
@@ -805,6 +838,11 @@ nwam_notification_show_ncu_wifi_key_needed( NwamuiWifiNet       *wifi_net,
 
     g_return_if_fail( wifi_net != NULL );
 
+    if ( !nwamui_prof_get_notification_ncu_wifi_key_needed(nwamui_prof_get_instance_noref()) ) {
+        nwamui_debug("returning early since gconf settings is FALSE", NULL);
+        return;
+    }
+
     if ( daemon ) {
 /*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
         icon = nwamui_util_get_ncu_status_icon( nwamui_wifi_net_get_ncu(wifi_net), NOTIFY_ICON_SIZE );
@@ -825,7 +863,7 @@ nwam_notification_show_ncu_wifi_key_needed( NwamuiWifiNet       *wifi_net,
                 callback,
                 (gpointer)g_object_ref(wifi_net),
                 (GFreeFunc)g_object_unref,
-                NOTIFY_EXPIRES_NEVER);
+                NOTIFY_EXPIRES_DEFAULT);
 		
     g_free(name);
     g_free(body);
@@ -844,6 +882,11 @@ nwam_notification_show_no_wifi_networks( void )
 {
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     GdkPixbuf       *icon = NULL;
+
+    if ( !nwamui_prof_get_notification_no_wifi_networks(nwamui_prof_get_instance_noref()) ) {
+        nwamui_debug("returning early since gconf settings is FALSE", NULL);
+        return;
+    }
 
     if ( daemon ) {
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
@@ -870,6 +913,11 @@ nwam_notification_show_ncp_changed( NwamuiNcp* ncp )
     gchar           *summary_str = NULL;
 
     g_return_if_fail( ncp != NULL );
+
+    if ( !nwamui_prof_get_notification_ncp_changed(nwamui_prof_get_instance_noref()) ) {
+        nwamui_debug("returning early since gconf settings is FALSE", NULL);
+        return;
+    }
 
     if ( daemon ) {
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
@@ -905,6 +953,11 @@ nwam_notification_show_location_changed( NwamuiEnv* env )
     gchar           *summary_str = NULL;
 
     g_return_if_fail( env != NULL );
+
+    if ( !nwamui_prof_get_notification_location_changed(nwamui_prof_get_instance_noref()) ) {
+        nwamui_debug("returning early since gconf settings is FALSE", NULL);
+        return;
+    }
 
     if ( daemon ) {
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );

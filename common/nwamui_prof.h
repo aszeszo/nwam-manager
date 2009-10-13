@@ -49,7 +49,6 @@ typedef enum {
     NWAMUI_NO_FAV_ACTION_LAST           /* Not to be used directly */
 } nwamui_action_on_no_fav_networks_t;
 
-
 typedef struct _NwamuiProf		      NwamuiProf;
 typedef struct _NwamuiProfClass       NwamuiProfClass;
 typedef struct _NwamuiProfPrivate	  NwamuiProfPrivate;
@@ -71,17 +70,58 @@ extern GType                nwamui_prof_get_type (void) G_GNUC_CONST;
 
 extern NwamuiProf*          nwamui_prof_get_instance ();
 
+extern NwamuiProf*          nwamui_prof_get_instance_noref ();
+
 extern void                 nwamui_prof_notify_begin (NwamuiProf* self);
-
-extern void                 nwamui_prof_set_active_interface ( NwamuiProf *self, const gchar* active_interface );
-
-extern gchar*               nwamui_prof_get_active_interface (NwamuiProf* self);
 
 extern void                 nwamui_prof_set_notification_default_timeout ( NwamuiProf *self, gint notification_default_timeout );
 
 extern gint                 nwamui_prof_get_notification_default_timeout (NwamuiProf* self);
 
 const gchar*                nwamui_prof_get_no_fav_action_string( nwamui_action_on_no_fav_networks_t action );
+
+extern gboolean             nwamui_prof_get_notification_ncu_connected (NwamuiProf* self);
+
+extern void                 nwamui_prof_set_notification_ncu_connected ( NwamuiProf *self, gboolean notification_ncu_connected );
+
+extern gboolean             nwamui_prof_get_notification_ncu_disconnected (NwamuiProf* self);
+
+extern void                 nwamui_prof_set_notification_ncu_disconnected ( NwamuiProf *self, gboolean notification_ncu_disconnected );
+
+
+extern gboolean             nwamui_prof_get_notification_ncu_wifi_connect_failed (NwamuiProf* self);
+
+extern void                 nwamui_prof_set_notification_ncu_wifi_connect_failed ( NwamuiProf *self, gboolean notification_ncu_wifi_connect_failed );
+
+extern gboolean             nwamui_prof_get_notification_ncu_wifi_selection_needed (NwamuiProf* self);
+
+extern void                 nwamui_prof_set_notification_ncu_wifi_selection_needed ( NwamuiProf *self, gboolean notification_ncu_wifi_selection_needed );
+
+
+extern gboolean             nwamui_prof_get_notification_ncu_wifi_key_needed (NwamuiProf* self);
+
+extern void                 nwamui_prof_set_notification_ncu_wifi_key_needed ( NwamuiProf *self, gboolean notification_ncu_wifi_key_needed );
+
+
+extern gboolean             nwamui_prof_get_notification_no_wifi_networks (NwamuiProf* self);
+
+extern void                 nwamui_prof_set_notification_no_wifi_networks ( NwamuiProf *self, gboolean notification_no_wifi_networks );
+
+
+extern gboolean             nwamui_prof_get_notification_ncp_changed (NwamuiProf* self);
+
+extern void                 nwamui_prof_set_notification_ncp_changed ( NwamuiProf *self, gboolean notification_ncp_changed );
+
+
+extern gboolean             nwamui_prof_get_notification_location_changed (NwamuiProf* self);
+
+extern void                 nwamui_prof_set_notification_location_changed ( NwamuiProf *self, gboolean notification_location_changed );
+
+
+extern gboolean             nwamui_prof_get_notification_nwam_unavailable (NwamuiProf* self);
+
+extern void                 nwamui_prof_set_notification_nwam_unavailable ( NwamuiProf *self, gboolean notification_nwam_unavailable );
+
 G_END_DECLS
 
 #endif	/* _NWAMUI_PROF_H */

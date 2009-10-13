@@ -1,3 +1,17 @@
+2009-10-13  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_prof.h, common/nwamui_prof.c: 
+	  Fix issue where a set prefernce (e.g. via gconftool-2) was caused a
+	  busy loop in notifications since we set the pref again in the
+	  notify!  Add preferences to allow the toggling of the type of
+	  notifications that a user would like to see, or not.  Remove old
+	  netstatus active i/f mechanism..
+	* daemon/notify.c: 
+	  Use new preferences for notifications.
+	* data/nwam-manager.schemas.in:
+	  Add new preferences to schema, and remove old netstatus active i/f
+	  mechanism..
+
 2009-10-12  Darren Kenny  <darren.kenny@sun.com>
 
 	* configure.in:
