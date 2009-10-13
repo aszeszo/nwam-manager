@@ -1,5 +1,14 @@
 2009-10-13  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_conn_stat_panel.c: 
+	  Fix defect#11020, change filter function to do include the
+	  following:
+	  - If manually enabled then always show.
+	  - If in the current prio group, then show
+	  - All else don't show.
+
+2009-10-13  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_ncp.h, common/nwamui_ncp.c: 
 	  Add two functions - nwamui_ncp_freeze_notify_ncus and 
 	  nwamui_ncp_thaw_notify_ncus to freeze and thaw the notifications on

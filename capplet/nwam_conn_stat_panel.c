@@ -355,7 +355,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         nwamui_ncp_freeze_notify_ncus( ncp ); /* Freeze notify on NCUS or refilter results in duplicate entries! */
         filter = gtk_tree_model_filter_new(model, NULL);
         gtk_tree_model_filter_set_visible_func(GTK_TREE_MODEL_FILTER(filter), conn_view_filter_visible_cb,
-          NULL, NULL);
+          (gpointer)self, NULL);
         gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(filter));
         gtk_widget_hide(GTK_WIDGET(self->prv->conn_status_treeview));
         gtk_tree_view_set_model(self->prv->conn_status_treeview, filter);
@@ -519,19 +519,37 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 static gboolean
 conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer data)
 {
-    NwamuiObject *obj;
-    gboolean      visible = FALSE;
+    NwamuiObject           *obj;
+	NwamConnStatusPanel    *self = NWAM_CONN_STATUS_PANEL(data);
+    NwamuiNcp              *ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
+    gboolean                visible = FALSE;
 
     gtk_tree_model_get(model, iter, 0, &obj, -1);
 
     if (obj) {
         nwam_state_t                nwam_state;
 
-        /* Use cached state */
-        nwam_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(obj), NULL, NULL, NWAM_NCU_TYPE_LINK );
-        /* Show NCUs that are not off-line */
-        if ( nwam_state != NWAM_STATE_OFFLINE ) {
-            visible = TRUE;
+        switch ( nwamui_object_get_activation_mode( NWAMUI_OBJECT(obj)) ) {
+            case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+                visible =  nwamui_ncu_get_enabled( NWAMUI_NCU(obj));
+                break;
+            case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+                if (ncp) {
+                    if ( nwamui_ncp_get_current_prio_group(ncp)
+                         == nwamui_ncu_get_priority_group( NWAMUI_NCU(obj) )) {
+                        visible = TRUE;
+                    }
+                    g_object_unref(ncp);
+                }
+                break;
+            default:
+                /* Use cached state */
+                nwam_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(obj), NULL, NULL, NWAM_NCU_TYPE_LINK );
+                /* Show NCUs that are not off-line */
+                if ( nwam_state != NWAM_STATE_OFFLINE ) {
+                    visible = TRUE;
+                }
+                break;
         }
         g_object_unref(obj);
     }
