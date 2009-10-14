@@ -1,3 +1,18 @@
+2009-10-14 Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* img/capplet/network-profile-auto.png
+	* img/capplet/wireless-security-wep-ascii.png
+	* img/capplet/vpn-dlg-initial.png
+	* img/capplet/network-profile-user.png
+	* img/capplet/wireless-tab-noexpand.png
+	* img/capplet/vpn-dlg-adding.png
+	* nwam-ui-spec.pdf
+
+Remove functionality that won't make it into Phase 1: Network Services tab, ability to rename Locations and VPN Applications once committed to system, ability to rename NCUs, wireless security types other than WEP and WPA Personal, option to join an open network if no favorite networks available, and all "Ask Before" options on wireless tab. 
+
+Minor tweaks: clicking panel icon should open Network Prefs rather than Location Prefs dialog, VPN Applications dialog should have a Rename button, and Connection Properties view now only shows manually enabled NCUs, plus NCUs in the active priority group.
+
 2009-08-17 Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
