@@ -1,3 +1,26 @@
+2009-10-14  Darren Kenny  <darren.kenny@sun.com>
+
+	* common/nwamui_daemon.c:
+	  Fix defect#11920 by updating nwamui_daemon_update_status and
+	  nwamui_daemon_update_status_from_object_state_event to take into
+	  account what is causing a status to change. This was made to handle
+	  the case where all NCUs are down, but then the NoNet ncu comes
+	  online, making the state event flag things as ALL_OK, which is
+	  correct only for the location since everything else is offline.
+	* common/nwamui_ncp.c: 
+	  Fix check_ncu_online() to ignore a MANUAL NCU which is disabled,
+	  otherwise would incorrectly state that there was something wrong,
+	  when there really wasn't.
+	* daemon/status_icon.c:
+	  As per the UI Spec, left-click on the icon should cause the
+	  properties editor to launch, handle this, but if expecting a
+	  wireless key we should launch it's dialog.
+	* nwam_core/usr/include/libdladm.h,
+	  nwam_core/usr/include/libdladm_impl.h,
+	  nwam_core/usr/include/sys/mac.h,
+	  nwam_core/usr/include/sys/mac_flow.h:
+	  Update to latest in from NWAM sources.
+
 2009-10-13  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_conn_stat_panel.c: 

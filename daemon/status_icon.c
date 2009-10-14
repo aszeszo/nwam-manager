@@ -160,6 +160,7 @@ static void location_model_menuitems(GtkMenuItem *menuitem, gpointer user_data);
 static void on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data);
 static void activate_test_menuitems(GtkMenuItem *menuitem, gpointer user_data);
 static void status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object);
+static void status_icon_default_activation(GtkStatusIcon *status_icon, GObject* object);
 
 /* nwamui daemon events */
 static void daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
@@ -220,6 +221,15 @@ static void
 status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object)
 {
     join_wireless(NWAMUI_WIFI_NET(object), TRUE);
+}
+
+static void
+status_icon_default_activation(GtkStatusIcon *status_icon, GObject* object)
+{
+    const gchar *argv[2] = { "-p", NULL };
+
+    /* Run properties editor */
+    nwam_exec( argv );;
 }
 
 static gboolean
@@ -333,7 +343,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
             if ( ncu ) {
                 g_object_unref(ncu);
             }
-            nwam_status_icon_set_activate_callback(self, NULL, NULL );
+            nwam_status_icon_set_activate_callback(self, (GCallback)status_icon_default_activation, NULL );
         }
     }
         break;
@@ -428,6 +438,10 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
     gboolean        active_ncu = FALSE;
 
+    if ( ncu == NULL || nwamui_ncu_get_ncu_type(ncu) != NWAMUI_NCU_TYPE_WIRELESS ) {
+        return;
+    }
+
     /* Only show the message when it's relevant */
 	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
 
@@ -435,25 +449,21 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
             nwam_status_icon_set_status(self, ncu );
         }
 
-        if (!prv->needs_wifi_selection_seen) {
-            if ( prof_action_if_no_fav_networks == NWAMUI_NO_FAV_ACTION_SHOW_LIST_DIALOG ) {
-                show_wireless_chooser( self );
-            }
+        /* Don't show anything if we've not scanned any networks */
+        if ( nwamui_daemon_get_num_scanned_wifi( daemon ) != 0 ) {
+            if (!prv->needs_wifi_selection_seen) {
+                if ( prof_action_if_no_fav_networks == NWAMUI_NO_FAV_ACTION_SHOW_LIST_DIALOG ) {
+                    show_wireless_chooser( self );
+                }
+                else {
+                    nwam_notification_show_ncu_wifi_selection_needed( ncu, notifyaction_popup_menus, G_OBJECT(self) );
+                }
 
-            /*
-             * After discussing with Calum, it is cleaner to simply not show
-             * anything unless asked to, but we won't show a notification message
-             * either for now.
-             *
-            else {
-                nwam_notification_show_ncu_wifi_selection_needed( ncu, notifyaction_popup_menus, G_OBJECT(self) );
+                prv->needs_wifi_selection_seen = TRUE;
             }
-            */
-
-            prv->needs_wifi_selection_seen = TRUE; 
-        }
-        else { /* If dialog still visibie raise it */
-            set_wireless_chooser_urgency( self, TRUE );
+            else { /* If dialog still visibie raise it */
+                set_wireless_chooser_urgency( self, TRUE );
+            }
         }
     } 
 }

@@ -809,9 +809,12 @@ check_ncu_online( gpointer obj, gpointer user_data )
 
     switch (activation_mode) { 
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL: {
-                info_p->num_manual_enabled++;
-                if ( online ) {
-                    info_p->num_manual_online++;
+                if ( nwamui_ncu_get_enabled( ncu ) ) {
+                    /* Only count if expected to be enabled. */
+                    info_p->num_manual_enabled++;
+                    if ( online ) {
+                        info_p->num_manual_online++;
+                    }
                 }
             }
             break;

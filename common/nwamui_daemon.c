@@ -97,6 +97,18 @@ enum {
     PROP_ENV_SELECTION_MODE
 };
 
+/* Flags to track various reasons for a state not being ALL_OK
+ *
+ * The purpose of this is to allow us know if we're still in a broken state after
+ * an object_state event might cause something to seem ALL_OK.
+ */
+enum {
+    STATUS_REASON_DAEMON = 0x01,
+    STATUS_REASON_NCP    = 0x02, /* Includes NCUs */
+    STATUS_REASON_LOC    = 0x04,
+    STATUS_REASON_ENM    = 0x08,
+};
+
 static guint nwamui_daemon_signals[LAST_SIGNAL] = { 0, 0 };
 
 struct _NwamuiDaemonPrivate {
@@ -114,6 +126,7 @@ struct _NwamuiDaemonPrivate {
     /* others */
     gboolean                     connected_to_nwamd;
     nwamui_daemon_status_t       status;
+    guint                        status_flags; 
     GThread                     *nwam_events_gthread;
     gboolean                     communicate_change_to_daemon;
     guint                        wep_timeout_id;
@@ -382,6 +395,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     self->prv->num_scanned_wireless = 0;
     self->prv->connected_to_nwamd = FALSE;
     self->prv->status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
+    self->prv->status_flags = 0;
     self->prv->wep_timeout_id = 0;
     self->prv->communicate_change_to_daemon = TRUE;
     self->prv->active_env = NULL;
@@ -2843,6 +2857,8 @@ static void
 nwamui_daemon_update_status( NwamuiDaemon   *daemon )
 {
     nwamui_daemon_status_t  old_status;
+    guint                   old_status_flags;
+    guint                   status_flags = 0;
     nwamui_daemon_status_t  new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
     NwamuiDaemonPrivate    *prv;
     GQueue                 *signal_queue = g_queue_new();
@@ -2857,11 +2873,13 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
     }
 
     old_status = daemon->prv->status;
+    old_status_flags = daemon->prv->status_flags;
     prv = NWAMUI_DAEMON(daemon)->prv;
 
     /* First check that the daemon is connected to nwamd */
     if ( !prv->connected_to_nwamd ) {
         new_status = NWAMUI_DAEMON_STATUS_ERROR;
+        status_flags |= STATUS_REASON_DAEMON;
     }
     else {
         /* Now we need to check all objects in the system */
@@ -2869,6 +2887,7 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
         /* Look at Active NCP and it's NCUs */
         if ( prv->active_ncp == NULL ) {
             new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+            status_flags |= STATUS_REASON_NCP;
         }
         else {
             NwamuiNcu       *needs_wifi_selection = NULL;
@@ -2889,22 +2908,23 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
                     sig->param1 = needs_wifi_key;
                     g_queue_push_tail( signal_queue, (gpointer)sig );
                 }
+                status_flags |= STATUS_REASON_NCP;
             }
         }
 
-        /* Assuming we've no found an error yet, check the Locations */
-        if ( new_status == NWAMUI_DAEMON_STATUS_UNINITIALIZED ) {
-            if ( prv->active_env == NULL ) {
-                new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
-            }
-            else {
-                nwam_state_t        state;
-                nwam_aux_state_t    aux_state;
-                state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(prv->active_env), &aux_state, NULL, 0);
+        /* Check the Locations */
+        if ( prv->active_env == NULL ) {
+            new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+            status_flags |= STATUS_REASON_LOC;
+        }
+        else {
+            nwam_state_t        state;
+            nwam_aux_state_t    aux_state;
+            state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(prv->active_env), &aux_state, NULL, 0);
 
-                if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
-                    new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
-                }
+            if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
+                new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                status_flags |= STATUS_REASON_LOC;
             }
         }
 
@@ -2921,12 +2941,13 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
     }
 
     /* If status has changed, set it, and this will generate an event */
-    if ( new_status != old_status ) {
+    if ( new_status != old_status || status_flags != old_status_flags ) {
+        daemon->prv->status_flags = status_flags;
         nwamui_daemon_set_status(daemon, new_status );
     }
 
-    nwamui_warning("line: %d : status = %d (%s) ", __LINE__, new_status, 
-                   nwamui_deamon_status_to_string(new_status) );
+    nwamui_debug("line: %d : status = %d (%s) ; status_flags = %02x", __LINE__, new_status,
+                   nwamui_deamon_status_to_string(new_status), status_flags );
 
     /* Now it's safe to emit any signals generated while gathering status */
     while ( (ptr = g_queue_pop_head( signal_queue )) != NULL ) {
@@ -3343,6 +3364,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
 {
     nwamui_daemon_status_t  old_status;
     nwamui_daemon_status_t  new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
+    guint                   status_flags;
     gboolean                force_status_event = FALSE;
     NwamuiDaemonPrivate    *prv;
     nwam_object_type_t      object_type = nwamevent->nwe_data.nwe_object_state.nwe_object_type;
@@ -3361,20 +3383,26 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
     DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
 
     old_status = daemon->prv->status;
+    status_flags = daemon->prv->status_flags;
     prv = NWAMUI_DAEMON(daemon)->prv;
 
     /* First check that the daemon is connected to nwamd */
     if ( !prv->connected_to_nwamd ) {
         new_status = NWAMUI_DAEMON_STATUS_ERROR;
+        status_flags |= STATUS_REASON_DAEMON;
         DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
     }
     else {
         /* Now we need to check all objects in the system */
+        status_flags &= ~STATUS_REASON_DAEMON; /* Unset Daemon flag */
 
         switch ( object_type ) {
             case NWAM_OBJECT_TYPE_NCU:
+                status_flags &= ~STATUS_REASON_NCP; /* Unset NCP flag, will be set again if issue found */
+
                 if ( prv->active_ncp == NULL ) {
                     new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                    status_flags |= STATUS_REASON_NCP;
                     DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
                 }
                 else {
@@ -3396,6 +3424,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
 
                     if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                        status_flags |= STATUS_REASON_NCP;
                         DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
 
 #if 0
@@ -3458,8 +3487,10 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     }
                 }
 
+                status_flags &= ~STATUS_REASON_NCP; /* Unset NCP flag, will be set again if issue found */
                 if ( prv->active_ncp == NULL ) {
                     new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                    status_flags |= STATUS_REASON_NCP;
                     DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
                 }
                 else {
@@ -3468,6 +3499,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     nwamui_object_set_nwam_state(NWAMUI_OBJECT(prv->active_ncp), object_state, object_aux_state, 0 );
                     if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
                         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                        status_flags |= STATUS_REASON_NCP;
                         DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
                         if ( needs_wifi_selection != NULL ) {
                             g_signal_emit (daemon,
@@ -3490,10 +3522,12 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                     env = nwamui_daemon_get_env_by_name( daemon, object_name );
 
                     if ( env != NULL ) {
+                        status_flags &= ~STATUS_REASON_LOC; /* Unset LOC flag, will be set again if issue found */
                         nwamui_object_set_nwam_state(NWAMUI_OBJECT(env), object_state, object_aux_state, 0 );
                         if ( prv->active_env == env ) {
                             if ( object_state != NWAM_STATE_ONLINE || object_aux_state != NWAM_AUX_STATE_ACTIVE ) {
                                 new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                                status_flags |= STATUS_REASON_LOC;
                                 DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
                             }
                         }
@@ -3518,7 +3552,11 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
                         if ( nwamui_enm_get_enabled( NWAMUI_ENM(enm) ) ) {
                             if ( object_state != NWAM_STATE_ONLINE || object_aux_state != NWAM_AUX_STATE_ACTIVE ) {
                                 new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+                                status_flags |= STATUS_REASON_ENM;
                                 DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
+                            }
+                            else {
+                                status_flags &= ~STATUS_REASON_ENM;
                             }
                         }
                     }
@@ -3537,9 +3575,15 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
 
     DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
     if ( new_status == NWAMUI_DAEMON_STATUS_UNINITIALIZED ) {
-        /* If we got this far with UNINITIALIZED, then we can assume all is OK
-         */
-        new_status = NWAMUI_DAEMON_STATUS_ALL_OK;
+        if ( status_flags == 0 ) {
+            /* If we got this far with UNINITIALIZED, then we can assume all is OK
+             */
+            new_status = NWAMUI_DAEMON_STATUS_ALL_OK;
+        }
+        else {
+            /* Status still hasn't cleared totally, so leave as-is */
+            new_status = old_status;
+        }
         DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
     }
 
@@ -3548,6 +3592,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
         DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
         nwamui_daemon_set_status(daemon, new_status );
     }
+    daemon->prv->status_flags = status_flags;
 }
 
 static void
