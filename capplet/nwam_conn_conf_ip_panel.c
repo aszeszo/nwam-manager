@@ -485,7 +485,7 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
     
     self->prv->daemon = nwamui_daemon_get_instance();
     
-    self->prv->wifi_dialog = nwam_wireless_dialog_new();
+    self->prv->wifi_dialog = nwam_wireless_dialog_get_instance();
     
 	/* Iniialise pointers to important widgets */
     self->prv->iface_nb = GTK_NOTEBOOK(nwamui_util_glade_get_widget(IP_PANEL_IFACE_NOTEBOOK));

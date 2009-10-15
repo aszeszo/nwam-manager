@@ -106,6 +106,18 @@ G_BEGIN_DECLS
 #define  NWAM_ICON_NETWORK_LOCATION         "network-location"
 #endif
 
+/* Define capplet Options here, so can be used from panel consistently */
+#define NWAMUI_CAPPLET_OPT_NET_PREF_DIALOG          'p'
+#define NWAMUI_CAPPLET_OPT_NET_PREF_DIALOG_STR      "-p"
+#define NWAMUI_CAPPLET_OPT_NET_PREF_CONFIG          'n'
+#define NWAMUI_CAPPLET_OPT_NET_PREF_CONFIG_STR      "-n"
+#define NWAMUI_CAPPLET_OPT_VPN_PREF_DIALOG          'v'
+#define NWAMUI_CAPPLET_OPT_VPN_PREF_DIALOG_STR      "-v"
+#define NWAMUI_CAPPLET_OPT_WIFI_CHOOSER_DIALOG      'c'
+#define NWAMUI_CAPPLET_OPT_WIFI_CHOOSER_DIALOG_STR  "-c"
+#define NWAMUI_CAPPLET_OPT_LOCATION_DIALOG          'l'
+#define NWAMUI_CAPPLET_OPT_LOCATION_DIALOG_STR      "-l"
+
 /* Device icons. */
 #define  NWAM_ICON_NETWORK_WIRELESS "nwam-wireless-nosignal"
 #define  NWAM_ICON_NETWORK_WIRED    "network-wired"

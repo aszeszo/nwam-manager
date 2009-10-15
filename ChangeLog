@@ -1,3 +1,33 @@
+2009-10-15  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_vpn_pref_dialog.c: 
+	  Add rename button and set sensitivity based on the can_rename()
+	  flag.
+	* capplet/nwam_wireless_chooser.c: 
+	  Add first attempt at a wireless refresh button.
+	* capplet/nwam_wireless_dialog.h, capplet/nwam_wireless_dialog.c: 
+	  Change to be a singletion, and change new function to be 
+	  nwam_wireless_dialog_get_instance(). 
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Update to new name of nwam_wireless_dialog_get_instance()
+	* common/libnwamui.h:
+	  Add a set of #defines for the CAPPLET CLI options so that we can
+	  reference consistently between status icon (as caller) and the CLI
+	  itself.
+	* capplet/main.c: 
+	  Use #defined options in libnwamui.h, and clear up option strings.
+	* common/libnwamui.c: 
+	  Update nwamui_util_set/restore_busy_cursor to attach a signal
+	  handler to the realize event if the window isn't realized.
+	* daemon/status_icon.c: 
+	  Make left-click launch properties dialog. Also make wifi key request
+	  show the join_wireless dialog rather than notification message (as
+	  per UI spec).
+	* ui/nwam-manager-properties.ui:
+	  Add rename button to VPN dialog.
+	* ui/nwam-manager-wireless.ui:
+	  Add Refresh button to chooser dialog.
+
 2009-10-14  Darren Kenny  <darren.kenny@sun.com>
 
 	* common/nwamui_daemon.c:

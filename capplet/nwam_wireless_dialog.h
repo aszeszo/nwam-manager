@@ -74,9 +74,7 @@ typedef enum {
 
 extern  GType                   nwam_wireless_dialog_get_type (void) G_GNUC_CONST;
 
-extern  NwamWirelessDialog*     nwam_wireless_dialog_new (void);
-
-extern  NwamWirelessDialog*     nwam_wireless_dialog_new_with_ncu (const gchar *ncu);
+extern  NwamWirelessDialog*     nwam_wireless_dialog_get_instance (void);
 
 extern  void                    nwam_wireless_dialog_set_title( NwamWirelessDialog  *self, nwamui_wireless_dialog_title_t title );
 

@@ -3827,6 +3827,20 @@ Disable these services when this location is active:</property>
                           </packing>
                         </child>
                         <child>
+                          <object class="GtkButton" id="vpn_rename_btn">
+                            <property name="label" translatable="yes">_Rename</property>
+                            <property name="visible">True</property>
+                            <property name="can_focus">True</property>
+                            <property name="receives_default">True</property>
+                            <property name="use_underline">True</property>
+                          </object>
+                          <packing>
+                            <property name="expand">False</property>
+                            <property name="fill">False</property>
+                            <property name="position">2</property>
+                          </packing>
+                        </child>
+                        <child>
                           <object class="GtkButton" id="vpn_start_btn">
                             <property name="visible">True</property>
                             <property name="sensitive">False</property>
@@ -3873,7 +3887,7 @@ Disable these services when this location is active:</property>
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
-                            <property name="position">2</property>
+                            <property name="position">3</property>
                           </packing>
                         </child>
                         <child>
@@ -3889,7 +3903,7 @@ Disable these services when this location is active:</property>
                           <packing>
                             <property name="expand">False</property>
                             <property name="fill">False</property>
-                            <property name="position">3</property>
+                            <property name="position">4</property>
                           </packing>
                         </child>
                       </object>

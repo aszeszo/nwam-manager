@@ -673,29 +673,15 @@ nwam_wireless_dialog_get_property (GObject         *object,
  * Creates a new #NwamWirelessDialog with an empty ncu
  **/
 NwamWirelessDialog*
-nwam_wireless_dialog_new (void)
+nwam_wireless_dialog_get_instance (void)
 {
-	return NWAM_WIRELESS_DIALOG(g_object_new (NWAM_TYPE_WIRELESS_DIALOG, NULL));
-}
+    static NwamWirelessDialog*  instance = NULL;
 
-/**
- * nwam_wireless_dialog_new_with_ncu:
- * @ncu: The Wireless NCU the dialog is to configure
- * @returns: a new #NwamWirelessDialog.
- *
- * Creates a new #NwamWirelessDialog to configure the given Wireless NCU. 
- **/
-NwamWirelessDialog*
-nwam_wireless_dialog_new_with_ncu (const gchar *ncu)
-{
-	NwamWirelessDialog *nwam_wireless_dialog;
+    if ( instance == NULL ) {
+        instance = NWAM_WIRELESS_DIALOG(g_object_new (NWAM_TYPE_WIRELESS_DIALOG, NULL));
+    }
 
-	nwam_wireless_dialog = NWAM_WIRELESS_DIALOG(g_object_new (NWAM_TYPE_WIRELESS_DIALOG, NULL));
-
-	g_object_set (G_OBJECT (nwam_wireless_dialog),
-		      "ncu", ncu,
-		      NULL);
-	return NWAM_WIRELESS_DIALOG(nwam_wireless_dialog);
+	return NWAM_WIRELESS_DIALOG(g_object_ref(instance));
 }
 
 /** 

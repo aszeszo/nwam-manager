@@ -996,18 +996,24 @@ nwamui_util_set_busy_cursor( GtkWidget *widget )
 {
     GdkWindow   *window = NULL;
 
+    if ( busy_cursor == NULL ) {
+        GdkDisplay *display = gtk_widget_get_display( widget );
+        if ( display != NULL ) {
+            busy_cursor = gdk_cursor_new_for_display( display, GDK_WATCH );
+        }
+    }
+
     if ( widget != NULL ) {
         window = gtk_widget_get_window( widget );
     }
 
     if ( window != NULL ) {
-        if ( busy_cursor == NULL ) {
-            GdkDisplay *display = gtk_widget_get_display( widget );
-            if ( display != NULL ) {
-                busy_cursor = gdk_cursor_new_for_display( display, GDK_WATCH );
-            }
-        }
         gdk_window_set_cursor( window, busy_cursor );
+    }
+    else if ( g_object_get_data(G_OBJECT(widget), "nwamui_signal_realize_id" ) == 0 ) {
+        /* Add a handler to do it when realized, but avoid duplicate addition! */
+        gulong signal_id = g_signal_connect( widget, "realize", (GCallback)nwamui_util_set_busy_cursor,  NULL );
+        g_object_set_data(G_OBJECT(widget), "nwamui_signal_realize_id", (gpointer)signal_id );
     }
 }
 
@@ -1015,9 +1021,16 @@ extern void
 nwamui_util_restore_default_cursor( GtkWidget *widget )
 {
     GdkWindow   *window = NULL;
+    gulong       signal_id;
 
     if ( widget != NULL ) {
         window = gtk_widget_get_window( widget );
+    }
+
+    if ((signal_id = (gulong) g_object_get_data(G_OBJECT(widget),
+            "nwamui_signal_realize_id")) != 0) {
+        g_signal_handler_disconnect(widget, signal_id);
+        g_object_set_data(G_OBJECT(widget), "nwamui_signal_realize_id", 0);
     }
 
     if ( window != NULL ) {

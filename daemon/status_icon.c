@@ -117,6 +117,7 @@ struct _NwamStatusIconPrivate {
     gulong   activate_handler_id;
 
     NwamPrefIFace   *chooser_dialog;
+    NwamPrefIFace   *wifi_dialog;
 
 	gboolean has_wifi;
 };
@@ -150,16 +151,17 @@ static gint ncp_find_enabled_wireless_ncu(gconstpointer a, gconstpointer b);
 static void nwam_menu_update_wifi_section(NwamStatusIcon *self);
 
 /* nwamui utilies */
+static void set_window_urgency( GtkWindow *window, gboolean urgent, gboolean raise );
 static void show_wireless_chooser( NwamStatusIcon *self );
 static void set_wireless_chooser_urgency( NwamStatusIcon *self, gboolean urgent );
-static void join_wireless(NwamuiWifiNet *wifi, gboolean do_connect);
+static void join_wireless(NwamStatusIcon* self, NwamuiWifiNet *wifi, gboolean do_connect );
+static void set_join_wireless_urgency( NwamStatusIcon *self, gboolean urgent );
 static gboolean daemon_status_is_good(NwamuiDaemon *daemon);
 
 /* call back */
 static void location_model_menuitems(GtkMenuItem *menuitem, gpointer user_data);
 static void on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data);
 static void activate_test_menuitems(GtkMenuItem *menuitem, gpointer user_data);
-static void status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object);
 static void status_icon_default_activation(GtkStatusIcon *status_icon, GObject* object);
 
 /* nwamui daemon events */
@@ -202,31 +204,16 @@ static gboolean status_icon_query_tooltip(GtkStatusIcon *status_icon,
   gpointer       user_data);
 
 /* notification event */
-static void notifyaction_wifi_key_need(NotifyNotification *n,
-  gchar *action,
-  gpointer user_data);
-
 static void notifyaction_popup_menus(NotifyNotification *n,
   gchar *action,
   gpointer user_data);
 
-static void notification_listwireless(NotifyNotification *n,
-  gchar *action,
-  gpointer data);
-
-
 G_DEFINE_TYPE (NwamStatusIcon, nwam_status_icon, GTK_TYPE_STATUS_ICON)
-
-static void
-status_icon_wifi_key_needed(GtkStatusIcon *status_icon, GObject* object)
-{
-    join_wireless(NWAMUI_WIFI_NET(object), TRUE);
-}
 
 static void
 status_icon_default_activation(GtkStatusIcon *status_icon, GObject* object)
 {
-    const gchar *argv[2] = { "-p", NULL };
+    const gchar *argv[2] = { NWAMUI_CAPPLET_OPT_NET_PREF_DIALOG_STR, NULL };
 
     /* Run properties editor */
     nwam_exec( argv );;
@@ -343,7 +330,6 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
             if ( ncu ) {
                 g_object_unref(ncu);
             }
-            nwam_status_icon_set_activate_callback(self, (GCallback)status_icon_default_activation, NULL );
         }
     }
         break;
@@ -423,11 +409,10 @@ daemon_wifi_key_needed (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer user
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
 	if (wifi && wifi != prv->needs_wifi_key) {
-        nwam_status_icon_set_activate_callback(self,
-          (GCallback)status_icon_wifi_key_needed, G_OBJECT(wifi) );
-
         prv->needs_wifi_key = wifi; /* no need to ref, we don't use contents */
-        nwam_notification_show_ncu_wifi_key_needed( wifi, notifyaction_wifi_key_need );
+
+        join_wireless(self, wifi, FALSE );
+
     }
 }
 
@@ -940,6 +925,17 @@ find_wireless_interface(GtkTreeModel *model,
     return FALSE;
 }
 
+static void
+set_window_urgency( GtkWindow *window, gboolean urgent, gboolean raise )
+{
+    if ( window != NULL ) {
+        gtk_window_set_urgency_hint( GTK_WINDOW(window), urgent );
+        if ( raise ) {
+            gtk_window_present(window);
+        }
+    }
+}
+
 static NwamPrefIFace*
 get_chooser_dialog(  NwamStatusIcon *self )
 {
@@ -966,7 +962,7 @@ show_wireless_chooser( NwamStatusIcon *self )
     window = nwam_pref_dialog_get_window(chooser_dialog);
 
     if ( window != NULL ) {
-        set_wireless_chooser_urgency( self, FALSE ); /* Reset urgency flag to FALSE */
+        set_window_urgency( window, FALSE, FALSE ); /* Reset urgency flag to FALSE */
         gtk_widget_show_all( GTK_WIDGET(window) );
     }
 }
@@ -982,22 +978,32 @@ set_wireless_chooser_urgency( NwamStatusIcon *self, gboolean urgent )
 
     window = nwam_pref_dialog_get_window(chooser_dialog);
 
-    if ( window != NULL ) {
-        gtk_window_set_urgency_hint( GTK_WINDOW(window), urgent );
+    set_window_urgency( window, urgent, FALSE );
+}
+
+static NwamPrefIFace*
+get_wifi_dialog(  NwamStatusIcon *self )
+{
+    NwamStatusIconPrivate  *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+
+    if ( prv->wifi_dialog == NULL ) {
+        prv->wifi_dialog = NWAM_PREF_IFACE(nwam_wireless_dialog_get_instance());
     }
+
+    return( prv->wifi_dialog );
 }
 
 static void
-join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
+join_wireless(NwamStatusIcon* self, NwamuiWifiNet *wifi, gboolean do_connect )
 {
-    static NwamWirelessDialog *wifi_dialog = NULL;
-
-    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-    NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
-    NwamuiNcu *ncu = NULL;
+    NwamPrefIFace          *wifi_dialog = get_wifi_dialog( self );
+    NwamuiDaemon           *daemon = nwamui_daemon_get_instance();
+    NwamuiNcp              *ncp = nwamui_daemon_get_active_ncp(daemon);
+    NwamuiNcu              *ncu = NULL;
+    GtkWindow              *window = NULL;
 
     if (wifi_dialog == NULL) {
-        wifi_dialog = nwam_wireless_dialog_new();
+        return;
     }
 
     /* ncu could be NULL due to daemon may not know the active llp */
@@ -1016,7 +1022,7 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
     g_object_unref(daemon);
 
     if (ncu && nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
-        nwam_wireless_dialog_set_ncu(wifi_dialog, ncu);
+        nwam_wireless_dialog_set_ncu(NWAM_WIRELESS_DIALOG(wifi_dialog), ncu);
     } else {
         if (ncu) {
             g_object_unref(ncu);
@@ -1033,13 +1039,33 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
         g_debug("%s ## wifi 0x%p %s", __func__, wifi, name ? name : "nil");
         g_free(name);
     }
-    nwam_wireless_dialog_set_title( wifi_dialog, NWAMUI_WIRELESS_DIALOG_TITLE_JOIN );
-    nwam_wireless_dialog_set_wifi_net(wifi_dialog, wifi);
-    nwam_wireless_dialog_set_do_connect(wifi_dialog, do_connect);
+    nwam_wireless_dialog_set_title( NWAM_WIRELESS_DIALOG(wifi_dialog), NWAMUI_WIRELESS_DIALOG_TITLE_JOIN );
+    nwam_wireless_dialog_set_wifi_net(NWAM_WIRELESS_DIALOG(wifi_dialog), wifi);
+    nwam_wireless_dialog_set_do_connect(NWAM_WIRELESS_DIALOG(wifi_dialog), do_connect);
 
-    (void)capplet_dialog_run(NWAM_PREF_IFACE(wifi_dialog), NULL);
+    window = nwam_pref_dialog_get_window(wifi_dialog);
+
+    if ( window != NULL ) {
+        set_window_urgency( window, TRUE, TRUE ); /* Reset urgency flag to FALSE */
+    }
+    
+    nwam_wireless_dialog_show(NWAM_WIRELESS_DIALOG(wifi_dialog));
 
     g_object_unref(ncu);
+}
+
+static void
+set_join_wireless_urgency( NwamStatusIcon *self, gboolean urgent )
+{
+    NwamPrefIFace          *wifi_dialog;
+    NwamStatusIconPrivate  *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    GtkWindow              *window = NULL;
+
+    wifi_dialog = get_wifi_dialog( self );
+
+    window = nwam_pref_dialog_get_window(wifi_dialog);
+
+    set_window_urgency( window, urgent, TRUE );
 }
 
 #if 0
@@ -1165,6 +1191,8 @@ nwam_status_icon_run(NwamStatusIcon *self)
 
     g_signal_connect(G_OBJECT (self), "query-tooltip",
       G_CALLBACK (status_icon_query_tooltip), NULL);
+
+    nwam_status_icon_set_activate_callback(self, (GCallback)status_icon_default_activation, NULL );
 
     /* Enable tooltip. */
     gtk_status_icon_set_has_tooltip(GTK_STATUS_ICON(self), TRUE);
@@ -1332,24 +1360,22 @@ on_activate_static_menuitems (GtkMenuItem *menuitem, gpointer user_data)
 
     switch (menuitem_id) {
     case MENUITEM_ENV_PREF:
-		argv[0] = "-l";
+		argv[0] = NWAMUI_CAPPLET_OPT_LOCATION_DIALOG_STR;
         break;
     case MENUITEM_CONN_PROF:
-        /* TODO, specify a profile. */
-		argv[0] = "-p";
-        argv[1] = "--net-pref-view";
+		argv[0] = NWAMUI_CAPPLET_OPT_NET_PREF_CONFIG_STR;
         break;
     case MENUITEM_REFRESH_WLAN:
         nwam_menu_recreate_wifi_menuitems(self, TRUE);
         break;
     case MENUITEM_JOIN_WLAN:
-		join_wireless( NULL, TRUE);
+		join_wireless( self, NULL, TRUE);
         break;
     case MENUITEM_VPN_PREF:
-        argv[0] = "-n";
+        argv[0] = NWAMUI_CAPPLET_OPT_VPN_PREF_DIALOG_STR;
         break;
     case MENUITEM_NET_PREF:
-		argv[0] = "-p";
+		argv[0] = NWAMUI_CAPPLET_OPT_NET_PREF_DIALOG_STR;
         break;
     case MENUITEM_HELP:
         nwamui_util_show_help (HELP_REF_NWSTATUS_ICON);
@@ -1476,28 +1502,11 @@ on_ncp_notify_many_wireless( GObject *gobject, GParamSpec *arg1, gpointer user_d
 }
 
 static void
-notifyaction_wifi_key_need(NotifyNotification *n,
-  gchar *action,
-  gpointer user_data)
-{
-    join_wireless(user_data, FALSE );
-}
-
-static void
 notifyaction_popup_menus(NotifyNotification *n,
   gchar *action,
   gpointer user_data)
 {
     nwam_status_icon_show_menu(NWAM_STATUS_ICON(user_data));
-}
-
-static void
-notification_listwireless(NotifyNotification *n,
-  gchar *action,
-  gpointer data)
-{
-    const gchar *argv[2] = {"--list-fav-wireless=", NULL};
-    nwam_exec(argv);
 }
 
 static void

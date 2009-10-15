@@ -59,13 +59,14 @@ static gboolean     show_all_widgets = FALSE;
 
 static void debug_response_id( gint responseid );
 
+
 GOptionEntry application_options[] = {
         {"debug", 'D', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
-        { "net-pref-dialog", 'p', 0, G_OPTION_ARG_NONE, &net_pref_dialog, N_("Show 'Network Preferences' Dialog"), NULL  },
-        { "net-pref-view", 0, 0, G_OPTION_ARG_NONE, &net_pref_view, N_("Show 'Network Preferences' Dialog"), NULL  },
-        { "vpn-pref-dialog", 'n', 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, N_("Show 'VPN Preferences' Dialog"), NULL  },
-        { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, N_("Show 'Wireless Network Chooser' Dialog"), NULL },
-        { "location-dialog", 'l', 0, G_OPTION_ARG_NONE, &location_dialog, N_("Show 'Location' Dialog"), NULL  },
+        { "net-pref-dialog", NWAMUI_CAPPLET_OPT_NET_PREF_DIALOG, 0, G_OPTION_ARG_NONE, &net_pref_dialog, N_("Show 'Network Preferences' Dialog"), NULL  },
+        { "net-conf-view", NWAMUI_CAPPLET_OPT_NET_PREF_CONFIG, 0, G_OPTION_ARG_NONE, &net_pref_view, N_("Show 'Network Configuration' Dialog"), NULL  },
+        { "vpn-pref-dialog", NWAMUI_CAPPLET_OPT_VPN_PREF_DIALOG, 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, N_("Show 'VPN Preferences' Dialog"), NULL  },
+        { "wireless-chooser", NWAMUI_CAPPLET_OPT_WIFI_CHOOSER_DIALOG, 0, G_OPTION_ARG_NONE, &wireless_chooser, N_("Show 'Wireless Network Chooser' Dialog"), NULL },
+        { "location-dialog", NWAMUI_CAPPLET_OPT_LOCATION_DIALOG, 0, G_OPTION_ARG_NONE, &location_dialog, N_("Show 'Location' Dialog"), NULL  },
 #ifdef DEBUG_OPTS
         { "add-wireless-dialog", 'w', 0, G_OPTION_ARG_STRING, &add_wireless_dialog, "Show 'Add Wireless' Dialog", "ESSID"},
         { "loc-pref-dialog", 'L', 0, G_OPTION_ARG_NONE, &loc_pref_dialog, "Show 'Location Preferences' Dialog", NULL  },
@@ -242,7 +243,7 @@ main(int argc, char** argv)
     }
 #ifdef DEBUG_OPTS
     else if ( add_wireless_dialog ) {
-        capplet_dialog = NWAM_PREF_IFACE(nwam_wireless_dialog_new());
+        capplet_dialog = NWAM_PREF_IFACE(nwam_wireless_dialog_get_instance());
         
         if (*add_wireless_dialog != '\0') {
             nwam_wireless_dialog_set_essid (NWAM_WIRELESS_DIALOG(capplet_dialog), add_wireless_dialog);

@@ -601,6 +601,7 @@
     <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">dialog</property>
     <property name="has_separator">False</property>
+    <property name="height_request">250</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="connect_wireless_dialog_vbox">
         <property name="visible">True</property>
@@ -684,8 +685,8 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="cancelbutton2">
-                <property name="label">gtk-cancel</property>
+              <object class="GtkButton" id="connect_wireless_refresh_btn">
+                <property name="label">gtk-refresh</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -699,6 +700,21 @@
               </packing>
             </child>
             <child>
+              <object class="GtkButton" id="cancelbutton2">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="can_default">True</property>
+                <property name="receives_default">False</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+            <child>
               <object class="GtkButton" id="join_unlisted_btn">
                 <property name="label" translatable="yes">Join _Unlisted...</property>
                 <property name="visible">True</property>
@@ -709,7 +725,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">2</property>
+                <property name="position">3</property>
               </packing>
             </child>
             <child>
@@ -724,7 +740,7 @@
               <packing>
                 <property name="expand">False</property>
                 <property name="fill">False</property>
-                <property name="position">3</property>
+                <property name="position">4</property>
               </packing>
             </child>
           </object>
@@ -738,6 +754,7 @@
     </child>
     <action-widgets>
       <action-widget response="-11">helpbutton4</action-widget>
+      <action-widget response="-2">connect_wireless_refresh_btn</action-widget>
       <action-widget response="-6">cancelbutton2</action-widget>
       <action-widget response="-10">join_unlisted_btn</action-widget>
       <action-widget response="-5">connect_wireless_connect_btn</action-widget>
