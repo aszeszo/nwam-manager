@@ -81,6 +81,7 @@ static void nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data);
 static void nwam_rescan_wifi (NwamWirelessChooser *self);
 
 /* Callbacks */
+static void refresh_btn_clicked( GtkButton *widget, gpointer user_data);
 static void nwam_wifi_selection_changed(GtkTreeSelection *selection, gpointer data);
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -226,6 +227,8 @@ nwam_wireless_chooser_init(NwamWirelessChooser *self)
     gtk_widget_set_sensitive (GTK_WIDGET(self->prv->connect_wireless_connect_btn), FALSE);
 
 
+    g_signal_connect(self->prv->connect_wireless_refresh_btn, "clicked",
+                     (GCallback)refresh_btn_clicked, (gpointer)self);
 	g_signal_connect(self->prv->wireless_chooser, "response", (GCallback)response_cb, (gpointer)self);
     g_signal_connect(self->prv->daemon, "wifi_scan_started",
       (GCallback)nwam_wifi_scan_start, (gpointer) self);
@@ -275,14 +278,6 @@ nwam_rescan_wifi (NwamWirelessChooser *self)
     GtkTreeModel *model;
 
     model = gtk_tree_view_get_model (self->prv->wifi_tv);
-
-    gtk_widget_hide (GTK_WIDGET(self->prv->wifi_tv));
-
-    nwamui_util_set_busy_cursor( GTK_WIDGET(self->prv->wireless_chooser) );
-
-    gtk_widget_set_sensitive(GTK_WIDGET(self->prv->connect_wireless_refresh_btn), FALSE);
-
-    gtk_list_store_clear (GTK_LIST_STORE(model));
 
     nwamui_daemon_wifi_start_scan (self->prv->daemon);
 }
@@ -483,6 +478,14 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
 }
 
 /* Callbacks */
+static void
+refresh_btn_clicked( GtkButton *widget, gpointer user_data)
+{
+	NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(user_data);
+    NwamWirelessChooserPrivate* prv = self->prv;
+
+    nwam_pref_refresh (NWAM_PREF_IFACE(self), NULL, TRUE);
+}
 
 static void 
 nwam_wifi_selection_changed(GtkTreeSelection *selection, gpointer data)
@@ -534,12 +537,6 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
             join_wireless( NULL, TRUE );
             stop_emission = TRUE;
 			break;
-		case GTK_RESPONSE_REJECT: /* Refresh Wireless Networks */
-			g_debug("GTK_RESPONSE_REJECT");
-            nwam_pref_refresh (NWAM_PREF_IFACE(self), NULL, TRUE);
-            stop_emission = TRUE;
-			break;
-
 		case GTK_RESPONSE_OK:  /* Join selected network, if any */
 			g_debug("GTK_RESPONSE_OK");
             stop_emission = !nwam_pref_apply(NWAM_PREF_IFACE(data), NULL);
@@ -664,6 +661,10 @@ nwam_wifi_scan_start (GObject *daemon, gpointer data)
     model = gtk_tree_view_get_model (self->prv->wifi_tv);
 
     gtk_widget_hide (GTK_WIDGET(self->prv->wifi_tv));
+
+    nwamui_util_set_busy_cursor( GTK_WIDGET(self->prv->wireless_chooser) );
+
+    gtk_widget_set_sensitive(GTK_WIDGET(self->prv->connect_wireless_refresh_btn), FALSE);
 
     gtk_list_store_clear (GTK_LIST_STORE(model));
 

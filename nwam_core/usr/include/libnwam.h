@@ -422,25 +422,27 @@ typedef enum {
 } nwam_priority_mode_t;
 
 /* NCU properties common to all type/classes */
-#define	NWAM_NCU_PROP_TYPE		"type"
-#define	NWAM_NCU_PROP_CLASS		"class"
-#define	NWAM_NCU_PROP_PARENT_NCP	"parent"
-#define	NWAM_NCU_PROP_ACTIVATION_MODE	"activation-mode"
-#define	NWAM_NCU_PROP_ENABLED		"enabled"
-#define	NWAM_NCU_PROP_PRIORITY_GROUP	"priority-group"
-#define	NWAM_NCU_PROP_PRIORITY_MODE	"priority-mode"
+#define	NWAM_NCU_PROP_TYPE			"type"
+#define	NWAM_NCU_PROP_CLASS			"class"
+#define	NWAM_NCU_PROP_PARENT_NCP		"parent"
+#define	NWAM_NCU_PROP_ACTIVATION_MODE		"activation-mode"
+#define	NWAM_NCU_PROP_ENABLED			"enabled"
+#define	NWAM_NCU_PROP_PRIORITY_GROUP		"priority-group"
+#define	NWAM_NCU_PROP_PRIORITY_MODE		"priority-mode"
 
 /* Link NCU properties */
-#define	NWAM_NCU_PROP_LINK_MAC_ADDR	"link-mac-addr"
-#define	NWAM_NCU_PROP_LINK_AUTOPUSH	"link-autopush"
-#define	NWAM_NCU_PROP_LINK_MTU		"link-mtu"
+#define	NWAM_NCU_PROP_LINK_MAC_ADDR		"link-mac-addr"
+#define	NWAM_NCU_PROP_LINK_AUTOPUSH		"link-autopush"
+#define	NWAM_NCU_PROP_LINK_MTU			"link-mtu"
 
 /* IP NCU properties */
-#define	NWAM_NCU_PROP_IP_VERSION	"ip-version"
-#define	NWAM_NCU_PROP_IPV4_ADDRSRC	"ipv4-addrsrc"
-#define	NWAM_NCU_PROP_IPV4_ADDR		"ipv4-addr"
-#define	NWAM_NCU_PROP_IPV6_ADDRSRC	"ipv6-addrsrc"
-#define	NWAM_NCU_PROP_IPV6_ADDR		"ipv6-addr"
+#define	NWAM_NCU_PROP_IP_VERSION		"ip-version"
+#define	NWAM_NCU_PROP_IPV4_ADDRSRC		"ipv4-addrsrc"
+#define	NWAM_NCU_PROP_IPV4_ADDR			"ipv4-addr"
+#define	NWAM_NCU_PROP_IPV4_DEFAULT_ROUTE	"ipv4-default-route"
+#define	NWAM_NCU_PROP_IPV6_ADDRSRC		"ipv6-addrsrc"
+#define	NWAM_NCU_PROP_IPV6_ADDR			"ipv6-addr"
+#define	NWAM_NCU_PROP_IPV6_DEFAULT_ROUTE	"ipv6-default-route"
 
 /* Some properties should only be set on creation */
 #define	NWAM_NCU_PROP_SETONCE(prop)	\

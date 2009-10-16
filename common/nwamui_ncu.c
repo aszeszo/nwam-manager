@@ -70,7 +70,7 @@ struct _NwamuiNcuPrivate {
 
 #ifdef TUNNEL_SUPPORT
         /* IPTun Properties */
-        nwam_iptun_type_t               tun_type; 
+        nwam_iptun_type_t               tun_type;
         gchar*                          tun_tsrc;
         gchar*                          tun_tdst;
         gchar*                          tun_encr;
@@ -110,12 +110,14 @@ enum {
         PROP_IPV4_HAS_DHCP,
         PROP_IPV4_ADDRESS,
         PROP_IPV4_SUBNET,
+        PROP_IPV4_DEFAULT_ROUTE,
         PROP_V4ADDRESSES,
         PROP_IPV6_ACTIVE,
         PROP_IPV6_HAS_DHCP,
         PROP_IPV6_HAS_AUTO_CONF,
         PROP_IPV6_ADDRESS,
         PROP_IPV6_PREFIX,
+        PROP_IPV6_DEFAULT_ROUTE,
         PROP_V6ADDRESSES,
         PROP_WIFI_INFO,
         PROP_ACTIVATION_MODE,
@@ -314,6 +316,14 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
+                                     PROP_IPV4_DEFAULT_ROUTE,
+                                     g_param_spec_string ("ipv4_default_route",
+                                                          _("ipv4_default_route"),
+                                                          _("ipv4_default_route"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
                                      PROP_IPV6_ACTIVE,
                                      g_param_spec_boolean ("ipv6_active",
                                                            _("ipv6_active"),
@@ -351,6 +361,14 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                      g_param_spec_string ("ipv6_prefix",
                                                           _("ipv6_prefix"),
                                                           _("ipv6_prefix"),
+                                                          "",
+                                                          G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+                                     PROP_IPV6_DEFAULT_ROUTE,
+                                     g_param_spec_string ("ipv6_default_route",
+                                                          _("ipv6_default_route"),
+                                                          _("ipv6_default_route"),
                                                           "",
                                                           G_PARAM_READWRITE));
 
@@ -589,8 +607,11 @@ nwamui_ncu_set_property ( GObject         *object,
             }
             break;
         case PROP_IPV4_ACTIVE: {
-                self->prv->ipv4_active = g_value_get_boolean( value );
-                set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
+                gboolean active = g_value_get_boolean( value );
+                if ( active != self->prv->ipv4_active ) {
+                    self->prv->ipv4_active = active;
+                    set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
+                }
             }
             break;
         case PROP_IPV4_HAS_DHCP: {
@@ -609,10 +630,21 @@ nwamui_ncu_set_property ( GObject         *object,
                 }
             }
             break;
-        case PROP_IPV6_ACTIVE: {
-                self->prv->ipv6_active = g_value_get_boolean( value );
+        case PROP_IPV4_DEFAULT_ROUTE: {
+                const gchar* default_route = g_strdup( g_value_get_string( value ) );
+
+                set_nwam_ncu_string_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_IPV4_DEFAULT_ROUTE, default_route );
+
                 set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
             }
+            break;
+        case PROP_IPV6_ACTIVE: {
+                gboolean active = g_value_get_boolean( value );
+                if ( active != self->prv->ipv6_active ) {
+                    self->prv->ipv6_active = active;
+                    set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
+                }
+          }
             break;
         case PROP_IPV6_HAS_DHCP: {
                 gboolean dhcp = g_value_get_boolean( value );
@@ -625,6 +657,14 @@ nwamui_ncu_set_property ( GObject         *object,
                 gboolean auto_conf = g_value_get_boolean( value );
 
                 self->prv->ipv6_has_auto_conf = auto_conf;
+                set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
+            }
+            break;
+        case PROP_IPV6_DEFAULT_ROUTE: {
+                const gchar* default_route = g_strdup( g_value_get_string( value ) );
+                
+                set_nwam_ncu_string_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_IPV6_DEFAULT_ROUTE, default_route );
+                
                 set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
             }
             break;
@@ -838,6 +878,14 @@ nwamui_ncu_get_property (GObject         *object,
                 }
             }
             break;
+        case PROP_IPV4_DEFAULT_ROUTE: {
+                gchar *default_route = NULL;
+
+                default_route = get_nwam_ncu_string_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_IPV4_DEFAULT_ROUTE);
+
+                g_value_set_string( value, default_route );
+            }
+            break;
         case PROP_IPV6_ACTIVE: {
                 g_value_set_boolean(value, self->prv->ipv6_active);
             }
@@ -871,6 +919,14 @@ nwamui_ncu_get_property (GObject         *object,
                 if ( prefix != NULL ) {
                     g_free(prefix);
                 }
+            }
+            break;
+        case PROP_IPV6_DEFAULT_ROUTE: {
+                gchar *default_route = NULL;
+
+                default_route = get_nwam_ncu_string_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_IPV6_DEFAULT_ROUTE);
+
+                g_value_set_string( value, default_route );
             }
             break;
         case PROP_V4ADDRESSES: {
@@ -2431,6 +2487,43 @@ nwamui_ncu_get_ipv4_subnet (NwamuiNcu *self)
     return( ipv4_subnet );
 }
 
+/**
+ * nwamui_ncu_set_ipv4_default_route:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @ipv4_default_route: Valiue to set ipv4_default_route to.
+ *
+ **/
+extern void
+nwamui_ncu_set_ipv4_default_route (   NwamuiNcu *self,
+                              const gchar*  ipv4_default_route )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+
+    g_object_set (G_OBJECT (self),
+                  "ipv4_default_route", ipv4_default_route,
+                  NULL);
+}
+
+/**
+ * nwamui_ncu_get_ipv4_default_route:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @returns: the ipv4_default_route.
+ *
+ **/
+extern gchar*
+nwamui_ncu_get_ipv4_default_route (NwamuiNcu *self)
+{
+    gchar*  ipv4_default_route = NULL;
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), ipv4_default_route);
+
+    g_object_get (G_OBJECT (self),
+                  "ipv4_default_route", &ipv4_default_route,
+                  NULL);
+
+    return( ipv4_default_route );
+}
+
 /** 
  * nwamui_ncu_set_ipv6_active:
  * @nwamui_ncu: a #NwamuiNcu.
@@ -2612,6 +2705,43 @@ nwamui_ncu_get_ipv6_prefix (NwamuiNcu *self)
                   NULL);
 
     return( ipv6_prefix );
+}
+
+/**
+ * nwamui_ncu_set_ipv6_default_route:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @ipv6_default_route: Valiue to set ipv6_default_route to.
+ *
+ **/
+extern void
+nwamui_ncu_set_ipv6_default_route (   NwamuiNcu *self,
+                              const gchar*  ipv6_default_route )
+{
+    g_return_if_fail (NWAMUI_IS_NCU (self));
+
+    g_object_set (G_OBJECT (self),
+                  "ipv6_default_route", ipv6_default_route,
+                  NULL);
+}
+
+/**
+ * nwamui_ncu_get_ipv6_default_route:
+ * @nwamui_ncu: a #NwamuiNcu.
+ * @returns: the ipv6_default_route.
+ *
+ **/
+extern gchar*
+nwamui_ncu_get_ipv6_default_route (NwamuiNcu *self)
+{
+    gchar*  ipv6_default_route = NULL;
+
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), ipv6_default_route);
+
+    g_object_get (G_OBJECT (self),
+                  "ipv6_default_route", &ipv6_default_route,
+                  NULL);
+
+    return( ipv6_default_route );
 }
 
 /** 
@@ -3256,20 +3386,25 @@ set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const gc
         return retval;
     }
 
-    if ( (nerr = nwam_value_create_string( (char*)str, &nwam_data )) != NWAM_SUCCESS ) {
-        g_debug("Error creating a string value for string %s", str?str:"NULL");
-        return retval;
-    }
-
-    if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
+    if ( str == NULL ) {
+        retval = delete_nwam_ncu_prop( ncu, prop_name );
     }
     else {
-        retval = TRUE;
+        if ( (nerr = nwam_value_create_string( (char*)str, &nwam_data )) != NWAM_SUCCESS ) {
+            g_debug("Error creating a string value for string %s", str?str:"NULL");
+            return retval;
+        }
+
+        if ( (nerr = nwam_ncu_set_prop_value (ncu, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+            g_debug("Unable to set value for ncu property %s, error = %s", prop_name, nwam_strerror( nerr ) );
+        }
+        else {
+            retval = TRUE;
+        }
+
+        nwam_value_free(nwam_data);
     }
 
-    nwam_value_free(nwam_data);
-    
     return( retval );
 }
 

@@ -250,7 +250,7 @@
                     <property name="use_underline">True</property>
                     <property name="justify">right</property>
                     <accessibility>
-		                <relation target="show_combo" type="label-for"/>
+                      <relation type="label-for" target="show_combo"/>
                     </accessibility>
                   </object>
                   <packing>
@@ -279,7 +279,7 @@
                         <property name="xalign">0</property>
                         <property name="label" translatable="yes">Enabled connections:</property>
                         <accessibility>
-                            <relation target="connection_status_vbox" type="label-for"/>
+                          <relation type="label-for" target="connection_status_vbox"/>
                         </accessibility>
                       </object>
                       <packing>
@@ -334,7 +334,7 @@
                             <property name="use_markup">True</property>
                             <property name="justify">right</property>
                             <accessibility>
-                                <relation target="current_profile_lbl" type="label-for"/>
+                              <relation type="label-for" target="current_profile_lbl"/>
                             </accessibility>
                           </object>
                           <packing>
@@ -452,7 +452,7 @@
                             <property name="label" translatable="yes">&lt;b&gt;Location:&lt;/b&gt;</property>
                             <property name="use_markup">True</property>
                             <accessibility>
-                                <relation target="current_env_lbl" type="label-for"/>
+                              <relation type="label-for" target="current_env_lbl"/>
                             </accessibility>
                           </object>
                           <packing>
@@ -525,7 +525,7 @@
                             <property name="label" translatable="yes">&lt;b&gt;VPN:&lt;/b&gt;</property>
                             <property name="use_markup">True</property>
                             <accessibility>
-                                <relation target="current_vpn_lbl" type="label-for"/>
+                              <relation type="label-for" target="current_vpn_lbl"/>
                             </accessibility>
                           </object>
                           <packing>
@@ -594,7 +594,7 @@
                                 <property name="label" translatable="yes">Active _Profile:</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="profile_name_combo" type="label-for"/>
+                                  <relation type="label-for" target="profile_name_combo"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -657,7 +657,7 @@
                             <property name="label" translatable="yes">_View/Edit Profile:</property>
                             <property name="use_underline">True</property>
                             <accessibility>
-                                <relation target="edit_profile_name_combo" type="label-for"/>
+                              <relation type="label-for" target="edit_profile_name_combo"/>
                             </accessibility>
                           </object>
                           <packing>
@@ -706,7 +706,7 @@
                         <property name="label" translatable="yes">
 Choose which connections are enabled in this profile:</property>
                         <accessibility>
-                            <relation target="connection_list_table" type="label-for"/>
+                          <relation type="label-for" target="connection_list_table"/>
                         </accessibility>
                       </object>
                       <packing>
@@ -733,7 +733,7 @@ Choose which connections are enabled in this profile:</property>
                                 <property name="label" translatable="yes">Selected gro_up:</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="connection_activation_combo" type="label-for"/>
+                                  <relation type="label-for" target="connection_activation_combo"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -943,7 +943,7 @@ Choose which connections are enabled in this profile:</property>
                       <object class="GtkTable" id="tcp_tab_table">
                         <property name="visible">True</property>
                         <property name="border_width">12</property>
-                        <property name="n_rows">4</property>
+                        <property name="n_rows">5</property>
                         <property name="column_spacing">24</property>
                         <property name="row_spacing">12</property>
                         <child>
@@ -1041,14 +1041,14 @@ Choose which connections are enabled in this profile:</property>
                                 <property name="use_markup">True</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="address_table" type="label-for"/>
+                                  <relation type="label-for" target="address_table"/>
                                 </accessibility>
                               </object>
                             </child>
                           </object>
                           <packing>
-                            <property name="top_attach">2</property>
-                            <property name="bottom_attach">3</property>
+                            <property name="top_attach">3</property>
+                            <property name="bottom_attach">4</property>
                           </packing>
                         </child>
                         <child>
@@ -1088,7 +1088,7 @@ Choose which connections are enabled in this profile:</property>
                                     <child>
                                       <object class="GtkTable" id="ipv6_multiple_table">
                                         <property name="visible">True</property>
-                                        <property name="n_rows">3</property>
+                                        <property name="n_rows">4</property>
                                         <property name="column_spacing">6</property>
                                         <property name="row_spacing">3</property>
                                         <child>
@@ -1177,6 +1177,7 @@ Choose which connections are enabled in this profile:</property>
                                                           </object>
                                                           <packing>
                                                             <property name="expand">False</property>
+                                                            <property name="fill">False</property>
                                                             <property name="position">1</property>
                                                           </packing>
                                                         </child>
@@ -1190,11 +1191,14 @@ Choose which connections are enabled in this profile:</property>
                                                           </object>
                                                           <packing>
                                                             <property name="expand">False</property>
+                                                            <property name="fill">False</property>
                                                             <property name="position">2</property>
                                                           </packing>
                                                         </child>
                                                       </object>
                                                       <packing>
+                                                        <property name="expand">False</property>
+                                                        <property name="fill">False</property>
                                                         <property name="position">1</property>
                                                       </packing>
                                                     </child>
@@ -1214,11 +1218,51 @@ Choose which connections are enabled in this profile:</property>
                                             </child>
                                           </object>
                                           <packing>
+                                            <property name="top_attach">3</property>
+                                            <property name="bottom_attach">4</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkHBox" id="hbox2">
+                                            <property name="visible">True</property>
+                                            <property name="spacing">6</property>
+                                            <child>
+                                              <object class="GtkLabel" id="ipv6_default_route_lbl">
+                                                <property name="visible">True</property>
+                                                <property name="label" translatable="yes">Default Ro_ute:</property>
+                                                <property name="use_underline">True</property>
+                                              </object>
+                                              <packing>
+                                                <property name="expand">False</property>
+                                                <property name="fill">False</property>
+                                                <property name="position">0</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkEntry" id="ipv6_default_route_entry">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">True</property>
+                                                <property name="invisible_char">&#x25CF;</property>
+                                                <property name="width_chars">40</property>
+                                              </object>
+                                              <packing>
+                                                <property name="expand">False</property>
+                                                <property name="position">1</property>
+                                              </packing>
+                                            </child>
+                                          </object>
+                                          <packing>
                                             <property name="top_attach">2</property>
                                             <property name="bottom_attach">3</property>
+                                            <property name="x_options">GTK_FILL</property>
+                                            <property name="y_options"></property>
+                                            <property name="x_padding">6</property>
                                           </packing>
                                         </child>
                                       </object>
+                                      <packing>
+                                        <property name="tab_expand">True</property>
+                                      </packing>
                                     </child>
                                     <child type="tab">
                                       <object class="GtkLabel" id="label73">
@@ -1458,7 +1502,7 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="label" translatable="yes">IPv6 I_P:</property>
                                     <property name="use_underline">True</property>
                                     <accessibility>
-                                        <relation target="ipv6_combo" type="label-for"/>
+                                      <relation type="label-for" target="ipv6_combo"/>
                                     </accessibility>
                                   </object>
                                   <packing>
@@ -1477,9 +1521,8 @@ Choose which connections are enabled in this profile:</property>
                             </child>
                           </object>
                           <packing>
-                            <property name="top_attach">3</property>
-                            <property name="bottom_attach">4</property>
-                            <property name="y_options"></property>
+                            <property name="top_attach">4</property>
+                            <property name="bottom_attach">5</property>
                           </packing>
                         </child>
                         <child>
@@ -1493,7 +1536,7 @@ Choose which connections are enabled in this profile:</property>
                                 <property name="label" translatable="yes">IPv4 I_P:</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="ipv4_combo" type="label-for"/>
+                                  <relation type="label-for" target="ipv4_combo"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -1539,7 +1582,7 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="label" translatable="yes">_Subnet Mask:</property>
                                     <property name="use_underline">True</property>
                                     <accessibility>
-                                        <relation target="dhcp_address_lbl" type="label-for"/>
+                                      <relation type="label-for" target="dhcp_address_lbl"/>
                                     </accessibility>
                                   </object>
                                   <packing>
@@ -1556,7 +1599,7 @@ Choose which connections are enabled in this profile:</property>
                                     <property name="label" translatable="yes">DHCP _Address:</property>
                                     <property name="use_underline">True</property>
                                     <accessibility>
-                                        <relation target="dhcp_subnet_lbl" type="label-for"/>
+                                      <relation type="label-for" target="dhcp_subnet_lbl"/>
                                     </accessibility>
                                   </object>
                                   <packing>
@@ -1597,6 +1640,47 @@ Choose which connections are enabled in this profile:</property>
                             <property name="top_attach">1</property>
                             <property name="bottom_attach">2</property>
                             <property name="y_options"></property>
+                          </packing>
+                        </child>
+                        <child>
+                          <object class="GtkHBox" id="ipv4_default_route_hbox">
+                            <property name="visible">True</property>
+                            <property name="spacing">6</property>
+                            <child>
+                              <object class="GtkLabel" id="ipv4_default_route_lbl">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">Default  _Route:</property>
+                                <property name="use_underline">True</property>
+                                <accessibility>
+                                  <relation type="label-for" target="ipv4_default_route_entry"/>
+                                </accessibility>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">0</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkEntry" id="ipv4_default_route_entry">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <property name="invisible_char">&#x25CF;</property>
+                              </object>
+                              <packing>
+                                <property name="expand">False</property>
+                                <property name="fill">False</property>
+                                <property name="position">1</property>
+                              </packing>
+                            </child>
+                          </object>
+                          <packing>
+                            <property name="top_attach">2</property>
+                            <property name="bottom_attach">3</property>
+                            <property name="x_options">GTK_FILL</property>
+                            <property name="y_options"></property>
+                            <property name="x_padding">15</property>
                           </packing>
                         </child>
                       </object>
@@ -1769,7 +1853,7 @@ connection will be attempted:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">If no favorite networks are available:</property>
                                 <accessibility>
-                                    <relation target="no_preferred_networks_combo" type="label-for"/>
+                                  <relation type="label-for" target="no_preferred_networks_combo"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -2692,7 +2776,7 @@ connection will be attempted:</property>
                                 <property name="label" translatable="yes">D_omain:</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="dns_domain_entry" type="label-for"/>
+                                  <relation type="label-for" target="dns_domain_entry"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -2710,7 +2794,7 @@ connection will be attempted:</property>
                                 <property name="label" translatable="yes">Ser_vers:</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="dns_servers_entry" type="label-for"/>
+                                  <relation type="label-for" target="dns_servers_entry"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -2730,7 +2814,7 @@ connection will be attempted:</property>
                                 <property name="label" translatable="yes">Sear_ch:</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="dns_search_entry" type="label-for"/>
+                                  <relation type="label-for" target="dns_search_entry"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -2749,7 +2833,7 @@ connection will be attempted:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Domain:</property>
                                 <accessibility>
-                                    <relation target="nis_domain_label" type="label-for"/>
+                                  <relation type="label-for" target="nis_domain_label"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -2784,7 +2868,7 @@ connection will be attempted:</property>
                                 <property name="label" translatable="yes">S_ervers:</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="nis_servers_entry" type="label-for"/>
+                                  <relation type="label-for" target="nis_servers_entry"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -2803,7 +2887,7 @@ connection will be attempted:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">Domain:</property>
                                 <accessibility>
-                                    <relation target="ldap_domain_label" type="label-for"/>
+                                  <relation type="label-for" target="ldap_domain_label"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -2950,7 +3034,7 @@ connection will be attempted:</property>
                                 <property name="label" translatable="yes">S_ervers:</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="ldap_servers_entry" type="label-for"/>
+                                  <relation type="label-for" target="ldap_servers_entry"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -3039,7 +3123,7 @@ connection will be attempted:</property>
                                 <property name="xalign">0</property>
                                 <property name="label" translatable="yes">nsswitch file:</property>
                                 <accessibility>
-                                    <relation target="nsswitch_file_btn" type="label-for"/>
+                                  <relation type="label-for" target="nsswitch_file_btn"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -3100,7 +3184,7 @@ connection will be attempted:</property>
                                 <property name="label" translatable="yes">De_fault domain:</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="default_domain_entry" type="label-for"/>
+                                  <relation type="label-for" target="default_domain_entry"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -3120,7 +3204,7 @@ connection will be attempted:</property>
                                     <property name="label" translatable="yes">&lt;i&gt;&lt;small&gt;Used by manual NIS and LDAP configurations&lt;/small&gt;&lt;/i&gt;</property>
                                     <property name="use_markup">True</property>
                                     <accessibility>
-                                        <relation target="default_domain_entry" type="label-for"/>
+                                      <relation type="label-for" target="default_domain_entry"/>
                                     </accessibility>
                                   </object>
                                 </child>
@@ -3417,7 +3501,6 @@ connection will be attempted:</property>
                 </child>
                 <child>
                   <object class="GtkTable" id="network_services_tab_table">
-                    <property name="visible">False</property>
                     <property name="border_width">12</property>
                     <property name="n_rows">4</property>
                     <property name="n_columns">2</property>
@@ -3471,7 +3554,7 @@ connection will be attempted:</property>
                         <property name="xalign">0</property>
                         <property name="label" translatable="yes">Enable these services when this location is active:</property>
                         <accessibility>
-                            <relation target="enabled_netservices_list" type="label-for"/>
+                          <relation type="label-for" target="enabled_netservices_list"/>
                         </accessibility>
                       </object>
                       <packing>
@@ -3486,7 +3569,7 @@ connection will be attempted:</property>
                         <property name="label" translatable="yes">
 Disable these services when this location is active:</property>
                         <accessibility>
-                            <relation target="disabled_netservices_list" type="label-for"/>
+                          <relation type="label-for" target="disabled_netservices_list"/>
                         </accessibility>
                       </object>
                       <packing>
@@ -3723,9 +3806,6 @@ Disable these services when this location is active:</property>
                     <property name="visible">True</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">Available VPN applications:</property>
-                    <accessibility>
-                        <relation target="vpn_apps_list" type="label-for"/>
-                    </accessibility>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -3954,7 +4034,7 @@ Disable these services when this location is active:</property>
                                 <property name="use_underline">True</property>
                                 <property name="mnemonic_widget">start_cmd_entry</property>
                                 <accessibility>
-                                    <relation target="start_cmd_entry" type="label-for"/>
+                                  <relation type="label-for" target="start_cmd_entry"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -3970,7 +4050,7 @@ Disable these services when this location is active:</property>
                                 <property name="use_underline">True</property>
                                 <property name="mnemonic_widget">stop_cmd_entry</property>
                                 <accessibility>
-                                    <relation target="stop_cmd_entry" type="label-for"/>
+                                  <relation type="label-for" target="stop_cmd_entry"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -4152,7 +4232,7 @@ Disable these services when this location is active:</property>
                                 <property name="use_underline">True</property>
                                 <property name="mnemonic_widget">process_entry</property>
                                 <accessibility>
-                                    <relation target="process_entry" type="label-for"/>
+                                  <relation type="label-for" target="process_entry"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -4186,7 +4266,7 @@ system/system-log:default
                                 <property name="use_markup">True</property>
                                 <property name="wrap">True</property>
                                 <accessibility>
-                                    <relation target="process_entry" type="label-for"/>
+                                  <relation type="label-for" target="process_entry"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -4642,7 +4722,7 @@ Enter username and password for http://$HOST:$PORT
                     <property name="layout_style">start</property>
                     <child>
                       <object class="GtkButton" id="ext_properties_edit_btn1">
-                        <property name="label" translatable="yes">gtk-edit</property>
+                        <property name="label">gtk-edit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -4676,7 +4756,7 @@ Enter username and password for http://$HOST:$PORT
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="ext_props_cancel_btn">
-                <property name="label" translatable="yes">gtk-cancel</property>
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -4690,7 +4770,7 @@ Enter username and password for http://$HOST:$PORT
             </child>
             <child>
               <object class="GtkButton" id="ext_props_ok_btn">
-                <property name="label" translatable="yes">gtk-ok</property>
+                <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -4740,9 +4820,6 @@ Enter username and password for http://$HOST:$PORT
                 <property name="xalign">0</property>
                 <property name="label" translatable="yes">_Locations:</property>
                 <property name="use_underline">True</property>
-                <accessibility>
-                    <relation target="location_tree" type="label-for"/>
-                </accessibility>
               </object>
               <packing>
                 <property name="right_attach">2</property>
@@ -4778,7 +4855,7 @@ Enter username and password for http://$HOST:$PORT
                     <property name="spacing">3</property>
                     <child>
                       <object class="GtkButton" id="location_add_btn">
-                        <property name="label" translatable="yes">gtk-add</property>
+                        <property name="label">gtk-add</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -4792,7 +4869,7 @@ Enter username and password for http://$HOST:$PORT
                     </child>
                     <child>
                       <object class="GtkButton" id="location_remove_btn">
-                        <property name="label" translatable="yes">gtk-remove</property>
+                        <property name="label">gtk-remove</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -4834,7 +4911,7 @@ Enter username and password for http://$HOST:$PORT
                     </child>
                     <child>
                       <object class="GtkButton" id="location_edit_btn">
-                        <property name="label" translatable="yes">gtk-edit</property>
+                        <property name="label">gtk-edit</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">True</property>
@@ -4873,7 +4950,7 @@ Enter username and password for http://$HOST:$PORT
                         <property name="label" translatable="yes">_Selected location is:</property>
                         <property name="use_underline">True</property>
                         <accessibility>
-                            <relation target="location_activation_combo" type="label-for"/>
+                          <relation type="label-for" target="location_activation_combo"/>
                         </accessibility>
                       </object>
                       <packing>
@@ -5021,7 +5098,7 @@ Enter username and password for http://$HOST:$PORT
             </child>
             <child>
               <object class="GtkButton" id="location_cancel_btn">
-                <property name="label" translatable="yes">gtk-cancel</property>
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -5035,7 +5112,7 @@ Enter username and password for http://$HOST:$PORT
             </child>
             <child>
               <object class="GtkButton" id="location_ok_btn">
-                <property name="label" translatable="yes">gtk-ok</property>
+                <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -5134,7 +5211,7 @@ system/system-log:default
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="button2">
-                <property name="label" translatable="yes">gtk-cancel</property>
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -5148,7 +5225,7 @@ system/system-log:default
             </child>
             <child>
               <object class="GtkButton" id="button1">
-                <property name="label" translatable="yes">gtk-ok</property>
+                <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -5276,7 +5353,7 @@ system/system-log:default
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="rules_revert_btn">
-                <property name="label" translatable="yes">gtk-revert-to-saved</property>
+                <property name="label">gtk-revert-to-saved</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -5290,7 +5367,7 @@ system/system-log:default
             </child>
             <child>
               <object class="GtkButton" id="rules_cancel_btn">
-                <property name="label" translatable="yes">gtk-cancel</property>
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -5305,7 +5382,7 @@ system/system-log:default
             </child>
             <child>
               <object class="GtkButton" id="rules_ok_btn">
-                <property name="label" translatable="yes">gtk-ok</property>
+                <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="can_default">True</property>
@@ -5371,7 +5448,7 @@ system/system-log:default
                 <property name="ypad">2</property>
                 <property name="label" translatable="yes">Check the connections that you wish to include in this profil: </property>
                 <accessibility>
-                    <relation target="connection_treeview" type="label-for"/>
+                  <relation type="label-for" target="connection_treeview"/>
                 </accessibility>
               </object>
               <packing>
@@ -5410,7 +5487,7 @@ system/system-log:default
             <property name="layout_style">end</property>
             <child>
               <object class="GtkButton" id="cancel_btn">
-                <property name="label" translatable="yes">gtk-cancel</property>
+                <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>
@@ -5424,7 +5501,7 @@ system/system-log:default
             </child>
             <child>
               <object class="GtkButton" id="ok_btn">
-                <property name="label" translatable="yes">gtk-ok</property>
+                <property name="label">gtk-ok</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
                 <property name="receives_default">True</property>

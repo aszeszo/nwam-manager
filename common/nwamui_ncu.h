@@ -142,6 +142,10 @@ extern gchar*               nwamui_ncu_get_ipv4_address ( NwamuiNcu *self );
 
 extern gchar*               nwamui_ncu_get_ipv4_subnet ( NwamuiNcu *self );
 
+extern void                 nwamui_ncu_set_ipv4_default_route ( NwamuiNcu *self,
+                                                                const gchar*  ipv4_default_route );
+extern gchar*               nwamui_ncu_get_ipv4_default_route (NwamuiNcu *self);
+
 extern void                 nwamui_ncu_set_ipv6_active ( NwamuiNcu *self, gboolean ipv6_active );
 extern gboolean             nwamui_ncu_get_ipv6_active ( NwamuiNcu *self );
 
@@ -157,6 +161,10 @@ extern gboolean             nwamui_ncu_get_ipv6_has_static (NwamuiNcu *self);
 extern gchar*               nwamui_ncu_get_ipv6_address ( NwamuiNcu *self );
 
 extern gchar*               nwamui_ncu_get_ipv6_prefix ( NwamuiNcu *self );
+
+extern void                 nwamui_ncu_set_ipv6_default_route ( NwamuiNcu *self,
+                                                                const gchar*  ipv6_default_route );
+extern gchar*               nwamui_ncu_get_ipv6_default_route (NwamuiNcu *self);
 
 extern void                 nwamui_ncu_set_v4addresses ( NwamuiNcu *self, GtkListStore* v4addresses );
 extern GtkListStore*        nwamui_ncu_get_v4addresses ( NwamuiNcu *self );

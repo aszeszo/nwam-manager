@@ -86,7 +86,7 @@
                     <property name="label" translatable="yes">_Security type:</property>
                     <property name="use_underline">True</property>
                     <accessibility>
-                        <relation target="security_combo" type="label-for"/>
+                      <relation type="label-for" target="security_combo"/>
                     </accessibility>
                   </object>
                   <packing>
@@ -103,7 +103,7 @@
                     <property name="label" translatable="yes">_Network name (ESSID):</property>
                     <property name="use_underline">True</property>
                     <accessibility>
-                        <relation target="ssid_combo_entry" type="label-for"/>
+                      <relation type="label-for" target="ssid_combo_entry"/>
                     </accessibility>
                   </object>
                   <packing>
@@ -144,7 +144,7 @@
                             <property name="use_underline">True</property>
                             <property name="mnemonic_widget">wep_password_entry</property>
                             <accessibility>
-                                <relation target="wep_password_entry" type="label-for"/>
+                              <relation type="label-for" target="wep_password_entry"/>
                             </accessibility>
                           </object>
                           <packing>
@@ -219,7 +219,7 @@
                             <property name="use_underline">True</property>
                             <property name="mnemonic_widget">wpa_username_entry</property>
                             <accessibility>
-                                <relation target="wpa_username_entry" type="label-for"/>
+                              <relation type="label-for" target="wpa_username_entry"/>
                             </accessibility>
                           </object>
                           <packing>
@@ -234,7 +234,7 @@
                             <property name="use_underline">True</property>
                             <property name="mnemonic_widget">wpa_password_entry</property>
                             <accessibility>
-                                <relation target="wpa_password_entry" type="label-for"/>
+                              <relation type="label-for" target="wpa_password_entry"/>
                             </accessibility>
                           </object>
                           <packing>
@@ -282,7 +282,7 @@
                             <property name="label" translatable="yes">_Configuration:</property>
                             <property name="use_underline">True</property>
                             <accessibility>
-                                <relation target="wpa_config_combo" type="label-for"/>
+                              <relation type="label-for" target="wpa_config_combo"/>
                             </accessibility>
                           </object>
                           <packing>
@@ -310,7 +310,7 @@
                             <property name="label" translatable="yes">Certificate _File:</property>
                             <property name="use_underline">True</property>
                             <accessibility>
-                                <relation target="wpa_certificate_filechooser_btn" type="label-for"/>
+                              <relation type="label-for" target="wpa_certificate_filechooser_btn"/>
                             </accessibility>
                           </object>
                           <packing>
@@ -425,7 +425,7 @@
                                 <property name="label" translatable="yes">Known access points (_BSSIDs):</property>
                                 <property name="use_underline">True</property>
                                 <accessibility>
-                                    <relation target="bssid_list" type="label-for"/>
+                                  <relation type="label-for" target="bssid_list"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -439,7 +439,7 @@
                                 <property name="label" translatable="yes">&lt;small&gt;&lt;i&gt;Double-click rows to edit&lt;/i&gt;&lt;/small&gt;</property>
                                 <property name="use_markup">True</property>
                                 <accessibility>
-                                    <relation target="bssid_list" type="label-for"/>
+                                  <relation type="label-for" target="bssid_list"/>
                                 </accessibility>
                               </object>
                               <packing>
@@ -474,7 +474,7 @@
                                 <property name="layout_style">end</property>
                                 <child>
                                   <object class="GtkButton" id="bssid_add_btn">
-                                    <property name="label" translatable="yes">gtk-add</property>
+                                    <property name="label">gtk-add</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
@@ -488,7 +488,7 @@
                                 </child>
                                 <child>
                                   <object class="GtkButton" id="bssid_remove_btn">
-                                    <property name="label" translatable="yes">gtk-remove</property>
+                                    <property name="label">gtk-remove</property>
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="receives_default">True</property>
@@ -597,11 +597,11 @@
     </action-widgets>
   </object>
   <object class="GtkDialog" id="connect_wireless_network">
+    <property name="height_request">250</property>
     <property name="title" translatable="yes">Connect to Wireless Network</property>
     <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">dialog</property>
     <property name="has_separator">False</property>
-    <property name="height_request">250</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="connect_wireless_dialog_vbox">
         <property name="visible">True</property>
@@ -617,7 +617,7 @@
                 <property name="label" translatable="yes">The following wireless networks were detected at your location:</property>
                 <property name="wrap">True</property>
                 <accessibility>
-                    <relation target="wireless_list" type="label-for"/>
+                  <relation type="label-for" target="wireless_list"/>
                 </accessibility>
               </object>
               <packing>
@@ -646,13 +646,40 @@
               </packing>
             </child>
             <child>
-              <object class="GtkCheckButton" id="add_to_preferred_cbox1">
-                <property name="label" translatable="yes">_Add to list of favorite networks on successful connection</property>
+              <object class="GtkHBox" id="hbox1">
                 <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_underline">True</property>
-                <property name="draw_indicator">True</property>
+                <child>
+                  <object class="GtkCheckButton" id="add_to_preferred_cbox1">
+                    <property name="label" translatable="yes">_Add to list of favorite networks on successful connection</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="use_underline">True</property>
+                    <property name="draw_indicator">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="connect_wireless_refresh_btn">
+                    <property name="label">gtk-refresh</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="can_default">True</property>
+                    <property name="receives_default">False</property>
+                    <property name="use_stock">True</property>
+                    <property name="xalign">1</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="fill">False</property>
+                    <property name="pack_type">end</property>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
               </object>
               <packing>
                 <property name="expand">False</property>
@@ -685,19 +712,7 @@
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="connect_wireless_refresh_btn">
-                <property name="label">gtk-refresh</property>
-                <property name="visible">True</property>
-                <property name="can_focus">True</property>
-                <property name="can_default">True</property>
-                <property name="receives_default">False</property>
-                <property name="use_stock">True</property>
-              </object>
-              <packing>
-                <property name="expand">False</property>
-                <property name="fill">False</property>
-                <property name="position">1</property>
-              </packing>
+              <placeholder/>
             </child>
             <child>
               <object class="GtkButton" id="cancelbutton2">
@@ -754,7 +769,6 @@
     </child>
     <action-widgets>
       <action-widget response="-11">helpbutton4</action-widget>
-      <action-widget response="-2">connect_wireless_refresh_btn</action-widget>
       <action-widget response="-6">cancelbutton2</action-widget>
       <action-widget response="-10">join_unlisted_btn</action-widget>
       <action-widget response="-5">connect_wireless_connect_btn</action-widget>
