@@ -955,11 +955,15 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         switch (cond) {
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_MANUAL);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn),
+                                     !nwamui_object_get_active(NWAMUI_OBJECT(env)));
             break;
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_RULES );
             gtk_widget_set_sensitive(GTK_WIDGET(self->prv->location_rules_btn), TRUE);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn),
+                                     !nwamui_object_get_active(NWAMUI_OBJECT(env)));
             break;
         case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
             /* If Activation Mode is system, then you can't rename or remove
@@ -975,8 +979,6 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
             break;
         }
 
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn), 
-                                 !nwamui_object_get_active(NWAMUI_OBJECT(env)));
 
         g_signal_handlers_unblock_by_func(G_OBJECT(prv->location_activation_combo), 
                                         (gpointer)location_activation_combo_changed_cb, (gpointer)self);

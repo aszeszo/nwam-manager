@@ -1,5 +1,11 @@
 2009-10-16  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_location_dialog.c: 
+	  Fix defect#12030 where the rename button was being enabled for
+	  SYSTEM Locations.
+
+2009-10-16  Darren Kenny  <darren.kenny@sun.com>
+
 	* common/nwamui_ncu.c, common/nwamui_ncu.h,
 	  ui/nwam-manager-properties.ui, capplet/nwam_conn_conf_ip_panel.c: 
 	  Fix defect#11975 - add ipv4/6 default route properties to NCUs, and
