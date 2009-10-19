@@ -749,6 +749,7 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_tv), modifiable);
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_multi_add_btn), modifiable);
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_multi_del_btn), modifiable);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv4_default_route_entry), modifiable);
     }
     
     if ( ipv4_address != NULL ) { 
@@ -798,6 +799,8 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_tv), ipv6_has_static);
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_add_btn), ipv6_has_static);
         gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_del_btn), ipv6_has_static);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_default_route_entry), modifiable);
+
 
         g_signal_handlers_unblock_by_func(G_OBJECT(prv->ipv6_manual_addresses_cbox), (gpointer)ipv6_manual_addresses_cb_toggled, (gpointer)self);
     }

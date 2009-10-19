@@ -747,7 +747,7 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
 
         /* First change prior selection, before changing new one */
         if ( prv->toggled_env != NULL ) {
-            nwamui_env_set_enabled(prv->toggled_env, FALSE );
+            nwamui_env_set_enabled(NWAMUI_ENV(prv->toggled_env), FALSE );
         }
         else {
             NwamuiEnv *active_env;
@@ -938,9 +938,6 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
 
         gtk_tree_model_get(model, &iter, 0, &env, -1);
         
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->location_rename_btn),
-                                 nwamui_object_can_rename(NWAMUI_OBJECT(env)));
-
         g_signal_handlers_block_by_func(G_OBJECT(prv->location_activation_combo), 
                                         (gpointer)location_activation_combo_changed_cb, (gpointer)self);
 
@@ -1116,21 +1113,30 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
             g_free(current_name);
 #endif
-            GtkCellRendererText*        txt;
-            GtkTreeViewColumn*  info_col = gtk_tree_view_get_column( GTK_TREE_VIEW(prv->location_tree), LOCVIEW_NAME );
-            GList*              renderers = gtk_tree_view_column_get_cell_renderers( info_col );
-        
-            /* Should be only one renderer */
-            g_assert( g_list_next( renderers ) == NULL );
-        
-            if ((txt = GTK_CELL_RENDERER_TEXT(g_list_first( renderers )->data)) != NULL) {
-                GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
-                g_object_set (txt, "editable", TRUE, NULL);
+            if ( nwamui_env_can_rename( env ) ) {
+                GtkCellRendererText*        txt;
+                GtkTreeViewColumn*  info_col = gtk_tree_view_get_column( GTK_TREE_VIEW(prv->location_tree), LOCVIEW_NAME );
+                GList*              renderers = gtk_tree_view_column_get_cell_renderers( info_col );
 
-                gtk_tree_view_set_cursor (GTK_TREE_VIEW(prv->location_tree), tpath, info_col, TRUE);
+                /* Should be only one renderer */
+                g_assert( g_list_next( renderers ) == NULL );
 
-                gtk_tree_path_free(tpath);
+                if ((txt = GTK_CELL_RENDERER_TEXT(g_list_first( renderers )->data)) != NULL) {
+                    GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+                    g_object_set (txt, "editable", TRUE, NULL);
+
+                    gtk_tree_view_set_cursor (GTK_TREE_VIEW(prv->location_tree), tpath, info_col, TRUE);
+
+                    gtk_tree_path_free(tpath);
+                }
             }
+            else {
+                if (nwamui_util_ask_about_dup_obj( GTK_WINDOW(prv->location_dialog), NWAMUI_OBJECT(env) )) {
+                    gtk_button_clicked(prv->location_dup_btn);
+                }
+            }
+
+
         } else if (button == (gpointer)prv->location_rules_btn) {
             NwamPrefIFace *rules_dialog = NWAM_PREF_IFACE(nwam_rules_dialog_new());
             nwam_pref_refresh(rules_dialog, NWAMUI_OBJECT(env), TRUE);

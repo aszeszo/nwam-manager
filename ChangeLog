@@ -1,3 +1,15 @@
+2009-10-19  Darren Kenny  <darren.kenny@sun.com>
+
+	* capplet/nwam_conn_conf_ip_panel.c: 
+	  Set the default route entry's sensitivity based on whether the
+	  object is modifiable or not.
+	* common/libnwamui.c, common/libnwamui.h:
+	  Add function nwamui_util_ask_about_dup_obj() to show a message
+	  dialog saying that rename isn't possible, so ask for duplication.
+	* capplet/nwam_location_dialog.c:
+	  Fix defect#12031 where renaming of a location should prompt for
+	  duplication if not possible to rename (as per UI spec).
+
 2009-10-16  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_location_dialog.c: 

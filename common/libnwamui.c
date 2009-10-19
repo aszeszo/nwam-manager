@@ -1085,6 +1085,71 @@ nwamui_util_confirm_removal(GtkWindow* parent_window, const gchar* title, const 
     }
 }
 
+extern gboolean
+nwamui_util_ask_about_dup_obj(GtkWindow* parent_window, NwamuiObject* obj )
+{
+    GtkWidget          *message_dialog;
+    GtkWidget          *action_area;
+    gchar              *summary = NULL;
+    gchar              *obj_name = NULL;
+    const gchar        *obj_type_caps;
+    const gchar        *obj_type_lower;
+    gint                response;
+    gchar*              outstr;
+
+    g_return_val_if_fail( NWAMUI_IS_OBJECT(obj), FALSE );
+
+    obj_name = nwamui_object_get_name( obj );
+
+    if ( NWAMUI_IS_ENV( obj ) ) {
+        obj_type_caps = _("Locations");
+        obj_type_lower = _("location");
+    }
+    else {
+        g_assert_not_reached();
+    }
+
+    summary = g_strdup_printf(_("Cannot rename '%s'"), obj_name?obj_name:"" );
+
+    message_dialog = gtk_message_dialog_new(parent_window, GTK_DIALOG_MODAL |GTK_DIALOG_DESTROY_WITH_PARENT,
+                                            GTK_MESSAGE_QUESTION, GTK_BUTTONS_OK_CANCEL, summary );
+
+    gtk_window_set_title(GTK_WINDOW(message_dialog), summary);
+
+    gtk_message_dialog_format_secondary_text( GTK_MESSAGE_DIALOG(message_dialog), 
+            _("%s can only be renamed immeditately\nafter they have been created. However, you\ncan duplicate this %s then immediately\nrename the duplicate."),
+            obj_type_caps, obj_type_lower);
+
+    /* Change OK to be Duplicate button */
+    if ( (action_area = gtk_dialog_get_action_area( GTK_DIALOG(message_dialog) )) != NULL ) {
+        GList*  buttons = gtk_container_get_children( GTK_CONTAINER( action_area ) );
+
+        for ( GList *elem = buttons; buttons != NULL; elem = g_list_next(elem) ) {
+            if ( GTK_IS_BUTTON( elem->data ) ) {
+                const gchar* label = gtk_button_get_label( GTK_BUTTON( elem->data ) );
+                if ( label != NULL && strcmp( label, GTK_STOCK_OK )  == 0 ) {
+                    gtk_button_set_label( GTK_BUTTON( elem->data ), _("_Duplicate") );
+                    break;
+                }
+            }
+        }
+
+        g_list_free( buttons );
+    }
+
+    g_free( summary );
+    g_free( obj_name );
+
+    switch( gtk_dialog_run(GTK_DIALOG(message_dialog)) ) {
+        case GTK_RESPONSE_OK:
+            gtk_widget_destroy(message_dialog);
+            return( TRUE );
+        default:
+            gtk_widget_destroy(message_dialog);
+            return( FALSE );
+    }
+}
+
 extern void
 nwamui_util_show_message(GtkWindow* parent_window, GtkMessageType type, const gchar* title, const gchar* message, gboolean block )
 {
