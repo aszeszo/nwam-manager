@@ -528,8 +528,16 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
       "changed", (GCallback)on_ns_text_changed, (gpointer)self);
 
     nwamui_util_set_entry_validation(   prv->dns_servers_entry, 
-                                        NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST,
-                                        TRUE );
+                    NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST|NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY,
+                    TRUE );
+
+    nwamui_util_set_entry_validation(   prv->nis_servers_entry,
+                    NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST|NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY,
+                    TRUE );
+
+    nwamui_util_set_entry_validation(   prv->ldap_servers_entry,
+                    NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST|NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY,
+                    TRUE );
 
 	g_signal_connect(prv->nis_service_cb,
       "toggled", (GCallback)on_ns_selection_toggled, (gpointer)self);
@@ -2051,13 +2059,88 @@ apply(NwamPrefIFace *iface, gpointer user_data)
      * Name Services Tab
      */
     {
-        gchar *config_file;
+        gchar  *config_file;
+        gint    num_services = 0;
+        gboolean    check_default_domain = FALSE;
 
+        /* DNS Servers */
+        for ( GList* elem =  nwamui_env_get_nameservices( current_env );
+                elem != NULL; elem = g_list_next(elem) ) {
+            switch ( (nwamui_env_nameservices_t)elem->data ) {
+                case NWAMUI_ENV_NAMESERVICES_DNS:
+                    /* Required */
+                    if ( !nwamui_util_validate_text_entry( GTK_WIDGET(prv->dns_servers_entry), gtk_entry_get_text(prv->dns_servers_entry),
+                                                NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST,
+                                                TRUE, TRUE ) ) {
+                        gtk_widget_grab_focus( GTK_WIDGET(prv->dns_servers_entry) );
+
+                        return( FALSE );
+                    }
+                    break;
+                case NWAMUI_ENV_NAMESERVICES_NIS:
+                    /* Optional */
+                    if ( !nwamui_util_validate_text_entry( GTK_WIDGET(prv->nis_servers_entry), gtk_entry_get_text(prv->nis_servers_entry),
+                                                NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST|NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY,
+                                                TRUE, TRUE ) ) {
+                        gtk_widget_grab_focus( GTK_WIDGET(prv->nis_servers_entry) );
+
+                        return( FALSE );
+                    }
+                    check_default_domain = TRUE;
+                    break;
+                case NWAMUI_ENV_NAMESERVICES_LDAP:
+                    /* Required */
+                    if ( !nwamui_util_validate_text_entry( GTK_WIDGET(prv->ldap_servers_entry), gtk_entry_get_text(prv->ldap_servers_entry),
+                                                NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST,
+                                                TRUE, TRUE ) ) {
+                        gtk_widget_grab_focus( GTK_WIDGET(prv->ldap_servers_entry) );
+
+                        return( FALSE );
+                    }
+                    check_default_domain = TRUE;
+                    break;
+                case NWAMUI_ENV_NAMESERVICES_FILES:
+                    break;
+            }
+            num_services++;
+        }
+
+        if ( check_default_domain ) {
+            const gchar *text = gtk_entry_get_text(GTK_ENTRY(prv->default_domain_entry));
+            gchar       *stripped = NULL;
+
+            if ( text != NULL ) {
+                stripped = g_strdup( text );
+                g_strstrip( stripped );
+            }
+
+            if ( text == NULL || stripped == NULL || strlen(stripped) ==0 ) {
+                nwamui_util_show_message(GTK_WINDOW(prv->env_pref_dialog),
+                        GTK_MESSAGE_ERROR, _("Default Domain Required"),
+                        _("With NIS or LDAP a default domain must be specified.\nPlease provide one in the appropriate field."),
+                        TRUE);
+                gtk_widget_grab_focus(GTK_WIDGET(prv->default_domain_entry));
+                return( FALSE );
+            }
+            g_free(stripped);
+        }
+
+        /* NSSWITCH configuration file */
         config_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn));
         if (config_file) {
             nwamui_env_set_nameservices_config_file(current_env, config_file);
             g_free(config_file);
         }
+        else if ( num_services > 1 ) {
+            nwamui_util_show_message(GTK_WINDOW(prv->env_pref_dialog),
+                    GTK_MESSAGE_ERROR, _("Nameservice Switch File Required"),
+                    _("A nameservice switch file should be specified\nif more than one name service is selected."),
+                    TRUE);
+            return( FALSE );
+        }
+
+
+
     }
 
 

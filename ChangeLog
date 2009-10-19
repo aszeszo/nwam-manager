@@ -1,5 +1,13 @@
 2009-10-19  Darren Kenny  <darren.kenny@sun.com>
 
+	* capplet/nwam_env_pref_dialog.c: 
+	  Allow empty strings and IPv6 addresses for server entries to allow
+	  for cancelling. Validate servers on apply, to catch empty strings.
+	  Also check that the default domain is supplied if required.
+	  This is a fix for defect#12033.
+
+2009-10-19  Darren Kenny  <darren.kenny@sun.com>
+
 	* capplet/nwam_conn_conf_ip_panel.c: 
 	  Set the default route entry's sensitivity based on whether the
 	  object is modifiable or not.
