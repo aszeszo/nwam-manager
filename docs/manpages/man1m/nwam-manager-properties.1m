@@ -1,0 +1,161 @@
+<!DOCTYPE REFENTRY PUBLIC "-//Sun Microsystems//DTD DocBook V3.0-Based SolBook Subset V2.0//EN" [
+<!--ArborText, Inc., 1988-1999, v.4002-->
+<!ENTITY cmd "nwam-manager-properties">
+<!ENTITY % commonents SYSTEM "smancommon.ent">
+%commonents;
+<!ENTITY % booktitles SYSTEM "booktitles.ent">
+%booktitles;
+<!ENTITY suncopy "Copyright (c) 2009, Sun Microsystems, Inc. All Rights Reserved.">
+]>
+<?Pub UDT _bookmark _target>
+<?Pub Inc>
+<refentry id="nwam-manager-properties-1m">
+<!-- %Z%%M% %I% %E% SMI; -->
+<refmeta>
+  <refentrytitle>nwam-manager-properties</refentrytitle><manvolnum>1m</manvolnum>
+  <refmiscinfo class="date">1 Mar 2009</refmiscinfo>
+  <refmiscinfo class="sectdesc">&man1m;</refmiscinfo>
+  <refmiscinfo class="software">&release;</refmiscinfo>
+  <refmiscinfo class="arch">generic</refmiscinfo>
+  <refmiscinfo class="copyright">&suncopy;</refmiscinfo>
+</refmeta>
+
+<indexterm><primary>nwam-manager-properties</primary></indexterm>
+<indexterm><primary>GNOME UI for Configuring Network Auto-Magic (NWAM)</primary></indexterm>
+
+<refnamediv id="nwam-manager-properties-1m-name">
+    <refname>nwam-manager-properties</refname>
+    <refpurpose>GNOME UI for Configuring Network Auto-Magic (NWAM)</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv id="nwam-manager-properties-1m-synp">
+  <title>&synp-tt;</title>
+  <cmdsynopsis>
+    <command>&cmd;</command>
+    <arg choice="opt"><option>-net-pref-dialog</option></arg>
+    <arg choice="opt"><option>-net-conf-view</option></arg>
+    <arg choice="opt"><option>-vpn-pref-dialog</option></arg>
+    <arg choice="opt"><option>-wireless-chooser</option></arg>
+    <arg choice="opt"><option>-location-dialog</option></arg>
+    <arg choice="opt"><option role="nodash"><replaceable>gnome-std-options</replaceable></option></arg>
+  </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsect1 id="nwam-manager-properties-1m-desc">
+  <title>&desc-tt;</title>
+  <para><command>&cmd;</command> provides a mechanism for users to configure the Network Auto-Magic daemon (NWAM) <citerefentry><refentrytitle>nwamd</refentrytitle><manvolnum>1m</manvolnum></citerefentry> and provides a GUI alternative to the CLI tools <citerefentry><refentrytitle>nwamadm</refentrytitle><manvolnum>1m</manvolnum></citerefentry> and <citerefentry><refentrytitle>nwamcfg</refentrytitle><manvolnum>1m</manvolnum></citerefentry>. </para>
+  <para><command>&cmd;</command> can be launched from the NWAM Manager icon in the notification area, or from the Launch menu.</para>
+
+  <para>In <command>&cmd;</command>, the user may edit the configuration setting of the Network Auto-Magic daemon (NWAM) and apply them to the system such that NWAM may then know how to configure the system to meed the user's needs. You can also use this to monitor the current configuration using the Configuration Status Panel.</para>
+
+  <para>Detailed information is available in the on-line help system (by pressing F1) to get context sensitive help on how to configure specific elements.</para>
+</refsect1>
+
+<refsect1 id="nwam-manager-properties-1m-opts">
+  <title>&opts-tt;</title>
+  <para>The following options are supported:</para>
+  <variablelist termlength="narrow">
+    <varlistentry>
+      <term> <option>-net-pref-dialog</option> </term>
+      <listitem>
+        <para></para>
+        <para>Show 'Network Preferences' Dialog</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term> <option>-net-conf-view</option></arg> </term>
+      <listitem>
+        <para></para>
+        <para>Show 'Network Configuration' Dialog</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term> <option>-vpn-pref-dialog</option> </term>
+      <listitem>
+        <para></para>
+        <para>Show 'VPN Preferences' Dialog</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term> <option>-wireless-chooser</option> </term>
+      <listitem>
+        <para></para>
+        <para>Show 'Wireless Network Chooser' Dialog</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term> <option>-location-dialog</option> </term>
+      <listitem>
+        <para></para>
+        <para>Show 'Location' Dialog</para>
+      </listitem>
+    </varlistentry>
+    <varlistentry>
+      <term><option role="nodash"><replaceable>gnome-std-options</replaceable></option></term>
+      <listitem>
+        <para></para>
+        <para>Standard options available for use with most GNOME applications.  See <citerefentry><refentrytitle>gnome-std-options</refentrytitle><manvolnum> 5</manvolnum></citerefentry> for more information.</para>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+</refsect1>
+
+<refsect1 id="nwam-manager-properties-1m-exde"><title>&exde-tt;</title>
+</refsect1>
+
+<refsect1 id="nwam-manager-properties-1m-file">
+  <title>&file-tt;</title>
+  <para>The following files are used by this application:</para>
+  <variablelist termlength="long">
+    <varlistentry>
+      <term><filename>/usr/bin/&cmd;</filename></term>
+      <listitem>
+        <para>Executable for NWAM Manager Properties</para>
+      </listitem>
+    </varlistentry>
+  </variablelist>
+</refsect1>
+
+<refsect1 id="nwam-manager-properties-1m-attr">
+  <title>&attr-tt;</title>
+  <para>See <olink targetdocent="REFMAN5" localinfo="attributes-5"><citerefentry> <refentrytitle>attributes</refentrytitle><manvolnum>5</manvolnum></citerefentry></olink> for descriptions of the following attributes:</para>
+  <informaltable frame="all">
+    <tgroup cols="2" colsep="1" rowsep="1">
+      <colspec colname="COLSPEC0" colwidth="1*">
+      <colspec colname="COLSPEC1" colwidth="1*">
+        <thead>
+          <row>
+            <entry align="center" valign="middle">ATTRIBUTE TYPE</entry>
+            <entry align="center" valign="middle">ATTRIBUTE VALUE</entry>
+          </row>
+        </thead>
+        <tbody>
+          <row>
+            <entry><para>Availability</para></entry>
+            <entry><para></para></entry>
+          </row>
+          <row>
+            <entry colname="COLSPEC0"><para>Interface stability</para></entry>
+            <entry colname="COLSPEC1"><para>Uncommitted</para></entry>
+          </row>
+        </tbody>
+  </tgroup>
+</informaltable>
+</refsect1>
+<refsect1 id="nwam-manager-properties-1m-also"><title>&also-tt;</title>
+<!--Reference to another man page-->
+<!--Reference to a Help manual-->
+<!--Reference to a book.-->
+<para>Latest version of the <citetitle>GNOME Desktop User Guide</citetitle>
+for your platform.</para>
+<para><citerefentry><refentrytitle>nwam-manager</refentrytitle><manvolnum>1m</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>nwamadm</refentrytitle><manvolnum>1m</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>nwamcfg</refentrytitle><manvolnum>1m</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>nwamd</refentrytitle><manvolnum>1m</manvolnum></citerefentry>,
+<citerefentry><refentrytitle>gnome-std-options</refentrytitle><manvolnum>5</manvolnum></citerefentry></para>
+</refsect1>
+<refsect1 id="nwam-manager-properties-1m-note"><title>&note-tt;</title>
+<para>Written by Darren Kenny, Sun Microsystems Inc., 2009.</para>
+</refsect1>
+</refentry>
+<?Pub *0000004990>

@@ -1,3 +1,10 @@
+2009-10-20  Darren Kenny  <darren.kenny@sun.com>
+
+	* docs/manpages/man1m/nwam-manager-properties.1m,
+	  docs/manpages/man1m/nwam-manager.1m:
+	  Add manpages, which later should be added to
+	  spec-files/manpages/man1m.
+
 2009-10-19  Darren Kenny  <darren.kenny@sun.com>
 
 	* capplet/nwam_env_pref_dialog.c: 
