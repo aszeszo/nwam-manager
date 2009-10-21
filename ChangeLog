@@ -1,3 +1,10 @@
+2009-10-21  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	  Bump to 0.99.94 - for RC4
+	* nwam_core/lib/i386/libnwam.so.1, nwam_core/lib/sparc/libnwam.so.1:
+	  Update to RC4 libs.
+
 2009-10-20  Darren Kenny  <darren.kenny@sun.com>
 
 	* docs/manpages/man1m/nwam-manager-properties.1m,
