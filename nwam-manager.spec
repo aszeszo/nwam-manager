@@ -14,7 +14,7 @@
 Name:         nwam-manager
 License:      CDDL
 Group:        System/GUI/GNOME
-Version:      0.99.92.1
+Version:      0.99.94
 Vendor:       Sun Microsystems, Inc.
 Summary:      Network Auto-Magic User Interface
 #Source:       http://src.opensolaris.org/source/raw/jds/nwam-manager/branches/phase-0.5/tarballs/%{name}-%{version}.tar.gz
