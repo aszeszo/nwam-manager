@@ -1,5 +1,10 @@
 2009-10-21  Darren Kenny  <darren.kenny@sun.com>
 
+	* SUNWnwam-manager.spec, nwam-manager.spec:
+	  Updated for 0.99.94, with some merges from spec-files/trunk version.
+
+2009-10-21  Darren Kenny  <darren.kenny@sun.com>
+
 	* configure.in:
 	  Bump to 0.99.94 - for RC4
 	* nwam_core/lib/i386/libnwam.so.1, nwam_core/lib/sparc/libnwam.so.1:
