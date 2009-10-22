@@ -1049,7 +1049,7 @@ join_wireless(NwamStatusIcon* self, NwamuiWifiNet *wifi, gboolean do_connect )
         set_window_urgency( window, TRUE, TRUE ); /* Reset urgency flag to FALSE */
     }
     
-    nwam_wireless_dialog_show(NWAM_WIRELESS_DIALOG(wifi_dialog));
+    capplet_dialog_run(NWAM_PREF_IFACE(wifi_dialog), NULL);
 
     g_object_unref(ncu);
 }

@@ -1,3 +1,11 @@
+2009-10-22  Darren Kenny  <darren.kenny@sun.com>
+
+	* daemon/nwam-wifi-item.c: 
+	  Set the a11y name instead of description.
+	* daemon/status_icon.c: 
+	  Fix defect#12183 where join_wireless wasn't actually joining
+	  anthing!
+
 2009-10-22  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_rules_dialog.c (nwam_rules_dialog_init):

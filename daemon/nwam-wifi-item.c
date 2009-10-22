@@ -371,7 +371,7 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
         gchar*  a11y_str = nwamui_wifi_net_get_a11y_description( wifi );
 
         if ( a11y_str ) {
-            nwamui_util_set_widget_a11y_info( GTK_WIDGET(self), NULL, a11y_str );
+            nwamui_util_set_widget_a11y_info( GTK_WIDGET(self), a11y_str, NULL );
             g_free( a11y_str );
         }
     }
