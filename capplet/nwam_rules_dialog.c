@@ -185,6 +185,9 @@ nwam_rules_dialog_init (NwamRulesDialog *self)
     gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(prv->rules_vbox_sw), GTK_SHADOW_IN);
     gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(prv->rules_vbox_sw), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
     gtk_scrolled_window_add_with_viewport(GTK_SCROLLED_WINDOW(prv->rules_vbox_sw), GTK_WIDGET(prv->rules_vbox));
+    g_object_set(gtk_widget_get_parent(prv->rules_vbox),
+      "resize-mode", GTK_RESIZE_PARENT,
+      NULL);
     gtk_box_pack_start(GTK_BOX(prv->rules_dialog_vbox), prv->rules_vbox_sw, TRUE, TRUE, 2);
 
     g_signal_connect( prv->rules_vbox, "condition_add", (GCallback)condition_cb, (gpointer)self );
