@@ -3592,7 +3592,7 @@ nwamui_daemon_update_status_from_object_state_event( NwamuiDaemon   *daemon, nwa
         DEBUG_STATUS( object_name, new_status, object_state, object_aux_state );
         nwamui_daemon_set_status(daemon, new_status );
     }
-    daemon->prv->status_flags = status_flags;
+    daemon->prv->status_flags = new_status;
 }
 
 static void

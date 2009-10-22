@@ -1,3 +1,13 @@
+2009-10-22  Darren Kenny  <darren.kenny@sun.com>
+
+	* configure.in:
+	  Bump to 0.99.94.1 - for RC4 respin
+	* common/nwamui_daemon.c:
+	  Missed a commit here which wasn't setting the status after
+	  re-evaluating it.
+	* common/nwamui_ncu.c: 
+	  If manual, set active regardless of current state.
+
 2009-10-21  Darren Kenny  <darren.kenny@sun.com>
 
 	* SUNWnwam-manager.spec, nwam-manager.spec:

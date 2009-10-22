@@ -550,14 +550,9 @@ nwamui_ncu_set_property ( GObject         *object,
                                     get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE );
                 
                 if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL ) {
-                    nwam_state_t        state = NWAM_STATE_OFFLINE;
-                    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-
-                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL, NWAM_NCU_TYPE_LINK );
-
                     /* Activate immediately */
                     gboolean active = g_value_get_boolean( value );
-                    if ( state != NWAM_STATE_ONLINE && active ) {
+                    if ( active ) {
                         nwam_error_t nerr;
                         if ( self->prv->nwam_ncu_phys) {
                             if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
@@ -577,7 +572,7 @@ nwamui_ncu_set_property ( GObject         *object,
                         }
 #endif /* TUNNEL_SUPPORT */
                     }
-                    else if ( state != NWAM_STATE_OFFLINE  ) {
+                    else {
                         nwam_error_t nerr;
                         if ( self->prv->nwam_ncu_ip) {
                             if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
