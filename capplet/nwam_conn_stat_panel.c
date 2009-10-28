@@ -67,6 +67,7 @@ struct _NwamConnStatusPanelPrivate {
     NwamLocationDialog* location_dialog;
 	NwamVPNPrefDialog*  vpn_dialog;
 
+    guint check_pri_group_periodically;
 };
 
 enum {
@@ -107,6 +108,7 @@ static void vpn_clicked_cb( GtkButton *button, gpointer data );
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void connview_info_width_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
+static gboolean check_pri_group_periodically_func(gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnStatusPanel,
                         nwam_conn_status_panel,
@@ -305,6 +307,7 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
             nwam_pref_refresh(NWAM_PREF_IFACE(self), ncp, TRUE);
             g_object_unref(ncp);
         }
+        prv->check_pri_group_periodically = g_timeout_add(30000, check_pri_group_periodically_func, (gpointer)self);
     }
 }
 
@@ -328,6 +331,12 @@ nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog)
 static void
 nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
 {
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(self);
+
+    if (prv->check_pri_group_periodically > 0) {
+        g_source_remove(prv->check_pri_group_periodically);
+    }
+
 	G_OBJECT_CLASS(nwam_conn_status_panel_parent_class)->finalize(G_OBJECT(self));
 }
 
@@ -717,5 +726,19 @@ connview_info_width_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
     g_object_get (gobject, "width", &width, NULL );
 
     g_object_set (G_OBJECT(data), "wrap-width", width, NULL );
+}
+
+static gboolean
+check_pri_group_periodically_func(gpointer data)
+{
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
+    GtkTreeModel *model = gtk_tree_view_get_model(prv->conn_status_treeview);
+
+    if (model) {
+        gtk_widget_hide(GTK_WIDGET(prv->conn_status_treeview));
+        gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(model));
+        gtk_widget_show(GTK_WIDGET(prv->conn_status_treeview));
+    }
+    return TRUE;
 }
 

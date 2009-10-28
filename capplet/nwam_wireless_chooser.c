@@ -39,7 +39,7 @@
 /* Names of Widgets in Glade file */
 #define WIRELESS_CHOOSER_DIALOG        "connect_wireless_network"
 #define WIRELESS_TABLE                 "wireless_list"
-#define WIRELESS_ADD_TO_PREFERRED_CBOX "add_to_preferred_cbox"
+#define WIRELESS_ADD_TO_PREFERRED_CBOX "chooser_add_to_preferred_cbox"
 #define WIRELESS_CONNECT_WIRELESS_OK_BTN "connect_wireless_connect_btn"
 #define WIRELESS_CONNECT_WIRELESS_REFRESH_BTN "connect_wireless_refresh_btn"
 

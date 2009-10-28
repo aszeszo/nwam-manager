@@ -1,3 +1,20 @@
+2009-10-28  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_init),
+	(nwam_conn_status_panel_finalize),
+	(check_pri_group_periodically_func):
+	Fixed 12177 [RC4] moving interfaces between groups can lead to no
+	interfaces being listed
+	* capplet/nwam_wireless_chooser.c:
+	* ui/nwam-manager-wireless.ui:
+	Fixed 12213 [RC4] network always added to favorites when used from
+	nwam-manager-properties -c dialog 
+	* daemon/nwam-enm-item.c (on_nwam_enm_notify):
+	Fixed 12220 [RC4] VPN activated by rules appears in right click nwam
+	icon menu 
+	* daemon/nwam-menuitem.c (nwam_menuitem_notify_cb):
+	Disable menuitem debug.
+
 2009-10-22  Darren Kenny  <darren.kenny@sun.com>
 
 	* daemon/nwam-wifi-item.c: 

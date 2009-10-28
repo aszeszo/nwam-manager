@@ -649,7 +649,7 @@
               <object class="GtkHBox" id="hbox1">
                 <property name="visible">True</property>
                 <child>
-                  <object class="GtkCheckButton" id="add_to_preferred_cbox1">
+                  <object class="GtkCheckButton" id="chooser_add_to_preferred_cbox">
                     <property name="label" translatable="yes">_Add to list of favorite networks on successful connection</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>

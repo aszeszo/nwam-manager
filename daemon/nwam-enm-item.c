@@ -231,7 +231,7 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     }
 
-    if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation-mode") == 0) {
         const gchar    *icon_name = nwamui_util_get_active_mode_icon( object );
         GtkWidget      *image = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
 
