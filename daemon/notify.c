@@ -575,7 +575,7 @@ nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
                 gchar          *essid = NULL;
 
                 if ( (wifi_net = nwamui_ncu_get_wifi_info( ncu )) != NULL) {
-                    essid = nwamui_wifi_net_get_essid( wifi_net );
+                    essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
                     g_object_unref(G_OBJECT(wifi_net));
                 }
 
@@ -648,7 +648,7 @@ nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
                 gchar          *essid = NULL;
 
                 if ( (wifi_net = nwamui_ncu_get_wifi_info( ncu )) != NULL) {
-                    essid = nwamui_wifi_net_get_essid( wifi_net );
+                    essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
                     g_object_unref(G_OBJECT(wifi_net));
                 }
 
@@ -738,7 +738,7 @@ nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu )
                 gchar          *essid = NULL;
 
                 if ( (wifi_net = nwamui_ncu_get_wifi_info( ncu )) != NULL) {
-                    essid = nwamui_wifi_net_get_essid( wifi_net );
+                    essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
                     g_object_unref(G_OBJECT(wifi_net));
                 }
 
@@ -924,7 +924,7 @@ nwam_notification_show_ncp_changed( NwamuiNcp* ncp )
     }
 
     {
-        gchar *name = nwamui_ncp_get_name( ncp );
+        gchar *name = nwamui_object_get_name(NWAMUI_OBJECT(ncp));
         summary_str = g_strdup_printf(_("Switched to Network Profile '%s'"), name);
         g_free(name);
     }
@@ -964,7 +964,7 @@ nwam_notification_show_location_changed( NwamuiEnv* env )
     }
 
     {
-        gchar *name = nwamui_env_get_name( env );
+        gchar *name = nwamui_object_get_name(NWAMUI_OBJECT(env));
         summary_str = g_strdup_printf(_("Switch to Location '%s'"), name);
         g_free(name);
     }

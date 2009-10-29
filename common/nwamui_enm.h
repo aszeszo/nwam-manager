@@ -69,18 +69,6 @@ extern  NwamuiEnm*          nwamui_enm_new (const gchar*    name );
 
 extern  NwamuiEnm*          nwamui_enm_new_with_handle (nwam_enm_handle_t enm);
 
-extern gboolean             nwamui_enm_can_rename (NwamuiEnm *object);
-extern void                 nwamui_enm_set_name ( NwamuiEnm *self, const gchar* name );
-extern gchar*               nwamui_enm_get_name ( NwamuiEnm *self );
-
-
-extern gboolean             nwamui_enm_set_active ( NwamuiEnm *self, gboolean active );
-extern gboolean             nwamui_enm_get_active ( NwamuiEnm *self );
-
-extern gboolean             nwamui_enm_set_enabled ( NwamuiEnm *self, gboolean enabled );
-extern gboolean             nwamui_enm_get_enabled ( NwamuiEnm *self );
-
-
 extern gboolean             nwamui_enm_set_start_command ( NwamuiEnm *self, const gchar* start_command );
 extern gchar*               nwamui_enm_get_start_command ( NwamuiEnm *self );
 
@@ -92,19 +80,8 @@ extern gchar*               nwamui_enm_get_stop_command ( NwamuiEnm *self );
 extern gboolean             nwamui_enm_set_smf_fmri ( NwamuiEnm *self, const gchar* smf_frmi );
 extern gchar*               nwamui_enm_get_smf_fmri ( NwamuiEnm *self );
 
-extern void                 nwamui_enm_set_activation_mode ( NwamuiEnm *self, 
-                                                             nwamui_cond_activation_mode_t activation_mode );
-extern nwamui_cond_activation_mode_t 
-                            nwamui_enm_get_activation_mode ( NwamuiEnm *self );
-
-extern GList*               nwamui_enm_get_selection_conditions( NwamuiEnm* self );
-
-extern void                 nwamui_enm_set_selection_conditions( NwamuiEnm* self, GList* conditions );
-
 extern gboolean             nwamui_enm_has_modifications( NwamuiEnm* self );
 extern gboolean             nwamui_enm_validate( NwamuiEnm* self, gchar **prop_name_ret );
-extern gboolean             nwamui_enm_commit( NwamuiEnm* self );
-extern void                 nwamui_enm_reload( NwamuiEnm* self );
 
 G_END_DECLS
 

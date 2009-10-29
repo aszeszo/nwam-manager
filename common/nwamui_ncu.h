@@ -103,12 +103,6 @@ extern gboolean             nwamui_ncu_is_modifiable (NwamuiNcu *self);
 
 extern gboolean             nwamui_ncu_has_modifications( NwamuiNcu* self );
 extern gboolean             nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret );
-extern gboolean             nwamui_ncu_commit( NwamuiNcu* self );
-extern void                 nwamui_ncu_reload( NwamuiNcu* self );
-extern gboolean             nwamui_ncu_destroy( NwamuiNcu* self );
-
-extern gchar*               nwamui_ncu_get_vanity_name ( NwamuiNcu *self );
-extern void                 nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name );
 
 extern gchar*               nwamui_ncu_get_device_name ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_device_name ( NwamuiNcu *self, const gchar* name );
@@ -123,9 +117,6 @@ extern gchar*               nwamui_ncu_get_display_name ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_ncu_type ( NwamuiNcu *self, nwamui_ncu_type_t ncu_type );
 extern nwamui_ncu_type_t    nwamui_ncu_get_ncu_type ( NwamuiNcu *self );
 
-
-extern void                 nwamui_ncu_set_active ( NwamuiNcu *self, gboolean active );
-extern gboolean             nwamui_ncu_get_active ( NwamuiNcu *self );
 
 
 extern guint                nwamui_ncu_get_speed ( NwamuiNcu *self );
@@ -178,15 +169,6 @@ extern void                 nwamui_ncu_set_wifi_info ( NwamuiNcu *self, NwamuiWi
 
 extern nwamui_wifi_signal_strength_t    
                             nwamui_ncu_get_wifi_signal_strength ( NwamuiNcu *self );
-
-extern void                 nwamui_ncu_set_activation_mode ( NwamuiNcu *self, 
-                                                              nwamui_cond_activation_mode_t activation_mode );
-extern nwamui_cond_activation_mode_t 
-                            nwamui_ncu_get_activation_mode ( NwamuiNcu *self );
-
-extern void                 nwamui_ncu_set_enabled ( NwamuiNcu *self, gboolean enabled );
-extern gboolean             nwamui_ncu_get_enabled ( NwamuiNcu *self );
-
 
 extern void                 nwamui_ncu_set_priority_group ( NwamuiNcu *self, gint priority_group );
 extern gint                 nwamui_ncu_get_priority_group ( NwamuiNcu *self );

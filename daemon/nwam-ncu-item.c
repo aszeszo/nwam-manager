@@ -200,9 +200,9 @@ on_nwam_ncu_toggled (GtkCheckMenuItem *item, gpointer data)
     NwamuiObject* ncu = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(item)));
     gboolean   active = nwamui_object_get_active(ncu);
 
-    g_signal_handlers_block_by_func(item, on_nwam_ncu_toggled, data);
+    g_signal_handlers_block_by_func(G_OBJECT(item), (gpointer)on_nwam_ncu_toggled, data);
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), active);
-    g_signal_handlers_unblock_by_func(item, on_nwam_ncu_toggled, data);
+    g_signal_handlers_unblock_by_func(G_OBJECT(item), (gpointer)on_nwam_ncu_toggled, data);
 
     nwamui_object_set_active(ncu, !active);
 }
@@ -227,17 +227,17 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "active") == 0) {
 
-        g_signal_handlers_block_by_func(self, on_nwam_ncu_toggled, NULL);
+        g_signal_handlers_block_by_func(G_OBJECT(self), (gpointer)on_nwam_ncu_toggled, NULL);
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self),
           nwamui_object_get_active(object));
-        g_signal_handlers_unblock_by_func(self, on_nwam_ncu_toggled, NULL);
+        g_signal_handlers_unblock_by_func(G_OBJECT(self), (gpointer)on_nwam_ncu_toggled, NULL);
 
     }
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "enabled") == 0) {
 
         gtk_widget_set_sensitive(GTK_WIDGET(self),
-          nwamui_ncu_get_enabled(NWAMUI_NCU(object)));
+          nwamui_object_get_enabled(NWAMUI_OBJECT(object)));
 
     }
 

@@ -79,9 +79,7 @@ extern nwam_ncp_handle_t        nwamui_ncp_get_nwam_handle( NwamuiNcp* self );
 
 extern void                     nwamui_ncp_reload( NwamuiNcp* self );
 
-extern gboolean                 nwamui_ncp_commit( NwamuiNcp* self );
-
-extern gchar*                   nwamui_ncp_get_name ( NwamuiNcp *self );
+extern gboolean                 nwamui_ncp_rollback( NwamuiNcp* self );
 
 extern void                     nwamui_ncp_set_active ( NwamuiNcp *self, gboolean active );
 

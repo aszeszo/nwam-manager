@@ -1417,7 +1417,7 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
                 g_object_unref(G_OBJECT(status_icon));
             }
             else if ( cell_num == 1 ) {
-                gchar*  essid = nwamui_wifi_net_get_essid(wifi_info);
+                gchar*  essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_info));
                 
                 g_object_set (G_OBJECT(renderer),
                         "text", essid?essid:"",
@@ -1808,7 +1808,7 @@ wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data )
 
                 gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, 0, &wifi_net, -1 );
                 
-                name = nwamui_wifi_net_get_essid(NWAMUI_WIFI_NET(wifi_net));
+                name = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
                 message = g_strdup_printf(_("Remove favourite with ESSID '%s'?"), name?name:"" );
                 if (nwamui_util_confirm_removal( GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))), _("Remove Wireless Favourite?"), message )) {
                     g_debug("Removing wifi favourite: '%s'", name);

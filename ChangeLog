@@ -1,3 +1,74 @@
+2009-10-29  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_condition_vbox.c (update_cond_from_row),
+	(_cu_enm_combo_cell_cb), (_cu_loc_combo_cell_cb),
+	(_cu_wifi_combo_entry_new), (select_item_with_value),
+	(condition_gobject_combo_changed_cb):
+	* capplet/nwam_conn_conf_ip_panel.c (nwam_conn_wifi_fav_cell_cb),
+	(wireless_tab_remove_button_clicked_cb):
+	* capplet/nwam_conn_stat_panel.c (conn_view_filter_visible_cb),
+	(repair_clicked_cb), (on_nwam_enm_notify_cb):
+	* capplet/nwam_env_pref_dialog.c (show_env_cell_cb), (apply):
+	* capplet/nwam_location_dialog.c (apply),
+	(nwam_location_connection_enabled_toggled_cb),
+	(vanity_name_editing_started), (nwam_treeview_update_widget_cb),
+	(on_button_clicked):
+	* capplet/nwam_net_conf_panel.c (apply),
+	(nwam_net_pref_connection_enabled_toggled_cb),
+	(vanity_name_editing_started), (vanity_name_edited),
+	(foreach_set_group_mode), (update_widgets),
+	(update_ncu_like_group), (ncu_pri_group_get_index),
+	(connection_activation_combo_changed_cb):
+	* capplet/nwam_vpn_pref_dialog.c (apply), (vpn_pref_clicked_cb),
+	(nwam_vpn_state_cell_cb), (nwam_vpn_selection_changed):
+	* capplet/nwam_wireless_dialog.c
+	(add_essid_list_item_to_essid_liststore),
+	(nwam_wireless_dialog_set_wifi_net):
+	* common/libnwamui.c (nwamui_util_get_env_status_icon),
+	(nwamui_util_get_ncu_status_icon):
+	* common/nwamui_daemon.c (nwamui_daemon_get_ncp_by_name),
+	(nwamui_daemon_get_env_by_name), (nwamui_daemon_get_enm_by_name),
+	(nwamui_daemon_get_active_ncp_name), (check_env_enabled),
+	(set_env_disabled), (nwamui_daemon_env_selection_set_manual),
+	(nwamui_daemon_get_active_env_name),
+	(find_compare_wifi_net_with_name),
+	(nwamui_daemon_commit_changed_objects), (nwamd_event_handler),
+	(nwamui_daemon_handle_object_action_event),
+	(nwamui_daemon_update_status_from_object_state_event),
+	(check_enm_online), (default_wifi_key_needed),
+	(default_wifi_scan_result_signal_handler), (nwam_loc_walker_cb),
+	(nwam_enm_walker_cb), (nwam_ncp_walker_cb):
+	* common/nwamui_enm.c (nwamui_enm_class_init),
+	(nwamui_enm_set_property):
+	* common/nwamui_enm.h:
+	* common/nwamui_env.c (nwamui_env_class_init):
+	* common/nwamui_env.h:
+	* common/nwamui_ncp.c (check_ncu_online), (nwamui_ncp_add_ncu),
+	(nwamui_ncp_commit), (nwamui_ncp_rollback):
+	* common/nwamui_ncp.h:
+	* common/nwamui_ncu.c (nwamui_ncu_class_init),
+	(nwamui_ncu_get_property):
+	* common/nwamui_ncu.h:
+	* common/nwamui_object.c (nwamui_object_can_rename),
+	(nwamui_object_get_name), (nwamui_object_get_enabled),
+	(nwamui_object_set_enabled):
+	* common/nwamui_object.h:
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init):
+	* common/nwamui_wifi_net.h:
+	* daemon/notify.c (nwam_notification_show_ncu_connected),
+	(nwam_notification_show_ncu_disconnected),
+	(nwam_notification_show_ncu_wifi_connect_failed),
+	(nwam_notification_show_ncp_changed),
+	(nwam_notification_show_location_changed):
+	* daemon/nwam-ncu-item.c (on_nwam_ncu_toggled),
+	(on_nwam_ncu_notify):
+	* daemon/nwam-wifi-item.c (wifi_net_notify):
+	* daemon/status_icon.c (ncp_find_enabled_wireless_ncu),
+	(join_wireless):
+	* tests/main.c (print_conditions), (process_ncu), (process_ncp),
+	(process_env), (process_enm), (process_known_wlan):
+	Updated all virtual functions, added get/set_enabled virtual functions.
+
 2009-10-28  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_init),

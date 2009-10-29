@@ -540,7 +540,7 @@ conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer dat
 
         switch ( nwamui_object_get_activation_mode( NWAMUI_OBJECT(obj)) ) {
             case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-                visible =  nwamui_ncu_get_enabled( NWAMUI_NCU(obj));
+                visible =  nwamui_object_get_enabled(NWAMUI_OBJECT(obj));
                 break;
             case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
                 if (ncp) {
@@ -617,8 +617,8 @@ repair_clicked_cb( GtkButton *button, gpointer data )
         ncu  = NWAMUI_NCU( connection );
         
         /* TODO : Repair/renew the NCU */
-        nwamui_ncu_set_active (ncu, FALSE);
-        nwamui_ncu_set_active (ncu, TRUE); 
+        nwamui_object_set_active(NWAMUI_OBJECT(ncu), FALSE);
+        nwamui_object_set_active(NWAMUI_OBJECT(ncu), TRUE); 
     }
 }
 
@@ -692,10 +692,10 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
             
         enm = NWAMUI_ENM(enm_elem->data);
             
-        if  ( nwamui_enm_get_active(enm) ) {
+        if  ( nwamui_object_get_active(NWAMUI_OBJECT(enm))) {
             if ( enm_str == NULL ) {
                 gchar *name;
-                name = nwamui_enm_get_name(enm);
+                name = nwamui_object_get_name(NWAMUI_OBJECT(enm));
                 enm_str = g_strdup_printf("%s Active", name);
                 g_free (name);
             }

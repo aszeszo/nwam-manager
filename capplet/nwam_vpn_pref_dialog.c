@@ -615,13 +615,13 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         do {
             gtk_tree_model_get (model, &iter, 0, &obj, -1);
             if (nwamui_enm_validate (NWAMUI_ENM (obj), &prop_name)) {
-                if (!nwamui_enm_commit (NWAMUI_ENM (obj))) {
+                if (!nwamui_object_commit (NWAMUI_OBJECT (obj))) {
                     /* Start highlight relevant ENM */
                     path = gtk_tree_model_get_path (model, &iter);
                     gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
                     gtk_tree_path_free (path);
 
-                    gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
+                    gchar *name = nwamui_object_get_name (NWAMUI_OBJECT(obj));
                     gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
                     nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
                       GTK_MESSAGE_ERROR,
@@ -634,7 +634,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                 }
             }
             else {
-                gchar *name = nwamui_enm_get_name (NWAMUI_ENM (obj));
+                gchar *name = nwamui_object_get_name (NWAMUI_OBJECT (obj));
                 gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
 
                 /* Start highligh relevant ENM */
@@ -913,9 +913,9 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
      * trigger it, we should wait the sigal if there has.
      */
     if (button == self->prv->start_btn) {
-        nwamui_enm_set_active (obj, TRUE);
+        nwamui_object_set_active(NWAMUI_OBJECT(obj), TRUE);
     } else if (button == self->prv->stop_btn) {
-        nwamui_enm_set_active (obj, FALSE);
+        nwamui_object_set_active(NWAMUI_OBJECT(obj), FALSE);
     }
 }
 
@@ -934,7 +934,7 @@ nwam_vpn_state_cell_cb (GtkTreeViewColumn *col,
     if (obj) {
         gboolean is_active;
         gchar *status;
-        is_active = nwamui_enm_get_active (NWAMUI_ENM(obj));
+        is_active = nwamui_object_get_active(NWAMUI_OBJECT(obj));
         if (is_active) {
             status = _("Running");
         } else {
@@ -1059,7 +1059,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
             gboolean    cli_value = FALSE;
             gboolean    is_active;
 
-            is_active = nwamui_enm_get_active (NWAMUI_ENM(obj));
+            is_active = nwamui_object_get_active(NWAMUI_OBJECT(obj));
 
 			txt = nwamui_enm_get_start_command (NWAMUI_ENM(obj));
 			gtk_entry_set_text (prv->start_cmd_entry, txt?txt:"");
@@ -1103,8 +1103,8 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
             title = g_strdup_printf(_("Start/stop '%s' according to rules"), name);
             g_object_set(prv->vpn_conditional_cb, "label", title, NULL);
 
-            if (nwamui_enm_get_activation_mode(NWAMUI_ENM(obj)) == NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY
-                || nwamui_enm_get_activation_mode(NWAMUI_ENM(obj)) == NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL) {
+            if (nwamui_object_get_activation_mode(NWAMUI_OBJECT(obj)) == NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY
+                || nwamui_object_get_activation_mode(NWAMUI_OBJECT(obj)) == NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL) {
                 gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->vpn_conditional_cb), TRUE);
                 gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), TRUE);
                 gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);

@@ -186,18 +186,13 @@ print_conditions( GObject* obj )
 
     if ( NWAMUI_IS_NCU(obj) ) {
         obj_name = "NwamuiNcu";
-        activation_mode = nwamui_ncu_get_activation_mode( NWAMUI_NCU(obj) );
+        activation_mode = nwamui_object_get_activation_mode( NWAMUI_OBJECT(obj) );
         cond_list = NULL; /* Don't have conditions for NCU */
     }
-    else if ( NWAMUI_IS_ENV(obj) ) {
-        obj_name = "NwamuiEnv";
-        activation_mode = nwamui_env_get_activation_mode( NWAMUI_ENV(obj) );
-        cond_list = nwamui_env_get_conditions( NWAMUI_ENV(obj) );
-    }
-    else if ( NWAMUI_IS_ENM(obj) ) {
-        obj_name = "NwamuiEnm";
-        activation_mode = nwamui_enm_get_activation_mode( NWAMUI_ENM(obj) );
-        cond_list = nwamui_enm_get_selection_conditions( NWAMUI_ENM(obj) );
+    else if ( NWAMUI_IS_ENV(obj) || NWAMUI_IS_ENM(obj) ) {
+        obj_name = g_type_name(G_TYPE_FROM_INSTANCE(obj));
+        activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(obj));
+        cond_list = nwamui_object_get_conditions(NWAMUI_OBJECT(obj));
     }
 
     if (obj_name != NULL ) { 
@@ -269,13 +264,13 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
 
     gtk_tree_model_get(model, iter, 0, &ncu, -1);
     
-    vname = nwamui_ncu_get_vanity_name( ncu );
+    vname = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
     dname = nwamui_ncu_get_device_name( ncu );
     display_name = nwamui_ncu_get_display_name( ncu );
     nwam_qualified_name = nwamui_ncu_get_nwam_qualified_name( ncu );
     type = nwamui_ncu_get_ncu_type( ncu );
-    active = nwamui_ncu_get_active( ncu );
-    enabled = nwamui_ncu_get_enabled( ncu );
+    active = nwamui_object_get_active(NWAMUI_OBJECT(ncu));
+    enabled = nwamui_object_get_enabled(NWAMUI_OBJECT(ncu));
     statestr = nwamui_ncu_get_connection_state_string( ncu );
     state_detailstr = nwamui_ncu_get_connection_state_detail_string( ncu, TRUE );
     cfg_str = nwamui_ncu_get_configuration_summary_string( ncu );
@@ -361,7 +356,7 @@ process_ncp( gpointer data, gpointer user_data )
     NwamuiNcp       *ncp = NWAMUI_NCP(data);
     
     if ( ncp != NULL ) {
-        gchar      *name = nwamui_ncp_get_name( ncp );
+        gchar      *name = nwamui_object_get_name(NWAMUI_OBJECT(ncp));
         gboolean    active = nwamui_ncp_is_active( ncp );
 
         printf("%-*s-------------------------------------------------------------\n", indent, "");
@@ -438,10 +433,10 @@ process_env( gpointer data, gpointer user_data )
     NwamuiEnv  *env = NWAMUI_ENV( data );
     gchar*      name;
     nwamui_cond_activation_mode_t
-                activation_mode  =  nwamui_env_get_activation_mode ( env );
-    GList*      conditions  =  nwamui_env_get_conditions ( env );
-    gboolean    active  =  nwamui_env_get_active ( env );
-    gboolean    enabled  =  nwamui_env_get_enabled ( env );
+                activation_mode  =  nwamui_object_get_activation_mode(NWAMUI_OBJECT(env));
+    GList*      conditions  =  nwamui_object_get_conditions(NWAMUI_OBJECT(env));
+    gboolean    active  =  nwamui_object_get_active(NWAMUI_OBJECT(env));
+    gboolean    enabled  =  nwamui_object_get_enabled(NWAMUI_OBJECT(env));
     GList*      nameservices  =  nwamui_env_get_nameservices ( env );
     gchar*      nameservices_config_file  =  nwamui_env_get_nameservices_config_file ( env );
     gchar*      default_domainname  =  nwamui_env_get_default_domainname ( env );
@@ -472,7 +467,7 @@ process_env( gpointer data, gpointer user_data )
     GList*      svcs_disable  =  nwamui_env_get_svcs_disable ( env );
 #endif /* ENABLE_NETSERVICES */
     
-    name = nwamui_env_get_name( env );
+    name = nwamui_object_get_name(NWAMUI_OBJECT(env));
     printf("%-*s*************************************************************\n", indent, "");
     indent += 4;
     printf("%-*sEnv name = %s\n", indent, "", name?name:"NULL" );
@@ -549,11 +544,11 @@ process_enm( gpointer data, gpointer user_data )
 
     indent += 4;
 
-    name = nwamui_enm_get_name ( NWAMUI_ENM(enm) );
+    name = nwamui_object_get_name(NWAMUI_OBJECT(enm));
     printf("%-*sNwamuiEnm : name = %s\n", indent, "", name?name:"NULL" );
 
 
-    active = nwamui_enm_get_active ( NWAMUI_ENM(enm) );
+    active = nwamui_object_get_active(NWAMUI_OBJECT(enm));
     printf("%-*sNwamuiEnm : active = %s\n", indent, "", active?"True":"False" );
 
 
@@ -568,7 +563,7 @@ process_enm( gpointer data, gpointer user_data )
     smf_frmi = nwamui_enm_get_smf_fmri ( NWAMUI_ENM(enm) );
     printf("%-*sNwamuiEnm : smf_frmi = %s\n", indent, "", smf_frmi?smf_frmi:"NULL" );
 
-    enabled = nwamui_enm_get_enabled ( NWAMUI_ENM(enm) );
+    enabled = nwamui_object_get_enabled ( NWAMUI_OBJECT(enm) );
     printf("%-*sNwamuiEnm : enabled = %s\n", indent, "", enabled?"True":"False" );
 
     print_conditions( G_OBJECT(enm) );
@@ -626,7 +621,7 @@ process_known_wlan( gpointer data, gpointer user_data )
     const gchar     *signal_str;
     
     if ( wifi != NULL ) {
-        gchar * essid = nwamui_wifi_net_get_essid( wifi );
+        gchar * essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
         GList * fav_bssid_list = nwamui_wifi_net_get_fav_bssid_list( wifi );
         GList * bssid_list = nwamui_wifi_net_get_bssid_list( wifi );
 

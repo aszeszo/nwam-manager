@@ -188,11 +188,9 @@ extern gboolean
 nwamui_object_can_rename (NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
+    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->can_rename, FALSE);
 
-    if (NWAMUI_OBJECT_GET_CLASS (object)->can_rename) {
-        return NWAMUI_OBJECT_GET_CLASS (object)->can_rename(object);
-    }
-    return FALSE;
+    return NWAMUI_OBJECT_GET_CLASS (object)->can_rename(object);
 }
 
 /** 
@@ -222,11 +220,12 @@ extern gchar *
 nwamui_object_get_name (NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), NULL);
+/*     g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_name, NULL); */
 
-    if (NWAMUI_OBJECT_GET_CLASS (object)->get_name) {
+    if (NWAMUI_OBJECT_GET_CLASS (object)->get_name)
         return NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);
-    }
-    return NULL;
+    else
+        return NULL;
 }
 
 /** 
@@ -278,7 +277,7 @@ nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
     NWAMUI_OBJECT_GET_CLASS (object)->set_activation_mode(object, activation_mode);
 }
 
-extern gint
+extern gboolean
 nwamui_object_get_active(NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
@@ -294,6 +293,24 @@ nwamui_object_set_active(NwamuiObject *object, gboolean active)
     g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_active);
 
     NWAMUI_OBJECT_GET_CLASS (object)->set_active(object, active);
+}
+
+extern gboolean
+nwamui_object_get_enabled(NwamuiObject *object)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
+    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_enabled, FALSE);
+
+    return NWAMUI_OBJECT_GET_CLASS (object)->get_enabled(object);
+}
+
+extern void
+nwamui_object_set_enabled(NwamuiObject *object, gboolean enabled)
+{
+    g_return_if_fail (NWAMUI_IS_OBJECT (object));
+    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_enabled);
+
+    NWAMUI_OBJECT_GET_CLASS (object)->set_enabled(object, enabled);
 }
 
 extern gboolean

@@ -159,6 +159,27 @@ static gboolean     set_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const
 
 static nwam_state_t nwamui_env_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type  );
 
+static gboolean             nwamui_env_can_rename (NwamuiEnv *object);
+static void                 nwamui_env_set_name ( NwamuiEnv *self, const gchar* name );
+static gchar*               nwamui_env_get_name ( NwamuiEnv *self );
+
+static void                 nwamui_env_set_activation_mode ( NwamuiEnv *self, 
+                                                             nwamui_cond_activation_mode_t activation_mode );
+static nwamui_cond_activation_mode_t 
+                            nwamui_env_get_activation_mode ( NwamuiEnv *self );
+
+static void                 nwamui_env_set_conditions ( NwamuiEnv *self, const GList* conditions );
+static GList*               nwamui_env_get_conditions ( NwamuiEnv *self );
+
+static gboolean             nwamui_env_get_active (NwamuiEnv *self);
+static void                 nwamui_env_set_enabled ( NwamuiEnv *self, gboolean enabled );
+static void                 nwamui_env_set_active (NwamuiEnv *self, gboolean active );
+static gboolean             nwamui_env_get_enabled ( NwamuiEnv *self );
+
+static gboolean             nwamui_env_commit( NwamuiEnv* self );
+static gboolean             nwamui_env_destroy( NwamuiEnv* self );
+static void                 nwamui_env_reload( NwamuiEnv* self );
+
 #if 0
 /* These are not needed right now since we don't support property templates,
  * but would like to keep around for when we do.
@@ -205,7 +226,9 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     nwamuiobject_class->get_activation_mode = (nwamui_object_get_activation_mode_func_t)nwamui_env_get_activation_mode;
     nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_env_set_activation_mode;
     nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_env_get_active;
-    nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_env_set_enabled;
+    nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_env_set_active;
+    nwamuiobject_class->get_enabled = (nwamui_object_get_active_func_t)nwamui_env_get_enabled;
+    nwamuiobject_class->set_enabled = (nwamui_object_set_active_func_t)nwamui_env_set_enabled;
     nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_env_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_env_commit;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_env_reload;
@@ -1982,7 +2005,7 @@ populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t prv->nwam_loc )
  * @returns: TRUE if the name.can be changed.
  *
  **/
-extern gboolean
+static gboolean
 nwamui_env_can_rename (NwamuiEnv *object)
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
@@ -2004,7 +2027,7 @@ nwamui_env_can_rename (NwamuiEnv *object)
  * @name: The name to set.
  * 
  **/ 
-extern void
+static void
 nwamui_env_set_name (   NwamuiEnv *self,
                         const gchar*  name )
 {
@@ -2024,7 +2047,7 @@ nwamui_env_set_name (   NwamuiEnv *self,
  * @returns: the name.
  *
  **/
-extern gchar*
+static gchar*
 nwamui_env_get_name (NwamuiEnv *self)
 {
     gchar*  name = NULL; 
@@ -2044,7 +2067,7 @@ nwamui_env_get_name (NwamuiEnv *self)
  * @enabled: Value to set enabled to.
  * 
  **/ 
-extern void
+static void
 nwamui_env_set_enabled (   NwamuiEnv *self,
                               gboolean        enabled )
 {
@@ -2061,7 +2084,7 @@ nwamui_env_set_enabled (   NwamuiEnv *self,
  * @returns: the enabled.
  *
  **/
-extern gboolean
+static gboolean
 nwamui_env_get_enabled (NwamuiEnv *self)
 {
     gboolean  enabled = FALSE; 
@@ -2081,7 +2104,7 @@ nwamui_env_get_enabled (NwamuiEnv *self)
  * @returns: whether it is the active location.
  *
  **/
-extern gboolean
+static gboolean
 nwamui_env_get_active (NwamuiEnv *self)
 {
     gboolean  active = FALSE; 
@@ -2101,7 +2124,7 @@ nwamui_env_get_active (NwamuiEnv *self)
  * @active: Immediately activates/deactivates the env.
  * 
  **/ 
-extern void
+static void
 nwamui_env_set_active (   NwamuiEnv *self,
                           gboolean        active )
 {
@@ -3556,7 +3579,7 @@ nwamui_env_get_proxy_socks_port (NwamuiEnv *self)
  * @activation_mode: Value to set activation_mode to.
  * 
  **/ 
-extern void
+static void
 nwamui_env_set_activation_mode (   NwamuiEnv *self,
                                   nwamui_cond_activation_mode_t        activation_mode )
 {
@@ -3574,7 +3597,7 @@ nwamui_env_set_activation_mode (   NwamuiEnv *self,
  * @returns: the activation_mode.
  *
  **/
-extern nwamui_cond_activation_mode_t
+static nwamui_cond_activation_mode_t
 nwamui_env_get_activation_mode (NwamuiEnv *self)
 {
     gint  activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
@@ -3594,7 +3617,7 @@ nwamui_env_get_activation_mode (NwamuiEnv *self)
  * @conditions: Value to set conditions to.
  * 
  **/ 
-extern void
+static void
 nwamui_env_set_conditions (   NwamuiEnv *self,
                              const GList* conditions )
 {
@@ -3613,7 +3636,7 @@ nwamui_env_set_conditions (   NwamuiEnv *self,
  * @returns: the conditions.
  *
  **/
-extern GList*
+static GList*
 nwamui_env_get_conditions (NwamuiEnv *self)
 {
     gpointer  conditions = NULL; 
@@ -3783,7 +3806,7 @@ nwamui_env_activate (NwamuiEnv *self)
 /**
  * nwamui_env_reload:   re-load stored configuration
  **/
-extern void
+static void
 nwamui_env_reload( NwamuiEnv* self )
 {
     g_return_if_fail( NWAMUI_IS_ENV(self) );
@@ -3844,7 +3867,7 @@ nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret )
  * nwamui_env_destroy:   destroy in-memory configuration, to persistant storage
  * @returns: TRUE if succeeded, FALSE if failed
  **/
-extern gboolean
+static gboolean
 nwamui_env_destroy( NwamuiEnv* self )
 {
     nwam_error_t    nerr;
@@ -3867,7 +3890,7 @@ nwamui_env_destroy( NwamuiEnv* self )
  * nwamui_env_commit:   commit in-memory configuration, to persistant storage
  * @returns: TRUE if succeeded, FALSE if failed
  **/
-extern gboolean
+static gboolean
 nwamui_env_commit( NwamuiEnv* self )
 {
     nwam_error_t    nerr;

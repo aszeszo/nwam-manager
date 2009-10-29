@@ -135,6 +135,14 @@ static void change_essid_cbentry_model(GtkComboBoxEntry *cbentry);
 
 static void populate_essid_combo(NwamWirelessDialog *self, GtkComboBoxEntry *cbentry);
 
+static void                         nwamui_wifi_net_reload( NwamuiWifiNet* self );
+
+static void                         nwamui_wifi_net_set_essid ( NwamuiWifiNet *self, const gchar *essid );
+
+static gboolean                     nwamui_wifi_net_can_rename (NwamuiWifiNet *object);
+
+static gchar*                       nwamui_wifi_net_get_essid ( NwamuiWifiNet *self );
+
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
@@ -431,7 +439,7 @@ add_essid_list_item_to_essid_liststore(GObject* daemon, GObject* wifi, gpointer 
     
     wifi_elem = NWAMUI_WIFI_NET(wifi);
     
-    essid = nwamui_wifi_net_get_essid(wifi_elem);
+    essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_elem));
     sec = nwamui_wifi_net_get_security(wifi_elem);
     
     icon = nwamui_util_get_network_security_icon( sec, TRUE );
@@ -791,7 +799,7 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
         }
 
         g_object_set(G_OBJECT (self),
-                "essid", nwamui_wifi_net_get_essid(wifi_net),
+                "essid", nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)),
                 "bssid_list", bssid_list,
                 "security", security,
                 NULL );

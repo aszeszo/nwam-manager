@@ -101,25 +101,6 @@ extern gboolean             nwamui_env_update_with_handle (NwamuiEnv* self, nwam
 
 extern NwamuiEnv*           nwamui_env_clone( NwamuiEnv* self );
 
-extern gboolean             nwamui_env_can_rename (NwamuiEnv *object);
-extern void                 nwamui_env_set_name ( NwamuiEnv *self, const gchar* name );
-extern gchar*               nwamui_env_get_name ( NwamuiEnv *self );
-
-extern void                 nwamui_env_set_activation_mode ( NwamuiEnv *self, 
-                                                             nwamui_cond_activation_mode_t activation_mode );
-extern nwamui_cond_activation_mode_t 
-                            nwamui_env_get_activation_mode ( NwamuiEnv *self );
-
-extern void                 nwamui_env_set_conditions ( NwamuiEnv *self, const GList* conditions );
-extern GList*               nwamui_env_get_conditions ( NwamuiEnv *self );
-
-extern gboolean             nwamui_env_get_active (NwamuiEnv *self);
-extern void                 nwamui_env_set_active (NwamuiEnv *self, gboolean active );
-
-extern void                 nwamui_env_set_enabled ( NwamuiEnv *self, gboolean enabled );
-extern gboolean             nwamui_env_get_enabled ( NwamuiEnv *self );
-
-
 extern void                 nwamui_env_set_nameservices ( NwamuiEnv *self, const GList*   nameservices );
 extern GList*               nwamui_env_get_nameservices ( NwamuiEnv *self );
 
@@ -282,10 +263,7 @@ extern void                 nwamui_env_svc_foreach (NwamuiEnv *self, GtkTreeMode
 extern gboolean             nwamui_env_activate (NwamuiEnv *self);
 
 extern gboolean             nwamui_env_has_modifications( NwamuiEnv* self );
-extern gboolean             nwamui_env_commit( NwamuiEnv* self );
-extern gboolean             nwamui_env_destroy( NwamuiEnv* self );
 extern gboolean             nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret );
-extern void                 nwamui_env_reload( NwamuiEnv* self );
 
 const gchar*                nwam_nameservices_enum_to_string(nwam_nameservices_t ns);
 

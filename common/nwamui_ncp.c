@@ -114,6 +114,10 @@ static void nwamui_ncp_finalize (     NwamuiNcp *self);
 
 static nwam_state_t nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type  );
 
+static gboolean                 nwamui_ncp_commit( NwamuiNcp* self );
+
+static gchar*                   nwamui_ncp_get_name ( NwamuiNcp *self );
+
 /* Default signal handlers */
 static void default_activate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer user_data);
 static void default_deactivate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer user_data);
@@ -643,7 +647,7 @@ nwamui_ncp_set_name (   NwamuiNcp *self,
  * @returns: null-terminated C String with name of the the NCP.
  *
  **/
-extern gchar*
+static gchar*
 nwamui_ncp_get_name ( NwamuiNcp *self )
 {
     gchar*  name = NULL;
@@ -794,7 +798,7 @@ check_ncu_online( gpointer obj, gpointer user_data )
         return;
     }
 
-    activation_mode = nwamui_ncu_get_activation_mode( ncu );
+    activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(ncu));
     state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL, 0);
 
     if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_UP ) {
@@ -802,14 +806,14 @@ check_ncu_online( gpointer obj, gpointer user_data )
     }
 
     {
-        gchar *vanity_name = nwamui_ncu_get_vanity_name(ncu);
+        gchar *vanity_name = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
         nwamui_debug("NCU %s: online = %s", vanity_name, online?"True":"False" );
         g_free(vanity_name);
     }
 
     switch (activation_mode) { 
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL: {
-                if ( nwamui_ncu_get_enabled( ncu ) ) {
+            if ( nwamui_object_get_enabled(NWAMUI_OBJECT(ncu)) ) {
                     /* Only count if expected to be enabled. */
                     info_p->num_manual_enabled++;
                     if ( online ) {
@@ -1216,7 +1220,7 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
     if (found_ncu) {
         self->prv->ncus_removed = g_list_remove(self->prv->ncus_removed, found_ncu );
         nwamui_debug("Found already removed NCU : %s, re-using...", device_name );
-        nwamui_ncu_reload( found_ncu );
+        nwamui_object_reload(NWAMUI_OBJECT(found_ncu));
         new_ncu = found_ncu;
     }
 
@@ -1255,7 +1259,7 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
 
 }
 
-extern gboolean
+static gboolean
 nwamui_ncp_commit( NwamuiNcp* self )
 {
     gboolean    rval = FALSE;
@@ -1264,14 +1268,14 @@ nwamui_ncp_commit( NwamuiNcp* self )
 
     if ( self->prv->ncus_removed != NULL ) {
         /* Make sure they are removed from the system */
-        g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_ncu_destroy, NULL );
+        g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_object_destroy, NULL );
         g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_util_obj_unref, NULL );
         g_list_free( self->prv->ncus_removed );
         self->prv->ncus_removed = NULL;
     }
 
     if ( self->prv->ncus_added != NULL ) {
-        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_ncu_commit, NULL );
+        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_object_commit, NULL );
         g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_util_obj_unref, NULL );
         g_list_free( self->prv->ncus_added );
         self->prv->ncus_added = NULL;
@@ -1294,7 +1298,7 @@ nwamui_ncp_rollback( NwamuiNcp* self )
      */
     if ( self->prv->ncus_added != NULL ) {
         /* Make sure they are removed from the system */
-        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_ncu_destroy, NULL );
+        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_object_destroy, NULL );
         g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_util_obj_unref, NULL );
         g_list_free( self->prv->ncus_added );
         self->prv->ncus_added = NULL;

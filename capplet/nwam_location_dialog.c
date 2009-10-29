@@ -582,12 +582,12 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         } else {
             env = nwamui_daemon_get_active_env(prv->daemon);
         }
-        nwamui_env_set_enabled(env, TRUE );
+        nwamui_object_set_enabled(NWAMUI_OBJECT(env), TRUE);
         g_object_unref(env);
     } else {
         NwamuiEnv *env;
         env = nwamui_daemon_get_active_env(prv->daemon);
-        nwamui_env_set_enabled(env, FALSE );
+        nwamui_object_set_enabled(NWAMUI_OBJECT(env), FALSE);
         g_object_unref(env);
     }
 
@@ -602,13 +602,13 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                 break;
             }
             if (nwamui_env_validate (NWAMUI_ENV (obj), &prop_name)) {
-                if (!nwamui_env_commit (NWAMUI_ENV (obj))) {
+                if (!nwamui_object_commit (NWAMUI_OBJECT (obj))) {
                     /* Start highlight relevant ENV */
                     path = gtk_tree_model_get_path (model, &iter);
                     gtk_tree_view_set_cursor(prv->location_tree, path, NULL, TRUE);
                     gtk_tree_path_free (path);
 
-                    gchar *name = nwamui_env_get_name (NWAMUI_ENV (obj));
+                    gchar *name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
                     gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
                     nwamui_util_show_message (GTK_WINDOW(prv->location_dialog),
                       GTK_MESSAGE_ERROR,
@@ -622,7 +622,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                 }
             }
             else {
-                gchar *name = nwamui_env_get_name (NWAMUI_ENV (obj));
+                gchar *name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
                 gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
 
                 /* Start highligh relevant ENV */
@@ -747,7 +747,7 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
 
         /* First change prior selection, before changing new one */
         if ( prv->toggled_env != NULL ) {
-            nwamui_env_set_enabled(NWAMUI_ENV(prv->toggled_env), FALSE );
+            nwamui_object_set_enabled(NWAMUI_OBJECT(prv->toggled_env), FALSE);
         }
         else {
             NwamuiEnv *active_env;
@@ -755,7 +755,7 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
             active_env = nwamui_daemon_get_active_env(prv->daemon);
 
             /* Use active env */
-            nwamui_env_set_enabled(active_env, FALSE );
+            nwamui_object_set_enabled(NWAMUI_OBJECT(active_env), FALSE);
 
             g_object_unref(active_env);
         }
@@ -763,7 +763,7 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
         g_object_set(self, "toggled_env", env, NULL);
 
         if (env) {
-            nwamui_env_set_enabled(env, gtk_cell_renderer_toggle_get_active(cell_renderer));
+            nwamui_object_set_enabled(NWAMUI_OBJECT(env), gtk_cell_renderer_toggle_get_active(cell_renderer));
 
 /*             gchar *name = nwamui_env_get_name(env); */
 
@@ -773,9 +773,9 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
 /*               NULL); */
 
 /*             if (gtk_cell_renderer_toggle_get_active(cell_renderer)) { */
-/*                 nwamui_env_set_enabled(env, FALSE); */
+/*                 nwamui_object_set_active(NWAMUI_OBJECT(env), FALSE); */
 /*             } else { */
-/*                 nwamui_env_set_enabled(env, TRUE); */
+/*                 nwamui_object_set_active(NWAMUI_OBJECT(env), TRUE); */
 /*             } */
 
 /*             g_free(name); */
@@ -820,7 +820,7 @@ vanity_name_editing_started (GtkCellRenderer *cell,
 
             env  = NWAMUI_ENV( connection );
 
-            vname = nwamui_env_get_name(env);
+            vname = nwamui_object_get_name(NWAMUI_OBJECT(env));
             
             gtk_entry_set_text( entry, vname?vname:"" );
 
@@ -941,7 +941,7 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         g_signal_handlers_block_by_func(G_OBJECT(prv->location_activation_combo), 
                                         (gpointer)location_activation_combo_changed_cb, (gpointer)self);
 
-        cond = nwamui_env_get_activation_mode(env);
+        cond = nwamui_object_get_activation_mode(NWAMUI_OBJECT(env));
 
         gtk_widget_set_sensitive(GTK_WIDGET(prv->location_activation_combo), 
                                             cond != NWAMUI_COND_ACTIVATION_MODE_SYSTEM);
@@ -1050,7 +1050,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             capplet_dialog_run(NWAM_PREF_IFACE(env_pref_dialog), GTK_WIDGET(button));
 
         } else if (button == (gpointer)prv->location_remove_btn) {
-            gchar*  name = nwamui_env_get_name( env );
+            gchar*  name = nwamui_object_get_name(NWAMUI_OBJECT(env));
             gchar*  message = g_strdup_printf(_("Remove location '%s'?"), name?name:"" );
             if (nwamui_util_confirm_removal( GTK_WINDOW(prv->location_dialog), _("Remove Location?"), message )) {
                 g_debug("Removing location: '%s'", name);
@@ -1064,7 +1064,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         
             g_free(message);
         } else if (button == (gpointer)prv->location_dup_btn) {
-            gchar *sname = nwamui_env_get_name( env );
+            gchar *sname = nwamui_object_get_name(NWAMUI_OBJECT(env));
             gchar *prefix;
             gchar *name;
             NwamuiObject *object;
@@ -1113,7 +1113,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
             g_free(current_name);
 #endif
-            if ( nwamui_env_can_rename( env ) ) {
+            if ( nwamui_object_can_rename(NWAMUI_OBJECT(env)) ) {
                 GtkCellRendererText*        txt;
                 GtkTreeViewColumn*  info_col = gtk_tree_view_get_column( GTK_TREE_VIEW(prv->location_tree), LOCVIEW_NAME );
                 GList*              renderers = gtk_tree_view_column_get_cell_renderers( info_col );

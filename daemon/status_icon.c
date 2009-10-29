@@ -859,7 +859,7 @@ ncp_find_enabled_wireless_ncu(gconstpointer a, gconstpointer b)
 
     if (ncu &&
       (nwamui_ncu_get_ncu_type( ncu ) == NWAMUI_NCU_TYPE_WIRELESS) &&
-      nwamui_ncu_get_enabled(ncu)) {
+      nwamui_object_get_enabled(NWAMUI_OBJECT(ncu))) {
         return 0;
     }
     return 1;
@@ -1076,7 +1076,7 @@ join_wireless(NwamuiWifiNet *wifi)
         gchar *argv = NULL;
         gchar *name = NULL;
         /* add valid wireless */
-        name = nwamui_wifi_net_get_essid (wifi);
+        name = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
         argv = g_strconcat ("--add-wireless-dialog=", name, NULL);
         nwam_exec(argv);
         g_free (name);

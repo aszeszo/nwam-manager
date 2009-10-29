@@ -507,7 +507,7 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
                                             prio_group_mode;
                     
                     state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL, 0);
-                    activation_mode = nwamui_ncu_get_activation_mode( ncu );
+                    activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(ncu));
                     prio_group_mode = nwamui_ncu_get_priority_group_mode( ncu );
 
                     if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED ) {
@@ -703,7 +703,7 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu, gint size )
     if ( ncu != NULL ) {
         ncu_type = nwamui_ncu_get_ncu_type(ncu);
         strength = nwamui_ncu_get_wifi_signal_strength(ncu);
-        active = nwamui_ncu_get_active(ncu);
+        active = nwamui_object_get_active(NWAMUI_OBJECT(ncu));
     }
     else {
         /* Fallback to a Wired connection */

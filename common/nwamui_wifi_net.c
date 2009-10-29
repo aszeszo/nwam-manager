@@ -103,6 +103,11 @@ static guint64*     get_nwam_known_wlan_uint64_array_prop(
 static gboolean     set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name, 
                                                            const guint64 *value_array, guint len );
 
+static gchar*       nwamui_wifi_net_get_essid (NwamuiWifiNet *self );
+static void         nwamui_wifi_net_set_essid ( NwamuiWifiNet  *self, const gchar    *essid );
+static gboolean     nwamui_wifi_net_can_rename (NwamuiWifiNet *object);
+static void         nwamui_wifi_net_reload( NwamuiWifiNet* self );
+
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -147,7 +152,6 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_wifi_net_get_essid;
     nwamuiobject_class->can_rename = (nwamui_object_can_rename_func_t)nwamui_wifi_net_can_rename;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_wifi_net_set_essid;
-
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_wifi_net_reload;
 
     /* Create some properties */
@@ -819,7 +823,7 @@ nwamui_wifi_net_get_property (GObject         *object,
 /**
  * nwamui_wifi_net_reload:   re-load stored configuration
  **/
-extern void
+static void
 nwamui_wifi_net_reload( NwamuiWifiNet* self )
 {
     g_return_if_fail( NWAMUI_IS_WIFI_NET(self) );
@@ -1368,7 +1372,7 @@ nwamui_wifi_net_get_ncu ( NwamuiWifiNet *self )
  * @returns: TRUE if the name.can be changed.
  *
  **/
-extern gboolean
+static gboolean
 nwamui_wifi_net_can_rename (NwamuiWifiNet *object)
 {
     NwamuiWifiNet *self = NWAMUI_WIFI_NET(object);
@@ -1385,7 +1389,7 @@ nwamui_wifi_net_can_rename (NwamuiWifiNet *object)
 }
 
 /* Get/Set ESSID */
-void                    
+static void                    
 nwamui_wifi_net_set_essid ( NwamuiWifiNet  *self,
                             const gchar    *essid )
 {
@@ -1399,7 +1403,7 @@ nwamui_wifi_net_set_essid ( NwamuiWifiNet  *self,
     }
 }
                                 
-gchar*                  
+static gchar*                  
 nwamui_wifi_net_get_essid (NwamuiWifiNet *self )
 {
     gchar*  ret_str = NULL;

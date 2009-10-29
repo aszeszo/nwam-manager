@@ -166,6 +166,22 @@ static gboolean     interface_has_addresses(const char *ifname, sa_family_t fami
 
 static gchar*       get_interface_address_str( NwamuiNcu *ncu, sa_family_t family);
 
+static gboolean             nwamui_ncu_commit( NwamuiNcu* self );
+static void                 nwamui_ncu_reload( NwamuiNcu* self );
+static gboolean             nwamui_ncu_destroy( NwamuiNcu* self );
+
+static gchar*               nwamui_ncu_get_vanity_name ( NwamuiNcu *self );
+static void                 nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name );
+
+static void                 nwamui_ncu_set_active ( NwamuiNcu *self, gboolean active );
+static gboolean             nwamui_ncu_get_active ( NwamuiNcu *self );
+static void                 nwamui_ncu_set_enabled ( NwamuiNcu *self, gboolean enabled );
+static gboolean             nwamui_ncu_get_enabled ( NwamuiNcu *self );
+static void                 nwamui_ncu_set_activation_mode ( NwamuiNcu *self, 
+                                                              nwamui_cond_activation_mode_t activation_mode );
+static nwamui_cond_activation_mode_t 
+                            nwamui_ncu_get_activation_mode ( NwamuiNcu *self );
+
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -200,6 +216,8 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_ncu_set_activation_mode;
     nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_ncu_get_active;
     nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_ncu_set_active;
+    nwamuiobject_class->get_enabled = (nwamui_object_get_enabled_func_t)nwamui_ncu_get_enabled;
+    nwamuiobject_class->set_enabled = (nwamui_object_set_enabled_func_t)nwamui_ncu_set_enabled;
     nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_ncu_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_ncu_commit;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_ncu_reload;
@@ -778,7 +796,7 @@ nwamui_ncu_get_property (GObject         *object,
                     gint64              ncu_prio =  nwamui_ncu_get_priority_group(self);
                     nwamui_cond_activation_mode_t activation_mode;
 
-                    activation_mode = nwamui_ncu_get_activation_mode (self);
+                    activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(self));
                 
                     state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL, NWAM_NCU_TYPE_LINK );
                     if ( state == NWAM_STATE_ONLINE ) {
@@ -1796,7 +1814,7 @@ nwamui_ncu_is_modifiable (NwamuiNcu *self)
 /**
  * nwamui_ncu_reload:   re-load stored configuration
  **/
-extern void
+static void
 nwamui_ncu_reload( NwamuiNcu* self )
 {
     g_return_if_fail( NWAMUI_IS_NCU(self) );
@@ -1918,7 +1936,7 @@ nwamui_ncu_commit( NwamuiNcu* self )
             return( FALSE );
         }
         /* Make suer that the enabled flag is acted upon on commit */
-        nwamui_ncu_set_active ( self, self->prv->enabled );
+        nwamui_object_set_active(NWAMUI_OBJECT(self), self->prv->enabled);
 	/* Set enabled flag. */
 	currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
 	if ( self->prv->enabled != currently_enabled ) {
@@ -1991,7 +2009,7 @@ nwamui_ncu_commit( NwamuiNcu* self )
  * nwamui_ncu_destroy:   commit in-memory configuration, to persistant storage
  * @returns: TRUE if succeeded, FALSE if failed
  **/
-extern gboolean
+static gboolean
 nwamui_ncu_destroy( NwamuiNcu* self )
 {
     nwam_error_t    nerr;
@@ -2029,7 +2047,7 @@ nwamui_ncu_destroy( NwamuiNcu* self )
  * @returns: null-terminated C String with the vanity name of the the NCU.
  *
  **/
-extern gchar*
+static gchar*
 nwamui_ncu_get_vanity_name ( NwamuiNcu *self )
 {
     gchar*  name = NULL;
@@ -2048,7 +2066,7 @@ nwamui_ncu_get_vanity_name ( NwamuiNcu *self )
  * @name: null-terminated C String with the vanity name of the the NCU.
  *
  **/
-extern void
+static void
 nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name )
 {
     g_return_if_fail (NWAMUI_IS_NCU(self)); 
@@ -2267,7 +2285,7 @@ nwamui_ncu_get_active ( NwamuiNcu *self )
  * @active: Valiue to set active to.
  * 
  **/ 
-extern void
+static void
 nwamui_ncu_set_active (   NwamuiNcu *self,
                               gboolean        active )
 {
@@ -2890,7 +2908,7 @@ nwamui_ncu_get_wifi_signal_strength ( NwamuiNcu *self )
  * @activation_mode: Value to set activation_mode to.
  * 
  **/ 
-extern void
+static void
 nwamui_ncu_set_activation_mode (   NwamuiNcu                      *self,
                                     nwamui_cond_activation_mode_t        activation_mode )
 {
@@ -2908,7 +2926,7 @@ nwamui_ncu_set_activation_mode (   NwamuiNcu                      *self,
  * @returns: the activation_mode.
  *
  **/
-extern nwamui_cond_activation_mode_t
+static nwamui_cond_activation_mode_t
 nwamui_ncu_get_activation_mode (NwamuiNcu *self)
 {
     gint  activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
@@ -2928,7 +2946,7 @@ nwamui_ncu_get_activation_mode (NwamuiNcu *self)
  * @enabled: Value to set enabled to.
  * 
  **/ 
-extern void
+static void
 nwamui_ncu_set_enabled (   NwamuiNcu      *self,
                            gboolean        enabled )
 {
@@ -2945,7 +2963,7 @@ nwamui_ncu_set_enabled (   NwamuiNcu      *self,
  * @returns: the enabled.
  *
  **/
-extern gboolean
+static gboolean
 nwamui_ncu_get_enabled (NwamuiNcu *self)
 {
     gboolean  enabled = FALSE; 
@@ -3049,7 +3067,7 @@ nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     *self,
         return;
     }
 
-    essid = nwamui_wifi_net_get_essid( wifi_net );
+    essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
 
     if ( essid != NULL ) {
         if ( (value = g_hash_table_lookup( self->prv->wifi_hash_table, essid )) == NULL ) {
@@ -3139,7 +3157,7 @@ nwamui_ncu_wifi_hash_remove_wifi_net( NwamuiNcu     *self,
         return(rval);
     }
 
-    essid = nwamui_wifi_net_get_essid( wifi_net );
+    essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
 
     if ( essid != NULL ) {
         rval = nwamui_ncu_wifi_hash_remove_by_essid( self, essid );
@@ -4211,7 +4229,7 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
                      * one in wifi_info, so use it. 
                      * This can happen if we're in need of a key.
                      */
-                    essid = nwamui_wifi_net_get_essid( self->prv->wifi_info );
+                    essid = nwamui_object_get_name(NWAMUI_OBJECT(self->prv->wifi_info));
                 }
                 status_string = g_strdup_printf( _(status_string_fmt[state]), essid?essid:"" );
 

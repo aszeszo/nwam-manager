@@ -350,9 +350,9 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "status") == 0) {
         gboolean active = is_wifi_active(wifi);
 
-        g_signal_handlers_block_by_func(self, on_nwam_wifi_toggled, NULL);
+        g_signal_handlers_block_by_func(G_OBJECT(self), (gpointer)on_nwam_wifi_toggled, NULL);
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), active);
-        g_signal_handlers_unblock_by_func(self, on_nwam_wifi_toggled, NULL);
+        g_signal_handlers_unblock_by_func(G_OBJECT(self), (gpointer)on_nwam_wifi_toggled, NULL);
     }
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "security") == 0) {
@@ -378,7 +378,7 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
 
 #if 0
     {
-        gchar *name = nwamui_wifi_net_get_essid(wifi);
+        gchar *name = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
         g_debug("%s update wifi 0x%p %s '%s'", __func__, wifi, gtk_menu_item_get_label(GTK_MENU_ITEM(self)), nwamui_wifi_net_get_status(wifi) == NWAMUI_WIFI_STATUS_CONNECTED ? "Active" : "Deactive");
         g_free(name);
     }

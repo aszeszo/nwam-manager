@@ -63,8 +63,10 @@ typedef    GList*               (*nwamui_object_get_conditions_func_t)(NwamuiObj
 typedef    void                 (*nwamui_object_set_conditions_func_t)(NwamuiObject *object, const GList* conditions);
 typedef    gint                 (*nwamui_object_get_activation_mode_func_t)(NwamuiObject *object);
 typedef    void                 (*nwamui_object_set_activation_mode_func_t)(NwamuiObject *object, gint activation_mode);
-typedef    gint                 (*nwamui_object_get_active_func_t)(NwamuiObject *object);
+typedef    gboolean             (*nwamui_object_get_active_func_t)(NwamuiObject *object);
 typedef    void                 (*nwamui_object_set_active_func_t)(NwamuiObject *object, gboolean active);
+typedef    gboolean             (*nwamui_object_get_enabled_func_t)(NwamuiObject *object);
+typedef    void                 (*nwamui_object_set_enabled_func_t)(NwamuiObject *object, gboolean enabled);
 typedef    nwam_state_t         (*nwamui_object_get_nwam_state_func_t)(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string, nwam_ncu_type_t ncu_type );
 typedef    gboolean             (*nwamui_object_commit_func_t)(NwamuiObject *object);
 typedef    void                 (*nwamui_object_reload_func_t)(NwamuiObject *object);
@@ -83,6 +85,8 @@ struct _NwamuiObjectClass
     nwamui_object_set_activation_mode_func_t    set_activation_mode;
     nwamui_object_get_active_func_t             get_active;
     nwamui_object_set_active_func_t             set_active;
+    nwamui_object_get_enabled_func_t            get_enabled;
+    nwamui_object_set_enabled_func_t            set_enabled;
     nwamui_object_get_nwam_state_func_t         get_nwam_state;
     nwamui_object_commit_func_t                 commit;
     nwamui_object_reload_func_t                 reload;
@@ -98,8 +102,10 @@ extern void                 nwamui_object_set_conditions ( NwamuiObject *object,
 extern GList*               nwamui_object_get_conditions ( NwamuiObject *object );
 extern gint                 nwamui_object_get_activation_mode(NwamuiObject *object);
 extern void                 nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode);
-extern gint                 nwamui_object_get_active(NwamuiObject *object);
+extern gboolean             nwamui_object_get_active(NwamuiObject *object);
 extern void                 nwamui_object_set_active(NwamuiObject *object, gboolean active);
+extern gboolean             nwamui_object_get_enabled(NwamuiObject *object);
+extern void                 nwamui_object_set_enabled(NwamuiObject *object, gboolean enabled);
 extern nwam_state_t         nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string, nwam_ncu_type_t ncu_type );
 extern void                 nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state, nwam_ncu_type_t ncu_type);
 extern gboolean             nwamui_object_commit(NwamuiObject *object);

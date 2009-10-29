@@ -781,7 +781,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     }
 
     if ( user_ncp ) {
-        nwamui_ncp_commit( user_ncp );
+        nwamui_object_commit(NWAMUI_OBJECT(user_ncp));
         g_object_unref(G_OBJECT(user_ncp));
     }
 
@@ -1088,13 +1088,13 @@ nwam_net_pref_connection_enabled_toggled_cb(    GtkCellRendererToggle *cell_rend
             g_object_get (cell_renderer, "inconsistent", &inconsistent, NULL);
             if (gtk_cell_renderer_toggle_get_active(cell_renderer)) {
                 if (inconsistent) {
-                    nwamui_ncu_set_active(ncu, FALSE);
+                    nwamui_object_set_active(NWAMUI_OBJECT(ncu), FALSE);
                     //nwamui_ncu_set_selection_rules_enabled (ncu, FALSE);
                 } else {
                     //nwamui_ncu_set_selection_rules_enabled (ncu, TRUE);
                 }
             } else {
-                nwamui_ncu_set_active(ncu, TRUE);
+                nwamui_object_set_active(NWAMUI_OBJECT(ncu), TRUE);
             }
         }
         g_object_unref(G_OBJECT(connection));
@@ -1138,7 +1138,7 @@ vanity_name_editing_started (GtkCellRenderer *cell,
             if (NWAMUI_IS_NCU( connection )) {
                 ncu  = NWAMUI_NCU( connection );
 
-                vname = nwamui_ncu_get_vanity_name(ncu);
+                vname = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
             
                 gtk_entry_set_text( entry, vname?vname:"" );
 
@@ -1175,7 +1175,7 @@ vanity_name_edited ( GtkCellRendererText *cell,
             if (NWAMUI_IS_NCU( connection )) {
                 ncu  = NWAMUI_NCU( connection );
 
-                nwamui_ncu_set_vanity_name(ncu, new_text);
+                nwamui_object_set_name(NWAMUI_OBJECT(ncu), new_text);
             }
             g_object_unref(G_OBJECT(connection));
 
@@ -1703,13 +1703,13 @@ foreach_set_group_mode(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter
                 switch (group_id) {
                 case ALWAYS_ON_GROUP_ID:
                 case ALWAYS_OFF_GROUP_ID:
-                    nwamui_ncu_set_activation_mode(NWAMUI_NCU(obj), NWAMUI_COND_ACTIVATION_MODE_MANUAL);
+                    nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_MANUAL);
 /*                     nwamui_object_set_active(obj, group_id == ALWAYS_ON_GROUP_ID); */
-                    nwamui_ncu_set_enabled(NWAMUI_NCU(obj), group_id == ALWAYS_ON_GROUP_ID);
+                    nwamui_object_set_enabled(NWAMUI_OBJECT(obj), group_id == ALWAYS_ON_GROUP_ID);
                     break;
                 default:
                     nwamui_ncu_set_priority_group(NWAMUI_NCU(obj), group_id);
-                    nwamui_ncu_set_activation_mode(NWAMUI_NCU(obj), NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED);
+                    nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED);
                     nwamui_ncu_set_priority_group_mode(NWAMUI_NCU(obj), mode);
                     break;
                 }
@@ -2211,8 +2211,8 @@ update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection)
 #if 0
     gboolean                 ncu_is_active = FALSE;;
     gboolean                 ncu_is_manual = FALSE;;
-    ncu_is_active = nwamui_ncu_get_active( NWAMUI_NCU(object) );
-    ncu_is_manual = ( nwamui_ncu_get_activation_mode( NWAMUI_NCU(object) ) 
+    ncu_is_active = nwamui_object_get_active( object );
+    ncu_is_manual = ( nwamui_object_get_activation_mode( object ) 
       == NWAMUI_COND_ACTIVATION_MODE_MANUAL );
 #endif
     gtk_widget_set_sensitive(GTK_WIDGET(prv->connection_enable_btn), FALSE);
@@ -2532,7 +2532,7 @@ update_ncu_like_group( NwamuiObject* group_obj, NwamuiNcu* ncu )
         nwamui_ncu_set_priority_group_mode( ncu, ncu_group_mode ); 
     }
     if ( act_mode != ncu_act_mode ) {
-        nwamui_ncu_set_activation_mode( ncu, ncu_act_mode );
+        nwamui_object_set_activation_mode(NWAMUI_OBJECT(ncu), ncu_act_mode);
     }
 }
 
@@ -2545,10 +2545,10 @@ compare_int( gpointer a, gpointer b )
 static gint
 ncu_pri_group_get_index(NwamuiNcu *ncu)
 {
-    nwamui_cond_activation_mode_t act_mode = nwamui_ncu_get_activation_mode(ncu);
+    nwamui_cond_activation_mode_t act_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(ncu));
     switch (act_mode) {
     case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-        return nwamui_ncu_get_enabled(ncu) ? ALWAYS_ON_GROUP_ID : ALWAYS_OFF_GROUP_ID;
+        return nwamui_object_get_enabled(NWAMUI_OBJECT(ncu)) ? ALWAYS_ON_GROUP_ID : ALWAYS_OFF_GROUP_ID;
     case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
         return nwamui_ncu_get_priority_group(ncu) + ALWAYS_ON_GROUP_ID + 1;
     default:
@@ -2800,7 +2800,7 @@ connection_activation_combo_changed_cb(GtkComboBox* combo, gpointer user_data)
             set_group_object_group_mode(gtk_tree_view_get_model(prv->net_conf_treeview),
               rows->data,
               combo_contents_mode_map[row_data]);
-            g_list_foreach (rows, gtk_tree_path_free, NULL);
+            g_list_foreach (rows, (GFunc)gtk_tree_path_free, NULL);
             g_list_free (rows);
         }
             break;

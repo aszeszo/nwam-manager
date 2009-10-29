@@ -1255,7 +1255,7 @@ show_env_cell_cb (GtkCellLayout *cell_layout,
 	g_assert (G_IS_OBJECT (row_data));
 	
 	if (NWAMUI_IS_ENV (row_data)) {
-		text = nwamui_env_get_name(NWAMUI_ENV(row_data));
+		text = nwamui_object_get_name(NWAMUI_OBJECT(row_data));
 		g_object_set (G_OBJECT(renderer), "text", text, NULL);
 		g_free (text);
 		return;
@@ -2224,8 +2224,8 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 #endif /* ENABLE_NETSERVICES */
 
     if (nwamui_env_validate (NWAMUI_ENV (prv->selected_env), &prop_name)) {
-        if (!nwamui_env_commit (NWAMUI_ENV (prv->selected_env))) {
-            gchar *name = nwamui_env_get_name (NWAMUI_ENV (prv->selected_env));
+        if (!nwamui_object_commit (NWAMUI_OBJECT (prv->selected_env))) {
+            gchar *name = nwamui_object_get_name (NWAMUI_OBJECT (prv->selected_env));
             gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
             nwamui_util_show_message (GTK_WINDOW(prv->env_pref_dialog),
               GTK_MESSAGE_ERROR,
@@ -2237,7 +2237,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
     }
     else {
-        gchar *name = nwamui_env_get_name (NWAMUI_ENV (prv->selected_env));
+        gchar *name = nwamui_object_get_name (NWAMUI_OBJECT (prv->selected_env));
         gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
 
         nwamui_util_show_message (GTK_WINDOW(prv->env_pref_dialog),
