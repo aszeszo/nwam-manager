@@ -779,31 +779,31 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 	NwamuiEnm *obj;
 	GtkTreeIter iter;
 
-    if (button == (gpointer)self->prv->add_btn) {
+    if (button == (gpointer)prv->add_btn) {
         gchar *name;
         NwamuiObject *object;
 
-        name = capplet_get_increasable_name(gtk_tree_view_get_model(self->prv->view), _("Unnamed VPN"), G_OBJECT(self));
+        name = capplet_get_increasable_name(gtk_tree_view_get_model(prv->view), _("Unnamed VPN"), G_OBJECT(self));
 
         g_assert(name);
 
         object = NWAMUI_OBJECT(nwamui_enm_new(name) );
-        CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(self->prv->view))), object);
+        CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->view))), object);
         g_free(name);
         g_object_unref(object);
 
-        gtk_tree_selection_select_path(gtk_tree_view_get_selection(self->prv->view),
-          nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(self->prv->view)));
+        gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->view),
+          nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->view)));
         return;
     }
 
-    if (button == self->prv->remove_btn) {
+    if (button == prv->remove_btn) {
 		GtkTreeSelection *selection;
 		GList *list, *idx;
 		GtkTreeModel *model;
 
-		model = gtk_tree_view_get_model (self->prv->view);
-		selection = gtk_tree_view_get_selection (self->prv->view);
+		model = gtk_tree_view_get_model (prv->view);
+		selection = gtk_tree_view_get_selection (prv->view);
 		list = gtk_tree_selection_get_selected_rows (selection, NULL);
 
 		for (idx=list; idx; idx = g_list_next(idx)) {
@@ -825,38 +825,55 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 		return;
 	}
 
-    if (button == self->prv->rename_btn) {
+    if (button == prv->rename_btn) {
 		GtkTreeSelection *selection;
 		GtkTreeModel *model;
 
-		model = gtk_tree_view_get_model (self->prv->view);
-		selection = gtk_tree_view_get_selection (self->prv->view);
+		model = gtk_tree_view_get_model (prv->view);
+		selection = gtk_tree_view_get_selection (prv->view);
         if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
-            GtkCellRendererText*        txt;
-            GtkTreeViewColumn*          info_col = gtk_tree_view_get_column( GTK_TREE_VIEW(prv->view), APP_NAME );
-            GList*                      renderers = gtk_tree_view_column_get_cell_renderers( info_col );
+            NwamuiObject *object;
 
-            /* Should be only one renderer */
-            g_assert( g_list_next( renderers ) == NULL );
+            gtk_tree_model_get (model, &iter, 0, &obj, -1);
 
-            if ((txt = GTK_CELL_RENDERER_TEXT(g_list_first( renderers )->data)) != NULL) {
-                GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
-                g_object_set (txt, "editable", TRUE, NULL);
+            if (nwamui_object_can_rename(NWAMUI_OBJECT(obj))) {
+                GtkCellRendererText*        txt;
+                GtkTreeViewColumn*          info_col = gtk_tree_view_get_column( GTK_TREE_VIEW(prv->view), APP_NAME );
+                GList*                      renderers = gtk_tree_view_column_get_cell_renderers( info_col );
 
-                gtk_tree_view_set_cursor (GTK_TREE_VIEW(prv->view), tpath, info_col, TRUE);
+                /* Should be only one renderer */
+                g_assert( g_list_next( renderers ) == NULL );
 
-                gtk_tree_path_free(tpath);
+                if ((txt = GTK_CELL_RENDERER_TEXT(g_list_first( renderers )->data)) != NULL) {
+                    GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+                    g_object_set (txt, "editable", TRUE, NULL);
+
+                    gtk_tree_view_set_cursor (GTK_TREE_VIEW(prv->view), tpath, info_col, TRUE);
+
+                    gtk_tree_path_free(tpath);
+                }
+            } else {
+                gchar *name    = nwamui_object_get_name(NWAMUI_OBJECT(obj));
+                gchar *summary = g_strdup_printf(_("Cannot rename '%s'"), name?name:"" );
+                nwamui_util_show_message(prv->vpn_pref_dialog,
+                  GTK_MESSAGE_ERROR,
+                  summary,
+                  _("VPN applications can only be renamed immediately after\nthey have been created."),
+                  FALSE);
+                g_free(name);
+                g_free(summary);
             }
+            g_object_unref(obj);
         }
 		return;
 	}
 
-	selection = gtk_tree_view_get_selection (self->prv->view);
-	model = gtk_tree_view_get_model (self->prv->view);
+	selection = gtk_tree_view_get_selection (prv->view);
+	model = gtk_tree_view_get_model (prv->view);
 	gtk_tree_selection_get_selected(selection, NULL, &iter);
 	gtk_tree_model_get (model, &iter, 0, &obj, -1);
 
-	if (button == self->prv->browse_start_cmd_btn || button == self->prv->browse_stop_cmd_btn) {
+	if (button == prv->browse_start_cmd_btn || button == prv->browse_stop_cmd_btn) {
 		GtkWidget *toplevel;
 		GtkWidget *filedlg = NULL;
 		GtkEntry *active_entry;
@@ -866,11 +883,11 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 		if (!GTK_WIDGET_TOPLEVEL(toplevel)) {
 			toplevel = NULL;
 		}
-		if (button == self->prv->browse_start_cmd_btn) {
-			active_entry = self->prv->start_cmd_entry;
+		if (button == prv->browse_start_cmd_btn) {
+			active_entry = prv->start_cmd_entry;
 			title = _("Select start command");
-		} else if (button == self->prv->browse_stop_cmd_btn) {
-			active_entry = self->prv->stop_cmd_entry;
+		} else if (button == prv->browse_stop_cmd_btn) {
+			active_entry = prv->stop_cmd_entry;
 			title = _("Select stop command");
 		}
 		filedlg = gtk_file_chooser_dialog_new(title,
@@ -897,8 +914,8 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
     g_signal_handlers_block_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
       (gpointer)nwam_vpn_selection_changed, (gpointer)self);
 
-    if (!nwam_update_obj (self, self->prv->cur_obj) ||
-      !nwamui_object_commit(NWAMUI_OBJECT(self->prv->cur_obj))) {
+    if (!nwam_update_obj (self, prv->cur_obj) ||
+      !nwamui_object_commit(NWAMUI_OBJECT(prv->cur_obj))) {
 
         g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
           (gpointer)nwam_vpn_selection_changed, (gpointer)self);
@@ -912,9 +929,9 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
     /* We should not set sensitive of start/stop buttons after
      * trigger it, we should wait the sigal if there has.
      */
-    if (button == self->prv->start_btn) {
+    if (button == prv->start_btn) {
         nwamui_object_set_active(NWAMUI_OBJECT(obj), TRUE);
-    } else if (button == self->prv->stop_btn) {
+    } else if (button == prv->stop_btn) {
         nwamui_object_set_active(NWAMUI_OBJECT(obj), FALSE);
     }
 }
@@ -1122,8 +1139,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
             }
 
             gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), !is_active );
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->rename_btn),
-                                      nwamui_object_can_rename(NWAMUI_OBJECT(obj)));
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->rename_btn), TRUE );
 
             g_free(name);
             g_free(title);
