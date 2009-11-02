@@ -418,18 +418,14 @@ get_pixbuf_with_size( const gchar* stock_id, gint size )
                                        (size > 0)?(size):(32), 0, &error );
 
     if ( pixbuf == NULL ) {
-        g_debug("get_pixbuf_with_size: pixbuf = NULL stockid = %s", stock_id);
+        g_debug("get_pixbuf_with_size failed: pixbuf = NULL stockid = %s", stock_id);
     }
-/*     else { */
-/*         g_debug("get_pixbuf_with_size: pixbuf loaded"); */
-/*     } */
     return( pixbuf );
 }
 
 static GdkPixbuf*   
 get_pixbuf( const gchar* stock_id, gboolean small )
 {
-/*     g_debug("get_pixbuf: Seeking %s stock_id = %s", small?"small":"normal", stock_id ); */
 
     if ( small_icon_size == -1 ) {
         gint dummy;
@@ -451,7 +447,7 @@ get_pixbuf( const gchar* stock_id, gboolean small )
  * If force_size equals 0, uses the size of status icon.
  */
 extern GdkPixbuf*
-nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t daemon_status, gint force_size )
+nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_daemon_status_t daemon_status, gint force_size )
 {
     gint                      activate_wired_num      = 0;
     gint                      activate_wireless_num   = 0;
@@ -459,13 +455,9 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
     gint                      signal_strength;
     nwamui_ncu_type_t         ncu_type;
     nwamui_connection_state_t connection_state        = NWAMUI_STATE_UNKNOWN;
-    nwamui_env_status_t       env_status              = NWAMUI_ENV_STATUS_ERROR;
-
-/*     g_debug("%s",  __func__); */
 
     if (force_size == 0) {
-        if (status_icon != NULL && 
-          gtk_status_icon_is_embedded(status_icon)) {
+        if (status_icon != NULL && gtk_status_icon_is_embedded(status_icon)) {
             force_size = gtk_status_icon_get_size( status_icon );
         }
         else {
@@ -476,7 +468,7 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
         NwamuiDaemon *daemon = nwamui_daemon_get_instance();
         NwamuiNcp  *ncp = nwamui_daemon_get_active_ncp(daemon);
         GList      *ncu_list = NULL;
-        NwamuiNcu  *ncu;
+        NwamuiNcu  *ncu = NULL;
         gint64      ncp_prio = 0;
         gint64      ncu_prio;
         gboolean    found_excl_ncu = FALSE;
@@ -485,7 +477,7 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_env_status_t
 
         if ( ncp ) {
             ncu_list = nwamui_ncp_get_ncu_list(ncp);
-            ncp_prio = nwamui_ncp_get_current_prio_group(ncp);
+            ncp_prio = nwamui_ncp_get_prio_group(ncp);
             g_object_unref(ncp);
         }
 
@@ -623,17 +615,17 @@ nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type, gboolean
 extern GdkPixbuf*
 nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
   nwamui_wifi_signal_strength_t strength,
-  nwamui_env_status_t env_status,
+  nwamui_daemon_status_t daemon_status,
   gint size)
 {
-    static GdkPixbuf*   network_status_icons[NWAMUI_ENV_STATUS_LAST][NWAMUI_NCU_TYPE_LAST][NWAMUI_WIFI_STRENGTH_LAST][4] = {NULL};
+    static GdkPixbuf*   network_status_icons[NWAMUI_DAEMON_STATUS_LAST][NWAMUI_NCU_TYPE_LAST][NWAMUI_WIFI_STRENGTH_LAST][4] = {NULL};
 
     GdkPixbuf* env_status_icon = NULL;
     gchar *stock_id = NULL;
     gint icon_size;
 
     g_return_val_if_fail(ncu_type < NWAMUI_NCU_TYPE_LAST, NULL);
-    g_return_val_if_fail(env_status < NWAMUI_ENV_STATUS_LAST, NULL);
+    g_return_val_if_fail(daemon_status < NWAMUI_DAEMON_STATUS_LAST, NULL);
     g_return_val_if_fail(strength < NWAMUI_WIFI_STRENGTH_LAST, NULL);
 
     if (size <= 16) {size = 16; icon_size = 0;}
@@ -642,9 +634,9 @@ nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
     else {size = 48; icon_size = 3;}
 
 /*     g_debug("%s: returning icon for status = %d; ncu_type = %d, signal = %d; size = %d", __func__,  */
-/*             env_status, ncu_type, strength, size ); */
+/*             daemon_status, ncu_type, strength, size ); */
 
-    if (network_status_icons[env_status][ncu_type][strength][icon_size] == NULL ) {
+    if (network_status_icons[daemon_status][ncu_type][strength][icon_size] == NULL ) {
         GdkPixbuf* inf_icon = NULL;
         GdkPixbuf* temp_icon = NULL;
 
@@ -665,14 +657,14 @@ nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
         inf_icon = gdk_pixbuf_copy(temp_icon);
         g_object_unref(temp_icon);
 
-        switch( env_status ) {
-        case NWAMUI_ENV_STATUS_CONNECTED:
+        switch( daemon_status ) {
+        case NWAMUI_DAEMON_STATUS_ALL_OK:
             stock_id = NWAM_ICON_CONNECTED;
             break;
-        case NWAMUI_ENV_STATUS_WARNING:
+        case NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION:
             stock_id = NWAM_ICON_WARNING;
             break;
-        case NWAMUI_ENV_STATUS_ERROR:
+        case NWAMUI_DAEMON_STATUS_ERROR:
             stock_id = NWAM_ICON_ERROR;
             break;
         default:
@@ -683,20 +675,20 @@ nwamui_util_get_network_status_icon(nwamui_ncu_type_t ncu_type,
         PIXBUF_COMPOSITE_NO_SCALE(env_status_icon, inf_icon);
         g_object_unref(env_status_icon);
 
-        network_status_icons[env_status][ncu_type][strength][icon_size] = inf_icon;
+        network_status_icons[daemon_status][ncu_type][strength][icon_size] = inf_icon;
     }
 
-    return(GDK_PIXBUF(g_object_ref(network_status_icons[env_status][ncu_type][strength][icon_size])));
+    return(GDK_PIXBUF(g_object_ref(network_status_icons[daemon_status][ncu_type][strength][icon_size])));
 }
 
 extern GdkPixbuf*
 nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu, gint size )
 {
-    nwamui_ncu_type_t               ncu_type;
-    nwamui_wifi_signal_strength_t   strength = NWAMUI_WIFI_STRENGTH_NONE;
-    nwamui_connection_state_t       connection_state = NWAMUI_STATE_UNKNOWN;
-    gboolean                        active = FALSE;
-    nwamui_env_status_t             env_state = NWAMUI_ENV_STATUS_ERROR;
+    nwamui_ncu_type_t             ncu_type;
+    nwamui_wifi_signal_strength_t strength         = NWAMUI_WIFI_STRENGTH_NONE;
+    nwamui_connection_state_t     connection_state = NWAMUI_STATE_UNKNOWN;
+    gboolean                      active           = FALSE;
+    nwamui_daemon_status_t        daemon_state     = NWAMUI_DAEMON_STATUS_ERROR;
 
 /*     g_debug("%s",  __func__); */
 
@@ -715,21 +707,21 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu, gint size )
         connection_state = nwamui_ncu_get_connection_state( ncu);
         if ( connection_state == NWAMUI_STATE_CONNECTED 
            || connection_state == NWAMUI_STATE_CONNECTED_ESSID ) {
-            env_state = NWAMUI_ENV_STATUS_CONNECTED;
+            daemon_state = NWAMUI_DAEMON_STATUS_ALL_OK;
         }
         else if ( connection_state == NWAMUI_STATE_CONNECTING 
                 || connection_state == NWAMUI_STATE_WAITING_FOR_ADDRESS
                 || connection_state == NWAMUI_STATE_DHCP_TIMED_OUT
                 || connection_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR
                 || connection_state == NWAMUI_STATE_CONNECTING_ESSID ) {
-            env_state = NWAMUI_ENV_STATUS_WARNING;
+            daemon_state = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
         }
         else {
-            env_state = NWAMUI_ENV_STATUS_ERROR;
+            daemon_state = NWAMUI_DAEMON_STATUS_ERROR;
         }
     }
 
-    return nwamui_util_get_network_status_icon(ncu_type, strength, env_state, size);
+    return nwamui_util_get_network_status_icon(ncu_type, strength, daemon_state, size);
 }
        
 extern const gchar*

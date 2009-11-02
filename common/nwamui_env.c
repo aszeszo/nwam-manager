@@ -4045,9 +4045,7 @@ nwamui_env_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, c
 static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    NwamuiEnv* self = NWAMUI_ENV(data);
-
-    nwamui_debug("NwamuiEnv: %s : %s changed", self->prv->name, arg1->name );
+/*     NwamuiEnv* self = NWAMUI_ENV(data); */
 }
 
 static void 

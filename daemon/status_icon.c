@@ -231,7 +231,7 @@ ncu_is_higher_priority_than_active_ncu( NwamuiNcu* ncu, gboolean *is_active_ptr 
     gboolean       retval = FALSE;
 
     if ( active_ncp ) {
-        active_prio = nwamui_ncp_get_current_prio_group(active_ncp);
+        active_prio = nwamui_ncp_get_prio_group(active_ncp);
         g_object_unref(active_ncp);
     }
 
@@ -462,21 +462,27 @@ ncu_notify_nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
     gboolean        active_ncu = FALSE;
 
 	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
-       /* Wired only, wireless handled elsewhere. */
+        /* Wired only, wireless handled elsewhere. */
         if ( active_ncu &&
-            nwamui_ncu_get_ncu_type( ncu ) == NWAMUI_NCU_TYPE_WIRED ) {
-                nwam_state_t                link_state;
-                nwam_aux_state_t            link_aux_state;
+          nwamui_ncu_get_ncu_type( ncu ) == NWAMUI_NCU_TYPE_WIRED ) {
+            static nwam_state_t     cached_link_state = NWAM_STATE_UNINITIALIZED;
+            static nwam_aux_state_t cached_link_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+            nwam_state_t            link_state;
+            nwam_aux_state_t        link_aux_state;
 
-                /* Use cached state */
-                link_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(ncu),
-                                                          &link_aux_state, NULL, NWAM_NCU_TYPE_LINK );
+            /* Use cached state */
+            link_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(ncu),
+              &link_aux_state, NULL, NWAM_NCU_TYPE_LINK );
 
+            if (cached_link_state != link_state && cached_link_aux_state != link_aux_state) {
                 if ( link_state == NWAM_STATE_ONLINE_TO_OFFLINE  &&
-                     link_aux_state == NWAM_AUX_STATE_DOWN ) {
+                  link_aux_state == NWAM_AUX_STATE_DOWN ) {
                     /* Only show if in transition to down for sure */
                     nwam_notification_show_ncu_disconnected(ncu, NULL, NULL);
                 }
+            }
+            cached_link_state = link_state;
+            cached_link_aux_state = link_aux_state;
         }
     }
 }
@@ -1111,7 +1117,7 @@ animation_panel_icon_timeout (gpointer user_data)
 
 	gtk_status_icon_set_from_pixbuf(GTK_STATUS_ICON(self),
       nwamui_util_get_env_status_icon(GTK_STATUS_ICON(self),
-		(nwamui_env_status_t)(++prv->icon_stock_index)%NWAMUI_ENV_STATUS_LAST,
+		(nwamui_daemon_status_t)(++prv->icon_stock_index)%NWAMUI_DAEMON_STATUS_LAST,
         0));
 	return TRUE;
 }

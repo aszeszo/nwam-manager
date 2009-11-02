@@ -792,7 +792,7 @@ nwamui_ncu_get_property (GObject         *object,
                 if ( self->prv->nwam_ncu_phys ) {
                     nwam_state_t        state = NWAM_STATE_OFFLINE;
                     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-                    gint64              active_prio = nwamui_ncp_get_current_prio_group( self->prv->ncp );
+                    gint64              active_prio = nwamui_ncp_get_prio_group( self->prv->ncp );
                     gint64              ncu_prio =  nwamui_ncu_get_priority_group(self);
                     nwamui_cond_activation_mode_t activation_mode;
 

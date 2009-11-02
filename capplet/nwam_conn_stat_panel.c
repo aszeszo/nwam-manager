@@ -62,7 +62,7 @@ struct _NwamConnStatusPanelPrivate {
 
 	/* Other Data */
     NwamCappletDialog*  pref_dialog;
-    NwamuiNcp*          ncp;
+    NwamuiNcp*          active_ncp;
     NwamuiDaemon*       daemon;
     NwamLocationDialog* location_dialog;
 	NwamVPNPrefDialog*  vpn_dialog;
@@ -107,6 +107,7 @@ static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void ncp_notify_pri_group_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void connview_info_width_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 static gboolean check_pri_group_periodically_func(gpointer data);
 
@@ -307,7 +308,8 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
             nwam_pref_refresh(NWAM_PREF_IFACE(self), ncp, TRUE);
             g_object_unref(ncp);
         }
-        prv->check_pri_group_periodically = g_timeout_add(30000, check_pri_group_periodically_func, (gpointer)self);
+        /* Use ncp priority-group insteadly */
+/*         prv->check_pri_group_periodically = g_timeout_add(30000, check_pri_group_periodically_func, (gpointer)self); */
     }
 }
 
@@ -337,6 +339,18 @@ nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
         g_source_remove(prv->check_pri_group_periodically);
     }
 
+    if (prv->active_ncp) {
+        g_signal_handlers_disconnect_matched(prv->active_ncp,
+          G_SIGNAL_MATCH_DATA,
+          0,
+          NULL,
+          NULL,
+          NULL,
+          (gpointer)self);
+        g_object_unref(prv->active_ncp);
+        prv->active_ncp = NULL;
+    }
+
 	G_OBJECT_CLASS(nwam_conn_status_panel_parent_class)->finalize(G_OBJECT(self));
 }
 
@@ -348,12 +362,25 @@ nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
 static gboolean
 refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
-    GList*                  enm_elem;
-    gchar*                  text = NULL;
-    NwamConnStatusPanel*    self = NWAM_CONN_STATUS_PANEL( iface );
+	NwamConnStatusPanelPrivate *prv  = GET_PRIVATE(iface);
+    GList*                      enm_elem;
+    gchar*                      text = NULL;
+    NwamConnStatusPanel*        self = NWAM_CONN_STATUS_PANEL( iface );
 
     g_assert(NWAM_IS_CONN_STATUS_PANEL(self));
     
+    if (prv->active_ncp) {
+        g_signal_handlers_disconnect_matched(prv->active_ncp,
+          G_SIGNAL_MATCH_DATA,
+          0,
+          NULL,
+          NULL,
+          NULL,
+          (gpointer)self);
+        g_object_unref(prv->active_ncp);
+        prv->active_ncp = NULL;
+    }
+
 	/* data could be null or ncp */
     if (user_data != NULL) {
         NwamuiNcp *ncp = NWAMUI_NCP(user_data);
@@ -380,6 +407,10 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         } else {
             gtk_label_set_text(self->prv->current_profile_lbl, _("Unknow profile"));
         }
+
+        prv->active_ncp = g_object_ref(ncp);
+        g_signal_connect(prv->active_ncp, "notify::priority-group",
+          G_CALLBACK(ncp_notify_pri_group_changed), (gpointer)self);
     }
 
     text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(self->prv->daemon));
@@ -458,7 +489,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 	case CONNVIEW_ICON:
         if( cell_num == 0 && ncu_type != NWAMUI_NCU_TYPE_WIRELESS ) {
             status_icon = nwamui_util_get_network_status_icon(ncu_type, strength, 
-                    ncu_status?NWAMUI_ENV_STATUS_CONNECTED : NWAMUI_ENV_STATUS_ERROR,
+                    ncu_status?NWAMUI_DAEMON_STATUS_ALL_OK : NWAMUI_DAEMON_STATUS_ERROR,
                     icon_size);
 
             g_object_set (G_OBJECT(renderer),
@@ -468,7 +499,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
         else if( cell_num == 0 && ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
             strength = nwamui_ncu_get_signal_strength_from_dladm( ncu );
             status_icon = nwamui_util_get_network_status_icon(ncu_type, strength, 
-                    ncu_status?NWAMUI_ENV_STATUS_CONNECTED : NWAMUI_ENV_STATUS_ERROR,
+                    ncu_status?NWAMUI_DAEMON_STATUS_ALL_OK : NWAMUI_DAEMON_STATUS_ERROR,
                     icon_size);
 
             g_object_set (G_OBJECT(renderer),
@@ -544,7 +575,8 @@ conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer dat
                 break;
             case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
                 if (ncp) {
-                    if ( nwamui_ncp_get_current_prio_group(ncp)
+/*                     if ( nwamui_ncp_get_current_prio_group(ncp) */
+                    if ( nwamui_ncp_get_prio_group(ncp)
                          == nwamui_ncu_get_priority_group( NWAMUI_NCU(obj) )) {
                         visible = TRUE;
                     }
@@ -716,6 +748,19 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
     gtk_label_set_text(prv->current_vpn_lbl, enm_str );
         
     g_free( enm_str );
+}
+
+static void
+ncp_notify_pri_group_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
+    GtkTreeModel *model = gtk_tree_view_get_model(prv->conn_status_treeview);
+
+    if (model) {
+        gtk_widget_hide(GTK_WIDGET(prv->conn_status_treeview));
+        gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(model));
+        gtk_widget_show(GTK_WIDGET(prv->conn_status_treeview));
+    }
 }
 
 static void

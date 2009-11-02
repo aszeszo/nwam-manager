@@ -73,13 +73,6 @@ typedef enum {
 } nwamui_env_proxy_type_t;
 
 typedef enum {
-    NWAMUI_ENV_STATUS_CONNECTED = 0,
-    NWAMUI_ENV_STATUS_WARNING,
-    NWAMUI_ENV_STATUS_ERROR,
-    NWAMUI_ENV_STATUS_LAST /* Not to be used directly */
-} nwamui_env_status_t; 
-
-typedef enum {
 	NWAMUI_ENV_NAMESERVICES_DNS   = NWAM_NAMESERVICES_DNS,
 	NWAMUI_ENV_NAMESERVICES_FILES = NWAM_NAMESERVICES_FILES,
 	NWAMUI_ENV_NAMESERVICES_NIS   = NWAM_NAMESERVICES_NIS,

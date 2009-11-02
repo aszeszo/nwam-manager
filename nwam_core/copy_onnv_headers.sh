@@ -6,7 +6,10 @@ echo_cp() {
     cp ${1} "${2}"
 }
 
-NWAM_PHASE1_REPO=/export/synchronized/NWAM/nwam-phase1-clone
+echo "Please input nwam gate (default is $HOME/nwam-gate):"
+read NWAM_PHASE1_REPO
+
+[ -z "$NWAM_PHASE1_REPO" ] && NWAM_PHASE1_REPO=$HOME/nwam-gate
 
 CLONE_HEADERS="usr/src/lib/libnwam/common/libnwam.h
 usr/src/lib/libinetcfg/common/inetcfg.h

@@ -117,6 +117,8 @@ extern GList*                   nwamui_ncp_get_wireless_ncus( NwamuiNcp* self );
 
 extern gint                     nwamui_ncp_get_wireless_link_num( NwamuiNcp* self );
 
+extern gint64                   nwamui_ncp_get_prio_group( NwamuiNcp* self );
+
 extern gint64                   nwamui_ncp_get_current_prio_group( NwamuiNcp* self );
 
 extern void                     nwamui_ncp_set_current_prio_group( NwamuiNcp* self, gint64 new_prio );

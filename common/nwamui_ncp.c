@@ -47,6 +47,7 @@ enum {
     PROP_NWAM_NCP = 1,
     PROP_NAME,
     PROP_ACTIVE,
+    PROP_PRIORITY_GROUP,
     PROP_NCU_LIST,
     PROP_NCU_TREE_STORE,
     PROP_NCU_LIST_STORE,
@@ -181,6 +182,16 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
                                                          _("active"),
                                                           FALSE,
                                                           G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_PRIORITY_GROUP,
+      g_param_spec_int64("priority_group",
+        _("priority group"),
+        _("priority group"),
+        0,
+        G_MAXINT64,
+        0,
+        G_PARAM_READABLE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_NCU_LIST,
@@ -393,6 +404,9 @@ nwamui_ncp_get_property (   GObject         *object,
                 g_value_set_boolean( value, active );
             }
             break;
+    case PROP_PRIORITY_GROUP:
+        g_value_set_int64(value, self->prv->priority_group);
+        break;
         case PROP_NCU_LIST: {
                 g_value_set_pointer( value, nwamui_util_copy_obj_list( self->prv->ncu_list ) );
             }
@@ -736,6 +750,17 @@ nwamui_ncp_is_modifiable (NwamuiNcp *self)
 }
 
 extern gint64
+nwamui_ncp_get_prio_group( NwamuiNcp* self )
+{
+    gint64 prio;
+
+    g_object_get (G_OBJECT (self),
+                  "priority-group", &prio,
+                  NULL);
+    return prio;
+}
+
+extern gint64
 nwamui_ncp_get_current_prio_group( NwamuiNcp* self ) 
 {
     gint64          current_prio = -1;  /* -1 not a valid prio */
@@ -778,6 +803,7 @@ nwamui_ncp_set_current_prio_group( NwamuiNcp* self, gint64 new_prio )
 
     self->prv->priority_group = new_prio;
     self->prv->priority_group_last_update = time( NULL );
+    g_object_notify(self, "priority-group");
 }
 
 static void

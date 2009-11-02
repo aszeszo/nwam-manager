@@ -1,3 +1,45 @@
+2009-11-02  malin  <malin@os>
+
+	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_init),
+	(nwam_conn_status_panel_finalize), (refresh),
+	(nwam_conn_status_update_status_cell_cb),
+	(conn_view_filter_visible_cb), (ncp_notify_pri_group_changed):
+	Use ncp priority-group property instead of timer to refresh enabled 
+	link list.
+	* common/libnwamui.c (get_pixbuf_with_size), (get_pixbuf),
+	(nwamui_util_get_env_status_icon),
+	(nwamui_util_get_network_status_icon),
+	(nwamui_util_get_ncu_status_icon):
+	* common/libnwamui.h:
+	Remove NWAMUI_ENV_STATUS_*, use NWAMUI_DAEMON_STATUS_*.
+	Remove useless debug info.
+	* common/nwamui_daemon.c (nwamui_daemon_get_status),
+	(nwamui_daemon_update_status),
+	(nwamui_daemon_update_status_from_object_state_event),
+	(nwamui_daemon_get_status_icon_type):
+	* common/nwamui_daemon.h:
+	Partly fixed panel icon issue (12079)
+	* common/nwamui_env.c (object_notify_cb):
+	* common/nwamui_env.h:
+	Remove NWAMUI_ENV_STATUS_*, use NWAMUI_DAEMON_STATUS_*.
+	Remove useless debug info.
+	* common/nwamui_ncp.c (nwamui_ncp_class_init),
+	(nwamui_ncp_get_property), (nwamui_ncp_get_prio_group),
+	(nwamui_ncp_set_current_prio_group):
+	* common/nwamui_ncp.h:
+	* common/nwamui_ncu.c (nwamui_ncu_get_property):
+	Add readonly priority-group property and nwamui_ncp_get_property.
+	* daemon/nwam-menu.h:
+	Reset REMOVE_MENU_ITEM
+	* daemon/status_icon.c (ncu_is_higher_priority_than_active_ncu),
+	(ncu_notify_nwam_state_changed), (animation_panel_icon_timeout):
+	Cache ncu disconnect status to reduce the dup disconnect notifications.
+	* nwam_core/copy_onnv_headers.sh:
+	Accept custom Nwam gate path.
+	* nwam_core/lib/i386/libnwam.so.1:
+	* nwam_core/lib/sparc/libnwam.so.1:
+	Updated to RC5.
+
 2009-10-30  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_vpn_pref_dialog.c (vpn_pref_clicked_cb),

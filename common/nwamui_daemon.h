@@ -186,7 +186,7 @@ extern void                         nwamui_daemon_remove_wifi_fav(NwamuiDaemon *
 
 extern void                         nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message );
 
-extern nwamui_env_status_t          nwamui_daemon_get_status_icon_type( NwamuiDaemon *daemon );
+extern nwamui_daemon_status_t       nwamui_daemon_get_status_icon_type( NwamuiDaemon *daemon );
 
 extern const gchar*                 nwamui_deamon_status_to_string( nwamui_daemon_status_t status );
 
