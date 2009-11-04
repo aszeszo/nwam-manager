@@ -5,7 +5,6 @@ common/nwamui_env.c
 common/nwamui_ip.c
 common/nwamui_cond.c
 common/nwamui_daemon.c
-common/nwam_ui_icons.c
 common/nwamui_svc.c
 common/nwamui_ncu.c
 common/nwamui_ncp.c

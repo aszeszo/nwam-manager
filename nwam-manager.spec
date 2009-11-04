@@ -15,7 +15,6 @@ Name:         nwam-manager
 License:      CDDL
 Group:        System/GUI/GNOME
 Version:      0.99.94
-Vendor:       Sun Microsystems, Inc.
 Summary:      Network Auto-Magic User Interface
 #Source:       http://src.opensolaris.org/source/raw/jds/nwam-manager/branches/phase-0.5/tarballs/%{name}-%{version}.tar.gz
 Source:       http://www.opensolaris.org/os/project/nwam/picea/%{name}-%{version}.tar.gz
@@ -86,6 +85,7 @@ CFLAGS="%optflags"	\
         --bindir=%{_bindir}         \
 	--libexecdir=%{_libexecdir} \
 	--mandir=%{_mandir}         \
+	--disable-private-nwam-libs \
 	--localstatedir=/var/lib
 
 make -j $CPUS

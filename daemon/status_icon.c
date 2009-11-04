@@ -207,6 +207,9 @@ static gboolean status_icon_query_tooltip(GtkStatusIcon *status_icon,
 static void notifyaction_popup_menus(NotifyNotification *n,
   gchar *action,
   gpointer user_data);
+static void notifyaction_join_wireless(NotifyNotification *n,
+  gchar *action,
+  gpointer user_data);
 
 G_DEFINE_TYPE (NwamStatusIcon, nwam_status_icon, GTK_TYPE_STATUS_ICON)
 
@@ -369,7 +372,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
             }
 
             if ( show_message && nwamui_daemon_get_num_scanned_wifi( daemon ) == 0 ) {
-                nwam_notification_show_no_wifi_networks();
+                nwam_notification_show_no_wifi_networks(notifyaction_join_wireless, G_OBJECT(self));
             }
         }
         break;
@@ -1074,26 +1077,6 @@ set_join_wireless_urgency( NwamStatusIcon *self, gboolean urgent )
     set_window_urgency( window, urgent, TRUE );
 }
 
-#if 0
-static void
-join_wireless(NwamuiWifiNet *wifi)
-{
-    if (wifi) {
-        gchar *argv = NULL;
-        gchar *name = NULL;
-        /* add valid wireless */
-        name = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
-        argv = g_strconcat ("--add-wireless-dialog=", name, NULL);
-        nwam_exec(argv);
-        g_free (name);
-        g_free (argv);
-    } else {
-        /* add other wireless */
-        nwam_exec("--add-wireless-dialog=");
-    }
-}
-#endif
-
 static gboolean
 daemon_status_is_good(NwamuiDaemon *daemon)
 {
@@ -1513,6 +1496,13 @@ notifyaction_popup_menus(NotifyNotification *n,
   gpointer user_data)
 {
     nwam_status_icon_show_menu(NWAM_STATUS_ICON(user_data));
+}
+
+static void notifyaction_join_wireless(NotifyNotification *n,
+  gchar *action,
+  gpointer user_data)
+{
+    join_wireless(NWAM_STATUS_ICON(user_data), NULL, TRUE);
 }
 
 static void

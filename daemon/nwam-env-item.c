@@ -204,9 +204,9 @@ on_nwam_env_toggled (GtkCheckMenuItem *item, gpointer data)
     gboolean   active = nwamui_daemon_is_active_env(prv->daemon, env);
 
     /* Keep the current state until nwamuiobject refresh it. */
-    g_signal_handlers_block_by_func(item, on_nwam_env_toggled, data);
+    g_signal_handlers_block_by_func(item, (gpointer)on_nwam_env_toggled, (gpointer)data);
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), active);
-    g_signal_handlers_unblock_by_func(item, on_nwam_env_toggled, data);
+    g_signal_handlers_unblock_by_func(item, (gpointer)on_nwam_env_toggled, (gpointer)data);
 
 	if (!active) {
         nwamui_daemon_env_selection_set_manual(prv->daemon, TRUE, env);
@@ -228,9 +228,9 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         gboolean active;
 
         active = nwamui_object_get_active(object);
-        g_signal_handlers_block_by_func(self, on_nwam_env_toggled, NULL);
+        g_signal_handlers_block_by_func(self, (gpointer)on_nwam_env_toggled, NULL);
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), active);
-        g_signal_handlers_unblock_by_func(self, on_nwam_env_toggled, NULL);
+        g_signal_handlers_unblock_by_func(self, (gpointer)on_nwam_env_toggled, NULL);
 
     }
 

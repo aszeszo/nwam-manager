@@ -855,7 +855,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
             } else {
                 gchar *name    = nwamui_object_get_name(NWAMUI_OBJECT(obj));
                 gchar *summary = g_strdup_printf(_("Cannot rename '%s'"), name?name:"" );
-                nwamui_util_show_message(prv->vpn_pref_dialog,
+                nwamui_util_show_message(GTK_WINDOW(prv->vpn_pref_dialog),
                   GTK_MESSAGE_ERROR,
                   summary,
                   _("VPN applications can only be renamed immediately after\nthey have been created."),

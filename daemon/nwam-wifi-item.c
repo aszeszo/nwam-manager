@@ -159,23 +159,26 @@ static gboolean
 is_wifi_active(NwamuiWifiNet *wifi)
 {
     gboolean active = FALSE;
+    NwamuiNcu                 *ncu              = nwamui_wifi_net_get_ncu(wifi);
 
+    g_assert(ncu);
+
+#if 1
     /* Wifi status is not good maintained, so uses the state of
      * the parent ncu to detect its status.
      */
 
-/*     switch (nwamui_wifi_net_get_status(wifi)) { */
-/*     case NWAMUI_WIFI_STATUS_CONNECTED: */
-/*         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), TRUE); */
-/*         break; */
-/*     case NWAMUI_WIFI_STATUS_DISCONNECTED: */
-/*     case NWAMUI_WIFI_STATUS_FAILED: */
-/*     default: */
-/*         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(self), FALSE); */
-/*         break; */
-/*     } */
+    switch (nwamui_wifi_net_get_status(wifi)) {
+    case NWAMUI_WIFI_STATUS_CONNECTED:
+        active = TRUE;
+        break;
+    case NWAMUI_WIFI_STATUS_DISCONNECTED:
+    case NWAMUI_WIFI_STATUS_FAILED:
+    default:
+        break;
+    }
+#else
     if (nwamui_wifi_net_get_status(wifi) == NWAMUI_WIFI_STATUS_CONNECTED) {
-        NwamuiNcu                 *ncu              = nwamui_wifi_net_get_ncu(wifi);
         nwamui_connection_state_t  connection_state = NWAMUI_STATE_UNKNOWN;
         nwam_state_t               state;
         nwam_aux_state_t           aux_state;
@@ -196,9 +199,10 @@ is_wifi_active(NwamuiWifiNet *wifi)
 /*                 else { */
 /*                 } */
             }
-            g_object_unref(ncu);
         }
     }
+#endif
+    g_object_unref(ncu);
     return active;
 }
 
@@ -212,9 +216,9 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
 
     /* Should we temporary set active to false for self, and wait for
      * wifi_net_notify to update self? */
-    g_signal_handlers_block_by_func(item, on_nwam_wifi_toggled, data);
+    g_signal_handlers_block_by_func(item, (gpointer)on_nwam_wifi_toggled, (gpointer)data);
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), is_wifi_active(wifi));
-    g_signal_handlers_unblock_by_func(item, on_nwam_wifi_toggled, data);
+    g_signal_handlers_unblock_by_func(item, (gpointer)on_nwam_wifi_toggled, (gpointer)data);
 
 /*     g_debug("******** toggled %s ***** status %s ***** wifi 0x%p ****", */
 /*       gtk_action_get_name(item), */

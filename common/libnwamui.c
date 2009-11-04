@@ -584,12 +584,6 @@ nwamui_util_get_network_security_icon( nwamui_wifi_security_t sec_type, gboolean
     }
     if ( open_icon == NULL ) {
         open_icon = get_pixbuf(NWAM_ICON_NETWORK_INSECURE, small);
-        if (!open_icon)
-            open_icon = gdk_pixbuf_new(GDK_COLORSPACE_RGB,
-              TRUE,
-              8,
-              24,
-              24);
     }
 
     switch (sec_type) {
@@ -712,7 +706,7 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu, gint size )
         else if ( connection_state == NWAMUI_STATE_CONNECTING 
                 || connection_state == NWAMUI_STATE_WAITING_FOR_ADDRESS
                 || connection_state == NWAMUI_STATE_DHCP_TIMED_OUT
-                || connection_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR
+                || connection_state == NWAMUI_STATE_DHCP_DUPLICATE_ADDR
                 || connection_state == NWAMUI_STATE_CONNECTING_ESSID ) {
             daemon_state = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
         }

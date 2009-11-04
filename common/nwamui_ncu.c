@@ -190,6 +190,7 @@ static void ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath
 static void ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
 
 static void wireless_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer user_data);
+static void nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE (NwamuiNcu, nwamui_ncu, NWAMUI_TYPE_OBJECT)
 
@@ -496,7 +497,10 @@ nwamui_ncu_init (NwamuiNcu *self)
                                                          (GDestroyNotify)g_free,
                                                          (GDestroyNotify)g_object_unref);
     
-    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
+
+    g_signal_connect(self, "notify::nwam-state", G_CALLBACK(nwam_state_changed), NULL);
+
+/*     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self); */
     g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-deleted", (GCallback)ip_row_deleted_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-changed", (GCallback)ip_row_inserted_or_changed_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-inserted", (GCallback)ip_row_inserted_or_changed_cb, (gpointer)self);
@@ -693,22 +697,27 @@ nwamui_ncu_set_property ( GObject         *object,
             }
             break;
         case PROP_WIFI_INFO: {
+		NwamuiWifiNet *new_wifi = NWAMUI_WIFI_NET( g_value_dup_object( value ) );
                 /* Should be a Wireless i/f */
                 g_assert( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS );
-                if ( self->prv->wifi_info != NULL ) {
-                        g_object_unref( self->prv->wifi_info );
-                        g_signal_handlers_disconnect_matched(
-                          G_OBJECT(self->prv->wifi_info),
-                          G_SIGNAL_MATCH_DATA,
-                          0,
-                          NULL,
-                          NULL,
-                          NULL,
-                          (gpointer)self);
-                }
-                self->prv->wifi_info = NWAMUI_WIFI_NET( g_value_dup_object( value ) );
-                g_signal_connect (G_OBJECT(self->prv->wifi_info), "notify",
-                  G_CALLBACK(wireless_notify_cb), (gpointer)self);
+
+		if (self->prv->wifi_info != new_wifi) {
+			if ( self->prv->wifi_info != NULL ) {
+				g_object_unref( self->prv->wifi_info );
+				g_signal_handlers_disconnect_matched(
+					G_OBJECT(self->prv->wifi_info),
+					    G_SIGNAL_MATCH_DATA,
+					    0,
+					    NULL,
+					    NULL,
+					    NULL,
+					    (gpointer)self);
+				nwamui_wifi_net_set_status(self->prv->wifi_info, NWAMUI_WIFI_STATUS_DISCONNECTED);
+			}
+			self->prv->wifi_info = NWAMUI_WIFI_NET( g_value_dup_object( value ) );
+			g_signal_connect (G_OBJECT(self->prv->wifi_info), "notify",
+			    G_CALLBACK(wireless_notify_cb), (gpointer)self);
+		}
             }
             break;
 
@@ -2868,13 +2877,14 @@ nwamui_ncu_get_wifi_info ( NwamuiNcu *self )
  * For a wireless interface you can set the NwamuiWifiNet object that describes the
  * current wireless configuration.
  *
+ * NULL to unset a wifi info and set the disconnected flag.
  **/
 extern void
 nwamui_ncu_set_wifi_info ( NwamuiNcu *self, NwamuiWifiNet* wifi_info )
 {
     g_return_if_fail (NWAMUI_IS_NCU(self)); 
 
-    g_assert( NWAMUI_IS_WIFI_NET( wifi_info ) );
+    g_assert( wifi_info == NULL || NWAMUI_IS_WIFI_NET( wifi_info ) );
     
     g_object_set (G_OBJECT (self),
                   "wifi_info", wifi_info,
@@ -4550,3 +4560,14 @@ wireless_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer user_data)
     g_object_notify(G_OBJECT(self), "wifi_info");
 }
 
+static void
+nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamuiNcu *self = NWAMUI_NCU(gobject);
+    NwamuiNcuPrivate *prv = self->prv;
+    gboolean active = nwamui_object_get_active(NWAMUI_OBJECT(self));
+    
+    if (prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && prv->wifi_info) {
+	    nwamui_wifi_net_set_status(prv->wifi_info, NWAMUI_WIFI_STATUS_DISCONNECTED);
+    }
+}

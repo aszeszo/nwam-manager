@@ -467,6 +467,6 @@ nwamui_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     NwamuiObject* self = NWAMUI_OBJECT(data);
 
 /*     g_debug("%s 0x%p : notify '%s'", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), gobject, arg1->name); */
-    g_debug("%s '%s' 0x%p : notify '%s'", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), nwamui_object_get_name(self), gobject, arg1->name);
+/*     g_debug("%s '%s' 0x%p : notify '%s'", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), nwamui_object_get_name(self), gobject, arg1->name); */
 }
 

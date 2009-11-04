@@ -842,6 +842,7 @@ static void
 nwamui_wifi_net_finalize (NwamuiWifiNet *self)
 {
     g_debug("%s wifi 0x%p essid %s", __func__, self, self->prv->essid ? self->prv->essid:"nil");
+    g_assert(self->prv->status == NWAMUI_WIFI_STATUS_DISCONNECTED);
     if ( self->prv ) {
         if ( self->prv->essid ) {
             g_free( self->prv->essid );
@@ -1476,6 +1477,7 @@ nwamui_wifi_net_set_status ( NwamuiWifiNet *self, nwamui_wifi_status_t status )
     g_return_if_fail (NWAMUI_IS_WIFI_NET(self));
     g_assert (status >= NWAMUI_WIFI_STATUS_CONNECTED && status < NWAMUI_WIFI_STATUS_LAST );
 
+    g_debug("WifiNet %20s status %d", self->prv->essid, self->prv->status);
     g_object_set (G_OBJECT (self),
                   "status", status,
                   NULL);

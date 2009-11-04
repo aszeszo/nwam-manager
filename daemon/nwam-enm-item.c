@@ -189,9 +189,9 @@ on_nwam_enm_toggled (GtkCheckMenuItem *item, gpointer data)
 	if (nwamui_object_get_active(object)) {
 		nwamui_object_set_active(object, FALSE);
 	} else {
-        g_signal_handlers_block_by_func(item, on_nwam_enm_toggled, data);
+        g_signal_handlers_block_by_func(item, (gpointer)on_nwam_enm_toggled, data);
         gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), FALSE);
-        g_signal_handlers_unblock_by_func(item, on_nwam_enm_toggled, data);
+        g_signal_handlers_unblock_by_func(item, (gpointer)on_nwam_enm_toggled, data);
 
 		nwamui_object_set_active (object, TRUE);
     }

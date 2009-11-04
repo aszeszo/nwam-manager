@@ -1,3 +1,46 @@
+2009-11-04  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* SUNWnwam-manager.spec, nwam-manager.spec:
+	Updated.
+	* capplet/main.c (main):
+	* capplet/nwam_tree_view.c (nwam_tree_view_finalize),
+	(disconnect_model_signals):
+	* capplet/nwam_vpn_pref_dialog.c (vpn_pref_clicked_cb):
+	* common/nwamui_ncp.c (nwamui_ncp_is_modifiable),
+	(nwamui_ncp_set_current_prio_group):
+	* daemon/nwam-enm-item.c (on_nwam_enm_toggled):
+	* daemon/nwam-env-item.c (on_nwam_env_toggled),
+	(on_nwam_env_notify):
+	Fixed build warning
+	* common/Makefile.am:
+	Remove unuseless code
+	* common/libnwamui.c (nwamui_util_get_network_security_icon),
+	(nwamui_util_get_ncu_status_icon):
+	Fixed a flag name nit.
+	* common/nwamui_daemon.c (nwamd_event_handler),
+	(nwamui_daemon_update_status),
+	(nwamui_daemon_update_status_from_object_state_event):
+	Rework code for OBJECT_STATE. Remove two notify functions.
+	Partly fix 12079 panel icon issue.
+	* common/nwamui_ncu.c (nwamui_ncu_init), (nwamui_ncu_set_property):
+	Monitor nwam-state and set wifi info accordingly. Set disconnect
+	when unset wifinet.
+	* common/nwamui_object.c (nwamui_object_notify_cb):
+	Remove debug info in common notify function.
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_finalize),
+	(nwamui_wifi_net_set_status):
+	Add an assertion to check 12321 wifi menu item mark issue.
+	* daemon/notify.c (nwam_notification_show_ncu_disconnected),
+	(nwam_notification_show_no_wifi_networks):
+	* daemon/notify.h:
+	* daemon/status_icon.c (daemon_info), (notifyaction_join_wireless):
+	Fixed no join wireless network dialog. Remove useless code.
+	* daemon/nwam-wifi-item.c (is_wifi_active), (on_nwam_wifi_toggled):
+	Fall back to old function to mark connection state for wifi menu item
+	12321
+	po/POTFILES.in:
+	Clean file names.
+	
 2009-11-02  malin  <malin@os>
 
 	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_init),

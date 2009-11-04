@@ -16,8 +16,6 @@
 Name:                    SUNWnwam-manager
 Summary:                 Network Auto-Magic User Interface
 Version:                 %{default_pkg_version}
-Vendor:                  %{nwam_manager.vendor}
-License:                 %{nwam_manager.license}
 Source:                  %{name}-manpages-0.1.tar.gz
 SUNW_BaseDir:            %{_prefix}
 SUNW_Copyright:          %{name}.copyright

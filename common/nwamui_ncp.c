@@ -725,7 +725,8 @@ nwamui_ncp_is_modifiable (NwamuiNcp *self)
     gboolean        modifiable = FALSE; 
     boolean_t       readonly;
 
-    if (!NWAMUI_IS_NCP (self) && self->prv->nwam_ncp == NULL ) {
+    g_assert(NWAMUI_IS_NCP (self));
+    if (self->prv->nwam_ncp == NULL ) {
         return( modifiable );
     }
 
@@ -803,7 +804,7 @@ nwamui_ncp_set_current_prio_group( NwamuiNcp* self, gint64 new_prio )
 
     self->prv->priority_group = new_prio;
     self->prv->priority_group_last_update = time( NULL );
-    g_object_notify(self, "priority-group");
+    g_object_notify(G_OBJECT(self), "priority-group");
 }
 
 static void

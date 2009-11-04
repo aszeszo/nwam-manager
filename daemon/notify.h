@@ -94,7 +94,7 @@ void nwam_notification_show_ncu_wifi_selection_needed(   NwamuiNcu           *nc
 /* 
  * Show a message to tell the user that no wireless networks could be found.
  */
-void nwam_notification_show_no_wifi_networks( void );
+void nwam_notification_show_no_wifi_networks( NotifyActionCallback callback, GObject *user_object );
 
 /* 
  * Show a message to tell the user that the active location has changed.

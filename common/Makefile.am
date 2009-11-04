@@ -45,7 +45,6 @@ libnwamui_la_SOURCES =		\
 	libnwamui.c		\
 	nwamui_object.c \
 	nwamui_ip.c \
-	nwamui_svc.c \
 	nwamui_wifi_net.c \
 	nwamui_daemon.c \
 	nwamui_enm.c \
@@ -83,6 +82,7 @@ EXTRA_DIST = 		\
 	nwamui_ncu.h \
 	nwamui_object.h \
 	nwamui_prof.h \
+	nwamui_svc.c \
 	nwamui_svc.h \
 	nwamui_wifi_net.h \
 	$(NULL)

@@ -698,6 +698,7 @@ nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
                                         icon, NOTIFY_EXPIRES_DEFAULT);
     }
 
+    g_free(display_name);
     g_free(summary_str);
     g_free(body_str);
 
@@ -878,7 +879,7 @@ nwam_notification_show_ncu_wifi_key_needed( NwamuiWifiNet       *wifi_net,
  * Show a message to tell the user that no wireless networks could be found.
  */
 void
-nwam_notification_show_no_wifi_networks( void )
+nwam_notification_show_no_wifi_networks( NotifyActionCallback callback, GObject *user_object )
 {
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     GdkPixbuf       *icon = NULL;
@@ -891,11 +892,15 @@ nwam_notification_show_no_wifi_networks( void )
     if ( daemon ) {
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
-    nwam_notification_show_message(
-            _("No wireless networks found"),
-            _("Click this message to join an unlisted network"),
-            icon,
-            NOTIFY_EXPIRES_DEFAULT);
+    nwam_notification_show_message_with_action(_("No wireless networks found"),
+      _("Click this message to join an unlisted network"),
+      icon,
+      NULL,	/* action */
+      NULL,	/* label */
+      callback,
+      (gpointer)g_object_ref(user_object),
+      (GFreeFunc)g_object_unref,
+      NOTIFY_EXPIRES_DEFAULT);
 
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));

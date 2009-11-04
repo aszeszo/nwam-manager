@@ -219,7 +219,7 @@ nwam_tree_view_finalize(NwamTreeView *self)
     NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(self);
     int propid;
 
-    g_list_foreach(prv->widgets, G_CALLBACK(g_object_unref), NULL);
+    g_list_foreach(prv->widgets, (GFunc)g_object_unref, NULL);
 
     for (propid = PROP_BUTTON_BEGIN + 1; propid < PROP_BUTTON_END; propid ++) {
         if (prv->widget_list[propid]) {
@@ -723,12 +723,12 @@ static void
 disconnect_model_signals(GObject *self, GtkTreeModel *model)
 {
     g_signal_handlers_disconnect_by_func(model,
-      nwam_tree_view_row_inserted,
-      self);
+      (gpointer)nwam_tree_view_row_inserted,
+      (gpointer)self);
     g_signal_handlers_disconnect_by_func(model,
-      nwam_tree_view_row_changed,
-      self);
+      (gpointer)nwam_tree_view_row_changed,
+      (gpointer)self);
     g_signal_handlers_disconnect_by_func(model,
-      nwam_tree_view_row_deleted,
-      self);
+      (gpointer)nwam_tree_view_row_deleted,
+      (gpointer)self);
 }
