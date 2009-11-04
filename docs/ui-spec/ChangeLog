@@ -1,4 +1,11 @@
 2009-10-20 Calum Benson  <calum.benson@sun.com>
+	* nwam-ui-spec.pages
+	* img/capplet/connect-wireless-dlg.png
+	* nwam-ui-spec.pdf
+
+	Add Refresh button to wireless chooser dialog, bump to v1.13.
+
+2009-10-20 Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
 	* nwam-ui-spec.pdf
