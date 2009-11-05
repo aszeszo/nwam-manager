@@ -1599,24 +1599,6 @@ nwam_menu_recreate_ncu_menuitems (NwamStatusIcon *self)
         for (idx = ncu_list; idx; idx = g_list_next(idx)) {
             //nwam_menuitem_proxy_new(action, ncu_group);
             item = nwam_menu_item_create(NWAM_MENU(prv->menu), NWAMUI_OBJECT(idx->data));
-
-#if 0
-            switch (nwamui_ncu_get_ncu_type (NWAMUI_NCU(idx->data))) {
-            case NWAMUI_NCU_TYPE_WIRELESS: {
-                /* Enable wireless interface related menu items */
-                has_wireless_inf = TRUE;
-            }
-                break;
-#ifdef TUNNEL_SUPPORT
-            case NWAMUI_NCU_TYPE_TUNNEL:
-#endif /* TUNNEL_SUPPORT */
-            case NWAMUI_NCU_TYPE_WIRED:
-                break;
-            default:
-                g_assert_not_reached ();
-            }
-#endif
-
             g_object_unref(idx->data);
         }
         g_list_free(ncu_list);

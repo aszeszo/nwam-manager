@@ -1,5 +1,21 @@
 2009-11-05  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_net_conf_panel.c (nwam_connection_cell_func):
+	Fixed 12083 nwam icon shows connected status for disabled connection.
+	* common/nwamui_daemon.c
+	(nwamui_daemon_handle_object_action_event), (nwam_ncp_walker_cb):
+	Rework object_action
+	* common/nwamui_ncp.c (nwamui_ncp_class_init):
+	* common/nwamui_ncp.h:
+	Uses _reload vfun
+	* daemon/nwam-menu.c (nwam_menu_real_remove),
+	(nwam_menu_real_insert):
+	Enable debug log
+	* daemon/status_icon.c (nwam_menu_recreate_ncu_menuitems):
+	Remove useless code.
+
+2009-11-05  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_wireless_chooser.c (nwam_rescan_wifi):
 	Remove useless code.
 	* common/nwamui_daemon.c

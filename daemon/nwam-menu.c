@@ -248,15 +248,15 @@ nwam_menu_real_remove(GtkContainer *container, GtkWidget *widget)
     g_signal_emit(container, nwam_menu_signals[GET_SECTION_INDEX], 0,
       widget, (gpointer)&index);
 
-/*     if (nwamui_util_is_debug_mode()) { */
-/*         if (NWAM_IS_OBJ_PROXY_IFACE(widget)) { */
-/*             NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(widget))); */
-/*             gchar *name = nwamui_object_get_name(object); */
-/*             g_assert(!GTK_IS_SEPARATOR(widget)); */
-/*             g_debug("%s: \"%s\" got index %d", __func__, name, index); */
-/*             g_free(name); */
-/*         } */
-/*     } */
+    if (nwamui_util_is_debug_mode()) {
+        if (NWAM_IS_OBJ_PROXY_IFACE(widget)) {
+            NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(widget)));
+            gchar *name = nwamui_object_get_name(object);
+            g_assert(!GTK_IS_SEPARATOR(widget));
+            g_debug("%s: \"%s\" got index %d", __func__, name, index);
+            g_free(name);
+        }
+    }
 
     if (index >= 0) {
         GtkWidget *menu = menu_section_get_menu_widget(&prvsection[index]);
@@ -282,15 +282,15 @@ nwam_menu_real_insert(GtkMenuShell *menu_shell,
     g_signal_emit(menu_shell, nwam_menu_signals[GET_SECTION_INDEX], 0,
       child, (gpointer)&index);
 
-/*     if (nwamui_util_is_debug_mode()) { */
-/*         if (NWAM_IS_OBJ_PROXY_IFACE(child)) { */
-/*             NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(child))); */
-/*             gchar *name = nwamui_object_get_name(object); */
-/*             g_assert(!GTK_IS_SEPARATOR(child)); */
-/*             g_debug("%s: \"%s\" got index %d position %d", __func__, name, index, position); */
-/*             g_free(name); */
-/*         } */
-/*     } */
+    if (nwamui_util_is_debug_mode()) {
+        if (NWAM_IS_OBJ_PROXY_IFACE(child)) {
+            NwamuiObject *object = NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(child)));
+            gchar *name = nwamui_object_get_name(object);
+            g_assert(!GTK_IS_SEPARATOR(child));
+            g_debug("%s: \"%s\" got index %d position %d", __func__, name, index, position);
+            g_free(name);
+        }
+    }
 
     if (index >= 0) {
         GtkWidget *menu = menu_section_get_menu_widget(&prvsection[index]);

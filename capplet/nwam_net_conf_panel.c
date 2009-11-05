@@ -1041,6 +1041,7 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
 
     if (GTK_IS_CELL_RENDERER_TOGGLE(renderer)) {
         g_object_set(renderer, "active", is_in_ncp, NULL);
+        g_object_set( G_OBJECT(renderer), "activatable", !is_active, NULL );
     } else {
         gchar   *disp_text;
 

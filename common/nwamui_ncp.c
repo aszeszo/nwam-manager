@@ -116,8 +116,9 @@ static void nwamui_ncp_finalize (     NwamuiNcp *self);
 static nwam_state_t nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type  );
 
 static gboolean                 nwamui_ncp_commit( NwamuiNcp* self );
-
 static gchar*                   nwamui_ncp_get_name ( NwamuiNcp *self );
+static void                     nwamui_ncp_reload( NwamuiNcp* self );
+
 
 /* Default signal handlers */
 static void default_activate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer user_data);
@@ -158,6 +159,7 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)NULL;
     nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_ncp_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_ncp_commit;
+    nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_ncp_reload;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -602,7 +604,7 @@ nwamui_ncp_clone( NwamuiNcp* self, const gchar* name )
     return( new_ncp );
 }
 
-extern void
+static void
 nwamui_ncp_reload( NwamuiNcp* self )
 {
     nwam_error_t    nerr;
