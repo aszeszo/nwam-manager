@@ -315,7 +315,7 @@ nwamui_ncp_set_property (   GObject         *object,
     read_only = !nwamui_ncp_is_modifiable(self);
 
     if ( prop_id != PROP_ACTIVE && read_only ) {
-        g_error("Attempting to modify read-only ncp %s", self->prv->name?self->prv->name:"NULL");
+        g_error("Attempting to modify read-only ncp %s", self->prv->name);
         return;
     }
 
@@ -727,7 +727,7 @@ nwamui_ncp_is_modifiable (NwamuiNcp *self)
 
     g_assert(NWAMUI_IS_NCP (self));
     if (self->prv->nwam_ncp == NULL ) {
-        return( modifiable );
+        return TRUE;
     }
 
     /* function doesn't exist, but will be made available, comment out until

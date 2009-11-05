@@ -1,3 +1,22 @@
+2009-11-05  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_wireless_chooser.c (nwam_rescan_wifi):
+	Remove useless code.
+	* common/nwamui_daemon.c
+	(nwamui_daemon_handle_object_action_event),
+	(nwamui_daemon_nwam_connect), (nwam_loc_walker_cb),
+	(nwam_enm_walker_cb), (nwam_ncp_walker_cb):
+	Move ncu add/remove code from Link_Action to Object_Action, because
+	I never seen Link_Action signals.
+	Fixed some mem leak.
+	* common/nwamui_ncp.c (nwamui_ncp_set_property),
+	(nwamui_ncp_is_modifiable):
+	Fixed a nit.
+	* daemon/nwam-menu.c:
+	* daemon/nwam-menu.h:
+	Fixed sometimes the parent of menu-item to be removed doesn't match
+	to the passed parent, especially for the sub-menu children.
+
 2009-11-04  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* SUNWnwam-manager.spec, nwam-manager.spec:

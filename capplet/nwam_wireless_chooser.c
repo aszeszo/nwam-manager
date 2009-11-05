@@ -275,9 +275,9 @@ wifi_add (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi)
 static void
 nwam_rescan_wifi (NwamWirelessChooser *self)
 {
-    GtkTreeModel *model;
+/*     GtkTreeModel *model; */
 
-    model = gtk_tree_view_get_model (self->prv->wifi_tv);
+/*     model = gtk_tree_view_get_model (self->prv->wifi_tv); */
 
     nwamui_daemon_wifi_start_scan (self->prv->daemon);
 }
