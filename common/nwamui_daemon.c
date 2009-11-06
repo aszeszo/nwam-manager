@@ -2564,7 +2564,7 @@ nwamd_event_handler(gpointer data)
             break;
             
         case NWAM_EVENT_TYPE_OBJECT_STATE:
-            g_debug( "%s Object %s's state changed to %s, %s",
+            g_debug( "%s %s state changed to %s, %s",
               nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_state.nwe_object_type),
               nwamevent->nwe_data.nwe_object_state.nwe_name,
               nwam_state_to_string(nwamevent->nwe_data.nwe_object_state.nwe_state),
@@ -3016,6 +3016,8 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             }
 
             daemon->prv->active_ncp = NWAMUI_NCP(g_object_ref( ncp ));
+            /* We need reload NCP since it may changes when it isn't active. */
+            nwamui_object_reload(NWAMUI_OBJECT(ncp));
             g_object_notify(G_OBJECT(daemon), "active_ncp");
         }
             break;

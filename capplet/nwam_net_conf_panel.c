@@ -1013,26 +1013,28 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
 
     gtk_tree_model_get(model, iter, 0, &obj, -1);
 
+    /* We are using the NCU list in Automatic NCP. */
     name = nwamui_object_get_name(obj);
 
-    /* Find equivalent object in active profile */
-
+    /* Find equivalent object in NCU list of the seleted profile */
     while (ncus && !is_in_ncp) {
-        NwamuiObject    *temp_obj = NWAMUI_OBJECT(ncus->data);
-        gchar           *ncu_name = nwamui_object_get_name(temp_obj);
+        gchar           *ncu_name = nwamui_object_get_name(NWAMUI_OBJECT(ncus->data));
 
         if (g_ascii_strcasecmp(name, ncu_name) == 0) {
             is_in_ncp = TRUE;
-            found_object = g_object_ref(temp_obj);
         }
         ncus = g_list_next(ncus);
         g_free(ncu_name);
     }
 
+    /* prv->ncu_selection may mix NCUs of different NCPs, so we have to find
+     * the real NCU. */
+    found_object = nwamui_ncp_get_ncu_by_device_name(prv->selected_ncp, name);
     if ( found_object != NULL ) {
         if ( nwamui_object_get_nwam_state( found_object, NULL, NULL, NWAM_NCU_TYPE_LINK ) == NWAM_STATE_ONLINE ) {
             is_active = TRUE;
         }
+        /* Safely unref though we still use this pointer. */
         g_object_unref(found_object);
     }
 
@@ -1995,12 +1997,12 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 static void
 profile_edit_btn_clicked(GtkButton *button, gpointer user_data )
 {
-    NwamNetConfPanel*         self          = NWAM_NET_CONF_PANEL(user_data);
-    NwamNetConfPanelPrivate*  prv           = GET_PRIVATE(user_data);
-    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-    NwamuiNcp *auto_ncp;
-    GtkTreeModel *model;
-    gint result;
+    NwamNetConfPanel*         self   = NWAM_NET_CONF_PANEL(user_data);
+    NwamNetConfPanelPrivate*  prv    = GET_PRIVATE(user_data);
+    NwamuiDaemon             *daemon = nwamui_daemon_get_instance();
+    NwamuiNcp                *auto_ncp;
+    GtkTreeModel             *model;
+    gint                      result;
 
     auto_ncp = nwamui_daemon_get_ncp_by_name(daemon, NWAM_NCP_NAME_AUTOMATIC);
     model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(auto_ncp));

@@ -1,5 +1,14 @@
 2009-11-06  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_net_conf_panel.c (nwam_connection_cell_func):
+	Fixed manipulating ncus of inactive ncp may show incorrect ncu state.
+	* common/nwamui_daemon.c (nwamd_event_handler),
+	(nwamui_daemon_handle_object_action_event):
+	Simplify the object state debug info. Reload ncp on ncp object
+	action enable.
+
+2009-11-06  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* configure.in:
 	  Bump to 0.99.95 - for RC5 respin
 
