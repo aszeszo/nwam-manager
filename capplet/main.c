@@ -145,17 +145,22 @@ main(int argc, char** argv)
     GError*          err            = NULL;
     NwamPrefIFace   *capplet_dialog = NULL;
     
+    option_context = g_option_context_new(PACKAGE);
+
+#ifdef ENABLE_NLS
+    bindtextdomain (GETTEXT_PACKAGE, NWAM_MANAGER_LOCALEDIR);
+    bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
+    textdomain (GETTEXT_PACKAGE);
+    g_option_context_add_main_entries(option_context, application_options, GETTEXT_PACKAGE);
+#else
+    g_option_context_add_main_entries(option_context, application_options, NULL);
+#endif
+
     /* Initialise Thread Support */
     g_thread_init( NULL );
     
-    /* Initialize i18n support */
-    gtk_set_locale ();
-    
     /* Setup log handler to trap debug messages */
     nwamui_util_default_log_handler_init();
-
-    option_context = g_option_context_new("nwam-manager-properties");
-    g_option_context_add_main_entries(option_context, application_options, NULL);
 
     program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,
                                   argc, argv,

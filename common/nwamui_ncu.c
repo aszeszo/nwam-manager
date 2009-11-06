@@ -4568,6 +4568,7 @@ nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
     gboolean active = nwamui_object_get_active(NWAMUI_OBJECT(self));
     
     if (prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && prv->wifi_info) {
-	    nwamui_wifi_net_set_status(prv->wifi_info, NWAMUI_WIFI_STATUS_DISCONNECTED);
+	    nwamui_wifi_net_set_status(prv->wifi_info,
+		active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED);
     }
 }

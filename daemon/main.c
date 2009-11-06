@@ -167,10 +167,9 @@ main( int argc, char* argv[] )
     bindtextdomain (GETTEXT_PACKAGE, NWAM_MANAGER_LOCALEDIR);
     bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
     textdomain (GETTEXT_PACKAGE);
-
-    g_option_context_add_main_entries (option_context, option_entries, GETTEXT_PACKAGE );
+    g_option_context_add_main_entries(option_context, option_entries, GETTEXT_PACKAGE);
 #else
-    g_option_context_add_main_entries (option_context, option_entries, NULL );
+    g_option_context_add_main_entries(option_context, option_entries, NULL);
 #endif
 
     program = gnome_program_init (PACKAGE, VERSION, LIBGNOMEUI_MODULE,

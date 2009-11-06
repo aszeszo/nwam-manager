@@ -1,3 +1,23 @@
+2009-11-06  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c (main):
+	* daemon/main.c (main):
+	Fixed l10n issue.
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_init), (nwamui_daemon_set_status),
+	(nwamd_event_handler), (nwamui_daemon_update_status),
+	(nwamui_daemon_handle_object_action_event):
+	Minor update. Filter out NoNet when set daemon statue.
+	* common/nwamui_ncp.c (nwamui_ncp_get_ncu_by_device_name):
+	Update find ncu debug info.
+	* common/nwamui_ncu.c:
+	Minor update.
+	* daemon/Makefile.am:
+	Remove useless line.
+	* daemon/status_icon.c (daemon_active_ncp_changed),
+	(initial_notify_nwam_object):
+	Show NCU info on startup.
+
 2009-11-05  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_net_conf_panel.c (nwam_connection_cell_func):

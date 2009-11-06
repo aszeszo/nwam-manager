@@ -24,7 +24,6 @@ AM_CPPFLAGS = \
 	$(PACKAGE_CFLAGS)	\
 	$(NOTIFY_CFLAGS)	\
 	$(NWAM_MANAGER_CFLAGS)		\
-	-DPACKAGE=\"$(PACKAGE)\" \
 	-DNWAM_MANAGER_DATADIR=\""$(pkgdatadir)"\"			\
 	-DNWAM_MANAGER_LOCALEDIR=\""$(prefix)/$(DATADIRNAME)/locale"\"	\
 	-DGLADEDIR=\""$(gladedir)"\"			\

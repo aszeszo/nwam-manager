@@ -1089,14 +1089,15 @@ nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer 
 extern  NwamuiNcu*
 nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
 {
-    NwamuiNcu      *ret_ncu = NULL;
-    gchar          *ncu_device_name = NULL;
+    NwamuiNcu *ret_ncu         = NULL;
+    GString   *have_ncus       = NULL;
+    gchar     *ncu_device_name = NULL;
 
     g_return_val_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL, ret_ncu ); 
+    g_return_val_if_fail (device_name, ret_ncu ); 
 
-    if ( device_name == NULL ) {
-        return( NULL );
-    }
+    have_ncus = g_string_new("");
+    g_string_append_printf(have_ncus, "ncp %s -> find %s in [ ", self->prv->name, device_name);
 
     for (GList *elem = g_list_first(self->prv->ncu_list);
          elem != NULL && ret_ncu == NULL;
@@ -1105,17 +1106,20 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
             NwamuiNcu* ncu = NWAMUI_NCU(elem->data);
             gchar *ncu_device_name = nwamui_ncu_get_device_name( ncu );
 
+            g_string_append_printf(have_ncus, "%s ", ncu_device_name);
+
             if ( ncu_device_name != NULL 
                  && g_ascii_strcasecmp( ncu_device_name, device_name ) == 0 ) {
                 /* Set ret_ncu, which will cause for loop to exit */
-                g_debug("compare ncu: %s to target %s : SAME", ncu_device_name, device_name);
                 ret_ncu = NWAMUI_NCU(g_object_ref(ncu));
-            } else {
-                g_debug("compare ncu: %s to target %s : DIFFERENT", ncu_device_name, device_name);
             }
             g_free(ncu_device_name);
         }
     }
+
+    g_string_append_printf(have_ncus, "] %s", ret_ncu ? "OK" : "FAILD");
+    g_debug("%s", have_ncus->str);
+    g_string_free(have_ncus, TRUE);
 
     return( ret_ncu );
 }
