@@ -526,8 +526,7 @@ nwam_notification_show_nwam_unavailable( void )
     if ( daemon ) {
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
-    nwam_notification_show_message(
-            _("Automatic network configuration daemon is unavailable."),
+    nwam_notification_show_message(_("Automatic network configuration daemon is unavailable."),
             _("For further information please run\n\"svcs -xv nwam\" in a terminal."),
             icon,
             NOTIFY_EXPIRES_DEFAULT);
@@ -562,7 +561,6 @@ nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
     }
 
     if ( daemon ) {
-/*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
         icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
     }
 
@@ -636,7 +634,6 @@ nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
     }
 
     if ( daemon ) {
-/*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
         icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
     }
 
@@ -729,7 +726,6 @@ nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu )
     }
 
     if ( daemon ) {
-/*         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE ); */
         icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
     }
 
@@ -934,8 +930,7 @@ nwam_notification_show_ncp_changed( NwamuiNcp* ncp )
         g_free(name);
     }
 
-    nwam_notification_show_message(
-            summary_str,
+    nwam_notification_show_message(summary_str,
             "",
             icon,
             NOTIFY_EXPIRES_DEFAULT);
@@ -974,8 +969,7 @@ nwam_notification_show_location_changed( NwamuiEnv* env )
         g_free(name);
     }
 
-    nwam_notification_show_message(
-            summary_str,
+    nwam_notification_show_message(summary_str,
             "",
             icon,
             NOTIFY_EXPIRES_DEFAULT);

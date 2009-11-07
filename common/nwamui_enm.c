@@ -315,7 +315,7 @@ nwamui_enm_set_property (   GObject         *object,
                     nwamui_cond_activation_mode_t activation_mode = 
                         (nwamui_cond_activation_mode_t)g_value_get_int( value );
 
-                    set_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ACTIVATION_MODE, (guint64)activation_mode );
+                    set_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ACTIVATION_MODE, (guint64)nwamui_from_ui_activation_mode(activation_mode) );
                 }
                 else {
                     g_warning("Unexpected null enm handle");
@@ -453,19 +453,21 @@ nwamui_enm_get_property (   GObject         *object,
         }
         break;
 
-        case PROP_ACTIVATION_MODE: {
-                nwamui_cond_activation_mode_t activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
-                if (self->prv->nwam_enm != NULL) {
-                    activation_mode = (nwamui_cond_activation_mode_t)
-                                        get_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ACTIVATION_MODE );
-                }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
-                g_value_set_int( value, (gint)activation_mode );
+    case PROP_ACTIVATION_MODE: {
+        nwamui_cond_activation_mode_t activation_mode;
+        uint64_t                      nwamvalue       = 0;
 
-            }
-            break;
+        if (self->prv->nwam_enm != NULL) {
+            nwamvalue = (nwamui_cond_activation_mode_t)
+              get_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ACTIVATION_MODE );
+        }
+        else {
+            g_warning("Unexpected null enm handle");
+        }
+        activation_mode = nwamui_to_ui_activation_mode(nwamvalue);
+        g_value_set_int( value, (gint)activation_mode );
+    }
+        break;
 
         case PROP_CONDITIONS: {
                 gpointer    ptr = NULL;
@@ -504,13 +506,6 @@ nwamui_enm_new (    const gchar*    name )
     NwamuiEnm *self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM, 
                 "name", name,
                 NULL));
-
-    g_object_set (G_OBJECT (self),
-                  "enabled", FALSE,
-                  "activation_mode", NWAMUI_COND_ACTIVATION_MODE_MANUAL,
-                  NULL);
-    
-    self->prv->nwam_enm_modified = FALSE;
 
     return( self );
 }

@@ -337,7 +337,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
         }
     }
         break;
-    case NWAMUI_DAEMON_INFO_WLAN_DISCONNECTED: {
+    case NWAMUI_DAEMON_INFO_WLAN_DISCONNECTED: { /* unused */
             gboolean        show_message = FALSE;
             gboolean        is_active_ncu = FALSE;
             NwamuiWifiNet*  wifi = NULL;
@@ -359,9 +359,6 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
                 g_object_unref(ncu);
             }
         }
-        break;
-    case NWAMUI_DAEMON_INFO_NCU_SELECTED:
-    case NWAMUI_DAEMON_INFO_NCU_UNSELECTED:
         break;
     case NWAMUI_DAEMON_INFO_WLAN_CHANGED: {
             gboolean show_message = FALSE;

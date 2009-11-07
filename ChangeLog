@@ -1,3 +1,31 @@
+2009-11-07  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_cond.c (nwamui_to_ui_activation_mode),
+	(nwamui_from_ui_activation_mode):
+	* common/nwamui_cond.h:
+	Add mapping function though it is actually unnecessary.
+	* common/nwamui_daemon.c (nwamui_daemon_set_property),
+	(nwamui_daemon_set_status), (nwamui_daemon_get_ncp_by_name),
+	(nwamd_event_handler), (nwamui_daemon_update_status),
+	(nwamui_daemon_handle_object_action_event),
+	(nwamui_daemon_handle_object_state_event):
+	Update handle object action/state. Use the parent of object action.
+	* common/nwamui_daemon.h:
+	* daemon/status_icon.c (daemon_info):
+	Remove unused daemon info signals.
+	* common/nwamui_enm.c (nwamui_enm_set_property),
+	(nwamui_enm_get_property), (nwamui_enm_new):
+	Use condition mode mapping function.
+	* common/nwamui_ncp.c (nwamui_ncp_get_ncu_by_device_name):
+	Update debug info.
+	* daemon/notify.c (nwam_notification_show_nwam_unavailable),
+	(nwam_notification_show_ncu_connected),
+	(nwam_notification_show_ncu_disconnected),
+	(nwam_notification_show_ncu_wifi_connect_failed),
+	(nwam_notification_show_ncp_changed),
+	(nwam_notification_show_location_changed):
+	Remove unused comments.
+
 2009-11-06  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_net_conf_panel.c (nwam_connection_cell_func):

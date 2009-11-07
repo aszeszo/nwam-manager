@@ -130,6 +130,8 @@ extern const gchar*         nwamui_cond_field_to_str( nwamui_cond_field_t field 
 
 /* Convert to string suitable for libnwam - uses libnwam */
 extern char*                nwamui_cond_to_string( NwamuiCond* self );
+extern nwamui_cond_activation_mode_t nwamui_to_ui_activation_mode(nwam_activation_mode_t activation_mode);
+extern nwam_activation_mode_t        nwamui_from_ui_activation_mode(nwamui_cond_activation_mode_t activation_mode);
 
 G_END_DECLS
 

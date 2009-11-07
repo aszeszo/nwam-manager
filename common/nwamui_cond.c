@@ -719,4 +719,56 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     }
 }
 
+extern
+nwamui_cond_activation_mode_t
+nwamui_to_ui_activation_mode(nwam_activation_mode_t activation_mode)
+{
+    nwamui_cond_activation_mode_t mode;
+    switch (activation_mode) {
+    case NWAM_ACTIVATION_MODE_MANUAL:
+        mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
+        break;
+    case NWAM_ACTIVATION_MODE_SYSTEM:
+        mode = NWAMUI_COND_ACTIVATION_MODE_SYSTEM;
+        break;
+    case NWAM_ACTIVATION_MODE_PRIORITIZED:
+        mode = NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED;
+        break;
+    case NWAM_ACTIVATION_MODE_CONDITIONAL_ALL:
+        mode = NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL;
+        break;
+    case NWAM_ACTIVATION_MODE_CONDITIONAL_ANY:
+        mode = NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY;
+        break;
+    default:
+        break;
+    }
+    return mode;
+}
+
+extern nwam_activation_mode_t
+nwamui_from_ui_activation_mode(nwamui_cond_activation_mode_t activation_mode)
+{
+    nwam_activation_mode_t mode;
+    switch (activation_mode) {
+    case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+        mode = NWAM_ACTIVATION_MODE_MANUAL;
+        break;
+    case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
+        mode = NWAM_ACTIVATION_MODE_SYSTEM;
+        break;
+    case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+        mode = NWAM_ACTIVATION_MODE_PRIORITIZED;
+        break;
+    case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
+        mode = NWAM_ACTIVATION_MODE_CONDITIONAL_ALL;
+        break;
+    case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
+        mode = NWAM_ACTIVATION_MODE_CONDITIONAL_ANY;
+        break;
+    default:
+        break;
+    }
+    return mode;
+}
 

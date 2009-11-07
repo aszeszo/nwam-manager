@@ -1090,14 +1090,14 @@ extern  NwamuiNcu*
 nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
 {
     NwamuiNcu *ret_ncu         = NULL;
-    GString   *have_ncus       = NULL;
+    GString   *have_names       = NULL;
     gchar     *ncu_device_name = NULL;
 
     g_return_val_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL, ret_ncu ); 
     g_return_val_if_fail (device_name, ret_ncu ); 
 
-    have_ncus = g_string_new("");
-    g_string_append_printf(have_ncus, "ncp %s -> find %s in [ ", self->prv->name, device_name);
+    have_names = g_string_new("");
+    g_string_append_printf(have_names, "ncp %s -> find %s in [ ", self->prv->name, device_name);
 
     for (GList *elem = g_list_first(self->prv->ncu_list);
          elem != NULL && ret_ncu == NULL;
@@ -1106,7 +1106,7 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
             NwamuiNcu* ncu = NWAMUI_NCU(elem->data);
             gchar *ncu_device_name = nwamui_ncu_get_device_name( ncu );
 
-            g_string_append_printf(have_ncus, "%s ", ncu_device_name);
+            g_string_append_printf(have_names, "%s ", ncu_device_name);
 
             if ( ncu_device_name != NULL 
                  && g_ascii_strcasecmp( ncu_device_name, device_name ) == 0 ) {
@@ -1117,9 +1117,9 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
         }
     }
 
-    g_string_append_printf(have_ncus, "] %s", ret_ncu ? "OK" : "FAILD");
-    g_debug("%s", have_ncus->str);
-    g_string_free(have_ncus, TRUE);
+    g_string_append_printf(have_names, "] %s", ret_ncu ? "OK" : "FAILD");
+    g_debug("%s", have_names->str);
+    g_string_free(have_names, TRUE);
 
     return( ret_ncu );
 }
