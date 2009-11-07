@@ -1,5 +1,16 @@
 2009-11-07  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwamui_daemon.c (dispatch_wifi_scan_events_from_event),
+	(nwamd_event_handler), (nwamui_daemon_handle_object_state_event):
+	Remove get_ncu_by_device_name, clean code.
+	* common/nwamui_ncp.c (nwamui_ncp_init):
+	Missed the init prio group info which break connect status dialog.
+	* common/nwamui_ncu.c (nwamui_ncu_get_property):
+	Set {dis}connected wifi info in ncu active property if it's a wifi
+	link.
+
+2009-11-07  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_cond.c (nwamui_to_ui_activation_mode),
 	(nwamui_from_ui_activation_mode):
 	* common/nwamui_cond.h:

@@ -843,7 +843,11 @@ nwamui_ncu_get_property (GObject         *object,
                 }
                 if ( active != self->prv->active ) {
                     self->prv->active = active;
-                    g_object_notify(G_OBJECT(self), "active" );
+/*                     g_object_notify(G_OBJECT(self), "active" ); */
+		    if (self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && self->prv->wifi_info) {
+			    nwamui_wifi_net_set_status(self->prv->wifi_info,
+				active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED);
+		    }
                 }
                 g_value_set_boolean( value, active );
             }
@@ -4565,10 +4569,10 @@ nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiNcu *self = NWAMUI_NCU(gobject);
     NwamuiNcuPrivate *prv = self->prv;
-    gboolean active = nwamui_object_get_active(NWAMUI_OBJECT(self));
+/*     gboolean active = nwamui_object_get_active(NWAMUI_OBJECT(self)); */
     
-    if (prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && prv->wifi_info) {
-	    nwamui_wifi_net_set_status(prv->wifi_info,
-		active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED);
-    }
+/*     if (prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && prv->wifi_info) { */
+/* 	    nwamui_wifi_net_set_status(prv->wifi_info, */
+/* 		active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED); */
+/*     } */
 }

@@ -299,6 +299,9 @@ nwamui_ncp_init ( NwamuiNcp *self)
 
     self->prv->wireless_link_num = 0;
 
+    /* Init pri group. */
+    nwamui_ncp_get_current_prio_group(self);
+
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
 

@@ -1881,35 +1881,6 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 /*     NwamuiDaemon* self = NWAMUI_DAEMON(data); */
 }
 
-/**
- * get_ncu_by_device_name:
- *
- * Unref is needed
- */
-static NwamuiNcu* 
-get_ncu_by_device_name( NwamuiDaemon *daemon, NwamuiNcp*  _ncp, const char*device_name )
-{
-    NwamuiNcp*  ncp;
-    NwamuiNcu*  ncu = NULL;
-
-    if ( _ncp == NULL ) {
-        ncp = nwamui_daemon_get_active_ncp( daemon );
-    }
-    else {
-        ncp = _ncp;
-    }
-
-    if ( ncp ) {
-        ncu = nwamui_ncp_get_ncu_by_device_name( ncp, device_name );
-    }
-
-    if ( _ncp == NULL ) {
-        /* Only unref if we got ref in first place */
-        g_object_unref(ncp);
-    }
-    return( ncu );
-}
-
 static void
 nwamui_daemon_emit_scan_started_event( NwamuiDaemon *daemon )
 {
@@ -2189,7 +2160,7 @@ dispatch_wifi_scan_events_from_event(NwamuiDaemon* daemon, nwam_event_t event )
     }
 
 
-    ncu = get_ncu_by_device_name( daemon, NULL, name );
+    ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, name);
 
     nwamui_daemon_emit_scan_started_event( daemon );
 
@@ -2529,7 +2500,7 @@ nwamd_event_handler(gpointer data)
         case NWAM_EVENT_TYPE_LINK_STATE: {
                 const gchar*    name = nwamevent->nwe_data.nwe_link_state.nwe_name;
 
-                g_debug( "%s\t%s %s %s",
+                g_debug( "%s\t%s %s",
                   nwam_event_type_to_string(nwamevent->nwe_type),
                   nwamevent->nwe_data.nwe_link_state.nwe_name,
                   nwamevent->nwe_data.nwe_link_state.nwe_link_up? "up" : "down" );
@@ -2597,7 +2568,7 @@ nwamd_event_handler(gpointer data)
                 g_debug("Wireless networks found on %s", name );
 
                 if ( nwamui_ncp_get_wireless_link_num(daemon->prv->auto_ncp) > 0 ) {
-                    NwamuiNcu * ncu = get_ncu_by_device_name( daemon, NULL, name );
+                    NwamuiNcu * ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, name);
                     daemon->prv->emit_wlan_changed_signals = TRUE;
 
                     nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
@@ -2618,7 +2589,7 @@ nwamd_event_handler(gpointer data)
             break;
         case NWAM_EVENT_TYPE_WLAN_CONNECTION_REPORT: {
                 const gchar*    device = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
-                NwamuiNcu *     ncu = get_ncu_by_device_name( daemon, NULL, device );
+                NwamuiNcu *     ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, device);
                 NwamuiWifiNet*  wifi = NULL;
                 gchar*          name = NULL;
                 gchar*          wifi_name = NULL;
@@ -2707,7 +2678,7 @@ nwamd_event_handler(gpointer data)
             break;
         case NWAM_EVENT_TYPE_WLAN_NEED_CHOICE: {
                 const gchar*    device = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
-                NwamuiNcu *     ncu = get_ncu_by_device_name( daemon, NULL, device );
+                NwamuiNcu *     ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, device);
 
                 g_debug("No suitable wireless networks found, selection needed.");
 
@@ -2733,7 +2704,7 @@ nwamd_event_handler(gpointer data)
 
         case NWAM_EVENT_TYPE_WLAN_NEED_KEY: {
                 const gchar*    device = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
-                NwamuiNcu*      ncu = get_ncu_by_device_name( daemon, NULL, device );
+                NwamuiNcu*      ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, device);
                 NwamuiWifiNet*  wifi = nwamui_ncu_get_wifi_info( ncu );
 
 
@@ -3276,19 +3247,12 @@ static void
 nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent )
 {
     NwamuiDaemonPrivate    *prv                = NWAMUI_DAEMON(daemon)->prv;
-/*     nwamui_daemon_status_t  old_status; */
-/*     nwamui_daemon_status_t  new_status         = NWAMUI_DAEMON_STATUS_UNINITIALIZED; */
     guint                   status_flags       = 0;
     nwam_object_type_t      object_type        = nwamevent->nwe_data.nwe_object_state.nwe_object_type;
     const char*             object_name        = nwamevent->nwe_data.nwe_object_state.nwe_name;
     nwam_state_t            object_state       = nwamevent->nwe_data.nwe_object_state.nwe_state;
     nwam_aux_state_t        object_aux_state   = nwamevent->nwe_data.nwe_object_state.nwe_aux_state;
     NwamuiObject *obj = NULL;
-
-    /* 
-     * Determine status from objects 
-     */
-/*     old_status = daemon->prv->status; */
 
     /* First check that the daemon is connected to nwamd */
     if ( prv->connected_to_nwamd ) {
@@ -3357,18 +3321,7 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
         status_flags |= STATUS_REASON_DAEMON;
     }
 
-/*     if (status_flags == 0) { */
-/*         new_status = NWAMUI_DAEMON_STATUS_ALL_OK; */
-/*     } else if (status_flags & STATUS_REASON_DAEMON) { */
-/*         new_status = NWAMUI_DAEMON_STATUS_ERROR; */
-/*     } else { */
-/*         new_status = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION; */
-/*     } */
-/*     daemon->prv->status_flags = status_flags; */
-
     DEBUG_STATUS( object_name, object_state, object_aux_state, status_flags );
-
-/*     nwamui_daemon_update_status(daemon); */
 }
 
 static void
