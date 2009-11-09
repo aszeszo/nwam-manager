@@ -1740,7 +1740,7 @@ nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
             if ( prefix != 0 ) {
                 gchar  *prefix_str;
 
-                prefix_str = g_strdup_printf("%ld", prefix );
+                prefix_str = g_strdup_printf("%lld", prefix );
                 nwamui_ip_set_subnet_prefix(ip, prefix_str );
                 g_free(prefix_str);
             }

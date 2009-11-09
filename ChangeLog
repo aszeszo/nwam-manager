@@ -1,3 +1,10 @@
+2009-11-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c
+	(nwam_conn_multi_ipv6_cell_edited_cb):
+	Fixed 11018 adding prefix 16 in ipv6 address results in prefix zero
+	being added
+
 2009-11-09  malin  <malin@os>
 
 	* configure.in: Bump to 0.99.95.1
