@@ -1,3 +1,7 @@
+2009-11-09  malin  <malin@os>
+
+	* configure.in: Bump to 0.99.95.1
+
 2009-11-07  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_daemon.c (dispatch_wifi_scan_events_from_event),
