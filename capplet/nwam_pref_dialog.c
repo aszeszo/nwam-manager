@@ -45,7 +45,6 @@
 #define CAPPLET_DIALOG_NAME           "nwam_capplet"
 #define CAPPLET_DIALOG_SHOW_COMBO     "show_combo"
 #define CAPPLET_DIALOG_MAIN_NOTEBOOK  "mainview_notebook"
-#define CAPPLET_DIALOG_REFRESH_BUTTON "refresh_button"
 
 #define NWAM_CAPPLET_DIALOG_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_CAPPLET_DIALOG, NwamCappletDialogPrivate))
 
@@ -89,8 +88,6 @@ static gboolean show_combo_separator_cb (GtkTreeModel *model,
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void show_changed_cb( GtkWidget* widget, gpointer data );
-static void refresh_clicked_cb( GtkButton *button, gpointer data );
-
 
 /* Utility Functions */
 static void show_combo_add (GtkComboBox* combo, GObject*  obj);
@@ -187,9 +184,6 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     g_signal_connect(self, "notify", (GCallback)object_notify_cb, NULL);
     g_signal_connect(GTK_DIALOG(prv->capplet_dialog), "response", (GCallback)response_cb, (gpointer)self);
     
-    btn = GTK_BUTTON(nwamui_util_glade_get_widget(CAPPLET_DIALOG_REFRESH_BUTTON));
-    g_signal_connect(btn, "clicked", (GCallback)refresh_clicked_cb, (gpointer)self);
-
     /* Sync nwam_capplet_dialog_set_ok_sensitive_by_voting count. */
     gtk_dialog_set_response_sensitive(prv->capplet_dialog, GTK_RESPONSE_OK, TRUE);
 
@@ -280,55 +274,66 @@ nwam_capplet_dialog_finalize(NwamCappletDialog *self)
 
 /**
  * refresh:
+ * @user_data: Must be NULL.
+ * @force: TRUE: refresh the main dialog, actually update the show_combo.
  *
  * Refresh #NwamCappletDialog with the new connections.
  * Including two static enties "Connection Status" and "Network Profile"
- * And dynamic adding connection enties.
- * FIXED ME.
+ * And dynamic adding connection enties. Then refresh the current selected
+ * object in the show_combo.
  **/
 static gboolean
 refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
-    NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(iface);
-	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(iface);
-    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-    GtkTreeIter iter;
-    GObject *obj;
-    GList* ncp_list;
-    gint panel_id = (gint)user_data;
+    NwamCappletDialogPrivate *prv      = NWAM_CAPPLET_DIALOG_GET_PRIVATE(iface);
+	NwamCappletDialog*        self     = NWAM_CAPPLET_DIALOG(iface);
+    GObject                  *obj      = capplet_combo_get_active_object(GTK_COMBO_BOX(prv->show_combo));
+/*     gint                      panel_id = (gint)user_data; */
 
-    switch(panel_id) {
-    case PANEL_CONN_STATUS:
-    case PANEL_NET_PREF:
-        obj = g_object_ref(prv->panel[panel_id]);
-        break;
-    default:
-        /* Remember the active object and select it later. */
-        obj = capplet_combo_get_active_object(GTK_COMBO_BOX(prv->show_combo));
-        break;
-    }
-    g_assert(obj);
+/*     switch(panel_id) { */
+/*     case -1: */
+/*         /\* if -1, show the first page. *\/ */
+/*         panel_id = 0; */
+/*     case PANEL_CONN_STATUS: */
+/*     case PANEL_NET_PREF: */
+/*         obj = g_object_ref(prv->panel[panel_id]); */
+/*         break; */
+/*     default: */
+/*         /\* Remember the active object and select it later. *\/ */
+/*         obj = capplet_combo_get_active_object(GTK_COMBO_BOX(prv->show_combo)); */
+/*         break; */
+/*     } */
     
-    /* Refresh show-combo */
-    ncp_list = nwamui_daemon_get_ncp_list(daemon);
-    g_object_unref(daemon);
+    if (force) {
+        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
+        GList*        ncp_list;
 
-    gtk_widget_hide(GTK_WIDGET(prv->show_combo));
-    for (; ncp_list;) {
-        /* TODO need be more efficient. */
-        show_combo_remove(prv->show_combo, G_OBJECT(ncp_list->data));
-        show_combo_add(prv->show_combo, G_OBJECT(ncp_list->data));
-        ncp_list = g_list_delete_link(ncp_list, ncp_list);
+        /* Refresh show-combo */
+        ncp_list = nwamui_daemon_get_ncp_list(daemon);
+        g_object_unref(daemon);
+
+        gtk_widget_hide(GTK_WIDGET(prv->show_combo));
+        for (; ncp_list;) {
+            /* TODO need be more efficient. */
+            show_combo_remove(prv->show_combo, G_OBJECT(ncp_list->data));
+            show_combo_add(prv->show_combo, G_OBJECT(ncp_list->data));
+            ncp_list = g_list_delete_link(ncp_list, ncp_list);
+        }
+        gtk_widget_show(GTK_WIDGET(prv->show_combo));
+    }
+
+    if (NWAM_IS_PREF_IFACE(obj)) {
+        nwam_pref_refresh(NWAM_PREF_IFACE(obj), NULL, TRUE);
+    } else if (NWAMUI_IS_NCU(obj)) {
+        nwam_pref_refresh(NWAM_PREF_IFACE(prv->panel[PANEL_CONF_IP]), (gpointer)obj, TRUE);
+    } else {
+        g_assert_not_reached();
     }
 
     /* Refresh children */
     capplet_combo_set_active_object(GTK_COMBO_BOX(prv->show_combo), obj);
 
-    gtk_widget_show(GTK_WIDGET(prv->show_combo));
-
     g_object_unref(obj);
-
-/*     show_changed_cb(GTK_COMBO_BOX(prv->show_combo), (gpointer)self); */
 }
 
 static gboolean
@@ -435,7 +440,6 @@ show_changed_cb( GtkWidget* widget, gpointer data )
 	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(data);
     GType type;
     GtkTreeModel   *model = NULL;
-    GtkTreeIter     iter;
 	gint idx;
     GObject *obj;
     gpointer user_data = NULL;
@@ -508,7 +512,7 @@ show_changed_cb( GtkWidget* widget, gpointer data )
 	/* update the notetab according to the selected entry */
     if ( valid ) {
         gtk_notebook_set_current_page(self->prv->main_nb, idx);
-
+        /* Cancel all changes what user has changed in the current page. */
         nwam_pref_refresh(NWAM_PREF_IFACE(obj), user_data, FALSE);
     }
 
@@ -589,18 +593,6 @@ static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	g_debug("NwamCappletDialog: notify %s changed", arg1->name);
-}
-
-/*
- * According to nwam_pref_iface defined refresh, we should do
- * foreach instance refresh it.
- */
-static void
-refresh_clicked_cb( GtkButton *button, gpointer data )
-{
-	NwamCappletDialog* self = NWAM_CAPPLET_DIALOG(data);
-    /* Refresh self */
-	nwam_pref_refresh (NWAM_PREF_IFACE(self), NULL, TRUE);
 }
 
 /*
@@ -723,24 +715,9 @@ update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp )
 extern void
 nwam_capplet_dialog_select_ncu(NwamCappletDialog  *self, NwamuiNcu*  ncu )
 {
-    GtkTreeIter     iter;
-    GtkTreeModel   *model = NULL;
-    gboolean        has_next;
+    NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(self);
 
-    model = gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->show_combo));
-    
-    for( has_next = gtk_tree_model_get_iter_first( GTK_TREE_MODEL( model ), &iter );
-         has_next;
-         has_next = gtk_tree_model_iter_next( GTK_TREE_MODEL( model ), &iter ) ) {
-        NwamuiNcu*   current_ncu = NULL;
-
-        gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &current_ncu, -1);
-        if ( current_ncu != NULL && current_ncu == ncu ) {
-            gtk_combo_box_set_active_iter(GTK_COMBO_BOX(self->prv->show_combo), &iter );
-            g_object_unref( current_ncu );
-            break;
-        }
-    }
+    capplet_combo_set_active_object(prv->show_combo, G_OBJECT(ncu));
 }
 
 extern void

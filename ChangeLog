@@ -1,3 +1,21 @@
+2009-11-12  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.h:
+	* capplet/nwam_env_pref_dialog.c (nwam_env_pref_dialog_init),
+	(block_nameservices_signals), (populate_panels_from_env),
+	(on_ns_source_clicked), (on_ns_selection_toggled):
+	* capplet/nwam_net_conf_panel.c (nwam_net_conf_panel_init),
+	(refresh), (apply), (nwam_connection_cell_func),
+	(profile_edit_btn_clicked), (edit_profile_name_combo_changed):
+	* capplet/nwam_pref_dialog.c (nwam_capplet_dialog_init), (refresh),
+	(show_changed_cb), (nwam_capplet_dialog_select_ncu):
+	* capplet/nwam_pref_dialog.h:
+	* common/nwamui_ncu.c:
+	Clean code. Fixed 12604 [RC5] on disabling network connection active
+	profile reverts to Automatic
+	Fixed refresh doesn't work. Now refresh will force to refresh the
+	current notebook page.
+
 2009-11-10  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/main.c (main):

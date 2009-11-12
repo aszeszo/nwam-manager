@@ -291,7 +291,7 @@ static void         http_password_button_clicked_cb(GtkButton *button, gpointer 
 
 #endif /* ENABLE_PROXY */
 
-static void         on_ns_source_toggled(GtkToggleButton *togglebutton, gpointer user_data);
+static void         on_ns_source_clicked(GtkButton *button, gpointer user_data);
 
 static void         on_ns_selection_toggled(GtkToggleButton *togglebutton, gpointer user_data);
 
@@ -517,9 +517,9 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 	g_signal_connect(prv->dns_service_cb,
       "toggled", (GCallback)on_ns_selection_toggled, (gpointer)self);
 	g_signal_connect(prv->dns_config_manual_rb,
-      "toggled", (GCallback)on_ns_source_toggled, (gpointer)self);
+      "clicked", (GCallback)on_ns_source_clicked, (gpointer)self);
 	g_signal_connect(prv->dns_config_dhcp_rb,
-      "toggled", (GCallback)on_ns_source_toggled, (gpointer)self);
+      "clicked", (GCallback)on_ns_source_clicked, (gpointer)self);
 	g_signal_connect(prv->dns_servers_entry,
       "changed", (GCallback)on_ns_text_changed, (gpointer)self);
 	g_signal_connect(prv->dns_search_entry,
@@ -542,9 +542,9 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 	g_signal_connect(prv->nis_service_cb,
       "toggled", (GCallback)on_ns_selection_toggled, (gpointer)self);
 	g_signal_connect(prv->nis_config_manual_rb,
-      "toggled", (GCallback)on_ns_source_toggled, (gpointer)self);
+      "clicked", (GCallback)on_ns_source_clicked, (gpointer)self);
 	g_signal_connect(prv->nis_config_dhcp_rb,
-      "toggled", (GCallback)on_ns_source_toggled, (gpointer)self);
+      "clicked", (GCallback)on_ns_source_clicked, (gpointer)self);
 	g_signal_connect(prv->nis_servers_entry,
       "changed", (GCallback)on_ns_text_changed, (gpointer)self);
 
@@ -689,15 +689,15 @@ block_nameservices_signals( NwamEnvPrefDialog* self, gboolean block )
         g_signal_handlers_block_by_func(prv->files_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
 
         g_signal_handlers_block_by_func(prv->dns_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
-        g_signal_handlers_block_by_func(prv->dns_config_manual_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
-        g_signal_handlers_block_by_func(prv->dns_config_dhcp_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->dns_config_manual_rb, (gpointer)on_ns_source_clicked, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->dns_config_dhcp_rb, (gpointer)on_ns_source_clicked, (gpointer)self);
         g_signal_handlers_block_by_func(prv->dns_servers_entry, (gpointer)on_ns_text_changed, (gpointer)self);
         g_signal_handlers_block_by_func(prv->dns_search_entry, (gpointer)on_ns_text_changed, (gpointer)self);
         g_signal_handlers_block_by_func(prv->dns_domain_entry, (gpointer)on_ns_text_changed, (gpointer)self);
 
         g_signal_handlers_block_by_func(prv->nis_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
-        g_signal_handlers_block_by_func(prv->nis_config_manual_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
-        g_signal_handlers_block_by_func(prv->nis_config_dhcp_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->nis_config_manual_rb, (gpointer)on_ns_source_clicked, (gpointer)self);
+        g_signal_handlers_block_by_func(prv->nis_config_dhcp_rb, (gpointer)on_ns_source_clicked, (gpointer)self);
         g_signal_handlers_block_by_func(prv->nis_servers_entry, (gpointer)on_ns_text_changed, (gpointer)self);
 
         g_signal_handlers_block_by_func(prv->ldap_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
@@ -709,15 +709,15 @@ block_nameservices_signals( NwamEnvPrefDialog* self, gboolean block )
         g_signal_handlers_unblock_by_func(prv->files_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
 
         g_signal_handlers_unblock_by_func(prv->dns_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
-        g_signal_handlers_unblock_by_func(prv->dns_config_manual_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
-        g_signal_handlers_unblock_by_func(prv->dns_config_dhcp_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->dns_config_manual_rb, (gpointer)on_ns_source_clicked, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->dns_config_dhcp_rb, (gpointer)on_ns_source_clicked, (gpointer)self);
         g_signal_handlers_unblock_by_func(prv->dns_servers_entry, (gpointer)on_ns_text_changed, (gpointer)self);
         g_signal_handlers_unblock_by_func(prv->dns_search_entry, (gpointer)on_ns_text_changed, (gpointer)self);
         g_signal_handlers_unblock_by_func(prv->dns_domain_entry, (gpointer)on_ns_text_changed, (gpointer)self);
 
         g_signal_handlers_unblock_by_func(prv->nis_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
-        g_signal_handlers_unblock_by_func(prv->nis_config_manual_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
-        g_signal_handlers_unblock_by_func(prv->nis_config_dhcp_rb, (gpointer)on_ns_source_toggled, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->nis_config_manual_rb, (gpointer)on_ns_source_clicked, (gpointer)self);
+        g_signal_handlers_unblock_by_func(prv->nis_config_dhcp_rb, (gpointer)on_ns_source_clicked, (gpointer)self);
         g_signal_handlers_unblock_by_func(prv->nis_servers_entry, (gpointer)on_ns_text_changed, (gpointer)self);
 
         g_signal_handlers_unblock_by_func(prv->ldap_service_cb, (gpointer)on_ns_selection_toggled, (gpointer)self);
@@ -973,7 +973,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         dns_search = nwamui_env_get_dns_nameservice_search( current_env );
 
         if ( dns_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL ) {
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->dns_config_manual_rb), TRUE );
+            gtk_button_clicked(GTK_BUTTON(prv->dns_config_manual_rb));
             gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), sensitive );
             gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), sensitive );
             gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), sensitive );
@@ -983,7 +983,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
             sensitive = TRUE;
         }
         else {
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->dns_config_dhcp_rb), TRUE );
+            gtk_button_clicked(GTK_BUTTON(prv->dns_config_dhcp_rb));
             sensitive = FALSE;
         }
         gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), sensitive );
@@ -1030,11 +1030,11 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         nis_servers = nwamui_env_get_nis_nameservice_servers( current_env );
 
         if ( nis_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL ) {
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->nis_config_manual_rb), TRUE );
+            gtk_button_clicked(GTK_BUTTON(prv->nis_config_manual_rb));
             sensitive = TRUE;
         }
         else {
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->nis_config_dhcp_rb), TRUE );
+            gtk_button_clicked(GTK_BUTTON(prv->nis_config_dhcp_rb));
             sensitive = FALSE;
         }
         gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), sensitive );
@@ -1435,22 +1435,22 @@ http_password_button_clicked_cb(GtkButton *button, gpointer  user_data)
 
 
 static void
-on_ns_source_toggled(GtkToggleButton *togglebutton, gpointer user_data)
+on_ns_source_clicked(GtkButton *button, gpointer user_data)
 {
     NwamEnvPrefDialog          *self = NWAM_ENV_PREF_DIALOG(user_data);
 	NwamEnvPrefDialogPrivate   *prv = GET_PRIVATE(user_data);
-    gboolean                    active = gtk_toggle_button_get_active(togglebutton);
+    gboolean                    active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button));
     gboolean                    sensitive = FALSE;
     nwamui_env_config_source_t  config_source;
 
-	if ( togglebutton == (GtkToggleButton*)prv->dns_config_manual_rb ||
-	     togglebutton == (GtkToggleButton*)prv->dns_config_dhcp_rb ) {
+	if ( button == (GtkButton*)prv->dns_config_manual_rb ||
+	     button == (GtkButton*)prv->dns_config_dhcp_rb ) {
         /* Only act upon the active selection */
         if (active) {
-            if ( togglebutton == (GtkToggleButton*)prv->dns_config_manual_rb ) {
+            if ( button == (GtkButton*)prv->dns_config_manual_rb ) {
                 config_source = NWAMUI_ENV_CONFIG_SOURCE_MANUAL;
             }
-            else { /* togglebutton == prv->dns_config_dhcp_rb */
+            else { /* button == prv->dns_config_dhcp_rb */
                 config_source = NWAMUI_ENV_CONFIG_SOURCE_DHCP;
             }
             nwamui_env_set_dns_nameservice_config_source (  prv->selected_env, config_source );
@@ -1464,14 +1464,14 @@ on_ns_source_toggled(GtkToggleButton *togglebutton, gpointer user_data)
         gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), sensitive );
         gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), sensitive );
     }
-    else if ( togglebutton == (GtkToggleButton*)prv->nis_config_manual_rb ||
-	          togglebutton == (GtkToggleButton*)prv->nis_config_dhcp_rb ) {
+    else if ( button == (GtkButton*)prv->nis_config_manual_rb ||
+	          button == (GtkButton*)prv->nis_config_dhcp_rb ) {
         /* Only act upon the active selection */
         if (active) {
-            if ( togglebutton == (GtkToggleButton*)prv->nis_config_manual_rb ) {
+            if ( button == (GtkButton*)prv->nis_config_manual_rb ) {
                 config_source = NWAMUI_ENV_CONFIG_SOURCE_MANUAL;
             }
-            else { /* togglebutton == prv->nis_config_dhcp_rb */
+            else { /* button == prv->nis_config_dhcp_rb */
                 config_source = NWAMUI_ENV_CONFIG_SOURCE_DHCP;
             }
             nwamui_env_set_nis_nameservice_config_source (  prv->selected_env, config_source );
@@ -1596,12 +1596,10 @@ on_ns_selection_toggled(GtkToggleButton *togglebutton, gpointer user_data)
          * value for the config souce.
          */
         if ( dns && active ) {
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->dns_config_dhcp_rb), TRUE );
-            gtk_toggle_button_toggled(GTK_TOGGLE_BUTTON(prv->dns_config_dhcp_rb));
+            gtk_button_clicked(GTK_BUTTON(prv->dns_config_dhcp_rb));
         }
         else if ( nis && active ) {
-            gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->nis_config_dhcp_rb), TRUE );
-            gtk_toggle_button_toggled(GTK_TOGGLE_BUTTON(prv->nis_config_dhcp_rb));
+            gtk_button_clicked(GTK_BUTTON(prv->nis_config_dhcp_rb));
         }
 
         num_nameservices++;

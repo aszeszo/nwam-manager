@@ -39,17 +39,6 @@ void capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class);
 gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
 gboolean capplet_dialog_raise(NwamPrefIFace *iface);
 
-#define CAPPLET_COMPOSE_NWAMUI_OBJECT_COMBO(combo, iface)   \
-    {                                                       \
-        capplet_compose_combo(GTK_COMBO_BOX(combo),         \
-          GTK_TYPE_LIST_STORE,                              \
-          G_TYPE_OBJECT,                                    \
-          (GtkCellLayoutDataFunc)nwamui_object_name_cell,   \
-          NULL,                                             \
-          (GCallback)nwam_pref_iface_combo_changed_cb,      \
-          (gpointer)NWAM_PREF_IFACE(iface),                 \
-          NULL);                                            \
-    }
 #define CAPPLET_COMPOSE_NWAMUI_OBJECT_LIST_VIEW(treeview)               \
     {                                                                   \
         GtkTreeModel *model;                                            \
@@ -138,7 +127,7 @@ void capplet_compose_combo(GtkComboBox *combo,
   gpointer user_data,
   GDestroyNotify destroy);
 
-void nwam_pref_iface_combo_changed_cb(GtkComboBox* combo, gpointer user_data);
+void nwam_pref_iface_combo_changed_cb(GtkComboBox* combo, gpointer user_data); /* unused */
 
 GObject *capplet_combo_get_active_object(GtkComboBox *combo);
 gboolean capplet_combo_set_active_object(GtkComboBox *combo, GObject *object);

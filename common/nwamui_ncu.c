@@ -1862,6 +1862,8 @@ nwamui_ncu_reload( NwamuiNcu* self )
 extern gboolean
 nwamui_ncu_has_modifications( NwamuiNcu* self )
 {
+	g_return_val_if_fail(NWAMUI_IS_NCU(self), FALSE);
+
 #ifdef TUNNEL_SUPPORT
     if ( NWAMUI_IS_NCU(self) &&
           ( self->prv->nwam_ncu_phys_modified 

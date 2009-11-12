@@ -249,6 +249,7 @@ static void conditions_connected_changed(GtkComboBox* combo, gpointer user_data 
 static void on_activate_static_menuitems (GtkAction *action, gpointer data);
 static void ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data);
 static void ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data);
+static void edit_profile_name_combo_changed(GtkComboBox *widget, gpointer user_data);
 
 /* ncu group */
 static NwamuiObject* create_group_object( gint group_id,
@@ -571,7 +572,14 @@ nwam_net_conf_panel_init(NwamNetConfPanel *self)
     capplet_update_model_from_daemon(gtk_combo_box_get_model(GTK_COMBO_BOX(prv->profile_name_combo)), daemon, NWAMUI_TYPE_NCP);
     gtk_widget_show(GTK_WIDGET(prv->profile_name_combo));
 
-    CAPPLET_COMPOSE_NWAMUI_OBJECT_COMBO(GTK_COMBO_BOX(prv->edit_profile_name_combo), NWAM_PREF_IFACE(self));
+    capplet_compose_combo(GTK_COMBO_BOX(prv->edit_profile_name_combo),
+      GTK_TYPE_LIST_STORE,
+      G_TYPE_OBJECT,
+      (GtkCellLayoutDataFunc)nwamui_object_name_cell,
+      NULL,
+      (GCallback)edit_profile_name_combo_changed,
+      (gpointer)self,
+      NULL);
 
     gtk_widget_hide(GTK_WIDGET(prv->edit_profile_name_combo));
 /*     capplet_update_model_from_daemon(gtk_combo_box_get_model(GTK_COMBO_BOX(prv->edit_profile_name_combo)), daemon, NWAMUI_TYPE_NCP); */
@@ -661,95 +669,28 @@ nwam_net_conf_panel_new(NwamCappletDialog *pref_dialog)
 static gboolean
 refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
-    NwamNetConfPanel*    self = NWAM_NET_CONF_PANEL( iface );
-    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(iface);
-    NwamuiObject *combo_object;
-    NwamuiNcp *old_ncp = prv->selected_ncp;
+    NwamNetConfPanel*         self   = NWAM_NET_CONF_PANEL( iface );
+    NwamNetConfPanelPrivate*  prv    = GET_PRIVATE(iface);
+    NwamuiDaemon             *daemon = nwamui_daemon_get_instance();
+    NwamuiNcp                *refresh_ncp;
+
+    refresh_ncp = user_data ? g_object_ref(NWAMUI_NCP(user_data)) : nwamui_daemon_get_active_ncp(daemon);
+    g_object_unref(daemon);
 
     if (force) {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-        NwamuiNcp *active_ncp = nwamui_daemon_get_active_ncp(daemon);
+        NwamuiObject *combo_object;
+
         /* Update active ncp combo. */
-        capplet_combo_set_active_object(prv->profile_name_combo, G_OBJECT(active_ncp));
-        g_object_unref(active_ncp);
+        capplet_combo_set_active_object(prv->profile_name_combo, G_OBJECT(refresh_ncp));
         g_object_unref(daemon);
     }
 
-	/* data could be null or prv->selected_ncp */
-    if (user_data != NULL) {
-        GtkTreeModel *model;
-
-        /* Update ncp combo first if the selected ncp isn't the same to what we
-         * are refreshing */
-        combo_object = (NwamuiObject *)capplet_combo_get_active_object(prv->edit_profile_name_combo);
-        /* Safely unref */
-        if (combo_object)
-            g_object_unref(combo_object);
-        if (combo_object != user_data) {
-            capplet_combo_set_active_object(prv->edit_profile_name_combo, G_OBJECT(user_data));
-            /* Will trigger refresh again, so return */
-            return(TRUE);
-        }
-
-        prv->selected_ncp = NWAMUI_NCP(user_data);
-        if (old_ncp != NWAMUI_NCP(user_data) || force) {
-
-            if ( old_ncp != NULL ) {
-                g_signal_handlers_disconnect_matched(old_ncp,
-                  G_SIGNAL_MATCH_DATA,
-                  0,
-                  NULL,
-                  NULL,
-                  NULL,
-                  (gpointer)self);
-            }
-
-            model = gtk_tree_view_get_model(prv->net_conf_treeview);
-
-            gtk_widget_hide(GTK_WIDGET(prv->net_conf_treeview));
-
-            gtk_tree_store_clear(GTK_TREE_STORE(model));
-
-            {
-                GList *obj_list = nwamui_ncp_get_ncu_list(prv->selected_ncp);
-
-                while (obj_list) {
-                    ncu_pri_treeview_add(prv->net_conf_treeview, model, NWAMUI_OBJECT(obj_list->data));
-                    g_object_unref(obj_list->data);
-                    obj_list = g_list_delete_link(obj_list, obj_list);
-                }
-                /* Check if all or none group have nodes. */
-                ncu_pri_treeview_add(prv->net_conf_treeview, model, NULL);
-                /* Update hash, collapse group id. */
-                ncu_pri_group_update(model);
-            }
-
-            gtk_widget_show(GTK_WIDGET(prv->net_conf_treeview));
-/*             prv->on_child_num = 0; */
-/*             prv->off_child_num = 0; */
-/*             prv->child_num = 0; */
-/*             prv->on_group_num = 0; */
-/*             prv->off_group_num = 0; */
-/*             prv->group_num = 0; */
-
-            g_signal_connect(prv->selected_ncp, "add_ncu",
-              G_CALLBACK(ncp_add_ncu), (gpointer) self);
-
-            g_signal_connect(prv->selected_ncp, "remove_ncu",
-              G_CALLBACK(ncp_remove_ncu), (gpointer) self);
-
-            /* Update widgets */
-            selection_changed(gtk_tree_view_get_selection(prv->net_conf_treeview), (gpointer)self);
-
-            if (nwamui_ncp_is_modifiable(prv->selected_ncp)) {
-                gtk_widget_set_sensitive(GTK_WIDGET(prv->net_conf_treeview), TRUE);
-                gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_edit_btn), TRUE);
-            } else {
-                gtk_widget_set_sensitive(GTK_WIDGET(prv->net_conf_treeview), FALSE);
-                gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_edit_btn), FALSE);
-            }
-        }
+    if (!prv->selected_ncp) {
+        /* Update edit ncp combo */
+        capplet_combo_set_active_object(prv->edit_profile_name_combo, G_OBJECT(refresh_ncp));
     }
+
+    g_object_unref(refresh_ncp);
     
     return( TRUE );
 }
@@ -763,12 +704,6 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     NwamuiNcp                  *user_ncp;
     NwamuiDaemon               *daemon = nwamui_daemon_get_instance();
     GtkTreeIter                iter;
-
-    /* Set active ncp combo. */
-    combo_object = (NwamuiObject *)capplet_combo_get_active_object(prv->profile_name_combo);
-    nwamui_daemon_set_active_ncp(daemon, NWAMUI_NCP(combo_object));
-
-    g_object_unref(combo_object);
 
     user_ncp = nwamui_daemon_get_ncp_by_name(daemon, NWAM_NCP_NAME_USER);
 
@@ -784,6 +719,12 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         nwamui_object_commit(NWAMUI_OBJECT(user_ncp));
         g_object_unref(G_OBJECT(user_ncp));
     }
+
+    /* Set active ncp combo last, since the to-be-activated ncp may lose the
+     * NCUs to be added. */
+    combo_object = (NwamuiObject *)capplet_combo_get_active_object(prv->profile_name_combo);
+    nwamui_daemon_set_active_ncp(daemon, NWAMUI_NCP(combo_object));
+    g_object_unref(combo_object);
 
     g_object_unref(daemon);
 
@@ -1029,7 +970,7 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
 
     /* prv->ncu_selection may mix NCUs of different NCPs, so we have to find
      * the real NCU. */
-    found_object = nwamui_ncp_get_ncu_by_device_name(prv->selected_ncp, name);
+    found_object = NWAMUI_OBJECT(nwamui_ncp_get_ncu_by_device_name(prv->selected_ncp, name));
     if ( found_object != NULL ) {
         if ( nwamui_object_get_nwam_state( found_object, NULL, NULL, NWAM_NCU_TYPE_LINK ) == NWAM_STATE_ONLINE ) {
             is_active = TRUE;
@@ -2089,7 +2030,7 @@ profile_edit_btn_clicked(GtkButton *button, gpointer user_data )
                     }
                 }
             }
-            nwam_pref_refresh(NWAM_PREF_IFACE(self), prv->selected_ncp, TRUE);
+            edit_profile_name_combo_changed(prv->edit_profile_name_combo, (gpointer)self);
         }
         break;
     default:
@@ -2491,6 +2432,77 @@ ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
     ncu_pri_treeview_remove(prv->net_conf_treeview,
       gtk_tree_view_get_model(prv->net_conf_treeview),
       NWAMUI_OBJECT(ncu));
+}
+
+static void
+edit_profile_name_combo_changed(GtkComboBox *widget, gpointer user_data)
+{
+    NwamNetConfPanel        *self    = NWAM_NET_CONF_PANEL(user_data);
+    NwamNetConfPanelPrivate *prv     = GET_PRIVATE(user_data);
+    NwamuiNcp               *old_ncp = prv->selected_ncp;
+    GtkTreeModel            *model;
+
+    prv->selected_ncp = NWAMUI_NCP(capplet_combo_get_active_object(widget));
+
+    if (old_ncp != prv->selected_ncp) {
+
+        if ( old_ncp != NULL ) {
+            g_signal_handlers_disconnect_matched(old_ncp,
+              G_SIGNAL_MATCH_DATA,
+              0,
+              NULL,
+              NULL,
+              NULL,
+              (gpointer)self);
+        }
+
+        g_signal_connect(prv->selected_ncp, "add_ncu",
+          G_CALLBACK(ncp_add_ncu), (gpointer) self);
+
+        g_signal_connect(prv->selected_ncp, "remove_ncu",
+          G_CALLBACK(ncp_remove_ncu), (gpointer) self);
+
+    }
+
+    model = gtk_tree_view_get_model(prv->net_conf_treeview);
+
+    gtk_widget_hide(GTK_WIDGET(prv->net_conf_treeview));
+
+    gtk_tree_store_clear(GTK_TREE_STORE(model));
+
+    {
+        GList *obj_list = nwamui_ncp_get_ncu_list(prv->selected_ncp);
+
+        while (obj_list) {
+            ncu_pri_treeview_add(prv->net_conf_treeview, model, NWAMUI_OBJECT(obj_list->data));
+            g_object_unref(obj_list->data);
+            obj_list = g_list_delete_link(obj_list, obj_list);
+        }
+        /* Check if all or none group have nodes. */
+        ncu_pri_treeview_add(prv->net_conf_treeview, model, NULL);
+        /* Update hash, collapse group id. */
+        ncu_pri_group_update(model);
+    }
+
+    gtk_widget_show(GTK_WIDGET(prv->net_conf_treeview));
+
+/*             prv->on_child_num = 0; */
+/*             prv->off_child_num = 0; */
+/*             prv->child_num = 0; */
+/*             prv->on_group_num = 0; */
+/*             prv->off_group_num = 0; */
+/*             prv->group_num = 0; */
+
+    /* Update widgets */
+    selection_changed(gtk_tree_view_get_selection(prv->net_conf_treeview), (gpointer)self);
+
+    if (nwamui_ncp_is_modifiable(prv->selected_ncp)) {
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->net_conf_treeview), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_edit_btn), TRUE);
+    } else {
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->net_conf_treeview), FALSE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_edit_btn), FALSE);
+    }
 }
 
 static NwamuiObject*
