@@ -1,3 +1,12 @@
+2009-11-13  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_env_pref_dialog.c (nwam_env_pref_dialog_init),
+	(block_nameservices_signals), (on_ns_selection_clicked):
+	Fixed 12589 [RC5] network locations - cancel button does not work
+	when invalid address entered
+	Fixed 12595 [RC5] network locations - NIS servers field editable
+	when initially selected (DHCP is enabled)
+
 2009-11-12  Calum Benson  <calum@opensolaris>
 
 	* ui/nwam-manager-properties.ui:
