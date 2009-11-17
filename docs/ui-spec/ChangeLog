@@ -1,3 +1,11 @@
+2009-11-17 Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+
+	Fix typo in Name Services spec wording ("if more than one"-> "if only one"), reported by Bob.
+	Fix wording of IPv6 behaviour, partially fixes http://defect.opensolaris.org/bz/show_bug.cgi?id=12615. (Online Help fix required to close.)
+
 2009-10-20 Calum Benson  <calum.benson@sun.com>
 	* nwam-ui-spec.pages
 	* img/capplet/connect-wireless-dlg.png
