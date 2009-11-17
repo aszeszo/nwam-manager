@@ -69,31 +69,31 @@ enum {
 
 struct _NwamVPNPrefDialogPrivate {
 	/* Widget Pointers */
-	GtkDialog	*vpn_pref_dialog;
-	GtkTreeView	*view;
-	GtkButton	*add_btn;
-	GtkButton	*remove_btn;
-	GtkButton	*rename_btn;
-	GtkButton	*start_btn;
-	GtkButton	*stop_btn;
-	GtkCheckButton	*vpn_conditional_cb;
-	GtkButton	*vpn_rules_btn;
-	GtkButton	*browse_start_cmd_btn;
-	GtkButton	*browse_stop_cmd_btn;
-	GtkEntry	*start_cmd_entry;
-	GtkEntry	*stop_cmd_entry;
-	GtkEntry	*process_entry;
-	GtkLabel	*start_cmd_lbl;
-	GtkLabel	*stop_cmd_lbl;
-	GtkLabel	*process_lbl;
-	GtkLabel	*desc_lbl;
+	GtkDialog      *vpn_pref_dialog;
+	GtkTreeView    *view;
+	GtkButton      *add_btn;
+	GtkButton      *remove_btn;
+	GtkButton      *rename_btn;
+	GtkButton      *start_btn;
+	GtkButton      *stop_btn;
+	GtkCheckButton *vpn_conditional_cb;
+	GtkButton      *vpn_rules_btn;
+	GtkButton      *browse_start_cmd_btn;
+	GtkButton      *browse_stop_cmd_btn;
+	GtkEntry       *start_cmd_entry;
+	GtkEntry       *stop_cmd_entry;
+	GtkEntry       *process_entry;
+	GtkLabel       *start_cmd_lbl;
+	GtkLabel       *stop_cmd_lbl;
+	GtkLabel       *process_lbl;
+	GtkLabel       *desc_lbl;
     GtkRadioButton *vpn_cli_rb;
     GtkRadioButton *vpn_smf_rb;
 
 	/* nwam data related */
-	NwamuiDaemon	*daemon;
+	NwamuiDaemon *daemon;
 	//GList	*enm_list;
-	GObject	*cur_obj;	/* current selection of tree */
+	GObject	*cur_obj;           /* current selection of tree */
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
@@ -409,6 +409,17 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
         return( FALSE );
     }
 
+    /* Stop update GUI when commit changes one by one. */
+/*     g_signal_handlers_block_matched(obj, */
+/*       G_SIGNAL_MATCH_FUNC, */
+/*       0, */
+/*       "notify", */
+/*       NULL, */
+/*       (GCallback)capplet_util_object_notify_cb, */
+/*       NULL); */
+
+    g_object_freeze_notify(obj);
+
     cli_value = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->vpn_cli_rb));
     if (cli_value) {
         prev_txt = nwamui_enm_get_start_command(NWAMUI_ENM(obj));
@@ -486,6 +497,19 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
     }
 
     nwamui_util_free_obj_list( conditions_list );
+
+    g_object_thaw_notify(obj);
+
+/*     g_signal_handlers_unblock_matched(obj, */
+/*       G_SIGNAL_MATCH_FUNC, */
+/*       0, */
+/*       "notify", */
+/*       NULL, */
+/*       (GCallback)capplet_util_object_notify_cb, */
+/*       NULL); */
+
+/*     /\* Update Gui *\/ */
+/*     g_object_notify(obj, "active"); */
 
 	return TRUE;
 }
@@ -1213,6 +1237,20 @@ conditional_toggled_cb(GtkToggleButton *button, gpointer user_data)
     toggled = gtk_toggle_button_get_active(button);
 
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), toggled);
+
+    if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->view), &model, &iter ) ) {
+        NwamuiObject                  *obj;
+
+        gtk_tree_model_get(model, &iter, 0, &obj, -1);
+        
+        if (toggled) {
+            /* Default set to condition any when changing from others. */
+            nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY);
+        } else {
+            nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_MANUAL);
+        }
+        g_object_unref(obj);
+    }
 }
 
 static void

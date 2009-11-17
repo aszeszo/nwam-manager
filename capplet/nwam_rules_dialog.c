@@ -97,6 +97,18 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 		if (prv->selected_object) {
 			gchar *title;
 			gchar *name;
+            nwamui_cond_activation_mode_t mode;
+
+            mode = nwamui_object_get_activation_mode(prv->selected_object);
+
+            if (mode == NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL) {
+                gtk_button_clicked(GTK_BUTTON(prv->rules_match_all_rb));
+            } else if (mode == NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY) {
+                gtk_button_clicked(GTK_BUTTON(prv->rules_match_any_rb));
+            } else {
+                /* Maybe manual or system, set to default. */
+                gtk_button_clicked(GTK_BUTTON(prv->rules_match_any_rb));
+            }
 
 			name = nwamui_object_get_name(prv->selected_object);
 			title = g_strdup_printf("Edit Rules : %s", name);

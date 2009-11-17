@@ -1380,6 +1380,8 @@ nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh)
 
     nwamui_debug ("loaded nwam_loc_handle : %s", name);
 
+    /* Tell GUI to refresh */
+    g_object_notify(G_OBJECT(self), "activation-mode");
 
     /* Initialise enabled to be the original value */
     enabled = get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED );

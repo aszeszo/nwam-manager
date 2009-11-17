@@ -60,6 +60,8 @@ void nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *objec
 void nwam_tooltip_widget_add_ncu(NwamTooltipWidget *self, NwamuiObject *object);
 void nwam_tooltip_widget_remove_ncu(NwamTooltipWidget *self, NwamuiObject *object);
 
+void nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon);
+
 
 G_END_DECLS
 

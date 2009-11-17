@@ -165,7 +165,11 @@ connect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu)
 {
     NwamNcuItemPrivate *prv = GET_PRIVATE(self);
 
+    g_signal_connect (G_OBJECT(ncu), "notify::vanity-name",
+      G_CALLBACK(on_nwam_ncu_notify), (gpointer)self);
     g_signal_connect (G_OBJECT(ncu), "notify::active",
+      G_CALLBACK(on_nwam_ncu_notify), (gpointer)self);
+    g_signal_connect (G_OBJECT(ncu), "notify::enabled",
       G_CALLBACK(on_nwam_ncu_notify), (gpointer)self);
 
     prv->sensitive = nwamui_ncu_is_modifiable(NWAMUI_NCU(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))));
@@ -241,7 +245,7 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     }
 
-    if (!arg1 || g_ascii_strcasecmp(arg1->name, "vanity_name") == 0) {
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "vanity-name") == 0) {
 		gchar *name = NULL;
         gchar *lbl_name = NULL;
         gchar *type_str = NULL;

@@ -336,11 +336,59 @@ nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *object)
 }
 
 void
+nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon)
+{
+    NwamTooltipWidgetPrivate *prv = NWAM_TOOLTIP_WIDGET_GET_PRIVATE(self);
+    NwamuiObject *ncp = nwamui_daemon_get_active_ncp(NWAMUI_DAEMON(daemon));
+    GList *ncu_list = nwamui_ncp_get_ncu_list(NWAMUI_NCP(ncp));
+    GList *enm_list = nwamui_daemon_get_enm_list(NWAMUI_DAEMON(daemon));
+    GList *idx;
+    gint ncu_num;
+    GList *w_list;
+
+    g_object_set(prv->ncp_widget, "proxy-object", ncp, NULL);
+    g_object_ref(ncp);
+
+    ncu_list = g_list_concat(ncu_list, enm_list);
+
+    /* Get list of children, remove non-NCU children and then process.  */
+    w_list = gtk_container_get_children(GTK_CONTAINER(self));
+    g_assert(w_list);
+    w_list = g_list_remove(w_list, prv->env_widget);
+    g_assert(w_list);
+    w_list = g_list_remove(w_list, prv->ncp_widget);
+    ncu_num = g_list_length(w_list);
+
+    /* For each entry in the ncu_list, re-use any existing w_list nodes by
+     * changing their proxy-objects.
+     */
+    for (; ncu_list && w_list; ) {
+        g_object_set(w_list->data, "proxy-object", ncu_list->data, NULL);
+
+        ncu_list = g_list_delete_link(ncu_list, ncu_list);
+        w_list = g_list_delete_link(w_list, w_list);
+    }
+    /* Any remaining ncu_list entries, then add to container.
+     */
+    for (; ncu_list;) {
+        nwam_tooltip_widget_add_ncu(self, NWAMUI_OBJECT(ncu_list->data));
+        ncu_list = g_list_delete_link(ncu_list, ncu_list);
+    }
+    /* Any remaining w_list entries, then remove them since they are unused.
+     */
+    for (; w_list; ) {
+        g_assert(w_list->data != prv->env_widget && w_list->data != prv->ncp_widget);
+        gtk_container_remove(GTK_CONTAINER(self), GTK_WIDGET(w_list->data));
+        w_list = g_list_delete_link(w_list, w_list);
+    }
+}
+
+void
 nwam_tooltip_widget_add_ncu(NwamTooltipWidget *self, NwamuiObject *object)
 {
     NwamTooltipWidgetPrivate *prv = NWAM_TOOLTIP_WIDGET_GET_PRIVATE(self);
 
-    g_assert(NWAMUI_IS_NCU(object));
+    g_assert(NWAMUI_IS_OBJECT(object));
 
 #if DEF_CUSTOM_TREEVIEW_TOOLTIP
     GtkTreeModel *model = gtk_tree_view_get_model(prv->tooltip_treeview);
@@ -360,7 +408,7 @@ nwam_tooltip_widget_remove_ncu(NwamTooltipWidget *self, NwamuiObject *object)
 {
     NwamTooltipWidgetPrivate *prv = NWAM_TOOLTIP_WIDGET_GET_PRIVATE(self);
 
-    g_assert(NWAMUI_IS_NCU(object));
+    g_assert(NWAMUI_IS_OBJECT(object));
 
 #if DEF_CUSTOM_TREEVIEW_TOOLTIP
     GtkTreeModel *model = gtk_tree_view_get_model(prv->tooltip_treeview);

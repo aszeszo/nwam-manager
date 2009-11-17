@@ -158,7 +158,11 @@ nwam_enm_item_get_property (GObject         *object,
 static void
 connect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm)
 {
+    g_signal_connect (G_OBJECT(enm), "notify::name",
+      G_CALLBACK(on_nwam_enm_notify), (gpointer)self);
     g_signal_connect (enm, "notify::active",
+      G_CALLBACK(on_nwam_enm_notify), (gpointer)self);
+    g_signal_connect (G_OBJECT(enm), "notify::activation-mode",
       G_CALLBACK(on_nwam_enm_notify), (gpointer)self);
 }
 
@@ -235,6 +239,7 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         const gchar    *icon_name = nwamui_util_get_active_mode_icon( object );
         GtkWidget      *image = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
 
+        g_debug("activation-mode");
         gtk_image_set_from_icon_name( GTK_IMAGE(image), icon_name, GTK_ICON_SIZE_MENU );
 
         switch (nwamui_object_get_activation_mode(object)) {

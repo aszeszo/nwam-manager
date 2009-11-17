@@ -628,6 +628,7 @@ daemon_enm_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 
     nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_ENM);
     nwam_menu_recreate_enm_menuitems(self);
+    nwam_tooltip_widget_update_daemon(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->daemon));
 }
 
 static void
@@ -679,7 +680,9 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 
             nwam_menu_recreate_ncu_menuitems(self);
 
-            nwam_tooltip_widget_update_ncp(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->active_ncp));
+            nwam_tooltip_widget_update_daemon(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->daemon));
+
+/*             nwam_tooltip_widget_update_ncp(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->active_ncp)); */
 
             nwam_menu_start_update_wifi_timer(self);
 

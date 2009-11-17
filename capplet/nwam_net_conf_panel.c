@@ -1648,13 +1648,13 @@ foreach_set_group_mode(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter
                 case ALWAYS_ON_GROUP_ID:
                 case ALWAYS_OFF_GROUP_ID:
                     nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_MANUAL);
-/*                     nwamui_object_set_active(obj, group_id == ALWAYS_ON_GROUP_ID); */
                     nwamui_object_set_enabled(NWAMUI_OBJECT(obj), group_id == ALWAYS_ON_GROUP_ID);
                     break;
                 default:
                     nwamui_ncu_set_priority_group(NWAMUI_NCU(obj), group_id);
                     nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED);
                     nwamui_ncu_set_priority_group_mode(NWAMUI_NCU(obj), mode);
+                    nwamui_object_set_enabled(NWAMUI_OBJECT(obj), TRUE);
                     break;
                 }
                 nwamui_object_commit(obj);

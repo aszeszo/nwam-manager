@@ -174,7 +174,11 @@ nwam_env_item_get_property (GObject         *object,
 static void
 connect_env_signals(NwamEnvItem *self, NwamuiEnv *env)
 {
+    g_signal_connect (G_OBJECT(env), "notify::name",
+      G_CALLBACK(on_nwam_env_notify), (gpointer)self);
     g_signal_connect (G_OBJECT(env), "notify::active",
+      G_CALLBACK(on_nwam_env_notify), (gpointer)self);
+    g_signal_connect (G_OBJECT(env), "notify::activation-mode",
       G_CALLBACK(on_nwam_env_notify), (gpointer)self);
 }
 
@@ -234,7 +238,7 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     }
 
-    if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation_mode") == 0) {
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation-mode") == 0) {
         const gchar    *icon_name = nwamui_util_get_active_mode_icon( object );
         GtkImage       *image = GTK_IMAGE(nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0));
 

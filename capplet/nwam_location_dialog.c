@@ -1203,32 +1203,34 @@ location_activation_combo_changed_cb(GtkComboBox* combo, gpointer user_data)
 	}
 
     if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->location_tree), &model, &iter ) ) {
-        NwamuiEnv                      *env;
-        nwamui_cond_activation_mode_t   cond;
+        NwamuiObject                  *obj;
+        nwamui_cond_activation_mode_t  cond;
 
-        gtk_tree_model_get(model, &iter, 0, &env, -1);
+        gtk_tree_model_get(model, &iter, 0, &obj, -1);
         
-        cond = nwamui_object_get_activation_mode(NWAMUI_OBJECT(env));
+        cond = nwamui_object_get_activation_mode(obj);
         switch (gtk_combo_box_get_active(prv->location_activation_combo)) {
         case NWAMUI_LOC_ACTIVATION_MANUAL:
             if (cond != NWAMUI_COND_ACTIVATION_MODE_MANUAL) {
-                nwamui_object_set_activation_mode(NWAMUI_OBJECT(env), NWAMUI_COND_ACTIVATION_MODE_MANUAL);
+                nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_MANUAL);
             }
             break;
         case NWAMUI_LOC_ACTIVATION_BY_RULES:
+            /* Default set to condition any when changing from others. */
             if (cond != NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY) {
-                nwamui_object_set_activation_mode(NWAMUI_OBJECT(env), NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY);
+                nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY);
             }
             break;
         case NWAMUI_LOC_ACTIVATION_BY_SYSTEM:
             if (cond != NWAMUI_COND_ACTIVATION_MODE_SYSTEM) {
-                nwamui_object_set_activation_mode(NWAMUI_OBJECT(env), NWAMUI_COND_ACTIVATION_MODE_SYSTEM);
+                nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_SYSTEM);
             }
             break;
         default:
             g_assert_not_reached();
             break;
         }
+        g_object_unref(obj);
     }
 }
 

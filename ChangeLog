@@ -1,3 +1,40 @@
+2009-11-17  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_location_dialog.c
+	(location_activation_combo_changed_cb):
+	* capplet/nwam_rules_dialog.c (refresh):
+	Fixed 12594 [RC5] network locations - rules dialog does not remember
+	'match all' choice
+	* capplet/nwam_net_conf_panel.c (foreach_set_group_mode):
+	Fixed 12608 [rc5] all interfaces unavailable after restoring
+	interfaces from always disable these connections
+	* capplet/nwam_vpn_pref_dialog.c (nwam_update_obj),
+	(conditional_toggled_cb):
+	Fixed 12654  [RC5] the first time user enters stop vpn command it is
+	rejected. And some related to 12594
+	* common/nwamui_enm.c (nwamui_enm_get_property),
+	(nwamui_enm_update_with_handle):
+	* common/nwamui_env.c (nwamui_env_update_with_handle):
+	Notify Gui when receiving object refresh event.
+	* daemon/nwam-enm-item.c (connect_enm_signals),
+	(on_nwam_enm_notify):
+	* daemon/nwam-env-item.c (connect_env_signals),
+	(on_nwam_env_notify):
+	* daemon/nwam-ncu-item.c (connect_ncu_signals),
+	(on_nwam_ncu_notify):
+	Fixed 12655 [RC5] after changing manually activated to rules activated
+	VPN it appears active in right click menu
+	The same issue is existed in env and ncu.
+	* daemon/nwam-tooltip-widget.c (connect_object),
+	(nwam_object_notify), (nwam_ncu_notify),
+	(nwam_object_activation_mode_notify):
+	* daemon/status_icon.c (daemon_enm_list_changed),
+	(daemon_active_ncp_changed):
+	* daemon/status_icon_tooltip.c (nwam_tooltip_widget_update_daemon),
+	(nwam_tooltip_widget_add_ncu), (nwam_tooltip_widget_remove_ncu):
+	* daemon/status_icon_tooltip.h:
+	Add ENMs in panel icon tooltip
+
 2009-11-13  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_env_pref_dialog.c (nwam_env_pref_dialog_init),

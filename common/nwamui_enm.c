@@ -458,8 +458,7 @@ nwamui_enm_get_property (   GObject         *object,
         uint64_t                      nwamvalue       = 0;
 
         if (self->prv->nwam_enm != NULL) {
-            nwamvalue = (nwamui_cond_activation_mode_t)
-              get_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ACTIVATION_MODE );
+            nwamvalue = get_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ACTIVATION_MODE );
         }
         else {
             g_warning("Unexpected null enm handle");
@@ -866,6 +865,9 @@ nwamui_enm_update_with_handle (NwamuiEnm* self, nwam_enm_handle_t enm)
          g_free(self->prv->name);
     }
     self->prv->name = name;
+
+    /* Tell GUI to refresh */
+    g_object_notify(G_OBJECT(self), "activation-mode");
 
     self->prv->nwam_enm_modified = FALSE;
 

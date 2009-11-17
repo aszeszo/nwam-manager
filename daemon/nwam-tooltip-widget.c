@@ -64,6 +64,7 @@ static void disconnect_object(NwamObjectTooltipWidget *self, NwamuiObject *objec
 static void sync_object(NwamObjectTooltipWidget *self, NwamuiObject *object, gpointer user_data);
 static void nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 static void nwam_ncu_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
+static void nwam_object_activation_mode_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
 G_DEFINE_TYPE(NwamObjectTooltipWidget, nwam_object_tooltip_widget, NWAM_TYPE_MENU_ITEM)
 
@@ -160,6 +161,17 @@ connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object)
 
         /* Call once on initial connection */
         nwam_ncu_notify(G_OBJECT(object), NULL, (gpointer)self);
+    } else if (type == NWAMUI_TYPE_ENM) {
+        g_signal_connect (G_OBJECT(object), "notify::name",
+          G_CALLBACK(nwam_object_notify), (gpointer)self);
+        g_signal_connect (G_OBJECT(object), "notify::active",
+          G_CALLBACK(nwam_object_notify), (gpointer)self);
+
+        g_signal_connect (G_OBJECT(object), "notify::activation-mode",
+          G_CALLBACK(nwam_object_activation_mode_notify), (gpointer)self);
+
+        /* Call once on initial connection */
+        nwam_object_activation_mode_notify(G_OBJECT(object), NULL, (gpointer)self);
     } else {
         g_signal_connect (G_OBJECT(object), "notify::name",
           G_CALLBACK(nwam_object_notify), (gpointer)self);
@@ -226,7 +238,11 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 	} else if (type == NWAMUI_TYPE_NCP) {
         g_string_append_printf(gstr, _("<b>Network Profile:</b> %s"), name);
 /* 	} else if (type == NWAMUI_TYPE_WIFI_NET) { */
-/* 	} else if (type == NWAMUI_TYPE_ENM) { */
+	} else if (type == NWAMUI_TYPE_ENM) {
+        nwam_state_t            state = NWAM_STATE_UNINITIALIZED;
+        nwam_aux_state_t        aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+        state = nwamui_object_get_nwam_state(object, &aux_state, NULL, 0 );
+        g_string_append_printf(gstr, _("<b>VPN %s:</b> %s"), name, nwam_aux_state_to_string(aux_state));
 /* 	} else { */
 	}
     menu_item_set_markup(GTK_MENU_ITEM(user_data), gstr->str);
@@ -239,8 +255,14 @@ nwam_ncu_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 {
     GtkWidget *img = gtk_image_new_from_pixbuf(nwamui_util_get_ncu_status_icon(NWAMUI_NCU(gobject), 24));
 
-    nwam_menu_item_set_widget(NWAM_MENU_ITEM(user_data),
-      0,
-      img);
+    nwam_menu_item_set_widget(NWAM_MENU_ITEM(user_data), 0, img);
+}
+
+static void
+nwam_object_activation_mode_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
+{
+    GtkWidget *img = gtk_image_new_from_icon_name(nwamui_util_get_active_mode_icon(NWAMUI_OBJECT(gobject)), GTK_ICON_SIZE_MENU);
+    gtk_image_set_pixel_size(img, 24);
+    nwam_menu_item_set_widget(NWAM_MENU_ITEM(user_data), 0, img);
 }
 
