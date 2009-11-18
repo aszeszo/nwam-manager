@@ -2067,8 +2067,9 @@ nwamui_util_validate_text_entry(    GtkWidget           *widget,
                     }
                 }
                 else if ( is_v6 ) {
+                    gchar *endptr;
                     gint64 prefix = g_ascii_strtoll( strs[0], NULL, 10 );
-                    if ( prefix == 0 || prefix > 128 ) {
+                    if ( *endptr != '\0' || prefix == 0 || prefix > 128 ) {
                         is_valid = FALSE;
                         error_string = g_strdup_printf(_("The value '%s' is not a valid IPv6 network prefix."), strs[0] );
                     }
@@ -2114,8 +2115,9 @@ nwamui_util_validate_text_entry(    GtkWidget           *widget,
                         is_valid = TRUE; /* Need to reset since could have been set to FALSE by v4 check */
                     }
                     if ( is_valid && strs[1] != NULL ) { /* Handle /N */
-                        gint64 prefix = g_ascii_strtoll( strs[1], NULL, 10 );
-                        if ( prefix == 0 || prefix > 128 ) {
+                        gchar *endptr;
+                        gint64 prefix = g_ascii_strtoll( strs[1], &endptr, 10 );
+                        if ( *endptr != '\0' || prefix == 0 || prefix > 128 ) {
                             is_valid = FALSE;
                             error_string = g_strdup_printf(_("The value '%s' is not a valid IPv6 network prefix."), strs[1] );
                         }
@@ -2141,7 +2143,7 @@ nwamui_util_validate_text_entry(    GtkWidget           *widget,
 
         if ( is_prefix_only ) {
             if ( is_v6 ) {
-                g_string_append( message_str, _("Valid prefix values are between 1 and 128\n\n"));
+                g_string_append( message_str, _("IPv6 prefix length must be a decimal value between 1 and 128\n\n"));
             }
             else {
                 g_string_append( message_str, _("Subnets must be in the format:\n\n    w.x.y.z\n\n"));

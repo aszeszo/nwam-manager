@@ -1,5 +1,11 @@
 2009-11-18  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/libnwamui.c (nwamui_util_validate_text_entry):
+	Fixed 12217 [RC4] User should be alerted if IPv6 prefix length
+	is entered as non-decimal value 
+
+2009-11-18  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_daemon.c (nwamui_daemon_update_status):
 	According to comments#15,16 of 12079, we don't case ENMs state.
 	* common/nwamui_ncu.c:
