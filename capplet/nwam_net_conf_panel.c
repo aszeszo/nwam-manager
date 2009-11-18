@@ -972,7 +972,8 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
      * the real NCU. */
     found_object = NWAMUI_OBJECT(nwamui_ncp_get_ncu_by_device_name(prv->selected_ncp, name));
     if ( found_object != NULL ) {
-        if ( nwamui_object_get_nwam_state( found_object, NULL, NULL, NWAM_NCU_TYPE_LINK ) == NWAM_STATE_ONLINE ) {
+        /* Now we change to interface state */
+        if ( nwamui_object_get_nwam_state( found_object, NULL, NULL) == NWAM_STATE_ONLINE ) {
             is_active = TRUE;
         }
         /* Safely unref though we still use this pointer. */

@@ -210,6 +210,11 @@ extern gchar*               nwamui_ncu_get_connection_state_detail_string( Nwamu
 
 extern gchar*               nwamui_ncu_get_configuration_summary_string( NwamuiNcu* self );
 
+extern nwam_state_t         nwamui_ncu_get_interface_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
+
+extern nwam_state_t         nwamui_ncu_get_link_nwam_state(NwamuiNcu *self, nwam_aux_state_t* aux_state, const gchar**aux_state_string);
+extern void                 nwamui_ncu_set_link_nwam_state(NwamuiNcu *self, nwam_state_t state, nwam_aux_state_t aux_state);
+
 G_END_DECLS
 
 #endif	/* _NWAMUI_NCU_H */

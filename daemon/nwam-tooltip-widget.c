@@ -241,7 +241,7 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 	} else if (type == NWAMUI_TYPE_ENM) {
         nwam_state_t            state = NWAM_STATE_UNINITIALIZED;
         nwam_aux_state_t        aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-        state = nwamui_object_get_nwam_state(object, &aux_state, NULL, 0 );
+        state = nwamui_object_get_nwam_state(object, &aux_state, NULL);
         g_string_append_printf(gstr, _("<b>VPN %s:</b> %s"), name, nwam_aux_state_to_string(aux_state));
 /* 	} else { */
 	}

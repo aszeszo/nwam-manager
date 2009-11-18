@@ -1057,7 +1057,7 @@ nwamui_env_get_property (GObject         *object,
                     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
                     /* Use cached state in nwamui_object... */
-                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL, 0 );
+                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
                     if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_ACTIVE ) {
                         active = TRUE;
                     }

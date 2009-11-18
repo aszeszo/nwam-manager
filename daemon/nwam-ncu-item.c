@@ -169,10 +169,13 @@ connect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu)
       G_CALLBACK(on_nwam_ncu_notify), (gpointer)self);
     g_signal_connect (G_OBJECT(ncu), "notify::active",
       G_CALLBACK(on_nwam_ncu_notify), (gpointer)self);
-    g_signal_connect (G_OBJECT(ncu), "notify::enabled",
+/*     g_signal_connect (G_OBJECT(ncu), "notify::enabled", */
+/*       G_CALLBACK(on_nwam_ncu_notify), (gpointer)self); */
+    g_signal_connect (G_OBJECT(ncu), "notify::activation-mode",
       G_CALLBACK(on_nwam_ncu_notify), (gpointer)self);
 
-    prv->sensitive = nwamui_ncu_is_modifiable(NWAMUI_NCU(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))));
+    /* Now according to activation mode to set sensitive */
+/*     prv->sensitive = nwamui_ncu_is_modifiable(NWAMUI_NCU(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self)))); */
 }
 
 static void
@@ -194,7 +197,8 @@ sync_ncu(NwamNcuItem *self, NwamuiNcu *ncu, gpointer user_data)
 
     on_nwam_ncu_notify(G_OBJECT(ncu), NULL, (gpointer)self);
 
-    gtk_widget_set_sensitive(GTK_WIDGET(self), prv->sensitive);
+    /* Now according to activation mode to set sensitive */
+/*     gtk_widget_set_sensitive(GTK_WIDGET(self), prv->sensitive); */
 }
 
 static void
@@ -238,12 +242,27 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     }
 
-    if (!arg1 || g_ascii_strcasecmp(arg1->name, "enabled") == 0) {
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation-mode") == 0) {
+        nwamui_cond_activation_mode_t mode = nwamui_object_get_activation_mode(object);
 
-        gtk_widget_set_sensitive(GTK_WIDGET(self),
-          nwamui_object_get_enabled(NWAMUI_OBJECT(object)));
-
+        switch (mode) {
+        case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+            gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);
+            break;
+        case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+            gtk_widget_set_sensitive(GTK_WIDGET(self), TRUE);
+            break;
+        default:
+            g_assert_not_reached();
+        }
     }
+
+/*     if (!arg1 || g_ascii_strcasecmp(arg1->name, "enabled") == 0) { */
+
+/*         gtk_widget_set_sensitive(GTK_WIDGET(self), */
+/*           nwamui_object_get_enabled(NWAMUI_OBJECT(object))); */
+
+/*     } */
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "vanity-name") == 0) {
 		gchar *name = NULL;

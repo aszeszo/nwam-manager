@@ -1,3 +1,43 @@
+2009-11-18  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_stat_panel.c (conn_view_filter_visible_cb):
+	* capplet/nwam_net_conf_panel.c (nwam_connection_cell_func):
+	* common/libnwamui.c (nwamui_util_get_env_status_icon):
+	* common/nwamui_daemon.c (set_env_disabled),
+	(nwamui_daemon_update_status),
+	(nwamui_daemon_handle_object_state_event), (check_enm_online):
+	* common/nwamui_enm.c (nwamui_enm_get_property):
+	* common/nwamui_env.c (nwamui_env_get_property):
+	* common/nwamui_ncp.c (check_ncu_online):
+	* common/nwamui_ncu.c (nwamui_ncu_class_init),
+	(nwamui_ncu_set_property), (nwamui_ncu_get_property),
+	(populate_common_ncu_data):
+	* common/nwamui_ncu.h:
+	Added new link nwam state function mainly for daemon.
+	Cache GUI connection state in ncu object to avoid dup
+	connection notifications. Move get/set active functions out side
+	of properity function.
+	* common/nwamui_object.c (nwamui_object_class_init),
+	(nwamui_object_init), (nwamui_object_get_nwam_state),
+	(nwamui_object_set_nwam_state), (nwamui_object_notify_cb):
+	* common/nwamui_object.h:
+	get_nwam_state doesn't accept the 3th ncu_type arg anymore. The
+	default nwam state for NCU is interface events.
+	* daemon/notify.c (nwam_notification_show_ncu_disconnected):
+	Use the formatted connection state instead of nwam state string
+	to show info like "cable unplugged".
+	* daemon/nwam-enm-item.c (on_nwam_enm_notify):
+	* daemon/nwam-ncu-item.c (connect_ncu_signals), (sync_ncu),
+	(on_nwam_ncu_notify):
+	* daemon/nwam-tooltip-widget.c (nwam_object_notify):
+	* daemon/nwam-wifi-item.c (is_wifi_active):
+	* daemon/status_icon.c (ncu_notify_active),
+	(connect_nwam_object_signals), (initial_notify_nwam_object):
+	Update all callees of get_nwam_state.
+	
+	Fixed 12666 [RC5] balloon popup indicates connected interface when
+	it is taken off line
+
 2009-11-17  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_location_dialog.c

@@ -498,7 +498,7 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_daemon_statu
                     nwamui_cond_priority_group_mode_t 
                                             prio_group_mode;
                     
-                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL, 0);
+                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL);
                     activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(ncu));
                     prio_group_mode = nwamui_ncu_get_priority_group_mode( ncu );
 

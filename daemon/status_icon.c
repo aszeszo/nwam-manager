@@ -188,7 +188,6 @@ static void on_ncp_notify( GObject *gobject, GParamSpec *arg1, gpointer user_dat
 static void on_ncp_notify_many_wireless( GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
 /* nwamui ncu signals */
-static void ncu_notify_nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* GtkStatusIcon callbacks */
@@ -455,57 +454,54 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
 }
 
 static void
-ncu_notify_nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-    NwamStatusIcon *self       = NWAM_STATUS_ICON(data);
-    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    NwamuiNcu      *ncu        = NWAMUI_NCU(gobject);
-    gboolean        active_ncu = FALSE;
-
-	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
-        /* Wired only, wireless handled elsewhere. */
-        if ( active_ncu &&
-          nwamui_ncu_get_ncu_type( ncu ) == NWAMUI_NCU_TYPE_WIRED ) {
-            static nwam_state_t     cached_link_state = NWAM_STATE_UNINITIALIZED;
-            static nwam_aux_state_t cached_link_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-            nwam_state_t            link_state;
-            nwam_aux_state_t        link_aux_state;
-
-            /* Use cached state */
-            link_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(ncu),
-              &link_aux_state, NULL, NWAM_NCU_TYPE_LINK );
-
-            if (cached_link_state != link_state && cached_link_aux_state != link_aux_state) {
-                if ( link_state == NWAM_STATE_ONLINE_TO_OFFLINE  &&
-                  link_aux_state == NWAM_AUX_STATE_DOWN ) {
-                    /* Only show if in transition to down for sure */
-                    nwam_notification_show_ncu_disconnected(ncu, NULL, NULL);
-                }
-            }
-            cached_link_state = link_state;
-            cached_link_aux_state = link_aux_state;
-        }
-    }
-}
-
-static void
 ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamStatusIcon *self       = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
     NwamuiNcu      *ncu        = NWAMUI_NCU(gobject);
     gboolean        active_ncu = FALSE;
-    gboolean        show_messages = FALSE;
 
 	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
         if ( active_ncu ) {
             nwam_status_icon_set_status(self, ncu);
-            show_messages = TRUE;
         }
     }
+#if 0
+    /* Wired only, wireless handled elsewhere. */
+    if ( active_ncu &&
+      nwamui_ncu_get_ncu_type( ncu ) == NWAMUI_NCU_TYPE_WIRED ) {
+        static nwam_state_t     cached_nwam_state = NWAM_STATE_UNINITIALIZED;
+        static nwam_aux_state_t cached_nwam_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+        nwam_state_t            nwam_state;
+        nwam_aux_state_t        nwam_aux_state;
 
+        /* Use cached state */
+        nwam_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(ncu), &nwam_aux_state, NULL);
+        switch (nwam_state) {
+        case NWAM_STATE_UNINITIALIZED:
+        case NWAM_STATE_INITIALIZED:
+        case NWAM_STATE_OFFLINE:
+        case NWAM_STATE_OFFLINE_TO_ONLINE:
+        case NWAM_STATE_ONLINE_TO_OFFLINE:
+        case NWAM_STATE_ONLINE:
+        case NWAM_STATE_MAINTENANCE:
+        case NWAM_STATE_DEGRADED:
+        case NWAM_STATE_DISABLED:
+        }
+
+/*             if (cached_nwam_state != nwam_state && cached_nwam_aux_state != nwam_aux_state) { */
+        if ( nwam_state == NWAM_STATE_ONLINE_TO_OFFLINE  &&
+          nwam_aux_state == NWAM_AUX_STATE_DOWN ) {
+            /* Only show if in transition to down for sure */
+            nwam_notification_show_ncu_disconnected(ncu, NULL, NULL);
+        }
+/*             } */
+        cached_nwam_state = nwam_state;
+        cached_nwam_aux_state = nwam_aux_state;
+    }
+#endif
     /* Ncu state filter. */
-    switch(nwamui_ncu_get_connection_state(ncu)) {
+    switch(nwamui_ncu_get_updated_connection_state(ncu)) {
     case NWAMUI_STATE_CONNECTED_ESSID:
     case NWAMUI_STATE_CONNECTED:
         prv->needs_wifi_selection_seen = FALSE;
@@ -514,14 +510,17 @@ ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
             nwam_notification_show_ncu_connected( ncu );
         }
         break;
-    case NWAMUI_STATE_CONNECTING_ESSID:
+    case NWAMUI_STATE_NOT_CONNECTED:
     case NWAMUI_STATE_CABLE_UNPLUGGED: 
+        /* Only show if in transition to down for sure */
+        nwam_notification_show_ncu_disconnected(ncu, NULL, NULL);
+        break;
+    case NWAMUI_STATE_NETWORK_UNAVAILABLE:
+    case NWAMUI_STATE_CONNECTING_ESSID:
     case NWAMUI_STATE_NEEDS_KEY_ESSID:
     case NWAMUI_STATE_NEEDS_SELECTION:
     case NWAMUI_STATE_UNKNOWN:
-    case NWAMUI_STATE_NOT_CONNECTED:
     case NWAMUI_STATE_CONNECTING:
-    case NWAMUI_STATE_NETWORK_UNAVAILABLE:
     default:
         break;
     }
@@ -838,11 +837,6 @@ connect_nwam_object_signals(GObject *obj, GObject *self)
         g_signal_connect(ncu, "notify::active",
           G_CALLBACK(ncu_notify_active), (gpointer)self);
 
-        g_signal_connect(ncu, "notify::nwam-state",
-          G_CALLBACK(ncu_notify_nwam_state_changed), (gpointer)self);
-
-
-        
 /* 	} else if (type == NWAMUI_TYPE_ENV) { */
 /* 	} else if (type == NWAMUI_TYPE_ENM) { */
 	} else {
@@ -883,8 +877,10 @@ initial_notify_nwam_object(GObject *obj, GObject *self)
         NwamuiNcp* ncp = NWAMUI_NCP(obj);
 	} else if (type == NWAMUI_TYPE_NCU) {
         NwamuiNcu* ncu = NWAMUI_NCU(obj);
-
-        g_object_notify(G_OBJECT(ncu), "active");
+        /* Only initially notify if NCU is active. */
+        if (nwamui_object_get_active(NWAMUI_OBJECT(obj))) {
+            g_object_notify(G_OBJECT(ncu), "active");
+        }
 /* 	} else if (type == NWAMUI_TYPE_ENV) { */
 /* 	} else if (type == NWAMUI_TYPE_ENM) { */
 	} else {

@@ -831,7 +831,7 @@ check_ncu_online( gpointer obj, gpointer user_data )
     }
 
     activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(ncu));
-    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL, 0);
+    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL);
 
     if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_UP ) {
         online = TRUE;

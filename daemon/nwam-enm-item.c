@@ -239,7 +239,6 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         const gchar    *icon_name = nwamui_util_get_active_mode_icon( object );
         GtkWidget      *image = nwam_menu_item_get_widget(NWAM_MENU_ITEM(self), 0);
 
-        g_debug("activation-mode");
         gtk_image_set_from_icon_name( GTK_IMAGE(image), icon_name, GTK_ICON_SIZE_MENU );
 
         switch (nwamui_object_get_activation_mode(object)) {

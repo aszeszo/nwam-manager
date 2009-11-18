@@ -410,7 +410,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
         g_debug("Error creating nwam events thread: %s", (error && error->message)?error->message:"" );
     }
 
-    nwamui_daemon_init_lists ( self ); 
+    nwamui_daemon_init_lists ( self );
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
@@ -1223,7 +1223,7 @@ set_env_disabled( gpointer obj, gpointer user_data )
     /* Only disable an env if it's not marked as offline or disabled already,
      * best to make sure we pick the correct one here.
      */
-    state = nwamui_object_get_nwam_state(nobj, &aux_state, NULL, 0 );
+    state = nwamui_object_get_nwam_state(nobj, &aux_state, NULL);
     if ( state != NWAM_STATE_OFFLINE && state != NWAM_STATE_DISABLED ) {
         nwamui_object_set_active( NWAMUI_OBJECT(nobj), FALSE);
     }
@@ -2901,7 +2901,7 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
             nwam_state_t      state;
             nwam_aux_state_t  aux_state;
 
-            state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(prv->active_env), &aux_state, NULL, 0);
+            state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(prv->active_env), &aux_state, NULL);
             /* Filter out 'NoNet' */
             if (strcmp(name, NWAM_LOC_NAME_NO_NET) == 0 ||
               (state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE)) {
@@ -3273,14 +3273,18 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
             /* Work around since ncu signals of inactive ncp may be received by
              * active ncp. So ncu may not exist. */
             if (obj) {
-                nwamui_object_set_nwam_state(obj, object_state, object_aux_state, nwam_ncu_type );
+                if (nwam_ncu_type == NWAM_NCU_TYPE_INTERFACE) {
+                    nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
+                } else {
+                    nwamui_ncu_set_link_nwam_state(NWAMUI_NCU(obj), object_state, object_aux_state);
+                }
                 g_object_unref(obj);
             }
         }
             break;
         case NWAM_OBJECT_TYPE_NCP:
             obj = NWAMUI_OBJECT(nwamui_daemon_get_ncp_by_name( daemon, object_name ));
-            nwamui_object_set_nwam_state(obj, object_state, object_aux_state, 0);
+            nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
             if ( object_state == NWAM_STATE_ONLINE && object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
                 nwamui_daemon_set_active_ncp( daemon, NWAMUI_NCP(obj));
             } else {
@@ -3290,7 +3294,7 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
             break;
         case NWAM_OBJECT_TYPE_LOC:
             obj = NWAMUI_OBJECT(nwamui_daemon_get_env_by_name( daemon, object_name ));
-            nwamui_object_set_nwam_state(obj, object_state, object_aux_state, 0);
+            nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
             if ( object_state == NWAM_STATE_ONLINE && object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
                 nwamui_daemon_set_active_env( daemon, NWAMUI_ENV(obj) );
             } else {
@@ -3300,7 +3304,7 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
             break;
         case NWAM_OBJECT_TYPE_ENM:
             obj = NWAMUI_OBJECT(nwamui_daemon_get_enm_by_name( daemon, object_name ));
-            nwamui_object_set_nwam_state(obj, object_state, object_aux_state, 0);
+            nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
             if ( object_state == NWAM_STATE_ONLINE && object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
                 /* Nothing. */
             } else {
@@ -3333,7 +3337,7 @@ check_enm_online( gpointer obj, gpointer user_data )
     nwam_aux_state_t         aux_state;
 
     if ( nwamui_object_get_enabled( NWAMUI_OBJECT(nobj) ) ) {
-        state = nwamui_object_get_nwam_state( nobj, &aux_state, NULL, 0);
+        state = nwamui_object_get_nwam_state( nobj, &aux_state, NULL);
 
         if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
             *new_status_p = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
