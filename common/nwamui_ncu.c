@@ -3369,15 +3369,15 @@ nwamui_ncu_set_link_nwam_state(NwamuiNcu *self, nwam_state_t state, nwam_aux_sta
     prv->link_aux_state = aux_state;
     prv->link_state_last_update = time( NULL );;
     if ( state_changed ) {
-        g_object_notify(G_OBJECT(self), "nwam_state" );
+/*         g_object_notify(G_OBJECT(self), "nwam_state" ); */
     }
 
     /* Active property is likely to have changed too, but first check if there
      * is a get_active function, if so the active property should exist. */
     /* For NCUs, only care cache_index == 0. Compatible to ENV, ENM, etc. */
-    if ( state_changed && NWAMUI_OBJECT_GET_CLASS (self)->get_active != NULL ) {
-        g_object_notify(G_OBJECT(self), "active" );
-    }
+/*     if ( state_changed && NWAMUI_OBJECT_GET_CLASS (self)->get_active != NULL ) { */
+/*         g_object_notify(G_OBJECT(self), "active" ); */
+/*     } */
 }
 
 static gchar*
@@ -4219,9 +4219,9 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
         case NWAM_STATE_DEGRADED:
         case NWAM_STATE_DISABLED:
         case NWAM_STATE_INITIALIZED:
+        case NWAM_STATE_ONLINE_TO_OFFLINE:
             state = NWAMUI_STATE_NETWORK_UNAVAILABLE;
             break;
-        case NWAM_STATE_ONLINE_TO_OFFLINE:
         case NWAM_STATE_OFFLINE:
             if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRED && 
                  ( nwam_aux_state == NWAM_AUX_STATE_DOWN || 

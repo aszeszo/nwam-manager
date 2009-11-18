@@ -2910,13 +2910,15 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
             g_free(name);
         }
 
-        /* Lin, do we care the status of all ENMs? */
+        /* According to comments#15,16 of 12079, we don't case ENMs state. */
         /* Assuming we've no found an error yet, check the ENMs */
+#if 0
         new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
         g_list_foreach( daemon->prv->enm_list, check_enm_online, &new_status );
         if ( new_status == NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION ) {
             status_flags |= STATUS_REASON_ENM;
         }
+#endif
     }
 
     if (status_flags == 0) {
