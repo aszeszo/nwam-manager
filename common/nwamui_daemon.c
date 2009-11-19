@@ -2540,19 +2540,20 @@ nwamd_event_handler(gpointer data)
             break;
             
         case NWAM_EVENT_TYPE_OBJECT_STATE:
-            g_debug( "%s\t%s %s -> %s, %s",
+            g_debug( "%s  %s %s -> %s, %s (parent %s)",
               nwam_event_type_to_string(nwamevent->nwe_type),
               nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_state.nwe_object_type),
               nwamevent->nwe_data.nwe_object_state.nwe_name,
               nwam_state_to_string(nwamevent->nwe_data.nwe_object_state.nwe_state),
-              nwam_aux_state_to_string(nwamevent->nwe_data.nwe_object_state.nwe_aux_state));
+              nwam_aux_state_to_string(nwamevent->nwe_data.nwe_object_state.nwe_aux_state),
+              nwamevent->nwe_data.nwe_object_state.nwe_parent);
             nwamui_daemon_handle_object_state_event( daemon, nwamevent );
             /* Update daemon status */
             nwamui_daemon_update_status(daemon);
             break;
 
 		case NWAM_EVENT_TYPE_OBJECT_ACTION:
-            g_debug( "%s\t%s %s %s (parent %s)",
+            g_debug( "%s  %s %s %s (parent %s)",
               nwam_event_type_to_string(nwamevent->nwe_type),
               nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_action.nwe_object_type),
               nwamevent->nwe_data.nwe_object_action.nwe_name,
@@ -3263,24 +3264,30 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
         case NWAM_OBJECT_TYPE_NCU: {
             char            *device_name = NULL;
             nwam_ncu_type_t  nwam_ncu_type;
+            NwamuiNcp       *ncp;
 
-            g_assert(prv->active_ncp);
-            /* NCU's come in the typed name format (e.g. link:ath0) */
-            if ( nwam_ncu_typed_name_to_name(object_name, &nwam_ncu_type, &device_name ) == NWAM_SUCCESS ) {
-                obj = NWAMUI_OBJECT(nwamui_ncp_get_ncu_by_device_name(prv->active_ncp, device_name));
-                free(device_name);
-            } else {
-                g_assert_not_reached();
-            }
-            /* Work around since ncu signals of inactive ncp may be received by
-             * active ncp. So ncu may not exist. */
-            if (obj) {
-                if (nwam_ncu_type == NWAM_NCU_TYPE_INTERFACE) {
-                    nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
+            ncp = nwamui_daemon_get_ncp_by_name(daemon, nwamevent->nwe_data.nwe_object_state.nwe_parent);
+            if (ncp) {
+                /* NCU's come in the typed name format (e.g. link:ath0) */
+                if ( nwam_ncu_typed_name_to_name(object_name, &nwam_ncu_type, &device_name ) == NWAM_SUCCESS ) {
+                    obj = NWAMUI_OBJECT(nwamui_ncp_get_ncu_by_device_name(ncp, device_name));
+                    free(device_name);
                 } else {
-                    nwamui_ncu_set_link_nwam_state(NWAMUI_NCU(obj), object_state, object_aux_state);
+                    g_assert_not_reached();
                 }
-                g_object_unref(obj);
+
+                g_object_unref(ncp);
+
+                /* Work around since ncu signals of inactive ncp may be received by
+                 * active ncp. So ncu may not exist. */
+                if (obj) {
+                    if (nwam_ncu_type == NWAM_NCU_TYPE_INTERFACE) {
+                        nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
+                    } else {
+                        nwamui_ncu_set_link_nwam_state(NWAMUI_NCU(obj), object_state, object_aux_state);
+                    }
+                    g_object_unref(obj);
+                }
             }
         }
             break;

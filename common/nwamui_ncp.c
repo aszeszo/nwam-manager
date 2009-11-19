@@ -820,10 +820,8 @@ check_ncu_online( gpointer obj, gpointer user_data )
     nwam_state_t         state;
     nwam_aux_state_t     aux_state;
     gboolean             online = FALSE;
-    nwamui_cond_activation_mode_t 
-                         activation_mode;
-    nwamui_cond_priority_group_mode_t 
-                         prio_group_mode;
+    nwamui_cond_activation_mode_t activation_mode;
+    nwamui_cond_priority_group_mode_t prio_group_mode;
 
 
     if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
@@ -887,6 +885,9 @@ check_ncu_online( gpointer obj, gpointer user_data )
         default:
             break;
     }
+
+    /* For link events */
+    state = nwamui_ncu_get_link_nwam_state(ncu, &aux_state, NULL);
 
     if ( aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
         if ( info_p->needs_wifi_selection == NULL ) {

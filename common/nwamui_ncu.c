@@ -2201,13 +2201,13 @@ nwamui_ncu_get_active ( NwamuiNcu *self )
 		nwamui_cond_activation_mode_t activation_mode;
 
 		activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(self));
-                
+
+#if 0
 		state = nwamui_ncu_get_link_nwam_state(self, &aux_state, NULL);
 		if ( state == NWAM_STATE_ONLINE ) {
             state = NWAM_STATE_OFFLINE;
             aux_state = NWAM_AUX_STATE_UNINITIALIZED;
             if ( self->prv->nwam_ncu_ip ) {
-/* 				state = nwamui_ncu_get_interface_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL); */
 				state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
             }
 #ifdef TUNNEL_SUPPORT
@@ -2224,7 +2224,20 @@ nwamui_ncu_get_active ( NwamuiNcu *self )
 				active = TRUE;
             }
 		}
+#else
+        state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
+        if ( state == NWAM_STATE_ONLINE ||
+          (state == NWAM_STATE_OFFLINE_TO_ONLINE &&
+            aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR) )  {
+            active = TRUE;
+        }
+#endif
 		else if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL || ncu_prio == active_prio) {
+
+            state = NWAM_STATE_OFFLINE;
+            aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+            state = nwamui_ncu_get_link_nwam_state(self, &aux_state, NULL);
+
             if (  state == NWAM_STATE_OFFLINE_TO_ONLINE &&
               (aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ||
 				aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ||
@@ -4179,39 +4192,19 @@ extern nwamui_connection_state_t
 nwamui_ncu_get_connection_state( NwamuiNcu* self ) 
 {
     nwamui_connection_state_t   state = NWAMUI_STATE_UNKNOWN;
-    nwam_state_t                nwam_state;
-    nwam_aux_state_t            nwam_aux_state;
     nwam_state_t                link_state;
     nwam_aux_state_t            link_aux_state;
     nwam_state_t                iface_state;
     nwam_aux_state_t            iface_aux_state;
 
     /* Use cached state */
-/*     link_state = nwamui_ncu_get_link_nwam_state(self, &link_aux_state, NULL); */
     link_state = nwamui_ncu_get_link_nwam_state(self, &link_aux_state, NULL);
 /*     g_debug("Get  link state %-3X: %-10s - %s", link_state, nwam_state_to_string(link_state), nwam_aux_state_to_string(link_aux_state)); */
-/*     iface_state = nwamui_ncu_get_interface_nwam_state(NWAMUI_OBJECT(self), &iface_aux_state, NULL); */
+
     iface_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), &iface_aux_state, NULL);
 /*     g_debug("Get iface state %-3X: %-10s - %s", iface_state, nwam_state_to_string(iface_state), nwam_aux_state_to_string(iface_aux_state)); */
 
-#if 0
-    /* First look at the LINK state, then the IP */
-    if ( link_state == NWAM_STATE_ONLINE ) {
-        /* LINK looks ok, so try the IP level */
-        nwam_state = iface_state;
-        nwam_aux_state = iface_aux_state;
-    }
-    else {
-        nwam_state = link_state;
-        nwam_aux_state = link_aux_state;
-    }
-#else
-    /* We only care interface events. */
-    nwam_state = iface_state;
-    nwam_aux_state = iface_aux_state;
-#endif
-
-    switch ( nwam_state ) { 
+    switch ( iface_state ) { 
         case NWAM_STATE_UNINITIALIZED:
             state = NWAMUI_STATE_UNKNOWN;
             break;
@@ -4224,8 +4217,8 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             break;
         case NWAM_STATE_OFFLINE:
             if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRED && 
-                 ( nwam_aux_state == NWAM_AUX_STATE_DOWN || 
-                   nwam_aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET ) ) {
+                 ( iface_aux_state == NWAM_AUX_STATE_DOWN || 
+                   iface_aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET ) ) {
                 state = NWAMUI_STATE_CABLE_UNPLUGGED;
                 break;
             }
@@ -4233,39 +4226,39 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             break;
         case NWAM_STATE_OFFLINE_TO_ONLINE:
             if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-                if ( nwam_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
+                if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
                     state = NWAMUI_STATE_SCANNING;
                     break;
                 }
-                else if ( nwam_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
+                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
                     state = NWAMUI_STATE_NEEDS_SELECTION;
                     break;
                 }
-                else if ( nwam_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
+                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
                     state = NWAMUI_STATE_NEEDS_KEY_ESSID;
                     break;
                 }
-                else if ( nwam_aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
+                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
                     state = NWAMUI_STATE_CONNECTING_ESSID;
                     break;
                 }
             }
-	        if ( nwam_aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR ) {
+	        if ( iface_aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR ) {
                 state = NWAMUI_STATE_WAITING_FOR_ADDRESS;
                 break;
             }
-            else if ( nwam_aux_state == NWAM_AUX_STATE_IF_DHCP_TIMED_OUT ) {
+            else if ( iface_aux_state == NWAM_AUX_STATE_IF_DHCP_TIMED_OUT ) {
                 state = NWAMUI_STATE_DHCP_TIMED_OUT;
                 break;
             }
-            else if ( nwam_aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR ) {
+            else if ( iface_aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR ) {
                 state = NWAMUI_STATE_DHCP_DUPLICATE_ADDR;
                 break;
             }
             state = NWAMUI_STATE_CONNECTING;
             break;
         case NWAM_STATE_ONLINE:
-            if ( nwam_aux_state == NWAM_AUX_STATE_UP ) {
+            if ( iface_aux_state == NWAM_AUX_STATE_UP ) {
                 if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
                     state = NWAMUI_STATE_CONNECTED_ESSID;
                     break;

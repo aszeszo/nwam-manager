@@ -977,6 +977,7 @@ struct nwam_event {
 		struct nwam_event_object_state {
 			nwam_object_type_t nwe_object_type;
 			char nwe_name[NWAM_MAX_NAME_LEN];
+			char nwe_parent[NWAM_MAX_NAME_LEN];
 			nwam_state_t nwe_state;
 			nwam_aux_state_t nwe_aux_state;
 		} nwe_object_state;
