@@ -95,7 +95,7 @@ struct _NwamuiObjectClass
 
 extern  GType               nwamui_object_get_type (void) G_GNUC_CONST;
 
-extern gchar*               nwamui_object_get_name(NwamuiObject *object);
+extern const gchar*         nwamui_object_get_name(NwamuiObject *object);
 extern gboolean             nwamui_object_can_rename (NwamuiObject *object);
 extern void                 nwamui_object_set_name(NwamuiObject *object, const gchar* name);
 extern void                 nwamui_object_set_conditions ( NwamuiObject *object, const GList* conditions );

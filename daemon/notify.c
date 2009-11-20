@@ -573,7 +573,7 @@ nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
                 gchar          *essid = NULL;
 
                 if ( (wifi_net = nwamui_ncu_get_wifi_info( ncu )) != NULL) {
-                    essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
+                    essid = g_strdup(nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)));
                     g_object_unref(G_OBJECT(wifi_net));
                 }
 
@@ -601,6 +601,7 @@ nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
     nwam_notification_show_message( summary_str, body_str,
                                     icon, NOTIFY_EXPIRES_DEFAULT);
 
+    g_free(display_name);
     g_free(summary_str);
     g_free(body_str);
 
@@ -640,38 +641,33 @@ nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
     display_name = nwamui_ncu_get_display_name( ncu );
 
     switch ( nwamui_ncu_get_ncu_type( ncu ) ) {
-        case NWAMUI_NCU_TYPE_WIRELESS: {
-                NwamuiWifiNet  *wifi_net = NULL;
-                gchar          *essid = NULL;
+    case NWAMUI_NCU_TYPE_WIRELESS: {
+        NwamuiWifiNet  *wifi_net = NULL;
 
-                if ( (wifi_net = nwamui_ncu_get_wifi_info( ncu )) != NULL) {
-                    essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
-                    g_object_unref(G_OBJECT(wifi_net));
-                }
+        if ( (wifi_net = nwamui_ncu_get_wifi_info( ncu )) != NULL) {
+            summary_str = g_strdup_printf(_("%s disconnected from %s"), 
+              display_name, nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)));
+            g_object_unref(G_OBJECT(wifi_net));
+        }
 
-                body_str = g_strdup(_("Click on this message to view other available networks."));
-
-                if ( essid != NULL ) {
-                    summary_str = g_strdup_printf(_("%s disconnected from %s"), 
-                                                  display_name, essid );
-                    g_free(essid);
-                    break;
-                }
-                else {
-                    /* Fall through */
-                }
-            }
-#ifdef TUNNEL_SUPPORT
-        case NWAMUI_NCU_TYPE_TUNNEL:
-            /* Fall through */
-#endif /* TUNNEL_SUPPORT */
-        case NWAMUI_NCU_TYPE_WIRED:
-            /* Fall through */
-        default:
-            summary_str = g_strdup_printf(_("%s disconnected"), display_name );
-            body_str = nwamui_ncu_get_connection_state_string(ncu);
-
+        if (summary_str) {
+            body_str = g_strdup(_("Click on this message to view other available networks."));
             break;
+        } else {
+            /* Fall through */
+        }
+    }
+#ifdef TUNNEL_SUPPORT
+    case NWAMUI_NCU_TYPE_TUNNEL:
+        /* Fall through */
+#endif /* TUNNEL_SUPPORT */
+    case NWAMUI_NCU_TYPE_WIRED:
+        /* Fall through */
+    default:
+        summary_str = g_strdup_printf(_("%s disconnected"), display_name );
+        body_str = nwamui_ncu_get_connection_state_string(ncu);
+
+        break;
     }
 
     if ( callback != NULL ) {
@@ -729,7 +725,7 @@ nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu )
                 gchar          *essid = NULL;
 
                 if ( (wifi_net = nwamui_ncu_get_wifi_info( ncu )) != NULL) {
-                    essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
+                    essid = g_strdup(nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)));
                     g_object_unref(G_OBJECT(wifi_net));
                 }
 
@@ -918,11 +914,8 @@ nwam_notification_show_ncp_changed( NwamuiNcp* ncp )
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
 
-    {
-        gchar *name = nwamui_object_get_name(NWAMUI_OBJECT(ncp));
-        summary_str = g_strdup_printf(_("Switched to Network Profile '%s'"), name);
-        g_free(name);
-    }
+    summary_str = g_strdup_printf(_("Switched to Network Profile '%s'"),
+      nwamui_object_get_name(NWAMUI_OBJECT(ncp)));
 
     nwam_notification_show_message(summary_str,
             "",
@@ -957,11 +950,7 @@ nwam_notification_show_location_changed( NwamuiEnv* env )
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
 
-    {
-        gchar *name = nwamui_object_get_name(NWAMUI_OBJECT(env));
-        summary_str = g_strdup_printf(_("Switch to Location '%s'"), name);
-        g_free(name);
-    }
+    summary_str = g_strdup_printf(_("Switch to Location '%s'"), nwamui_object_get_name(NWAMUI_OBJECT(env)));
 
     nwam_notification_show_message(summary_str,
             "",

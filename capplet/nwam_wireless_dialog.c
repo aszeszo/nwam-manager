@@ -416,12 +416,12 @@ static void
 add_essid_list_item_to_essid_liststore(GObject* daemon, GObject* wifi, gpointer user_data)
 {
     NwamuiWifiNet          *wifi_elem = NULL;
-    GtkTreeModel           *model = (GtkTreeModel*)user_data;
+    GtkTreeModel           *model     = (GtkTreeModel*)user_data;
     GtkIconTheme           *icon_theme;
     GdkPixbuf              *icon;
     GtkTreeIter             iter;
     nwamui_wifi_security_t  sec;
-    gchar*                  essid;
+    const gchar*            essid;
 
     g_debug("Got : WifiResult Signal");
     
@@ -449,7 +449,6 @@ add_essid_list_item_to_essid_liststore(GObject* daemon, GObject* wifi, gpointer 
                         0, essid, 1, icon, 2, (gint)sec, -1);
     g_object_unref (icon);
     
-    g_free (essid);
 }
 
 static void 

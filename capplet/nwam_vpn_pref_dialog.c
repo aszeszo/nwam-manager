@@ -410,14 +410,6 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
     }
 
     /* Stop update GUI when commit changes one by one. */
-/*     g_signal_handlers_block_matched(obj, */
-/*       G_SIGNAL_MATCH_FUNC, */
-/*       0, */
-/*       "notify", */
-/*       NULL, */
-/*       (GCallback)capplet_util_object_notify_cb, */
-/*       NULL); */
-
     g_object_freeze_notify(obj);
 
     cli_value = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->vpn_cli_rb));
@@ -498,18 +490,8 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
 
     nwamui_util_free_obj_list( conditions_list );
 
+    /* Update GUI */
     g_object_thaw_notify(obj);
-
-/*     g_signal_handlers_unblock_matched(obj, */
-/*       G_SIGNAL_MATCH_FUNC, */
-/*       0, */
-/*       "notify", */
-/*       NULL, */
-/*       (GCallback)capplet_util_object_notify_cb, */
-/*       NULL); */
-
-/*     /\* Update Gui *\/ */
-/*     g_object_notify(obj, "active"); */
 
 	return TRUE;
 }
@@ -645,21 +627,18 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                     gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
                     gtk_tree_path_free (path);
 
-                    gchar *name = nwamui_object_get_name (NWAMUI_OBJECT(obj));
-                    gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
+                    gchar *msg = g_strdup_printf (_("Committing %s failed..."), nwamui_object_get_name (NWAMUI_OBJECT(obj)));
                     nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
                       GTK_MESSAGE_ERROR,
                       _("Commit ENM error"),
                       msg, TRUE);
                     g_free (msg);
-                    g_free (name);
                     retval = FALSE;
                     break;
                 }
             }
             else {
-                gchar *name = nwamui_object_get_name (NWAMUI_OBJECT (obj));
-                gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
+                gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), nwamui_object_get_name (NWAMUI_OBJECT (obj)), prop_name);
 
                 /* Start highligh relevant ENM */
                 path = gtk_tree_model_get_path (model, &iter);
@@ -671,7 +650,6 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                   _("Validation error"),
                   msg, TRUE);
                 g_free (msg);
-                g_free (name);
                 retval = FALSE;
                 break;
             }
@@ -877,14 +855,12 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
                     gtk_tree_path_free(tpath);
                 }
             } else {
-                gchar *name    = nwamui_object_get_name(NWAMUI_OBJECT(obj));
-                gchar *summary = g_strdup_printf(_("Cannot rename '%s'"), name?name:"" );
+                gchar *summary = g_strdup_printf(_("Cannot rename '%s'"), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
                 nwamui_util_show_message(GTK_WINDOW(prv->vpn_pref_dialog),
                   GTK_MESSAGE_ERROR,
                   summary,
                   _("VPN applications can only be renamed immediately after\nthey have been created."),
                   FALSE);
-                g_free(name);
                 g_free(summary);
             }
             g_object_unref(obj);
@@ -1092,7 +1068,6 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 
 		if (obj) {
             gchar *title;
-            gchar *name;
             gboolean    start_value = FALSE;
             gboolean    stop_value = FALSE;
             gboolean    fmri_value = FALSE;
@@ -1140,8 +1115,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
                 gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->vpn_smf_rb), TRUE);
             }
 
-            name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
-            title = g_strdup_printf(_("Start/stop '%s' according to rules"), name);
+            title = g_strdup_printf(_("Start/stop '%s' according to rules"), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
             g_object_set(prv->vpn_conditional_cb, "label", title, NULL);
 
             if (nwamui_object_get_activation_mode(NWAMUI_OBJECT(obj)) == NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY
@@ -1165,7 +1139,6 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
             gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), !is_active );
             gtk_widget_set_sensitive (GTK_WIDGET(prv->rename_btn), TRUE );
 
-            g_free(name);
             g_free(title);
 
 		} else {

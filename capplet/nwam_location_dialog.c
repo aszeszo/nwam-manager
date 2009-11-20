@@ -608,22 +608,19 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                     gtk_tree_view_set_cursor(prv->location_tree, path, NULL, TRUE);
                     gtk_tree_path_free (path);
 
-                    gchar *name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
-                    gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
+                    gchar *msg = g_strdup_printf (_("Committing %s failed..."), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
                     nwamui_util_show_message (GTK_WINDOW(prv->location_dialog),
                       GTK_MESSAGE_ERROR,
                       _("Commit ENV error"),
                       msg, TRUE);
                     g_free (msg);
-                    g_free (name);
                     g_object_unref(obj);
                     retval = FALSE;
                     break;
                 }
             }
             else {
-                gchar *name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
-                gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
+                gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), nwamui_object_get_name(NWAMUI_OBJECT(obj)), prop_name);
 
                 /* Start highligh relevant ENV */
                 path = gtk_tree_model_get_path (model, &iter);
@@ -635,7 +632,6 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                   _("Validation error"),
                   msg, TRUE);
                 g_free (msg);
-                g_free (name);
                 g_free (prop_name);
                 g_object_unref(obj);
                 retval = FALSE;
@@ -814,18 +810,13 @@ vanity_name_editing_started (GtkCellRenderer *cell,
         {
             gpointer    connection;
             NwamuiEnv*  env;
-            gchar*      vname;
 
             gtk_tree_model_get(model, &iter, 0, &connection, -1);
 
             env  = NWAMUI_ENV( connection );
 
-            vname = nwamui_object_get_name(NWAMUI_OBJECT(env));
-            
-            gtk_entry_set_text( entry, vname?vname:"" );
+            gtk_entry_set_text( entry, nwamui_object_get_name(NWAMUI_OBJECT(env)));
 
-            g_free( vname );
-            
             g_object_unref(G_OBJECT(connection));
 
             gtk_tree_path_free(tpath);
@@ -1050,21 +1041,18 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             capplet_dialog_run(NWAM_PREF_IFACE(env_pref_dialog), GTK_WIDGET(button));
 
         } else if (button == (gpointer)prv->location_remove_btn) {
-            gchar*  name = nwamui_object_get_name(NWAMUI_OBJECT(env));
-            gchar*  message = g_strdup_printf(_("Remove location '%s'?"), name?name:"" );
+            gchar*  message = g_strdup_printf(_("Remove location '%s'?"),
+              nwamui_object_get_name(NWAMUI_OBJECT(env)));
             if (nwamui_util_confirm_removal( GTK_WINDOW(prv->location_dialog), _("Remove Location?"), message )) {
-                g_debug("Removing location: '%s'", name);
+                g_debug("Removing location: '%s'", nwamui_object_get_name(NWAMUI_OBJECT(env)));
             
                 gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
                 nwamui_object_destroy(NWAMUI_OBJECT(env));
             }
         
-            if (name)
-                g_free(name);
-        
             g_free(message);
         } else if (button == (gpointer)prv->location_dup_btn) {
-            gchar *sname = nwamui_object_get_name(NWAMUI_OBJECT(env));
+            const gchar *sname = nwamui_object_get_name(NWAMUI_OBJECT(env));
             gchar *prefix;
             gchar *name;
             NwamuiObject *object;
@@ -1080,7 +1068,6 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
             g_free(name);
             g_free(prefix);
-            g_free(sname);
 
             /* Select and scroll to this new object. */
             gtk_tree_view_scroll_to_cell(prv->location_tree,
@@ -1111,7 +1098,6 @@ on_button_clicked(GtkButton *button, gpointer user_data)
                 g_free(new_name);
             }
 
-            g_free(current_name);
 #endif
             if ( nwamui_object_can_rename(NWAMUI_OBJECT(env)) ) {
                 GtkCellRendererText*        txt;
@@ -1295,7 +1281,6 @@ nwam_location_connection_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
     if (object) {
         if (!prv->toggled_env) {
             g_object_set(G_OBJECT(renderer),
-/*               "active", nwamui_env_get_enabled(NWAMUI_ENV(object)), */
               "active", nwamui_object_get_active(NWAMUI_OBJECT(object)),
               NULL);
         } else if (object == prv->toggled_env) {

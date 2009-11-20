@@ -34,6 +34,8 @@
 
 enum {
     PROP_NWAM_STATE = 1,
+    PROP_NAME,
+    PROP_ACTIVE,
     LAST_PROP
 };
 
@@ -68,7 +70,21 @@ static void nwamui_object_get_property(GObject         *object,
 
 static void nwamui_object_finalize(NwamuiObject *self);
 
-static nwam_state_t default_nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
+static gchar*       default_nwamui_object_get_name(NwamuiObject *object);
+static gboolean     default_nwamui_object_can_rename (NwamuiObject *object);
+static void         default_nwamui_object_set_name(NwamuiObject *object, const gchar* name);
+static void         default_nwamui_object_set_conditions(NwamuiObject *object, const GList* conditions);
+static GList*       default_nwamui_object_get_conditions(NwamuiObject *object);
+static gint         default_nwamui_object_get_activation_mode(NwamuiObject *object);
+static void         default_nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode);
+static gboolean     default_nwamui_object_get_active(NwamuiObject *object);
+static void         default_nwamui_object_set_active(NwamuiObject *object, gboolean active);
+static gboolean     default_nwamui_object_get_enabled(NwamuiObject *object);
+static void         default_nwamui_object_set_enabled(NwamuiObject *object, gboolean enabled);
+static nwam_state_t default_nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string);
+static gboolean     default_nwamui_object_commit(NwamuiObject *object);
+static void         default_nwamui_object_reload(NwamuiObject *object);
+static gboolean     default_nwamui_object_destroy(NwamuiObject *object);
 
 /* Callbacks */
 static void nwamui_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -87,16 +103,37 @@ nwamui_object_class_init(NwamuiObjectClass *klass)
 	gobject_class->set_property = nwamui_object_set_property;
 	gobject_class->get_property = nwamui_object_get_property;
 
-    klass->get_name = NULL;
-    klass->set_name = NULL;
-    klass->get_conditions = NULL;
-    klass->set_conditions = NULL;
-    klass->get_activation_mode = NULL;
-    klass->set_activation_mode = NULL;
-    klass->get_nwam_state = NULL;
-/*     klass->get_nwam_state = default_nwamui_object_get_nwam_state; */
+    klass->get_name = default_nwamui_object_get_name;
+    klass->can_rename = default_nwamui_object_can_rename;
+    klass->set_name = default_nwamui_object_set_name;
+    klass->get_conditions = default_nwamui_object_get_conditions;
+    klass->set_conditions = default_nwamui_object_set_conditions;
+    klass->get_activation_mode = default_nwamui_object_get_activation_mode;
+    klass->set_activation_mode = default_nwamui_object_set_activation_mode;
+    klass->get_enabled = default_nwamui_object_get_enabled;
+    klass->set_enabled = default_nwamui_object_set_enabled;
+    klass->get_nwam_state = default_nwamui_object_get_nwam_state;
+    klass->commit = default_nwamui_object_commit;
+    klass->reload = default_nwamui_object_reload;
+    klass->destroy = default_nwamui_object_destroy;
 
 	g_type_class_add_private(klass, sizeof (NwamuiObjectPrivate));
+
+    g_object_class_install_property (gobject_class,
+      PROP_NAME,
+      g_param_spec_string ("name",
+        _("Name of the object"),
+        _("Name of the object"),
+        NULL,
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_ACTIVE,
+      g_param_spec_boolean ("active",
+        _("active"),
+        _("active"),
+        FALSE,
+        G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
       PROP_NWAM_STATE,
@@ -126,7 +163,17 @@ nwamui_object_set_property(GObject         *object,
 	NwamuiObject *self = NWAMUI_OBJECT(object);
 
 	switch (prop_id) {
-        default:
+    case PROP_NAME: {
+        nwamui_object_set_name(self, g_value_get_string(value));
+    }
+        break;
+
+    case PROP_ACTIVE: {
+        nwamui_object_set_active(self, g_value_get_boolean(value));
+    }
+        break;
+
+    default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
 	}
@@ -141,13 +188,23 @@ nwamui_object_get_property(GObject         *object,
 	NwamuiObject *self = NWAMUI_OBJECT(object);
 
 	switch (prop_id) {
-        case PROP_NWAM_STATE: {
-                g_value_set_uint( value, (guint)self->prv->nwam_state );
-            }
-            break;
-        default:
-            G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-            break;
+    case PROP_NAME: {
+        /* Get property name is to dup name, directly call get_name do not dup */
+        g_value_set_string(value, nwamui_object_get_name(self));
+        break;
+    }
+    case PROP_ACTIVE: {
+        g_value_set_boolean(value, nwamui_object_get_active(NWAMUI_OBJECT(object)));
+    }
+        break;
+
+    case PROP_NWAM_STATE: {
+        g_value_set_uint( value, (guint)self->prv->nwam_state );
+    }
+        break;
+    default:
+        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+        break;
     }
 }
 
@@ -184,7 +241,6 @@ extern gboolean
 nwamui_object_can_rename (NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
-    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->can_rename, FALSE);
 
     return NWAMUI_OBJECT_GET_CLASS (object)->can_rename(object);
 }
@@ -196,14 +252,13 @@ nwamui_object_can_rename (NwamuiObject *object)
  * 
  **/ 
 extern void
-nwamui_object_set_name (   NwamuiObject *object,
-                             const gchar* name )
+nwamui_object_set_name(NwamuiObject *object, const gchar* name )
 {
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
-    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_name);
-    g_assert (name != NULL );
 
     NWAMUI_OBJECT_GET_CLASS (object)->set_name(object, name);
+
+    g_object_notify(G_OBJECT(object), "name");
 }
 
 /**
@@ -212,16 +267,12 @@ nwamui_object_set_name (   NwamuiObject *object,
  * @returns: the name.
  *
  **/
-extern gchar *
+extern const gchar *
 nwamui_object_get_name (NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), NULL);
-/*     g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_name, NULL); */
 
-    if (NWAMUI_OBJECT_GET_CLASS (object)->get_name)
-        return NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);
-    else
-        return NULL;
+    return NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);
 }
 
 /** 
@@ -235,7 +286,6 @@ nwamui_object_set_conditions (   NwamuiObject *object,
                              const GList* conditions )
 {
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
-    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_conditions);
 
     NWAMUI_OBJECT_GET_CLASS (object)->set_conditions(object, conditions);
 }
@@ -250,7 +300,6 @@ extern GList*
 nwamui_object_get_conditions (NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), NULL);
-    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_conditions, NULL);
 
     return NWAMUI_OBJECT_GET_CLASS (object)->get_conditions(object);
 }
@@ -259,7 +308,6 @@ extern gint
 nwamui_object_get_activation_mode(NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), NWAMUI_COND_ACTIVATION_MODE_LAST);
-    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_activation_mode, NWAMUI_COND_ACTIVATION_MODE_LAST);
 
     return NWAMUI_OBJECT_GET_CLASS (object)->get_activation_mode(object);
 }
@@ -268,7 +316,6 @@ extern void
 nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
 {
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
-    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_activation_mode);
 
     NWAMUI_OBJECT_GET_CLASS (object)->set_activation_mode(object, activation_mode);
 }
@@ -277,7 +324,6 @@ extern gboolean
 nwamui_object_get_active(NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
-    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_active, FALSE);
 
     return NWAMUI_OBJECT_GET_CLASS (object)->get_active(object);
 }
@@ -286,7 +332,6 @@ extern void
 nwamui_object_set_active(NwamuiObject *object, gboolean active)
 {
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
-    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_active);
 
     NWAMUI_OBJECT_GET_CLASS (object)->set_active(object, active);
 }
@@ -295,7 +340,6 @@ extern gboolean
 nwamui_object_get_enabled(NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
-    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->get_enabled, FALSE);
 
     return NWAMUI_OBJECT_GET_CLASS (object)->get_enabled(object);
 }
@@ -304,7 +348,6 @@ extern void
 nwamui_object_set_enabled(NwamuiObject *object, gboolean enabled)
 {
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
-    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->set_enabled);
 
     NWAMUI_OBJECT_GET_CLASS (object)->set_enabled(object, enabled);
 }
@@ -313,7 +356,6 @@ extern gboolean
 nwamui_object_commit(NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
-    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->commit, FALSE);
 
     return NWAMUI_OBJECT_GET_CLASS (object)->commit(object);
 }
@@ -322,7 +364,6 @@ extern gboolean
 nwamui_object_destroy(NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
-    g_return_val_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->destroy, FALSE);
 
     return NWAMUI_OBJECT_GET_CLASS (object)->destroy(object);
 }
@@ -331,7 +372,6 @@ extern void
 nwamui_object_reload(NwamuiObject *object)
 {
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
-    g_return_if_fail (NWAMUI_OBJECT_GET_CLASS (object)->reload);
 
     NWAMUI_OBJECT_GET_CLASS (object)->reload(object);
 }
@@ -349,30 +389,6 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p
     time_t               _current_time;
 
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), rval );
-
-    if ( NWAMUI_OBJECT_GET_CLASS (object)->get_nwam_state == NULL ) {
-        
-        if ( prv->nwam_state_last_update > 0) {
-            /* It's possible that the object doesn't have it's own get_state
-             * function, yet the state has been updated due to an event.
-             *
-             * If this has happened, then use that information.
-             */
-            _state = prv->nwam_state;
-            _aux_state = prv->nwam_aux_state;
-        }
-
-        if ( aux_state_p ) {
-            *aux_state_p = _aux_state;
-        }
-
-        if ( aux_state_string_p ) {
-            *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( _aux_state );
-        }
-
-/*         g_debug("Get default: %-10s - %s", nwam_state_to_string(_state), nwam_aux_state_to_string(_aux_state)); */
-        return( _state );
-    }
 
     _current_time = time( NULL );;
 
@@ -466,7 +482,101 @@ nwamui_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamuiObject* self = NWAMUI_OBJECT(data);
 
-/*     g_debug("%s 0x%p : notify '%s'", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), gobject, arg1->name); */
     g_debug("%s '%s' 0x%p : notify '%s'", g_type_name(G_TYPE_FROM_INSTANCE(gobject)), nwamui_object_get_name(self), gobject, arg1->name);
+}
+
+/* Default vfuns */
+static gchar*
+default_nwamui_object_get_name(NwamuiObject *object)
+{
+    return NULL;
+}
+
+static gboolean
+default_nwamui_object_can_rename (NwamuiObject *object)
+{
+    return FALSE;
+}
+
+static void
+default_nwamui_object_set_name(NwamuiObject *object, const gchar* name)
+{
+}
+
+static void
+default_nwamui_object_set_conditions(NwamuiObject *object, const GList* conditions)
+{
+}
+
+static GList*
+default_nwamui_object_get_conditions(NwamuiObject *object)
+{
+    return NULL;
+}
+
+static gint
+default_nwamui_object_get_activation_mode(NwamuiObject *object)
+{
+    return 0;
+}
+
+static void
+default_nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
+{
+}
+
+static gboolean
+default_nwamui_object_get_active(NwamuiObject *object)
+{
+    return FALSE;
+}
+
+static void
+default_nwamui_object_set_active(NwamuiObject *object, gboolean active)
+{
+}
+
+static gboolean
+default_nwamui_object_get_enabled(NwamuiObject *object)
+{
+    return FALSE;
+}
+
+static void
+default_nwamui_object_set_enabled(NwamuiObject *object, gboolean enabled)
+{
+}
+
+static nwam_state_t
+default_nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string)
+{
+    NwamuiObjectPrivate *prv  = NWAMUI_OBJECT_GET_PRIVATE(object);
+    nwam_state_t         rval = NWAM_STATE_UNINITIALIZED;
+
+    if ( aux_state ) {
+        *aux_state = prv->nwam_aux_state;
+    }
+
+    if ( aux_state_string ) {
+        *aux_state_string = (const gchar*)nwam_aux_state_to_string(prv->nwam_aux_state);
+    }
+    return prv->nwam_state;
+}
+
+static gboolean
+default_nwamui_object_commit(NwamuiObject *object)
+{
+    return FALSE;
+}
+
+static void
+default_nwamui_object_reload(NwamuiObject *object)
+{
+}
+
+static gboolean
+default_nwamui_object_destroy(NwamuiObject *object)
+{
+    return FALSE;
 }
 

@@ -194,7 +194,6 @@ tooltip_treeview_cell (GtkTreeViewColumn *col,
 /* 	} else { */
 	}
     g_string_free(gstr, TRUE);
-    g_free(name);
     g_object_unref(object);
 }
 

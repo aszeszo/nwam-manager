@@ -205,7 +205,7 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
     GType         type;
     GtkWidget    *item;
 	GString      *gstr;
-    gchar        *name;
+    const gchar        *name;
 
     gstr = g_string_new("");
     type = G_OBJECT_TYPE(object);
@@ -247,7 +247,6 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 	}
     menu_item_set_markup(GTK_MENU_ITEM(user_data), gstr->str);
     g_string_free(gstr, TRUE);
-    g_free(name);
 }
 
 static void
@@ -262,7 +261,7 @@ static void
 nwam_object_activation_mode_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 {
     GtkWidget *img = gtk_image_new_from_icon_name(nwamui_util_get_active_mode_icon(NWAMUI_OBJECT(gobject)), GTK_ICON_SIZE_MENU);
-    gtk_image_set_pixel_size(img, 24);
+    gtk_image_set_pixel_size(GTK_IMAGE(img), 24);
     nwam_menu_item_set_widget(NWAM_MENU_ITEM(user_data), 0, img);
 }
 

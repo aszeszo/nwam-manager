@@ -1077,7 +1077,7 @@ nwamui_util_ask_about_dup_obj(GtkWindow* parent_window, NwamuiObject* obj )
     GtkWidget          *message_dialog;
     GtkWidget          *action_area;
     gchar              *summary = NULL;
-    gchar              *obj_name = NULL;
+    const gchar        *obj_name = NULL;
     const gchar        *obj_type_caps;
     const gchar        *obj_type_lower;
     gint                response;
@@ -1124,7 +1124,6 @@ nwamui_util_ask_about_dup_obj(GtkWindow* parent_window, NwamuiObject* obj )
     }
 
     g_free( summary );
-    g_free( obj_name );
 
     switch( gtk_dialog_run(GTK_DIALOG(message_dialog)) ) {
         case GTK_RESPONSE_OK:

@@ -106,12 +106,10 @@ struct _NwamuiNcuPrivate {
 
 enum {
         PROP_NCP = 1,
-        PROP_VANITY_NAME,
         PROP_DEVICE_NAME,
         PROP_AUTO_PUSH,
         PROP_PHY_ADDRESS,
         PROP_NCU_TYPE,
-        PROP_ACTIVE,
         PROP_READONLY,
         PROP_SPEED,
         PROP_MTU,
@@ -215,10 +213,11 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     gobject_class->get_property = nwamui_ncu_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_ncu_finalize;
 
+    /* object get/set name in NCU are VANITY NAME */
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncu_get_vanity_name;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_ncu_set_vanity_name;
-    nwamuiobject_class->get_conditions = NULL;
-    nwamuiobject_class->set_conditions = NULL;
+/*     nwamuiobject_class->get_conditions = NULL; */
+/*     nwamuiobject_class->set_conditions = NULL; */
     nwamuiobject_class->get_activation_mode = (nwamui_object_get_activation_mode_func_t)nwamui_ncu_get_activation_mode;
     nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_ncu_set_activation_mode;
     nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_ncu_get_active;
@@ -237,14 +236,6 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           _("NCP that NCU child of"),
                                                           _("NCP that NCU child of"),
                                                           NWAMUI_TYPE_NCP,
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_VANITY_NAME,
-                                     g_param_spec_string ("vanity_name",
-                                                          _("vanity_name"),
-                                                          _("vanity_name"),
-                                                          "",
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -278,14 +269,6 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           NWAMUI_NCU_TYPE_WIRED,
                                                           NWAMUI_NCU_TYPE_LAST-1,
                                                           NWAMUI_NCU_TYPE_WIRED,
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_ACTIVE,
-                                     g_param_spec_boolean ("active",
-                                                          _("active"),
-                                                          _("active"),
-                                                          FALSE,
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
@@ -547,13 +530,6 @@ nwamui_ncu_set_property ( GObject         *object,
         }
         break;
 
-        case PROP_VANITY_NAME: {
-                if ( self->prv->vanity_name != NULL ) {
-                        g_free( self->prv->vanity_name );
-                }
-                self->prv->vanity_name = g_strdup( g_value_get_string( value ) );
-            }
-            break;
         case PROP_DEVICE_NAME: {
                 if ( self->prv->device_name != NULL ) {
                         g_free( self->prv->device_name );
@@ -569,10 +545,6 @@ nwamui_ncu_set_property ( GObject         *object,
             break;
         case PROP_NCU_TYPE: {
                 self->prv->ncu_type = g_value_get_int( value );
-            }
-            break;
-        case PROP_ACTIVE: {
-            nwamui_object_set_active(NWAMUI_OBJECT(object), g_value_get_boolean( value ));
             }
             break;
         case PROP_MTU: {
@@ -736,10 +708,6 @@ nwamui_ncu_get_property (GObject         *object,
                 g_value_set_object( value, self->prv->ncp );
             }
             break;
-        case PROP_VANITY_NAME: {
-                g_value_set_string(value, self->prv->vanity_name);
-            }
-            break;
         case PROP_DEVICE_NAME: {
                 g_value_set_string(value, self->prv->device_name);
             }
@@ -752,10 +720,6 @@ nwamui_ncu_get_property (GObject         *object,
             break;
         case PROP_NCU_TYPE: {
                 g_value_set_int(value, self->prv->ncu_type);
-            }
-            break;
-        case PROP_ACTIVE: {
-                g_value_set_boolean( value, nwamui_object_get_active(NWAMUI_OBJECT(object)));
             }
             break;
         case PROP_SPEED: {
@@ -977,7 +941,7 @@ populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 
     g_object_set( ncu,
                   "device_name", name,
-                  "vanity_name", name,
+                  "name", name,
                   "ncu_type", ncu_type,
                   NULL);
 
@@ -1974,15 +1938,9 @@ nwamui_ncu_destroy( NwamuiNcu* self )
 static gchar*
 nwamui_ncu_get_vanity_name ( NwamuiNcu *self )
 {
-    gchar*  name = NULL;
+    g_return_val_if_fail (NWAMUI_IS_NCU(self), NULL); 
     
-    g_return_val_if_fail (NWAMUI_IS_NCU(self), name); 
-    
-    g_object_get (G_OBJECT (self),
-                  "vanity_name", &name,
-                  NULL);
-
-    return( name );
+    return self->prv->vanity_name;
 }
 
 /**
@@ -1997,11 +1955,10 @@ nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name )
     
     g_assert (name != NULL );
 
-    if ( name != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "vanity_name", name,
-                      NULL);
+    if (self->prv->vanity_name) {
+        g_free(self->prv->vanity_name);
     }
+    self->prv->vanity_name = g_strdup(name);
 }
 
 /**
@@ -2252,7 +2209,6 @@ nwamui_ncu_get_active ( NwamuiNcu *self )
 	}
 	if ( active != self->prv->active ) {
 		self->prv->active = active;
-/*                     g_object_notify(G_OBJECT(self), "active" ); */
 		if (self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && self->prv->wifi_info) {
 			nwamui_wifi_net_set_status(self->prv->wifi_info,
               active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED);
@@ -3087,8 +3043,8 @@ extern void
 nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     *self, 
                                       NwamuiWifiNet *wifi_net )
 {
-    gpointer    value = NULL;
-    gchar*      essid;
+    gpointer     value = NULL;
+    const gchar* essid;
 
     if ( !self || !wifi_net ) {
         return;
@@ -3098,13 +3054,12 @@ nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     *self,
 
     if ( essid != NULL ) {
         if ( (value = g_hash_table_lookup( self->prv->wifi_hash_table, essid )) == NULL ) {
-            g_hash_table_insert(self->prv->wifi_hash_table, essid,
-                                g_object_ref(wifi_net) );
+            g_hash_table_insert(self->prv->wifi_hash_table, g_strdup(essid),
+              g_object_ref(wifi_net) );
             /* hash table taken ownership of essid */
         }
         else {
             nwamui_warning("Unexpected existing wifi_net in hash table with essid : %s", essid );
-            g_free(essid);
         }
     }
 }
@@ -3177,8 +3132,8 @@ extern gboolean
 nwamui_ncu_wifi_hash_remove_wifi_net( NwamuiNcu     *self, 
                                       NwamuiWifiNet *wifi_net )
 {
-    gchar*      essid;
-    gboolean    rval = FALSE;
+    const gchar* essid;
+    gboolean     rval = FALSE;
 
     if ( !self || !wifi_net ) {
         return(rval);
@@ -3188,7 +3143,6 @@ nwamui_ncu_wifi_hash_remove_wifi_net( NwamuiNcu     *self,
 
     if ( essid != NULL ) {
         rval = nwamui_ncu_wifi_hash_remove_by_essid( self, essid );
-        g_free(essid);
     }
 
     return(rval);
@@ -3227,6 +3181,9 @@ nwamui_ncu_finalize (NwamuiNcu *self)
 
     if ( self->prv->wifi_hash_table != NULL ) {
         g_hash_table_destroy(self->prv->wifi_hash_table);
+    }
+    if (self->prv->vanity_name) {
+        g_free(self->prv->vanity_name);
     }
 
     g_free (self->prv); 
@@ -4290,9 +4247,9 @@ nwamui_ncu_get_updated_connection_state( NwamuiNcu* self )
 extern gchar*
 nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
 {
-    nwamui_connection_state_t   state = NWAMUI_STATE_NOT_CONNECTED;
-    gchar*                      status_string = NULL;
-    gchar*                      essid = NULL;
+    nwamui_connection_state_t state         = NWAMUI_STATE_NOT_CONNECTED;
+    gchar*                    status_string = NULL;
+    const gchar*              essid         = NULL;
 
     g_return_val_if_fail( NWAMUI_IS_NCU( self ), NULL );
 
@@ -4359,7 +4316,7 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
                      */
                     essid = nwamui_object_get_name(NWAMUI_OBJECT(self->prv->wifi_info));
                 }
-                status_string = g_strdup_printf( _(status_string_fmt[state]), essid?essid:"" );
+                status_string = g_strdup_printf( _(status_string_fmt[state]), essid);
 
             }
             break;
@@ -4367,10 +4324,6 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
         default:
             g_error("Unexpected value for connection state %d", (int)state );
             break;
-    }
-
-    if ( essid != NULL ) {
-        g_free( essid );
     }
 
     return( status_string );
@@ -4447,8 +4400,11 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self, gboolean use_new
             }
             else {
                 status_string = g_strdup_printf( _("%s%s%s%s%s"), addr_part, sepr, signal_part, sepr, speed_part );
+                g_free(signal_part);
             }
-            }
+            g_free(speed_part);
+            g_free(addr_part);
+        }
             break;
         default:
             status_string = g_strdup(_("Not connected"));

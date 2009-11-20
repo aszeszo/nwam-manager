@@ -45,9 +45,7 @@ struct _NwamuiEnmPrivate {
 };
 
 enum {
-    PROP_NAME = 1,
-    PROP_ACTIVE,
-    PROP_ENABLED,
+    PROP_ENABLED = 1,
     PROP_START_COMMAND,
     PROP_STOP_COMMAND,
     PROP_SMF_FMRI,
@@ -143,22 +141,6 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
-                                     PROP_NAME,
-                                     g_param_spec_string ("name",
-                                                          _("name"),
-                                                          _("name"),
-                                                          "",
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_ACTIVE,
-                                     g_param_spec_boolean ("active",
-                                                          _("active"),
-                                                          _("active"),
-                                                          FALSE,
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
                                      PROP_ENABLED,
                                      g_param_spec_boolean ("enabled",
                                                           _("enabled"),
@@ -244,43 +226,6 @@ nwamui_enm_set_property (   GObject         *object,
     nwam_value_t nwamdata;
 
     switch (prop_id) {
-       case PROP_NAME: {
-                if ( self->prv->name != NULL ) {
-                    g_free( self->prv->name );
-                }
-                self->prv->name = g_strdup( g_value_get_string( value ) );
-                /* we may rename here */
-                if (self->prv->nwam_enm == NULL) {
-                    nerr = nwam_enm_read (self->prv->name, 0, &self->prv->nwam_enm);
-                    if (nerr == NWAM_SUCCESS) {
-                        g_debug ("nwamui_enm_set_property found nwam_enm_handle %s", self->prv->name);
-                    } else {
-                        nerr = nwam_enm_create (self->prv->name, NULL, &self->prv->nwam_enm);
-                        if (nerr != NWAM_SUCCESS) {
-                            g_debug ("nwamui_enm_set_property error creating nwam_enm_handle %s", self->prv->name);
-                            self->prv->nwam_enm == NULL;
-                        }
-                    }
-                }
-
-                if (self->prv->nwam_enm != NULL) {
-                    nerr = nwam_enm_set_name (self->prv->nwam_enm, self->prv->name);
-                    if (nerr != NWAM_SUCCESS) {
-                        g_debug ("nwam_enm_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
-                    }
-                }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
-            }
-            break;
-
-        case PROP_ACTIVE: {
-                gboolean active = g_value_get_boolean( value );
-                nwamui_object_set_active(NWAMUI_OBJECT(self), active);
-            }
-            break;
-
         case PROP_ENABLED: {
                 gboolean enabled = g_value_get_boolean( value );
                 nwamui_object_set_enabled(NWAMUI_OBJECT(self), enabled );
@@ -364,47 +309,6 @@ nwamui_enm_get_property (   GObject         *object,
     nwam_value_t nwamdata;
 
     switch (prop_id) {
-        case PROP_NAME: {
-            if (self->prv->name == NULL) {
-                char *name;
-
-                if (self->prv->nwam_enm != NULL) {
-                    if ( (nerr = nwam_enm_get_name (self->prv->nwam_enm, &name)) != NWAM_SUCCESS ) {
-                        g_debug ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
-                    }
-
-                    if (g_ascii_strcasecmp (self->prv->name, name) != 0) {
-                        g_free(self->prv->name);
-                        self->prv->name = g_strdup(name);
-                        g_object_notify(G_OBJECT(self), "name");
-                    }
-                    free (name);
-                }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
-            }
-            g_value_set_string( value, self->prv->name );
-        }
-        break;
-
-        case PROP_ACTIVE: {
-                gboolean active = FALSE;
-                if ( self->prv->nwam_enm ) {
-                    nwam_state_t        state = NWAM_STATE_OFFLINE;
-                    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-
-                    /* Use cached state in nwamui_object... */
-                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
-
-                    if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_ACTIVE ) {
-                        active = TRUE;
-                    }
-                }
-                g_value_set_boolean( value, active );
-        }
-        break;
-
         case PROP_ENABLED: {
                 gboolean enabled = FALSE;
                 if (self->prv->nwam_enm != NULL) {
@@ -924,13 +828,37 @@ static void
 nwamui_enm_set_name (   NwamuiEnm *self,
                               const gchar*  name )
 {
+    nwam_error_t    nerr;
+
     g_return_if_fail (NWAMUI_IS_ENM (self));
     g_assert (name != NULL );
 
-    if ( name != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "name", name,
-                      NULL);
+    if ( self->prv->name != NULL ) {
+        g_free( self->prv->name );
+    }
+    self->prv->name = g_strdup(name);
+    /* we may rename here */
+    if (self->prv->nwam_enm == NULL) {
+        nerr = nwam_enm_read (self->prv->name, 0, &self->prv->nwam_enm);
+        if (nerr == NWAM_SUCCESS) {
+            g_debug ("nwamui_enm_set_property found nwam_enm_handle %s", self->prv->name);
+        } else {
+            nerr = nwam_enm_create (self->prv->name, NULL, &self->prv->nwam_enm);
+            if (nerr != NWAM_SUCCESS) {
+                g_debug ("nwamui_enm_set_property error creating nwam_enm_handle %s", self->prv->name);
+                self->prv->nwam_enm == NULL;
+            }
+        }
+    }
+
+    if (self->prv->nwam_enm != NULL) {
+        nerr = nwam_enm_set_name (self->prv->nwam_enm, self->prv->name);
+        if (nerr != NWAM_SUCCESS) {
+            g_debug ("nwam_enm_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+        }
+    }
+    else {
+        g_warning("Unexpected null enm handle");
     }
 }
 
@@ -943,15 +871,30 @@ nwamui_enm_set_name (   NwamuiEnm *self,
 static gchar*
 nwamui_enm_get_name (NwamuiEnm *self)
 {
-    gchar*  name = NULL; 
+    nwam_error_t    nerr;
 
-    g_return_val_if_fail (NWAMUI_IS_ENM (self), name);
+    g_return_val_if_fail (NWAMUI_IS_ENM (self), NULL);
 
-    g_object_get (G_OBJECT (self),
-                  "name", &name,
-                  NULL);
+    if (self->prv->name == NULL) {
+        char *name;
 
-    return( name );
+        if (self->prv->nwam_enm != NULL) {
+            if ( (nerr = nwam_enm_get_name (self->prv->nwam_enm, &name)) != NWAM_SUCCESS ) {
+                g_debug ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
+            }
+
+            if (g_ascii_strcasecmp (self->prv->name, name) != 0) {
+                g_free(self->prv->name);
+                self->prv->name = g_strdup(name);
+                g_object_notify(G_OBJECT(self), "name");
+            }
+            free (name);
+        }
+        else {
+            g_warning("Unexpected null enm handle");
+        }
+    }
+    return( self->prv->name );
 }
 
 /** 
@@ -997,13 +940,18 @@ nwamui_enm_set_active (   NwamuiEnm *self,
 static gboolean
 nwamui_enm_get_active (NwamuiEnm *self)
 {
-    gboolean  active = FALSE; 
+    gboolean active = FALSE;
+    if ( self->prv->nwam_enm ) {
+        nwam_state_t        state = NWAM_STATE_OFFLINE;
+        nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-    g_return_val_if_fail (NWAMUI_IS_ENM (self), active);
+        /* Use cached state in nwamui_object... */
+        state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
 
-    g_object_get (G_OBJECT (self),
-                  "active", &active,
-                  NULL);
+        if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_ACTIVE ) {
+            active = TRUE;
+        }
+    }
 
     return( active );
 }

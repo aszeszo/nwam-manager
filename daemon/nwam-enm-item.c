@@ -213,16 +213,16 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
     if (!arg1 ||
       g_ascii_strcasecmp(arg1->name, "active") == 0 ||
       g_ascii_strcasecmp(arg1->name, "name") == 0) {
-        gchar *m_name;
+        const gchar *m_name;
         gchar *new_text;
 
-        m_name = nwamui_object_get_name(object);
-
         if (nwamui_object_get_active(object)) {
-            new_text = g_strconcat(_("Stop "), m_name, NULL);
+            m_name = _("Stop ");
         } else {
-            new_text = g_strconcat(_("Start "), m_name, NULL);
+            m_name = _("Start ");
         }
+
+        new_text = g_strconcat(m_name, nwamui_object_get_name(object), NULL);
 
         /* If there is any underscores we need to replace them with two since
          * otherwise it's interpreted as a mnemonic
@@ -231,8 +231,6 @@ on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         menu_item_set_label(GTK_MENU_ITEM(self), new_text);
 
         g_free (new_text);
-        g_free (m_name);
-
     }
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation-mode") == 0) {

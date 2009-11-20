@@ -416,7 +416,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(self->prv->daemon));
     if (text) {
         gtk_label_set_text(self->prv->current_env_lbl, text);
-        g_free (text);
+        g_free(text);
     } else {
         gtk_label_set_text(self->prv->current_env_lbl, _("Unknow env"));
     }
@@ -727,10 +727,7 @@ on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
             
         if  ( nwamui_object_get_active(NWAMUI_OBJECT(enm))) {
             if ( enm_str == NULL ) {
-                gchar *name;
-                name = nwamui_object_get_name(NWAMUI_OBJECT(enm));
-                enm_str = g_strdup_printf("%s Active", name);
-                g_free (name);
+                enm_str = g_strdup_printf("%s Active", nwamui_object_get_name(NWAMUI_OBJECT(enm)));
             }
             enm_active_count++;
         }

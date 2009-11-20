@@ -74,9 +74,7 @@ struct _NwamuiEnvPrivate {
 };
 
 enum {
-    PROP_NAME=1,
-    PROP_ACTIVE,
-    PROP_ENABLED,
+    PROP_ENABLED = 1,
     PROP_NAMESERVICES,
     PROP_NAMESERVICES_CONFIG_FILE,
     PROP_DEFAULT_DOMAIN,
@@ -236,14 +234,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
-                                     PROP_NAME,
-                                     g_param_spec_string ("name",
-                                                          _("name"),
-                                                          _("name"),
-                                                          "",
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
                                      PROP_ACTIVATION_MODE,
                                      g_param_spec_int ("activation_mode",
                                                        _("activation_mode"),
@@ -252,14 +242,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                        NWAMUI_COND_ACTIVATION_MODE_LAST-1,
                                                        NWAMUI_COND_ACTIVATION_MODE_MANUAL,
                                                        G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_ACTIVE,
-                                     g_param_spec_boolean ("active",
-                                                          _("active"),
-                                                          _("active"),
-                                                          FALSE,
-                                                          G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_ENABLED,
@@ -658,41 +640,6 @@ nwamui_env_set_property (   GObject         *object,
     nwam_error_t nerr;
     
     switch (prop_id) {
-        case PROP_NAME: {
-                const gchar*  new_name = g_value_get_string( value );
-
-                if (  self->prv->name != NULL && new_name != NULL &&
-                      strcmp(self->prv->name, new_name) == 0 ) {
-                    /* Nothing to do */
-                    break;
-                }
-
-                if ( self->prv->name != NULL ) {
-                    g_free( self->prv->name );
-                }
-
-                self->prv->name = g_strdup( new_name );
-                /* we may rename here */
-                if (prv->nwam_loc == NULL) {
-                    nerr = nwam_loc_read (prv->name, 0, &prv->nwam_loc);
-                    if (nerr == NWAM_SUCCESS) {
-                        g_debug ("nwamui_env_set_property found nwam_loc_handle %s", prv->name);
-                    } else {
-                        nerr = nwam_loc_create (self->prv->name, &self->prv->nwam_loc);
-                        if ( nerr != NWAM_SUCCESS ) {
-                            nwamui_warning("Error creating location: %s : %s", 
-                                            self->prv->name, nwam_strerror(nerr));
-                            break;
-                        }
-                    }
-                }
-                nerr = nwam_loc_set_name (self->prv->nwam_loc, self->prv->name);
-                if (nerr != NWAM_SUCCESS) {
-                    g_debug ("nwam_loc_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
-                }
-            }
-            break;
-
         case PROP_ACTIVATION_MODE: {
                 set_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE, g_value_get_int( value ) );
             }
@@ -711,27 +658,6 @@ nwamui_env_set_property (   GObject         *object,
         case PROP_NWAM_ENV: {
                 g_assert (prv->nwam_loc == NULL);
                 prv->nwam_loc = g_value_get_pointer (value);
-            }
-            break;
-
-        case PROP_ACTIVE: {
-                /* Activate immediately */
-                gboolean   active;
-
-                active = g_value_get_boolean( value );
-
-                if ( active ) {
-                    nwam_error_t nerr;
-                    if ( (nerr = nwam_loc_enable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
-                        g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
-                    }
-                }
-                else {
-                    nwam_error_t nerr;
-                    if ( (nerr = nwam_loc_disable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
-                        g_warning("Failed to disable location due to error: %s", nwam_strerror(nerr));
-                    }
-                }
             }
             break;
 
@@ -1016,22 +942,6 @@ nwamui_env_get_property (GObject         *object,
     nwam_value_t **nwamdata;
 
     switch (prop_id) {
-        case PROP_NAME: {
-                if (self->prv->name == NULL) {
-                    char *name;
-                    nerr = nwam_loc_get_name (self->prv->nwam_loc, &name);
-                    if (nerr != NWAM_SUCCESS) {
-                        g_debug ("nwam_loc_get_name %s error: %s", self->prv->name, nwam_strerror (nerr));
-                    }
-                    if (g_ascii_strcasecmp (self->prv->name, name) != 0) {
-                        g_assert_not_reached ();
-                    }
-                    free (name);
-                }
-                g_value_set_string( value, self->prv->name );
-            }
-            break;
-
         case PROP_ACTIVATION_MODE: {
                 g_value_set_int( value, 
                         (gint)get_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE ) );
@@ -1047,25 +957,6 @@ nwamui_env_get_property (GObject         *object,
                 g_value_set_pointer( value, conditions );
 
                 g_strfreev( condition_strs );
-            }
-            break;
-
-        case PROP_ACTIVE: {
-                gboolean active = FALSE;
-                if ( self->prv->nwam_loc ) {
-                    nwam_state_t    state = NWAM_STATE_OFFLINE;
-                    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-
-                    /* Use cached state in nwamui_object... */
-                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
-                    if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_ACTIVE ) {
-                        active = TRUE;
-                    }
-                }
-                g_value_set_boolean( value, active );
-
-                /* Get current state of enabled */
-                /* g_value_set_boolean( value, get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED ) ); */
             }
             break;
 
@@ -2033,13 +1924,40 @@ static void
 nwamui_env_set_name (   NwamuiEnv *self,
                         const gchar*  name )
 {
+    NwamuiEnvPrivate *prv = self->prv;
+    nwam_error_t    nerr;
+
     g_return_if_fail (NWAMUI_IS_ENV (self));
     g_assert (name != NULL );
 
-    if ( name != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "name", name,
-                      NULL);
+    if (  prv->name != NULL && name != NULL &&
+      strcmp(prv->name, name) == 0 ) {
+        /* Nothing to do */
+        return;
+    }
+
+    if ( prv->name != NULL ) {
+        g_free( prv->name );
+    }
+
+    prv->name = g_strdup( name );
+    /* we may rename here */
+    if (prv->nwam_loc == NULL) {
+        nerr = nwam_loc_read (prv->name, 0, &prv->nwam_loc);
+        if (nerr == NWAM_SUCCESS) {
+            g_debug ("nwamui_env_set_property found nwam_loc_handle %s", prv->name);
+        } else {
+            nerr = nwam_loc_create (prv->name, &prv->nwam_loc);
+            if ( nerr != NWAM_SUCCESS ) {
+                nwamui_warning("Error creating location: %s : %s", 
+                  prv->name, nwam_strerror(nerr));
+                return;
+            }
+        }
+    }
+    nerr = nwam_loc_set_name (prv->nwam_loc, prv->name);
+    if (nerr != NWAM_SUCCESS) {
+        g_debug ("nwam_loc_set_name %s error: %s", prv->name, nwam_strerror (nerr));
     }
 }
 
@@ -2052,15 +1970,22 @@ nwamui_env_set_name (   NwamuiEnv *self,
 static gchar*
 nwamui_env_get_name (NwamuiEnv *self)
 {
-    gchar*  name = NULL; 
+    nwam_error_t    nerr;
 
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), name);
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), NULL);
 
-    g_object_get (G_OBJECT (self),
-                  "name", &name,
-                  NULL);
-
-    return( name );
+    if (self->prv->name == NULL) {
+        char *name;
+        nerr = nwam_loc_get_name (self->prv->nwam_loc, &name);
+        if (nerr != NWAM_SUCCESS) {
+            g_debug ("nwam_loc_get_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+        }
+        if (g_ascii_strcasecmp (self->prv->name, name) != 0) {
+            g_assert_not_reached ();
+        }
+        free (name);
+    }
+    return( self->prv->name );
 }
 
 /** 
@@ -2110,12 +2035,20 @@ static gboolean
 nwamui_env_get_active (NwamuiEnv *self)
 {
     gboolean  active = FALSE; 
-
     g_return_val_if_fail (NWAMUI_IS_ENV (self), active);
+    if ( self->prv->nwam_loc ) {
+        nwam_state_t    state = NWAM_STATE_OFFLINE;
+        nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-    g_object_get (G_OBJECT (self),
-                  "active", &active,
-                  NULL);
+        /* Use cached state in nwamui_object... */
+        state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
+        if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_ACTIVE ) {
+            active = TRUE;
+        }
+    }
+
+    /* Get current state of enabled */
+    /* g_value_set_boolean( value, get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED ) ); */
 
     return( active );
 }
@@ -2132,9 +2065,19 @@ nwamui_env_set_active (   NwamuiEnv *self,
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
 
-    g_object_set (G_OBJECT (self),
-                  "active", active,
-                  NULL);
+    /* Activate immediately */
+    if ( active ) {
+        nwam_error_t nerr;
+        if ( (nerr = nwam_loc_enable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
+            g_warning("Failed to enable location due to error: %s", nwam_strerror(nerr));
+        }
+    }
+    else {
+        nwam_error_t nerr;
+        if ( (nerr = nwam_loc_disable (self->prv->nwam_loc)) != NWAM_SUCCESS ) {
+            g_warning("Failed to disable location due to error: %s", nwam_strerror(nerr));
+        }
+    }
 }
 
 

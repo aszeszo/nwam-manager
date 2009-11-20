@@ -45,8 +45,6 @@ static NwamuiNcp       *instance        = NULL;
 
 enum {
     PROP_NWAM_NCP = 1,
-    PROP_NAME,
-    PROP_ACTIVE,
     PROP_PRIORITY_GROUP,
     PROP_NCU_LIST,
     PROP_NCU_TREE_STORE,
@@ -157,6 +155,8 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncp_get_name;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)NULL;
+    nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_ncp_get_active;
+    nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_ncp_set_active;
     nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_ncp_get_nwam_state;
     nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_ncp_commit;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_ncp_reload;
@@ -168,22 +168,6 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
                                                            _("Nwam Ncp handle"),
                                                            _("Nwam Ncp handle"),
                                                            G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_NAME,
-                                     g_param_spec_string ("name",
-                                                          _("Name of the NCP"),
-                                                          _("Name of the NCP"),
-                                                          "",
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_ACTIVE,
-                                     g_param_spec_boolean("active",
-                                                         _("active"),
-                                                         _("active"),
-                                                          FALSE,
-                                                          G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
       PROP_PRIORITY_GROUP,
@@ -319,60 +303,15 @@ nwamui_ncp_set_property (   GObject         *object,
 
     read_only = !nwamui_ncp_is_modifiable(self);
 
-    if ( prop_id != PROP_ACTIVE && read_only ) {
+    if (read_only) {
         g_error("Attempting to modify read-only ncp %s", self->prv->name);
         return;
     }
 
     switch (prop_id) {
-        case PROP_NAME: {
-                if ( self->prv->name != NULL ) {
-                    g_free( self->prv->name );
-                }
-                self->prv->name = g_strdup( g_value_get_string( value ) );
-                /* we may rename here */
-                if (self->prv->nwam_ncp == NULL) {
-                    nerr = nwam_ncp_read (self->prv->name, 0, &self->prv->nwam_ncp);
-                    if (nerr == NWAM_SUCCESS) {
-                        g_debug ("nwamui_ncp_set_property found nwam_loc_handle %s", self->prv->name);
-                    } else {
-                        nerr = nwam_ncp_create (self->prv->name, 0, &self->prv->nwam_ncp);
-                        g_assert (nerr == NWAM_SUCCESS);
-                    }
-                }
-                /*
-                 * Currently can't set name after creation, but just in case...
-                 *
-                nerr = nwam_ncp_set_name (self->prv->nwam_ncp, self->prv->name);
-                if (nerr != NWAM_SUCCESS) {
-                    g_debug ("nwam_ncp_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
-                }
-                */
-            }
-            break;
         case PROP_NWAM_NCP: {
                 g_assert (self->prv->nwam_ncp == NULL);
                 self->prv->nwam_ncp = g_value_get_pointer (value);
-            }
-            break;
-
-        case PROP_ACTIVE: {
-                /* Activate immediately */
-                nwam_state_t        state = NWAM_STATE_OFFLINE;
-                nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-
-                nwam_ncp_get_state( self->prv->nwam_ncp, &state, &aux_state );
-
-                gboolean active = g_value_get_boolean( value );
-                if ( state != NWAM_STATE_ONLINE && active ) {
-                    nwam_error_t nerr;
-                    if ( (nerr = nwam_ncp_enable (self->prv->nwam_ncp)) != NWAM_SUCCESS ) {
-                        g_warning("Failed to enable ncp due to error: %s", nwam_strerror(nerr));
-                    }
-                }
-                else {
-                    g_warning("Cannot disable an NCP, enable another one to do this");
-                }
             }
             break;
 
@@ -391,24 +330,6 @@ nwamui_ncp_get_property (   GObject         *object,
     NwamuiNcp *self = NWAMUI_NCP(object);
 
     switch (prop_id) {
-        case PROP_NAME: {
-                g_value_set_string( value, self->prv->name );
-            }
-            break;
-        case PROP_ACTIVE: {
-                gboolean active = FALSE;
-                if ( self->prv->nwam_ncp ) {
-                    nwam_state_t        state = NWAM_STATE_OFFLINE;
-                    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-
-                    nwam_ncp_get_state( self->prv->nwam_ncp, &state, &aux_state );
-                    if ( state == NWAM_STATE_ONLINE ) {
-                        active = TRUE;
-                    }
-                }
-                g_value_set_boolean( value, active );
-            }
-            break;
     case PROP_PRIORITY_GROUP:
         g_value_set_int64(value, self->prv->priority_group);
         break;
@@ -650,14 +571,33 @@ extern void
 nwamui_ncp_set_name (   NwamuiNcp *self,
                         const gchar*  name )
 {
+    nwam_error_t    nerr;
+
     g_return_if_fail (NWAMUI_IS_NCP (self));
     g_assert (name != NULL );
 
-    if ( name != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "name", name,
-                      NULL);
+    if ( self->prv->name != NULL ) {
+        g_free( self->prv->name );
     }
+    self->prv->name = g_strdup(name);
+    /* we may rename here */
+    if (self->prv->nwam_ncp == NULL) {
+        nerr = nwam_ncp_read (self->prv->name, 0, &self->prv->nwam_ncp);
+        if (nerr == NWAM_SUCCESS) {
+            g_debug ("nwamui_ncp_set_property found nwam_loc_handle %s", self->prv->name);
+        } else {
+            nerr = nwam_ncp_create (self->prv->name, 0, &self->prv->nwam_ncp);
+            g_assert (nerr == NWAM_SUCCESS);
+        }
+    }
+    /*
+     * Currently can't set name after creation, but just in case...
+     *
+     nerr = nwam_ncp_set_name (self->prv->nwam_ncp, self->prv->name);
+     if (nerr != NWAM_SUCCESS) {
+     g_debug ("nwam_ncp_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
+     }
+    */
 }
 
 
@@ -669,15 +609,9 @@ nwamui_ncp_set_name (   NwamuiNcp *self,
 static gchar*
 nwamui_ncp_get_name ( NwamuiNcp *self )
 {
-    gchar*  name = NULL;
+    g_return_val_if_fail (NWAMUI_IS_NCP(self), NULL); 
     
-    g_return_val_if_fail (NWAMUI_IS_NCP(self), name); 
-    
-    g_object_get (G_OBJECT (self),
-                  "name", &name,
-                  NULL);
-
-    return( name );
+    return self->prv->name;
 }
 
 /**
@@ -687,17 +621,22 @@ nwamui_ncp_get_name ( NwamuiNcp *self )
  *
  **/
 extern gboolean
-nwamui_ncp_is_active( NwamuiNcp* self )
+nwamui_ncp_get_active( NwamuiNcp* self )
 {
-    gboolean is_active = FALSE;
+    gboolean active = FALSE;
+    g_return_val_if_fail( NWAMUI_IS_NCP(self), active );
 
-    g_return_val_if_fail( NWAMUI_IS_NCP(self), is_active );
+    if ( self->prv->nwam_ncp ) {
+        nwam_state_t        state = NWAM_STATE_OFFLINE;
+        nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-    g_object_get (G_OBJECT (self),
-                  "active", &is_active,
-                  NULL);
+        nwam_ncp_get_state( self->prv->nwam_ncp, &state, &aux_state );
+        if ( state == NWAM_STATE_ONLINE ) {
+            active = TRUE;
+        }
+    }
 
-    return( is_active );
+    return( active );
 }
 
 /** 
@@ -710,11 +649,23 @@ extern void
 nwamui_ncp_set_active (   NwamuiNcp *self,
                           gboolean        active )
 {
+    /* Activate immediately */
+    nwam_state_t        state = NWAM_STATE_OFFLINE;
+    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+
     g_return_if_fail (NWAMUI_IS_NCP (self));
 
-    g_object_set (G_OBJECT (self),
-                  "active", active,
-                  NULL);
+    nwam_ncp_get_state( self->prv->nwam_ncp, &state, &aux_state );
+
+    if ( state != NWAM_STATE_ONLINE && active ) {
+        nwam_error_t nerr;
+        if ( (nerr = nwam_ncp_enable (self->prv->nwam_ncp)) != NWAM_SUCCESS ) {
+            g_warning("Failed to enable ncp due to error: %s", nwam_strerror(nerr));
+        }
+    }
+    else {
+        g_warning("Cannot disable an NCP, enable another one to do this");
+    }
 }
 
 /**
@@ -835,11 +786,7 @@ check_ncu_online( gpointer obj, gpointer user_data )
         online = TRUE;
     }
 
-    {
-        gchar *vanity_name = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
-        nwamui_debug("NCU %s: online = %s", vanity_name, online?"True":"False" );
-        g_free(vanity_name);
-    }
+    nwamui_debug("NCU %s: online = %s", nwamui_object_get_name(NWAMUI_OBJECT(ncu)), online?"True":"False" );
 
     switch (activation_mode) { 
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL: {

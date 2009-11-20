@@ -1,3 +1,106 @@
+2009-11-20  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (capplet_model_foreach_find_by_name),
+	(nwamui_object_name_cell), (capplet_model_find_max_name_suffix):
+	* capplet/nwam_condition_vbox.c (update_cond_from_row),
+	(_cu_enm_combo_new), (_cu_loc_combo_new),
+	(_cu_wifi_combo_entry_new), (select_item_with_value),
+	(condition_gobject_combo_changed_cb):
+	* capplet/nwam_conn_conf_ip_panel.c (nwam_conn_wifi_fav_cell_cb),
+	(wireless_tab_remove_button_clicked_cb):
+	* capplet/nwam_conn_stat_panel.c (refresh),
+	(on_nwam_enm_notify_cb):
+	* capplet/nwam_env_pref_dialog.c (refresh), (apply):
+	* capplet/nwam_location_dialog.c (apply),
+	(vanity_name_editing_started), (on_button_clicked),
+	(nwam_location_connection_toggled_cell_sensitive_func):
+	* capplet/nwam_net_conf_panel.c (nwam_connection_cell_func),
+	(vanity_name_editing_started), (nwam_connection_cell_toggled),
+	(ncu_find_gt_name):
+	* capplet/nwam_pref_dialog.c (nwam_capplet_dialog_init),
+	(show_combo_cell_cb):
+	* capplet/nwam_rules_dialog.c (refresh), (nwam_rules_dialog_init):
+	* capplet/nwam_vpn_pref_dialog.c (nwam_update_obj), (apply),
+	(vpn_pref_clicked_cb), (nwam_vpn_selection_changed):
+	* capplet/nwam_wireless_dialog.c
+	(add_essid_list_item_to_essid_liststore):
+	* common/libnwamui.c (nwamui_util_ask_about_dup_obj):
+	* common/nwamui_daemon.c (nwamui_daemon_get_ncp_by_name),
+	(nwamui_daemon_get_env_by_name), (nwamui_daemon_get_enm_by_name),
+	(nwamui_daemon_get_active_ncp_name), (set_env_disabled),
+	(nwamui_daemon_get_active_env_name),
+	(find_compare_wifi_net_with_name),
+	(nwamui_daemon_commit_changed_objects), (nwamd_event_handler),
+	(nwamui_daemon_update_status), (default_wifi_key_needed),
+	(default_wifi_scan_result_signal_handler), (nwam_ncp_walker_cb):
+	* common/nwamui_enm.c (nwamui_enm_class_init),
+	(nwamui_enm_set_property), (nwamui_enm_get_property),
+	(nwamui_enm_set_name), (nwamui_enm_get_name),
+	(nwamui_enm_get_active):
+	* common/nwamui_env.c (nwamui_env_class_init),
+	(nwamui_env_set_property), (nwamui_env_get_property),
+	(nwamui_env_set_name), (nwamui_env_get_name),
+	(nwamui_env_get_active), (nwamui_env_set_active):
+	* common/nwamui_ncp.c (nwamui_ncp_class_init),
+	(nwamui_ncp_set_property), (nwamui_ncp_get_property),
+	(nwamui_ncp_set_name), (nwamui_ncp_get_name),
+	(nwamui_ncp_get_active), (nwamui_ncp_set_active),
+	(check_ncu_online):
+	* common/nwamui_ncp.h:
+	* common/nwamui_ncu.c (nwamui_ncu_class_init),
+	(nwamui_ncu_set_property), (nwamui_ncu_get_property),
+	(populate_common_ncu_data):
+	* common/nwamui_object.c (nwamui_object_class_init),
+	(nwamui_object_set_property), (nwamui_object_get_property),
+	(nwamui_object_can_rename), (nwamui_object_set_name),
+	(nwamui_object_get_name), (nwamui_object_set_conditions),
+	(nwamui_object_get_conditions),
+	(nwamui_object_get_activation_mode),
+	(nwamui_object_set_activation_mode), (nwamui_object_get_active),
+	(nwamui_object_set_active), (nwamui_object_get_enabled),
+	(nwamui_object_set_enabled), (nwamui_object_commit),
+	(nwamui_object_destroy), (nwamui_object_reload),
+	(nwamui_object_get_nwam_state), (nwamui_object_notify_cb),
+	(default_nwamui_object_get_name),
+	(default_nwamui_object_can_rename),
+	(default_nwamui_object_set_name),
+	(default_nwamui_object_set_conditions),
+	(default_nwamui_object_get_conditions),
+	(default_nwamui_object_get_activation_mode),
+	(default_nwamui_object_set_activation_mode),
+	(default_nwamui_object_get_active),
+	(default_nwamui_object_set_active),
+	(default_nwamui_object_get_enabled),
+	(default_nwamui_object_set_enabled),
+	(default_nwamui_object_get_nwam_state),
+	(default_nwamui_object_commit), (default_nwamui_object_reload),
+	(default_nwamui_object_destroy):
+	* common/nwamui_object.h:
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init),
+	(nwamui_wifi_net_set_property), (nwamui_wifi_net_get_property),
+	(nwamui_wifi_net_new), (nwamui_wifi_net_update_with_handle),
+	(nwamui_wifi_net_update_from_wlan_t), (nwamui_wifi_net_set_essid),
+	(nwamui_wifi_net_get_essid), (nwamui_wifi_net_get_unique_name):
+	* daemon/notify.c (nwam_notification_show_ncu_connected),
+	(nwam_notification_show_ncu_disconnected),
+	(nwam_notification_show_ncu_wifi_connect_failed),
+	(nwam_notification_show_ncp_changed),
+	(nwam_notification_show_location_changed):
+	* daemon/nwam-enm-item.c (on_nwam_enm_notify):
+	* daemon/nwam-env-item.c (on_nwam_env_notify):
+	* daemon/nwam-menu.c (nwam_menu_real_remove),
+	(nwam_menu_real_insert):
+	* daemon/nwam-ncu-item.c (on_nwam_ncu_notify):
+	* daemon/nwam-tooltip-widget.c (nwam_object_notify),
+	(nwam_object_activation_mode_notify):
+	* daemon/nwam-wifi-item.c (wifi_net_notify):
+	* daemon/status_icon_tooltip.c (tooltip_treeview_cell):
+	* tests/main.c (process_ncu), (process_ncp), (process_env),
+	(process_enm), (process_known_wlan):
+	clean code, move "active" "name" to nwamui_object. Get_name returns
+	costant string, shouldn't be freed, and is not MT safe, should keep
+	ref when using that name. Fixed some build warnings. Fixed some leaks.
+
 2009-11-19  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_daemon.c (nwamd_event_handler),

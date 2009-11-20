@@ -248,7 +248,7 @@ on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "name") == 0) {
 
         gchar *menu_text = NULL;
-        menu_text = nwamui_object_get_name(object);
+        menu_text = strdup(nwamui_object_get_name(object));
         /* If there is any underscores we need to replace them with two since
          * otherwise it's interpreted as a mnemonic
          */

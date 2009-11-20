@@ -92,8 +92,6 @@ static void show_changed_cb( GtkWidget* widget, gpointer data );
 /* Utility Functions */
 static void show_combo_add (GtkComboBox* combo, GObject*  obj);
 static void show_combo_remove (GtkComboBox* combo, GObject*  obj);
-static void update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp ); /* Unused */
-
 
 G_DEFINE_TYPE_EXTENDED (NwamCappletDialog,
                         nwam_capplet_dialog,
@@ -174,7 +172,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
       G_TYPE_OBJECT,
       show_combo_cell_cb,
       show_combo_separator_cb,
-      show_changed_cb,
+      (GCallback)show_changed_cb,
       (gpointer)self,
       NULL);
 
@@ -544,7 +542,7 @@ show_combo_cell_cb (GtkCellLayout *cell_layout,
 			gpointer           data)
 {
 	gpointer row_data = NULL;
-	gchar *text = NULL;
+    gchar*   text     = NULL;
 	
 	gtk_tree_model_get(model, iter, 0, &row_data, -1);
 	
@@ -563,13 +561,11 @@ show_combo_cell_cb (GtkCellLayout *cell_layout,
 		g_free (text);
 	} else if (NWAMUI_IS_OBJECT (row_data)) {
         gchar *markup;
-		text = nwamui_object_get_name(NWAMUI_OBJECT(row_data));
-        markup = g_strdup_printf("<b><i>%s</i></b>", text);
+        markup = g_strdup_printf("<b><i>%s</i></b>", nwamui_object_get_name(NWAMUI_OBJECT(row_data)));
 		g_object_set(renderer,
           "markup", markup,
           "sensitive", FALSE,
           NULL);
-		g_free (text);
 		g_free (markup);
     } else if (NWAM_IS_CONN_STATUS_PANEL (row_data)) {
 		text = _("Connection Status");
@@ -659,54 +655,6 @@ show_combo_remove(GtkComboBox* combo, GObject*  obj)
             gtk_tree_store_remove(GTK_TREE_STORE(model), &parent);
         }
     }
-}
-
-static gboolean
-add_ncu_element(    GtkTreeModel *model,
-                    GtkTreePath *path,
-                    GtkTreeIter *iter,
-                    gpointer user_data)
-{
-	NwamuiNcu*      ncu = NULL;
-	GtkListStore*   combo_model = GTK_LIST_STORE(user_data);
-    GtkTreeIter     new_iter;
-    gchar *name;
-	
-  	gtk_tree_model_get(model, iter, 0, &ncu, -1);
-
-    gtk_list_store_append(GTK_LIST_STORE(combo_model), &new_iter);
-    gtk_list_store_set(GTK_LIST_STORE(combo_model), &new_iter, 0, ncu, -1);
-    
-    g_object_unref( ncu );
-    
-    return( FALSE ); /* FALSE = Continue Processing */
-}
-
-static void     
-update_show_combo_from_ncp( GtkComboBox* combo, NwamuiNcp*  ncp )
-{
-	GtkTreeIter     iter;
-	GtkTreeModel   *model = NULL;
-	gboolean        has_next;
-	
-	g_return_if_fail( combo != NULL && ncp != NULL );
-
-	/* Update list of connections in "show_combo" */
-	model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo));
-	
-	/*
-	 TODO - Check if there is a better way to handle updating combo box than remove/add all items.
-	 */
-	/* Remove items 3 and later ( 0 = Connect Status; 1 = Network configuration; 2 = Separator ) */
-	if (gtk_tree_model_get_iter_from_string(model, &iter, "3")) {
-		do {
-			has_next = gtk_tree_store_remove(GTK_LIST_STORE(model), &iter);
-		} while (has_next);
-	}
-	/* Now Add Entries for NCP Enabled NCUs */
-    nwamui_ncp_foreach_ncu(ncp, add_ncu_element, (gpointer)model);
-            
-    g_object_unref(model);
 }
 
 /*

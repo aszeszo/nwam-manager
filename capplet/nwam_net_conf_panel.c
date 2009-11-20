@@ -947,7 +947,7 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
     NwamNetConfPanelPrivate    *prv = GET_PRIVATE(data);
     GList                      *ncus = prv->ncu_selection;
     NwamuiObject               *obj;
-    gchar                      *name;
+    const gchar                *name;
     gboolean                    is_active = FALSE;
     gboolean                    is_in_ncp = FALSE;
     NwamuiObject               *found_object = NULL;
@@ -959,13 +959,12 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
 
     /* Find equivalent object in NCU list of the seleted profile */
     while (ncus && !is_in_ncp) {
-        gchar           *ncu_name = nwamui_object_get_name(NWAMUI_OBJECT(ncus->data));
+        const gchar *ncu_name = nwamui_object_get_name(NWAMUI_OBJECT(ncus->data));
 
         if (g_ascii_strcasecmp(name, ncu_name) == 0) {
             is_in_ncp = TRUE;
         }
         ncus = g_list_next(ncus);
-        g_free(ncu_name);
     }
 
     /* prv->ncu_selection may mix NCUs of different NCPs, so we have to find
@@ -1000,7 +999,6 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
 
         g_free(disp_text);
     }
-    g_free(name);
     g_object_unref(obj);
 }
 
@@ -1083,12 +1081,7 @@ vanity_name_editing_started (GtkCellRenderer *cell,
             if (NWAMUI_IS_NCU( connection )) {
                 ncu  = NWAMUI_NCU( connection );
 
-                vname = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
-            
-                gtk_entry_set_text( entry, vname?vname:"" );
-
-                g_free( vname );
-            
+                gtk_entry_set_text( entry, nwamui_object_get_name(NWAMUI_OBJECT(ncu)));
             }
             g_object_unref(G_OBJECT(connection));
             gtk_tree_path_free(tpath);
@@ -1321,8 +1314,8 @@ nwam_connection_cell_toggled(GtkCellRendererToggle *cell_renderer,
     GtkTreePath  *path;
     GList *ncus = prv->ncu_selection;
     NwamuiNcu*  ncu;
-    gchar *name;
-    gchar *ncu_name;
+    const gchar *name;
+    const gchar *ncu_name;
     GList *hit = NULL;
 
     model = gtk_tree_view_get_model(prv->connection_treeview);
@@ -1337,9 +1330,7 @@ nwam_connection_cell_toggled(GtkCellRendererToggle *cell_renderer,
             hit = ncus;
         }
         ncus = g_list_next(ncus);
-        g_free(ncu_name);
     }
-    g_free(name);
 
     if (gtk_cell_renderer_toggle_get_active(cell_renderer)) {
         if (hit) {
@@ -1473,8 +1464,8 @@ ncu_find_gt_name(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpoi
     NwamuiObject *object;
     nwamui_ncu_type_t ins_type;
     nwamui_ncu_type_t type;
-    gchar *ins_name;
-    gchar *name;
+    const gchar *ins_name;
+    const gchar *name;
     gint ret;
 
     gtk_tree_model_get(model, iter, 0, &object, -1);
@@ -1492,11 +1483,9 @@ ncu_find_gt_name(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpoi
     name = nwamui_object_get_name(object);
     ins_name = nwamui_object_get_name(ins_object);
 
-    g_object_unref(object);
-
     ret = g_ascii_strcasecmp(name, (gchar*)user_data);
-    g_free(name);
-    g_free(ins_name);
+
+    g_object_unref(object);
 
     return ret >= 0;
 }

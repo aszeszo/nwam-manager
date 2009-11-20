@@ -242,23 +242,24 @@ print_conditions( GObject* obj )
 static gboolean
 process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
 {
-    NwamuiNcu           *ncu = NULL;
-    gchar               *vname, *dname, *display_name, *nwam_qualified_name;
-    nwamui_ncu_type_t   type;
-    gchar*              typestr;
-    gchar*              statestr;
-    gchar*              state_detailstr;
-    gchar*              cfg_str;
-    gboolean            active;
-    gboolean            enabled;
-    gboolean            ipv4_has_dhcp;
-    gchar*              ipv4_address;
-    gchar*              ipv4_subnet;
-    gboolean            ipv6_active;
-    gboolean            ipv6_has_dhcp;
-    gboolean            ipv6_has_auto_conf;
-    gchar*              ipv6_address;
-    gchar*              ipv6_prefix;
+    NwamuiNcu         *ncu = NULL;
+    const gchar       *vname;
+    gchar             *dname, *display_name, *nwam_qualified_name;
+    nwamui_ncu_type_t  type;
+    gchar*             typestr;
+    gchar*             statestr;
+    gchar*             state_detailstr;
+    gchar*             cfg_str;
+    gboolean           active;
+    gboolean           enabled;
+    gboolean           ipv4_has_dhcp;
+    gchar*             ipv4_address;
+    gchar*             ipv4_subnet;
+    gboolean           ipv6_active;
+    gboolean           ipv6_has_dhcp;
+    gboolean           ipv6_has_auto_conf;
+    gchar*             ipv6_address;
+    gchar*             ipv6_prefix;
 
     printf("%-*s*************************************************************\n", indent, "");
 
@@ -327,8 +328,6 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
         g_error("Object shouldn't have modifications");
     }
 
-    if ( vname != NULL )
-        g_free(vname);
     if ( dname != NULL )
         g_free(dname);
     if ( display_name != NULL )
@@ -356,8 +355,8 @@ process_ncp( gpointer data, gpointer user_data )
     NwamuiNcp       *ncp = NWAMUI_NCP(data);
     
     if ( ncp != NULL ) {
-        gchar      *name = nwamui_object_get_name(NWAMUI_OBJECT(ncp));
-        gboolean    active = nwamui_ncp_is_active( ncp );
+        const gchar *name   = nwamui_object_get_name(NWAMUI_OBJECT(ncp));
+        gboolean     active = nwamui_ncp_get_active( ncp );
 
         printf("%-*s-------------------------------------------------------------\n", indent, "");
         printf("%-*sProcessing ncp : %s (%s)\n", indent, "", name, active?"ACTIVE":"inactive" );
@@ -367,7 +366,6 @@ process_ncp( gpointer data, gpointer user_data )
         nwamui_ncp_foreach_ncu(ncp, (GtkTreeModelForeachFunc)process_ncu, NULL );
         indent -=4;
 
-        g_free(name);
         g_object_unref(G_OBJECT(ncp));
     }
 
@@ -431,7 +429,7 @@ static void
 process_env( gpointer data, gpointer user_data ) 
 {
     NwamuiEnv  *env = NWAMUI_ENV( data );
-    gchar*      name;
+    const gchar*name;
     nwamui_cond_activation_mode_t
                 activation_mode  =  nwamui_object_get_activation_mode(NWAMUI_OBJECT(env));
     GList*      conditions  =  nwamui_object_get_conditions(NWAMUI_OBJECT(env));
@@ -506,8 +504,6 @@ process_env( gpointer data, gpointer user_data )
     if ( nwamui_env_has_modifications( env ) ) {
         g_error("Object shouldn't have modifications");
     }
-
-    if ( name != NULL ) g_free( name );
 }
 
 static void 
@@ -533,12 +529,12 @@ static void
 process_enm( gpointer data, gpointer user_data ) 
 {
     NwamuiEnm           *enm = NWAMUI_ENM( data );
-    gchar*               name;
-    gboolean             active;
-    gboolean             enabled;
-    gchar*               start_command;
-    gchar*               stop_command;
-    gchar*               smf_frmi;
+    const gchar* name;
+    gboolean     active;
+    gboolean     enabled;
+    gchar*       start_command;
+    gchar*       stop_command;
+    gchar*       smf_frmi;
 
     printf("%-*s*************************************************************\n", indent, "");
 
@@ -574,10 +570,6 @@ process_enm( gpointer data, gpointer user_data )
 
     if ( nwamui_enm_has_modifications( enm ) ) {
         g_error("Object shouldn't have modifications");
-    }
-
-    if (name != NULL ) {
-        g_free( name );
     }
 
     if (start_command != NULL ) {
@@ -621,9 +613,9 @@ process_known_wlan( gpointer data, gpointer user_data )
     const gchar     *signal_str;
     
     if ( wifi != NULL ) {
-        gchar * essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
-        GList * fav_bssid_list = nwamui_wifi_net_get_fav_bssid_list( wifi );
-        GList * bssid_list = nwamui_wifi_net_get_bssid_list( wifi );
+        const gchar *essid          = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
+        GList       *fav_bssid_list = nwamui_wifi_net_get_fav_bssid_list( wifi );
+        GList       *bssid_list     = nwamui_wifi_net_get_bssid_list( wifi );
 
         printf("%-*s=============================================================\n", indent, "");
         indent +=4;
@@ -642,7 +634,6 @@ process_known_wlan( gpointer data, gpointer user_data )
         if ( nwamui_wifi_net_has_modifications( wifi ) ) {
             g_error("Object shouldn't have modifications");
         }
-        g_free(essid);
         g_object_unref(G_OBJECT(wifi));
     }
 

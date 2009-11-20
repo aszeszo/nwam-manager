@@ -1251,32 +1251,6 @@ select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_proxy_type_t proxy_type 
 #endif /* ENABLE_PROXY */
 
 
-static void
-show_env_cell_cb (GtkCellLayout *cell_layout,
-			GtkCellRenderer   *renderer,
-			GtkTreeModel      *model,
-			GtkTreeIter       *iter,
-			gpointer           data)
-{
-	gpointer row_data = NULL;
-	gchar *text = NULL;
-	
-	gtk_tree_model_get(model, iter, 0, &row_data, -1);
-	
-	if (row_data == NULL) {
-		return;
-	}
-        
-	g_assert (G_IS_OBJECT (row_data));
-	
-	if (NWAMUI_IS_ENV (row_data)) {
-		text = nwamui_object_get_name(NWAMUI_OBJECT(row_data));
-		g_object_set (G_OBJECT(renderer), "text", text, NULL);
-		g_free (text);
-		return;
-	}
-}
-
 #ifdef ENABLE_PROXY
 static void
 proxy_config_changed_cb( GtkWidget* widget, gpointer data )
@@ -2020,14 +1994,11 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 	if (force) {
 		if (prv->selected_env) {
 			gchar *title;
-            gchar *name;
 
-            name = nwamui_object_get_name(NWAMUI_OBJECT(prv->selected_env));
-			title = g_strdup_printf(_("Location Properties : %s"), name);
+			title = g_strdup_printf(_("Location Properties : %s"), nwamui_object_get_name(NWAMUI_OBJECT(prv->selected_env)));
 			g_object_set(prv->env_pref_dialog,
 			    "title", title,
 			    NULL);
-			g_free(name);
 			g_free(title);
 
             /* Set title to include hostname */
@@ -2242,27 +2213,23 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 
     if (nwamui_env_validate (NWAMUI_ENV (prv->selected_env), &prop_name)) {
         if (!nwamui_object_commit (NWAMUI_OBJECT (prv->selected_env))) {
-            gchar *name = nwamui_object_get_name (NWAMUI_OBJECT (prv->selected_env));
-            gchar *msg = g_strdup_printf (_("Committing %s failed..."), name);
+            gchar *msg = g_strdup_printf (_("Committing %s failed..."), nwamui_object_get_name (NWAMUI_OBJECT (prv->selected_env)));
             nwamui_util_show_message (GTK_WINDOW(prv->env_pref_dialog),
               GTK_MESSAGE_ERROR,
               _("Commit Location Error"),
               msg, TRUE);
             g_free (msg);
-            g_free (name);
             return FALSE;
         }
     }
     else {
-        gchar *name = nwamui_object_get_name (NWAMUI_OBJECT (prv->selected_env));
-        gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), name, prop_name);
+        gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), nwamui_object_get_name (NWAMUI_OBJECT (prv->selected_env)), prop_name);
 
         nwamui_util_show_message (GTK_WINDOW(prv->env_pref_dialog),
           GTK_MESSAGE_ERROR,
           _("Validation error"),
           msg, TRUE);
         g_free (msg);
-        g_free (name);
         g_free (prop_name);
         return( FALSE );
     }

@@ -1417,13 +1417,10 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
                 g_object_unref(G_OBJECT(status_icon));
             }
             else if ( cell_num == 1 ) {
-                gchar*  essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_info));
-                
                 g_object_set (G_OBJECT(renderer),
-                        "text", essid?essid:"",
+                        "text", nwamui_object_get_name(NWAMUI_OBJECT(wifi_info)),
                         NULL);
                         
-                g_free(essid);
             }
         }
         break;
@@ -1803,24 +1800,18 @@ wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data )
             GtkTreeIter  iter;
             g_assert (idx->data);
             if (gtk_tree_model_get_iter(model, &iter, (GtkTreePath *)idx->data)) {
-                gchar*  name;
                 gchar*  message;
 
                 gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, 0, &wifi_net, -1 );
                 
-                name = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
-                message = g_strdup_printf(_("Remove favourite with ESSID '%s'?"), name?name:"" );
+                message = g_strdup_printf(_("Remove favourite with ESSID '%s'?"), nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)));
                 if (nwamui_util_confirm_removal( GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))), _("Remove Wireless Favourite?"), message )) {
-                    g_debug("Removing wifi favourite: '%s'", name);
+                    g_debug("Removing wifi favourite: '%s'", nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)));
 
                     nwamui_daemon_remove_wifi_fav(self->prv->daemon, wifi_net );
 
                     nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
                 }
-            
-                if (name)
-                    g_free(name);
-
                 g_free(message);
             } else {
                 g_assert_not_reached ();

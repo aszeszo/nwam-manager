@@ -907,16 +907,14 @@ nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name )
          item = g_list_next( item ) ) {
         if ( item->data != NULL && NWAMUI_IS_NCP(item->data) ) {
             NwamuiNcp* tmp_ncp = NWAMUI_NCP(item->data);
-            gchar*     ncp_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_ncp));
+            const gchar*     ncp_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_ncp));
 
             g_string_append_printf(have_names, "%s ", ncp_name);
 
             if ( strcmp( name, ncp_name) == 0 ) {
                 ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(tmp_ncp)));
-                g_free(ncp_name);
                 break;
             }
-            g_free(ncp_name);
         }
     }
     g_string_append_printf(have_names, "] %s", ncp ? "OK" : "FAILD");
@@ -950,14 +948,12 @@ nwamui_daemon_get_env_by_name( NwamuiDaemon *self, const gchar* name )
          item = g_list_next( item ) ) {
         if ( item->data != NULL && NWAMUI_IS_ENV(item->data) ) {
             NwamuiEnv* tmp_env = NWAMUI_ENV(item->data);
-            gchar*     env_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_env));
+            const gchar*     env_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_env));
 
             if ( strcmp( name, env_name) == 0 ) {
                 env = NWAMUI_ENV(g_object_ref(G_OBJECT(tmp_env)));
-                g_free(env_name);
                 break;
             }
-            g_free(env_name);
         }
     }
     return(env);
@@ -987,7 +983,7 @@ nwamui_daemon_get_enm_by_name( NwamuiDaemon *self, const gchar* name )
          item = g_list_next( item ) ) {
         if ( item->data != NULL && NWAMUI_IS_ENM(item->data) ) {
             NwamuiEnm* tmp_enm = NWAMUI_ENM(item->data);
-            gchar*     enm_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_enm));
+            const gchar*     enm_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_enm));
 
             if ( strcmp( name, enm_name) == 0 ) {
                 enm = NWAMUI_ENM(g_object_ref(G_OBJECT(tmp_enm)));
@@ -1023,7 +1019,7 @@ nwamui_daemon_get_active_ncp_name(NwamuiDaemon *self)
               "active_ncp", &active_ncp,
               NULL);
 
-    name = nwamui_object_get_name(NWAMUI_OBJECT(active_ncp));
+    name = g_strdup(nwamui_object_get_name(NWAMUI_OBJECT(active_ncp)));
 
     g_object_unref( G_OBJECT(active_ncp) );
 
@@ -1225,7 +1221,7 @@ set_env_disabled( gpointer obj, gpointer user_data )
      */
     state = nwamui_object_get_nwam_state(nobj, &aux_state, NULL);
     if ( state != NWAM_STATE_OFFLINE && state != NWAM_STATE_DISABLED ) {
-        nwamui_object_set_active( NWAMUI_OBJECT(nobj), FALSE);
+        nwamui_object_set_active(nobj, FALSE);
     }
 }
 
@@ -1350,7 +1346,7 @@ nwamui_daemon_get_active_env_name(NwamuiDaemon *self)
     if (active == NULL)
         return NULL;
     
-    name = nwamui_object_get_name(NWAMUI_OBJECT(active));
+    name = g_strdup(nwamui_object_get_name(NWAMUI_OBJECT(active)));
     
     g_object_unref(G_OBJECT(active));
     
@@ -1531,10 +1527,10 @@ static gint
 find_compare_wifi_net_with_name( gconstpointer a,
                                  gconstpointer b)
 {
-    NwamuiWifiNet  *wifi_net = NWAMUI_WIFI_NET(a);
-    const gchar    *name = (const gchar*)b;
-    gchar          *wifi_name = NULL;
-    gint            rval = -1;
+    NwamuiWifiNet *wifi_net  = NWAMUI_WIFI_NET(a);
+    const gchar   *name      = (const gchar*)b;
+    const gchar   *wifi_name = NULL;
+    gint           rval      = -1;
 
     if ( wifi_net != NULL ) {
         wifi_name = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
@@ -1552,7 +1548,6 @@ find_compare_wifi_net_with_name( gconstpointer a,
             rval = strncmp( wifi_name, name, len );
             g_debug("%s: strcmp( %s, %s, %d ) returning %d", __func__, wifi_name, name, len, rval);
         }
-        g_free(wifi_name);
     }
 
     return (rval);
@@ -1840,8 +1835,8 @@ nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon )
     for( GList* ncp_item = g_list_first(daemon->prv->ncp_list); 
          rval && ncp_item != NULL; 
          ncp_item = g_list_next( ncp_item ) ) {
-        NwamuiNcp*  ncp = NWAMUI_NCP(ncp_item->data);
-        gchar*      ncp_name = nwamui_object_get_name(NWAMUI_OBJECT(ncp));
+        NwamuiNcp*   ncp      = NWAMUI_NCP(ncp_item->data);
+        const gchar* ncp_name = nwamui_object_get_name(NWAMUI_OBJECT(ncp));
 
         if ( nwamui_ncp_is_modifiable( ncp ) ) {
             nwamui_debug("NCP : %s modifiable", ncp_name );
@@ -1868,7 +1863,6 @@ nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon )
             nwamui_debug("NCP : %s read-only", ncp_name );
         }
 
-        g_free( ncp_name );
     }
     return( rval );
 }
@@ -2589,11 +2583,11 @@ nwamd_event_handler(gpointer data)
             }
             break;
         case NWAM_EVENT_TYPE_WLAN_CONNECTION_REPORT: {
-                const gchar*    device = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
-                NwamuiNcu *     ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, device);
-                NwamuiWifiNet*  wifi = NULL;
-                gchar*          name = NULL;
-                gchar*          wifi_name = NULL;
+                const gchar*   device    = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
+                NwamuiNcu *    ncu       = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, device);
+                NwamuiWifiNet* wifi      = NULL;
+                const gchar*   name      = NULL;
+                const gchar*   wifi_name = NULL;
 
 
                 g_assert(ncu);
@@ -2619,9 +2613,6 @@ nwamd_event_handler(gpointer data)
                             /* Different wifi_net */
                             nwamui_ncu_set_wifi_info(ncu, NULL);
                             g_object_unref(wifi); 
-                        }
-                        if ( wifi_name ) {
-                            g_free(wifi_name);
                         }
 
                         if ( (wifi = nwamui_daemon_find_fav_wifi_net_by_name( daemon, 
@@ -2668,7 +2659,6 @@ nwamd_event_handler(gpointer data)
 
 
                 }
-                g_free(name);
                 if ( wifi )
                     g_object_unref(wifi);
 
@@ -2722,7 +2712,7 @@ nwamd_event_handler(gpointer data)
                     nwamui_ncu_set_wifi_info( ncu, wifi );
                 }
                 else {
-                    char* essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
+                    const char* essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
 
                     if( essid == NULL ||
                         strncmp( essid, nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0].nww_essid, strlen(essid) ) != 0) {
@@ -2745,7 +2735,6 @@ nwamd_event_handler(gpointer data)
                         wifi = new_wifi;
                     }
 
-                    g_free(essid);
                 }
 
                 if ( wifi != NULL ) {
@@ -2898,7 +2887,7 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
             status_flags |= STATUS_REASON_LOC;
         }
         else {
-            gchar            *name = nwamui_object_get_name(NWAMUI_OBJECT(prv->active_env));
+            const gchar      *name = nwamui_object_get_name(NWAMUI_OBJECT(prv->active_env));
             nwam_state_t      state;
             nwam_aux_state_t  aux_state;
 
@@ -2908,7 +2897,6 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
               (state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE)) {
                 status_flags |= STATUS_REASON_LOC;
             }
-            g_free(name);
         }
 
         /* According to comments#15,16 of 12079, we don't case ENMs state. */
@@ -3566,7 +3554,7 @@ static void
 default_wifi_key_needed (NwamuiDaemon *self, NwamuiWifiNet* wifi, gpointer user_data)
 {
     if ( wifi ) {
-        char *essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
+        const char *essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
 
         nwamui_debug("Wireless key needed for network '%s'", essid?essid:"???UNKNOWN ESSID???" );
     }
@@ -3581,16 +3569,11 @@ default_wifi_scan_started_signal_handler (NwamuiDaemon *self, gpointer user_data
 static void
 default_wifi_scan_result_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* wifi_net, gpointer user_data)
 {
-    if ( wifi_net == NULL ) {
+    if ( wifi_net) {
+        nwamui_debug("Scan Result : Got ESSID\t\"%s\"", nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)));
+    } else {
         /* End of Scan */
         nwamui_debug("Scan Result : End Of Scan", NULL);
-    }
-    else {
-        gchar *name;
-
-        name = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
-        nwamui_debug("Scan Result : Got ESSID\t\"%s\"", name);
-        g_free (name);
     }
 }
 
@@ -3690,12 +3673,11 @@ nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data)
 static int
 nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
 {
-    char           *name;
-    nwam_error_t    nerr;
-    NwamuiNcp      *new_ncp;
-    
     NwamuiDaemon        *self = NWAMUI_DAEMON(data);
-    NwamuiDaemonPrivate *prv = self->prv;
+    NwamuiDaemonPrivate *prv  = self->prv;
+    gchar               *name;
+    nwam_error_t         nerr;
+    NwamuiNcp           *new_ncp;
 
     g_debug ("nwam_ncp_walker_cb 0x%p", ncp);
     
@@ -3718,16 +3700,15 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
     }
         
     if ( new_ncp != NULL ) {
-        name = nwamui_object_get_name(NWAMUI_OBJECT(new_ncp));
+        name = (gchar *)nwamui_object_get_name(NWAMUI_OBJECT(new_ncp));
         if ( name != NULL ) { 
             if ( strncmp( name, NWAM_NCP_NAME_AUTOMATIC, strlen(NWAM_NCP_NAME_AUTOMATIC)) == 0 ) {
                 if ( prv->auto_ncp != new_ncp ) {
                     prv->auto_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
                 }
             }
-            g_free(name);
         }
-        if ( nwamui_ncp_is_active( new_ncp ) ) {
+        if ( nwamui_ncp_get_active( new_ncp ) ) {
             prv->active_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
         }
     }

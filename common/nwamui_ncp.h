@@ -81,7 +81,7 @@ extern gboolean                 nwamui_ncp_rollback( NwamuiNcp* self );
 
 extern void                     nwamui_ncp_set_active ( NwamuiNcp *self, gboolean active );
 
-extern gboolean                 nwamui_ncp_is_active( NwamuiNcp* self );
+extern gboolean                 nwamui_ncp_get_active( NwamuiNcp* self );
 
 extern gboolean                 nwamui_ncp_is_modifiable( NwamuiNcp *self);
 

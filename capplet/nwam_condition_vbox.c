@@ -274,7 +274,7 @@ update_cond_from_row( GtkWidget *widget, NwamuiCond *cond )
                     value = nwamui_ncu_get_nwam_qualified_name ( NWAMUI_NCU(obj) );
                 }
                 else if ( NWAMUI_IS_ENM( obj ) || NWAMUI_IS_ENV( obj )) {
-                    value = nwamui_object_get_name(NWAMUI_OBJECT(obj));
+                    value = g_strdup(nwamui_object_get_name(NWAMUI_OBJECT(obj)));
                 }
             }
 
@@ -599,28 +599,6 @@ _cu_cond_combo_cell_cb (GtkCellLayout *cell_layout,
       NULL);
 }
 
-static void
-_cu_enm_combo_cell_cb (GtkCellLayout *cell_layout,
-  GtkCellRenderer   *renderer,
-  GtkTreeModel      *model,
-  GtkTreeIter       *iter,
-  gpointer           data)
-{
-    gchar      *str = NULL;
-    NwamuiEnm  *enm = NULL;
-
-
-	gtk_tree_model_get(model, iter, 0, &enm, -1);
-
-    if ( NWAMUI_ENM(enm) ) {
-        str = nwamui_object_get_name(NWAMUI_OBJECT(enm));
-    }
-
-    g_object_set (G_OBJECT(renderer),
-      "text", str?str:"",
-      NULL);
-}
-
 static GtkWidget*
 _cu_enm_combo_new (GtkTreeModel *model)
 {
@@ -635,34 +613,12 @@ _cu_enm_combo_new (GtkTreeModel *model)
     renderer = gtk_cell_renderer_combo_new ();
     gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(combo), renderer, TRUE);
     gtk_cell_layout_set_cell_data_func (GTK_CELL_LAYOUT(combo),
-	renderer,
-	_cu_enm_combo_cell_cb,
-	NULL,
-	NULL);
+      renderer,
+      nwamui_object_name_cell,
+      NULL,
+      NULL);
 
     return combo;
-}
-
-static void
-_cu_loc_combo_cell_cb (GtkCellLayout *cell_layout,
-  GtkCellRenderer   *renderer,
-  GtkTreeModel      *model,
-  GtkTreeIter       *iter,
-  gpointer           data)
-{
-    gchar      *str = NULL;
-    NwamuiEnv  *loc = NULL;
-
-
-	gtk_tree_model_get(model, iter, 0, &loc, -1);
-
-    if ( NWAMUI_ENV(loc) ) {
-        str = nwamui_object_get_name(NWAMUI_OBJECT(loc));
-    }
-
-    g_object_set (G_OBJECT(renderer),
-      "text", str?str:"",
-      NULL);
 }
 
 static GtkWidget*
@@ -679,10 +635,10 @@ _cu_loc_combo_new (GtkTreeModel *model)
     renderer = gtk_cell_renderer_combo_new ();
     gtk_cell_layout_pack_start (GTK_CELL_LAYOUT(combo), renderer, TRUE);
     gtk_cell_layout_set_cell_data_func (GTK_CELL_LAYOUT(combo),
-	renderer,
-	_cu_loc_combo_cell_cb,
-	NULL,
-	NULL);
+      renderer,
+      nwamui_object_name_cell,
+      NULL,
+      NULL);
 
     return combo;
 }
@@ -773,12 +729,7 @@ _cu_wifi_combo_entry_new ( void )
     for ( GList *elem = g_list_first( obj_list );
           elem != NULL;
           elem = g_list_next( elem ) ) {
-        gchar *essid;
-
-        essid = nwamui_object_get_name(NWAMUI_OBJECT(elem->data));
-        gtk_combo_box_append_text( GTK_COMBO_BOX(combo), essid );
-
-        g_free( essid );
+        gtk_combo_box_append_text( GTK_COMBO_BOX(combo), nwamui_object_get_name(NWAMUI_OBJECT(elem->data)));
     }
 
     return combo;
@@ -1049,7 +1000,7 @@ select_item_with_value( GtkComboBox*  combo, const gchar* value )
                     obj_name = nwamui_ncu_get_nwam_qualified_name( NWAMUI_NCU(obj) );
                 }
                 else if ( NWAMUI_IS_ENV( obj ) || NWAMUI_IS_ENM( obj ) ) {
-                    obj_name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
+                    obj_name = g_strdup(nwamui_object_get_name(NWAMUI_OBJECT(obj)));
                 }
             }
             else {
@@ -1569,9 +1520,10 @@ condition_gobject_combo_changed_cb( GtkComboBox* combo, gpointer data )
             value = nwamui_ncu_get_device_name( NWAMUI_NCU(obj) );
         }
         else if ( NWAMUI_IS_ENV( obj ) || NWAMUI_IS_ENM( obj ) ) {
-            value = nwamui_object_get_name(NWAMUI_OBJECT(obj));
+            value = g_strdup(nwamui_object_get_name(NWAMUI_OBJECT(obj)));
         }
         nwamui_cond_set_value(cond, value);
+        g_object_unref(obj);
     }
 
     g_free(value);

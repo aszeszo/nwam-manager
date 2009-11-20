@@ -93,9 +93,7 @@ capplet_model_foreach_find_by_name(GtkTreeModel *model,
         gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
 
         if ( object && object != search_obj ) { /* Don't check self or NULL object */
-            gchar   *name;
-
-            name = nwamui_object_get_name(NWAMUI_OBJECT(object));
+            const gchar   *name = nwamui_object_get_name(NWAMUI_OBJECT(object));
 
             if ( name != NULL && strcmp(name, search_name) == 0 ) {
                 *found_p = TRUE;
@@ -238,21 +236,18 @@ nwamui_object_name_cell (GtkCellLayout *cell_layout,
     gpointer           data)
 {
 	NwamuiObject *object = NULL;
-	gchar *text = NULL;
 	
 	gtk_tree_model_get(model, iter, 0, &object, -1);
 	
 	if (object) {
 		g_assert(NWAMUI_IS_OBJECT (object));
 	
-		text = nwamui_object_get_name(object);
+        g_object_set (G_OBJECT(renderer), "text", nwamui_object_get_name(object), NULL);
 
 		g_object_unref(object);
 	} else {
-		text = g_strdup(_("No name"));
+        g_object_set (G_OBJECT(renderer), "text", _("No name"), NULL);
 	}
-	g_object_set (G_OBJECT(renderer), "text", text, NULL);
-	g_free (text);
 }
 
 void
@@ -684,9 +679,9 @@ capplet_model_find_max_name_suffix(GtkTreeModel *model,
     gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
 	
 	if (object) {
-		gchar *name = nwamui_object_get_name(object);
-		gchar *endptr;
-		gint num;
+		const gchar *name = nwamui_object_get_name(object);
+		gchar       *endptr;
+		gint         num;
 		if (g_str_has_prefix(name, prefix)) {
 			gint prefix_len = strlen(prefix);
 			if (*(name + prefix_len) != '\0') {
@@ -697,7 +692,6 @@ capplet_model_find_max_name_suffix(GtkTreeModel *model,
                 *max = 0;
             }
 		}
-		g_free(name);
 		g_object_unref(object);
 	}
 	return FALSE;

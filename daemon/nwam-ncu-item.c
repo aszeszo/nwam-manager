@@ -264,19 +264,17 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 
 /*     } */
 
-    if (!arg1 || g_ascii_strcasecmp(arg1->name, "vanity-name") == 0) {
-		gchar *name = NULL;
+    if (!arg1 || g_ascii_strcasecmp(arg1->name, "name") == 0) {
         gchar *lbl_name = NULL;
         gchar *type_str = NULL;
 		
-		name = nwamui_object_get_name(object);
 		if ( nwamui_ncu_get_ncu_type(NWAMUI_NCU(object)) == NWAMUI_NCU_TYPE_WIRELESS ){
             type_str = _("Wireless");
         }
         else {
             type_str = _("Wired");
         }
-        lbl_name = g_strdup_printf(_("%s (%s)"), type_str, name);
+        lbl_name = g_strdup_printf(_("%s (%s)"), type_str, nwamui_object_get_name(object));
 
         /* If there is any underscores we need to replace them with two since
          * otherwise it's interpreted as a mnemonic
@@ -284,7 +282,6 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
         lbl_name = nwamui_util_encode_menu_label( &lbl_name );
         menu_item_set_label(GTK_MENU_ITEM(self), lbl_name);
 
-		g_free(name);
 		g_free(lbl_name);
     }
 }
