@@ -3207,7 +3207,6 @@ nwamui_ncu_get_interface_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_
     nwam_state_t      state;
     nwam_aux_state_t  aux_state;
 
-
     if ( aux_state_p ) {
         *aux_state_p = NWAM_AUX_STATE_UNINITIALIZED;
     }
@@ -3219,38 +3218,16 @@ nwamui_ncu_get_interface_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_
     g_return_val_if_fail(NWAMUI_IS_NCU( object ), rstate);
     ncu = NWAMUI_NCU(object);
 
-/*     if ( ncu_type == NWAM_NCU_TYPE_LINK ) { */
-/*         nwam_state_t        _state; */
-/*         nwam_aux_state_t    _aux_state; */
-/*         if ( ncu->prv->nwam_ncu_phys ) { */
-/*             if ( nwam_ncu_get_state( ncu->prv->nwam_ncu_phys, &_state, &_aux_state ) == NWAM_SUCCESS ) { */
-/*                 state = _state; */
-/*                 aux_state = _aux_state; */
-/*             } */
-/*         } */
-/*     } else if ( ncu_type == NWAM_NCU_TYPE_INTERFACE ) { */
-        nwam_state_t        _state;
-        nwam_aux_state_t    _aux_state;
-        if ( ncu->prv->nwam_ncu_ip &&
-          nwam_ncu_get_state( ncu->prv->nwam_ncu_ip, &_state, &_aux_state ) == NWAM_SUCCESS ) {
-            state = _state;
-            aux_state = _aux_state;
-        }
-/*     } */
-#ifdef TUNNEL_SUPPORT
-    else if ( ncu->prv->nwam_ncu_iptun &&
-      nwam_ncu_get_state( ncu->prv->nwam_ncu_iptun, &_state, &_aux_state ) == NWAM_SUCCESS ) {
-        state = _state;
-        aux_state = _aux_state;
+    if ( ncu->prv->nwam_ncu_ip &&
+      nwam_ncu_get_state( ncu->prv->nwam_ncu_ip, &state, &aux_state ) == NWAM_SUCCESS ) {
+        rstate = state;
     }
-#endif /* TUNNEL_SUPPORT */
 
-    rstate = state;
     if ( aux_state_p ) {
         *aux_state_p = aux_state;
     }
     if ( aux_state_string_p ) {
-        *aux_state_string_p = _((const gchar*)nwam_aux_state_to_string( aux_state ));
+        *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( aux_state );
     }
 
     return(rstate);
@@ -3323,7 +3300,7 @@ nwamui_ncu_get_link_nwam_state(NwamuiNcu *self, nwam_aux_state_t* aux_state, con
         *aux_state = _aux_state;
     }
     if ( aux_state_string ) {
-        *aux_state_string = _((const gchar*)nwam_aux_state_to_string( _aux_state ));
+        *aux_state_string = (const gchar*)nwam_aux_state_to_string( _aux_state );
     }
 
     return( _state );

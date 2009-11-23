@@ -1,5 +1,11 @@
 2009-11-23  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwamui_ncu.c:
+	* common/nwamui_object.c (nwamui_object_get_nwam_state):
+	clean code. Do not use _() for nwam_aux_state_to_string
+
+2009-11-23  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_daemon.c (dispatch_scan_results_from_wlan_array):
 	Forgot unref. Set wifi_net parent before set its state.
 	* common/nwamui_ncp.c (nwamui_ncp_get_ncu_by_device_name):

@@ -434,7 +434,7 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p
         *aux_state_p = _aux_state;
     }
     if ( aux_state_string_p ) {
-        *aux_state_string_p = _((const gchar*)nwam_aux_state_to_string( _aux_state ));
+        *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( _aux_state );
     }
 
 /*     g_debug("Get: %-10s - %s", nwam_state_to_string(_state), nwam_aux_state_to_string(_aux_state)); */
