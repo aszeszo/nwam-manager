@@ -1,3 +1,9 @@
+2009-11-23  malin  <malin@os>
+
+	* common/libnwamui.c (nwamui_util_validate_text_entry):
+	Fixed 12796 [RC6]nwam-manager-propertioes cores when changing
+	IPV6 prefix length
+
 2009-11-23  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (nwam_ncu_compare_cb):

@@ -2067,7 +2067,7 @@ nwamui_util_validate_text_entry(    GtkWidget           *widget,
                 }
                 else if ( is_v6 ) {
                     gchar *endptr;
-                    gint64 prefix = g_ascii_strtoll( strs[0], NULL, 10 );
+                    gint64 prefix = g_ascii_strtoll( strs[0], &endptr, 10 );
                     if ( *endptr != '\0' || prefix == 0 || prefix > 128 ) {
                         is_valid = FALSE;
                         error_string = g_strdup_printf(_("The value '%s' is not a valid IPv6 network prefix."), strs[0] );
