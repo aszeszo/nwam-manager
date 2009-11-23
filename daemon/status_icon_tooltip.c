@@ -338,7 +338,7 @@ void
 nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon)
 {
     NwamTooltipWidgetPrivate *prv = NWAM_TOOLTIP_WIDGET_GET_PRIVATE(self);
-    NwamuiObject *ncp = nwamui_daemon_get_active_ncp(NWAMUI_DAEMON(daemon));
+    NwamuiObject *ncp = NWAMUI_OBJECT(nwamui_daemon_get_active_ncp(NWAMUI_DAEMON(daemon)));
     GList *ncu_list = nwamui_ncp_get_ncu_list(NWAMUI_NCP(ncp));
     GList *enm_list = nwamui_daemon_get_enm_list(NWAMUI_DAEMON(daemon));
     GList *idx;

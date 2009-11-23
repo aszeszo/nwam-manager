@@ -165,7 +165,7 @@ connect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu)
 {
     NwamNcuItemPrivate *prv = GET_PRIVATE(self);
 
-    g_signal_connect (G_OBJECT(ncu), "notify::vanity-name",
+    g_signal_connect (G_OBJECT(ncu), "notify::name",
       G_CALLBACK(on_nwam_ncu_notify), (gpointer)self);
     g_signal_connect (G_OBJECT(ncu), "notify::active",
       G_CALLBACK(on_nwam_ncu_notify), (gpointer)self);

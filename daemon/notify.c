@@ -564,7 +564,7 @@ nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
         icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
     }
 
-    display_name = nwamui_ncu_get_display_name( ncu );
+    display_name = g_strdup(nwamui_ncu_get_display_name( ncu ));
     body_str = nwamui_ncu_get_connection_state_detail_string( ncu, TRUE );
 
     switch ( nwamui_ncu_get_ncu_type( ncu ) ) {
@@ -638,7 +638,7 @@ nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
         icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
     }
 
-    display_name = nwamui_ncu_get_display_name( ncu );
+    display_name = g_strdup(nwamui_ncu_get_display_name( ncu ));
 
     switch ( nwamui_ncu_get_ncu_type( ncu ) ) {
     case NWAMUI_NCU_TYPE_WIRELESS: {

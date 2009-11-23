@@ -112,7 +112,7 @@ extern void                 nwamui_ncu_set_phy_address ( NwamuiNcu *self, const 
 
 extern gchar*               nwamui_ncu_get_nwam_qualified_name ( NwamuiNcu *self );
 
-extern gchar*               nwamui_ncu_get_display_name ( NwamuiNcu *self );
+extern const gchar*         nwamui_ncu_get_display_name ( NwamuiNcu *self );
 
 extern void                 nwamui_ncu_set_ncu_type ( NwamuiNcu *self, nwamui_ncu_type_t ncu_type );
 extern nwamui_ncu_type_t    nwamui_ncu_get_ncu_type ( NwamuiNcu *self );
@@ -203,6 +203,9 @@ extern const gchar*         nwamui_ncu_get_signal_strength_string( NwamuiNcu* se
 
 extern nwamui_connection_state_t
                             nwamui_ncu_get_connection_state( NwamuiNcu* self );
+
+extern nwamui_connection_state_t
+                            nwamui_ncu_get_updated_connection_state( NwamuiNcu* self );
 
 extern gchar*               nwamui_ncu_get_connection_state_string( NwamuiNcu* self );
 

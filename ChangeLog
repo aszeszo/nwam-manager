@@ -1,3 +1,38 @@
+2009-11-23  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (nwam_ncu_compare_cb):
+	* capplet/capplet-utils.h:
+	Add default ncu tree model sort func for 12610
+	* capplet/nwam_condition_vbox.c (_cu_ncu_combo_cell_cb):
+	* capplet/nwam_conn_stat_panel.c (nwam_compose_tree_view),
+	(nwam_conn_status_panel_init), (nwam_conn_status_panel_finalize),
+	(refresh), (nwam_conn_status_update_status_cell_cb),
+	(connview_info_width_changed):
+	* capplet/nwam_net_conf_panel.c
+	(nwam_net_conf_update_status_cell_cb),
+	(capplet_tree_store_move_children), (ncu_notify_cb),
+	(edit_profile_name_combo_changed):
+	* capplet/nwam_pref_dialog.c (show_combo_cell_cb):
+	* capplet/nwam_wireless_dialog.c:
+	* common/nwamui_daemon.c (nwamui_daemon_commit_changed_objects),
+	(default_wifi_selection_needed):
+	* common/nwamui_ncp.c (default_add_ncu_signal_handler),
+	(default_remove_ncu_signal_handler):
+	* common/nwamui_ncu.c (nwamui_ncu_set_property):
+	* common/nwamui_ncu.h:
+	* daemon/notify.c (nwam_notification_show_ncu_connected),
+	(nwam_notification_show_ncu_disconnected):
+	* daemon/nwam-ncu-item.c (connect_ncu_signals):
+	* daemon/nwam-tooltip-widget.c (connect_object),
+	(nwam_object_notify):
+	* daemon/status_icon_tooltip.c (nwam_tooltip_widget_update_daemon):
+	* tests/main.c (process_ncu):
+	For wifi_net_object name means essid property. For ncu name means
+	vanity-name property.
+	Fixed 12610 [RC5] connection view order does not match network
+	profile view order.
+	Clean code.
+
 2009-11-20  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (capplet_model_foreach_find_by_name),

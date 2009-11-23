@@ -553,12 +553,10 @@ show_combo_cell_cb (GtkCellLayout *cell_layout,
 	g_assert (G_IS_OBJECT (row_data));
 	
 	if (NWAMUI_IS_NCU (row_data)) {
-		text = nwamui_ncu_get_display_name(NWAMUI_NCU(row_data));
 		g_object_set(renderer,
-          "text", text,
+          "text", nwamui_ncu_get_display_name(NWAMUI_NCU(row_data)),
           "sensitive", TRUE,
           NULL);
-		g_free (text);
 	} else if (NWAMUI_IS_OBJECT (row_data)) {
         gchar *markup;
         markup = g_strdup_printf("<b><i>%s</i></b>", nwamui_object_get_name(NWAMUI_OBJECT(row_data)));

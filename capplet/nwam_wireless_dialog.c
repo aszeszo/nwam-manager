@@ -1262,7 +1262,7 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 
                     if ( self->prv->wifi_net != NULL ) {
                         g_object_set(G_OBJECT(self->prv->wifi_net),
-                                    "essid", essid,
+                                    "name", essid,
                                     "fav_bssid_list", bssid_list,
                                     "security", security,
                                     NULL);

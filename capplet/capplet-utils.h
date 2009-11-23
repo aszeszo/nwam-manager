@@ -208,4 +208,14 @@ gchar* capplet_get_original_name(const gchar *prefix, const gchar *name);
 
 void capplet_util_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
+/* NCU */
+/* Values picked to put always ON at top of list, and always off at bottom */
+#define ALWAYS_ON_GROUP_ID              (0)
+#define ALWAYS_OFF_GROUP_ID             (G_MAXINT)
+
+extern gint nwam_ncu_compare_cb(GtkTreeModel *model,
+  GtkTreeIter *a,
+  GtkTreeIter *b,
+  gpointer user_data);
+
 #endif /* _CAPPLET_UTILS_H */

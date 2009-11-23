@@ -150,31 +150,24 @@ connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object)
 {
     GType type = G_OBJECT_TYPE(object);
 
-	if (type == NWAMUI_TYPE_NCU) {
-        g_signal_connect (G_OBJECT(object), "notify::vanity-name",
-          G_CALLBACK(nwam_object_notify), (gpointer)self);
-        g_signal_connect (G_OBJECT(object), "notify::active",
-          G_CALLBACK(nwam_object_notify), (gpointer)self);
+    g_signal_connect (G_OBJECT(object), "notify::name",
+      G_CALLBACK(nwam_object_notify), (gpointer)self);
+    g_signal_connect (G_OBJECT(object), "notify::active",
+      G_CALLBACK(nwam_object_notify), (gpointer)self);
 
+	if (type == NWAMUI_TYPE_NCU) {
         g_signal_connect (G_OBJECT(object), "notify::wifi-info",
           G_CALLBACK(nwam_ncu_notify), (gpointer)self);
 
         /* Call once on initial connection */
         nwam_ncu_notify(G_OBJECT(object), NULL, (gpointer)self);
     } else if (type == NWAMUI_TYPE_ENM) {
-        g_signal_connect (G_OBJECT(object), "notify::name",
-          G_CALLBACK(nwam_object_notify), (gpointer)self);
-        g_signal_connect (G_OBJECT(object), "notify::active",
-          G_CALLBACK(nwam_object_notify), (gpointer)self);
-
         g_signal_connect (G_OBJECT(object), "notify::activation-mode",
           G_CALLBACK(nwam_object_activation_mode_notify), (gpointer)self);
 
         /* Call once on initial connection */
         nwam_object_activation_mode_notify(G_OBJECT(object), NULL, (gpointer)self);
     } else {
-        g_signal_connect (G_OBJECT(object), "notify::name",
-          G_CALLBACK(nwam_object_notify), (gpointer)self);
     }
 }
 
@@ -243,7 +236,7 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
         nwam_aux_state_t        aux_state = NWAM_AUX_STATE_UNINITIALIZED;
         state = nwamui_object_get_nwam_state(object, &aux_state, NULL);
         g_string_append_printf(gstr, _("<b>VPN %s:</b> %s"), name, nwam_aux_state_to_string(aux_state));
-/* 	} else { */
+	} else {
 	}
     menu_item_set_markup(GTK_MENU_ITEM(user_data), gstr->str);
     g_string_free(gstr, TRUE);

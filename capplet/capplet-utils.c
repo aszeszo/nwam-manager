@@ -794,3 +794,62 @@ capplet_util_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data
     }
 }
 
+extern gint
+nwam_ncu_compare_cb(GtkTreeModel *model,
+  GtkTreeIter *a,
+  GtkTreeIter *b,
+  gpointer user_data)
+{
+    NwamuiObject *object[2] = { NULL, NULL };
+    GtkTreeIter *iter[2] = { a, b };
+    int rank[2];
+    int i, retval;
+
+    for (i = 0; i < 2; i++) {
+        gtk_tree_model_get(model, iter[i], 0, &object[i], -1);
+
+        /* net_conf dialog uses nwamui_object as a fake node, so we have to
+         * filter out non-NCU objects.
+         */
+        if (NWAMUI_IS_NCU(object[i])) {
+
+            switch (nwamui_object_get_activation_mode(object[i])) {
+            case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+                rank[i] = nwamui_object_get_enabled(object[i]) ? ALWAYS_ON_GROUP_ID : ALWAYS_OFF_GROUP_ID;
+                break;
+            case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+                rank[i] = nwamui_ncu_get_priority_group(NWAMUI_NCU(object[i])) + ALWAYS_ON_GROUP_ID + 1;
+                break;
+            default:
+                g_warning("%s: Not supported activation mode %d", __func__, nwamui_object_get_activation_mode(object[i]));
+                rank[i] = ALWAYS_OFF_GROUP_ID;
+                break;
+            }
+        } else {
+            retval = 0;
+            /* We don't need compare anymore, just unref and return. Remember i
+             * to do unref.
+             */
+            i++;
+            goto L_exit;
+        }
+    }
+
+    retval = rank[0] - rank[1];
+    if (retval == 0) {
+        retval = g_ascii_strcasecmp(nwamui_ncu_get_display_name(NWAMUI_NCU(object[0])),
+          nwamui_ncu_get_display_name(NWAMUI_NCU(object[1])));
+    }
+
+    g_debug("%s: %s - %s = %d", __func__,
+      nwamui_ncu_get_display_name(NWAMUI_NCU(object[0])), 
+      nwamui_ncu_get_display_name(NWAMUI_NCU(object[1])),
+      retval);
+
+L_exit:
+    for (i--; i >=0 ; i--) {
+        g_object_unref(object[i]);
+    }
+
+    return retval;
+}

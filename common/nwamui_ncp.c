@@ -1733,20 +1733,12 @@ default_deactivate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer
 static void
 default_add_ncu_signal_handler (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data)
 {
-	gchar*      name = nwamui_ncu_get_display_name(ncu);
-	
-	g_debug("Create NCU %s", name );
-	
-	g_free(name);
+	g_debug("Create NCU %s", nwamui_ncu_get_display_name(ncu));
 }
 
 static void
 default_remove_ncu_signal_handler (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data)
 {
-	gchar*      name = nwamui_ncu_get_display_name(ncu);
-	
-	g_debug("Destroy NCU %s", name );
-	
-	g_free(name);
+	g_debug("Destroy NCU %s", nwamui_ncu_get_display_name(ncu));
 }
 

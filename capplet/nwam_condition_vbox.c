@@ -650,19 +650,18 @@ _cu_ncu_combo_cell_cb (GtkCellLayout *cell_layout,
   GtkTreeIter       *iter,
   gpointer           data)
 {
-    gchar      *str = NULL;
     NwamuiNcu  *ncu = NULL;
-
 
 	gtk_tree_model_get(model, iter, 0, &ncu, -1);
 
     if ( NWAMUI_NCU(ncu) ) {
-        str = nwamui_ncu_get_display_name( ncu );
+        g_object_set (G_OBJECT(renderer),
+          "text", nwamui_ncu_get_display_name( ncu ),
+          NULL);
+        g_object_unref(ncu);
+    } else {
+        g_object_set (G_OBJECT(renderer), "text", "", NULL);
     }
-
-    g_object_set (G_OBJECT(renderer),
-      "text", str?str:"",
-      NULL);
 }
 
 

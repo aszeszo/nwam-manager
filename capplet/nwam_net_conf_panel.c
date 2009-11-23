@@ -64,10 +64,6 @@
 #define EDIT_CONNECTIONS_DIALOG         "edit_connections_dialog"
 #define CONNECTION_TREEVIEW             "connection_treeview"
 
-/* Values picked to put always ON at top of list, and always off at bottom */
-#define ALWAYS_ON_GROUP_ID              (0)
-#define ALWAYS_OFF_GROUP_ID             (G_MAXINT)
-
 struct _NwamNetConfPanelPrivate {
 	/* Widget Pointers */
 	GtkTreeView*	    net_conf_treeview;
@@ -173,10 +169,6 @@ static void net_conf_get_property (GObject         *object,
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void ncu_notify_cb (NwamuiNcu *ncu, GParamSpec *arg1, gpointer data);
-static gint nwam_net_conf_connection_compare_cb (GtkTreeModel *model,
-			      GtkTreeIter *a,
-			      GtkTreeIter *b,
-			      gpointer user_data);
 static void nwam_net_pref_connection_view_row_activated_cb (GtkTreeView *tree_view,
 					GtkTreePath *path,
 					GtkTreeViewColumn *column,
@@ -776,18 +768,6 @@ nwam_net_conf_panel_finalize(NwamNetConfPanel *self)
 
 /* Callbacks */
 
-/*
- * We don't need a comp here actually due to requirements
- */
-static gint
-nwam_net_conf_connection_compare_cb (GtkTreeModel *model,
-			 GtkTreeIter *a,
-			 GtkTreeIter *b,
-			 gpointer user_data)
-{
-	return 0;
-}
-
 static void
 nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
   GtkCellRenderer   *renderer,
@@ -820,10 +800,10 @@ nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
     switch (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (renderer), TREEVIEW_COLUMN_NUM))) {
     case CONNVIEW_INFO: {
         if (!is_group) {
-            gchar*                         ncu_text;
-            gchar*                         ncu_markup;
-            gchar*                         ncu_phy_addr;
-            gchar*                         info_string;
+            const gchar* ncu_text;
+            gchar*       ncu_markup;
+            gchar*       ncu_phy_addr;
+            gchar*       info_string;
 
             ncu_text = nwamui_ncu_get_display_name(ncu);
             ncu_phy_addr = nwamui_ncu_get_phy_address(ncu);
@@ -845,7 +825,6 @@ nwam_net_conf_update_status_cell_cb (GtkTreeViewColumn *col,
 
             g_free (info_string);
             g_free( ncu_markup );
-            g_free( ncu_text );
         } else {
             gchar *str = NULL;
             gint    group_id = 0;
@@ -1522,24 +1501,32 @@ capplet_tree_store_move_children(GtkTreeStore *model,
 
             gtk_tree_model_get(GTK_TREE_MODEL(model), &s_iter, 0, &object, -1);
 
+#if 0
             if (capplet_model_1_level_foreach(GTK_TREE_MODEL(model), &target,
                 ncu_find_gt_name, (gpointer)object, &sibling)) {
                 TREE_STORE_CP_OBJECT_BEFORE(model, &s_iter, &target, &sibling, &t_iter);
             } else {
                 TREE_STORE_CP_OBJECT_BEFORE(model, &s_iter, &target, NULL, &t_iter);
             }
+#else
+            TREE_STORE_CP_OBJECT_BEFORE(model, &s_iter, &target, NULL, &t_iter);
+#endif
             g_object_unref(object);
 
 		} while (gtk_tree_store_remove(GTK_TREE_STORE(model), &s_iter));
 	} else if (source_depth > 1) {
         gtk_tree_model_get(GTK_TREE_MODEL(model), &source, 0, &object, -1);
 
+#if 0
         if (capplet_model_1_level_foreach(GTK_TREE_MODEL(model), &target,
             ncu_find_gt_name, (gpointer)object, &sibling)) {
             TREE_STORE_CP_OBJECT_BEFORE(model, &source, &target, &sibling, &t_iter);
         } else {
             TREE_STORE_CP_OBJECT_BEFORE(model, &source, &target, NULL, &t_iter);
         }
+#else
+        TREE_STORE_CP_OBJECT_BEFORE(model, &source, &target, NULL, &t_iter);
+#endif
         g_object_unref(object);
         gtk_tree_store_remove(GTK_TREE_STORE(model), &source);
     }
@@ -2367,10 +2354,10 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 static void
 ncu_notify_cb (NwamuiNcu *ncu, GParamSpec *arg1, gpointer user_data)
 {
-    NwamNetConfPanel*           self = NWAM_NET_CONF_PANEL(user_data);
-    NwamNetConfPanelPrivate*    prv = GET_PRIVATE(self);
-    gchar*                      display_name = NULL;
-    gchar*                      status_string = NULL;
+    NwamNetConfPanel*        self          = NWAM_NET_CONF_PANEL(user_data);
+    NwamNetConfPanelPrivate* prv           = GET_PRIVATE(self);
+    const gchar*             display_name  = NULL;
+    gchar*                   status_string = NULL;
 
     if (ncu != prv->selected_ncu) {
         return;
@@ -2380,14 +2367,10 @@ ncu_notify_cb (NwamuiNcu *ncu, GParamSpec *arg1, gpointer user_data)
         display_name = nwamui_ncu_get_display_name(NWAMUI_NCU(ncu));
     }
 
-    status_string = g_strdup_printf(_("Then set status of '%s' to: "),
-      display_name != NULL ? display_name : "");
+    status_string = g_strdup_printf(_("Then set status of '%s' to: "), display_name);
 
     if ( status_string != NULL ) {
         g_free(status_string);
-    }
-    if ( display_name != NULL ) {
-        g_free(display_name);
     }
 }
 
@@ -2454,7 +2437,18 @@ edit_profile_name_combo_changed(GtkComboBox *widget, gpointer user_data)
 
     }
 
+    /* Update priority tree view */
     model = gtk_tree_view_get_model(prv->net_conf_treeview);
+
+    gtk_tree_sortable_set_sort_func(GTK_TREE_SORTABLE(model),
+      0,
+      nwam_ncu_compare_cb,
+      NULL,
+      NULL);
+
+    gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(model),
+      0,
+      GTK_SORT_ASCENDING);
 
     gtk_widget_hide(GTK_WIDGET(prv->net_conf_treeview));
 

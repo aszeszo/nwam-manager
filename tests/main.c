@@ -243,8 +243,8 @@ static gboolean
 process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
 {
     NwamuiNcu         *ncu = NULL;
-    const gchar       *vname;
-    gchar             *dname, *display_name, *nwam_qualified_name;
+    const gchar       *vname, *display_name;
+    gchar             *dname, *nwam_qualified_name;
     nwamui_ncu_type_t  type;
     gchar*             typestr;
     gchar*             statestr;
@@ -330,8 +330,6 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
 
     if ( dname != NULL )
         g_free(dname);
-    if ( display_name != NULL )
-        g_free(display_name);
     if ( ipv4_address != NULL ) 
         g_free( ipv4_address );
     if ( ipv4_subnet != NULL ) 

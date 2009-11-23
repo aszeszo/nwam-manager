@@ -1843,8 +1843,8 @@ nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon )
             for( GList* ncu_item = g_list_first(nwamui_ncp_get_ncu_list( NWAMUI_NCP(ncp) ) ); 
                  rval && ncu_item != NULL; 
                  ncu_item = g_list_next( ncu_item ) ) {
-                NwamuiNcu*  ncu = NWAMUI_NCU(ncu_item->data);
-                gchar*      ncu_name = nwamui_ncu_get_display_name( ncu );
+                NwamuiNcu*   ncu      = NWAMUI_NCU(ncu_item->data);
+                const gchar* ncu_name = nwamui_ncu_get_display_name( ncu );
 
                 if ( nwamui_ncu_has_modifications( ncu ) ) {
                     nwamui_debug("Going to commit changes for %s : %s", ncp_name, ncu_name );
@@ -3545,9 +3545,7 @@ nwam_events_thread ( gpointer data )
 static void
 default_wifi_selection_needed (NwamuiDaemon *self, NwamuiNcu* ncu, gpointer user_data)
 {
-    gchar *dispname = NULL;
-    nwamui_debug("Wireless selection needed for network interface '%s'", (dispname = nwamui_ncu_get_display_name(ncu)) );
-    g_free(dispname);
+    nwamui_debug("Wireless selection needed for network interface '%s'", nwamui_ncu_get_display_name(ncu));
 }
 
 static void

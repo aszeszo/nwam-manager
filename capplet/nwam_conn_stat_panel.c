@@ -66,8 +66,6 @@ struct _NwamConnStatusPanelPrivate {
     NwamuiDaemon*       daemon;
     NwamLocationDialog* location_dialog;
 	NwamVPNPrefDialog*  vpn_dialog;
-
-    guint check_pri_group_periodically;
 };
 
 enum {
@@ -109,7 +107,6 @@ static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer d
 static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void ncp_notify_pri_group_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void connview_info_width_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
-static gboolean check_pri_group_periodically_func(gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnStatusPanel,
                         nwam_conn_status_panel,
@@ -196,6 +193,7 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
           (gpointer) 1, /* Important to know this is wireless cell in 1st col */
           NULL);
     } /* column icon */
+ 
     {
         col = gtk_tree_view_column_new();
         gtk_tree_view_append_column (view, col);
@@ -226,6 +224,7 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
           nwam_conn_status_update_status_cell_cb,
           (gpointer) 0,
           NULL);
+
     } /* column info */
         
     {
@@ -308,8 +307,6 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
             nwam_pref_refresh(NWAM_PREF_IFACE(self), ncp, TRUE);
             g_object_unref(ncp);
         }
-        /* Use ncp priority-group insteadly */
-/*         prv->check_pri_group_periodically = g_timeout_add(30000, check_pri_group_periodically_func, (gpointer)self); */
     }
 }
 
@@ -334,10 +331,6 @@ static void
 nwam_conn_status_panel_finalize(NwamConnStatusPanel *self)
 {
 	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(self);
-
-    if (prv->check_pri_group_periodically > 0) {
-        g_source_remove(prv->check_pri_group_periodically);
-    }
 
     if (prv->active_ncp) {
         g_signal_handlers_disconnect_matched(prv->active_ncp,
@@ -388,6 +381,22 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         GtkTreeModel *filter;
 
         model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(ncp));
+
+/*         gtk_tree_sortable_set_default_sort_func(GTK_TREE_SORTABLE(model), */
+/*           nwam_ncu_compare_cb, */
+/*           NULL, */
+/*           NULL); */
+
+        gtk_tree_sortable_set_sort_func(GTK_TREE_SORTABLE(model),
+          0,
+          nwam_ncu_compare_cb,
+          NULL,
+          NULL);
+
+        gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(model),
+          0,
+          GTK_SORT_ASCENDING);
+
         nwamui_ncp_freeze_notify_ncus( ncp ); /* Freeze notify on NCUS or refilter results in duplicate entries! */
         filter = gtk_tree_model_filter_new(model, NULL);
         gtk_tree_model_filter_set_visible_func(GTK_TREE_MODEL_FILTER(filter), conn_view_filter_visible_cb,
@@ -516,23 +525,21 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
 		break;
                 
 	case CONNVIEW_INFO: 
-                ncu_text = nwamui_ncu_get_display_name(ncu);
-                ncu_is_dhcp = nwamui_ncu_get_ipv4_has_dhcp(ncu);
-                ncu_ipv4_addr = nwamui_ncu_get_ipv4_address(ncu);
-                info_string = nwamui_ncu_get_connection_state_detail_string( ncu, TRUE );
-
-                ncu_markup= g_strdup_printf(_("<b>%s</b>\n<small>%s</small>"), ncu_text, info_string );
-                g_free (info_string);
+        ncu_is_dhcp = nwamui_ncu_get_ipv4_has_dhcp(ncu);
+        ncu_ipv4_addr = nwamui_ncu_get_ipv4_address(ncu);
+        info_string = nwamui_ncu_get_connection_state_detail_string( ncu, TRUE );
+        
+        ncu_markup= g_strdup_printf(_("<b>%s</b>\n<small>%s</small>"), nwamui_ncu_get_display_name(ncu), info_string );
+        g_free (info_string);
         
 		g_object_set (G_OBJECT(renderer),
 			"markup", ncu_markup,
 			NULL);
 
-                if ( ncu_ipv4_addr != NULL )
-                    g_free( ncu_ipv4_addr );
-                
-                g_free( ncu_markup );
-                g_free( ncu_text );
+        if ( ncu_ipv4_addr != NULL )
+            g_free( ncu_ipv4_addr );
+        
+        g_free( ncu_markup );
 		break;
                 
     case CONNVIEW_STATUS:
@@ -770,18 +777,3 @@ connview_info_width_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
 
     g_object_set (G_OBJECT(data), "wrap-width", width, NULL );
 }
-
-static gboolean
-check_pri_group_periodically_func(gpointer data)
-{
-	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
-    GtkTreeModel *model = gtk_tree_view_get_model(prv->conn_status_treeview);
-
-    if (model) {
-        gtk_widget_hide(GTK_WIDGET(prv->conn_status_treeview));
-        gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(model));
-        gtk_widget_show(GTK_WIDGET(prv->conn_status_treeview));
-    }
-    return TRUE;
-}
-

@@ -67,6 +67,7 @@ struct _NwamuiNcuPrivate {
         /* General Properties */
         gchar*                          vanity_name;
         gchar*                          device_name;
+        gchar*                          display_name;
         nwamui_ncu_type_t               ncu_type;
 
 #ifdef TUNNEL_SUPPORT
@@ -145,6 +146,7 @@ static void nwamui_ncu_get_property ( GObject         *object,
 
 static void nwamui_ncu_finalize (     NwamuiNcu *self);
 
+static void nwamui_ncu_set_display_name ( NwamuiNcu *self );
 static void set_modified_flag( NwamuiNcu* self, nwam_ncu_class_t ncu_class, gboolean value );
 
 static gboolean     delete_nwam_ncu_prop( nwam_ncu_handle_t ncu, const char* prop_name );
@@ -535,6 +537,7 @@ nwamui_ncu_set_property ( GObject         *object,
                         g_free( self->prv->device_name );
                 }
                 self->prv->device_name = g_strdup( g_value_get_string( value ) );
+                nwamui_ncu_set_display_name(self);
             }
             break;
         case PROP_PHY_ADDRESS: {
@@ -2043,33 +2046,46 @@ nwamui_ncu_set_device_name ( NwamuiNcu *self, const gchar* name )
  *
  * Use this to get a string of the format "<Vanity Name> (<device name>)"
  **/
-extern gchar*               
+extern const gchar*               
 nwamui_ncu_get_display_name ( NwamuiNcu *self )
 {
-    gchar*  display_name = NULL;
+    g_return_val_if_fail (NWAMUI_IS_NCU(self), NULL);
     
-    g_return_val_if_fail (NWAMUI_IS_NCU(self), display_name); 
+    return self->prv->display_name;
+}
+
+/**
+ * nwamui_ncu_get_display_name:
+ *
+ * Use this to set a string of the format "<Vanity Name> (<device name>)"
+ **/
+static void
+nwamui_ncu_set_display_name ( NwamuiNcu *self )
+{
+    g_return_if_fail (NWAMUI_IS_NCU(self)); 
     
+    if (self->prv->display_name) {
+        g_free(self->prv->display_name);
+    }
+
     if ( self->prv->vanity_name != NULL ) {
         switch( self->prv->ncu_type ) {
-            case NWAMUI_NCU_TYPE_WIRED:
-                display_name = g_strdup_printf( _("Wired(%s)"), self->prv->vanity_name );
-                break;
-            case NWAMUI_NCU_TYPE_WIRELESS:
-                display_name = g_strdup_printf( _("Wireless(%s)"), self->prv->vanity_name );
-                break;
+        case NWAMUI_NCU_TYPE_WIRED:
+            self->prv->display_name = g_strdup_printf( _("Wired(%s)"), self->prv->vanity_name );
+            break;
+        case NWAMUI_NCU_TYPE_WIRELESS:
+            self->prv->display_name = g_strdup_printf( _("Wireless(%s)"), self->prv->vanity_name );
+            break;
 #ifdef TUNNEL_SUPPORT
-            case NWAMUI_NCU_TYPE_TUNNEL:
-                display_name = g_strdup_printf( _("Tunnel(%s)"), self->prv->vanity_name );
-                break;
+        case NWAMUI_NCU_TYPE_TUNNEL:
+            self->prv->display_name = g_strdup_printf( _("Tunnel(%s)"), self->prv->vanity_name );
+            break;
 #endif /* TUNNEL_SUPPORT */
-            default:
-                display_name = g_strdup( self->prv->vanity_name );
-                break;
+        default:
+            self->prv->display_name = g_strdup( self->prv->vanity_name );
+            break;
         }
     }
-    
-    return( display_name );
 }
 
 /**
@@ -3184,6 +3200,12 @@ nwamui_ncu_finalize (NwamuiNcu *self)
     }
     if (self->prv->vanity_name) {
         g_free(self->prv->vanity_name);
+    }
+    if (self->prv->display_name) {
+        g_free(self->prv->display_name);
+    }
+    if (self->prv->device_name) {
+        g_free(self->prv->device_name);
     }
 
     g_free (self->prv); 
