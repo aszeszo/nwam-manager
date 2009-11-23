@@ -1057,7 +1057,7 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
             NwamuiNcu* ncu = NWAMUI_NCU(elem->data);
             gchar *ncu_device_name = nwamui_ncu_get_device_name( ncu );
 
-            g_string_append_printf(have_names, "%s ", ncu_device_name);
+            g_string_append_printf(have_names, "%s(0x%p) ", ncu_device_name, ncu);
 
             if ( ncu_device_name != NULL 
                  && g_ascii_strcasecmp( ncu_device_name, device_name ) == 0 ) {

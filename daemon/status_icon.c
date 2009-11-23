@@ -587,7 +587,8 @@ ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
     connect_nwam_object_signals(G_OBJECT(ncu), G_OBJECT(self));
     nwam_menu_item_create(NWAM_MENU(prv->menu), NWAMUI_OBJECT(ncu));
     REMOVE_MENU_ITEM(NWAM_MENU(prv->menu), prv->static_menuitems[MENUITEM_NONCU]);
-    nwam_tooltip_widget_add_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu));
+    nwam_tooltip_widget_update_daemon(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->daemon));
+/*     nwam_tooltip_widget_add_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu)); */
 }
 
 static void
@@ -598,7 +599,8 @@ ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
 
     disconnect_nwam_object_signals(G_OBJECT(ncu), G_OBJECT(self));
     nwam_menu_item_delete(NWAM_MENU(prv->menu), NWAMUI_OBJECT(ncu));
-    nwam_tooltip_widget_remove_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu));
+    nwam_tooltip_widget_update_daemon(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->daemon));
+/*     nwam_tooltip_widget_remove_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu)); */
 }
 
 static void

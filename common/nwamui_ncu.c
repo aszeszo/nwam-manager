@@ -537,7 +537,6 @@ nwamui_ncu_set_property ( GObject         *object,
                         g_free( self->prv->device_name );
                 }
                 self->prv->device_name = g_strdup( g_value_get_string( value ) );
-                nwamui_ncu_set_display_name(self);
             }
             break;
         case PROP_PHY_ADDRESS: {
@@ -1962,6 +1961,7 @@ nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name )
         g_free(self->prv->vanity_name);
     }
     self->prv->vanity_name = g_strdup(name);
+    nwamui_ncu_set_display_name(self);
 }
 
 /**
@@ -2166,71 +2166,56 @@ extern gboolean
 nwamui_ncu_get_active ( NwamuiNcu *self )
 {
 	gboolean active = FALSE;
-	if ( self->prv->nwam_ncu_phys ) {
-		nwam_state_t        state = NWAM_STATE_OFFLINE;
-		nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-		gint64              active_prio = nwamui_ncp_get_prio_group( self->prv->ncp );
-		gint64              ncu_prio =  nwamui_ncu_get_priority_group(self);
-		nwamui_cond_activation_mode_t activation_mode;
+    nwam_state_t        state = NWAM_STATE_OFFLINE;
+    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+    nwam_state_t        link_state = NWAM_STATE_OFFLINE;
+    nwam_aux_state_t    link_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+    gint64              active_prio = nwamui_ncp_get_prio_group( self->prv->ncp );
+    gint64              ncu_prio =  nwamui_ncu_get_priority_group(self);
+    nwamui_cond_activation_mode_t activation_mode;
 
-		activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(self));
+    activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(self));
 
-#if 0
-		state = nwamui_ncu_get_link_nwam_state(self, &aux_state, NULL);
-		if ( state == NWAM_STATE_ONLINE ) {
-            state = NWAM_STATE_OFFLINE;
-            aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-            if ( self->prv->nwam_ncu_ip ) {
-				state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
-            }
-#ifdef TUNNEL_SUPPORT
-            else if ( self->prv->nwam_ncu_iptun ) {
-				nwam_ncu_get_state( self->prv->nwam_ncu_iptun, &state, &aux_state );
-            }
-#endif /* TUNNEL_SUPPORT */
-            /* Consider active if ONLINE or is in transient
-             * state to online waiting for an address
+    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
+    link_state = nwamui_ncu_get_link_nwam_state(self, &link_aux_state, NULL);
+
+    if ( state == NWAM_STATE_ONLINE ||
+      (state == NWAM_STATE_OFFLINE_TO_ONLINE &&
+        aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR) )  {
+        active = TRUE;
+    }
+
+    else if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL || ncu_prio == active_prio) {
+
+        if (link_state == NWAM_STATE_OFFLINE_TO_ONLINE
+          && (link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION
+            || link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY
+            /* || aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING */ ) ) {
+
+            /* Lin, nwamd may hang on wifi connecting state for a very long
+             * time. We should not set active to true in this case which
+             * will mark the corresponding wifinet menu-item of the GUI.
+             *
+             * We don't mark wifinet menu-item util the wireless really
+             * connect to that wlan.
              */
-            if ( state == NWAM_STATE_ONLINE ||
-              (state == NWAM_STATE_OFFLINE_TO_ONLINE &&
-				aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR) )  {
-				active = TRUE;
-            }
-		}
-#else
-        state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
-        if ( state == NWAM_STATE_ONLINE ||
-          (state == NWAM_STATE_OFFLINE_TO_ONLINE &&
-            aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR) )  {
+
+            /* Special case for Wireless - they are marked as
+             * offline* while waiting for a key, but for the UI
+             * this means it should be seen as active
+             */
             active = TRUE;
         }
-#endif
-		else if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL || ncu_prio == active_prio) {
+    }
 
-            state = NWAM_STATE_OFFLINE;
-            aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-            state = nwamui_ncu_get_link_nwam_state(self, &aux_state, NULL);
-
-            if (  state == NWAM_STATE_OFFLINE_TO_ONLINE &&
-              (aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ||
-				aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ||
-				aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) ) {
-				/* Special case for Wireless - they are marked as
-				 * offline* while waiting for a key, but for the UI
-				 * this means it should be seen as active
-				 */
-				active = TRUE;
-            }
-		}
-	}
-	if ( active != self->prv->active ) {
-		self->prv->active = active;
-		if (self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && self->prv->wifi_info) {
-			nwamui_wifi_net_set_status(self->prv->wifi_info,
+    if ( active != self->prv->active ) {
+        self->prv->active = active;
+        if (self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && self->prv->wifi_info) {
+            nwamui_wifi_net_set_status(self->prv->wifi_info,
               active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED);
-		}
-	}
-	return active;
+        }
+    }
+    return active;
 }
 
 /** 
@@ -4189,17 +4174,34 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             break;
         case NWAM_STATE_MAINTENANCE:
         case NWAM_STATE_DEGRADED:
-        case NWAM_STATE_DISABLED:
         case NWAM_STATE_INITIALIZED:
         case NWAM_STATE_ONLINE_TO_OFFLINE:
             state = NWAMUI_STATE_NETWORK_UNAVAILABLE;
             break;
+        case NWAM_STATE_DISABLED:
         case NWAM_STATE_OFFLINE:
             if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRED && 
                  ( iface_aux_state == NWAM_AUX_STATE_DOWN || 
                    iface_aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET ) ) {
                 state = NWAMUI_STATE_CABLE_UNPLUGGED;
                 break;
+            } else if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+                if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
+                    state = NWAMUI_STATE_SCANNING;
+                    break;
+                }
+                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
+                    state = NWAMUI_STATE_NEEDS_SELECTION;
+                    break;
+                }
+                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
+                    state = NWAMUI_STATE_NEEDS_KEY_ESSID;
+                    break;
+                }
+                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
+                    state = NWAMUI_STATE_CONNECTING_ESSID;
+                    break;
+                }
             }
             state = NWAMUI_STATE_NOT_CONNECTED;
             break;

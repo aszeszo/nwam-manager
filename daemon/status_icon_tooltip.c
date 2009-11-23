@@ -59,6 +59,8 @@ struct _NwamTooltipWidgetPrivate {
 
 static void nwam_tooltip_widget_finalize (NwamTooltipWidget *self);
 
+static gint tooltip_ncu_compare(NwamuiObject *a, NwamuiObject *b);
+
 #if DEF_CUSTOM_TREEVIEW_TOOLTIP
 static void nwam_compose_tree_view(NwamTooltipWidget *self);
 #endif
@@ -272,6 +274,9 @@ nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *object)
 
     g_assert(NWAMUI_IS_NCP(object));
 
+    /* Sort ncu list first. */
+    ncu_list = g_list_sort(ncu_list, (GCompareFunc)tooltip_ncu_compare);
+
 #if DEF_CUSTOM_TREEVIEW_TOOLTIP
     GtkTreeModel *model = gtk_tree_view_get_model(prv->tooltip_treeview);
     GtkTreeIter iter;
@@ -348,6 +353,8 @@ nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon)
     g_object_set(prv->ncp_widget, "proxy-object", ncp, NULL);
     g_object_ref(ncp);
 
+    /* Sort ncu list first. */
+    ncu_list = g_list_sort(ncu_list, (GCompareFunc)tooltip_ncu_compare);
     ncu_list = g_list_concat(ncu_list, enm_list);
 
     /* Get list of children, remove non-NCU children and then process.  */
@@ -453,3 +460,60 @@ nwam_tooltip_widget_new(void)
         NULL));
 }
 
+static gint
+tooltip_ncu_compare(NwamuiObject *a, NwamuiObject *b)
+{
+#define ALWAYS_ON_GROUP_ID              (0)
+#define ALWAYS_OFF_GROUP_ID             (G_MAXINT)
+
+    NwamuiObject *object[2] = { a, b };
+    int rank[2];
+    int i, retval;
+
+    for (i = 0; i < 2; i++) {
+        /* net_conf dialog uses nwamui_object as a fake node, so we have to
+         * filter out non-NCU objects.
+         */
+        if (NWAMUI_IS_NCU(object[i])) {
+
+            switch (nwamui_object_get_activation_mode(object[i])) {
+            case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+                rank[i] = nwamui_object_get_enabled(object[i]) ? ALWAYS_ON_GROUP_ID : ALWAYS_OFF_GROUP_ID;
+                break;
+            case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+                rank[i] = nwamui_ncu_get_priority_group(NWAMUI_NCU(object[i])) + ALWAYS_ON_GROUP_ID + 1;
+                break;
+            default:
+                g_warning("%s: Not supported activation mode %d", __func__, nwamui_object_get_activation_mode(object[i]));
+                rank[i] = ALWAYS_OFF_GROUP_ID;
+                break;
+            }
+        } else {
+            retval = 0;
+            /* We don't need compare anymore, just unref and return. Remember i
+             * to do unref.
+             */
+            i++;
+            goto L_exit;
+        }
+    }
+
+    retval = rank[0] - rank[1];
+    if (retval == 0) {
+        retval = g_ascii_strcasecmp(nwamui_ncu_get_display_name(NWAMUI_NCU(object[0])),
+          nwamui_ncu_get_display_name(NWAMUI_NCU(object[1])));
+    }
+
+    g_debug("%s: %s - %s = %d", __func__,
+      nwamui_ncu_get_display_name(NWAMUI_NCU(object[0])), 
+      nwamui_ncu_get_display_name(NWAMUI_NCU(object[1])),
+      retval);
+
+L_exit:
+/*     for (i--; i >=0 ; i--) { */
+/*         g_object_unref(object[i]); */
+/*     } */
+
+    return retval;
+
+}

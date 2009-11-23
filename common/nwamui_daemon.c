@@ -2039,13 +2039,18 @@ dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  ui
                     if ( wlan_p->nww_connected || wlan_p->nww_selected ) {
                         NwamuiWifiNet* ncu_wifi = nwamui_ncu_get_wifi_info( ncu );
 
+                        /* Set owner first befor set wifi state. */
+                        if ( ncu_wifi != wifi_net ) {
+                            /* Update NCU with connected Wifi object */
+                            nwamui_ncu_set_wifi_info(ncu, wifi_net);
+                        }
+
                         if ( wlan_p->nww_connected ) {
                             nwamui_wifi_net_set_status(wifi_net, NWAMUI_WIFI_STATUS_CONNECTED);
                         }
 
-                        if ( ncu_wifi != wifi_net ) {
-                            /* Update NCU with connected Wifi object */
-                            nwamui_ncu_set_wifi_info(ncu, wifi_net);
+                        if (ncu_wifi) {
+                            g_object_unref(ncu_wifi);
                         }
                     }
                     else {

@@ -1,3 +1,27 @@
+2009-11-23  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_daemon.c (dispatch_scan_results_from_wlan_array):
+	Forgot unref. Set wifi_net parent before set its state.
+	* common/nwamui_ncp.c (nwamui_ncp_get_ncu_by_device_name):
+	Add a debug info.
+	* common/nwamui_ncu.c (nwamui_ncu_set_property):
+	Set display name right after set vanity-name(name). TODO should
+	'device-name' be read-only and construct only?
+	Rework inf/link state to fix that can't show connecting to wlan state
+	and activate wlan menu-item when connecting the wlan.
+	* common/nwamui_object.c (nwamui_object_init),
+	(nwamui_object_get_property):
+	Clean code.
+	* daemon/nwam-ncu-item.c (menu_ncu_item_compare):
+	Rework sort function.
+	* daemon/status_icon.c (ncp_add_ncu), (ncp_remove_ncu):
+	* daemon/status_icon_tooltip.c (nwam_tooltip_widget_update_daemon),
+	(tooltip_ncu_compare):
+	Rework sort function.
+	
+	Fixed 12666 [RC5] balloon popup indicates connected interface when it
+	is taken off line
+	
 2009-11-23  malin  <malin@os>
 
 	* common/libnwamui.c (nwamui_util_validate_text_entry):

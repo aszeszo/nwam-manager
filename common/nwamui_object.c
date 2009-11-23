@@ -149,7 +149,7 @@ nwamui_object_class_init(NwamuiObjectClass *klass)
 static void
 nwamui_object_init(NwamuiObject *self)
 {
-    self->prv = g_new0 (NwamuiObjectPrivate, 1);
+    self->prv = NWAMUI_OBJECT_GET_PRIVATE(self);
 
 /*     g_signal_connect(G_OBJECT(self), "notify", (GCallback)nwamui_object_notify_cb, (gpointer)self); */
 }
@@ -185,7 +185,8 @@ nwamui_object_get_property(GObject         *object,
     GValue          *value,
     GParamSpec      *pspec)
 {
-	NwamuiObject *self = NWAMUI_OBJECT(object);
+    NwamuiObjectPrivate *prv  = NWAMUI_OBJECT_GET_PRIVATE(object);
+	NwamuiObject        *self = NWAMUI_OBJECT(object);
 
 	switch (prop_id) {
     case PROP_NAME: {
@@ -199,7 +200,7 @@ nwamui_object_get_property(GObject         *object,
         break;
 
     case PROP_NWAM_STATE: {
-        g_value_set_uint( value, (guint)self->prv->nwam_state );
+        g_value_set_uint( value, (guint)prv->nwam_state );
     }
         break;
     default:
