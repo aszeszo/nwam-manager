@@ -1451,7 +1451,6 @@ nwamui_wifi_net_set_status ( NwamuiWifiNet *self, nwamui_wifi_status_t status )
     g_return_if_fail (NWAMUI_IS_WIFI_NET(self));
     g_assert (status >= NWAMUI_WIFI_STATUS_CONNECTED && status < NWAMUI_WIFI_STATUS_LAST );
 
-    g_debug("WifiNet %20s status %d", self->prv->essid, self->prv->status);
     g_object_set (G_OBJECT (self),
                   "status", status,
                   NULL);

@@ -1,3 +1,15 @@
+2009-11-24  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_daemon.c (nwamd_event_handler):
+	Fixed crash on getting wlan scan report after the wireless link is
+	destroyed.
+	* capplet/nwam_conn_stat_panel.c (cancel), (apply), (help),
+	(conn_view_filter_visible_cb):
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_set_status):
+	* daemon/nwam-tooltip-widget.c (connect_object),
+	(nwam_object_notify):
+	clean code.
+	
 2009-11-23  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_ncu.c:

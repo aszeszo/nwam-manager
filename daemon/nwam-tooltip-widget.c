@@ -63,7 +63,6 @@ static void connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object);
 static void disconnect_object(NwamObjectTooltipWidget *self, NwamuiObject *object);
 static void sync_object(NwamObjectTooltipWidget *self, NwamuiObject *object, gpointer user_data);
 static void nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
-static void nwam_ncu_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 static void nwam_object_activation_mode_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
 G_DEFINE_TYPE(NwamObjectTooltipWidget, nwam_object_tooltip_widget, NWAM_TYPE_MENU_ITEM)
@@ -157,10 +156,8 @@ connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object)
 
 	if (type == NWAMUI_TYPE_NCU) {
         g_signal_connect (G_OBJECT(object), "notify::wifi-info",
-          G_CALLBACK(nwam_ncu_notify), (gpointer)self);
+          G_CALLBACK(nwam_object_notify), (gpointer)self);
 
-        /* Call once on initial connection */
-        nwam_ncu_notify(G_OBJECT(object), NULL, (gpointer)self);
     } else if (type == NWAMUI_TYPE_ENM) {
         g_signal_connect (G_OBJECT(object), "notify::activation-mode",
           G_CALLBACK(nwam_object_activation_mode_notify), (gpointer)self);
@@ -169,6 +166,9 @@ connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object)
         nwam_object_activation_mode_notify(G_OBJECT(object), NULL, (gpointer)self);
     } else {
     }
+
+    /* Call once on initial connection */
+    nwam_object_notify(G_OBJECT(object), NULL, (gpointer)self);
 }
 
 static void
@@ -225,7 +225,12 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
         g_free(state);
 
         /* Updated ncu status. Low frequency. */
-        nwam_ncu_notify(G_OBJECT(object), NULL, (gpointer)self);
+        {
+            GtkWidget *img = gtk_image_new_from_pixbuf(nwamui_util_get_ncu_status_icon(NWAMUI_NCU(gobject), 24));
+
+            nwam_menu_item_set_widget(NWAM_MENU_ITEM(user_data), 0, img);
+        }
+
 	} else if (type == NWAMUI_TYPE_ENV) {
         g_string_append_printf(gstr, _("<b>Location:</b> %s"), name);
 	} else if (type == NWAMUI_TYPE_NCP) {
@@ -240,14 +245,6 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
 	}
     menu_item_set_markup(GTK_MENU_ITEM(user_data), gstr->str);
     g_string_free(gstr, TRUE);
-}
-
-static void
-nwam_ncu_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
-{
-    GtkWidget *img = gtk_image_new_from_pixbuf(nwamui_util_get_ncu_status_icon(NWAMUI_NCU(gobject), 24));
-
-    nwam_menu_item_set_widget(NWAM_MENU_ITEM(user_data), 0, img);
 }
 
 static void

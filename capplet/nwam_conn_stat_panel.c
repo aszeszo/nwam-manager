@@ -436,11 +436,13 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 static gboolean
 cancel(NwamPrefIFace *iface, gpointer user_data)
 {
+    return TRUE;
 }
 
 static gboolean
 apply(NwamPrefIFace *iface, gpointer user_data)
 {
+    return TRUE;
 }
 
 /**
@@ -451,6 +453,7 @@ help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamConnStatusPanel: Help");
     nwamui_util_show_help (HELP_REF_CONNECTSTATUS_VIEW);
+    return TRUE;
 }
 
 /* Callbacks */
@@ -582,7 +585,6 @@ conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer dat
                 break;
             case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
                 if (ncp) {
-/*                     if ( nwamui_ncp_get_current_prio_group(ncp) */
                     if ( nwamui_ncp_get_prio_group(ncp)
                          == nwamui_ncu_get_priority_group( NWAMUI_NCU(obj) )) {
                         visible = TRUE;

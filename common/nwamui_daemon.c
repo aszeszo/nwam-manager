@@ -2569,20 +2569,25 @@ nwamd_event_handler(gpointer data)
 
                 if ( nwamui_ncp_get_wireless_link_num(daemon->prv->auto_ncp) > 0 ) {
                     NwamuiNcu * ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, name);
-                    daemon->prv->emit_wlan_changed_signals = TRUE;
 
-                    nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
+                    /* This is strange, this event may be emitted after the ncu
+                     * is destroyed. So work around it. Maybe a bug of nwamd.
+                     */
+                    if (ncu) {
+                        daemon->prv->emit_wlan_changed_signals = TRUE;
 
-                    g_signal_emit (daemon,
-                      nwamui_daemon_signals[DAEMON_INFO],
-                      0, /* details */
-                      NWAMUI_DAEMON_INFO_WLAN_CHANGED,
-                      ncu,
-                      g_strdup_printf(_("New wireless networks found.")));
+                        nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
 
-                    g_object_unref(ncu);
-                }
-                else {
+                        g_signal_emit (daemon,
+                          nwamui_daemon_signals[DAEMON_INFO],
+                          0, /* details */
+                          NWAMUI_DAEMON_INFO_WLAN_CHANGED,
+                          ncu,
+                          g_strdup_printf(_("New wireless networks found.")));
+
+                        g_object_unref(ncu);
+                    }
+                } else {
                     g_debug("Num wifi i/fs returned 0");
                 }
             }
