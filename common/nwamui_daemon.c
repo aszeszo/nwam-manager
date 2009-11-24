@@ -913,7 +913,7 @@ nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name )
             NwamuiNcp*   tmp_ncp  = NWAMUI_NCP(item->data);
             const gchar* ncp_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_ncp));
 
-            g_string_append_printf(have_names, "%s(0x%p) ", ncp_name, temp_ncp);
+            g_string_append_printf(have_names, "%s(0x%p) ", ncp_name, tmp_ncp);
 
             if ( strcmp( name, ncp_name) == 0 ) {
                 ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(tmp_ncp)));
