@@ -182,6 +182,7 @@ static void     nwamui_daemon_nwam_disconnect( void );
 static void nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent );
 static void nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent );
 static void nwamui_daemon_set_status( NwamuiDaemon* self, nwamui_daemon_status_t status );
+static gboolean nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -210,6 +211,7 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
 {
     /* Pointer to GObject Part of Class */
     GObjectClass *gobject_class = (GObjectClass*) klass;
+    NwamuiObjectClass *nwamuiobject_class = NWAMUI_OBJECT_CLASS(klass);
         
     /* Initialise Static Parent Class pointer */
     parent_class = g_type_class_peek_parent (klass);
@@ -218,6 +220,8 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
     gobject_class->set_property = nwamui_daemon_set_property;
     gobject_class->get_property = nwamui_daemon_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_daemon_finalize;
+
+    nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_daemon_commit_changed_objects;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -906,10 +910,10 @@ nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name )
          item != NULL;
          item = g_list_next( item ) ) {
         if ( item->data != NULL && NWAMUI_IS_NCP(item->data) ) {
-            NwamuiNcp* tmp_ncp = NWAMUI_NCP(item->data);
-            const gchar*     ncp_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_ncp));
+            NwamuiNcp*   tmp_ncp  = NWAMUI_NCP(item->data);
+            const gchar* ncp_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_ncp));
 
-            g_string_append_printf(have_names, "%s ", ncp_name);
+            g_string_append_printf(have_names, "%s(0x%p) ", ncp_name, temp_ncp);
 
             if ( strcmp( name, ncp_name) == 0 ) {
                 ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(tmp_ncp)));
@@ -1827,7 +1831,7 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
     return( TRUE );
 }
 
-extern gboolean
+static gboolean
 nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon ) 
 {
     gboolean    rval = TRUE;

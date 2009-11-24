@@ -218,8 +218,6 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     /* object get/set name in NCU are VANITY NAME */
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncu_get_vanity_name;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_ncu_set_vanity_name;
-/*     nwamuiobject_class->get_conditions = NULL; */
-/*     nwamuiobject_class->set_conditions = NULL; */
     nwamuiobject_class->get_activation_mode = (nwamui_object_get_activation_mode_func_t)nwamui_ncu_get_activation_mode;
     nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_ncu_set_activation_mode;
     nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_ncu_get_active;
@@ -1852,9 +1850,12 @@ nwamui_ncu_commit( NwamuiNcu* self )
         }
 	/* Set enabled flag. */
 	currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_ENABLED );
+    /* doo 12653, if user disable both ipv4/v6, disable IP NCU simplely. */
+    self->prv->enabled = (self->prv->ipv4_active || self->prv->ipv6_active);
+
 	if ( self->prv->enabled != currently_enabled ) {
 		nwam_error_t nerr;
-		if ( self->prv->enabled ) {
+		if ( self->prv->enabled) {
 			if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
 				g_warning("Failed to enable ncu_ip due to error: %s", nwam_strerror(nerr));
 			}
@@ -4234,6 +4235,20 @@ extern nwamui_connection_state_t
 nwamui_ncu_get_updated_connection_state( NwamuiNcu* self ) 
 {
     nwamui_connection_state_t   state = nwamui_ncu_get_connection_state(self);
+
+    g_debug("ncu %s connection cached state %d, currently state %d",
+      self->prv->vanity_name,
+      self->prv->connection_state,
+      state);
+
+    {
+        gchar *str;
+        g_debug("ncu %s currently state string: %s",
+          self->prv->vanity_name,
+          (str = nwamui_ncu_get_connection_state_string(self)));
+        g_free(str);
+    }
+
     if (self->prv->connection_state != state) {
         self->prv->connection_state = state;
         return( state );

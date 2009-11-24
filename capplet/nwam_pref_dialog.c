@@ -367,7 +367,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
     }
 
-    if (rval && !nwamui_daemon_commit_changed_objects( daemon ) ) {
+    if (rval && !nwamui_object_commit(NWAMUI_OBJECT(daemon)) ) {
         rval = FALSE;
     }
 

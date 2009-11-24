@@ -188,8 +188,6 @@ extern nwamui_daemon_status_t       nwamui_daemon_get_status_icon_type( NwamuiDa
 
 extern const gchar*                 nwamui_deamon_status_to_string( nwamui_daemon_status_t status );
 
-extern gboolean                     nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon );
-
 G_END_DECLS
 
 #endif	/* _NWAMUI_DAEMON_H */

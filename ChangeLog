@@ -1,5 +1,16 @@
 2009-11-24  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_pref_dialog.c (apply):
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_get_ncp_by_name):
+	* common/nwamui_daemon.h:
+	clean code, add debug info.
+	* common/nwamui_ncu.c (nwamui_ncu_class_init):
+	Fixed 12653 [RC5] having disabled interface ipv4 and ipv6, status
+	shows waiting for address
+
+2009-11-24  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_daemon.c (nwamd_event_handler):
 	Fixed crash on getting wlan scan report after the wireless link is
 	destroyed.
