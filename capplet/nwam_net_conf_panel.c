@@ -1631,7 +1631,6 @@ foreach_set_group_mode(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter
                     nwamui_ncu_set_priority_group(NWAMUI_NCU(obj), group_id);
                     nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED);
                     nwamui_ncu_set_priority_group_mode(NWAMUI_NCU(obj), mode);
-                    nwamui_object_set_enabled(NWAMUI_OBJECT(obj), TRUE);
                     break;
                 }
                 nwamui_object_commit(obj);

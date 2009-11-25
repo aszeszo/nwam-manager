@@ -892,7 +892,7 @@ nwamui_ncp_all_ncus_online (NwamuiNcp       *self,
     else if ( info.num_prio_excl > 0 && info.num_prio_excl_online == 0 ) {
         all_online = FALSE;
     }
-    else if ( info.num_prio_shared != info.num_prio_shared_online ) {
+    else if (info.num_prio_shared > 0 && (info.num_prio_shared < info.num_prio_shared_online || info.num_prio_shared_online < 1)) {
         all_online = FALSE;
     }
     else if ( info.num_prio_all != info.num_prio_all_online ) {

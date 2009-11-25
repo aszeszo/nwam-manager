@@ -1,3 +1,23 @@
+2009-11-25  malin  <malin@os>
+
+	* capplet/nwam_net_conf_panel.c (foreach_set_group_mode):
+	Change from manual to pri group donot enable that ncu anymore, use
+	set_activation_mode function to enable ncu insteadly.
+	* common/nwamui_enm.c (nwamui_enm_class_init),
+	(nwamui_enm_set_property), (nwamui_enm_get_property),
+	(nwamui_enm_set_activation_mode), (nwamui_enm_get_activation_mode):
+	* common/nwamui_env.c (nwamui_env_class_init),
+	(nwamui_env_set_property), (nwamui_env_get_property),
+	(nwamui_env_set_activation_mode), (nwamui_env_get_activation_mode):
+	* common/nwamui_ncp.c (nwamui_ncp_all_ncus_online):
+	* common/nwamui_ncu.c (nwamui_ncu_class_init),
+	(nwamui_ncu_set_property), (nwamui_ncu_get_property):
+	* common/nwamui_object.c (nwamui_object_class_init),
+	(nwamui_object_set_property), (nwamui_object_get_property),
+	(nwamui_object_set_activation_mode):
+	Move activation_mode property to nwamui_object.
+	More fix for 12608
+
 2009-11-24  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_pref_dialog.c (apply):

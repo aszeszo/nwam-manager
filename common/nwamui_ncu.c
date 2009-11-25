@@ -128,7 +128,6 @@ enum {
         PROP_IPV6_DEFAULT_ROUTE,
         PROP_V6ADDRESSES,
         PROP_WIFI_INFO,
-        PROP_ACTIVATION_MODE,
         PROP_ENABLED,
         PROP_PRIORITY_GROUP,
         PROP_PRIORITY_GROUP_MODE
@@ -405,16 +404,6 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           G_PARAM_READWRITE));
     
     g_object_class_install_property (gobject_class,
-                                     PROP_ACTIVATION_MODE,
-                                     g_param_spec_int ("activation_mode",
-                                                       _("activation_mode"),
-                                                       _("activation_mode"),
-                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
-                                                       NWAMUI_COND_ACTIVATION_MODE_LAST,
-                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
-                                                       G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
                                      PROP_ENABLED,
                                      g_param_spec_boolean ("enabled",
                                                           _("enabled"),
@@ -651,15 +640,6 @@ nwamui_ncu_set_property ( GObject         *object,
             }
             break;
 
-        case PROP_ACTIVATION_MODE: {
-                nwamui_cond_activation_mode_t activation_mode = 
-                    (nwamui_cond_activation_mode_t)g_value_get_int( value );
-
-                set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
-                set_modified_flag( self, NWAM_NCU_CLASS_PHYS, TRUE );
-            }
-            break;
-
         case PROP_ENABLED: {
                 self->prv->enabled = g_value_get_boolean( value );
                 set_modified_flag( self, NWAM_NCU_CLASS_PHYS, TRUE );
@@ -839,15 +819,6 @@ nwamui_ncu_get_property (GObject         *object,
                 g_assert( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS );
 
                 g_value_set_object( value, (gpointer)self->prv->wifi_info );
-            }
-            break;
-        case PROP_ACTIVATION_MODE: {
-                nwamui_cond_activation_mode_t activation_mode;
-                activation_mode = (nwamui_cond_activation_mode_t)
-                                    get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE );
-
-                g_value_set_int( value, (gint)activation_mode );
-
             }
             break;
 
@@ -1823,8 +1794,6 @@ nwamui_ncu_commit( NwamuiNcu* self )
             g_warning("Failed when committing PHYS NCU for %s", self->prv->device_name);
             return( FALSE );
         }
-        /* Make suer that the enabled flag is acted upon on commit */
-        nwamui_object_set_active(NWAMUI_OBJECT(self), self->prv->enabled);
 	/* Set enabled flag. */
 	currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
 	if ( self->prv->enabled != currently_enabled ) {
@@ -2894,15 +2863,54 @@ nwamui_ncu_get_wifi_signal_strength ( NwamuiNcu *self )
  * 
  **/ 
 static void
-nwamui_ncu_set_activation_mode (   NwamuiNcu                      *self,
-                                    nwamui_cond_activation_mode_t        activation_mode )
+nwamui_ncu_set_activation_mode (NwamuiNcu *self, nwamui_cond_activation_mode_t activation_mode)
 {
+    gboolean currently_enabled;
+    nwam_error_t    nerr;
+
     g_return_if_fail (NWAMUI_IS_NCU (self));
     g_assert (activation_mode >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && activation_mode <= NWAMUI_COND_ACTIVATION_MODE_LAST );
 
-    g_object_set (G_OBJECT (self),
-                  "activation_mode", (gint)activation_mode,
-                  NULL);
+    if (activation_mode != nwamui_object_get_activation_mode(NWAMUI_OBJECT(self))) {
+
+        switch (activation_mode) {
+        case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+            /* Activation mode is going to change to PRIORITIZED, we must enable
+             * the phys/ip/iptun before change it, otherwise enabled will become
+             * a readonly property.
+             */
+            currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
+            if (!currently_enabled) {
+                if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
+                    g_warning("Failed to enable ncu_phys due to error: %s", nwam_strerror(nerr));
+                }
+            }
+            currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_ENABLED );
+            if (!currently_enabled) {
+                if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
+                    g_warning("Failed to enable ncu_ip due to error: %s", nwam_strerror(nerr));
+                }
+            }
+#ifdef TUNNEL_SUPPORT
+            currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_iptun, NWAM_NCU_PROP_ENABLED );
+            if (!currently_enabled) {
+                if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
+                    g_warning("Failed to enable ncu_iptun due to error: %s", nwam_strerror(nerr));
+                }
+            }
+#endif /* TUNNEL_SUPPORT */
+
+            /* Must update enabled flag. */
+            self->prv->enabled = TRUE;
+            set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
+            break;
+        default:
+            break;
+        }
+        set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
+        set_modified_flag( self, NWAM_NCU_CLASS_PHYS, TRUE );
+
+    }
 }
 
 /**
@@ -2914,13 +2922,12 @@ nwamui_ncu_set_activation_mode (   NwamuiNcu                      *self,
 static nwamui_cond_activation_mode_t
 nwamui_ncu_get_activation_mode (NwamuiNcu *self)
 {
-    gint  activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
+    nwamui_cond_activation_mode_t activation_mode;
 
     g_return_val_if_fail (NWAMUI_IS_NCU (self), activation_mode);
 
-    g_object_get (G_OBJECT (self),
-                  "activation_mode", &activation_mode,
-                  NULL);
+    activation_mode = (nwamui_cond_activation_mode_t)
+      get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE );
 
     return( (nwamui_cond_activation_mode_t)activation_mode );
 }

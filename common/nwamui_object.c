@@ -36,6 +36,7 @@ enum {
     PROP_NWAM_STATE = 1,
     PROP_NAME,
     PROP_ACTIVE,
+    PROP_ACTIVATION_MODE,
     LAST_PROP
 };
 
@@ -136,6 +137,17 @@ nwamui_object_class_init(NwamuiObjectClass *klass)
         G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
+      PROP_ACTIVATION_MODE,
+      g_param_spec_int ("activation_mode",
+        _("activation_mode"),
+        _("activation_mode"),
+        NWAMUI_COND_ACTIVATION_MODE_MANUAL,
+        NWAMUI_COND_ACTIVATION_MODE_LAST,
+        NWAMUI_COND_ACTIVATION_MODE_MANUAL,
+        G_PARAM_READWRITE));
+
+
+    g_object_class_install_property (gobject_class,
       PROP_NWAM_STATE,
       g_param_spec_uint ("nwam_state",
         _("nwam_state"),
@@ -163,16 +175,15 @@ nwamui_object_set_property(GObject         *object,
 	NwamuiObject *self = NWAMUI_OBJECT(object);
 
 	switch (prop_id) {
-    case PROP_NAME: {
+    case PROP_NAME:
         nwamui_object_set_name(self, g_value_get_string(value));
-    }
         break;
-
-    case PROP_ACTIVE: {
+    case PROP_ACTIVE:
         nwamui_object_set_active(self, g_value_get_boolean(value));
-    }
         break;
-
+    case PROP_ACTIVATION_MODE:
+        nwamui_object_set_activation_mode(NWAMUI_OBJECT(object), g_value_get_int(value));
+        break;
     default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -189,19 +200,18 @@ nwamui_object_get_property(GObject         *object,
 	NwamuiObject        *self = NWAMUI_OBJECT(object);
 
 	switch (prop_id) {
-    case PROP_NAME: {
+    case PROP_NAME:
         /* Get property name is to dup name, directly call get_name do not dup */
         g_value_set_string(value, nwamui_object_get_name(self));
         break;
-    }
-    case PROP_ACTIVE: {
+    case PROP_ACTIVE:
         g_value_set_boolean(value, nwamui_object_get_active(NWAMUI_OBJECT(object)));
-    }
         break;
-
-    case PROP_NWAM_STATE: {
+    case PROP_ACTIVATION_MODE:
+        g_value_set_int(value, nwamui_object_get_activation_mode(NWAMUI_OBJECT(object)));
+        break;
+    case PROP_NWAM_STATE:
         g_value_set_uint( value, (guint)prv->nwam_state );
-    }
         break;
     default:
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -319,6 +329,7 @@ nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
 
     NWAMUI_OBJECT_GET_CLASS (object)->set_activation_mode(object, activation_mode);
+    g_object_notify(G_OBJECT(object), "activation-mode");
 }
 
 extern gboolean

@@ -101,7 +101,6 @@ enum {
     PROP_SVCS_DISABLE,
 #endif /* ENABLE_NETSERVICES */
     PROP_CONDITIONS,
-    PROP_ACTIVATION_MODE,
     PROP_NWAM_ENV,
     PROP_SVCS,
 #ifdef ENABLE_PROXY
@@ -233,15 +232,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     nwamuiobject_class->destroy = (nwamui_object_destroy_func_t)nwamui_env_destroy;
 
     /* Create some properties */
-    g_object_class_install_property (gobject_class,
-                                     PROP_ACTIVATION_MODE,
-                                     g_param_spec_int ("activation_mode",
-                                                       _("activation_mode"),
-                                                       _("activation_mode"),
-                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
-                                                       NWAMUI_COND_ACTIVATION_MODE_LAST-1,
-                                                       NWAMUI_COND_ACTIVATION_MODE_MANUAL,
-                                                       G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_ENABLED,
@@ -640,11 +630,6 @@ nwamui_env_set_property (   GObject         *object,
     nwam_error_t nerr;
     
     switch (prop_id) {
-        case PROP_ACTIVATION_MODE: {
-                set_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE, g_value_get_int( value ) );
-            }
-            break;
-
         case PROP_CONDITIONS: {
                 GList *conditions = g_value_get_pointer( value );
                 char  **condition_strs = NULL;
@@ -942,12 +927,6 @@ nwamui_env_get_property (GObject         *object,
     nwam_value_t **nwamdata;
 
     switch (prop_id) {
-        case PROP_ACTIVATION_MODE: {
-                g_value_set_int( value, 
-                        (gint)get_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE ) );
-            }
-            break;
-            
         case PROP_CONDITIONS: {
                 gchar** condition_strs = get_nwam_loc_string_array_prop( self->prv->nwam_loc, 
                                                                          NWAM_LOC_PROP_CONDITIONS );
@@ -3528,12 +3507,12 @@ static void
 nwamui_env_set_activation_mode (   NwamuiEnv *self,
                                   nwamui_cond_activation_mode_t        activation_mode )
 {
+    NwamuiEnvPrivate *prv = self->prv;
+
     g_return_if_fail (NWAMUI_IS_ENV(self));
     g_assert (activation_mode >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && activation_mode <= NWAMUI_COND_ACTIVATION_MODE_LAST );
 
-    g_object_set (G_OBJECT (self),
-                  "activation_mode", (gint)activation_mode,
-                  NULL);
+    set_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE, activation_mode);
 }
 
 /**
@@ -3545,13 +3524,12 @@ nwamui_env_set_activation_mode (   NwamuiEnv *self,
 static nwamui_cond_activation_mode_t
 nwamui_env_get_activation_mode (NwamuiEnv *self)
 {
+    NwamuiEnvPrivate *prv = self->prv;
     gint  activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
 
     g_return_val_if_fail (NWAMUI_IS_ENV (self), activation_mode);
 
-    g_object_get (G_OBJECT (self),
-                  "activation_mode", &activation_mode,
-                  NULL);
+    activation_mode = (gint)get_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
 
     return( (nwamui_cond_activation_mode_t)activation_mode );
 }
