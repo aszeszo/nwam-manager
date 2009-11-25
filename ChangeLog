@@ -1,5 +1,9 @@
 2009-11-25  malin  <malin@os>
 
+	* configure.in: bump to 0.99.96.1
+
+2009-11-25  malin  <malin@os>
+
 	* capplet/nwam_net_conf_panel.c (foreach_set_group_mode):
 	Change from manual to pri group donot enable that ncu anymore, use
 	set_activation_mode function to enable ncu insteadly.
