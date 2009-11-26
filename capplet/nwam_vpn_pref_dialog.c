@@ -138,7 +138,6 @@ static gboolean nwam_vpn_pre_selection_validate(    GtkTreeSelection *selection,
 
 static void nwam_vpn_selection_changed(GtkTreeSelection *selection,
 	gpointer          data);
-static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void on_rules_button_clicked(GtkButton *button, gpointer user_data);
 static void on_radio_button_toggled(GtkToggleButton *button, gpointer user_data);
 static void conditional_toggled_cb(GtkToggleButton *button, gpointer user_data);
@@ -1168,12 +1167,6 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_cli_rb), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_smf_rb), FALSE);
-}
-
-static void
-on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
 }
 
 static void

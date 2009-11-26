@@ -56,6 +56,7 @@ extern  GType      nwam_tooltip_widget_get_type (void) G_GNUC_CONST;
 extern  GtkWidget* nwam_tooltip_widget_new(void);
 
 void nwam_tooltip_widget_update_env(NwamTooltipWidget *self, NwamuiObject *object);
+void nwam_tooltip_widget_update_enm(NwamTooltipWidget *self, const gchar *vpn_info);
 void nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *object);
 void nwam_tooltip_widget_add_ncu(NwamTooltipWidget *self, NwamuiObject *object);
 void nwam_tooltip_widget_remove_ncu(NwamTooltipWidget *self, NwamuiObject *object);

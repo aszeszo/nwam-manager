@@ -1,3 +1,27 @@
+2009-11-26  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_init),
+	(refresh), (daemon_online_enm_num_notify):
+	* capplet/nwam_vpn_pref_dialog.c:
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_init_lists), (nwamui_daemon_set_property),
+	(nwamui_daemon_get_property), (nwamui_daemon_get_online_enm_num),
+	(dispatch_scan_results_from_wlan_array), (nwamd_event_handler),
+	(nwamui_daemon_update_status),
+	(nwamui_daemon_handle_object_action_event),
+	(nwamui_daemon_handle_object_state_event), (check_enm_online),
+	(nwamui_daemon_update_online_enm_num), (check_enm_online_num),
+	(nwamui_daemon_get_status_icon_type):
+	Use get_active instead of get_enabled to check if an ENM is online.
+	* common/nwamui_daemon.h:
+	* daemon/status_icon.c (daemon_enm_list_changed),
+	(daemon_online_enm_num_notify), (connect_nwam_object_signals):
+	* daemon/status_icon_tooltip.c (nwam_tooltip_widget_init),
+	(nwam_tooltip_widget_update_enm),
+	(nwam_tooltip_widget_update_daemon):
+	* daemon/status_icon_tooltip.h:
+	Update VPN in tooltip according to spec.
+
 2009-11-25  malin  <malin@os>
 
 	* configure.in: bump to 0.99.96.1

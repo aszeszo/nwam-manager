@@ -53,6 +53,7 @@ struct _NwamTooltipWidgetPrivate {
 #else
     GtkWidget *env_widget;
     GtkWidget *ncp_widget;
+    GtkWidget *vpn_widget;
 #endif
 };
 
@@ -122,6 +123,10 @@ nwam_tooltip_widget_init (NwamTooltipWidget *self)
     prv->ncp_widget = GTK_WIDGET(g_object_ref(nwam_object_tooltip_widget_new(NULL)));
     gtk_widget_show(prv->ncp_widget);
     gtk_box_pack_start(GTK_BOX(self), prv->ncp_widget, TRUE, TRUE, 1);
+
+    prv->vpn_widget = GTK_WIDGET(g_object_ref(nwam_menu_item_new()));
+    gtk_widget_show(prv->vpn_widget);
+    gtk_box_pack_start(GTK_BOX(self), prv->vpn_widget, TRUE, TRUE, 1);
 
 #endif
 }
@@ -265,6 +270,17 @@ nwam_tooltip_widget_update_env(NwamTooltipWidget *self, NwamuiObject *object)
 }
 
 void
+nwam_tooltip_widget_update_enm(NwamTooltipWidget *self, const gchar *vpn_info)
+{
+    NwamTooltipWidgetPrivate *prv = NWAM_TOOLTIP_WIDGET_GET_PRIVATE(self);
+    gchar *text;
+
+    text = g_strdup_printf(_("<b>VPN:</b> %s"), vpn_info);
+    menu_item_set_markup(GTK_MENU_ITEM(prv->vpn_widget), text);
+    g_free(text);
+}
+
+void
 nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *object)
 {
     NwamTooltipWidgetPrivate *prv = NWAM_TOOLTIP_WIDGET_GET_PRIVATE(self);
@@ -345,7 +361,7 @@ nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon)
     NwamTooltipWidgetPrivate *prv = NWAM_TOOLTIP_WIDGET_GET_PRIVATE(self);
     NwamuiObject *ncp = NWAMUI_OBJECT(nwamui_daemon_get_active_ncp(NWAMUI_DAEMON(daemon)));
     GList *ncu_list = nwamui_ncp_get_ncu_list(NWAMUI_NCP(ncp));
-    GList *enm_list = nwamui_daemon_get_enm_list(NWAMUI_DAEMON(daemon));
+/*     GList *enm_list = nwamui_daemon_get_enm_list(NWAMUI_DAEMON(daemon)); */
     GList *idx;
     gint ncu_num;
     GList *w_list;
@@ -355,7 +371,7 @@ nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon)
 
     /* Sort ncu list first. */
     ncu_list = g_list_sort(ncu_list, (GCompareFunc)tooltip_ncu_compare);
-    ncu_list = g_list_concat(ncu_list, enm_list);
+/*     ncu_list = g_list_concat(ncu_list, enm_list); */
 
     /* Get list of children, remove non-NCU children and then process.  */
     w_list = gtk_container_get_children(GTK_CONTAINER(self));
@@ -363,6 +379,8 @@ nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon)
     w_list = g_list_remove(w_list, prv->env_widget);
     g_assert(w_list);
     w_list = g_list_remove(w_list, prv->ncp_widget);
+    g_assert(w_list);
+    w_list = g_list_remove(w_list, prv->vpn_widget);
     ncu_num = g_list_length(w_list);
 
     /* For each entry in the ncu_list, re-use any existing w_list nodes by

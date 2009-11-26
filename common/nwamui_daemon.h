@@ -166,6 +166,8 @@ extern void                         nwamui_daemon_enm_append(NwamuiDaemon *self,
 
 extern gboolean                     nwamui_daemon_enm_remove(NwamuiDaemon *self, NwamuiEnm* enm );
 
+extern gint                         nwamui_daemon_get_online_enm_num(NwamuiDaemon *self);
+
 extern void                         nwamui_daemon_wifi_start_scan(NwamuiDaemon *self);
 
 extern void                         nwamui_daemon_dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon );

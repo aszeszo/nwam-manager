@@ -104,7 +104,7 @@ static void repair_clicked_cb( GtkButton *button, gpointer data );
 static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
 static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
-static void on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void daemon_online_enm_num_notify(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void ncp_notify_pri_group_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void connview_info_width_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -291,15 +291,8 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
                      (gpointer)self);
 
     /* Connect daemon update enm list signal to get the latest enm list */
-    GList*                  enm_elem;
-    NwamuiEnm*              enm;
-    for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(self->prv->daemon)));
-          enm_elem != NULL;
-          enm_elem = g_list_next( enm_elem ) ) {
-        enm = NWAMUI_ENM(enm_elem->data);
-		g_signal_connect (enm_elem->data, "notify::active", G_CALLBACK(on_nwam_enm_notify_cb), (gpointer)self);
-    }
-
+    g_signal_connect(prv->daemon, "notify::online-enm-num", G_CALLBACK(daemon_online_enm_num_notify), (gpointer)self);
+    
     /* Initially refresh self */
     {
         NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
@@ -429,7 +422,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     } else {
         gtk_label_set_text(self->prv->current_env_lbl, _("Unknow env"));
     }
-    on_nwam_enm_notify_cb (NULL, NULL, (gpointer)self);
+    daemon_online_enm_num_notify(NULL, NULL, (gpointer)self);
     return(TRUE);
 }
 
@@ -720,36 +713,32 @@ on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
 }
 
 static void
-on_nwam_enm_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
+daemon_online_enm_num_notify(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
     GList*                  enm_elem;
     NwamuiEnm*              enm;
-    int                     enm_active_count = 0;
+    int                     enm_active_count = nwamui_daemon_get_online_enm_num(prv->daemon);
     gchar* enm_str = NULL;
 
-    for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(prv->daemon)));
-          enm_elem != NULL;
-          enm_elem = g_list_next( enm_elem ) ) {
-            
-        enm = NWAMUI_ENM(enm_elem->data);
-            
-        if  ( nwamui_object_get_active(NWAMUI_OBJECT(enm))) {
-            if ( enm_str == NULL ) {
-                enm_str = g_strdup_printf("%s Active", nwamui_object_get_name(NWAMUI_OBJECT(enm)));
-            }
-            enm_active_count++;
-        }
-    }
-        
+    
     if ( enm_active_count == 0 ) {
         enm_str = g_strdup(_("None Active"));
-    }
-    else if (enm_active_count > 1 ) {
-        if ( enm_str != NULL )
-            g_free( enm_str );  
-            
+    } else if (enm_active_count > 1) {
         enm_str = g_strdup_printf("%d Active", enm_active_count);
+    } else {
+        for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(prv->daemon)));
+              enm_elem != NULL;
+              enm_elem = g_list_delete_link(enm_elem, enm_elem) ) {
+        
+            enm = NWAMUI_ENM(enm_elem->data);
+        
+            if  ( nwamui_object_get_active(NWAMUI_OBJECT(enm))) {
+                enm_str = g_strdup_printf("%s Active", nwamui_object_get_name(NWAMUI_OBJECT(enm)));
+                break;
+            }
+        }
+        g_list_free(enm_elem);
     }
         
     gtk_label_set_text(prv->current_vpn_lbl, enm_str );

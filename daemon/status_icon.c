@@ -178,6 +178,7 @@ static void daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gp
 static void daemon_active_env_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
 static void daemon_enm_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data);
 static void daemon_env_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data);
+static void daemon_online_enm_num_notify(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* nwamui ncp signals */
 static void ncp_activate_ncu (NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer user_data);
@@ -629,7 +630,8 @@ daemon_enm_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 
     nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_ENM);
     nwam_menu_recreate_enm_menuitems(self);
-    nwam_tooltip_widget_update_daemon(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->daemon));
+/*     nwam_tooltip_widget_update_daemon(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->daemon)); */
+    daemon_online_enm_num_notify(NULL, NULL, (gpointer)self);
 }
 
 static void
@@ -640,6 +642,40 @@ daemon_env_list_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 
     nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_LOC);
     nwam_menu_recreate_env_menuitems(self);
+}
+
+static void
+daemon_online_enm_num_notify(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamStatusIconPrivate *prv              = NWAM_STATUS_ICON_GET_PRIVATE(data);
+    GList*                 enm_elem;
+    NwamuiEnm*             enm;
+    int                    enm_active_count = nwamui_daemon_get_online_enm_num(prv->daemon);
+    gchar*                 enm_str          = NULL;
+
+    
+    if ( enm_active_count == 0 ) {
+        enm_str = g_strdup(_("None Active"));
+    } else if (enm_active_count > 1) {
+        enm_str = g_strdup_printf("%d Active", enm_active_count);
+    } else {
+        for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(prv->daemon)));
+              enm_elem != NULL;
+              enm_elem = g_list_delete_link(enm_elem, enm_elem) ) {
+        
+            enm = NWAMUI_ENM(enm_elem->data);
+        
+            if  ( nwamui_object_get_active(NWAMUI_OBJECT(enm))) {
+                enm_str = g_strdup_printf("%s Active", nwamui_object_get_name(NWAMUI_OBJECT(enm)));
+                break;
+            }
+        }
+        g_list_free(enm_elem);
+    }
+        
+    nwam_tooltip_widget_update_enm(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), enm_str);
+
+    g_free( enm_str );
 }
 
 static void
@@ -800,7 +836,10 @@ connect_nwam_object_signals(GObject *obj, GObject *self)
           (GCallback)nwam_menu_scan_started, (gpointer) self);
 
         g_signal_connect(daemon, "notify::env-selection-mode",
-                G_CALLBACK(switch_loc_manually_changed), (gpointer)self);
+          G_CALLBACK(switch_loc_manually_changed), (gpointer)self);
+
+        g_signal_connect(daemon, "notify::online-enm-num",
+          G_CALLBACK(daemon_online_enm_num_notify), (gpointer)self);
 
         /* We don't have a fav wifi section in pop menu in
          * Phase 1, so comment out these signals to avoid

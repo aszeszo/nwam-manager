@@ -94,6 +94,7 @@ enum {
     PROP_WIFI_FAV,
     PROP_STATUS,
     PROP_NUM_SCANNED_WIFI,
+    PROP_ONLINE_ENM_NUM,
     PROP_ENV_SELECTION_MODE
 };
 
@@ -124,15 +125,16 @@ struct _NwamuiDaemonPrivate {
     GList       *temp_list; /* Used to temporarily track not found objects in walkers */
 
     /* others */
-    gboolean                     connected_to_nwamd;
-    nwamui_daemon_status_t       status;
-    guint                        status_flags; 
-    GThread                     *nwam_events_gthread;
-    gboolean                     communicate_change_to_daemon;
-    guint                        wep_timeout_id;
-    gboolean                     emit_wlan_changed_signals;
-    GQueue                       *wlan_scan_queue;
-    gint                         num_scanned_wireless;
+    gboolean                connected_to_nwamd;
+    nwamui_daemon_status_t  status;
+    guint                   status_flags; 
+    GThread                *nwam_events_gthread;
+    gboolean                communicate_change_to_daemon;
+    guint                   wep_timeout_id;
+    gboolean                emit_wlan_changed_signals;
+    GQueue                 *wlan_scan_queue;
+    gint                    num_scanned_wifi;
+    gint                    online_enm_num;
 };
 
 typedef struct _fav_wlan_walker_data {
@@ -171,6 +173,8 @@ static void nwamui_daemon_finalize (     NwamuiDaemon *self);
 static void nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self);
 
 static void check_enm_online( gpointer obj, gpointer user_data );
+static void nwamui_daemon_update_online_enm_num(NwamuiDaemon *self);
+static void check_enm_online_num( gpointer obj, gpointer user_data );
 
 static void nwamui_daemon_update_status( NwamuiDaemon   *daemon );
 
@@ -295,6 +299,16 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                                                          _("env_selection_mode"),
                                                           FALSE,
                                                           G_PARAM_READABLE));
+
+    g_object_class_install_property (gobject_class,
+      PROP_ONLINE_ENM_NUM,
+      g_param_spec_int("online_enm_num",
+        _("online_enm_num"),
+        _("online_enm_num"),
+        0,
+        G_MAXINT,
+        0,
+        G_PARAM_READABLE));
 
     /* Create some signals */
     nwamui_daemon_signals[WIFI_SCAN_STARTED] =   
@@ -509,6 +523,11 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
 
     /* Populate Wifi Favourites List */
     nwamui_daemon_populate_wifi_fav_list( self );
+
+    /* Will generate an event if status changes */
+    nwamui_daemon_update_status(self);
+
+    nwamui_daemon_update_online_enm_num(self);
 }
 
 static void
@@ -560,7 +579,7 @@ nwamui_daemon_set_property ( GObject         *object,
             nwamui_daemon_set_status(self, g_value_get_int( value ));
             break;
         case PROP_NUM_SCANNED_WIFI: {
-                self->prv->num_scanned_wireless = g_value_get_int(value);
+                self->prv->num_scanned_wifi = g_value_get_int(value);
             }
             break;
         case PROP_WIFI_FAV: {
@@ -608,8 +627,11 @@ nwamui_daemon_get_property (GObject         *object,
             }
             break;
         case PROP_NUM_SCANNED_WIFI: {
-                g_value_set_int(value, self->prv->num_scanned_wireless);
+                g_value_set_int(value, self->prv->num_scanned_wifi);
             }
+            break;
+        case PROP_ONLINE_ENM_NUM:
+            g_value_set_int(value, nwamui_daemon_get_online_enm_num(self));
             break;
         case PROP_ENV_SELECTION_MODE: {
                 gboolean is_manual;
@@ -1503,6 +1525,13 @@ nwamui_daemon_enm_remove(NwamuiDaemon *self, NwamuiEnm* enm )
     return(rval);
 }
 
+extern gint
+nwamui_daemon_get_online_enm_num(NwamuiDaemon *self)
+{
+    g_return_val_if_fail(NWAMUI_IS_DAEMON(self), 0);
+    return self->prv->online_enm_num;
+}
+
 /**
  * nwamui_daemon_get_fav_wifi_networks:
  * @self: NwamuiDaemon*
@@ -1987,7 +2016,7 @@ dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  ui
 {
     gchar*  name = NULL;
 
-    if ( nwlan != daemon->prv->num_scanned_wireless ) {
+    if ( nwlan != daemon->prv->num_scanned_wifi ) {
         nwamui_daemon_set_num_scanned_wifi( daemon, nwlan );
     }
 
@@ -2435,9 +2464,6 @@ nwamd_event_handler(gpointer data)
         nwamui_daemon_init_lists ( daemon );
 
         nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
-
-        /* Will generate an event if status changes */
-        nwamui_daemon_update_status( daemon );
 
         /* Trigger notification of active_ncp/env to ensure widgets update */
 /*         g_object_notify(G_OBJECT(daemon), "active_ncp"); */
@@ -2913,9 +2939,9 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
             }
         }
 
+#if 0
         /* According to comments#15,16 of 12079, we don't case ENMs state. */
         /* Assuming we've no found an error yet, check the ENMs */
-#if 0
         new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
         g_list_foreach( daemon->prv->enm_list, check_enm_online, &new_status );
         if ( new_status == NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION ) {
@@ -3165,8 +3191,11 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         }
             break;
         }
-        if (enm)
+        if (enm) {
             g_object_unref(enm);
+        }
+
+        nwamui_daemon_update_online_enm_num(daemon);
     }
         break;
     case NWAM_OBJECT_TYPE_KNOWN_WLAN: {
@@ -3316,6 +3345,9 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
         case NWAM_OBJECT_TYPE_ENM:
             obj = NWAMUI_OBJECT(nwamui_daemon_get_enm_by_name( daemon, object_name ));
             nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
+
+            nwamui_daemon_update_online_enm_num(daemon);
+
             if ( object_state == NWAM_STATE_ONLINE && object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
                 /* Nothing. */
             } else {
@@ -3347,12 +3379,35 @@ check_enm_online( gpointer obj, gpointer user_data )
     nwam_state_t             state;
     nwam_aux_state_t         aux_state;
 
-    if ( nwamui_object_get_enabled( NWAMUI_OBJECT(nobj) ) ) {
-        state = nwamui_object_get_nwam_state( nobj, &aux_state, NULL);
+    state = nwamui_object_get_nwam_state( nobj, &aux_state, NULL);
 
-        if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
-            *new_status_p = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
-        }
+    if ( state != NWAM_STATE_ONLINE || aux_state != NWAM_AUX_STATE_ACTIVE ) {
+        *new_status_p = NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION;
+    }
+}
+
+static void
+nwamui_daemon_update_online_enm_num(NwamuiDaemon *self)
+{
+    /* Get the number of online ENMs. */
+    self->prv->online_enm_num = 0;
+    g_list_foreach(self->prv->enm_list, check_enm_online_num, &self->prv->online_enm_num );
+    /* Must emit every time even the num isn't changed, since the active ENMs
+     * could be changed.
+     */
+    g_object_notify(G_OBJECT(self), "online-enm-num");
+}
+
+static void
+check_enm_online_num( gpointer obj, gpointer user_data )
+{
+    NwamuiObject     *nobj       = NWAMUI_OBJECT(obj);
+    gint             *online_num = (gint *)user_data;
+    nwam_state_t      state;
+    nwam_aux_state_t  aux_state;
+
+    if ( nwamui_object_get_active( NWAMUI_OBJECT(nobj) ) ) {
+        (*online_num) ++;
     }
 }
 
@@ -3361,6 +3416,9 @@ extern nwamui_daemon_status_t
 nwamui_daemon_get_status_icon_type( NwamuiDaemon *daemon )
 {
     if ( daemon != NULL ) {
+
+        g_assert(daemon->prv->status != NWAMUI_DAEMON_STATUS_UNINITIALIZED);
+
         if ( daemon->prv->status == NWAMUI_DAEMON_STATUS_UNINITIALIZED ) {
             /* Early call, so try to update it's value now */
             nwamui_daemon_update_status( daemon );
