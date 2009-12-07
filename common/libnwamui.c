@@ -1250,7 +1250,7 @@ nwamui_util_map_object_list_to_condition_strings( GList* conditions, guint *len 
 
     *len = 0;
     elem = g_list_first(conditions);
-    for ( int i = 0; elem != NULL && i < count; i++ ) {
+    for ( int i = 0; elem && i < count; i++ ) {
         if ( elem->data != NULL && NWAMUI_IS_COND( elem->data ) ) {
             gchar* cond_str = nwamui_cond_to_string( NWAMUI_COND(elem->data) );
             if ( cond_str != NULL ) {
@@ -1259,7 +1259,7 @@ nwamui_util_map_object_list_to_condition_strings( GList* conditions, guint *len 
                 g_free(cond_str);
             }
         }
-        elem = g_list_next( conditions );
+        elem = g_list_next(elem);
     }
 
     return( cond_strs );

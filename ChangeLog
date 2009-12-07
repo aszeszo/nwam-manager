@@ -1,5 +1,16 @@
 2009-12-07  malin  <malin@os>
 
+	* capplet/nwam_condition_vbox.c (table_condition_new),
+	(table_line_cache_all_cb), (table_condition_insert),
+	(update_condition_row_widgets), (condition_field_op_changed_cb):
+	Conditions are not properly shown.
+	* common/libnwamui.c
+	(nwamui_util_map_object_list_to_condition_strings):
+	Fixed only first two conditions can be committed bug.
+	* configure.in: Bump 0.99.96.2
+
+2009-12-07  malin  <malin@os>
+
 	* capplet/capplet-utils.c (capplet_compose_combo),
 	(capplet_compose_combo_with_model):
 	* capplet/capplet-utils.h:

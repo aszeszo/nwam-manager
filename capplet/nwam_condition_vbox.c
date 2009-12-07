@@ -90,7 +90,7 @@ static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static void nwam_condition_vbox_finalize (NwamConditionVBox *self);
 static void table_lines_init (NwamConditionVBox *self, NwamuiObject *object);
 static void table_lines_free (NwamConditionVBox *self);
-static GtkWidget *table_condition_new (NwamConditionVBox *self, NwamuiCond* cond);
+static GtkWidget *table_condition_new (NwamConditionVBox *self);
 static GtkWidget* table_condition_insert (GtkWidget *clist, guint row, NwamuiCond* cond);
 static void table_condition_delete(GtkWidget *clist, GtkWidget *crow);
 
@@ -968,7 +968,7 @@ select_item_with_value( GtkComboBox*  combo, const gchar* value )
 }
 
 static GtkWidget *
-table_condition_new (NwamConditionVBox *self, NwamuiCond* cond )
+table_condition_new (NwamConditionVBox *self)
 {
 	NwamConditionVBoxPrivate *prv = GET_PRIVATE(self);
 	GtkBox *box = NULL;
@@ -981,17 +981,6 @@ table_condition_new (NwamConditionVBox *self, NwamuiCond* cond )
 	if (prv->table_box_cache) {
 		box = GTK_BOX(prv->table_box_cache->data);
 		prv->table_box_cache = g_list_delete_link(prv->table_box_cache, prv->table_box_cache);
-		combo1 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO1));
-		combo2 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO2));
-		value_nb = GTK_NOTEBOOK(g_object_get_data(G_OBJECT(box), TABLE_ROW_NOTEBOOK ));
-		entry = GTK_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENTRY));
-		ncp_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_NCP_COMBO));
-		ncu_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_NCU_COMBO));
-		enm_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENM_COMBO));
-		loc_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_LOC_COMBO));
-		wifi_combo_entry = GTK_COMBO_BOX_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_WIFI_COMBO_ENTRY));
-		add = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_ADD));
-		remove = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_REMOVE));
 	} else {
 		box = GTK_BOX(gtk_hbox_new (FALSE, 2));
 		combo1 = GTK_COMBO_BOX(_cu_cond_combo_new (table_get_condition_subject_model()));
@@ -1102,6 +1091,50 @@ table_condition_new (NwamConditionVBox *self, NwamuiCond* cond )
         gtk_combo_box_set_active(GTK_COMBO_BOX(enm_combo), 0);
         gtk_combo_box_set_active(GTK_COMBO_BOX(loc_combo), 0);
 	}
+    gtk_widget_show_all (GTK_WIDGET(box));
+	return GTK_WIDGET(box);
+}
+
+static void
+table_line_cache_all_cb (GtkWidget *widget, gpointer data)
+{
+    GtkWidget *clist = GTK_WIDGET (data);
+    /* cache the remove one */
+    table_condition_delete(clist, widget);
+}
+
+static GtkWidget*
+table_condition_insert (GtkWidget *clist, guint row, NwamuiCond* cond)
+{
+	gpointer self = clist;
+	NwamConditionVBoxPrivate *prv = GET_PRIVATE(self);
+	GtkComboBox *combo1, *combo2, *ncp_combo, *ncu_combo, *enm_combo, *loc_combo;
+    GtkComboBoxEntry *wifi_combo_entry;
+    GtkNotebook *value_nb;
+	GtkEntry *entry;
+	GtkButton *add, *remove;
+	GtkWidget *box;
+
+	box = table_condition_new (NWAM_CONDITION_VBOX(self));
+	gtk_box_pack_start (GTK_BOX(clist), box, FALSE, FALSE, 0);
+	prv->table_line_num++;
+	gtk_box_reorder_child (GTK_BOX(clist), box, row);
+	gtk_widget_show_all (clist);
+	nwamui_debug ("num %d",     prv->table_line_num);
+
+    /* Update the row widgets */
+    combo1 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO1));
+    combo2 = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_COMBO2));
+    value_nb = GTK_NOTEBOOK(g_object_get_data(G_OBJECT(box), TABLE_ROW_NOTEBOOK ));
+    entry = GTK_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENTRY));
+    ncp_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_NCP_COMBO));
+    ncu_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_NCU_COMBO));
+    enm_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_ENM_COMBO));
+    loc_combo = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(box), TABLE_ROW_LOC_COMBO));
+    wifi_combo_entry = GTK_COMBO_BOX_ENTRY(g_object_get_data(G_OBJECT(box), TABLE_ROW_WIFI_COMBO_ENTRY));
+    add = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_ADD));
+    remove = GTK_BUTTON(g_object_get_data(G_OBJECT(box), TABLE_ROW_REMOVE));
+
 	g_object_set_data (G_OBJECT(box), TABLE_ROW_CDATA, g_object_ref(cond) );
 	
     gtk_widget_show_all( GTK_WIDGET(box) );
@@ -1113,8 +1146,8 @@ table_condition_new (NwamConditionVBox *self, NwamuiCond* cond )
 		nwamui_cond_op_t    oper  = nwamui_cond_get_oper( cond );
 		gchar*              value = nwamui_cond_get_value( cond );
 
-        /* gtk_combo_box_set_active(combo1, -1); */
-        /* gtk_combo_box_set_active(combo2, -1); */
+        gtk_combo_box_set_active(combo1, -1);
+        gtk_combo_box_set_active(combo2, -1);
         set_combobox_unfiltered_index( GTK_COMBO_BOX(combo1), (gint)field);
         set_combobox_unfiltered_index( GTK_COMBO_BOX(combo2), (gint)oper);
 
@@ -1160,50 +1193,24 @@ table_condition_new (NwamConditionVBox *self, NwamuiCond* cond )
         gtk_combo_box_set_active( loc_combo, 0 );
         gtk_combo_box_set_active( GTK_COMBO_BOX(wifi_combo_entry), 0 );
 	}
-    gtk_widget_show_all (GTK_WIDGET(box));
-	return GTK_WIDGET(box);
-}
-
-static void
-table_line_cache_all_cb (GtkWidget *widget, gpointer data)
-{
-    GtkWidget *clist = GTK_WIDGET (data);
-    /* cache the remove one */
-    table_condition_delete(clist, widget);
-}
-
-static GtkWidget*
-table_condition_insert (GtkWidget *clist, guint row, NwamuiCond* cond)
-{
-	gpointer self = clist;
-	NwamConditionVBoxPrivate *prv = GET_PRIVATE(self);
-	GtkWidget *crow_new;
-
-	crow_new = table_condition_new (NWAM_CONDITION_VBOX(self), cond);
-	gtk_box_pack_start (GTK_BOX(clist), crow_new, FALSE, FALSE, 0);
-	prv->table_line_num++;
-	gtk_box_reorder_child (GTK_BOX(clist), crow_new, row);
-	gtk_widget_show_all (clist);
-	nwamui_debug ("num %d",     prv->table_line_num);
 
     g_signal_emit (self,
-                   cond_signals[S_CONDITION_ADD],
-                   0, /* details */
-                   cond);
+      cond_signals[S_CONDITION_ADD],
+      0, /* details */
+      cond);
 
-	return crow_new;
+	return box;
 }
 
 static void
 update_condition_row_widgets( GtkWidget* widget, gpointer user_data )
 {
 	NwamConditionVBoxPrivate *prv = GET_PRIVATE(user_data);
-    GtkWidget  *combo1, *combo2, *add, *remove;
+    GtkWidget  *combo1, *combo2, *remove;
     nwamui_cond_field_t  field;
 
 	combo1 = GTK_WIDGET(g_object_get_data(G_OBJECT(widget), TABLE_ROW_COMBO1));
 	combo2 = GTK_WIDGET(g_object_get_data(G_OBJECT(widget), TABLE_ROW_COMBO2));
-    add = GTK_WIDGET(g_object_get_data(G_OBJECT(widget), TABLE_ROW_ADD));
     remove = GTK_WIDGET(g_object_get_data(G_OBJECT(widget), TABLE_ROW_REMOVE));
 
     gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(gtk_combo_box_get_model(GTK_COMBO_BOX(combo1))));
@@ -1212,10 +1219,8 @@ update_condition_row_widgets( GtkWidget* widget, gpointer user_data )
 
     if ( field != NWAMUI_COND_FIELD_LAST ) {
         gtk_widget_set_sensitive(combo2, TRUE);
-        gtk_widget_set_sensitive (add, TRUE);
     } else {
         gtk_widget_set_sensitive(combo2, FALSE);
-        gtk_widget_set_sensitive (add, FALSE);
     }
 
     gtk_widget_set_sensitive(remove, (prv->table_line_num > 1));
@@ -1320,6 +1325,7 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
 		    GtkComboBox         *enm_combo        = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_ENM_COMBO));
 		    GtkComboBox         *loc_combo        = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_LOC_COMBO));
 		    GtkComboBox         *wifi_combo_entry = GTK_COMBO_BOX(g_object_get_data(G_OBJECT(data), TABLE_ROW_WIFI_COMBO_ENTRY));
+            GtkWidget           *add              = GTK_WIDGET(g_object_get_data(G_OBJECT(data), TABLE_ROW_ADD));
             nwamui_cond_field_t  field;
             gchar*               value;
             /*
@@ -1340,6 +1346,9 @@ condition_field_op_changed_cb( GtkWidget* widget, gpointer data )
                 value = g_strdup( "" );
             }
 
+            /* Disable add button while No conditions selected */
+            gtk_widget_set_sensitive (add, !no_conditions );
+            /* Update combo2 */
             gtk_widget_set_sensitive( GTK_WIDGET(combo2), !no_conditions);
 
             if (field == NWAMUI_COND_FIELD_NCP) {
