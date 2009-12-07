@@ -1256,6 +1256,7 @@ nwamui_util_map_object_list_to_condition_strings( GList* conditions, guint *len 
             if ( cond_str != NULL ) {
                 cond_strs[*len] = strdup( cond_str );
                 *len = *len + 1;
+                g_free(cond_str);
             }
         }
         elem = g_list_next( conditions );

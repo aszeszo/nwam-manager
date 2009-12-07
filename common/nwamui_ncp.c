@@ -154,7 +154,6 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
     klass->remove_ncu = default_remove_ncu_signal_handler;
 
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncp_get_name;
-    nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)NULL;
     nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_ncp_get_active;
     nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_ncp_set_active;
     nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_ncp_get_nwam_state;

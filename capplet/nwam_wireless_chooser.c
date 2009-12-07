@@ -238,19 +238,13 @@ nwam_wireless_chooser_init(NwamWirelessChooser *self)
       (GCallback)object_notify_cb, NULL);
 
     /* Populate WiFi conditions */
-    {
-        NwamuiProf*     prof;
+    g_object_get (nwamui_prof_get_instance_noref(),
+      "action_on_no_fav_networks", &self->prv->action_if_no_fav,
+      "join_wifi_not_in_fav", &self->prv->join_open,
+      "join_any_fav_wifi", &self->prv->join_preferred,
+      "add_any_new_wifi_to_fav", &self->prv->add_any_wifi,
+      NULL);
 
-        prof = nwamui_prof_get_instance ();
-        g_object_get (prof,
-          "action_on_no_fav_networks", &self->prv->action_if_no_fav,
-          "join_wifi_not_in_fav", &self->prv->join_open,
-          "join_any_fav_wifi", &self->prv->join_preferred,
-          "add_any_new_wifi_to_fav", &self->prv->add_any_wifi,
-          NULL);
-            
-        g_object_unref (prof);
-    }
     nwam_pref_refresh (NWAM_PREF_IFACE(self), NULL, TRUE);
 }
 
@@ -313,10 +307,19 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 	if ( self->prv->wireless_chooser != NULL ) {
         /* Set busy cursor from start */
         nwamui_util_set_busy_cursor( GTK_WIDGET(self->prv->wireless_chooser) );
+
+        /* Populate WiFi conditions */
+        g_object_get (nwamui_prof_get_instance_noref(),
+          "add_any_new_wifi_to_fav", &self->prv->add_any_wifi,
+          NULL);
+
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON( self->prv->add_to_preferred_cbox ), self->prv->add_any_wifi);
+
 		response =  gtk_dialog_run(GTK_DIALOG(self->prv->wireless_chooser));
 		
 		gtk_widget_hide( GTK_WIDGET(self->prv->wireless_chooser) );
         nwamui_util_restore_default_cursor(GTK_WIDGET(self->prv->wireless_chooser) );
+
 	}
 	return(response);
 }
@@ -363,6 +366,11 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     if ( prv->selected_wifi != NULL ) {
         gboolean make_persist = 
             gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON( self->prv->add_to_preferred_cbox ));
+
+        /* Update preference. */
+        g_object_set(nwamui_prof_get_instance_noref(),
+          "add_any_new_wifi_to_fav", make_persist,
+          NULL);
 
         nwamui_wifi_net_connect(prv->selected_wifi, make_persist ); 
         return( TRUE );

@@ -1128,6 +1128,8 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             nwam_pref_refresh(rules_dialog, NWAMUI_OBJECT(env), TRUE);
             capplet_dialog_run(rules_dialog, GTK_WIDGET(button));
             g_object_unref(rules_dialog);
+            /* Update the select row, since the activation may changed. */
+            nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(prv->location_tree), (gpointer)self);
         } else {
             g_assert_not_reached();
         }

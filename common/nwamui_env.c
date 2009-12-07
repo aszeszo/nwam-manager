@@ -637,6 +637,9 @@ nwamui_env_set_property (   GObject         *object,
 
                 condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
                 set_nwam_loc_string_array_prop( self->prv->nwam_loc, NWAM_LOC_PROP_CONDITIONS, condition_strs, len );
+                if (condition_strs) {
+                    free(condition_strs);
+                }
             }
             break;
 
@@ -1938,6 +1941,7 @@ nwamui_env_set_name (   NwamuiEnv *self,
     if (nerr != NWAM_SUCCESS) {
         g_debug ("nwam_loc_set_name %s error: %s", prv->name, nwam_strerror (nerr));
     }
+    prv->nwam_loc_modified = TRUE;
 }
 
 /**
@@ -3513,6 +3517,8 @@ nwamui_env_set_activation_mode (   NwamuiEnv *self,
     g_assert (activation_mode >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && activation_mode <= NWAMUI_COND_ACTIVATION_MODE_LAST );
 
     set_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE, activation_mode);
+
+    prv->nwam_loc_modified = TRUE;
 }
 
 /**
@@ -3550,6 +3556,8 @@ nwamui_env_set_conditions (   NwamuiEnv *self,
         g_object_set (G_OBJECT (self),
                       "conditions", (gpointer)conditions,
                       NULL);
+    } else {
+        nwamui_env_set_activation_mode(self, NWAMUI_COND_ACTIVATION_MODE_MANUAL);
     }
 }
 
@@ -3821,14 +3829,9 @@ nwamui_env_commit( NwamuiEnv* self )
     g_return_val_if_fail( NWAMUI_IS_ENV(self), FALSE );
 
     if ( self->prv->nwam_loc_modified && self->prv->nwam_loc != NULL ) {
-        nwamui_cond_activation_mode_t   activation_mode;
         nwam_state_t                    state = NWAM_STATE_OFFLINE;
         nwam_aux_state_t                aux_state = NWAM_AUX_STATE_UNINITIALIZED;
         gboolean                        currently_enabled;
-
-        activation_mode = (nwamui_cond_activation_mode_t)
-            get_nwam_loc_uint64_prop( self->prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
-
 
         if ( (nerr = nwam_loc_commit( self->prv->nwam_loc, 0 ) ) != NWAM_SUCCESS ) {
             g_warning("Failed when committing LOC for %s", self->prv->name);

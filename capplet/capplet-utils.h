@@ -118,9 +118,18 @@ gboolean capplet_dialog_raise(NwamPrefIFace *iface);
     }
 
 /* Combo utils. */
-void capplet_compose_combo(GtkComboBox *combo,
+GtkWidget *capplet_compose_combo(GtkComboBox *combo,
   GType tree_store_type,
   GType type,
+  GtkCellLayoutDataFunc layout_func,
+  GtkTreeViewRowSeparatorFunc separator_func,
+  GCallback changed_func,
+  gpointer user_data,
+  GDestroyNotify destroy);
+
+GtkWidget *capplet_compose_combo_with_model(GtkComboBox *combo,
+  GtkTreeModel *model,
+  GtkCellRenderer *renderer,
   GtkCellLayoutDataFunc layout_func,
   GtkTreeViewRowSeparatorFunc separator_func,
   GCallback changed_func,

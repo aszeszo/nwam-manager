@@ -1657,7 +1657,7 @@ nwamui_daemon_add_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* new_wifi )
 {
 
     if ( !self->prv->communicate_change_to_daemon
-         || nwamui_wifi_net_commit_favourite( new_wifi ) ) {
+      || nwamui_object_commit(NWAMUI_OBJECT(new_wifi)) ) {
         self->prv->wifi_fav_list = g_list_insert_sorted(self->prv->wifi_fav_list, (gpointer)g_object_ref(new_wifi),
                                                         find_compare_wifi_net_by_prio);
 
@@ -1740,7 +1740,7 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
 
                 if ( nwamui_wifi_net_has_modifications( NWAMUI_WIFI_NET( found_item->data ) ) ) {
                     /* Commit first */
-                    committed = nwamui_wifi_net_commit_favourite( NWAMUI_WIFI_NET( found_item->data ) );
+                    committed = nwamui_object_commit( NWAMUI_OBJECT( found_item->data ) );
                 }
 
                 if ( committed ) {
@@ -1784,7 +1784,7 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
                 NwamuiWifiNet* wifi = NWAMUI_WIFI_NET(item->data);
 
                 if (!self->prv->communicate_change_to_daemon 
-                    || nwamui_wifi_net_commit_favourite( wifi ) ) {
+                  || nwamui_object_commit(NWAMUI_OBJECT(wifi)) ) {
                     /* Added, so add to merged list */
                     merged_list = g_list_append( merged_list, item->data );
                     /* Tell users of API */
@@ -1839,7 +1839,7 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
             NwamuiWifiNet* wifi = NWAMUI_WIFI_NET(item->data);
 
             if (!self->prv->communicate_change_to_daemon 
-                || nwamui_wifi_net_commit_favourite( wifi ) ) {
+              || nwamui_object_commit(NWAMUI_OBJECT(wifi)) ) {
                 /* Copy on succeeded */
                 self->prv->wifi_fav_list = g_list_prepend(self->prv->wifi_fav_list, g_object_ref(item->data));
 

@@ -262,7 +262,7 @@ nwam_pref_iface_combo_changed_cb(GtkComboBox *combo, gpointer user_data)
     g_object_unref(obj);
 }
 
-void
+GtkWidget *
 capplet_compose_combo(GtkComboBox *combo,
   GType tree_store_type,
   GType type,
@@ -275,8 +275,10 @@ capplet_compose_combo(GtkComboBox *combo,
 	GtkCellRenderer *renderer;
 	GtkTreeModel      *model;
         
+    g_return_val_if_fail(combo, NULL);
+
 	if (type != G_TYPE_STRING) {
-		g_return_if_fail(layout_func);
+		g_return_val_if_fail(layout_func, NULL);
 
         if (tree_store_type == GTK_TYPE_LIST_STORE)
             model = GTK_TREE_MODEL(gtk_list_store_new(1, type));
@@ -298,7 +300,7 @@ capplet_compose_combo(GtkComboBox *combo,
 		    destroy);
 	}
 	if (separator_func) {
-		gtk_combo_box_set_row_separator_func (combo,
+		gtk_combo_box_set_row_separator_func(combo,
 		    separator_func,
 		    user_data,
 		    destroy);
@@ -309,6 +311,47 @@ capplet_compose_combo(GtkComboBox *combo,
 		    changed_func,
 		    user_data);
 	}
+    return GTK_WIDGET(combo);
+}
+
+GtkWidget *
+capplet_compose_combo_with_model(GtkComboBox *combo,
+  GtkTreeModel *model,
+  GtkCellRenderer *renderer,
+  GtkCellLayoutDataFunc layout_func,
+  GtkTreeViewRowSeparatorFunc separator_func,
+  GCallback changed_func,
+  gpointer user_data,
+  GDestroyNotify destroy)
+{
+    g_return_val_if_fail(combo, NULL);
+    g_return_val_if_fail(layout_func, NULL);
+
+    gtk_combo_box_set_model(GTK_COMBO_BOX(combo), model);
+
+    gtk_cell_layout_clear(GTK_CELL_LAYOUT(combo));
+    gtk_cell_layout_pack_start(GTK_CELL_LAYOUT(combo), renderer, TRUE);
+
+    if (layout_func) {
+        gtk_cell_layout_set_cell_data_func(GTK_CELL_LAYOUT(combo),
+          renderer,
+          layout_func,
+          user_data,
+          destroy);
+    }
+	if (separator_func) {
+		gtk_combo_box_set_row_separator_func(combo,
+		    separator_func,
+		    user_data,
+		    destroy);
+	}
+	if (changed_func) {
+		g_signal_connect(G_OBJECT(combo),
+		    "changed",
+		    changed_func,
+		    user_data);
+	}
+    return GTK_WIDGET(combo);
 }
 
 void

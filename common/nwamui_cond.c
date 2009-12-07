@@ -84,14 +84,14 @@ nwamui_cond_class_init (NwamuiCondClass *klass)
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
-                                     PROP_FIELD,
-                                     g_param_spec_int ("field",
-                                                       _("field"),
-                                                       _("field"),
-                                                       NWAMUI_COND_FIELD_NCU,
-                                                       NWAMUI_COND_FIELD_LAST,
-                                                       NWAMUI_COND_FIELD_NCU,
-                                                       G_PARAM_READWRITE));
+      PROP_FIELD,
+      g_param_spec_int ("field",
+        _("field"),
+        _("field"),
+        NWAMUI_COND_FIELD_NCP,
+        NWAMUI_COND_FIELD_LAST,
+        NWAMUI_COND_FIELD_NCP,
+        G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_OPER,
@@ -129,7 +129,7 @@ nwamui_cond_init ( NwamuiCond *self)
 {  
     self->prv = g_new0 (NwamuiCondPrivate, 1);
     
-    self->prv->field = NWAMUI_COND_FIELD_NCU;
+    self->prv->field = NWAMUI_COND_FIELD_NCP;
     self->prv->op = NWAMUI_COND_OP_INCLUDE;
     self->prv->value = g_strdup("");
     self->prv->object = NULL;
@@ -274,6 +274,9 @@ map_condition_obj_to_field( nwam_condition_object_type_t condition_object )
     nwamui_cond_field_t field;
 
     switch( condition_object ) {
+        case NWAM_CONDITION_OBJECT_TYPE_NCP:
+            field = NWAMUI_COND_FIELD_NCP;
+            break;
         case NWAM_CONDITION_OBJECT_TYPE_NCU:
             field = NWAMUI_COND_FIELD_NCU;
             break;
@@ -311,6 +314,9 @@ map_field_to_condition_obj( nwamui_cond_field_t field )
     nwam_condition_object_type_t condition_object;
 
     switch( field ) {
+        case NWAMUI_COND_FIELD_NCP:
+            condition_object = NWAM_CONDITION_OBJECT_TYPE_NCP;
+            break;
         case NWAMUI_COND_FIELD_NCU:
             condition_object = NWAM_CONDITION_OBJECT_TYPE_NCU;
             break;
@@ -435,9 +441,10 @@ populate_fields_from_string( NwamuiCond* self, const gchar* condition_str )
     }
 
     self->prv->field = map_condition_obj_to_field( condition_object );
-    field_is_obj = ( self->prv->field == NWAMUI_COND_FIELD_NCU ||
-                     self->prv->field == NWAMUI_COND_FIELD_ENM ||
-                     self->prv->field == NWAMUI_COND_FIELD_LOC );
+    field_is_obj = (self->prv->field == NWAMUI_COND_FIELD_NCP ||
+      self->prv->field == NWAMUI_COND_FIELD_NCU ||
+      self->prv->field == NWAMUI_COND_FIELD_ENM ||
+      self->prv->field == NWAMUI_COND_FIELD_LOC);
     self->prv->op = map_condition_to_op( condition, field_is_obj );
     self->prv->value = g_strdup((value != NULL)?(value):(""));
 
@@ -454,7 +461,7 @@ extern  NwamuiCond*
 nwamui_cond_new_from_str( const gchar* condition_str )
 {
     NwamuiCond         *self = NWAMUI_COND(g_object_new (NWAMUI_TYPE_COND, NULL));
-    nwamui_cond_field_t field = NWAMUI_COND_FIELD_NCU;
+    nwamui_cond_field_t field = NWAMUI_COND_FIELD_NCP;
     nwamui_cond_op_t    op = NWAMUI_COND_OP_INCLUDE;
     char*               value = "";
 
@@ -504,7 +511,7 @@ nwamui_cond_set_field (   NwamuiCond *self,
                               nwamui_cond_field_t        field )
 {
     g_return_if_fail (NWAMUI_IS_COND (self));
-    g_assert (field >= NWAMUI_COND_FIELD_NCU && field <= NWAMUI_COND_FIELD_LAST );
+    g_assert (field >= NWAMUI_COND_FIELD_NCP && field <= NWAMUI_COND_FIELD_LAST );
 
     g_object_set (G_OBJECT (self),
                   "field", (gint)field,
@@ -623,6 +630,9 @@ nwamui_cond_set_object (   NwamuiCond *self,
     g_assert (object != NULL );
 
     switch ( self->prv->field ) {
+        case NWAMUI_COND_FIELD_NCP:
+            g_return_if_fail( NWAMUI_IS_NCP( object ) );
+            break;
         case NWAMUI_COND_FIELD_NCU:
             g_return_if_fail( NWAMUI_IS_NCU( object ) );
             break;
@@ -670,6 +680,7 @@ nwamui_cond_field_to_str( nwamui_cond_field_t field )
 {
     
     switch( field ) {
+        case NWAMUI_COND_FIELD_NCP:          return(_("Active Profiles"));
         case NWAMUI_COND_FIELD_NCU:          return(_("Active Connections"));
         case NWAMUI_COND_FIELD_ENM:          return(_("Running VPN Applications"));
         case NWAMUI_COND_FIELD_LOC:          return(_("Current Location"));

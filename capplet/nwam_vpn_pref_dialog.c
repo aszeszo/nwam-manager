@@ -1204,19 +1204,19 @@ conditional_toggled_cb(GtkToggleButton *button, gpointer user_data)
 
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), toggled);
 
-    if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->view), &model, &iter ) ) {
-        NwamuiObject                  *obj;
+    /* if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->view), &model, &iter ) ) { */
+    /*     NwamuiObject                  *obj; */
 
-        gtk_tree_model_get(model, &iter, 0, &obj, -1);
+    /*     gtk_tree_model_get(model, &iter, 0, &obj, -1); */
         
-        if (toggled) {
-            /* Default set to condition any when changing from others. */
-            nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY);
-        } else {
-            nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_MANUAL);
-        }
-        g_object_unref(obj);
-    }
+    /*     if (toggled) { */
+    /*         /\* Default set to condition any when changing from others. *\/ */
+    /*         nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY); */
+    /*     } else { */
+    /*         nwamui_object_set_activation_mode(obj, NWAMUI_COND_ACTIVATION_MODE_MANUAL); */
+    /*     } */
+    /*     g_object_unref(obj); */
+    /* } */
 }
 
 static void

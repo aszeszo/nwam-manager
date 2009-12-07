@@ -91,7 +91,7 @@ extern "C" {
 				NWAM_FLAG_ACTIVATION_MODE_CONDITIONAL_ANY |\
 				NWAM_FLAG_ACTIVATION_MODE_CONDITIONAL_ALL)
 
-/* Walk known WLANs in order of priroity (lowest first) */
+/* Walk known WLANs in order of priority (lowest first) */
 #define	NWAM_FLAG_KNOWN_WLAN_WALK_PRIORITY_ORDER	0x000010000ULL << 32
 /* Do not perform priority collision checking for known WLANs */
 #define	NWAM_FLAG_KNOWN_WLAN_NO_COLLISION_CHECK		0x000020000ULL << 32
@@ -275,6 +275,7 @@ typedef enum {
 } nwam_condition_t;
 
 typedef enum {
+	NWAM_CONDITION_OBJECT_TYPE_NCP,
 	NWAM_CONDITION_OBJECT_TYPE_NCU,
 	NWAM_CONDITION_OBJECT_TYPE_ENM,
 	NWAM_CONDITION_OBJECT_TYPE_LOC,
@@ -328,9 +329,9 @@ extern nwam_error_t nwam_condition_rate(nwam_condition_object_type_t,
 #define	NWAM_LOC_NAME_LEGACY		"Legacy"
 
 #define	NWAM_LOC_NAME_PRE_DEFINED(name)	\
-			(strcmp(name, NWAM_LOC_NAME_AUTOMATIC) == 0 || \
-			strcmp(name, NWAM_LOC_NAME_NO_NET) == 0 || \
-			strcmp(name, NWAM_LOC_NAME_LEGACY) == 0)
+			(strcasecmp(name, NWAM_LOC_NAME_AUTOMATIC) == 0 || \
+			strcasecmp(name, NWAM_LOC_NAME_NO_NET) == 0 || \
+			strcasecmp(name, NWAM_LOC_NAME_LEGACY) == 0)
 
 /* Forward definition */
 struct nwam_handle;
@@ -389,7 +390,7 @@ typedef enum {
 #define	NWAM_NCP_NAME_USER		"User"
 
 #define	NWAM_NCP_AUTOMATIC(name)	\
-			(strcmp(name, NWAM_NCP_NAME_AUTOMATIC) == 0)
+			(strcasecmp(name, NWAM_NCP_NAME_AUTOMATIC) == 0)
 
 typedef struct nwam_handle *nwam_ncp_handle_t;
 

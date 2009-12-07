@@ -1,3 +1,82 @@
+2009-12-07  malin  <malin@os>
+
+	* capplet/capplet-utils.c (capplet_compose_combo),
+	(capplet_compose_combo_with_model):
+	* capplet/capplet-utils.h:
+	Updated util functions.
+	* capplet/nwam_condition_vbox.c (update_cond_from_row),
+	(nwam_condition_vbox_init), (_cu_cond_combo_filter_visible_cb),
+	(_cu_cond_combo_new), (table_condition_add_row),
+	(table_models_refresh), (table_lines_init),
+	(table_get_condition_subject_model),
+	(table_get_condition_ncp_list_model), (select_item_with_value),
+	(table_condition_new), (table_condition_insert),
+	(update_condition_row_widgets), (table_condition_delete),
+	(table_add_condition_cb), (table_delete_condition_cb),
+	(condition_field_op_changed_cb), (condition_wifi_combo_changed_cb),
+	(condition_gobject_combo_changed_cb), (condition_value_changed_cb):
+	Support condition include NCP. Clean code.
+	Fixed 13033 [RC6]Locations rules contains Current Location
+	* capplet/nwam_conn_conf_ip_panel.c (nwam_compose_wifi_fav_view),
+	(populate_wifi_fav), (wireless_tab_remove_button_clicked_cb),
+	(wireless_tab_up_button_clicked_cb),
+	(wireless_tab_down_button_clicked_cb),
+	(ipv6_manual_addresses_cb_toggled), (selection_changed):
+	Fixed 12915 [RC6] add/edit buttons active for no available wireless
+	networks
+	* capplet/nwam_conn_stat_panel.c (nwam_compose_tree_view):
+	Fixed icon position.
+	* capplet/nwam_location_dialog.c (on_button_clicked):
+	Change condition icon when changing the selected loc activation-mode
+	* capplet/nwam_vpn_pref_dialog.c (conditional_toggled_cb):
+	Do not change condition icon when changing the selected enm
+	activation-mode
+	* capplet/nwam_wireless_chooser.c (nwam_wireless_chooser_init),
+	(dialog_run), (apply):
+	Use gconf to control "add to known_wlans"
+	Fixed 12917 [RC6] enabled add to favorites is not consistent
+	* capplet/nwam_wireless_dialog.c (nwam_pref_init),
+	(nwam_wireless_dialog_init), (nwam_wireless_dialog_set_property),
+	(nwam_wireless_dialog_set_title),
+	(nwam_wireless_dialog_set_wifi_net), (apply), (cancel), (help),
+	(dialog_run), (key_entry_focus_in_cb), (key_entry_focus_out_cb):
+	Use gconf to control "add to known_wlans"
+	Partly fixed [RC6] 'edit wireless network' does not display saved
+	password
+	* common/libnwamui.c
+	(nwamui_util_map_object_list_to_condition_strings):
+	Fixed leak.
+	* common/nwamui_cond.c (nwamui_cond_class_init),
+	(nwamui_cond_init), (map_condition_obj_to_field),
+	(map_field_to_condition_obj), (populate_fields_from_string),
+	(nwamui_cond_new_from_str), (nwamui_cond_set_field),
+	(nwamui_cond_set_object), (nwamui_cond_field_to_str):
+	* common/nwamui_cond.h:
+	Support condition include NCP.
+	* common/nwamui_daemon.c (nwamui_daemon_add_wifi_fav),
+	(nwamui_daemon_set_fav_wifi_networks):
+	Updated.
+	* common/nwamui_enm.c (nwamui_enm_set_property),
+	(nwamui_enm_set_name), (nwamui_enm_set_activation_mode),
+	(nwamui_enm_set_selection_conditions):
+	* common/nwamui_env.c (nwamui_env_set_property),
+	(nwamui_env_set_name), (nwamui_env_set_activation_mode),
+	(nwamui_env_set_conditions), (nwamui_env_commit):
+	Change name and activation-mode properties require set modified flag
+	* common/nwamui_ncp.c (nwamui_ncp_class_init):
+	clean code.
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init),
+	(nwamui_wifi_net_update_with_handle),
+	(nwamui_wifi_net_is_favourite):
+	* common/nwamui_wifi_net.h:
+	Updated. add a new function.
+	* daemon/nwam-tooltip-widget.c (nwam_object_notify):
+	Fixed 12994  [RC6] nwam tooltip should display signal strength 
+	* nwam_core/lib/i386/libnwam.so.1:
+	* nwam_core/lib/sparc/libnwam.so.1:
+	* nwam_core/usr/include/libnwam.h:
+	Sync headers and libs.
+
 2009-11-26  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_init),

@@ -209,8 +209,11 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
         gchar *state = nwamui_ncu_get_connection_state_string(NWAMUI_NCU(object));
         switch (nwamui_ncu_get_ncu_type(NWAMUI_NCU(object))) {
         case NWAMUI_NCU_TYPE_WIRELESS:
-            g_string_append_printf(gstr, _("<b>Wireless (%s):</b> %s"),
-              name, state);
+            g_string_append_printf(gstr, _("<b>Wireless (%s):</b> %s"), name, state);
+            if (nwamui_object_get_active(object)) {
+                g_string_append_printf(gstr, _(" (%s)"),
+                  nwamui_wifi_net_convert_strength_to_string(nwamui_ncu_get_wifi_signal_strength(NWAMUI_NCU(object))));
+            }
             break;
 #ifdef TUNNEL_SUPPORT
         case NWAMUI_NCU_TYPE_TUNNEL:

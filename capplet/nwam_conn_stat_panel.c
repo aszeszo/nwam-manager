@@ -176,7 +176,8 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
           NULL);
 
         g_object_set (cell,
-          "yalign", 0.0,
+          "xalign", 0.5,
+          "yalign", 0.5,
           NULL );
 
         /* Add 2nd wireless strength icon */
@@ -246,8 +247,8 @@ nwam_compose_tree_view (NwamConnStatusPanel *self)
 
         g_object_set (cell,
           "xalign", 1.0,
+          "yalign", 0.5,
           "weight", PANGO_WEIGHT_BOLD,
-          "yalign", 0.0,
           NULL );
 
         gtk_tree_view_column_set_cell_data_func (col,

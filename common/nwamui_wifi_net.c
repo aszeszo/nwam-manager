@@ -43,28 +43,30 @@ static GObjectClass *parent_class = NULL;
 
 
 struct _NwamuiWifiNetPrivate {
-        nwam_known_wlan_handle_t        known_wlan_h;
-        gboolean                        is_favourite;
-        gboolean                        modified;
-        gchar                          *essid;            
-        NwamuiNcu                      *ncu;
-        nwamui_wifi_security_t          security;
-        nwamui_wifi_bss_type_t          bss_type;
-        nwamui_wifi_signal_strength_t   signal_strength;
-        guint                           channel;
-        guint                           speed;
-        gchar*                          mode;
-        nwamui_wifi_wpa_config_t        wpa_config; /* Only valid if security is WPA */
-        guint                           wep_key_index;
-        gchar                          *wep_password;
-        gchar                          *wpa_username;
-        gchar                          *wpa_password;
-        gchar                          *wpa_cert_file;
-        gint                            status;
+    nwam_known_wlan_handle_t       known_wlan_h;
+    gboolean                       is_favourite;
+    /* Self contain favourite wlan object. */
+    NwamuiWifiNet                 *fav;
+    gboolean                       modified;
+    gchar                         *essid;            
+    NwamuiNcu                     *ncu;
+    nwamui_wifi_security_t         security;
+    nwamui_wifi_bss_type_t         bss_type;
+    nwamui_wifi_signal_strength_t  signal_strength;
+    guint                          channel;
+    guint                          speed;
+    gchar*                         mode;
+    nwamui_wifi_wpa_config_t       wpa_config; /* Only valid if security is WPA */
+    guint                          wep_key_index;
+    gchar                         *wep_password;
+    gchar                         *wpa_username;
+    gchar                         *wpa_password;
+    gchar                         *wpa_cert_file;
+    gint                           status;
 
-        /* For non-favourites store prio and bssid_strv in memory only */
-        gchar**                         bssid_strv; /* NULL terminated list of strings */
-        guint64                         priority;
+    /* For non-favourites store prio and bssid_strv in memory only */
+    gchar** bssid_strv;         /* NULL terminated list of strings */
+    guint64 priority;
 };
 
 static void nwamui_wifi_net_set_property (  GObject         *object,
@@ -106,6 +108,7 @@ static gboolean     set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handl
 static gchar*       nwamui_wifi_net_get_essid (NwamuiWifiNet *self );
 static void         nwamui_wifi_net_set_essid ( NwamuiWifiNet  *self, const gchar    *essid );
 static gboolean     nwamui_wifi_net_can_rename (NwamuiWifiNet *object);
+static gboolean     nwamui_wifi_net_commit_favourite ( NwamuiWifiNet *self );
 static void         nwamui_wifi_net_reload( NwamuiWifiNet* self );
 
 /* Callbacks */
@@ -114,7 +117,6 @@ static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 enum {
         PROP_NCU = 1,
         PROP_STATUS,
-        PROP_SECURITY,
         PROP_SIGNAL_STRENGTH,
         PROP_CHANNEL,
         PROP_BSS_TYPE,
@@ -126,9 +128,12 @@ enum {
         PROP_WPA_USERNAME,
         PROP_WPA_PASSWORD,
         PROP_WPA_CERT_FILE,
-        PROP_FAV_BSSID_LIST,
+        PROP_SECURITY,
+        PROP_PRIORITY,
         PROP_BSSID_LIST,
-        PROP_PRIORITY
+        //PROP_FAV_SECURITY,
+        //PROP_FAV_PRIORITY,
+        PROP_FAV_BSSID_LIST,
 };
 
 G_DEFINE_TYPE (NwamuiWifiNet, nwamui_wifi_net, NWAMUI_TYPE_OBJECT)
@@ -151,6 +156,7 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
     nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_wifi_net_get_essid;
     nwamuiobject_class->can_rename = (nwamui_object_can_rename_func_t)nwamui_wifi_net_can_rename;
     nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_wifi_net_set_essid;
+    nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_wifi_net_commit_favourite;
     nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_wifi_net_reload;
 
     /* Create some properties */
@@ -836,12 +842,15 @@ nwamui_wifi_net_new(    NwamuiNcu                       *ncu,
 extern gboolean
 nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_t  handle )
 {
-    gchar*                      name = NULL;
-    gboolean                    essid_changed = TRUE;
-    gchar**                     bssid_strv = NULL;
-    nwam_error_t                nerr;
-    uint32_t                    sec_mode;
-    nwamui_wifi_security_t      security;
+    gchar*                 name          = NULL;
+    gboolean               essid_changed = TRUE;
+    gchar**                bssid_strv    = NULL;
+    nwam_error_t           nerr;
+    uint32_t               sec_mode;
+    nwamui_wifi_security_t security;
+
+    //g_assert(!self->prv->fav);
+    //g_assert(self->prv->is_favourite);
 
     if ( self->prv->modified ) {
         nwamui_debug("Not updating wlan %s from system due to unsaved modifications", self->prv->essid );
@@ -1236,7 +1245,7 @@ nwamui_wifi_net_validate_favourite ( NwamuiWifiNet *self, gchar**error_prop )
 /**
  * Ask NWAM to connect to this network.
  **/
-extern gboolean
+static gboolean
 nwamui_wifi_net_commit_favourite ( NwamuiWifiNet *self )
 {
     nwam_error_t                nerr;
@@ -1730,7 +1739,7 @@ nwamui_wifi_net_set_wep_password (  NwamuiWifiNet  *self,
     }
 }
                                 
-extern gchar*                  
+static gchar*                  
 nwamui_wifi_net_get_wep_password (NwamuiWifiNet *self )
 {
     gchar*  ret_str = NULL;
@@ -2401,6 +2410,13 @@ set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, cons
     nwam_value_free(nwam_data);
     
     return( retval );
+}
+
+extern gboolean
+nwamui_wifi_net_is_favourite(NwamuiWifiNet* self)
+{
+    g_return_val_if_fail( NWAMUI_IS_WIFI_NET(self), FALSE);
+    return self->prv->is_favourite;
 }
 
 extern gboolean

@@ -124,7 +124,9 @@ extern  GType                       nwamui_wifi_net_get_type (void) G_GNUC_CONST
 
 extern gboolean                     nwamui_wifi_net_has_modifications( NwamuiWifiNet* self );
 
-extern gboolean                     nwamui_wifi_net_commit_favourite ( NwamuiWifiNet *self );
+extern gboolean                     nwamui_wifi_net_is_favourite(NwamuiWifiNet* self);
+
+extern NwamuiWifiNet*               nwamui_wifi_net_take_favourite(NwamuiWifiNet* self);
 
 extern  NwamuiWifiNet*              nwamui_wifi_net_new(    struct _NwamuiNcu               *ncu,
                                                             const gchar                     *essid, 
@@ -200,7 +202,8 @@ extern nwamui_wifi_wpa_config_t     nwamui_wifi_net_get_wpa_config (    NwamuiWi
 
 extern void                         nwamui_wifi_net_set_wep_password (  NwamuiWifiNet *self, const gchar *wep_password );
                        
-extern gchar*                       nwamui_wifi_net_get_wep_password (  NwamuiWifiNet *self );
+/* This function shouldn't be used. */
+/* extern gchar*                       nwamui_wifi_net_get_wep_password (  NwamuiWifiNet *self ); */
 
 extern void                         nwamui_wifi_net_set_wep_key_index (  NwamuiWifiNet  *self, guint wep_key_index );
 

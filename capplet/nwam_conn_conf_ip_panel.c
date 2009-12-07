@@ -258,6 +258,7 @@ static void wireless_tab_up_button_clicked_cb( GtkButton *button, gpointer data 
 static void wireless_tab_down_button_clicked_cb( GtkButton *button, gpointer data );
 static void refresh_clicked_cb( GtkButton *button, gpointer data );
 static void ipv6_manual_addresses_cb_toggled(GtkToggleButton *togglebutton, gpointer user_data);
+static void selection_changed(GtkTreeSelection *selection, gpointer user_data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnConfIPPanel,
                         nwam_conf_ip_panel,
@@ -309,6 +310,11 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       "enable-search", FALSE,
       "show-expanders", TRUE,
       NULL);
+
+    g_signal_connect(gtk_tree_view_get_selection(view),
+      "changed",
+      G_CALLBACK(selection_changed),
+      (gpointer)self);
 
     // Column:	WIFI_FAV_ESSID
     col = capplet_column_new(view,
@@ -677,6 +683,8 @@ populate_wifi_fav( NwamConnConfIPPanel* self, gboolean set_initial_state )
 
         g_object_unref (prof);
     }
+    /* Update buttons */
+    selection_changed(gtk_tree_view_get_selection(prv->wifi_fav_tv), (gpointer)self);
 }
 
 static void
@@ -1783,6 +1791,7 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
 static void 
 wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data )
 {
+    NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(data);
     NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(data);
     GtkTreeSelection    *selection;
     GList *list,        *idx;
@@ -1820,6 +1829,8 @@ wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data )
     }
     g_list_free (list);
 
+    /* Update the state of buttons */
+    selection_changed(gtk_tree_view_get_selection(prv->wifi_fav_tv), (gpointer)self);
 }
 
 static void 
@@ -1892,6 +1903,9 @@ wireless_tab_up_button_clicked_cb( GtkButton *button, gpointer data )
         }
         gtk_tree_path_free(path);
     }
+
+    /* Update the state of buttons */
+    selection_changed(gtk_tree_view_get_selection(prv->wifi_fav_tv), (gpointer)self);
 }
 
 static void 
@@ -1912,6 +1926,9 @@ wireless_tab_down_button_clicked_cb( GtkButton *button, gpointer data )
         
         gtk_tree_iter_free(next_iter);
     }
+
+    /* Update the state of buttons */
+    selection_changed(gtk_tree_view_get_selection(prv->wifi_fav_tv), (gpointer)self);
 }
 
 static void
@@ -1924,4 +1941,47 @@ ipv6_manual_addresses_cb_toggled(GtkToggleButton *togglebutton, gpointer user_da
     gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_tv), active);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_add_btn), active);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->ipv6_del_btn), active);
+}
+
+static void
+selection_changed(GtkTreeSelection *selection, gpointer user_data)
+{
+    NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(user_data);
+    GtkTreeModel               *model;
+    GtkTreeIter                 iter;
+    gint                        count_selected_rows;
+
+    count_selected_rows = gtk_tree_selection_count_selected_rows(selection);
+
+    if (count_selected_rows > 0) {
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_remove_button), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_edit_button), TRUE);
+    } else {
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_remove_button), FALSE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_edit_button), FALSE);
+    }
+
+    if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
+        GtkTreePath *path;
+
+        path = gtk_tree_model_get_path(model, &iter);
+
+        if (gtk_tree_path_prev(path)) {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_up_button), TRUE);
+        } else {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_up_button), FALSE);
+        }
+        gtk_tree_path_free(path);
+
+        if (gtk_tree_model_iter_next(model, &iter)) {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_down_button), TRUE);
+        } else {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_down_button), FALSE);
+        }
+    } else {
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_remove_button), FALSE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_edit_button), FALSE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_up_button), FALSE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->wireless_tab_down_button), FALSE);
+    }
 }
