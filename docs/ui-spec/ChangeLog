@@ -1,3 +1,17 @@
+2009-12-08 Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+
+	Add 'NCP is/isn't' rule for locations and ENMs. Fixes #13141.
+	Show signal strength as text rather than %ge. Fixes #12994.
+	'Add to favorites' checkbox in Join Wireless Network dlg should be
+	hidden if opened from Wireless Chooser. Fixes #12917.
+	For clarity, change text style of portions of spec that are not 
+	implemented in Phase 1.
+	Bumped to v1.15, but not pushed to website yet-- still a couple
+	of other issues to address first.
+	
 2009-11-23 Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
