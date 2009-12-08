@@ -1041,19 +1041,16 @@ nwamui_enm_set_stop_command (   NwamuiEnm *self,
             if ( !set_nwam_enm_string_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP, stop_command ) ) {
                 return( FALSE );
             }
-        }
-        else {
+        } else {
             nwam_error_t nerr;
 
             /* Delete property, don't set to empty string */
             if ( (nerr = nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP ))  != NWAM_SUCCESS ) {
-                return( FALSE );
             }
         }
         g_object_notify(G_OBJECT (self), "stop_command");
         self->prv->nwam_enm_modified = TRUE;
-    }
-    else {
+    } else {
         g_warning("Unexpected null enm handle");
         return( FALSE );
     }

@@ -1,3 +1,9 @@
+2009-12-08  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_enm.c (nwamui_enm_set_stop_command):
+	Fixed 13128 "stop" property is not mandatory for VPN
+	* configure.in: Bump 0.99.96.3
+
 2009-12-07  malin  <malin@os>
 
 	* capplet/nwam_condition_vbox.c (table_condition_new),
