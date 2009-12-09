@@ -560,13 +560,11 @@ _cu_cond_combo_filter_visible_cb (GtkTreeModel *model,
         switch (row_data) {
         case NWAMUI_COND_OP_IS:
         case NWAMUI_COND_OP_IS_NOT:
-            return (value != NWAMUI_COND_FIELD_NCP) &&
-              (value != NWAMUI_COND_FIELD_NCU) &&
+            return (value != NWAMUI_COND_FIELD_NCU) &&
               (value != NWAMUI_COND_FIELD_ENM);
         case NWAMUI_COND_OP_INCLUDE:
         case NWAMUI_COND_OP_DOES_NOT_INCLUDE:
-            return (value == NWAMUI_COND_FIELD_NCP) ||
-              (value == NWAMUI_COND_FIELD_NCU) ||
+            return (value == NWAMUI_COND_FIELD_NCU) ||
               (value == NWAMUI_COND_FIELD_ENM);
         case NWAMUI_COND_OP_IS_IN_RANGE:
         case NWAMUI_COND_OP_IS_NOT_IN_RANGE:
@@ -574,8 +572,8 @@ _cu_cond_combo_filter_visible_cb (GtkTreeModel *model,
         case NWAMUI_COND_OP_CONTAINS:
         case NWAMUI_COND_OP_DOES_NOT_CONTAIN:
             return (value == NWAMUI_COND_FIELD_ADV_DOMAIN) ||
-                   (value == NWAMUI_COND_FIELD_SYS_DOMAIN) ||
-                   (value == NWAMUI_COND_FIELD_ESSID);
+              (value == NWAMUI_COND_FIELD_SYS_DOMAIN) ||
+              (value == NWAMUI_COND_FIELD_ESSID);
         default:
             return FALSE;
         }

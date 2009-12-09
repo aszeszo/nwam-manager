@@ -1,3 +1,10 @@
+2009-12-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_condition_vbox.c (_cu_cond_combo_filter_visible_cb):
+	* common/nwamui_cond.c (nwamui_cond_field_to_str):
+	Update like 13141 comment#3
+	"Active network profile", "is/is not", <list of available NCPs>
+
 2009-12-08  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_enm.c (nwamui_enm_set_stop_command):
