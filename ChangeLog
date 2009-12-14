@@ -1,3 +1,90 @@
+2009-12-14  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c (main):
+	* capplet/nwam_conn_conf_ip_panel.c (populate_panel), (apply),
+	(show_changed_cb):
+	* capplet/nwam_env_svc.c (nwam_env_svc_init), (svc_toggle_cb):
+	* capplet/nwam_net_conf_panel.c (update_widgets),
+	(edit_profile_name_combo_changed):
+	* capplet/nwam_wireless_chooser.c (join_wireless):
+	* common/libnwamui.c (user_has_autoconf_auth):
+	* common/libnwamui.h:
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_init), (nwamui_daemon_set_property),
+	(nwamui_daemon_ncp_remove), (nwamui_daemon_commit_changed_objects),
+	(nwamd_event_handler), (nwam_ncp_walker_cb):
+	* common/nwamui_enm.c (nwamui_enm_class_init), (nwamui_enm_init),
+	(nwamui_enm_can_rename), (nwamui_enm_set_name),
+	(nwamui_enm_get_name), (nwamui_enm_set_active),
+	(nwamui_enm_get_active), (nwamui_enm_set_enabled),
+	(nwamui_enm_get_enabled), (nwamui_enm_set_activation_mode),
+	(nwamui_enm_get_activation_mode),
+	(nwamui_enm_get_selection_conditions),
+	(nwamui_enm_set_selection_conditions), (nwamui_enm_reload),
+	(nwamui_enm_destroy), (nwamui_enm_commit),
+	(nwamui_enm_get_nwam_state):
+	* common/nwamui_env.c (nwamui_env_class_init), (nwamui_env_init),
+	(nwamui_env_update_with_handle), (nwamui_env_can_rename),
+	(nwamui_env_set_name), (nwamui_env_get_name),
+	(nwamui_env_set_enabled), (nwamui_env_get_enabled),
+	(nwamui_env_get_active), (nwamui_env_set_active),
+	(nwamui_env_set_activation_mode), (nwamui_env_get_activation_mode),
+	(nwamui_env_set_conditions), (nwamui_env_get_conditions),
+	(nwamui_env_reload), (nwamui_env_destroy), (nwamui_env_commit),
+	(nwamui_env_get_nwam_state):
+	* common/nwamui_env.h:
+	* common/nwamui_ncp.c (nwamui_ncp_class_init), (nwamui_ncp_init),
+	(nwamui_ncp_set_property), (nwamui_ncp_get_property),
+	(nwamui_ncp_get_nwam_state), (nwamui_ncp_reload),
+	(nwamui_ncp_set_name), (nwamui_ncp_get_name),
+	(nwamui_ncp_get_active), (nwamui_ncp_set_active),
+	(nwamui_ncp_is_modifiable), (nwamui_ncp_get_prio_group),
+	(nwamui_ncp_set_prio_group), (nwamui_ncp_all_ncus_online),
+	(nwamui_ncp_commit):
+	* common/nwamui_ncp.h:
+	* common/nwamui_ncu.c (nwamui_ncu_class_init), (nwamui_ncu_init),
+	(nwamui_ncu_set_property), (nwamui_ncu_is_modifiable),
+	(nwamui_ncu_reload):
+	* common/nwamui_ncu.h:
+	* common/nwamui_object.c (default_nwamui_object_get_name),
+	(default_nwamui_object_can_rename),
+	(default_nwamui_object_set_name),
+	(default_nwamui_object_set_conditions),
+	(default_nwamui_object_get_conditions),
+	(default_nwamui_object_get_activation_mode),
+	(default_nwamui_object_set_activation_mode),
+	(default_nwamui_object_get_active),
+	(default_nwamui_object_set_active),
+	(default_nwamui_object_get_enabled),
+	(default_nwamui_object_set_enabled),
+	(default_nwamui_object_is_modifiable),
+	(default_nwamui_object_get_nwam_state),
+	(default_nwamui_object_commit), (default_nwamui_object_reload),
+	(default_nwamui_object_destroy), (nwamui_object_class_init),
+	(nwamui_object_init), (nwamui_object_set_name),
+	(nwamui_object_get_name), (nwamui_object_get_activation_mode),
+	(nwamui_object_set_activation_mode),
+	(nwamui_object_get_nwam_state), (nwamui_object_set_nwam_state),
+	(nwamui_object_is_modifiable):
+	* common/nwamui_object.h:
+	* common/nwamui_svc.c:
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init),
+	(nwamui_wifi_net_init), (nwamui_wifi_net_reload),
+	(nwamui_wifi_net_update_with_handle),
+	(nwamui_wifi_net_commit_favourite), (nwamui_wifi_net_can_rename),
+	(nwamui_wifi_net_set_essid), (nwamui_wifi_net_get_essid):
+	* common/nwamui_wifi_net.h:
+	* daemon/main.c:
+	Move check user auths to libnwamui.
+	* daemon/nwam-ncu-item.c (on_nwam_ncu_notify):
+	* daemon/nwam-wifi-item.c (on_nwam_wifi_toggled):
+	* daemon/status_icon.c (join_wireless):
+	* nwam_core/lib/i386/libnwam.so.1:
+	* nwam_core/lib/sparc/libnwam.so.1:
+	* tests/main.c (process_ncp):
+	* ui/nwam-manager-wireless.ui: Do not wap the first label.
+	Clean code, update to nwam core 129
+
 2009-12-09  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_condition_vbox.c (_cu_cond_combo_filter_visible_cb):

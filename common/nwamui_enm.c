@@ -79,31 +79,23 @@ static gboolean     set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const
 static guint64      get_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name );
 static gboolean     set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 value );
 
-static nwam_state_t nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p , nwam_ncu_type_t ncu_type );
-static gboolean     nwamui_enm_destroy( NwamuiEnm* self );
-static gboolean             nwamui_enm_can_rename (NwamuiEnm *object);
-static void                 nwamui_enm_set_name ( NwamuiEnm *self, const gchar* name );
-static gchar*               nwamui_enm_get_name ( NwamuiEnm *self );
-
-
-static gboolean             nwamui_enm_set_active ( NwamuiEnm *self, gboolean active );
-static gboolean             nwamui_enm_get_active ( NwamuiEnm *self );
-static gboolean             nwamui_enm_set_enabled ( NwamuiEnm *self, gboolean enabled );
-static gboolean             nwamui_enm_get_enabled ( NwamuiEnm *self );
-static void                 nwamui_enm_set_activation_mode ( NwamuiEnm *self, 
-                                                             nwamui_cond_activation_mode_t activation_mode );
-static nwamui_cond_activation_mode_t 
-                            nwamui_enm_get_activation_mode ( NwamuiEnm *self );
-
-static GList*               nwamui_enm_get_selection_conditions( NwamuiEnm* self );
-
-static void                 nwamui_enm_set_selection_conditions( NwamuiEnm* self, GList* conditions );
-
-static gboolean             nwamui_enm_commit( NwamuiEnm* self );
-static void                 nwamui_enm_reload( NwamuiEnm* self );
+static nwam_state_t nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
+static gboolean     nwamui_enm_destroy( NwamuiObject* object );
+static gboolean     nwamui_enm_can_rename (NwamuiObject *object);
+static void         nwamui_enm_set_name ( NwamuiObject *object, const gchar* name );
+static const gchar* nwamui_enm_get_name ( NwamuiObject *object );
+static void         nwamui_enm_set_active ( NwamuiObject *object, gboolean active );
+static gboolean     nwamui_enm_get_active ( NwamuiObject *object );
+static void         nwamui_enm_set_enabled ( NwamuiObject *object, gboolean enabled );
+static gboolean     nwamui_enm_get_enabled ( NwamuiObject *object );
+static void         nwamui_enm_set_activation_mode ( NwamuiObject *object, gint activation_mode );
+static gint         nwamui_enm_get_activation_mode ( NwamuiObject *object );
+static GList*       nwamui_enm_get_selection_conditions( NwamuiObject* object );
+static void         nwamui_enm_set_selection_conditions( NwamuiObject* object, const GList* conditions );
+static gboolean     nwamui_enm_commit( NwamuiObject* object );
+static void         nwamui_enm_reload( NwamuiObject* object );
 
 /* Callbacks */
-static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE (NwamuiEnm, nwamui_enm, NWAMUI_TYPE_OBJECT)
 
@@ -122,21 +114,21 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
     gobject_class->get_property = nwamui_enm_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_enm_finalize;
 
-    nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_enm_get_name;
-    nwamuiobject_class->can_rename = (nwamui_object_can_rename_func_t)nwamui_enm_can_rename;
-    nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_enm_set_name;
-    nwamuiobject_class->get_conditions = (nwamui_object_get_conditions_func_t)nwamui_enm_get_selection_conditions;
-    nwamuiobject_class->set_conditions = (nwamui_object_set_conditions_func_t)nwamui_enm_set_selection_conditions;
-    nwamuiobject_class->get_activation_mode = (nwamui_object_get_activation_mode_func_t)nwamui_enm_get_activation_mode;
-    nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_enm_set_activation_mode;
-    nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_enm_get_active;
-    nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_enm_set_active;
-    nwamuiobject_class->get_enabled = (nwamui_object_get_enabled_func_t)nwamui_enm_get_enabled;
-    nwamuiobject_class->set_enabled = (nwamui_object_set_enabled_func_t)nwamui_enm_set_enabled;
-    nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_enm_get_nwam_state;
-    nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_enm_commit;
-    nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_enm_reload;
-    nwamuiobject_class->destroy = (nwamui_object_destroy_func_t)nwamui_enm_destroy;
+    nwamuiobject_class->get_name = nwamui_enm_get_name;
+    nwamuiobject_class->can_rename = nwamui_enm_can_rename;
+    nwamuiobject_class->set_name = nwamui_enm_set_name;
+    nwamuiobject_class->get_conditions = nwamui_enm_get_selection_conditions;
+    nwamuiobject_class->set_conditions = nwamui_enm_set_selection_conditions;
+    nwamuiobject_class->get_activation_mode = nwamui_enm_get_activation_mode;
+    nwamuiobject_class->set_activation_mode = nwamui_enm_set_activation_mode;
+    nwamuiobject_class->get_active = nwamui_enm_get_active;
+    nwamuiobject_class->set_active = nwamui_enm_set_active;
+    nwamuiobject_class->get_enabled = nwamui_enm_get_enabled;
+    nwamuiobject_class->set_enabled = nwamui_enm_set_enabled;
+    nwamuiobject_class->get_nwam_state = nwamui_enm_get_nwam_state;
+    nwamuiobject_class->commit = nwamui_enm_commit;
+    nwamuiobject_class->reload = nwamui_enm_reload;
+    nwamuiobject_class->destroy = nwamui_enm_destroy;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -194,10 +186,6 @@ static void
 nwamui_enm_init ( NwamuiEnm *self)
 {  
     self->prv = g_new0 (NwamuiEnmPrivate, 1);
-    
-    self->prv->name = NULL;
-
-    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
 
 static void
@@ -766,7 +754,7 @@ nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
  *
  **/
 static gboolean
-nwamui_enm_can_rename (NwamuiEnm *object)
+nwamui_enm_can_rename (NwamuiObject *object)
 {
     NwamuiEnm *self = NWAMUI_ENM(object);
     NwamuiEnmPrivate *prv = NWAMUI_ENM(object)->prv;
@@ -787,13 +775,13 @@ nwamui_enm_can_rename (NwamuiEnm *object)
  * 
  **/ 
 static void
-nwamui_enm_set_name (   NwamuiEnm *self,
-                              const gchar*  name )
+nwamui_enm_set_name (   NwamuiObject *object, const gchar*  name )
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     nwam_error_t    nerr;
 
     g_return_if_fail (NWAMUI_IS_ENM (self));
-    g_assert (name != NULL );
+    g_return_if_fail (name);
 
     if ( self->prv->name != NULL ) {
         g_free( self->prv->name );
@@ -831,26 +819,22 @@ nwamui_enm_set_name (   NwamuiEnm *self,
  * @returns: the name.
  *
  **/
-static gchar*
-nwamui_enm_get_name (NwamuiEnm *self)
+static const gchar*
+nwamui_enm_get_name (NwamuiObject *object)
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     nwam_error_t    nerr;
 
     g_return_val_if_fail (NWAMUI_IS_ENM (self), NULL);
 
     if (self->prv->name == NULL) {
-        char *name;
-
         if (self->prv->nwam_enm != NULL) {
+            char *name;
             if ( (nerr = nwam_enm_get_name (self->prv->nwam_enm, &name)) != NWAM_SUCCESS ) {
                 g_debug ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
             }
 
-            if (g_ascii_strcasecmp (self->prv->name, name) != 0) {
-                g_free(self->prv->name);
-                self->prv->name = g_strdup(name);
-                g_object_notify(G_OBJECT(self), "name");
-            }
+            self->prv->name = g_strdup(name);
             free (name);
         }
         else {
@@ -866,23 +850,20 @@ nwamui_enm_get_name (NwamuiEnm *self)
  * @active: Value to set active to.
  * 
  **/ 
-static gboolean
-nwamui_enm_set_active (   NwamuiEnm *self,
-                          gboolean        active )
+static void
+nwamui_enm_set_active (   NwamuiObject *object, gboolean        active )
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     nwam_error_t    nerr;
-    g_return_val_if_fail (NWAMUI_IS_ENM (self), FALSE);
 
     if (self->prv->nwam_enm != NULL) {
         if (active) {
             if ((nerr = nwam_enm_enable (self->prv->nwam_enm)) != NWAM_SUCCESS) {
                 g_debug ("nwam_enm_start error: %s", nwam_strerror (nerr));
-                return( FALSE );
             }
         } else {
             if ((nerr = nwam_enm_disable (self->prv->nwam_enm)) != NWAM_SUCCESS) {
                 g_debug ("nwam_enm_stop error: %s", nwam_strerror (nerr));
-                return( FALSE );
             }
         }
         self->prv->nwam_enm_modified = TRUE;
@@ -891,7 +872,6 @@ nwamui_enm_set_active (   NwamuiEnm *self,
     else {
         g_warning("Unexpected null enm handle");
     }
-    return( FALSE );
 }
 
 /**
@@ -901,8 +881,9 @@ nwamui_enm_set_active (   NwamuiEnm *self,
  *
  **/
 static gboolean
-nwamui_enm_get_active (NwamuiEnm *self)
+nwamui_enm_get_active (NwamuiObject *object)
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     gboolean active = FALSE;
     if ( self->prv->nwam_enm ) {
         nwam_state_t        state = NWAM_STATE_OFFLINE;
@@ -925,26 +906,22 @@ nwamui_enm_get_active (NwamuiEnm *self)
  * @enabled: Value to set enabled to.
  * 
  **/ 
-static gboolean
-nwamui_enm_set_enabled (   NwamuiEnm *self,
-                           gboolean        enabled )
+static void
+nwamui_enm_set_enabled (   NwamuiObject *object, gboolean        enabled )
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     nwam_error_t    nerr;
-    g_return_val_if_fail (NWAMUI_IS_ENM (self), FALSE);
 
     if (self->prv->nwam_enm != NULL) {
         if ( !set_nwam_enm_boolean_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ENABLED, enabled ) ) {
             g_debug("Error setting ENM boolean prop ENABLED");
-            return( FALSE) ;
         }
         g_object_notify (G_OBJECT (self), "enabled" );
         self->prv->nwam_enm_modified = TRUE;
-        return(TRUE);
     }
     else {
         g_warning("Unexpected null enm handle");
     }
-    return( FALSE );
 }
 
 /**
@@ -954,8 +931,9 @@ nwamui_enm_set_enabled (   NwamuiEnm *self,
  *
  **/
 static gboolean
-nwamui_enm_get_enabled (NwamuiEnm *self)
+nwamui_enm_get_enabled (NwamuiObject *object)
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     gboolean  enabled = FALSE; 
 
     g_return_val_if_fail (NWAMUI_IS_ENM (self), enabled);
@@ -1139,9 +1117,9 @@ nwamui_enm_get_smf_fmri (NwamuiEnm *self)
 }
 
 static void
-nwamui_enm_set_activation_mode ( NwamuiEnm *self, 
-  nwamui_cond_activation_mode_t activation_mode )
+nwamui_enm_set_activation_mode ( NwamuiObject *object, gint activation_mode )
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     g_return_if_fail (NWAMUI_IS_ENM (self));
 
     if (self->prv->nwam_enm != NULL) {
@@ -1154,9 +1132,10 @@ nwamui_enm_set_activation_mode ( NwamuiEnm *self,
     }
 }
 
-static nwamui_cond_activation_mode_t 
-nwamui_enm_get_activation_mode ( NwamuiEnm *self )
+static gint
+nwamui_enm_get_activation_mode ( NwamuiObject *object )
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     nwamui_cond_activation_mode_t activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL;
     uint64_t                      nwamvalue       = 0;
 
@@ -1175,8 +1154,9 @@ nwamui_enm_get_activation_mode ( NwamuiEnm *self )
 
 
 static GList*
-nwamui_enm_get_selection_conditions( NwamuiEnm* self )
+nwamui_enm_get_selection_conditions( NwamuiObject *object )
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     GList*  conditions = NULL;
 
     g_return_val_if_fail (NWAMUI_IS_ENM (self), conditions );
@@ -1190,8 +1170,9 @@ nwamui_enm_get_selection_conditions( NwamuiEnm* self )
 
 
 static void
-nwamui_enm_set_selection_conditions( NwamuiEnm* self, GList* conditions )
+nwamui_enm_set_selection_conditions( NwamuiObject *object, const GList* conditions )
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     g_return_if_fail (NWAMUI_IS_ENM (self));
 
     if (conditions) {
@@ -1205,8 +1186,9 @@ nwamui_enm_set_selection_conditions( NwamuiEnm* self, GList* conditions )
  * nwamui_enm_reload:   re-load stored configuration
  **/
 static void
-nwamui_enm_reload( NwamuiEnm* self )
+nwamui_enm_reload( NwamuiObject *object )
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     g_return_if_fail( NWAMUI_IS_ENM(self) );
 
     /* nwamui_enm_update_with_handle will cause re-read from configuration */
@@ -1224,8 +1206,9 @@ nwamui_enm_reload( NwamuiEnm* self )
  * @returns: TRUE if succeeded, FALSE if failed
  **/
 static gboolean
-nwamui_enm_destroy( NwamuiEnm* self )
+nwamui_enm_destroy( NwamuiObject *object )
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     nwam_error_t    nerr;
 
     g_return_val_if_fail( NWAMUI_IS_ENM(self), FALSE );
@@ -1289,8 +1272,9 @@ nwamui_enm_validate( NwamuiEnm* self, gchar **prop_name_ret )
  * @returns: TRUE if succeeded, FALSE if failed
  **/
 static gboolean
-nwamui_enm_commit( NwamuiEnm* self )
+nwamui_enm_commit( NwamuiObject *object )
 {
+    NwamuiEnm *self = NWAMUI_ENM(object);
     nwam_error_t    nerr;
 
     g_return_val_if_fail( NWAMUI_IS_ENM(self), FALSE );
@@ -1323,7 +1307,7 @@ nwamui_enm_finalize (NwamuiEnm *self)
 }
 
 static nwam_state_t
-nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type )
+nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p)
 {
     nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
 
@@ -1360,9 +1344,4 @@ nwamui_enm_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, c
 
 /* Callbacks */
 
-static void
-object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-/*     NwamuiEnm* self = NWAMUI_ENM(data); */
-}
 

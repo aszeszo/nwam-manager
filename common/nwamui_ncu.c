@@ -172,30 +172,25 @@ static gboolean     interface_has_addresses(const char *ifname, sa_family_t fami
 
 static gchar*       get_interface_address_str( NwamuiNcu *ncu, sa_family_t family);
 
-static gboolean nwamui_ncu_commit( NwamuiNcu* self );
-static void     nwamui_ncu_reload( NwamuiNcu* self );
-static gboolean nwamui_ncu_destroy( NwamuiNcu* self );
-
-static gchar* nwamui_ncu_get_vanity_name ( NwamuiNcu *self );
-static void   nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name );
-
-static void     nwamui_ncu_set_active ( NwamuiNcu *self, gboolean active );
-static gboolean nwamui_ncu_get_active ( NwamuiNcu *self );
-static void     nwamui_ncu_set_enabled ( NwamuiNcu *self, gboolean enabled );
-static gboolean nwamui_ncu_get_enabled ( NwamuiNcu *self );
-
-static void nwamui_ncu_set_activation_mode ( NwamuiNcu *self, nwamui_cond_activation_mode_t  activation_mode );
-static nwamui_cond_activation_mode_t nwamui_ncu_get_activation_mode ( NwamuiNcu *self );
+static gboolean     nwamui_ncu_commit( NwamuiObject* object );
+static void         nwamui_ncu_reload( NwamuiObject* object );
+static gboolean     nwamui_ncu_destroy( NwamuiObject* object );
+static gboolean     nwamui_ncu_is_modifiable(NwamuiObject *object);
+static const gchar* nwamui_ncu_get_vanity_name ( NwamuiObject *object );
+static void         nwamui_ncu_set_vanity_name ( NwamuiObject *object, const gchar* name );
+static void         nwamui_ncu_set_active ( NwamuiObject *object, gboolean active );
+static gboolean     nwamui_ncu_get_active ( NwamuiObject *object );
+static void         nwamui_ncu_set_enabled ( NwamuiObject *object, gboolean enabled );
+static gboolean     nwamui_ncu_get_enabled ( NwamuiObject *object );
+static void         nwamui_ncu_set_activation_mode ( NwamuiObject *object, gint  activation_mode );
+static gint         nwamui_ncu_get_activation_mode ( NwamuiObject *object );
 
 /* Callbacks */
-static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
-
 static void ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data); 
 
 static void ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
 
 static void wireless_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer user_data);
-static void nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE (NwamuiNcu, nwamui_ncu, NWAMUI_TYPE_OBJECT)
 
@@ -215,18 +210,19 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     gobject_class->finalize = (void (*)(GObject*)) nwamui_ncu_finalize;
 
     /* object get/set name in NCU are VANITY NAME */
-    nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncu_get_vanity_name;
-    nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_ncu_set_vanity_name;
-    nwamuiobject_class->get_activation_mode = (nwamui_object_get_activation_mode_func_t)nwamui_ncu_get_activation_mode;
-    nwamuiobject_class->set_activation_mode = (nwamui_object_set_activation_mode_func_t)nwamui_ncu_set_activation_mode;
-    nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_ncu_get_active;
-    nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_ncu_set_active;
-    nwamuiobject_class->get_enabled = (nwamui_object_get_enabled_func_t)nwamui_ncu_get_enabled;
-    nwamuiobject_class->set_enabled = (nwamui_object_set_enabled_func_t)nwamui_ncu_set_enabled;
-    nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_ncu_get_interface_nwam_state;
-    nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_ncu_commit;
-    nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_ncu_reload;
-    nwamuiobject_class->destroy = (nwamui_object_destroy_func_t)nwamui_ncu_destroy;
+    nwamuiobject_class->get_name = nwamui_ncu_get_vanity_name;
+    nwamuiobject_class->set_name = nwamui_ncu_set_vanity_name;
+    nwamuiobject_class->get_activation_mode = nwamui_ncu_get_activation_mode;
+    nwamuiobject_class->set_activation_mode = nwamui_ncu_set_activation_mode;
+    nwamuiobject_class->get_active = nwamui_ncu_get_active;
+    nwamuiobject_class->set_active = nwamui_ncu_set_active;
+    nwamuiobject_class->get_enabled = nwamui_ncu_get_enabled;
+    nwamuiobject_class->set_enabled = nwamui_ncu_set_enabled;
+    nwamuiobject_class->get_nwam_state = nwamui_ncu_get_interface_nwam_state;
+    nwamuiobject_class->commit = nwamui_ncu_commit;
+    nwamuiobject_class->reload = nwamui_ncu_reload;
+    nwamuiobject_class->destroy = nwamui_ncu_destroy;
+    nwamuiobject_class->is_modifiable = nwamui_ncu_is_modifiable;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -476,8 +472,6 @@ nwamui_ncu_init (NwamuiNcu *self)
                                                          (GDestroyNotify)g_object_unref);
     
 
-    g_signal_connect(self, "notify::nwam-state", G_CALLBACK(nwam_state_changed), NULL);
-
 /*     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self); */
     g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-deleted", (GCallback)ip_row_deleted_cb, (gpointer)self);
     g_signal_connect(G_OBJECT(self->prv->v4addresses), "row-changed", (GCallback)ip_row_inserted_or_changed_cb, (gpointer)self);
@@ -500,7 +494,7 @@ nwamui_ncu_set_property ( GObject         *object,
     gboolean     read_only = FALSE;
 
     if ( !self->prv->initialisation ) {
-        read_only = !nwamui_ncu_is_modifiable(self);
+        read_only = !nwamui_object_is_modifiable(NWAMUI_OBJECT(self));
 
         if ( read_only && prop_id != PROP_WIFI_INFO ) {
             g_error("Attempting to modify read-only ncu %s", self->prv->device_name?self->prv->device_name:"NULL");
@@ -534,6 +528,8 @@ nwamui_ncu_set_property ( GObject         *object,
             break;
         case PROP_NCU_TYPE: {
                 self->prv->ncu_type = g_value_get_int( value );
+                /* Need update display name if type changes */
+                nwamui_ncu_set_display_name(self);
             }
             break;
         case PROP_MTU: {
@@ -1646,12 +1642,13 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
  * @returns: the modifiable.
  *
  **/
-extern gboolean
-nwamui_ncu_is_modifiable (NwamuiNcu *self)
+static gboolean
+nwamui_ncu_is_modifiable(NwamuiObject *object)
 {
-    nwam_error_t    nerr;
-    gboolean        modifiable = FALSE; 
-    boolean_t       readonly;
+    NwamuiNcu    *self       = NWAMUI_NCU(object);
+    nwam_error_t  nerr;
+    gboolean      modifiable = FALSE; 
+    boolean_t     readonly;
 
     if (!NWAMUI_IS_NCU (self) || self->prv->nwam_ncu_phys == NULL ) {
         return( modifiable );
@@ -1672,8 +1669,9 @@ nwamui_ncu_is_modifiable (NwamuiNcu *self)
  * nwamui_ncu_reload:   re-load stored configuration
  **/
 static void
-nwamui_ncu_reload( NwamuiNcu* self )
+nwamui_ncu_reload( NwamuiObject *object )
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
     g_return_if_fail( NWAMUI_IS_NCU(self) );
 
     /* nwamui_ncu_update_with_handle will cause re-read from configuration */
@@ -1782,8 +1780,9 @@ nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret )
  * @returns: TRUE if succeeded, FALSE if failed
  **/
 extern gboolean
-nwamui_ncu_commit( NwamuiNcu* self )
+nwamui_ncu_commit( NwamuiObject *object )
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
     nwam_error_t    nerr;
     gboolean currently_enabled;
 
@@ -1870,8 +1869,9 @@ nwamui_ncu_commit( NwamuiNcu* self )
  * @returns: TRUE if succeeded, FALSE if failed
  **/
 static gboolean
-nwamui_ncu_destroy( NwamuiNcu* self )
+nwamui_ncu_destroy( NwamuiObject *object )
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
     nwam_error_t    nerr;
 
     g_return_val_if_fail( NWAMUI_IS_NCU(self), FALSE );
@@ -1907,9 +1907,10 @@ nwamui_ncu_destroy( NwamuiNcu* self )
  * @returns: null-terminated C String with the vanity name of the the NCU.
  *
  **/
-static gchar*
-nwamui_ncu_get_vanity_name ( NwamuiNcu *self )
+static const gchar*
+nwamui_ncu_get_vanity_name ( NwamuiObject *object )
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
     g_return_val_if_fail (NWAMUI_IS_NCU(self), NULL); 
     
     return self->prv->vanity_name;
@@ -1921,8 +1922,9 @@ nwamui_ncu_get_vanity_name ( NwamuiNcu *self )
  *
  **/
 static void
-nwamui_ncu_set_vanity_name ( NwamuiNcu *self, const gchar* name )
+nwamui_ncu_set_vanity_name ( NwamuiObject *object, const gchar* name )
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
     g_return_if_fail (NWAMUI_IS_NCU(self)); 
     
     g_assert (name != NULL );
@@ -2041,14 +2043,14 @@ nwamui_ncu_set_display_name ( NwamuiNcu *self )
     if ( self->prv->vanity_name != NULL ) {
         switch( self->prv->ncu_type ) {
         case NWAMUI_NCU_TYPE_WIRED:
-            self->prv->display_name = g_strdup_printf( _("Wired(%s)"), self->prv->vanity_name );
+            self->prv->display_name = g_strdup_printf( _("Wired (%s)"), self->prv->vanity_name );
             break;
         case NWAMUI_NCU_TYPE_WIRELESS:
-            self->prv->display_name = g_strdup_printf( _("Wireless(%s)"), self->prv->vanity_name );
+            self->prv->display_name = g_strdup_printf( _("Wireless (%s)"), self->prv->vanity_name );
             break;
 #ifdef TUNNEL_SUPPORT
         case NWAMUI_NCU_TYPE_TUNNEL:
-            self->prv->display_name = g_strdup_printf( _("Tunnel(%s)"), self->prv->vanity_name );
+            self->prv->display_name = g_strdup_printf( _("Tunnel (%s)"), self->prv->vanity_name );
             break;
 #endif /* TUNNEL_SUPPORT */
         default:
@@ -2133,8 +2135,9 @@ nwamui_ncu_get_ncu_type ( NwamuiNcu *self )
  *
  **/
 extern gboolean
-nwamui_ncu_get_active ( NwamuiNcu *self )
+nwamui_ncu_get_active ( NwamuiObject *object )
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
 	gboolean active = FALSE;
     nwam_state_t        state = NWAM_STATE_OFFLINE;
     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
@@ -2195,8 +2198,9 @@ nwamui_ncu_get_active ( NwamuiNcu *self )
  * 
  **/ 
 static void
-nwamui_ncu_set_active (NwamuiNcu *self, gboolean active)
+nwamui_ncu_set_active (NwamuiObject *object, gboolean active)
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
     nwamui_cond_activation_mode_t activation_mode;
 
     g_return_if_fail (NWAMUI_IS_NCU (self));
@@ -2863,54 +2867,51 @@ nwamui_ncu_get_wifi_signal_strength ( NwamuiNcu *self )
  * 
  **/ 
 static void
-nwamui_ncu_set_activation_mode (NwamuiNcu *self, nwamui_cond_activation_mode_t activation_mode)
+nwamui_ncu_set_activation_mode (NwamuiObject *object, gint activation_mode)
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
     gboolean currently_enabled;
     nwam_error_t    nerr;
 
     g_return_if_fail (NWAMUI_IS_NCU (self));
     g_assert (activation_mode >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && activation_mode <= NWAMUI_COND_ACTIVATION_MODE_LAST );
 
-    if (activation_mode != nwamui_object_get_activation_mode(NWAMUI_OBJECT(self))) {
-
-        switch (activation_mode) {
-        case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
-            /* Activation mode is going to change to PRIORITIZED, we must enable
-             * the phys/ip/iptun before change it, otherwise enabled will become
-             * a readonly property.
-             */
-            currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
-            if (!currently_enabled) {
-                if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
-                    g_warning("Failed to enable ncu_phys due to error: %s", nwam_strerror(nerr));
-                }
+    switch (activation_mode) {
+    case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+        /* Activation mode is going to change to PRIORITIZED, we must enable
+         * the phys/ip/iptun before change it, otherwise enabled will become
+         * a readonly property.
+         */
+        currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
+        if (!currently_enabled) {
+            if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
+                g_warning("Failed to enable ncu_phys due to error: %s", nwam_strerror(nerr));
             }
-            currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_ENABLED );
-            if (!currently_enabled) {
-                if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
-                    g_warning("Failed to enable ncu_ip due to error: %s", nwam_strerror(nerr));
-                }
+        }
+        currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_ip, NWAM_NCU_PROP_ENABLED );
+        if (!currently_enabled) {
+            if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
+                g_warning("Failed to enable ncu_ip due to error: %s", nwam_strerror(nerr));
             }
+        }
 #ifdef TUNNEL_SUPPORT
-            currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_iptun, NWAM_NCU_PROP_ENABLED );
-            if (!currently_enabled) {
-                if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
-                    g_warning("Failed to enable ncu_iptun due to error: %s", nwam_strerror(nerr));
-                }
+        currently_enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_iptun, NWAM_NCU_PROP_ENABLED );
+        if (!currently_enabled) {
+            if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
+                g_warning("Failed to enable ncu_iptun due to error: %s", nwam_strerror(nerr));
             }
+        }
 #endif /* TUNNEL_SUPPORT */
 
-            /* Must update enabled flag. */
-            self->prv->enabled = TRUE;
-            set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
-            break;
-        default:
-            break;
-        }
+        /* Must update enabled flag. */
+        self->prv->enabled = TRUE;
         set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
-        set_modified_flag( self, NWAM_NCU_CLASS_PHYS, TRUE );
-
+        break;
+    default:
+        break;
     }
+    set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
+    set_modified_flag( self, NWAM_NCU_CLASS_PHYS, TRUE );
 }
 
 /**
@@ -2919,9 +2920,10 @@ nwamui_ncu_set_activation_mode (NwamuiNcu *self, nwamui_cond_activation_mode_t a
  * @returns: the activation_mode.
  *
  **/
-static nwamui_cond_activation_mode_t
-nwamui_ncu_get_activation_mode (NwamuiNcu *self)
+static gint
+nwamui_ncu_get_activation_mode (NwamuiObject *object)
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
     nwamui_cond_activation_mode_t activation_mode;
 
     g_return_val_if_fail (NWAMUI_IS_NCU (self), activation_mode);
@@ -2939,9 +2941,10 @@ nwamui_ncu_get_activation_mode (NwamuiNcu *self)
  * 
  **/ 
 static void
-nwamui_ncu_set_enabled (   NwamuiNcu      *self,
+nwamui_ncu_set_enabled (   NwamuiObject *object,
                            gboolean        enabled )
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
     g_return_if_fail (NWAMUI_IS_NCU (self));
 
     g_object_set (G_OBJECT (self),
@@ -2956,8 +2959,9 @@ nwamui_ncu_set_enabled (   NwamuiNcu      *self,
  *
  **/
 static gboolean
-nwamui_ncu_get_enabled (NwamuiNcu *self)
+nwamui_ncu_get_enabled (NwamuiObject *object)
 {
+    NwamuiNcu *self = NWAMUI_NCU(object);
     gboolean  enabled = FALSE; 
 
     g_return_val_if_fail (NWAMUI_IS_NCU (self), enabled);
@@ -4617,12 +4621,6 @@ nwamui_ncu_get_configuration_summary_string( NwamuiNcu* self )
 
 /* Callbacks */
 
-static void
-object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-/*     NwamuiNcu* self = NWAMUI_NCU(data); */
-}
-
 static void 
 ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
 {
@@ -4657,17 +4655,5 @@ wireless_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer user_data)
     g_object_notify(G_OBJECT(self), "wifi_info");
 }
 
-static void
-nwam_state_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-    NwamuiNcu *self = NWAMUI_NCU(gobject);
-    NwamuiNcuPrivate *prv = self->prv;
-/*     gboolean active = nwamui_object_get_active(NWAMUI_OBJECT(self)); */
-    
-/*     if (prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && prv->wifi_info) { */
-/* 	    nwamui_wifi_net_set_status(prv->wifi_info, */
-/* 		active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED); */
-/*     } */
-}
 
 

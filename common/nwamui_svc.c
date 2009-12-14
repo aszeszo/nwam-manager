@@ -62,7 +62,6 @@ static void nwamui_svc_finalize (NwamuiSvc *self);
 static void populate_svc( NwamuiSvc *self );
 
 /* Callbacks */
-static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 enum {
 	PROP_FMRI = 1,
@@ -385,12 +384,3 @@ nwamui_svc_is_default (NwamuiSvc *self)
 #endif /* 0 */
 
 /* Callbacks */
-
-static void
-object_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-	NwamuiSvcPrivate *prv = GET_PRIVATE(gobject);
-
-	g_debug("NwamuiSvc: notify %s changed", arg1->name);
-}
-

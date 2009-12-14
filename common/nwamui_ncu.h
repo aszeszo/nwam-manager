@@ -99,8 +99,6 @@ extern void                 nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam
 
 extern NwamuiNcu*           nwamui_ncu_clone (  struct _NwamuiNcp *ncp, NwamuiNcu *ncu );
 
-extern gboolean             nwamui_ncu_is_modifiable (NwamuiNcu *self);
-
 extern gboolean             nwamui_ncu_has_modifications( NwamuiNcu* self );
 extern gboolean             nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret );
 

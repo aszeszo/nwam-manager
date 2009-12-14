@@ -615,7 +615,6 @@
                 <property name="visible">True</property>
                 <property name="xalign">0</property>
                 <property name="label" translatable="yes">The following wireless networks were detected at your location:</property>
-                <property name="wrap">True</property>
                 <accessibility>
                   <relation type="label-for" target="wireless_list"/>
                 </accessibility>

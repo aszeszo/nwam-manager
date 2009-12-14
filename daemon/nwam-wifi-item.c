@@ -210,10 +210,10 @@ is_wifi_active(NwamuiWifiNet *wifi)
 static void
 on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
 {
-    NwamWifiItemPrivate *prv = GET_PRIVATE(item);
-    NwamuiNcu *ncu = NULL;
-    NwamuiWifiNet *wifi = NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(item)));
-    gchar *name;
+    NwamWifiItemPrivate *prv  = GET_PRIVATE(item);
+    NwamuiNcu           *ncu  = NULL;
+    NwamuiWifiNet       *wifi = NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(item)));
+    const gchar         *name;
 
     /* Should we temporary set active to false for self, and wait for
      * wifi_net_notify to update self? */
@@ -239,7 +239,7 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
      */
     ncu = nwamui_wifi_net_get_ncu ( wifi );
         
-    name = nwamui_wifi_net_get_unique_name(wifi);
+    name = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
 
     if (ncu != NULL) {
         g_assert(nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS);
@@ -249,8 +249,6 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
     } else {
         g_warning("Orphan Wlan 0x%p - %s\n", wifi, name);
     }
-
-    g_free(name);
 }
 
 NwamuiWifiNet *

@@ -354,7 +354,7 @@ process_ncp( gpointer data, gpointer user_data )
     
     if ( ncp != NULL ) {
         const gchar *name   = nwamui_object_get_name(NWAMUI_OBJECT(ncp));
-        gboolean     active = nwamui_ncp_get_active( ncp );
+        gboolean     active = nwamui_object_get_active(NWAMUI_OBJECT(ncp));
 
         printf("%-*s-------------------------------------------------------------\n", indent, "");
         printf("%-*sProcessing ncp : %s (%s)\n", indent, "", name, active?"ACTIVE":"inactive" );

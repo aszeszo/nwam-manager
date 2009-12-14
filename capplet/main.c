@@ -164,6 +164,11 @@ main(int argc, char** argv)
                                   GNOME_PARAM_APP_DATADIR, NWAM_MANAGER_DATADIR,
                                   GNOME_PARAM_NONE);
 
+    if ( ! user_has_autoconf_auth() ) {
+        g_warning("User doesn't have the authorisation (%s) to run nwam-manager.", NET_AUTOCONF_AUTH );
+        exit(0);
+    }
+
     nwamui_util_set_debug_mode( debug );
 
     /* nwamui preference signals */

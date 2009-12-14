@@ -161,8 +161,6 @@ extern void                         nwamui_wifi_net_set_ncu ( NwamuiWifiNet *sel
                                 
 extern struct _NwamuiNcu*           nwamui_wifi_net_get_ncu ( NwamuiWifiNet *self );
 
-extern gchar*                       nwamui_wifi_net_get_unique_name ( NwamuiWifiNet *self );
-
 extern gchar*                       nwamui_wifi_net_get_display_string (NwamuiWifiNet *self, gboolean has_many_wireless );
 
 extern void                         nwamui_wifi_net_set_status ( NwamuiWifiNet *self, nwamui_wifi_status_t status );

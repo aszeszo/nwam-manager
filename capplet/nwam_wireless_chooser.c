@@ -468,14 +468,10 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
     }
 
     /* wifi may be NULL -- join a wireless */
-    {
-        gchar *name = NULL;
-        if (wifi) {
-            name = nwamui_wifi_net_get_unique_name(wifi);
-        }
-        g_debug("%s ## wifi 0x%p %s", __func__, wifi, name ? name : "nil");
-        g_free(name);
+    if (wifi) {
+        g_debug("%s ## wifi 0x%p %s", __func__, wifi, nwamui_object_get_name(NWAMUI_OBJECT(wifi)));
     }
+
     nwam_wireless_dialog_set_title( wifi_dialog, NWAMUI_WIRELESS_DIALOG_TITLE_JOIN );
     nwam_wireless_dialog_set_wifi_net(wifi_dialog, wifi);
     nwam_wireless_dialog_set_do_connect(wifi_dialog, do_connect);

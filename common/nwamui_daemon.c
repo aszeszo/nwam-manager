@@ -186,10 +186,9 @@ static void     nwamui_daemon_nwam_disconnect( void );
 static void nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent );
 static void nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent );
 static void nwamui_daemon_set_status( NwamuiDaemon* self, nwamui_daemon_status_t status );
-static gboolean nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon );
+static gboolean nwamui_daemon_commit_changed_objects( NwamuiObject *object);
 
 /* Callbacks */
-static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 /* Default Callback Handlers */
 static void default_add_wifi_fav_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* new_wifi, gpointer user_data);
@@ -225,7 +224,7 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
     gobject_class->get_property = nwamui_daemon_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_daemon_finalize;
 
-    nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_daemon_commit_changed_objects;
+    nwamuiobject_class->commit = nwamui_daemon_commit_changed_objects;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -411,16 +410,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
     
     self->prv = g_new0 (NwamuiDaemonPrivate, 1);
     
-    self->prv->connected_to_nwamd = FALSE;
-    self->prv->status_flags = 0;
-    self->prv->wep_timeout_id = 0;
     self->prv->communicate_change_to_daemon = TRUE;
-    self->prv->active_env = NULL;
-    self->prv->active_ncp = NULL;
-    self->prv->auto_ncp = NULL;
-    self->prv->ncp_list = NULL;
-    self->prv->env_list = NULL;
-    self->prv->enm_list = NULL;
     self->prv->wlan_scan_queue = g_queue_new();
 
     self->prv->nwam_events_gthread = g_thread_create(nwam_events_thread, g_object_ref(self), TRUE, &error);
@@ -429,8 +419,6 @@ nwamui_daemon_init (NwamuiDaemon *self)
     }
 
     nwamui_daemon_init_lists ( self );
-
-    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
 
 
@@ -572,7 +560,7 @@ nwamui_daemon_set_property ( GObject         *object,
                 /* Assume that activating, will cause signal to say other was
                  * deactivated too.
                  */
-                nwamui_ncp_set_active(ncp, TRUE);
+                nwamui_object_set_active(NWAMUI_OBJECT(ncp), TRUE);
             }
             break;
         case PROP_STATUS:
@@ -1183,9 +1171,9 @@ nwamui_daemon_ncp_remove(NwamuiDaemon *self, NwamuiNcp* ncp )
 
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self), rval );
 
-    g_assert( nwamui_ncp_is_modifiable( ncp ) );
+    g_assert( nwamui_object_is_modifiable(NWAMUI_OBJECT(ncp)) );
     
-    if ( nwamui_ncp_is_modifiable( ncp ) ) {
+    if (nwamui_object_is_modifiable(NWAMUI_OBJECT(ncp))) {
         self->prv->ncp_list = g_list_remove(self->prv->ncp_list, (gpointer)ncp);
         g_object_unref(ncp);
         g_object_notify(G_OBJECT(self), "ncp_list" );
@@ -1861,9 +1849,10 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
 }
 
 static gboolean
-nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon ) 
+nwamui_daemon_commit_changed_objects( NwamuiObject *object)
 {
-    gboolean    rval = TRUE;
+    NwamuiDaemon *daemon = NWAMUI_DAEMON(object);
+    gboolean      rval   = TRUE;
 
     for( GList* ncp_item = g_list_first(daemon->prv->ncp_list); 
          rval && ncp_item != NULL; 
@@ -1871,7 +1860,7 @@ nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon )
         NwamuiNcp*   ncp      = NWAMUI_NCP(ncp_item->data);
         const gchar* ncp_name = nwamui_object_get_name(NWAMUI_OBJECT(ncp));
 
-        if ( nwamui_ncp_is_modifiable( ncp ) ) {
+        if (nwamui_object_is_modifiable(NWAMUI_OBJECT(ncp))) {
             nwamui_debug("NCP : %s modifiable", ncp_name );
             for( GList* ncu_item = g_list_first(nwamui_ncp_get_ncu_list( NWAMUI_NCP(ncp) ) ); 
                  rval && ncu_item != NULL; 
@@ -1901,13 +1890,6 @@ nwamui_daemon_commit_changed_objects( NwamuiDaemon *daemon )
 }
 
 /* Callbacks */
-
-static void
-object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-/*     NwamuiDaemon* self = NWAMUI_DAEMON(data); */
-}
-
 static void
 nwamui_daemon_emit_scan_started_event( NwamuiDaemon *daemon )
 {
@@ -2500,7 +2482,7 @@ nwamd_event_handler(gpointer data)
               nwamevent->nwe_data.nwe_priority_group_info.nwe_priority);
 
             if ( daemon->prv->active_ncp != NULL ) {
-                nwamui_ncp_set_current_prio_group( daemon->prv->active_ncp, 
+                nwamui_ncp_set_prio_group( daemon->prv->active_ncp, 
                   nwamevent->nwe_data.nwe_priority_group_info.nwe_priority);
             }
             /* Re-evaluate status since a change in the priority group
@@ -3778,7 +3760,7 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
                 }
             }
         }
-        if ( nwamui_ncp_get_active( new_ncp ) ) {
+        if ( nwamui_object_get_active(NWAMUI_OBJECT(new_ncp)) ) {
             prv->active_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
         }
     }

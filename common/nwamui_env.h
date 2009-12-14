@@ -253,8 +253,6 @@ extern void                 nwamui_env_svc_remove (NwamuiEnv *self, GtkTreeIter 
 extern void                 nwamui_env_svc_foreach (NwamuiEnv *self, GtkTreeModelForeachFunc func, gpointer data);
 #endif
 
-extern gboolean             nwamui_env_activate (NwamuiEnv *self);
-
 extern gboolean             nwamui_env_has_modifications( NwamuiEnv* self );
 extern gboolean             nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret );
 

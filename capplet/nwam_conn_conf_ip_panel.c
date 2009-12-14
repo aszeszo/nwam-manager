@@ -712,7 +712,7 @@ populate_panel( NwamConnConfIPPanel* self, gboolean set_initial_state )
     g_return_if_fail( NWAMUI_IS_NCU(prv->ncu) );
 
     ncu_type = nwamui_ncu_get_ncu_type( NWAMUI_NCU(prv->ncu) );
-    modifiable = nwamui_ncu_is_modifiable( NWAMUI_NCU(prv->ncu) );
+    modifiable = nwamui_object_is_modifiable( NWAMUI_OBJECT(prv->ncu) );
     ipv4_active = nwamui_ncu_get_ipv4_active( NWAMUI_NCU(prv->ncu) );
     ipv4_has_dhcp = nwamui_ncu_get_ipv4_has_dhcp( NWAMUI_NCU(prv->ncu) );
     ipv4_has_static = nwamui_ncu_get_ipv4_has_static( NWAMUI_NCU(prv->ncu) );
@@ -985,7 +985,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
     }
 
-    if ( nwamui_ncu_is_modifiable( prv->ncu ) ) {
+    if (nwamui_object_is_modifiable(NWAMUI_OBJECT(prv->ncu))) {
         gchar*          failed_prop = NULL;
         const gchar*    default_route = gtk_entry_get_text( GTK_ENTRY(prv->ipv4_default_route_entry) );
         
@@ -1302,7 +1302,7 @@ show_changed_cb( GtkComboBox* widget, gpointer data )
 
 	/* update the notetab according to the selected entry */
     if ( is_v4 ) {
-        gboolean modifiable = nwamui_ncu_is_modifiable( self->prv->ncu );
+        gboolean modifiable = nwamui_object_is_modifiable(NWAMUI_OBJECT(self->prv->ncu));
         gboolean show_dhcp_entries = FALSE;
         gboolean show_static_entries = FALSE;
         gboolean show_default_route = TRUE;
@@ -1373,7 +1373,7 @@ show_changed_cb( GtkComboBox* widget, gpointer data )
             g_assert_not_reached ();
         }
 
-        if ( nwamui_ncu_is_modifiable( self->prv->ncu ) ) {
+        if (nwamui_object_is_modifiable(NWAMUI_OBJECT(self->prv->ncu))) {
             if (actid == 0) {
                 if ( is_v4 ) {
                     nwamui_ncu_set_ipv4_active( self->prv->ncu, FALSE );

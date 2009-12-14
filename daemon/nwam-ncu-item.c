@@ -318,15 +318,8 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
 
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "name") == 0) {
         gchar *lbl_name = NULL;
-        gchar *type_str = NULL;
-		
-		if ( nwamui_ncu_get_ncu_type(NWAMUI_NCU(object)) == NWAMUI_NCU_TYPE_WIRELESS ){
-            type_str = _("Wireless");
-        }
-        else {
-            type_str = _("Wired");
-        }
-        lbl_name = g_strdup_printf(_("%s (%s)"), type_str, nwamui_object_get_name(object));
+
+        lbl_name = g_strdup(nwamui_ncu_get_display_name(NWAMUI_NCU(object)));
 
         /* If there is any underscores we need to replace them with two since
          * otherwise it's interpreted as a mnemonic

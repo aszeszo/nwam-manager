@@ -31,9 +31,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <pwd.h>
-#include <auth_attr.h>
-#include <secdb.h>
 #include <unique/unique.h>
 
 #include "libnwamui.h"
@@ -41,12 +38,6 @@
 
 #include "status_icon.h"
 #include "notify.h"
-
-/*
- * Security Auth needed for NWAM to work. Console User and Network Management
- * profiles will have this.
- */
-#define	NET_AUTOCONF_AUTH	"solaris.network.autoconf"
 
 /* Command-line options */
 static gboolean debug = FALSE;
@@ -97,22 +88,6 @@ find_wireless_interface(GtkTreeModel *model,
     }
     g_object_unref(ncu);
     return FALSE;
-}
-
-static gboolean
-user_has_autoconf_auth( void )
-{
-	struct passwd *pwd;
-	gboolean retval = FALSE;
-
-	if ((pwd = getpwuid(getuid())) == NULL) {
-		g_debug("Unable to get users password entry");
-	} else if (chkauthattr(NET_AUTOCONF_AUTH, pwd->pw_name) == 0) {
-		g_debug("User %s does not have %s", pwd->pw_name, NET_AUTOCONF_AUTH);
-	} else {
-		retval = TRUE;
-	}
-	return (retval);
 }
 
 static gboolean

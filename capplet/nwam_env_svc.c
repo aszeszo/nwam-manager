@@ -71,7 +71,6 @@ static void nwam_env_svc_view_cb (GtkTreeViewColumn *col,
 					     GtkTreeModel      *model,
 					     GtkTreeIter       *iter,
 					     gpointer           data);
-static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static gint nwam_env_svc_comp_cb (GtkTreeModel *model,
 			      GtkTreeIter *a,
 			      GtkTreeIter *b,
@@ -241,7 +240,6 @@ nwam_env_svc_init(NwamEnvSvc *self)
 		nwam_compose_tree_view (self, self->prv->addt_svc_view);
 	}
 
-	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
 	g_signal_connect(GTK_BUTTON(self->prv->addt_add_btn), "clicked", (GCallback)env_add_clicked_cb, (gpointer)self);
 	g_signal_connect(GTK_BUTTON(self->prv->addt_rem_btn), "clicked", (GCallback)env_rem_clicked_cb, (gpointer)self);
 }
@@ -369,9 +367,4 @@ svc_toggle_cb (GtkCellRendererToggle *cell_renderer,
                gpointer               user_data)
 {
 	// FIXME toggle enable/disable service
-}
-
-static void
-object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
-{
 }

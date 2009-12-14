@@ -79,12 +79,6 @@ extern nwam_ncp_handle_t        nwamui_ncp_get_nwam_handle( NwamuiNcp* self );
 
 extern gboolean                 nwamui_ncp_rollback( NwamuiNcp* self );
 
-extern void                     nwamui_ncp_set_active ( NwamuiNcp *self, gboolean active );
-
-extern gboolean                 nwamui_ncp_get_active( NwamuiNcp* self );
-
-extern gboolean                 nwamui_ncp_is_modifiable( NwamuiNcp *self);
-
 extern gboolean                 nwamui_ncp_all_ncus_online (NwamuiNcp       *self,
                                                             NwamuiNcu      **needs_wifi_selection,
                                                             NwamuiWifiNet  **needs_wifi_key );
@@ -117,9 +111,7 @@ extern gint                     nwamui_ncp_get_wireless_link_num( NwamuiNcp* sel
 
 extern gint64                   nwamui_ncp_get_prio_group( NwamuiNcp* self );
 
-extern gint64                   nwamui_ncp_get_current_prio_group( NwamuiNcp* self );
-
-extern void                     nwamui_ncp_set_current_prio_group( NwamuiNcp* self, gint64 new_prio );
+extern void                     nwamui_ncp_set_prio_group( NwamuiNcp* self, gint64 new_prio );
 
 extern void                     nwamui_ncp_freeze_notify_ncus( NwamuiNcp* self );
 

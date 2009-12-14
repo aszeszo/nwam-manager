@@ -2148,7 +2148,7 @@ update_widgets(NwamNetConfPanel *self, GtkTreeSelection *selection)
     gtk_widget_set_sensitive(GTK_WIDGET(prv->connection_activation_combo), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->activation_mode_lbl), FALSE);
 
-    if (!prv->selected_ncp || !nwamui_ncp_is_modifiable(prv->selected_ncp)) {
+    if (!prv->selected_ncp || !nwamui_object_is_modifiable(NWAMUI_OBJECT(prv->selected_ncp))) {
         return;
     }
 
@@ -2479,7 +2479,7 @@ edit_profile_name_combo_changed(GtkComboBox *widget, gpointer user_data)
     /* Update widgets */
     selection_changed(gtk_tree_view_get_selection(prv->net_conf_treeview), (gpointer)self);
 
-    if (nwamui_ncp_is_modifiable(prv->selected_ncp)) {
+    if (nwamui_object_is_modifiable(NWAMUI_OBJECT(prv->selected_ncp))) {
         gtk_widget_set_sensitive(GTK_WIDGET(prv->net_conf_treeview), TRUE);
         gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_edit_btn), TRUE);
     } else {

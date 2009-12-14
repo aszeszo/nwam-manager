@@ -48,7 +48,6 @@ typedef struct _NwamuiObject		     NwamuiObject;
 typedef struct _NwamuiObjectClass        NwamuiObjectClass;
 typedef struct _NwamuiObjectPrivate	     NwamuiObjectPrivate;
 
-
 struct _NwamuiObject
 {
 	GObject                      object;
@@ -56,41 +55,26 @@ struct _NwamuiObject
     NwamuiObjectPrivate         *prv;
 };
 
-typedef    gboolean             (*nwamui_object_can_rename_func_t)(NwamuiObject *object);
-typedef    gchar*               (*nwamui_object_get_name_func_t)(NwamuiObject *object);
-typedef    void                 (*nwamui_object_set_name_func_t)(NwamuiObject *object, const gchar* name);
-typedef    GList*               (*nwamui_object_get_conditions_func_t)(NwamuiObject *object);
-typedef    void                 (*nwamui_object_set_conditions_func_t)(NwamuiObject *object, const GList* conditions);
-typedef    gint                 (*nwamui_object_get_activation_mode_func_t)(NwamuiObject *object);
-typedef    void                 (*nwamui_object_set_activation_mode_func_t)(NwamuiObject *object, gint activation_mode);
-typedef    gboolean             (*nwamui_object_get_active_func_t)(NwamuiObject *object);
-typedef    void                 (*nwamui_object_set_active_func_t)(NwamuiObject *object, gboolean active);
-typedef    gboolean             (*nwamui_object_get_enabled_func_t)(NwamuiObject *object);
-typedef    void                 (*nwamui_object_set_enabled_func_t)(NwamuiObject *object, gboolean enabled);
-typedef    nwam_state_t         (*nwamui_object_get_nwam_state_func_t)(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string);
-typedef    gboolean             (*nwamui_object_commit_func_t)(NwamuiObject *object);
-typedef    void                 (*nwamui_object_reload_func_t)(NwamuiObject *object);
-typedef    gboolean             (*nwamui_object_destroy_func_t)(NwamuiObject *object);
-
 struct _NwamuiObjectClass
 {
 	GObjectClass                                parent_class;
 
-    nwamui_object_get_name_func_t               get_name;
-    nwamui_object_can_rename_func_t             can_rename;
-    nwamui_object_set_name_func_t               set_name;
-    nwamui_object_get_conditions_func_t         get_conditions;
-    nwamui_object_set_conditions_func_t         set_conditions;
-    nwamui_object_get_activation_mode_func_t    get_activation_mode;
-    nwamui_object_set_activation_mode_func_t    set_activation_mode;
-    nwamui_object_get_active_func_t             get_active;
-    nwamui_object_set_active_func_t             set_active;
-    nwamui_object_get_enabled_func_t            get_enabled;
-    nwamui_object_set_enabled_func_t            set_enabled;
-    nwamui_object_get_nwam_state_func_t         get_nwam_state;
-    nwamui_object_commit_func_t                 commit;
-    nwamui_object_reload_func_t                 reload;
-    nwamui_object_destroy_func_t                destroy;
+    const gchar* (*get_name)(NwamuiObject *object);
+    gboolean (*can_rename)(NwamuiObject *object);
+    void (*set_name)(NwamuiObject *object, const gchar* name);
+    GList* (*get_conditions)(NwamuiObject *object);
+    void (*set_conditions)(NwamuiObject *object, const GList* conditions);
+    gint (*get_activation_mode)(NwamuiObject *object);
+    void (*set_activation_mode)(NwamuiObject *object, gint activation_mode);
+    gboolean (*get_active)(NwamuiObject *object);
+    void (*set_active)(NwamuiObject *object, gboolean active);
+    gboolean (*get_enabled)(NwamuiObject *object);
+    void (*set_enabled)(NwamuiObject *object, gboolean enabled);
+    nwam_state_t (*get_nwam_state)(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string);
+    gboolean (*commit)(NwamuiObject *object);
+    void (*reload)(NwamuiObject *object);
+    gboolean (*destroy)(NwamuiObject *object);
+    gboolean (*is_modifiable)(NwamuiObject *object);
 };
 
 extern  GType               nwamui_object_get_type (void) G_GNUC_CONST;
@@ -111,6 +95,7 @@ extern void                 nwamui_object_set_nwam_state(NwamuiObject *object, n
 extern gboolean             nwamui_object_commit(NwamuiObject *object);
 extern void                 nwamui_object_reload(NwamuiObject *object);
 extern gboolean             nwamui_object_destroy(NwamuiObject *object);
+extern gboolean             nwamui_object_is_modifiable(NwamuiObject *object);
 
 G_END_DECLS
 

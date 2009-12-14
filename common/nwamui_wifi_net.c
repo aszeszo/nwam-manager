@@ -105,14 +105,13 @@ static guint64*     get_nwam_known_wlan_uint64_array_prop(
 static gboolean     set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name, 
                                                            const guint64 *value_array, guint len );
 
-static gchar*       nwamui_wifi_net_get_essid (NwamuiWifiNet *self );
-static void         nwamui_wifi_net_set_essid ( NwamuiWifiNet  *self, const gchar    *essid );
-static gboolean     nwamui_wifi_net_can_rename (NwamuiWifiNet *object);
-static gboolean     nwamui_wifi_net_commit_favourite ( NwamuiWifiNet *self );
-static void         nwamui_wifi_net_reload( NwamuiWifiNet* self );
+static const gchar*       nwamui_wifi_net_get_essid (NwamuiObject *object );
+static void         nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid );
+static gboolean     nwamui_wifi_net_can_rename (NwamuiObject *object);
+static gboolean     nwamui_wifi_net_commit_favourite ( NwamuiObject *object );
+static void         nwamui_wifi_net_reload( NwamuiObject* object );
 
 /* Callbacks */
-static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 enum {
         PROP_NCU = 1,
@@ -153,11 +152,11 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
     gobject_class->get_property = nwamui_wifi_net_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_wifi_net_finalize;
 
-    nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_wifi_net_get_essid;
-    nwamuiobject_class->can_rename = (nwamui_object_can_rename_func_t)nwamui_wifi_net_can_rename;
-    nwamuiobject_class->set_name = (nwamui_object_set_name_func_t)nwamui_wifi_net_set_essid;
-    nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_wifi_net_commit_favourite;
-    nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_wifi_net_reload;
+    nwamuiobject_class->get_name = nwamui_wifi_net_get_essid;
+    nwamuiobject_class->can_rename = nwamui_wifi_net_can_rename;
+    nwamuiobject_class->set_name = nwamui_wifi_net_set_essid;
+    nwamuiobject_class->commit = nwamui_wifi_net_commit_favourite;
+    nwamuiobject_class->reload = nwamui_wifi_net_reload;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -339,8 +338,6 @@ nwamui_wifi_net_init (NwamuiWifiNet *self)
     prv->status = NWAMUI_WIFI_STATUS_DISCONNECTED;
     
     self->prv = prv;
-    
-    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
 
 static void
@@ -757,8 +754,10 @@ nwamui_wifi_net_get_property (GObject         *object,
  * nwamui_wifi_net_reload:   re-load stored configuration
  **/
 static void
-nwamui_wifi_net_reload( NwamuiWifiNet* self )
+nwamui_wifi_net_reload( NwamuiObject* object )
 {
+    NwamuiWifiNet *self = NWAMUI_WIFI_NET(object);
+
     g_return_if_fail( NWAMUI_IS_WIFI_NET(self) );
 
     /* nwamui_enm_update_with_handle will cause re-read from configuration */
@@ -843,14 +842,10 @@ extern gboolean
 nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_t  handle )
 {
     gchar*                 name          = NULL;
-    gboolean               essid_changed = TRUE;
     gchar**                bssid_strv    = NULL;
     nwam_error_t           nerr;
     uint32_t               sec_mode;
     nwamui_wifi_security_t security;
-
-    //g_assert(!self->prv->fav);
-    //g_assert(self->prv->is_favourite);
 
     if ( self->prv->modified ) {
         nwamui_debug("Not updating wlan %s from system due to unsaved modifications", self->prv->essid );
@@ -887,22 +882,8 @@ nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_
         return (FALSE);
     }
 
-    if (self->prv->essid != NULL && name != NULL) {
-        if ( g_strcmp0( self->prv->essid, name ) == 0 ) {
-            essid_changed = FALSE;
-        }
-    }
-    else if ( name == NULL ) {
-        essid_changed = FALSE;
-    }
-
-    if ( essid_changed ) {
-        if (self->prv->essid != NULL) { 
-            g_free(self->prv->essid);
-        }
-        self->prv->essid = g_strdup( name );
-        g_object_notify(G_OBJECT(self), "name");
-    }
+    nwamui_object_set_name(NWAMUI_OBJECT(self), name);
+    g_free(name);
 
     sec_mode = get_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, 
                                                 NWAM_KNOWN_WLAN_PROP_SECURITY_MODE );
@@ -913,8 +894,6 @@ nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_
         self->prv->security = security;
         g_object_notify(G_OBJECT(self), "security");
     }
-
-    g_free(name);
 
     /* Ensure it's marked as a favourite since we now have a valid handle. */
     self->prv->is_favourite = TRUE;
@@ -1246,8 +1225,9 @@ nwamui_wifi_net_validate_favourite ( NwamuiWifiNet *self, gchar**error_prop )
  * Ask NWAM to connect to this network.
  **/
 static gboolean
-nwamui_wifi_net_commit_favourite ( NwamuiWifiNet *self )
+nwamui_wifi_net_commit_favourite ( NwamuiObject *object )
 {
+    NwamuiWifiNet *self = NWAMUI_WIFI_NET(object);
     nwam_error_t                nerr;
     nwam_known_wlan_handle_t    wlan_h;
     gchar**                     bssid_strs = NULL;
@@ -1310,7 +1290,7 @@ nwamui_wifi_net_get_ncu ( NwamuiWifiNet *self )
  *
  **/
 static gboolean
-nwamui_wifi_net_can_rename (NwamuiWifiNet *object)
+nwamui_wifi_net_can_rename (NwamuiObject *object)
 {
     NwamuiWifiNet *self = NWAMUI_WIFI_NET(object);
     NwamuiWifiNetPrivate *prv = NWAMUI_WIFI_NET(object)->prv;
@@ -1327,9 +1307,9 @@ nwamui_wifi_net_can_rename (NwamuiWifiNet *object)
 
 /* Get/Set ESSID */
 static void                    
-nwamui_wifi_net_set_essid ( NwamuiWifiNet  *self,
-  const gchar    *essid )
+nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid )
 {
+    NwamuiWifiNet *self = NWAMUI_WIFI_NET(object);
     NwamuiWifiNetPrivate *prv = self->prv;
     nwam_error_t    nerr;
 
@@ -1394,9 +1374,10 @@ nwamui_wifi_net_set_essid ( NwamuiWifiNet  *self,
 
 }
                                 
-static gchar*                  
-nwamui_wifi_net_get_essid (NwamuiWifiNet *self )
+static const gchar*
+nwamui_wifi_net_get_essid (NwamuiObject *object )
 {
+    NwamuiWifiNet *self = NWAMUI_WIFI_NET(object);
     g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), NULL);
     return(self->prv->essid);
 }
@@ -1426,30 +1407,6 @@ nwamui_wifi_net_get_display_string (NwamuiWifiNet *self, gboolean has_many_wirel
     }
 
     ret_str = g_string_free(gstr, FALSE);
-
-    return( ret_str );
-}
-
-extern gchar*
-nwamui_wifi_net_get_unique_name ( NwamuiWifiNet *self )
-{
-    gchar*  ret_str = NULL;
-    gchar*  essid = NULL;
-    gchar*  device_name = NULL;
-    
-    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), ret_str);
-
-    device_name = nwamui_ncu_get_device_name(self->prv->ncu);
-
-    g_object_get (G_OBJECT (self),
-                  "name", &essid,
-                  NULL);
-
-    /* "%s - %s", so it's different to FALSEWLAN */
-    ret_str = g_strconcat(device_name?device_name:"", " - ", essid ? essid : "", NULL);
-
-    g_free(device_name);
-    g_free(essid);
 
     return( ret_str );
 }
@@ -2486,10 +2443,3 @@ nwamui_wifi_net_get_a11y_description( NwamuiWifiNet* self )
 
 
 /* Callbacks */
-
-static void
-object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-/*     NwamuiWifiNet* self = NWAMUI_WIFI_NET(data); */
-}
-

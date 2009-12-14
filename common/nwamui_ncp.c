@@ -96,7 +96,6 @@ struct _NwamuiNcpPrivate {
 
         /* Cached Priority Group */
         gint                        priority_group;
-        time_t                      priority_group_last_update;
 };
 
 static void nwamui_ncp_set_property ( GObject         *object,
@@ -111,12 +110,13 @@ static void nwamui_ncp_get_property ( GObject         *object,
 
 static void nwamui_ncp_finalize (     NwamuiNcp *self);
 
-static nwam_state_t nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type  );
-
-static gboolean                 nwamui_ncp_commit( NwamuiNcp* self );
-static gchar*                   nwamui_ncp_get_name ( NwamuiNcp *self );
-static void                     nwamui_ncp_reload( NwamuiNcp* self );
-
+static nwam_state_t nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
+static gboolean     nwamui_ncp_commit( NwamuiObject *object );
+static const gchar* nwamui_ncp_get_name ( NwamuiObject *object );
+static void         nwamui_ncp_set_active ( NwamuiObject *object, gboolean active );
+static gboolean     nwamui_ncp_get_active( NwamuiObject *object );
+static void         nwamui_ncp_reload( NwamuiObject *object );
+static gboolean     nwamui_ncp_is_modifiable(NwamuiObject *object);
 
 /* Default signal handlers */
 static void default_activate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer user_data);
@@ -125,7 +125,6 @@ static void default_add_ncu_signal_handler (NwamuiNcp* ncp, NwamuiNcu* ncu, gpoi
 static void default_remove_ncu_signal_handler (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data);
 
 /* Callbacks */
-static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
 static void row_inserted_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data);
@@ -153,12 +152,13 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
     klass->add_ncu = default_add_ncu_signal_handler;
     klass->remove_ncu = default_remove_ncu_signal_handler;
 
-    nwamuiobject_class->get_name = (nwamui_object_get_name_func_t)nwamui_ncp_get_name;
-    nwamuiobject_class->get_active = (nwamui_object_get_active_func_t)nwamui_ncp_get_active;
-    nwamuiobject_class->set_active = (nwamui_object_set_active_func_t)nwamui_ncp_set_active;
-    nwamuiobject_class->get_nwam_state = (nwamui_object_get_nwam_state_func_t)nwamui_ncp_get_nwam_state;
-    nwamuiobject_class->commit = (nwamui_object_commit_func_t)nwamui_ncp_commit;
-    nwamuiobject_class->reload = (nwamui_object_reload_func_t)nwamui_ncp_reload;
+    nwamuiobject_class->get_name = nwamui_ncp_get_name;
+    nwamuiobject_class->get_active = nwamui_ncp_get_active;
+    nwamuiobject_class->set_active = nwamui_ncp_set_active;
+    nwamuiobject_class->get_nwam_state = nwamui_ncp_get_nwam_state;
+    nwamuiobject_class->commit = nwamui_ncp_commit;
+    nwamuiobject_class->reload = nwamui_ncp_reload;
+    nwamuiobject_class->is_modifiable = nwamui_ncp_is_modifiable;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -263,29 +263,22 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 static void
 nwamui_ncp_init ( NwamuiNcp *self)
 {
+    nwam_error_t    nerr;
+    int64_t         pg = 0;
+
     self->prv = g_new0 (NwamuiNcpPrivate, 1);
     
-    self->prv->name = NULL;
-
-    self->prv->priority_group = 0;
-    self->prv->priority_group_last_update = 0;
-
-    self->prv->ncu_list = NULL;
-    self->prv->ncu_tree_store = NULL;
-    self->prv->ncu_list_store = NULL;
-
     /* Used to store the list of NCUs that are added or removed in the UI but
      * not yet committed.
      */
-    self->prv->ncus_removed = NULL;
-    self->prv->ncus_added = NULL;
-
-    self->prv->wireless_link_num = 0;
 
     /* Init pri group. */
-    nwamui_ncp_get_current_prio_group(self);
-
-    g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
+    if ( (nerr = nwam_ncp_get_active_priority_group( &pg )) == NWAM_SUCCESS ) {
+        self->prv->priority_group = (gint64)pg;
+    } else {
+        nwamui_debug("Error getting active priortiy group: %d (%s)", 
+          nerr, nwam_strerror(nerr) );
+    }
 }
 
 static void
@@ -300,7 +293,7 @@ nwamui_ncp_set_property (   GObject         *object,
     nwam_error_t    nerr;
     gboolean        read_only = FALSE;
 
-    read_only = !nwamui_ncp_is_modifiable(self);
+    read_only = !nwamui_object_is_modifiable(NWAMUI_OBJECT(self));
 
     if (read_only) {
         g_error("Attempting to modify read-only ncp %s", self->prv->name);
@@ -330,7 +323,7 @@ nwamui_ncp_get_property (   GObject         *object,
 
     switch (prop_id) {
     case PROP_PRIORITY_GROUP:
-        g_value_set_int64(value, self->prv->priority_group);
+        g_value_set_int64(value, nwamui_ncp_get_prio_group(self));
         break;
         case PROP_NCU_LIST: {
                 g_value_set_pointer( value, nwamui_util_copy_obj_list( self->prv->ncu_list ) );
@@ -385,7 +378,7 @@ nwamui_ncp_finalize (NwamuiNcp *self)
 }
 
 static nwam_state_t
-nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p, nwam_ncu_type_t ncu_type  )
+nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p)
 {
     nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
 
@@ -528,8 +521,9 @@ nwamui_ncp_clone( NwamuiNcp* self, const gchar* name )
 }
 
 static void
-nwamui_ncp_reload( NwamuiNcp* self )
+nwamui_ncp_reload( NwamuiObject *object )
 {
+    NwamuiNcp    *self       = NWAMUI_NCP(object);
     nwam_error_t    nerr;
     nwam_ncp_handle_t nwam_ncp;
 
@@ -567,9 +561,9 @@ nwamui_ncp_get_nwam_handle( NwamuiNcp* self )
  *
  **/ 
 extern void
-nwamui_ncp_set_name (   NwamuiNcp *self,
-                        const gchar*  name )
+nwamui_ncp_set_name (NwamuiObject *object, const gchar*  name )
 {
+    NwamuiNcp    *self       = NWAMUI_NCP(object);
     nwam_error_t    nerr;
 
     g_return_if_fail (NWAMUI_IS_NCP (self));
@@ -605,9 +599,10 @@ nwamui_ncp_set_name (   NwamuiNcp *self,
  * @returns: null-terminated C String with name of the the NCP.
  *
  **/
-static gchar*
-nwamui_ncp_get_name ( NwamuiNcp *self )
+static const gchar*
+nwamui_ncp_get_name ( NwamuiObject *object )
 {
+    NwamuiNcp    *self       = NWAMUI_NCP(object);
     g_return_val_if_fail (NWAMUI_IS_NCP(self), NULL); 
     
     return self->prv->name;
@@ -620,8 +615,9 @@ nwamui_ncp_get_name ( NwamuiNcp *self )
  *
  **/
 extern gboolean
-nwamui_ncp_get_active( NwamuiNcp* self )
+nwamui_ncp_get_active( NwamuiObject *object )
 {
+    NwamuiNcp    *self       = NWAMUI_NCP(object);
     gboolean active = FALSE;
     g_return_val_if_fail( NWAMUI_IS_NCP(self), active );
 
@@ -645,9 +641,9 @@ nwamui_ncp_get_active( NwamuiNcp* self )
  * 
  **/ 
 extern void
-nwamui_ncp_set_active (   NwamuiNcp *self,
-                          gboolean        active )
+nwamui_ncp_set_active (NwamuiObject *object, gboolean active)
 {
+    NwamuiNcp    *self       = NWAMUI_NCP(object);
     /* Activate immediately */
     nwam_state_t        state = NWAM_STATE_OFFLINE;
     nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
@@ -674,11 +670,12 @@ nwamui_ncp_set_active (   NwamuiNcp *self,
  *
  **/
 extern gboolean
-nwamui_ncp_is_modifiable (NwamuiNcp *self)
+nwamui_ncp_is_modifiable(NwamuiObject *object)
 {
-    nwam_error_t    nerr;
-    gboolean        modifiable = FALSE; 
-    boolean_t       readonly;
+    NwamuiNcp    *self       = NWAMUI_NCP(object);
+    nwam_error_t  nerr;
+    gboolean      modifiable = FALSE; 
+    boolean_t     readonly;
 
     g_assert(NWAMUI_IS_NCP (self));
     if (self->prv->nwam_ncp == NULL ) {
@@ -708,58 +705,20 @@ nwamui_ncp_is_modifiable (NwamuiNcp *self)
 extern gint64
 nwamui_ncp_get_prio_group( NwamuiNcp* self )
 {
-    gint64 prio;
+    g_return_val_if_fail(NWAMUI_IS_NCP(self), (gint64)0);
 
-    g_object_get (G_OBJECT (self),
-                  "priority-group", &prio,
-                  NULL);
-    return prio;
-}
-
-extern gint64
-nwamui_ncp_get_current_prio_group( NwamuiNcp* self ) 
-{
-    gint64          current_prio = -1;  /* -1 not a valid prio */
-    int64_t         pg = 0;
-    nwam_error_t    nerr;
-    time_t          current_time = time( NULL );
-    time_t          elapsed_time;
-
-    if (!NWAMUI_IS_NCP (self) ) {
-        return( 0 );
-    }
-
-    elapsed_time = current_time - self->prv->priority_group_last_update;
-
-    if ( elapsed_time > 60 ) { /* seconds  */
-        if ( (nerr = nwam_ncp_get_active_priority_group( &pg )) != NWAM_SUCCESS ) {
-            nwamui_debug("Error getting active priortiy group: %d (%s)", 
-                         nerr, nwam_strerror(nerr) );
-            current_prio = 0;
-        }
-        else {
-            current_prio = (gint64)pg;
-            self->prv->priority_group = current_prio;
-            self->prv->priority_group_last_update = current_time;
-        }
-    }
-    else {
-        current_prio = self->prv->priority_group;
-    }
-
-    return( current_prio );
+    return self->prv->priority_group;
 }
 
 extern void
-nwamui_ncp_set_current_prio_group( NwamuiNcp* self, gint64 new_prio ) 
+nwamui_ncp_set_prio_group( NwamuiNcp* self, gint64 new_prio ) 
 {
-    if (!NWAMUI_IS_NCP (self) ) {
-        return;
-    }
+    g_return_if_fail(NWAMUI_IS_NCP(self));
 
-    self->prv->priority_group = new_prio;
-    self->prv->priority_group_last_update = time( NULL );
-    g_object_notify(G_OBJECT(self), "priority-group");
+    if (self->prv->priority_group != new_prio) {
+        self->prv->priority_group = new_prio;
+        g_object_notify(G_OBJECT(self), "priority-group");
+    }
 }
 
 static void
@@ -874,7 +833,7 @@ nwamui_ncp_all_ncus_online (NwamuiNcp       *self,
 
     bzero((void*)&info, sizeof(check_online_info_t));
     
-    info.current_prio = nwamui_ncp_get_current_prio_group( self );
+    info.current_prio = nwamui_ncp_get_prio_group( self );
 
     if ( self->prv->ncu_list == NULL ) {
         /* If there are no NCUs then something is wrong and 
@@ -1243,8 +1202,9 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
 }
 
 static gboolean
-nwamui_ncp_commit( NwamuiNcp* self )
+nwamui_ncp_commit( NwamuiObject *object )
 {
+    NwamuiNcp    *self       = NWAMUI_NCP(object);
     gboolean    rval = FALSE;
 
     g_return_val_if_fail (NWAMUI_IS_NCP(self), rval );
@@ -1598,12 +1558,6 @@ nwamui_ncp_thaw_notify_ncus( NwamuiNcp* self )
 }
 
 /* Callbacks */
-
-static void
-object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-/*     NwamuiNcp* self = NWAMUI_NCP(gobject); */
-}
 
 static void
 ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
