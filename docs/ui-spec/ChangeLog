@@ -1,14 +1,35 @@
+2009-12-15  Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+	* img/capplet/network-profile-multiple.png
+	* img/capplet/add-edit-network-profile.png
+	* img/capplet/add-edit-network-profile.png
+	* img/capplet/nsswitch-multiservice.png
+	* img/capplet/nsswitch-1service-custom.png
+
+	Add support for multiple user NCPs, per #12886.
+
+	Modify nsswitch file selection behaviour, per  #12593.
+
+	Show "Click here to change saved password" in disabled text field
+	when showing Join Wireless Network dlg, per #12941.
+
 2009-12-08 Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
 	* nwam-ui-spec.pdf
 
-	Add 'NCP is/isn't' rule for locations and ENMs. Fixes #13141.
-	Show signal strength as text rather than %ge. Fixes #12994.
-	'Add to favorites' checkbox in Join Wireless Network dlg should be
-	hidden if opened from Wireless Chooser. Fixes #12917.
+	Add 'NCP is/isn't' rule for locations and ENMss, per #13141.
+
+	Show signal strength as text rather than %ge, per #12994.
+
+	'Add to favorites' checkbox should remember state between different
+	parts of the GUI, per #12917.
+
 	For clarity, change text style of portions of spec that are not 
 	implemented in Phase 1.
+
 	Bumped to v1.15, but not pushed to website yet-- still a couple
 	of other issues to address first.
 	
@@ -93,6 +114,13 @@ Minor tweaks: clicking panel icon should open Network Prefs rather than Location
 
 	* nwam-ui-spec.pages
 	* nwam-ui-spec.pdf
+	* img/capplet/locations-new.png
+
+	Revert erroneous bits about Automatic NCP now being editable
+	(it's not), and update for latest propoasl in bug #9561.
+
+2009-07-30  Calum Benson  <calum.benson@sun.com>
+
 	* img/capplet/locations-new.png
 
 	Revert erroneous bits about Automatic NCP now being editable
@@ -314,10 +342,3 @@ Minor tweaks: clicking panel icon should open Network Prefs rather than Location
 
 
 2008-02-13  Calum Benson <calum.benson@sun.com>
-
-	* ChangeLog: added
-
-        * ui-spec.odt: modified
-        * img/capplet/wireless-security-wep-ascii.png: added
-
-	Add Key Index for WEP+ASCII.
