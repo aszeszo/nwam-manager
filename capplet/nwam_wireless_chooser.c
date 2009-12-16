@@ -55,7 +55,6 @@ struct _NwamWirelessChooserPrivate {
     NwamuiDaemon*       daemon;
     gboolean            join_open;
     gboolean            join_preferred;
-    gboolean            add_any_wifi;
     gint                action_if_no_fav;
     NwamuiWifiNet      *selected_wifi;
 };
@@ -95,6 +94,10 @@ static gint nwam_wifi_chooser_comp_cb (GtkTreeModel *model,
   GtkTreeIter *b,
   gpointer user_data);
 static void wifi_add (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi);
+static void presistant_cb(GtkToggleButton* widget, gpointer data);
+
+/* Prof */
+static void add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamWirelessChooser,
                         nwam_wireless_chooser,
@@ -236,14 +239,21 @@ nwam_wireless_chooser_init(NwamWirelessChooser *self)
       (GCallback)nwam_create_wifi_cb, (gpointer) self);
 	g_signal_connect(G_OBJECT(self), "notify",
       (GCallback)object_notify_cb, NULL);
+    g_signal_connect(GTK_TOGGLE_BUTTON(self->prv->add_to_preferred_cbox), "toggled", (GCallback)presistant_cb, (gpointer)self);
 
     /* Populate WiFi conditions */
     g_object_get (nwamui_prof_get_instance_noref(),
       "action_on_no_fav_networks", &self->prv->action_if_no_fav,
       "join_wifi_not_in_fav", &self->prv->join_open,
       "join_any_fav_wifi", &self->prv->join_preferred,
-      "add_any_new_wifi_to_fav", &self->prv->add_any_wifi,
       NULL);
+
+    /* Update gui according to preferences. */
+    g_signal_connect(nwamui_prof_get_instance_noref(),
+      "notify::add-any-new-wifi-to-fav",
+      (GCallback)add_any_new_wifi_to_fav,
+      (gpointer)self);
+    add_any_new_wifi_to_fav(G_OBJECT(nwamui_prof_get_instance_noref()), NULL, (gpointer)self);
 
     nwam_pref_refresh (NWAM_PREF_IFACE(self), NULL, TRUE);
 }
@@ -308,13 +318,6 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
         /* Set busy cursor from start */
         nwamui_util_set_busy_cursor( GTK_WIDGET(self->prv->wireless_chooser) );
 
-        /* Populate WiFi conditions */
-        g_object_get (nwamui_prof_get_instance_noref(),
-          "add_any_new_wifi_to_fav", &self->prv->add_any_wifi,
-          NULL);
-
-        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON( self->prv->add_to_preferred_cbox ), self->prv->add_any_wifi);
-
 		response =  gtk_dialog_run(GTK_DIALOG(self->prv->wireless_chooser));
 		
 		gtk_widget_hide( GTK_WIDGET(self->prv->wireless_chooser) );
@@ -364,15 +367,9 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     g_assert( NWAM_IS_WIRELESS_CHOOSER(iface));
 
     if ( prv->selected_wifi != NULL ) {
-        gboolean make_persist = 
-            gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON( self->prv->add_to_preferred_cbox ));
+        nwamui_wifi_net_connect(prv->selected_wifi,
+          gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON( self->prv->add_to_preferred_cbox)));
 
-        /* Update preference. */
-        g_object_set(nwamui_prof_get_instance_noref(),
-          "add_any_new_wifi_to_fav", make_persist,
-          NULL);
-
-        nwamui_wifi_net_connect(prv->selected_wifi, make_persist ); 
         return( TRUE );
     }
 
@@ -694,3 +691,25 @@ nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data)
     }
 }
 
+static void
+presistant_cb(GtkToggleButton* widget, gpointer data)
+{
+    /* Update preference. */
+    g_object_set(nwamui_prof_get_instance_noref(),
+      "add_any_new_wifi_to_fav", gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)),
+      NULL);
+}
+
+static void
+add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamWirelessChooser* self = NWAM_WIRELESS_CHOOSER(data);
+    gboolean add_to_fav;
+
+    g_signal_handlers_block_by_func(gobject, (gpointer)add_any_new_wifi_to_fav, data);
+
+    g_object_get(gobject, "add_any_new_wifi_to_fav", &add_to_fav, NULL);
+    gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->prv->add_to_preferred_cbox), add_to_fav);
+
+    g_signal_handlers_unblock_by_func(gobject, (gpointer)add_any_new_wifi_to_fav, data);
+}

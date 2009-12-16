@@ -593,10 +593,16 @@ gconf_notify_cb (GConfClient *client, guint cnxn_id, GConfEntry *entry, gpointer
     NwamuiProf *self = NWAMUI_PROF(user_data);
     const char *key;
     GConfValue *value;
+    gchar *basename;
     
     key = gconf_entry_get_key (entry);
     value = gconf_entry_get_value (entry);
+    basename = g_path_get_basename(key);
     
+    /* Broadcase the changes. */
+    g_object_notify(G_OBJECT(self), basename);
+    g_free(basename);
+
     if (g_ascii_strcasecmp (key, PROF_BOOL_JOIN_WIFI_NOT_IN_FAV) == 0) {
         nwamui_debug( "join_wifi_not_in_fav set to %d",
           gconf_value_get_bool(value));

@@ -139,13 +139,13 @@ static void change_essid_cbentry_model(GtkComboBoxEntry *cbentry);
 
 static void populate_essid_combo(NwamWirelessDialog *self, GtkComboBoxEntry *cbentry);
 
-static void                         nwamui_wifi_net_reload( NwamuiWifiNet* self );
+static void nwamui_wifi_net_reload( NwamuiWifiNet* self );
 
-static void                         nwamui_wifi_net_set_essid ( NwamuiWifiNet *self, const gchar *essid );
+static void nwamui_wifi_net_set_essid ( NwamuiWifiNet *self, const gchar *essid );
 
-static gboolean                     nwamui_wifi_net_can_rename (NwamuiWifiNet *object);
+static gboolean nwamui_wifi_net_can_rename (NwamuiWifiNet *object);
 
-static gchar*                       nwamui_wifi_net_get_essid ( NwamuiWifiNet *self );
+static gchar* nwamui_wifi_net_get_essid ( NwamuiWifiNet *self );
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -156,12 +156,13 @@ static gboolean key_entry_focus_in_cb( GtkWidget* widget, GdkEventFocus *event, 
 static gboolean key_entry_focus_out_cb( GtkWidget* widget, GdkEventFocus *event, gpointer data );
 static void security_selection_cb( GtkWidget* widget, gpointer data );
 static void show_password_cb( GtkToggleButton* widget, gpointer data );
+static void presistant_cb(GtkToggleButton* widget, gpointer data);
 static void bssid_add_cb(GtkWidget *button, gpointer data);
 static void bssid_remove_cb(GtkWidget *widget, gpointer data);
 static void bssid_edited_cb (GtkCellRendererText *renderer, gchar *path,
                              gchar *new_text, gpointer user_data);
-
-
+/* Prof */
+static void add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE_EXTENDED (NwamWirelessDialog,
   nwam_wireless_dialog,
@@ -395,10 +396,18 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     g_signal_connect(GTK_ENTRY(self->prv->key_entry), "focus-out-event", (GCallback)key_entry_focus_out_cb, (gpointer)self);
     g_signal_connect(GTK_COMBO_BOX(self->prv->security_combo), "changed", (GCallback)security_selection_cb, (gpointer)self);
     g_signal_connect(GTK_TOGGLE_BUTTON(self->prv->show_password_cbutton), "toggled", (GCallback)show_password_cb, (gpointer)self);
+    g_signal_connect(GTK_TOGGLE_BUTTON(self->prv->persistant_cbutton), "toggled", (GCallback)presistant_cb, (gpointer)self);
     g_signal_connect(GTK_BUTTON(self->prv->bssid_add_btn), "clicked", (GCallback)bssid_add_cb, 
                                (gpointer)self->prv->bssid_list_tv);
     g_signal_connect(GTK_BUTTON(self->prv->bssid_remove_btn), "clicked", (GCallback)bssid_remove_cb, 
                                (gpointer)self->prv->bssid_list_tv);
+
+    /* Update gui according to preferences. */
+    g_signal_connect(nwamui_prof_get_instance_noref(),
+      "notify::add-any-new-wifi-to-fav",
+      (GCallback)add_any_new_wifi_to_fav,
+      (gpointer)self);
+    add_any_new_wifi_to_fav(G_OBJECT(nwamui_prof_get_instance_noref()), NULL, (gpointer)self);
 }
 
 static void
@@ -1300,19 +1309,11 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     }
 
     if ( self->prv->wifi_net != NULL && self->prv->do_connect ) {
-        gboolean add_to_fav = TRUE;
-
-        add_to_fav = nwam_wireless_dialog_get_persistant(self);
-
-        /* Update preference. */
-        g_object_set(nwamui_prof_get_instance_noref(),
-          "add_any_new_wifi_to_fav", add_to_fav,
-          NULL);
-
         if ( self->prv->ncu ) {
             nwamui_ncu_set_wifi_info(self->prv->ncu, self->prv->wifi_net);
         }
-        nwamui_wifi_net_connect(self->prv->wifi_net, add_to_fav );
+        nwamui_wifi_net_connect(self->prv->wifi_net,
+          gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(self->prv->persistant_cbutton)));
     }
 
     if ( essid ) {
@@ -1381,17 +1382,6 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
         }
         else {
             gtk_widget_set_sensitive(( GTK_WIDGET(self->prv->essid_combo) ), TRUE );
-        }
-
-        /* Update gui according to preferences. */
-        {
-            gboolean add_to_fav;
-
-            g_object_get(nwamui_prof_get_instance_noref(),
-              "add_any_new_wifi_to_fav", &add_to_fav,
-              NULL);
-
-            nwam_wireless_dialog_set_persistant(self, add_to_fav);
         }
 
         /* Don't show the persist flag if we're not connecting, since it's
@@ -1713,6 +1703,15 @@ show_password_cb( GtkToggleButton* widget, gpointer data )
     gtk_entry_set_visibility(GTK_ENTRY(self->prv->wpa_password_entry), active );
 }
 
+static void
+presistant_cb(GtkToggleButton* widget, gpointer data)
+{
+    /* Update preference. */
+    g_object_set(nwamui_prof_get_instance_noref(),
+      "add_any_new_wifi_to_fav", gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)),
+      NULL);
+}
+
 static gboolean
 key_entry_focus_in_cb( GtkWidget* widget, GdkEventFocus *event, gpointer data )
 {
@@ -1943,5 +1942,19 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
         populate_essid_combo(self, GTK_COMBO_BOX_ENTRY(self->prv->essid_combo));
     }
 
+}
+
+static void
+add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamWirelessDialog* self = NWAM_WIRELESS_DIALOG(data);
+    gboolean add_to_fav;
+
+    g_signal_handlers_block_by_func(gobject, (gpointer)add_any_new_wifi_to_fav, data);
+
+    g_object_get(gobject, "add_any_new_wifi_to_fav", &add_to_fav, NULL);
+    nwam_wireless_dialog_set_persistant(self, add_to_fav);
+
+    g_signal_handlers_unblock_by_func(gobject, (gpointer)add_any_new_wifi_to_fav, data);
 }
 
