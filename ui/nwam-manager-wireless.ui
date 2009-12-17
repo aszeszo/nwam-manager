@@ -48,10 +48,12 @@
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox3">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkVBox" id="vbox14">
             <property name="visible">True</property>
             <property name="border_width">12</property>
+            <property name="orientation">vertical</property>
             <property name="spacing">12</property>
             <child>
               <object class="GtkTable" id="top_level_table">
@@ -361,6 +363,7 @@
             <child>
               <object class="GtkVBox" id="vbox15">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <child>
                   <object class="GtkCheckButton" id="show_password_cbox">
                     <property name="label" translatable="yes">_Show passwords while typing</property>
@@ -605,10 +608,12 @@
     <child internal-child="vbox">
       <object class="GtkVBox" id="connect_wireless_dialog_vbox">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkVBox" id="vbox10">
             <property name="visible">True</property>
             <property name="border_width">12</property>
+            <property name="orientation">vertical</property>
             <property name="spacing">6</property>
             <child>
               <object class="GtkLabel" id="label92">
@@ -647,6 +652,7 @@
             <child>
               <object class="GtkHBox" id="hbox1">
                 <property name="visible">True</property>
+                <property name="spacing">6</property>
                 <child>
                   <object class="GtkCheckButton" id="chooser_add_to_preferred_cbox">
                     <property name="label" translatable="yes">_Add to list of favorite networks on successful connection</property>

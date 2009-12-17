@@ -213,10 +213,12 @@
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox1">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkVBox" id="top_level_vbox">
             <property name="visible">True</property>
             <property name="border_width">6</property>
+            <property name="orientation">vertical</property>
             <property name="spacing">12</property>
             <child>
               <object class="GtkTable" id="top_level_nav_table">
@@ -272,6 +274,7 @@
                 <child>
                   <object class="GtkVBox" id="connection_status_vbox">
                     <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkLabel" id="label136">
@@ -295,11 +298,6 @@
                         <property name="hscrollbar_policy">never</property>
                         <property name="vscrollbar_policy">never</property>
                         <property name="shadow_type">in</property>
-                        <child>
-                          <object class="NwamTreeView" id="connection_status_table">
-                            <property name="visible">True</property>
-                          </object>
-                        </child>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -321,7 +319,7 @@
                           </object>
                           <packing>
                             <property name="left_attach">2</property>
-                            <property name="right_attach">3</property>
+                            <property name="right_attach">4</property>
                             <property name="x_options">GTK_FILL</property>
                           </packing>
                         </child>
@@ -551,9 +549,6 @@
                             <property name="y_options"></property>
                           </packing>
                         </child>
-                        <child>
-                          <placeholder/>
-                        </child>
                       </object>
                       <packing>
                         <property name="expand">False</property>
@@ -573,223 +568,54 @@
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkVBox" id="network_profile_vbox">
+                  <object class="GtkTable" id="connection_profile_table">
                     <property name="visible">True</property>
-                    <property name="spacing">6</property>
+                    <property name="n_rows">3</property>
+                    <property name="n_columns">2</property>
+                    <property name="column_spacing">12</property>
+                    <property name="row_spacing">6</property>
                     <child>
-                      <object class="GtkAlignment" id="alignment10">
-                        <property name="visible">True</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="xscale">0.94999998807907104</property>
-                        <child>
-                          <object class="GtkHBox" id="profile_name_hbox">
-                            <property name="visible">True</property>
-                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="spacing">6</property>
-                            <child>
-                              <object class="GtkLabel" id="label13">
-                                <property name="visible">True</property>
-                                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Active _Profile:</property>
-                                <property name="use_underline">True</property>
-                                <accessibility>
-                                  <relation type="label-for" target="profile_name_combo"/>
-                                </accessibility>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkComboBox" id="profile_name_combo">
-                                <property name="visible">True</property>
-                                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                                <property name="model">model2</property>
-                                <child>
-                                  <object class="GtkCellRendererText" id="renderer2"/>
-                                  <attributes>
-                                    <attribute name="text">0</attribute>
-                                  </attributes>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                          </object>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">0</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkAlignment" id="alignment11">
-                        <property name="visible">True</property>
-                        <property name="top_padding">6</property>
-                        <property name="bottom_padding">12</property>
-                        <child>
-                          <object class="GtkHSeparator" id="hseparator2">
-                            <property name="visible">True</property>
-                          </object>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="fill">False</property>
-                        <property name="position">1</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkHBox" id="edit_profile_name_hbox">
-                        <property name="visible">True</property>
-                        <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                        <property name="spacing">6</property>
-                        <child>
-                          <object class="GtkLabel" id="label37">
-                            <property name="visible">True</property>
-                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="xalign">0</property>
-                            <property name="label" translatable="yes">_View/Edit Profile:</property>
-                            <property name="use_underline">True</property>
-                            <accessibility>
-                              <relation type="label-for" target="edit_profile_name_combo"/>
-                            </accessibility>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="position">0</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkComboBox" id="edit_profile_name_combo">
-                            <property name="visible">True</property>
-                            <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
-                            <property name="model">model3</property>
-                            <child>
-                              <object class="GtkCellRendererText" id="renderer3"/>
-                              <attributes>
-                                <attribute name="text">0</attribute>
-                              </attributes>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="profile_edit_btn">
-                            <property name="label" translatable="yes">Connections...</property>
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="receives_default">True</property>
-                          </object>
-                          <packing>
-                            <property name="expand">False</property>
-                            <property name="position">2</property>
-                          </packing>
-                        </child>
-                      </object>
-                      <packing>
-                        <property name="expand">False</property>
-                        <property name="position">2</property>
-                      </packing>
-                    </child>
-                    <child>
-                      <object class="GtkLabel" id="label78">
+                      <object class="GtkLabel" id="label19">
                         <property name="visible">True</property>
                         <property name="xalign">0</property>
-                        <property name="label" translatable="yes">
-Choose which connections are enabled in this profile:</property>
-                        <accessibility>
-                          <relation type="label-for" target="connection_list_table"/>
-                        </accessibility>
+                        <property name="label" translatable="yes">Network profiles:</property>
+                        <property name="use_underline">True</property>
                       </object>
                       <packing>
-                        <property name="expand">False</property>
-                        <property name="position">3</property>
+                        <property name="right_attach">2</property>
+                        <property name="y_options">GTK_FILL</property>
                       </packing>
                     </child>
                     <child>
-                      <object class="GtkTable" id="connection_list_table">
+                      <object class="GtkScrolledWindow" id="connection_profile_scrolledwindow">
                         <property name="visible">True</property>
-                        <property name="n_rows">2</property>
-                        <property name="n_columns">2</property>
-                        <property name="column_spacing">6</property>
-                        <property name="row_spacing">12</property>
+                        <property name="can_focus">True</property>
+                        <property name="hscrollbar_policy">automatic</property>
+                        <property name="vscrollbar_policy">automatic</property>
+                        <property name="shadow_type">in</property>
+                      </object>
+                      <packing>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkAlignment" id="alignment13">
+                        <property name="visible">True</property>
+                        <property name="yalign">0</property>
+                        <property name="yscale">0</property>
                         <child>
-                          <object class="GtkHBox" id="hbox5">
+                          <object class="GtkVButtonBox" id="vbuttonbox4">
                             <property name="visible">True</property>
-                            <property name="spacing">6</property>
-                            <child>
-                              <object class="GtkLabel" id="activation_mode_lbl">
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Selected gro_up:</property>
-                                <property name="use_underline">True</property>
-                                <accessibility>
-                                  <relation type="label-for" target="connection_activation_combo"/>
-                                </accessibility>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkComboBox" id="connection_activation_combo">
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="model">model4</property>
-                                <child>
-                                  <object class="GtkCellRendererText" id="renderer4"/>
-                                  <attributes>
-                                    <attribute name="text">0</attribute>
-                                  </attributes>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="top_attach">1</property>
-                            <property name="bottom_attach">2</property>
-                            <property name="y_options"></property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkScrolledWindow" id="network_profile_scrolledwindow">
-                            <property name="visible">True</property>
-                            <property name="can_focus">True</property>
-                            <property name="hscrollbar_policy">automatic</property>
-                            <property name="vscrollbar_policy">automatic</property>
-                            <property name="shadow_type">in</property>
-                            <child>
-                              <object class="NwamTreeView" id="network_profile_table">
-                                <property name="visible">True</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkVButtonBox" id="vbuttonbox3">
-                            <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
                             <property name="spacing">3</property>
-                            <property name="layout_style">start</property>
                             <child>
-                              <object class="GtkButton" id="connection_enable_btn">
-                                <property name="label" translatable="yes">_Enable</property>
+                              <object class="GtkButton" id="profile_add_btn">
+                                <property name="label">gtk-add</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_underline">True</property>
+                                <property name="use_stock">True</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -798,12 +624,12 @@ Choose which connections are enabled in this profile:</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="connection_disable_btn">
-                                <property name="label" translatable="yes">Di_sable</property>
+                              <object class="GtkButton" id="profile_remove_btn">
+                                <property name="label">gtk-remove</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
-                                <property name="use_underline">True</property>
+                                <property name="use_stock">True</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -812,8 +638,8 @@ Choose which connections are enabled in this profile:</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="connection_group_btn">
-                                <property name="label" translatable="yes">New _Group</property>
+                              <object class="GtkButton" id="profile_rename_btn">
+                                <property name="label" translatable="yes">Re_name</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
@@ -826,13 +652,12 @@ Choose which connections are enabled in this profile:</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="connection_move_up_btn">
-                                <property name="label">gtk-go-up</property>
+                              <object class="GtkButton" id="profile_dup_btn">
+                                <property name="label" translatable="yes">_Duplicate</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="can_default">True</property>
-                                <property name="receives_default">False</property>
-                                <property name="use_stock">True</property>
+                                <property name="receives_default">True</property>
+                                <property name="use_underline">True</property>
                               </object>
                               <packing>
                                 <property name="expand">False</property>
@@ -841,12 +666,11 @@ Choose which connections are enabled in this profile:</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkButton" id="connection_move_down_btn">
-                                <property name="label">gtk-go-down</property>
+                              <object class="GtkButton" id="profile_edit_btn">
+                                <property name="label">gtk-edit</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
-                                <property name="can_default">True</property>
-                                <property name="receives_default">False</property>
+                                <property name="receives_default">True</property>
                                 <property name="use_stock">True</property>
                               </object>
                               <packing>
@@ -855,69 +679,138 @@ Choose which connections are enabled in this profile:</property>
                                 <property name="position">4</property>
                               </packing>
                             </child>
-                            <child>
-                              <object class="GtkButton" id="connection_rename_btn">
-                                <property name="visible">True</property>
-                                <property name="can_focus">True</property>
-                                <property name="can_default">True</property>
-                                <property name="receives_default">False</property>
-                                <child>
-                                  <object class="GtkAlignment" id="alignment32">
-                                    <property name="visible">True</property>
-                                    <property name="xscale">0</property>
-                                    <property name="yscale">0</property>
-                                    <child>
-                                      <object class="GtkHBox" id="hbox15">
-                                        <property name="visible">True</property>
-                                        <property name="spacing">2</property>
-                                        <child>
-                                          <object class="GtkImage" id="image18">
-                                            <property name="visible">True</property>
-                                            <property name="stock">gtk-edit</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
-                                            <property name="position">0</property>
-                                          </packing>
-                                        </child>
-                                        <child>
-                                          <object class="GtkLabel" id="label105">
-                                            <property name="visible">True</property>
-                                            <property name="label" translatable="yes">_Rename</property>
-                                            <property name="use_underline">True</property>
-                                          </object>
-                                          <packing>
-                                            <property name="expand">False</property>
-                                            <property name="fill">False</property>
-                                            <property name="position">1</property>
-                                          </packing>
-                                        </child>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="expand">False</property>
-                                <property name="fill">False</property>
-                                <property name="position">5</property>
-                              </packing>
-                            </child>
                           </object>
-                          <packing>
-                            <property name="left_attach">1</property>
-                            <property name="right_attach">2</property>
-                            <property name="x_options"></property>
-                          </packing>
-                        </child>
-                        <child>
-                          <placeholder/>
                         </child>
                       </object>
                       <packing>
-                        <property name="padding">12</property>
-                        <property name="position">4</property>
+                        <property name="left_attach">1</property>
+                        <property name="right_attach">2</property>
+                        <property name="top_attach">1</property>
+                        <property name="bottom_attach">2</property>
+                        <property name="x_options">GTK_FILL</property>
+                        <property name="y_options">GTK_FILL</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkAlignment" id="alignment1">
+                        <property name="visible">True</property>
+                        <property name="top_padding">12</property>
+                        <property name="bottom_padding">6</property>
+                        <child>
+                          <object class="GtkTable" id="connection_profile_summary_table">
+                            <property name="visible">True</property>
+                            <property name="n_rows">4</property>
+                            <property name="n_columns">2</property>
+                            <property name="column_spacing">6</property>
+                            <property name="row_spacing">3</property>
+                            <child>
+                              <object class="GtkLabel" id="label1">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">&lt;b&gt;Selected profile:&lt;/b&gt;</property>
+                                <property name="use_markup">True</property>
+                              </object>
+                              <packing>
+                                <property name="x_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="label2">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">&lt;b&gt;Always enabled:&lt;/b&gt;</property>
+                                <property name="use_markup">True</property>
+                              </object>
+                              <packing>
+                                <property name="top_attach">1</property>
+                                <property name="bottom_attach">2</property>
+                                <property name="x_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="label3">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">&lt;b&gt;Priority groups:&lt;/b&gt;</property>
+                                <property name="use_markup">True</property>
+                              </object>
+                              <packing>
+                                <property name="top_attach">2</property>
+                                <property name="bottom_attach">3</property>
+                                <property name="x_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="label4">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">&lt;b&gt;Always disabled:&lt;/b&gt;</property>
+                                <property name="use_markup">True</property>
+                              </object>
+                              <packing>
+                                <property name="top_attach">3</property>
+                                <property name="bottom_attach">4</property>
+                                <property name="x_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="selected_profile_lbl">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">User 1</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="right_attach">2</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="always_enabled_lbl">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">Wired (name)</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="right_attach">2</property>
+                                <property name="top_attach">1</property>
+                                <property name="bottom_attach">2</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="priority_groups_lbl">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">0</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="right_attach">2</property>
+                                <property name="top_attach">2</property>
+                                <property name="bottom_attach">3</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="always_disabled_lbl">
+                                <property name="visible">True</property>
+                                <property name="xalign">0</property>
+                                <property name="label" translatable="yes">Wireless (name) and 2 others</property>
+                              </object>
+                              <packing>
+                                <property name="left_attach">1</property>
+                                <property name="right_attach">2</property>
+                                <property name="top_attach">3</property>
+                                <property name="bottom_attach">4</property>
+                              </packing>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="right_attach">2</property>
+                        <property name="top_attach">2</property>
+                        <property name="bottom_attach">3</property>
+                        <property name="y_options"></property>
                       </packing>
                     </child>
                   </object>
@@ -1698,6 +1591,7 @@ Choose which connections are enabled in this profile:</property>
                       <object class="GtkVBox" id="wireless_tab_vbox">
                         <property name="visible">True</property>
                         <property name="border_width">12</property>
+                        <property name="orientation">vertical</property>
                         <property name="spacing">24</property>
                         <child>
                           <object class="GtkTable" id="preferred_networks_table">
@@ -1727,6 +1621,7 @@ connection will be attempted:</property>
                                 <child>
                                   <object class="GtkVButtonBox" id="preferred_network_buttons">
                                     <property name="visible">True</property>
+                                    <property name="orientation">vertical</property>
                                     <property name="spacing">3</property>
                                     <child>
                                       <object class="GtkButton" id="wireless_tab_add_button">
@@ -1846,6 +1741,7 @@ connection will be attempted:</property>
                         <child>
                           <object class="GtkVBox" id="no_networks_available_vbox">
                             <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
                             <property name="spacing">3</property>
                             <child>
                               <object class="GtkLabel" id="label6">
@@ -2122,6 +2018,7 @@ connection will be attempted:</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox2">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkVBox" id="environment_toplevel_vbox">
             <property name="visible">True</property>
@@ -2134,6 +2031,7 @@ connection will be attempted:</property>
                 <child>
                   <object class="GtkVBox" id="proxy_tab_vbox">
                     <property name="border_width">6</property>
+                    <property name="orientation">vertical</property>
                     <property name="spacing">6</property>
                     <child>
                       <object class="GtkAlignment" id="proxy_alignment1">
@@ -2684,6 +2582,7 @@ connection will be attempted:</property>
                     <child>
                       <object class="GtkVBox" id="name_services_vbox">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <property name="spacing">6</property>
                         <child>
                           <object class="GtkTable" id="name_services_table">
@@ -3112,23 +3011,23 @@ connection will be attempted:</property>
                         <child>
                           <object class="GtkTable" id="table8">
                             <property name="visible">True</property>
-                            <property name="n_rows">3</property>
+                            <property name="n_rows">6</property>
                             <property name="n_columns">3</property>
-                            <property name="column_spacing">3</property>
+                            <property name="column_spacing">6</property>
                             <property name="row_spacing">6</property>
                             <child>
                               <object class="GtkLabel" id="label25">
                                 <property name="visible">True</property>
                                 <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
                                 <property name="xalign">0</property>
-                                <property name="label" translatable="yes">nsswitch file:</property>
+                                <property name="label" translatable="yes">Custom nsswitch file:</property>
                                 <accessibility>
                                   <relation type="label-for" target="nsswitch_file_btn"/>
                                 </accessibility>
                               </object>
                               <packing>
-                                <property name="top_attach">2</property>
-                                <property name="bottom_attach">3</property>
+                                <property name="top_attach">4</property>
+                                <property name="bottom_attach">5</property>
                                 <property name="x_options">GTK_FILL</property>
                                 <property name="y_options">GTK_FILL</property>
                               </packing>
@@ -3142,14 +3041,14 @@ connection will be attempted:</property>
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
-                                <property name="top_attach">2</property>
-                                <property name="bottom_attach">3</property>
+                                <property name="top_attach">4</property>
+                                <property name="bottom_attach">5</property>
                                 <property name="y_options">GTK_FILL</property>
                               </packing>
                             </child>
                             <child>
                               <object class="GtkButton" id="nsswitch_default_btn">
-                                <property name="label" translatable="yes">_Default</property>
+                                <property name="label" translatable="yes">Use _Default</property>
                                 <property name="visible">True</property>
                                 <property name="can_focus">True</property>
                                 <property name="receives_default">True</property>
@@ -3158,8 +3057,8 @@ connection will be attempted:</property>
                               <packing>
                                 <property name="left_attach">2</property>
                                 <property name="right_attach">3</property>
-                                <property name="top_attach">2</property>
-                                <property name="bottom_attach">3</property>
+                                <property name="top_attach">4</property>
+                                <property name="bottom_attach">5</property>
                                 <property name="x_options">GTK_FILL</property>
                                 <property name="y_options">GTK_FILL</property>
                               </packing>
@@ -3173,6 +3072,8 @@ connection will be attempted:</property>
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">3</property>
+                                <property name="top_attach">1</property>
+                                <property name="bottom_attach">2</property>
                                 <property name="y_options"></property>
                               </packing>
                             </child>
@@ -3188,6 +3089,8 @@ connection will be attempted:</property>
                                 </accessibility>
                               </object>
                               <packing>
+                                <property name="top_attach">1</property>
+                                <property name="bottom_attach">2</property>
                                 <property name="x_options">GTK_FILL</property>
                                 <property name="y_options">GTK_FILL</property>
                               </packing>
@@ -3211,9 +3114,40 @@ connection will be attempted:</property>
                               </object>
                               <packing>
                                 <property name="right_attach">3</property>
-                                <property name="top_attach">1</property>
-                                <property name="bottom_attach">2</property>
+                                <property name="top_attach">2</property>
+                                <property name="bottom_attach">3</property>
                                 <property name="y_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="default_file_lbl">
+                                <property name="visible">True</property>
+                                <property name="xalign">1</property>
+                                <property name="label" translatable="yes">&lt;small&gt;&lt;i&gt;&lt;b&gt;Default nsswitch file (in use):&lt;/b&gt; /etc/nsswitch.dns&lt;/i&gt;&lt;/small&gt;</property>
+                                <property name="use_markup">True</property>
+                              </object>
+                              <packing>
+                                <property name="right_attach">3</property>
+                                <property name="top_attach">5</property>
+                                <property name="bottom_attach">6</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="label2">
+                                <property name="visible">True</property>
+                              </object>
+                              <packing>
+                                <property name="right_attach">3</property>
+                                <property name="top_attach">3</property>
+                                <property name="bottom_attach">4</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="label3">
+                                <property name="visible">True</property>
+                              </object>
+                              <packing>
+                                <property name="right_attach">3</property>
                               </packing>
                             </child>
                           </object>
@@ -3248,6 +3182,7 @@ connection will be attempted:</property>
                     <child>
                       <object class="GtkVBox" id="ipfilter_vbox">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <property name="spacing">12</property>
                         <child>
                           <object class="GtkFrame" id="ipfilter_frame">
@@ -3587,6 +3522,7 @@ Disable these services when this location is active:</property>
                         <child>
                           <object class="GtkVButtonBox" id="vbuttonbox6">
                             <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
                             <property name="spacing">3</property>
                             <child>
                               <object class="GtkButton" id="add_enabled_netservice_btn">
@@ -3637,6 +3573,7 @@ Disable these services when this location is active:</property>
                         <child>
                           <object class="GtkVButtonBox" id="vbuttonbox1">
                             <property name="visible">True</property>
+                            <property name="orientation">vertical</property>
                             <property name="spacing">3</property>
                             <child>
                               <object class="GtkButton" id="add_disabled_netservice_btn">
@@ -3792,14 +3729,17 @@ Disable these services when this location is active:</property>
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox4">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkVBox" id="vbox12">
             <property name="visible">True</property>
             <property name="border_width">6</property>
+            <property name="orientation">vertical</property>
             <property name="spacing">12</property>
             <child>
               <object class="GtkVBox" id="vbox13">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <property name="spacing">3</property>
                 <child>
                   <object class="GtkLabel" id="label104">
@@ -3864,16 +3804,12 @@ Disable these services when this location is active:</property>
                         <property name="hscrollbar_policy">never</property>
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">in</property>
-                        <child>
-                          <object class="NwamTreeView" id="vpn_apps_list">
-                            <property name="visible">True</property>
-                          </object>
-                        </child>
                       </object>
                     </child>
                     <child>
                       <object class="GtkVButtonBox" id="vbuttonbox2">
                         <property name="visible">True</property>
+                        <property name="orientation">vertical</property>
                         <property name="spacing">3</property>
                         <property name="layout_style">start</property>
                         <child>
@@ -4009,6 +3945,7 @@ Disable these services when this location is active:</property>
             <child>
               <object class="GtkVBox" id="vpn_vbox2">
                 <property name="visible">True</property>
+                <property name="orientation">vertical</property>
                 <property name="spacing">12</property>
                 <child>
                   <object class="GtkFrame" id="frame1">
@@ -4387,6 +4324,7 @@ system/system-log:default
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox5">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkHBox" id="hbox19">
             <property name="visible">True</property>
@@ -4483,6 +4421,7 @@ system/system-log:default
       <object class="GtkVBox" id="dialog-vbox7">
         <property name="visible">True</property>
         <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
           <object class="GtkTable" id="table3">
@@ -4667,6 +4606,7 @@ Enter username and password for http://$HOST:$PORT
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox8">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
           <object class="GtkAlignment" id="alignment30">
@@ -4719,6 +4659,7 @@ Enter username and password for http://$HOST:$PORT
                 <child>
                   <object class="GtkVButtonBox" id="vbuttonbox5">
                     <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <property name="layout_style">start</property>
                     <child>
                       <object class="GtkButton" id="ext_properties_edit_btn1">
@@ -4806,6 +4747,7 @@ Enter username and password for http://$HOST:$PORT
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox9">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
           <object class="GtkTable" id="table5">
@@ -4833,11 +4775,6 @@ Enter username and password for http://$HOST:$PORT
                 <property name="hscrollbar_policy">automatic</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">in</property>
-                <child>
-                  <object class="NwamTreeView" id="location_tree">
-                    <property name="visible">True</property>
-                  </object>
-                </child>
               </object>
               <packing>
                 <property name="top_attach">1</property>
@@ -4852,6 +4789,7 @@ Enter username and password for http://$HOST:$PORT
                 <child>
                   <object class="GtkVButtonBox" id="vbuttonbox4">
                     <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
                     <property name="spacing">3</property>
                     <child>
                       <object class="GtkButton" id="location_add_btn">
@@ -5142,6 +5080,7 @@ Enter username and password for http://$HOST:$PORT
   <object class="GtkDialog" id="enter_service_fmri_dialog">
     <property name="border_width">5</property>
     <property name="title" translatable="yes">SMF Service</property>
+    <property name="modal">True</property>
     <property name="window_position">center-on-parent</property>
     <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">normal</property>
@@ -5151,10 +5090,12 @@ Enter username and password for http://$HOST:$PORT
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox10">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <property name="spacing">2</property>
         <child>
           <object class="GtkVBox" id="smf_fmri_vbox">
             <property name="visible">True</property>
+            <property name="orientation">vertical</property>
             <property name="spacing">6</property>
             <child>
               <object class="GtkLabel" id="label40">
@@ -5264,9 +5205,11 @@ system/system-log:default
     <child internal-child="vbox">
       <object class="GtkVBox" id="dialog-vbox11">
         <property name="visible">True</property>
+        <property name="orientation">vertical</property>
         <child>
           <object class="GtkVBox" id="rules_dialog_vbox">
             <property name="visible">True</property>
+            <property name="orientation">vertical</property>
             <property name="spacing">6</property>
             <child>
               <object class="GtkHBox" id="dialog_hbox1">
@@ -5525,6 +5468,355 @@ system/system-log:default
     <action-widgets>
       <action-widget response="-6">cancel_btn</action-widget>
       <action-widget response="-5">ok_btn</action-widget>
+    </action-widgets>
+  </object>
+  <object class="GtkDialog" id="edit_network_profile_dlg">
+    <property name="border_width">5</property>
+    <property name="title" translatable="yes">Edit Network Profile</property>
+    <property name="modal">True</property>
+    <property name="destroy_with_parent">True</property>
+    <property name="type_hint">normal</property>
+    <property name="has_separator">False</property>
+    <child internal-child="vbox">
+      <object class="GtkVBox" id="dialog-vbox11">
+        <property name="visible">True</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">2</property>
+        <child>
+          <object class="GtkVBox" id="network_profile_vbox">
+            <property name="visible">True</property>
+            <property name="orientation">vertical</property>
+            <property name="spacing">6</property>
+            <child>
+              <object class="GtkHBox" id="edit_profile_name_hbox">
+                <property name="visible">True</property>
+                <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                <property name="spacing">6</property>
+                <child>
+                  <object class="GtkLabel" id="label37">
+                    <property name="visible">True</property>
+                    <property name="events">GDK_POINTER_MOTION_MASK | GDK_POINTER_MOTION_HINT_MASK | GDK_BUTTON_PRESS_MASK | GDK_BUTTON_RELEASE_MASK</property>
+                    <property name="xalign">0</property>
+                    <property name="label" translatable="yes">Profile _name:</property>
+                    <property name="use_underline">True</property>
+                    <accessibility>
+                      <relation type="label-for" target="edit_profile_name_combo"/>
+                    </accessibility>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">0</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkEntry" id="profile_name_entry">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="invisible_char">&#x25CF;</property>
+                  </object>
+                  <packing>
+                    <property name="position">1</property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkButton" id="profile_edit_btn">
+                    <property name="label" translatable="yes">Connections...</property>
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="receives_default">True</property>
+                  </object>
+                  <packing>
+                    <property name="expand">False</property>
+                    <property name="position">2</property>
+                  </packing>
+                </child>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkLabel" id="label78">
+                <property name="visible">True</property>
+                <property name="xalign">0</property>
+                <property name="label" translatable="yes">
+Choose which connections are enabled in this profile:</property>
+                <accessibility>
+                  <relation type="label-for" target="connection_list_table"/>
+                </accessibility>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkTable" id="connection_list_table">
+                <property name="visible">True</property>
+                <property name="n_rows">2</property>
+                <property name="n_columns">2</property>
+                <property name="column_spacing">6</property>
+                <property name="row_spacing">12</property>
+                <child>
+                  <object class="GtkHBox" id="hbox5">
+                    <property name="visible">True</property>
+                    <property name="spacing">6</property>
+                    <child>
+                      <object class="GtkLabel" id="activation_mode_lbl">
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="xalign">0</property>
+                        <property name="label" translatable="yes">Selected gro_up:</property>
+                        <property name="use_underline">True</property>
+                        <accessibility>
+                          <relation type="label-for" target="connection_activation_combo"/>
+                        </accessibility>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkComboBox" id="connection_activation_combo">
+                        <property name="visible">True</property>
+                        <property name="sensitive">False</property>
+                        <property name="model">model4</property>
+                        <child>
+                          <object class="GtkCellRendererText" id="renderer4"/>
+                          <attributes>
+                            <attribute name="text">0</attribute>
+                          </attributes>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
+                    <property name="y_options"></property>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow" id="network_profile_scrolledwindow">
+                    <property name="visible">True</property>
+                    <property name="can_focus">True</property>
+                    <property name="hscrollbar_policy">automatic</property>
+                    <property name="vscrollbar_policy">automatic</property>
+                    <property name="shadow_type">in</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkVButtonBox" id="vbuttonbox3">
+                    <property name="visible">True</property>
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">3</property>
+                    <property name="layout_style">start</property>
+                    <child>
+                      <object class="GtkButton" id="connection_enable_btn">
+                        <property name="label" translatable="yes">_Enable</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">0</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="connection_disable_btn">
+                        <property name="label" translatable="yes">Di_sable</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">1</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="connection_group_btn">
+                        <property name="label" translatable="yes">New _Group</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_underline">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">2</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="connection_move_up_btn">
+                        <property name="label">gtk-go-up</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="can_default">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="connection_move_down_btn">
+                        <property name="label">gtk-go-down</property>
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="can_default">True</property>
+                        <property name="receives_default">True</property>
+                        <property name="use_stock">True</property>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">4</property>
+                      </packing>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="connection_rename_btn">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="can_default">True</property>
+                        <property name="receives_default">True</property>
+                        <child>
+                          <object class="GtkAlignment" id="alignment32">
+                            <property name="visible">True</property>
+                            <property name="xscale">0</property>
+                            <property name="yscale">0</property>
+                            <child>
+                              <object class="GtkHBox" id="hbox15">
+                                <property name="visible">True</property>
+                                <property name="spacing">2</property>
+                                <child>
+                                  <object class="GtkImage" id="image18">
+                                    <property name="visible">True</property>
+                                    <property name="stock">gtk-edit</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel" id="label105">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">_Rename</property>
+                                    <property name="use_underline">True</property>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">False</property>
+                                    <property name="fill">False</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
+                              </object>
+                            </child>
+                          </object>
+                        </child>
+                      </object>
+                      <packing>
+                        <property name="expand">False</property>
+                        <property name="fill">False</property>
+                        <property name="position">5</property>
+                      </packing>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">2</property>
+                    <property name="x_options"></property>
+                  </packing>
+                </child>
+                <child>
+                  <placeholder/>
+                </child>
+              </object>
+              <packing>
+                <property name="padding">12</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="position">1</property>
+          </packing>
+        </child>
+        <child internal-child="action_area">
+          <object class="GtkHButtonBox" id="dialog-action_area11">
+            <property name="visible">True</property>
+            <property name="layout_style">end</property>
+            <child>
+              <object class="GtkButton" id="profile_cancel_btn">
+                <property name="label">gtk-help</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">0</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="profile_help_btn">
+                <property name="label">gtk-cancel</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">1</property>
+              </packing>
+            </child>
+            <child>
+              <object class="GtkButton" id="profile_ok_btn">
+                <property name="label">gtk-ok</property>
+                <property name="visible">True</property>
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="use_stock">True</property>
+              </object>
+              <packing>
+                <property name="expand">False</property>
+                <property name="fill">False</property>
+                <property name="position">2</property>
+              </packing>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="pack_type">end</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+    <action-widgets>
+      <action-widget response="0">profile_cancel_btn</action-widget>
+      <action-widget response="0">profile_help_btn</action-widget>
+      <action-widget response="0">profile_ok_btn</action-widget>
     </action-widgets>
   </object>
 </interface>

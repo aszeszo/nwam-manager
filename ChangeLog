@@ -1,3 +1,12 @@
+2009-12-17  Calum Benson  <calum.benson@sun.com>
+
+	* ui/nwam-manager-properties.ui:
+	* ui/nwam-manager-wireless.ui:
+
+	Changes to support multiple NCPs (bug #12886) and updated
+	nsswitch file selection behaviour (bug #12593), per
+	v1.15 of UI spec.
+
 2009-12-16  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_wireless_chooser.c (nwam_wireless_chooser_init),
