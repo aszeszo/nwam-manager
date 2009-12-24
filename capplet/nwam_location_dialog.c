@@ -113,8 +113,6 @@ static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_location_dialog_finalize(NwamLocationDialog *self);
 
-static void nwam_location_add (NwamLocationDialog *self, NwamuiNcu* connection);
-
 static void location_set_property (GObject         *object,
   guint            prop_id,
   const GValue    *value,
@@ -137,13 +135,6 @@ static gint nwam_location_connection_compare_cb (GtkTreeModel *model,
 			      GtkTreeIter *a,
 			      GtkTreeIter *b,
 			      gpointer user_data);
-static void nwam_location_connection_view_row_activated_cb (GtkTreeView *tree_view,
-  GtkTreePath *path,
-  GtkTreeViewColumn *column,
-  gpointer data);
-
-static void nwam_location_connection_view_row_selected_cb (GtkTreeView *tree_view,
-                                                           gpointer data);
 
 static void vanity_name_editing_started (GtkCellRenderer *cell,
                                          GtkCellEditable *editable,
@@ -314,8 +305,6 @@ nwam_compose_tree_view (NwamLocationDialog *self)
     g_signal_connect (cell, "edited", G_CALLBACK(vanity_name_edited), (gpointer)self);
     g_signal_connect (cell, "editing-started", G_CALLBACK(vanity_name_editing_started), (gpointer)self);
     g_signal_connect (cell, "editing-canceled", G_CALLBACK(vanity_name_editing_canceled), (gpointer)self);
-
-    g_object_set_data (G_OBJECT (col), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER(LOCVIEW_NAME));
 	g_object_set (cell, "weight", PANGO_WEIGHT_BOLD, NULL);
 	g_object_set_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM, GINT_TO_POINTER (LOCVIEW_NAME));
 
@@ -412,14 +401,6 @@ nwam_location_dialog_init(NwamLocationDialog *self)
     nwam_compose_tree_view(self);
     
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
-	g_signal_connect(GTK_TREE_VIEW(prv->location_tree),
-      "row-activated",
-      (GCallback)nwam_location_connection_view_row_activated_cb,
-      (gpointer)self);
-	g_signal_connect(GTK_TREE_VIEW(prv->location_tree),
-      "cursor-changed",
-      (GCallback)nwam_location_connection_view_row_selected_cb,
-      (gpointer)self);
 
     /* Initially refresh self */
     nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
@@ -847,63 +828,6 @@ vanity_name_edited ( GtkCellRendererText *cell,
     gtk_widget_set_sensitive( GTK_WIDGET(self->prv->location_ok_btn), TRUE);
 }
 
-/*
- * Double-clicking a connection switches the status view to that connection's
- * properties view (p5)
- */
-static void
-nwam_location_connection_view_row_activated_cb (GtkTreeView *tree_view,
-			    GtkTreePath *path,
-			    GtkTreeViewColumn *column,
-			    gpointer data)
-{
-	NwamLocationDialog* self = NWAM_LOCATION_DIALOG(data);
-    GtkTreeIter iter;
-    GtkTreeModel *model = gtk_tree_view_get_model(tree_view);
-
-    gint columnid = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (column), TREEVIEW_COLUMN_NUM));
-
-    /* skip the toggle coolumn */
-    if (gtk_tree_model_get_iter (model, &iter, path)) {
-        gpointer    connection;
-        NwamuiEnv*  env;
-
-        gtk_tree_model_get(model, &iter, 0, &connection, -1);
-
-        env  = NWAMUI_ENV( connection );
-
-        /* nwam_capplet_dialog_select_env(self->prv->pref_dialog, env ); */
-    }
-}
-
-/*
- * Selecting (using keys or mouse) a connection needs to have the conditions
- * updated.
- */
-static void
-nwam_location_connection_view_row_selected_cb (GtkTreeView *tree_view,
-                                               gpointer data)
-{
-	NwamLocationDialog*   self = NWAM_LOCATION_DIALOG(data);
-    GtkTreePath*        path = NULL;
-    GtkTreeViewColumn*  focus_column = NULL;;
-    GtkTreeIter         iter;
-    GtkTreeModel*       model = gtk_tree_view_get_model(tree_view);
-
-    gtk_tree_view_get_cursor ( tree_view, &path, &focus_column );
-
-    if (path != NULL && gtk_tree_model_get_iter (model, &iter, path))
-    {
-        gpointer    connection;
-        NwamuiEnv*  env;
-
-        gtk_tree_model_get(model, &iter, 0, &connection, -1);
-
-        env  = NWAMUI_ENV( connection );
-        
-    }
-    gtk_tree_path_free (path);
-}
 
 static void
 nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
@@ -1038,7 +962,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
                 env_pref_dialog = nwam_env_pref_dialog_new();
 
             nwam_pref_refresh(NWAM_PREF_IFACE(env_pref_dialog), NWAMUI_OBJECT(env), TRUE);
-            capplet_dialog_run(NWAM_PREF_IFACE(env_pref_dialog), GTK_WIDGET(button));
+            nwam_pref_dialog_run(NWAM_PREF_IFACE(env_pref_dialog), GTK_WIDGET(button));
 
         } else if (button == (gpointer)prv->location_remove_btn) {
             gchar*  message = g_strdup_printf(_("Remove location '%s'?"),
@@ -1063,9 +987,9 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
             g_assert(name);
 
-            object = NWAMUI_OBJECT(nwamui_env_clone( env ));
-            nwamui_object_set_name(object, name);
-            CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
+            object = nwamui_object_clone(NWAMUI_OBJECT(env), name, NULL);
+            /* nwamui_object_set_name(object, name); */
+            /* CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object); */
             g_free(name);
             g_free(prefix);
 
@@ -1126,7 +1050,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
         } else if (button == (gpointer)prv->location_rules_btn) {
             NwamPrefIFace *rules_dialog = NWAM_PREF_IFACE(nwam_rules_dialog_new());
             nwam_pref_refresh(rules_dialog, NWAMUI_OBJECT(env), TRUE);
-            capplet_dialog_run(rules_dialog, GTK_WIDGET(button));
+            nwam_pref_dialog_run(rules_dialog, GTK_WIDGET(button));
             g_object_unref(rules_dialog);
             /* Update the select row, since the activation may changed. */
             nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(prv->location_tree), (gpointer)self);

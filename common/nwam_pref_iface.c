@@ -171,12 +171,21 @@ nwam_pref_help (NwamPrefIFace *iface, gpointer user_data)
 }
 
 extern gint
-nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
+nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWidget *w)
 {
 	NwamPrefInterface *interface = NWAM_GET_PREF_INTERFACE (iface);
+	GtkWindow         *parent    = NULL;
 
-    g_return_val_if_fail(interface != NULL, FALSE );
-    g_return_val_if_fail(interface->dialog_run, FALSE );
+    g_return_val_if_fail(interface != NULL, FALSE);
+    g_return_val_if_fail(interface->dialog_run, FALSE);
+
+	if (w) {
+		w = gtk_widget_get_toplevel(w);
+
+		if (GTK_WIDGET_TOPLEVEL (w)) {
+			parent = GTK_WINDOW(w);
+		}
+	}
 
     return interface->dialog_run(iface, parent);
 }
@@ -190,5 +199,16 @@ nwam_pref_dialog_get_window(NwamPrefIFace *iface)
     g_return_val_if_fail(interface->dialog_get_window, NULL );
 
     return interface->dialog_get_window(iface);
+}
+
+extern void
+nwam_pref_set_purpose(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose)
+{
+	NwamPrefInterface *interface = NWAM_GET_PREF_INTERFACE (iface);
+
+    g_return_if_fail(interface);
+    g_return_if_fail(interface->set_purpose);
+
+    interface->set_purpose(iface, purpose);
 }
 

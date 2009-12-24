@@ -25,41 +25,41 @@
  * 
  */
 
-#ifndef _NWAM_NET_CONF_PANEL_H
-#define	_NWAM_NET_CONF_PANEL_H
+#ifndef _NWAM_PROFILE_DIALOG_H
+#define	_NWAM_PROFILE_DIALOG_H
 
 G_BEGIN_DECLS
 
 
-#define NWAM_TYPE_NET_CONF_PANEL               (nwam_net_conf_panel_get_type ())
-#define NWAM_NET_CONF_PANEL(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), NWAM_TYPE_NET_CONF_PANEL, NwamNetConfPanel))
-#define NWAM_NET_CONF_PANEL_CLASS(klass)       (G_TYPE_CHECK_CLASS_CAST ((klass), NWAM_TYPE_NET_CONF_PANEL, NwamNetConfPanelClass))
-#define NWAM_IS_NET_CONF_PANEL(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NWAM_TYPE_NET_CONF_PANEL))
-#define NWAM_IS_NET_CONF_PANEL_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE ((klass), NWAM_TYPE_NET_CONF_PANEL))
-#define NWAM_NET_CONF_PANEL_GET_CLASS(obj)     (G_TYPE_INSTANCE_GET_CLASS ((obj), NWAM_TYPE_NET_CONF_PANEL, NwamNetConfPanelClass))
+#define NWAM_TYPE_PROFILE_DIALOG               (nwam_profile_dialog_get_type ())
+#define NWAM_PROFILE_DIALOG(obj)               (G_TYPE_CHECK_INSTANCE_CAST ((obj), NWAM_TYPE_PROFILE_DIALOG, NwamProfileDialog))
+#define NWAM_PROFILE_DIALOG_CLASS(klass)       (G_TYPE_CHECK_CLASS_CAST ((klass), NWAM_TYPE_PROFILE_DIALOG, NwamProfileDialogClass))
+#define NWAM_IS_PROFILE_DIALOG(obj)            (G_TYPE_CHECK_INSTANCE_TYPE ((obj), NWAM_TYPE_PROFILE_DIALOG))
+#define NWAM_IS_PROFILE_DIALOG_CLASS(klass)    (G_TYPE_CHECK_CLASS_TYPE ((klass), NWAM_TYPE_PROFILE_DIALOG))
+#define NWAM_PROFILE_DIALOG_GET_CLASS(obj)     (G_TYPE_INSTANCE_GET_CLASS ((obj), NWAM_TYPE_PROFILE_DIALOG, NwamProfileDialogClass))
 
 
-typedef struct _NwamNetConfPanel		NwamNetConfPanel;
-typedef struct _NwamNetConfPanelClass	NwamNetConfPanelClass;
-typedef struct _NwamNetConfPanelPrivate	NwamNetConfPanelPrivate;
+typedef struct _NwamProfileDialog		NwamProfileDialog;
+typedef struct _NwamProfileDialogClass	NwamProfileDialogClass;
+typedef struct _NwamProfileDialogPrivate	NwamProfileDialogPrivate;
 
-struct _NwamNetConfPanel
+struct _NwamProfileDialog
 {
 	GObject                      object;
 
 	/*< private >*/
-	NwamNetConfPanelPrivate    *prv;
+	NwamProfileDialogPrivate    *prv;
 };
 
-struct _NwamNetConfPanelClass
+struct _NwamProfileDialogClass
 {
 	GObjectClass                parent_class;
 };
 
-GType nwam_net_conf_panel_get_type (void) G_GNUC_CONST;
+GType nwam_profile_dialog_get_type (void) G_GNUC_CONST;
 
-NwamNetConfPanel* nwam_net_conf_panel_new(NwamCappletDialog *pref_dialog);
+NwamProfileDialog* nwam_profile_dialog_new(NwamCappletDialog *pref_dialog);
 
 G_END_DECLS
 
-#endif	/* _NWAM_NET_CONF_PANEL_H */
+#endif	/* _NWAM_PROFILE_DIALOG_H */

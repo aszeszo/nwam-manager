@@ -1,3 +1,123 @@
+2009-12-24  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am:
+	* capplet/nwam_net_conf_panel.c:
+	* capplet/nwam_net_conf_panel.h:
+	Changed names capplet/nwam_profile_dialog.[hc].
+	Added new files capplet/nwam_profile_panel.[hc].
+	* capplet/capplet-utils.c (nwam_ncu_compare_cb):
+	* capplet/capplet-utils.h:
+	Remove capplet_dialog_run, use nwam_pref_dialog_run directly.
+	Update ncu compare function, move the realted stuff to nwamui_ncu
+	* capplet/main.c (main):
+	* capplet/nwam_conn_conf_ip_panel.c
+	(wireless_tab_add_button_clicked_cb),
+	(wireless_tab_edit_button_clicked_cb):
+	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_new),
+	(env_clicked_cb), (vpn_clicked_cb):
+	* capplet/nwam_location_dialog.c (nwam_compose_tree_view),
+	(nwam_location_dialog_init), (on_button_clicked):
+	* capplet/nwam_pref_dialog.c (nwam_capplet_dialog_init), (refresh),
+	(response_cb), (show_changed_cb), (show_combo_cell_cb):
+	* capplet/nwam_pref_dialog.h:
+	* capplet/nwam_vpn_pref_dialog.c (on_rules_button_clicked):
+	* capplet/nwam_wireless_chooser.c (join_wireless):
+	* capplet/nwam_wireless_dialog.c (nwam_pref_init),
+	(nwam_wireless_dialog_init), (set_purpose),
+	(nwam_wireless_dialog_set_wifi_net), (dialog_run):
+	* capplet/nwam_wireless_dialog.h:
+	Updated due to changes
+	* capplet/nwam_profile_dialog.c (nwam_pref_init),
+	(nwam_profile_dialog_class_init), (net_conf_set_property),
+	(net_conf_get_property), (nwam_compose_tree_view),
+	(nwam_rules_tree_view_filter), (nwam_profile_dialog_init),
+	(nwam_profile_dialog_new), (refresh), (apply), (cancel),
+	(dialog_run), (set_purpose), (help),
+	(nwam_profile_dialog_finalize),
+	(nwam_net_conf_update_status_cell_cb), (nwam_connection_cell_func),
+	(nwam_net_pref_connection_enabled_toggled_cb),
+	(vanity_name_editing_started), (vanity_name_edited),
+	(static_group_handle_fake_node), (condition_view_drag_data_get),
+	(condition_view_drag_motion), (condition_view_drag_data_received),
+	(nwam_connection_cell_toggled),
+	(nwam_net_pref_connection_view_row_activated_cb),
+	(update_rules_from_ncu),
+	(nwam_net_pref_rule_ncu_enabled_toggled_cb), (ncu_find_gt_name),
+	(capplet_tree_store_move_children), (ref_ncu_group_node),
+	(handle_ncu_group_node), (foreach_select_object),
+	(foreach_set_group_mode), (set_group_object_group_mode),
+	(on_button_clicked), (connections_edit_btn_clicked),
+	(selection_changed), (selection_func), (update_widgets),
+	(conditions_connected_toggled_cb), (conditions_set_status_changed),
+	(conditions_connected_changed), (object_notify_cb),
+	(ncu_notify_cb), (on_activate_static_menuitems), (ncp_add_ncu),
+	(ncp_remove_ncu), (edit_profile_changed), (create_group_object),
+	(update_ncu_like_group), (compare_int),
+	(ncu_pri_group_find_iter_gt), (ncu_pri_group_get_hash),
+	(ncu_pri_group_get_path), (ncu_pri_group_get_iter),
+	(ncu_pri_group_update), (ncu_pri_treeview_add),
+	(ncu_pri_treeview_remove), (connection_activation_combo_cell_cb),
+	(connection_activation_combo_changed_cb),
+	(connection_activation_combo_filter), (response_cb):
+	* capplet/nwam_profile_dialog.h:
+	Update for new spec for supporting multiple NCPs.
+	* common/nwam_pref_iface.c (nwam_pref_dialog_run),
+	(nwam_pref_set_purpose):
+	* common/nwam_pref_iface.h:
+	Add new interface for set dialog purpose (set title)
+	Update nwam_pref_dialog_run
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_init_lists), (nwamui_daemon_set_property),
+	(nwamui_daemon_handle_object_state_event):
+	* common/nwamui_daemon.h:
+	Updated due to changes
+	* common/nwamui_enm.c (nwamui_enm_class_init),
+	(nwamui_object_real_can_rename), (nwamui_object_real_set_name),
+	(nwamui_object_real_get_name), (nwamui_object_real_set_active),
+	(nwamui_object_real_get_active), (nwamui_object_real_set_enabled),
+	(nwamui_object_real_get_enabled),
+	(nwamui_object_real_set_activation_mode),
+	(nwamui_object_real_get_activation_mode),
+	(nwamui_object_real_get_selection_conditions),
+	(nwamui_object_real_set_selection_conditions),
+	(nwamui_object_real_reload), (nwamui_object_real_destroy),
+	(nwamui_object_real_clone), (nwamui_object_real_commit),
+	(nwamui_object_real_get_nwam_state):
+	* common/nwamui_env.c (nwamui_env_class_init),
+	(nwamui_object_real_clone), (nwamui_object_real_can_rename),
+	(nwamui_object_real_set_name), (nwamui_object_real_get_name),
+	(nwamui_object_real_set_enabled), (nwamui_object_real_get_enabled),
+	(nwamui_object_real_get_active), (nwamui_object_real_set_active),
+	(nwamui_object_real_set_activation_mode),
+	(nwamui_object_real_get_activation_mode),
+	(nwamui_object_real_set_conditions),
+	(nwamui_object_real_get_conditions), (nwamui_object_real_reload),
+	(nwamui_object_real_destroy), (nwamui_object_real_commit),
+	(nwamui_object_real_get_nwam_state):
+	* common/nwamui_env.h:
+	* common/nwamui_ncp.c (nwamui_ncp_class_init),
+	(nwamui_object_real_get_nwam_state), (nwamui_ncp_new),
+	(nwamui_object_real_clone), (nwamui_object_real_reload),
+	(nwamui_object_real_get_name), (nwamui_object_real_get_active),
+	(nwamui_object_real_set_active),
+	(nwamui_object_real_is_modifiable), (nwamui_ncp_get_ncu_list),
+	(nwamui_object_real_commit):
+	* common/nwamui_ncp.h:
+	* common/nwamui_ncu.c (nwamui_ncu_class_init),
+	(nwamui_object_real_clone), (nwamui_object_real_is_modifiable),
+	(nwamui_object_real_reload):
+	* common/nwamui_ncu.h:
+	Clean code and implement _clone.
+	* common/nwamui_object.c (nwamui_object_clone):
+	* common/nwamui_object.h:
+	Added new pure vfun _clone
+	* daemon/nwam-ncu-item.c (menu_ncu_item_compare):
+	* daemon/status_icon.c (join_wireless):
+	* daemon/status_icon_tooltip.c (tooltip_ncu_compare):
+	Updated due to changes
+	* ui/nwam-manager-properties.ui:
+	Fixed some nits, add response id for some buttons.
+
 2009-12-17  Calum Benson  <calum.benson@sun.com>
 
 	* ui/nwam-manager-properties.ui:

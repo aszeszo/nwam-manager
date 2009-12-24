@@ -225,7 +225,7 @@ main(int argc, char** argv)
         
         add_unique_message_handler( app, capplet_dialog );
 
-        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
+        gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
 
         debug_response_id( responseid );
     }
@@ -234,7 +234,7 @@ main(int argc, char** argv)
 
         add_unique_message_handler( app, capplet_dialog );
 
-        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
+        gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }
@@ -243,7 +243,7 @@ main(int argc, char** argv)
         
         add_unique_message_handler( app, capplet_dialog );
 
-        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
+        gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }
@@ -257,7 +257,7 @@ main(int argc, char** argv)
 
         add_unique_message_handler( app, capplet_dialog );
 
-        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
+        gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }
@@ -266,7 +266,7 @@ main(int argc, char** argv)
         
         add_unique_message_handler( app, capplet_dialog );
 
-        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
+        gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }
@@ -298,11 +298,11 @@ main(int argc, char** argv)
         capplet_dialog = NWAM_PREF_IFACE(nwam_capplet_dialog_new());
         
         if (net_pref_view) {
-            nwam_pref_refresh(capplet_dialog, (gpointer)PANEL_NET_PREF, TRUE);
+            nwam_pref_refresh(capplet_dialog, (gpointer)PANEL_PROF_PREF, TRUE);
         }
         add_unique_message_handler( app, capplet_dialog );
 
-        gint responseid = capplet_dialog_run(capplet_dialog, NULL);
+        gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
         
         debug_response_id( responseid );
     }

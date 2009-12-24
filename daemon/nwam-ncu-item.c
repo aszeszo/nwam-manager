@@ -157,9 +157,6 @@ nwam_ncu_item_get_property (GObject         *object,
 static gint
 menu_ncu_item_compare(NwamMenuItem *self, NwamMenuItem *other)
 {
-#define ALWAYS_ON_GROUP_ID              (0)
-#define ALWAYS_OFF_GROUP_ID             (G_MAXINT)
-
     NwamuiObject *object[2] = { NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))), NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other))) };
     int rank[2];
     int i, retval;

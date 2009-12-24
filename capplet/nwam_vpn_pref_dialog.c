@@ -1184,7 +1184,7 @@ on_rules_button_clicked(GtkButton *button, gpointer user_data)
         if (button == (gpointer)prv->vpn_rules_btn) {
             NwamPrefIFace *rules_dialog = NWAM_PREF_IFACE(nwam_rules_dialog_new());
             nwam_pref_refresh(NWAM_PREF_IFACE(rules_dialog), NWAMUI_OBJECT(enm), TRUE);
-            capplet_dialog_run(rules_dialog, GTK_WIDGET(prv->vpn_pref_dialog));
+            nwam_pref_dialog_run(rules_dialog, GTK_WIDGET(prv->vpn_pref_dialog));
             g_object_unref(rules_dialog);
         }
 

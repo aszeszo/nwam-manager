@@ -172,18 +172,19 @@ static gboolean     interface_has_addresses(const char *ifname, sa_family_t fami
 
 static gchar*       get_interface_address_str( NwamuiNcu *ncu, sa_family_t family);
 
-static gboolean     nwamui_ncu_commit( NwamuiObject* object );
-static void         nwamui_ncu_reload( NwamuiObject* object );
-static gboolean     nwamui_ncu_destroy( NwamuiObject* object );
-static gboolean     nwamui_ncu_is_modifiable(NwamuiObject *object);
 static const gchar* nwamui_ncu_get_vanity_name ( NwamuiObject *object );
 static void         nwamui_ncu_set_vanity_name ( NwamuiObject *object, const gchar* name );
-static void         nwamui_ncu_set_active ( NwamuiObject *object, gboolean active );
-static gboolean     nwamui_ncu_get_active ( NwamuiObject *object );
-static void         nwamui_ncu_set_enabled ( NwamuiObject *object, gboolean enabled );
-static gboolean     nwamui_ncu_get_enabled ( NwamuiObject *object );
-static void         nwamui_ncu_set_activation_mode ( NwamuiObject *object, gint  activation_mode );
-static gint         nwamui_ncu_get_activation_mode ( NwamuiObject *object );
+static gboolean     nwamui_object_real_commit( NwamuiObject* object );
+static void         nwamui_object_real_reload( NwamuiObject* object );
+static gboolean     nwamui_object_real_destroy( NwamuiObject* object );
+static gboolean     nwamui_object_real_is_modifiable(NwamuiObject *object);
+static void         nwamui_object_real_set_active ( NwamuiObject *object, gboolean active );
+static gboolean     nwamui_object_real_get_active ( NwamuiObject *object );
+static void         nwamui_object_real_set_enabled ( NwamuiObject *object, gboolean enabled );
+static gboolean     nwamui_object_real_get_enabled ( NwamuiObject *object );
+static void         nwamui_object_real_set_activation_mode ( NwamuiObject *object, gint  activation_mode );
+static gint         nwamui_object_real_get_activation_mode ( NwamuiObject *object );
+static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 
 /* Callbacks */
 static void ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data); 
@@ -212,17 +213,18 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     /* object get/set name in NCU are VANITY NAME */
     nwamuiobject_class->get_name = nwamui_ncu_get_vanity_name;
     nwamuiobject_class->set_name = nwamui_ncu_set_vanity_name;
-    nwamuiobject_class->get_activation_mode = nwamui_ncu_get_activation_mode;
-    nwamuiobject_class->set_activation_mode = nwamui_ncu_set_activation_mode;
-    nwamuiobject_class->get_active = nwamui_ncu_get_active;
-    nwamuiobject_class->set_active = nwamui_ncu_set_active;
-    nwamuiobject_class->get_enabled = nwamui_ncu_get_enabled;
-    nwamuiobject_class->set_enabled = nwamui_ncu_set_enabled;
+    nwamuiobject_class->get_activation_mode = nwamui_object_real_get_activation_mode;
+    nwamuiobject_class->set_activation_mode = nwamui_object_real_set_activation_mode;
+    nwamuiobject_class->get_active = nwamui_object_real_get_active;
+    nwamuiobject_class->set_active = nwamui_object_real_set_active;
+    nwamuiobject_class->get_enabled = nwamui_object_real_get_enabled;
+    nwamuiobject_class->set_enabled = nwamui_object_real_set_enabled;
     nwamuiobject_class->get_nwam_state = nwamui_ncu_get_interface_nwam_state;
-    nwamuiobject_class->commit = nwamui_ncu_commit;
-    nwamuiobject_class->reload = nwamui_ncu_reload;
-    nwamuiobject_class->destroy = nwamui_ncu_destroy;
-    nwamuiobject_class->is_modifiable = nwamui_ncu_is_modifiable;
+    nwamuiobject_class->commit = nwamui_object_real_commit;
+    nwamuiobject_class->reload = nwamui_object_real_reload;
+    nwamuiobject_class->destroy = nwamui_object_real_destroy;
+    nwamuiobject_class->is_modifiable = nwamui_object_real_is_modifiable;
+    nwamuiobject_class->clone = nwamui_object_real_clone;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -1543,18 +1545,20 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
  *
  * Creates a new #NwamuiNcu with info initialised based on the argumens passed.
  **/
-extern  NwamuiNcu*          
-nwamui_ncu_clone (  NwamuiNcp       *ncp,
-                    NwamuiNcu       *ncu )
+static NwamuiObject*
+nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
 {
-    NwamuiNcu              *new = NULL;
-    nwam_ncp_handle_t       nwam_ncp;
-    nwam_ncu_handle_t       nwam_ncu_phys;
-    nwam_ncu_handle_t       nwam_ncu_ip;
-    nwam_ncu_handle_t       nwam_ncu_iptun;
-    nwam_error_t            nerr;
+    NwamuiNcu         *ncu = NWAMUI_NCU(object);
+    NwamuiNcp         *ncp = NWAMUI_NCP(parent);
+    NwamuiNcu         *new = NULL;
+    nwam_ncp_handle_t  nwam_ncp;
+    nwam_ncu_handle_t  nwam_ncu_phys;
+    nwam_ncu_handle_t  nwam_ncu_ip;
+    nwam_ncu_handle_t  nwam_ncu_iptun;
+    nwam_error_t       nerr;
 
-    g_return_val_if_fail( ncp != NULL && ncu != NULL, new );
+    g_assert(name == NULL);
+    g_return_val_if_fail(ncp != NULL && ncu != NULL, NULL);
 
     new = NWAMUI_NCU(g_object_new (NWAMUI_TYPE_NCU,
                                     "ncp", ncp,
@@ -1633,7 +1637,7 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
     }
 #endif /* TUNNEL_SUPPORT */
 
-    return( new );
+    return NWAMUI_OBJECT(new);
 }
 
 /**
@@ -1643,7 +1647,7 @@ nwamui_ncu_clone (  NwamuiNcp       *ncp,
  *
  **/
 static gboolean
-nwamui_ncu_is_modifiable(NwamuiObject *object)
+nwamui_object_real_is_modifiable(NwamuiObject *object)
 {
     NwamuiNcu    *self       = NWAMUI_NCU(object);
     nwam_error_t  nerr;
@@ -1669,7 +1673,7 @@ nwamui_ncu_is_modifiable(NwamuiObject *object)
  * nwamui_ncu_reload:   re-load stored configuration
  **/
 static void
-nwamui_ncu_reload( NwamuiObject *object )
+nwamui_object_real_reload( NwamuiObject *object )
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
     g_return_if_fail( NWAMUI_IS_NCU(self) );
@@ -1780,7 +1784,7 @@ nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret )
  * @returns: TRUE if succeeded, FALSE if failed
  **/
 extern gboolean
-nwamui_ncu_commit( NwamuiObject *object )
+nwamui_object_real_commit( NwamuiObject *object )
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
     nwam_error_t    nerr;
@@ -1869,7 +1873,7 @@ nwamui_ncu_commit( NwamuiObject *object )
  * @returns: TRUE if succeeded, FALSE if failed
  **/
 static gboolean
-nwamui_ncu_destroy( NwamuiObject *object )
+nwamui_object_real_destroy( NwamuiObject *object )
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
     nwam_error_t    nerr;
@@ -2135,7 +2139,7 @@ nwamui_ncu_get_ncu_type ( NwamuiNcu *self )
  *
  **/
 extern gboolean
-nwamui_ncu_get_active ( NwamuiObject *object )
+nwamui_object_real_get_active ( NwamuiObject *object )
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
 	gboolean active = FALSE;
@@ -2198,7 +2202,7 @@ nwamui_ncu_get_active ( NwamuiObject *object )
  * 
  **/ 
 static void
-nwamui_ncu_set_active (NwamuiObject *object, gboolean active)
+nwamui_object_real_set_active (NwamuiObject *object, gboolean active)
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
     nwamui_cond_activation_mode_t activation_mode;
@@ -2867,7 +2871,7 @@ nwamui_ncu_get_wifi_signal_strength ( NwamuiNcu *self )
  * 
  **/ 
 static void
-nwamui_ncu_set_activation_mode (NwamuiObject *object, gint activation_mode)
+nwamui_object_real_set_activation_mode (NwamuiObject *object, gint activation_mode)
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
     gboolean currently_enabled;
@@ -2921,7 +2925,7 @@ nwamui_ncu_set_activation_mode (NwamuiObject *object, gint activation_mode)
  *
  **/
 static gint
-nwamui_ncu_get_activation_mode (NwamuiObject *object)
+nwamui_object_real_get_activation_mode (NwamuiObject *object)
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
     nwamui_cond_activation_mode_t activation_mode;
@@ -2941,8 +2945,7 @@ nwamui_ncu_get_activation_mode (NwamuiObject *object)
  * 
  **/ 
 static void
-nwamui_ncu_set_enabled (   NwamuiObject *object,
-                           gboolean        enabled )
+nwamui_object_real_set_enabled(NwamuiObject *object, gboolean enabled)
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
     g_return_if_fail (NWAMUI_IS_NCU (self));
@@ -2959,7 +2962,7 @@ nwamui_ncu_set_enabled (   NwamuiObject *object,
  *
  **/
 static gboolean
-nwamui_ncu_get_enabled (NwamuiObject *object)
+nwamui_object_real_get_enabled (NwamuiObject *object)
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
     gboolean  enabled = FALSE; 
@@ -3009,6 +3012,21 @@ nwamui_ncu_get_priority_group (NwamuiNcu *self)
                   NULL);
 
     return( priority_group );
+}
+
+extern gint
+nwamui_ncu_get_priority_group_for_view(NwamuiNcu *ncu)
+{
+    nwamui_cond_activation_mode_t act_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(ncu));
+    switch (act_mode) {
+    case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+        return nwamui_object_get_enabled(NWAMUI_OBJECT(ncu)) ? ALWAYS_ON_GROUP_ID : ALWAYS_OFF_GROUP_ID;
+    case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+        return nwamui_ncu_get_priority_group(ncu) + ALWAYS_ON_GROUP_ID + 1;
+    default:
+        g_warning("%s: Not supported activation mode %d", __func__, act_mode);
+        return ALWAYS_OFF_GROUP_ID;
+    }
 }
 
 /** 

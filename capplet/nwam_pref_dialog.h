@@ -63,7 +63,7 @@ struct _NwamCappletDialogClass
 
 enum {
 	PANEL_CONN_STATUS = 0,
-	PANEL_NET_PREF,
+	PANEL_PROF_PREF,
 	PANEL_CONF_IP,
 	N_PANELS
 };

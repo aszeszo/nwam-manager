@@ -469,11 +469,11 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
         g_debug("%s ## wifi 0x%p %s", __func__, wifi, nwamui_object_get_name(NWAMUI_OBJECT(wifi)));
     }
 
-    nwam_wireless_dialog_set_title( wifi_dialog, NWAMUI_WIRELESS_DIALOG_TITLE_JOIN );
+    nwam_pref_set_purpose(NWAM_PREF_IFACE(wifi_dialog), NWAMUI_DIALOG_PURPOSE_JOIN );
     nwam_wireless_dialog_set_wifi_net(wifi_dialog, wifi);
     nwam_wireless_dialog_set_do_connect(wifi_dialog, do_connect);
 
-    (void)capplet_dialog_run(NWAM_PREF_IFACE(wifi_dialog), NULL);
+    (void)nwam_pref_dialog_run(NWAM_PREF_IFACE(wifi_dialog), NULL);
 
     g_object_unref(ncu);
 }

@@ -44,6 +44,13 @@ G_BEGIN_DECLS
 typedef struct _NwamPrefIFace NwamPrefIFace; /* dummy object */
 typedef struct _NwamPrefInterface NwamPrefInterface;
 
+typedef enum {
+    NWAMUI_DIALOG_PURPOSE_ADD,
+    NWAMUI_DIALOG_PURPOSE_EDIT,
+    NWAMUI_DIALOG_PURPOSE_JOIN,
+    NWAMUI_DIALOG_PURPOSE_LAST /* Not to be used directly */
+} nwamui_dialog_purpose_t;
+
 struct _NwamPrefInterface {
 	GTypeInterface parent;
 
@@ -53,6 +60,7 @@ struct _NwamPrefInterface {
 	gboolean (*help) (NwamPrefIFace *iface, gpointer user_data);
     gint (*dialog_run)(NwamPrefIFace *iface, GtkWindow *parent);
     GtkWindow *(*dialog_get_window)(NwamPrefIFace *iface);
+    void (*set_purpose)(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose);
 };
 
 extern GType nwam_pref_iface_get_type (void) G_GNUC_CONST;
@@ -63,9 +71,10 @@ extern gboolean         nwam_pref_refresh (NwamPrefIFace *iface, gpointer user_d
 extern gboolean         nwam_pref_apply (NwamPrefIFace *iface, gpointer user_data);
 extern gboolean         nwam_pref_cancel (NwamPrefIFace *iface, gpointer user_data);
 extern gboolean         nwam_pref_help (NwamPrefIFace *iface, gpointer user_data);
-extern gint             nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
+extern gint             nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
 extern gboolean         nwam_pref_dialog_raise(NwamPrefIFace *iface);
 extern GtkWindow*       nwam_pref_dialog_get_window(NwamPrefIFace *iface);
+extern void             nwam_pref_set_purpose(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose);
 
 G_END_DECLS
 

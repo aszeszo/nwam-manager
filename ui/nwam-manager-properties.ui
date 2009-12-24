@@ -298,6 +298,11 @@
                         <property name="hscrollbar_policy">never</property>
                         <property name="vscrollbar_policy">never</property>
                         <property name="shadow_type">in</property>
+                        <child>
+                          <object class="NwamTreeView" id="connection_status_table">
+                            <property name="visible">True</property>
+                          </object>
+                        </child>
                       </object>
                       <packing>
                         <property name="position">1</property>
@@ -575,7 +580,7 @@
                     <property name="column_spacing">12</property>
                     <property name="row_spacing">6</property>
                     <child>
-                      <object class="GtkLabel" id="label19">
+                      <object class="GtkLabel" id="profile_panel_label19">
                         <property name="visible">True</property>
                         <property name="xalign">0</property>
                         <property name="label" translatable="yes">Network profiles:</property>
@@ -593,6 +598,11 @@
                         <property name="hscrollbar_policy">automatic</property>
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">in</property>
+                        <child>
+                          <object class="NwamTreeView" id="connection_profile_view">
+                            <property name="visible">True</property>
+                          </object>
+                        </child>
                       </object>
                       <packing>
                         <property name="top_attach">1</property>
@@ -3133,7 +3143,7 @@ connection will be attempted:</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="label2">
+                              <object class="GtkLabel" id="profile_panel_label2">
                                 <property name="visible">True</property>
                               </object>
                               <packing>
@@ -3143,7 +3153,7 @@ connection will be attempted:</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="label3">
+                              <object class="GtkLabel" id="profile_panel_label3">
                                 <property name="visible">True</property>
                               </object>
                               <packing>
@@ -3804,6 +3814,11 @@ Disable these services when this location is active:</property>
                         <property name="hscrollbar_policy">never</property>
                         <property name="vscrollbar_policy">automatic</property>
                         <property name="shadow_type">in</property>
+                        <child>
+                          <object class="NwamTreeView" id="vpn_apps_list">
+                            <property name="visible">True</property>
+                          </object>
+                        </child>
                       </object>
                     </child>
                     <child>
@@ -4775,6 +4790,11 @@ Enter username and password for http://$HOST:$PORT
                 <property name="hscrollbar_policy">automatic</property>
                 <property name="vscrollbar_policy">automatic</property>
                 <property name="shadow_type">in</property>
+                <child>
+                  <object class="NwamTreeView" id="location_tree">
+                    <property name="visible">True</property>
+                  </object>
+                </child>
               </object>
               <packing>
                 <property name="top_attach">1</property>
@@ -4782,12 +4802,12 @@ Enter username and password for http://$HOST:$PORT
               </packing>
             </child>
             <child>
-              <object class="GtkAlignment" id="alignment13">
+              <object class="GtkAlignment" id="profile_panel_alignment13">
                 <property name="visible">True</property>
                 <property name="yalign">0</property>
                 <property name="yscale">0</property>
                 <child>
-                  <object class="GtkVButtonBox" id="vbuttonbox4">
+                  <object class="GtkVButtonBox" id="profile_panel_vbuttonbox4">
                     <property name="visible">True</property>
                     <property name="orientation">vertical</property>
                     <property name="spacing">3</property>
@@ -5478,7 +5498,7 @@ system/system-log:default
     <property name="type_hint">normal</property>
     <property name="has_separator">False</property>
     <child internal-child="vbox">
-      <object class="GtkVBox" id="dialog-vbox11">
+      <object class="GtkVBox" id="profile_dialog_vbox11">
         <property name="visible">True</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
@@ -5499,9 +5519,6 @@ system/system-log:default
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">Profile _name:</property>
                     <property name="use_underline">True</property>
-                    <accessibility>
-                      <relation type="label-for" target="edit_profile_name_combo"/>
-                    </accessibility>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -5519,7 +5536,7 @@ system/system-log:default
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkButton" id="profile_edit_btn">
+                  <object class="GtkButton" id="connections_edit_btn">
                     <property name="label" translatable="yes">Connections...</property>
                     <property name="visible">True</property>
                     <property name="can_focus">True</property>
@@ -5608,6 +5625,11 @@ Choose which connections are enabled in this profile:</property>
                     <property name="hscrollbar_policy">automatic</property>
                     <property name="vscrollbar_policy">automatic</property>
                     <property name="shadow_type">in</property>
+                    <child>
+                      <object class="NwamTreeView" id="network_profile_table">
+                        <property name="visible">True</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>
@@ -5759,11 +5781,11 @@ Choose which connections are enabled in this profile:</property>
           </packing>
         </child>
         <child internal-child="action_area">
-          <object class="GtkHButtonBox" id="dialog-action_area11">
+          <object class="GtkHButtonBox" id="dialog_action_area11">
             <property name="visible">True</property>
             <property name="layout_style">end</property>
             <child>
-              <object class="GtkButton" id="profile_cancel_btn">
+              <object class="GtkButton" id="profile_help_btn">
                 <property name="label">gtk-help</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -5777,7 +5799,7 @@ Choose which connections are enabled in this profile:</property>
               </packing>
             </child>
             <child>
-              <object class="GtkButton" id="profile_help_btn">
+              <object class="GtkButton" id="profile_cancel_btn">
                 <property name="label">gtk-cancel</property>
                 <property name="visible">True</property>
                 <property name="can_focus">True</property>
@@ -5814,9 +5836,9 @@ Choose which connections are enabled in this profile:</property>
       </object>
     </child>
     <action-widgets>
-      <action-widget response="0">profile_cancel_btn</action-widget>
-      <action-widget response="0">profile_help_btn</action-widget>
-      <action-widget response="0">profile_ok_btn</action-widget>
+      <action-widget response="-11">profile_help_btn</action-widget>
+      <action-widget response="-6">profile_cancel_btn</action-widget>
+      <action-widget response="-5">profile_ok_btn</action-widget>
     </action-widgets>
   </object>
 </interface>

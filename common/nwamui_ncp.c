@@ -110,13 +110,14 @@ static void nwamui_ncp_get_property ( GObject         *object,
 
 static void nwamui_ncp_finalize (     NwamuiNcp *self);
 
-static nwam_state_t nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
-static gboolean     nwamui_ncp_commit( NwamuiObject *object );
-static const gchar* nwamui_ncp_get_name ( NwamuiObject *object );
-static void         nwamui_ncp_set_active ( NwamuiObject *object, gboolean active );
-static gboolean     nwamui_ncp_get_active( NwamuiObject *object );
-static void         nwamui_ncp_reload( NwamuiObject *object );
-static gboolean     nwamui_ncp_is_modifiable(NwamuiObject *object);
+static nwam_state_t  nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
+static gboolean      nwamui_object_real_commit( NwamuiObject *object );
+static const gchar*  nwamui_object_real_get_name ( NwamuiObject *object );
+static void          nwamui_object_real_set_active ( NwamuiObject *object, gboolean active );
+static gboolean      nwamui_object_real_get_active( NwamuiObject *object );
+static void          nwamui_object_real_reload( NwamuiObject *object );
+static gboolean      nwamui_object_real_is_modifiable(NwamuiObject *object);
+static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 
 /* Default signal handlers */
 static void default_activate_ncu_signal_handler (NwamuiNcp *self, NwamuiNcu* ncu, gpointer user_data);
@@ -152,13 +153,14 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
     klass->add_ncu = default_add_ncu_signal_handler;
     klass->remove_ncu = default_remove_ncu_signal_handler;
 
-    nwamuiobject_class->get_name = nwamui_ncp_get_name;
-    nwamuiobject_class->get_active = nwamui_ncp_get_active;
-    nwamuiobject_class->set_active = nwamui_ncp_set_active;
-    nwamuiobject_class->get_nwam_state = nwamui_ncp_get_nwam_state;
-    nwamuiobject_class->commit = nwamui_ncp_commit;
-    nwamuiobject_class->reload = nwamui_ncp_reload;
-    nwamuiobject_class->is_modifiable = nwamui_ncp_is_modifiable;
+    nwamuiobject_class->get_name = nwamui_object_real_get_name;
+    nwamuiobject_class->get_active = nwamui_object_real_get_active;
+    nwamuiobject_class->set_active = nwamui_object_real_set_active;
+    nwamuiobject_class->get_nwam_state = nwamui_object_real_get_nwam_state;
+    nwamuiobject_class->commit = nwamui_object_real_commit;
+    nwamuiobject_class->reload = nwamui_object_real_reload;
+    nwamuiobject_class->is_modifiable = nwamui_object_real_is_modifiable;
+    nwamuiobject_class->clone = nwamui_object_real_clone;
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -378,7 +380,7 @@ nwamui_ncp_finalize (NwamuiNcp *self)
 }
 
 static nwam_state_t
-nwamui_ncp_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p)
+nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p)
 {
     nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
 
@@ -422,15 +424,12 @@ nwamui_ncp_new(const gchar* name )
     nwam_error_t    nerr;
     nwam_ncp_handle_t nwam_ncp;
     
-    /* For Phase 1, we can only create the "User" profile */
-    g_return_val_if_fail( name && strncmp(NWAM_NCP_NAME_USER, name, strlen(NWAM_NCP_NAME_USER) ) == 0, self);
-
     /* First check if handle already exists, if so, read it */
     if ( ( nerr = nwam_ncp_read (name, 0, &nwam_ncp) ) != NWAM_SUCCESS ) {
         nwamui_debug ("Failed to read handle for ncp '%s', error: %s", name, nwam_strerror (nerr));
 
         if ( (nerr = nwam_ncp_create (name, 0, &nwam_ncp )) != NWAM_SUCCESS ) {
-            nwamui_debug ("Failed to create new ncp '%s', error: %s", name, nwam_strerror (nerr));
+            nwamui_warning("Failed to create new ncp '%s', error: %s", name, nwam_strerror (nerr));
             return( NULL );
         }
     }
@@ -492,19 +491,21 @@ nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp)
 }
 
 /**
- * nwamui_ncp_clone:
+ * nwamui_object_real_clone:
  * @returns: a copy of an existing #NwamuiNcp, with the name specified.
  *
- * Creates a new #NwamuiEnv and copies properties.
+ * Creates a new #NwamuiNcp and copies properties.
  *
  **/
-extern NwamuiNcp*
-nwamui_ncp_clone( NwamuiNcp* self, const gchar* name ) 
+static NwamuiObject*
+nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
 {
-    NwamuiNcp          *new_ncp = NULL;;
-    nwam_ncp_handle_t   new_ncp_h;
-    nwam_error_t        nerr;
+    NwamuiNcp         *self    = NWAMUI_NCP(object);
+    NwamuiNcp         *new_ncp = NULL;;
+    nwam_ncp_handle_t  new_ncp_h;
+    nwam_error_t       nerr;
 
+    g_assert(parent == NULL);
     g_return_val_if_fail( self != NULL && name != NULL, new_ncp );
 
     nerr = nwam_ncp_copy (self->prv->nwam_ncp, name, &new_ncp_h);
@@ -521,7 +522,7 @@ nwamui_ncp_clone( NwamuiNcp* self, const gchar* name )
 }
 
 static void
-nwamui_ncp_reload( NwamuiObject *object )
+nwamui_object_real_reload( NwamuiObject *object )
 {
     NwamuiNcp    *self       = NWAMUI_NCP(object);
     nwam_error_t    nerr;
@@ -595,12 +596,12 @@ nwamui_ncp_set_name (NwamuiObject *object, const gchar*  name )
 
 
 /**
- * nwamui_ncp_get_name:
+ * nwamui_object_real_get_name:
  * @returns: null-terminated C String with name of the the NCP.
  *
  **/
 static const gchar*
-nwamui_ncp_get_name ( NwamuiObject *object )
+nwamui_object_real_get_name ( NwamuiObject *object )
 {
     NwamuiNcp    *self       = NWAMUI_NCP(object);
     g_return_val_if_fail (NWAMUI_IS_NCP(self), NULL); 
@@ -615,7 +616,7 @@ nwamui_ncp_get_name ( NwamuiObject *object )
  *
  **/
 extern gboolean
-nwamui_ncp_get_active( NwamuiObject *object )
+nwamui_object_real_get_active( NwamuiObject *object )
 {
     NwamuiNcp    *self       = NWAMUI_NCP(object);
     gboolean active = FALSE;
@@ -635,13 +636,13 @@ nwamui_ncp_get_active( NwamuiObject *object )
 }
 
 /** 
- * nwamui_ncp_set_active:
+ * nwamui_object_real_set_active:
  * @nwamui_ncp: a #NwamuiEnv.
  * @active: Immediately activates/deactivates the ncp.
  * 
  **/ 
 extern void
-nwamui_ncp_set_active (NwamuiObject *object, gboolean active)
+nwamui_object_real_set_active (NwamuiObject *object, gboolean active)
 {
     NwamuiNcp    *self       = NWAMUI_NCP(object);
     /* Activate immediately */
@@ -664,13 +665,13 @@ nwamui_ncp_set_active (NwamuiObject *object, gboolean active)
 }
 
 /**
- * nwamui_ncp_is_modifiable:
+ * nwamui_object_real_is_modifiable:
  * @nwamui_ncp: a #NwamuiNcp.
  * @returns: the modifiable.
  *
  **/
 extern gboolean
-nwamui_ncp_is_modifiable(NwamuiObject *object)
+nwamui_object_real_is_modifiable(NwamuiObject *object)
 {
     NwamuiNcp    *self       = NWAMUI_NCP(object);
     nwam_error_t  nerr;
@@ -684,20 +685,19 @@ nwamui_ncp_is_modifiable(NwamuiObject *object)
 
     /* function doesn't exist, but will be made available, comment out until
      * then */
-    /*
-    if ( (nerr = nwam_ncp_get_read_only( self->prv->nwam_ncp, &readonly )) == NWAM_SUCCESS ) {
+    if ((nerr = nwam_ncp_get_read_only( self->prv->nwam_ncp, &readonly )) == NWAM_SUCCESS) {
         modifiable = readonly?FALSE:TRUE;
     }
     else {
         g_warning("Error getting ncp read-only status: %s", nwam_strerror( nerr ) );
     }
-    */
-    if ( self->prv->name && strcmp( self->prv->name, "Automatic" ) == 0 ) {
-        modifiable = FALSE;
-    }
-    else {
-        modifiable = TRUE;
-    }
+
+    /* if (self->prv->name && strcmp( self->prv->name, NWAM_NCP_NAME_AUTOMATIC) == 0 ) { */
+    /*     modifiable = FALSE; */
+    /* } */
+    /* else { */
+    /*     modifiable = TRUE; */
+    /* } */
 
     return( modifiable );
 }
@@ -914,10 +914,6 @@ extern GList*
 nwamui_ncp_get_ncu_list( NwamuiNcp *self )
 {
     GList*  ncu_list = NULL;
-
-    if ( self == NULL ) {
-        return( NULL );
-    }
 
     g_return_val_if_fail (NWAMUI_IS_NCP(self), ncu_list); 
     
@@ -1202,7 +1198,7 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
 }
 
 static gboolean
-nwamui_ncp_commit( NwamuiObject *object )
+nwamui_object_real_commit( NwamuiObject *object )
 {
     NwamuiNcp    *self       = NWAMUI_NCP(object);
     gboolean    rval = FALSE;

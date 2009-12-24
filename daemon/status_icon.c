@@ -1112,7 +1112,7 @@ join_wireless(NwamStatusIcon* self, NwamuiWifiNet *wifi, gboolean do_connect )
         g_debug("%s ## wifi 0x%p %s", __func__, wifi, nwamui_object_get_name(NWAMUI_OBJECT(wifi)));
     }
 
-    nwam_wireless_dialog_set_title( NWAM_WIRELESS_DIALOG(wifi_dialog), NWAMUI_WIRELESS_DIALOG_TITLE_JOIN );
+    nwam_pref_set_purpose(NWAM_PREF_IFACE(wifi_dialog), NWAMUI_DIALOG_PURPOSE_JOIN );
     nwam_wireless_dialog_set_wifi_net(NWAM_WIRELESS_DIALOG(wifi_dialog), wifi);
     nwam_wireless_dialog_set_do_connect(NWAM_WIRELESS_DIALOG(wifi_dialog), do_connect);
 
@@ -1122,7 +1122,7 @@ join_wireless(NwamStatusIcon* self, NwamuiWifiNet *wifi, gboolean do_connect )
         set_window_urgency( window, TRUE, TRUE ); /* Reset urgency flag to FALSE */
     }
     
-    capplet_dialog_run(NWAM_PREF_IFACE(wifi_dialog), NULL);
+    nwam_pref_dialog_run(NWAM_PREF_IFACE(wifi_dialog), NULL);
 
     g_object_unref(ncu);
 }

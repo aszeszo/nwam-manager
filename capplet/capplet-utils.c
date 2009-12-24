@@ -364,21 +364,6 @@ capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class)
 	gtk_binding_entry_remove(binding_set, GDK_Escape, 0);
 }
 
-gint
-capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w)
-{
-	GtkWindow *parent = NULL;
-
-	if (w) {
-		w = gtk_widget_get_toplevel(w);
-
-		if (GTK_WIDGET_TOPLEVEL (w)) {
-			parent = GTK_WINDOW(w);
-		}
-	}
-	return nwam_pref_dialog_run(iface, parent);
-}
-
 gboolean
 capplet_dialog_raise(NwamPrefIFace *iface)
 {
@@ -855,19 +840,7 @@ nwam_ncu_compare_cb(GtkTreeModel *model,
          * filter out non-NCU objects.
          */
         if (NWAMUI_IS_NCU(object[i])) {
-
-            switch (nwamui_object_get_activation_mode(object[i])) {
-            case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-                rank[i] = nwamui_object_get_enabled(object[i]) ? ALWAYS_ON_GROUP_ID : ALWAYS_OFF_GROUP_ID;
-                break;
-            case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
-                rank[i] = nwamui_ncu_get_priority_group(NWAMUI_NCU(object[i])) + ALWAYS_ON_GROUP_ID + 1;
-                break;
-            default:
-                g_warning("%s: Not supported activation mode %d", __func__, nwamui_object_get_activation_mode(object[i]));
-                rank[i] = ALWAYS_OFF_GROUP_ID;
-                break;
-            }
+            rank[i] = nwamui_ncu_get_priority_group_for_view(NWAMUI_NCU(object[i]));
         } else {
             retval = 0;
             /* We don't need compare anymore, just unref and return. Remember i

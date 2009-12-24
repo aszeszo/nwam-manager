@@ -1769,9 +1769,9 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
     g_debug("wireless_tab_add_button clicked");
 
     nwam_wireless_dialog_set_wifi_net(self->prv->wifi_dialog, NULL );
-    nwam_wireless_dialog_set_title( self->prv->wifi_dialog, NWAMUI_WIRELESS_DIALOG_TITLE_ADD);
+    nwam_pref_set_purpose(NWAM_PREF_IFACE(self->prv->wifi_dialog), NWAMUI_DIALOG_PURPOSE_ADD);
 
-    switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
+    switch (nwam_pref_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
         case GTK_RESPONSE_OK:
                 new_wifi = nwam_wireless_dialog_get_wifi_net( self->prv->wifi_dialog );
                 if ( new_wifi != NULL ) {
@@ -1860,10 +1860,10 @@ wireless_tab_edit_button_clicked_cb( GtkButton *button, gpointer data )
                 gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, 0, &wifi_net, -1 );
 
                 nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, wifi_net );
-                nwam_wireless_dialog_set_title( self->prv->wifi_dialog, NWAMUI_WIRELESS_DIALOG_TITLE_EDIT);
+                nwam_pref_set_purpose(NWAM_PREF_IFACE(self->prv->wifi_dialog), NWAMUI_DIALOG_PURPOSE_EDIT);
                 nwam_wireless_dialog_set_do_connect( self->prv->wifi_dialog, FALSE );
 
-                switch (capplet_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
+                switch (nwam_pref_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
                     case GTK_RESPONSE_OK:
                         /* wifi_net object will be already updated, so only need to refresh row. */
                         gtk_tree_model_row_changed(GTK_TREE_MODEL(model), (GtkTreePath *)idx->data, &iter);

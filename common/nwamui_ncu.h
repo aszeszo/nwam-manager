@@ -63,6 +63,11 @@ struct _NwamuiNcuClass
 
 extern  GType                   nwamui_ncu_get_type (void) G_GNUC_CONST;
 
+/* NCU */
+/* Values picked to put always ON at top of list, and always off at bottom */
+#define ALWAYS_ON_GROUP_ID              (0)
+#define ALWAYS_OFF_GROUP_ID             (G_MAXINT)
+
 typedef enum {
     NWAMUI_NCU_TYPE_WIRED = 1,
     NWAMUI_NCU_TYPE_WIRELESS,
@@ -96,8 +101,6 @@ extern struct _NwamuiNcp;
 
 extern NwamuiNcu*           nwamui_ncu_new_with_handle( struct _NwamuiNcp* ncp, nwam_ncu_handle_t ncu );
 extern void                 nwamui_ncu_update_with_handle( NwamuiNcu* self, nwam_ncu_handle_t ncu   );
-
-extern NwamuiNcu*           nwamui_ncu_clone (  struct _NwamuiNcp *ncp, NwamuiNcu *ncu );
 
 extern gboolean             nwamui_ncu_has_modifications( NwamuiNcu* self );
 extern gboolean             nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret );
@@ -171,6 +174,7 @@ extern nwamui_wifi_signal_strength_t
 extern void                 nwamui_ncu_set_priority_group ( NwamuiNcu *self, gint priority_group );
 extern gint                 nwamui_ncu_get_priority_group ( NwamuiNcu *self );
 
+extern gint                 nwamui_ncu_get_priority_group_for_view(NwamuiNcu *ncu);
 
 extern void                 nwamui_ncu_set_priority_group_mode ( NwamuiNcu *self, 
                                                                  nwamui_cond_priority_group_mode_t priority_group_mode );

@@ -154,21 +154,22 @@ static guint64*     get_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const
 static gboolean     set_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , 
                                                     const guint64* value, guint len );
 
-static nwam_state_t nwamui_env_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
-static gboolean     nwamui_env_can_rename (NwamuiObject *object);
-static void         nwamui_env_set_name ( NwamuiObject *object, const gchar* name );
-static const gchar* nwamui_env_get_name ( NwamuiObject *object );
-static void         nwamui_env_set_activation_mode ( NwamuiObject *object, gint activation_mode );
-static gint         nwamui_env_get_activation_mode ( NwamuiObject *object );
-static void         nwamui_env_set_conditions ( NwamuiObject *object, const GList* conditions );
-static GList*       nwamui_env_get_conditions ( NwamuiObject *object );
-static gboolean     nwamui_env_get_active (NwamuiObject *object);
-static void         nwamui_env_set_enabled ( NwamuiObject *object, gboolean enabled );
-static void         nwamui_env_set_active (NwamuiObject *object, gboolean active );
-static gboolean     nwamui_env_get_enabled ( NwamuiObject *object );
-static gboolean     nwamui_env_commit( NwamuiObject* object );
-static gboolean     nwamui_env_destroy( NwamuiObject* object );
-static void         nwamui_env_reload( NwamuiObject* object );
+static nwam_state_t nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
+static gboolean     nwamui_object_real_can_rename (NwamuiObject *object);
+static void         nwamui_object_real_set_name ( NwamuiObject *object, const gchar* name );
+static const gchar* nwamui_object_real_get_name ( NwamuiObject *object );
+static void         nwamui_object_real_set_activation_mode ( NwamuiObject *object, gint activation_mode );
+static gint         nwamui_object_real_get_activation_mode ( NwamuiObject *object );
+static void         nwamui_object_real_set_conditions ( NwamuiObject *object, const GList* conditions );
+static GList*       nwamui_object_real_get_conditions ( NwamuiObject *object );
+static gboolean     nwamui_object_real_get_active (NwamuiObject *object);
+static void         nwamui_object_real_set_active (NwamuiObject *object, gboolean active );
+static void         nwamui_object_real_set_enabled ( NwamuiObject *object, gboolean enabled );
+static gboolean     nwamui_object_real_get_enabled ( NwamuiObject *object );
+static gboolean     nwamui_object_real_commit( NwamuiObject* object );
+static gboolean     nwamui_object_real_destroy( NwamuiObject* object );
+static void         nwamui_object_real_reload( NwamuiObject* object );
+static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 
 #if 0
 /* These are not needed right now since we don't support property templates,
@@ -207,21 +208,22 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     gobject_class->get_property = nwamui_env_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_env_finalize;
 
-    nwamuiobject_class->get_name = nwamui_env_get_name;
-    nwamuiobject_class->can_rename = nwamui_env_can_rename;
-    nwamuiobject_class->set_name = nwamui_env_set_name;
-    nwamuiobject_class->get_conditions = nwamui_env_get_conditions;
-    nwamuiobject_class->set_conditions = nwamui_env_set_conditions;
-    nwamuiobject_class->get_activation_mode = nwamui_env_get_activation_mode;
-    nwamuiobject_class->set_activation_mode = nwamui_env_set_activation_mode;
-    nwamuiobject_class->get_active = nwamui_env_get_active;
-    nwamuiobject_class->set_active = nwamui_env_set_active;
-    nwamuiobject_class->get_enabled = nwamui_env_get_enabled;
-    nwamuiobject_class->set_enabled = nwamui_env_set_enabled;
-    nwamuiobject_class->get_nwam_state = nwamui_env_get_nwam_state;
-    nwamuiobject_class->commit = nwamui_env_commit;
-    nwamuiobject_class->reload = nwamui_env_reload;
-    nwamuiobject_class->destroy = nwamui_env_destroy;
+    nwamuiobject_class->get_name = nwamui_object_real_get_name;
+    nwamuiobject_class->can_rename = nwamui_object_real_can_rename;
+    nwamuiobject_class->set_name = nwamui_object_real_set_name;
+    nwamuiobject_class->get_conditions = nwamui_object_real_get_conditions;
+    nwamuiobject_class->set_conditions = nwamui_object_real_set_conditions;
+    nwamuiobject_class->get_activation_mode = nwamui_object_real_get_activation_mode;
+    nwamuiobject_class->set_activation_mode = nwamui_object_real_set_activation_mode;
+    nwamuiobject_class->get_active = nwamui_object_real_get_active;
+    nwamuiobject_class->set_active = nwamui_object_real_set_active;
+    nwamuiobject_class->get_enabled = nwamui_object_real_get_enabled;
+    nwamuiobject_class->set_enabled = nwamui_object_real_set_enabled;
+    nwamuiobject_class->get_nwam_state = nwamui_object_real_get_nwam_state;
+    nwamuiobject_class->commit = nwamui_object_real_commit;
+    nwamuiobject_class->reload = nwamui_object_real_reload;
+    nwamuiobject_class->destroy = nwamui_object_real_destroy;
+    nwamuiobject_class->clone = nwamui_object_real_clone;
 
     /* Create some properties */
 
@@ -1280,39 +1282,24 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
  * Creates a new #NwamuiEnv and copies properties.
  *
  **/
-extern NwamuiEnv*
-nwamui_env_clone( NwamuiEnv* self ) 
+static NwamuiObject*
+nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
 {
-    NwamuiEnv          *new_env;
-    NwamuiEnv          *tmpenv;
-    NwamuiDaemon       *daemon;
-    gchar              *new_name;
-    nwam_error_t        nerr;
-    nwam_loc_handle_t   new_env_h;
-    gint                count=2;
+    NwamuiEnv         *self  = NWAMUI_ENV(object);
+    NwamuiEnv         *new_env;
+    NwamuiDaemon      *daemon;
+    nwam_error_t       nerr;
+    nwam_loc_handle_t  new_env_h;
         
-    daemon = nwamui_daemon_get_instance();
+    g_assert(parent == NULL);
 
-    /* Generate a new name */
-    new_name = g_strdup_printf(_("Copy of %s"), self->prv->name );
-    /* Handle case where new name exists... (e.g. Copy(2) of ) */
-    while ((tmpenv=nwamui_daemon_get_env_by_name(daemon, new_name)) != NULL ) {
-        /* Already exists, change name again */
-        g_object_unref(G_OBJECT(tmpenv));
-        g_free(new_name);
-        new_name = g_strdup_printf(_("Copy(%d) of %s"), count, self->prv->name);
-    }
-    if ( tmpenv != NULL ) {
-        g_object_unref(G_OBJECT(tmpenv));
-        tmpenv = NULL;
-    }
-
-    nerr = nwam_loc_copy (self->prv->nwam_loc, new_name, &new_env_h);
+    nerr = nwam_loc_copy (self->prv->nwam_loc, name, &new_env_h);
 
     if ( nerr != NWAM_SUCCESS ) { 
-        g_free( new_name );
         return( NULL );
     }
+
+    daemon = nwamui_daemon_get_instance();
 
     new_env = nwamui_env_new_with_handle (new_env_h);
     
@@ -1335,15 +1322,13 @@ nwamui_env_clone( NwamuiEnv* self )
 #endif /* ENABLE_PROXY */
              NULL);
     
-    g_free( new_name );
-    
     new_env->prv->nwam_loc_modified = TRUE; /* Only exists in-memory, need to commit later */
 
     nwamui_daemon_env_append( daemon, new_env );
 
     g_object_unref(G_OBJECT(daemon));
 
-    return( new_env );
+    return NWAMUI_OBJECT(new_env);
 }
 
 static gchar*
@@ -1845,13 +1830,13 @@ populate_env_with_handle( NwamuiEnv* env, nwam_loc_handle_t prv->nwam_loc )
 #endif /* 0 */
 
 /**
- * nwamui_env_can_rename:
+ * nwamui_object_real_can_rename:
  * @object: a #NwamuiEnv.
  * @returns: TRUE if the name.can be changed.
  *
  **/
 static gboolean
-nwamui_env_can_rename (NwamuiObject *object)
+nwamui_object_real_can_rename (NwamuiObject *object)
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     NwamuiEnvPrivate *prv = NWAMUI_ENV(object)->prv;
@@ -1873,7 +1858,7 @@ nwamui_env_can_rename (NwamuiObject *object)
  * 
  **/ 
 static void
-nwamui_env_set_name (NwamuiObject *object, const gchar*  name )
+nwamui_object_real_set_name (NwamuiObject *object, const gchar*  name )
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     NwamuiEnvPrivate *prv = self->prv;
@@ -1915,7 +1900,7 @@ nwamui_env_set_name (NwamuiObject *object, const gchar*  name )
  *
  **/
 static const gchar*
-nwamui_env_get_name (NwamuiObject *object)
+nwamui_object_real_get_name (NwamuiObject *object)
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     nwam_error_t    nerr;
@@ -1943,7 +1928,7 @@ nwamui_env_get_name (NwamuiObject *object)
  * 
  **/ 
 static void
-nwamui_env_set_enabled (NwamuiObject *object, gboolean enabled )
+nwamui_object_real_set_enabled (NwamuiObject *object, gboolean enabled )
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     g_return_if_fail (NWAMUI_IS_ENV (self));
@@ -1960,7 +1945,7 @@ nwamui_env_set_enabled (NwamuiObject *object, gboolean enabled )
  *
  **/
 static gboolean
-nwamui_env_get_enabled (NwamuiObject *object)
+nwamui_object_real_get_enabled (NwamuiObject *object)
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     gboolean  enabled = FALSE; 
@@ -1981,7 +1966,7 @@ nwamui_env_get_enabled (NwamuiObject *object)
  *
  **/
 static gboolean
-nwamui_env_get_active (NwamuiObject *object)
+nwamui_object_real_get_active (NwamuiObject *object)
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     gboolean  active = FALSE; 
@@ -2010,7 +1995,7 @@ nwamui_env_get_active (NwamuiObject *object)
  * 
  **/ 
 static void
-nwamui_env_set_active (NwamuiObject *object, gboolean active )
+nwamui_object_real_set_active (NwamuiObject *object, gboolean active )
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     g_return_if_fail (NWAMUI_IS_ENV (self));
@@ -3475,7 +3460,7 @@ nwamui_env_get_proxy_socks_port (NwamuiEnv *self)
  * 
  **/ 
 static void
-nwamui_env_set_activation_mode (   NwamuiObject *object, gint activation_mode )
+nwamui_object_real_set_activation_mode (   NwamuiObject *object, gint activation_mode )
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     NwamuiEnvPrivate *prv = self->prv;
@@ -3495,7 +3480,7 @@ nwamui_env_set_activation_mode (   NwamuiObject *object, gint activation_mode )
  *
  **/
 static gint
-nwamui_env_get_activation_mode (NwamuiObject *object)
+nwamui_object_real_get_activation_mode (NwamuiObject *object)
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     NwamuiEnvPrivate *prv = self->prv;
@@ -3515,7 +3500,7 @@ nwamui_env_get_activation_mode (NwamuiObject *object)
  * 
  **/ 
 static void
-nwamui_env_set_conditions (NwamuiObject *object, const GList* conditions )
+nwamui_object_real_set_conditions (NwamuiObject *object, const GList* conditions )
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     g_return_if_fail (NWAMUI_IS_ENV (self));
@@ -3525,7 +3510,7 @@ nwamui_env_set_conditions (NwamuiObject *object, const GList* conditions )
                       "conditions", (gpointer)conditions,
                       NULL);
     } else {
-        nwamui_env_set_activation_mode(NWAMUI_OBJECT(self), (gint)NWAMUI_COND_ACTIVATION_MODE_MANUAL);
+        nwamui_object_real_set_activation_mode(NWAMUI_OBJECT(self), (gint)NWAMUI_COND_ACTIVATION_MODE_MANUAL);
     }
 }
 
@@ -3536,7 +3521,7 @@ nwamui_env_set_conditions (NwamuiObject *object, const GList* conditions )
  *
  **/
 static GList*
-nwamui_env_get_conditions (NwamuiObject *object)
+nwamui_object_real_get_conditions (NwamuiObject *object)
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     gpointer  conditions = NULL; 
@@ -3695,7 +3680,7 @@ nwamui_env_svc_commit (NwamuiEnv *self, NwamuiSvc *svc)
  * nwamui_env_reload:   re-load stored configuration
  **/
 static void
-nwamui_env_reload( NwamuiObject *object )
+nwamui_object_real_reload( NwamuiObject *object )
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     g_return_if_fail( NWAMUI_IS_ENV(self) );
@@ -3757,7 +3742,7 @@ nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret )
  * @returns: TRUE if succeeded, FALSE if failed
  **/
 static gboolean
-nwamui_env_destroy( NwamuiObject *object )
+nwamui_object_real_destroy( NwamuiObject *object )
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     nwam_error_t    nerr;
@@ -3781,7 +3766,7 @@ nwamui_env_destroy( NwamuiObject *object )
  * @returns: TRUE if succeeded, FALSE if failed
  **/
 static gboolean
-nwamui_env_commit( NwamuiObject *object )
+nwamui_object_real_commit( NwamuiObject *object )
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     nwam_error_t    nerr;
@@ -3891,7 +3876,7 @@ nwamui_env_finalize (NwamuiEnv *self)
 }
 
 static nwam_state_t
-nwamui_env_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p)
+nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p)
 {
     nwam_state_t    rstate = NWAM_STATE_UNINITIALIZED;
 

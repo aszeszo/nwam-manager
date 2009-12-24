@@ -109,7 +109,7 @@ struct _NwamWirelessDialogPrivate {
         NwamuiNcu*              ncu;
         NwamuiWifiNet*          wifi_net;
         gboolean                do_connect;
-        nwamui_wireless_dialog_title_t title;
+        nwamui_dialog_purpose_t purpose;
         gboolean                key_entry_changed;
         gboolean                sec_mode_changed;
 };
@@ -121,6 +121,7 @@ static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
 static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
+static void set_purpose(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose);
 
 static void nwam_wireless_dialog_set_property ( GObject         *object,
                                                 guint            prop_id,
@@ -180,6 +181,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
     iface->help = help;
     iface->dialog_run = dialog_run;
     iface->dialog_get_window = dialog_get_window;
+    iface->set_purpose = set_purpose;
 }
 
 static void
@@ -341,7 +343,7 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     
     self->prv->ncu = NULL;
     self->prv->do_connect = FALSE;
-    self->prv->title = NWAMUI_WIRELESS_DIALOG_TITLE_ADD;
+    self->prv->purpose = NWAMUI_DIALOG_PURPOSE_ADD;
 
     gtk_spin_button_set_range(self->prv->key_index_spinbtn, 1, 4);
     gtk_spin_button_set_increments(self->prv->key_index_spinbtn, 1.0, 1.0);
@@ -740,31 +742,31 @@ nwam_wireless_dialog_set_ncu (NwamWirelessDialog *self,
     }
 }
 
-extern  void
-nwam_wireless_dialog_set_title( NwamWirelessDialog  *self, nwamui_wireless_dialog_title_t title )
+static void
+set_purpose(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose)
 {
-    const gchar*    title_str = NULL;
+    NwamWirelessDialog *self        = NWAM_WIRELESS_DIALOG(iface);
+    const gchar*        purpose_str = NULL;
 
-    g_return_if_fail (NWAM_IS_WIRELESS_DIALOG (self));
-
-    g_assert( title >= NWAMUI_WIRELESS_DIALOG_TITLE_ADD && title < NWAMUI_WIRELESS_DIALOG_TITLE_LAST );
-
-    self->prv->title = title;
-
-    switch( title ) {
-        case NWAMUI_WIRELESS_DIALOG_TITLE_ADD:
-            title_str = _("Add Wireless Network");
-            break;
-        case NWAMUI_WIRELESS_DIALOG_TITLE_JOIN:
-            title_str = _("Join Wireless Network");
-            break;
-        case NWAMUI_WIRELESS_DIALOG_TITLE_EDIT:
-            title_str = _("Edit Wireless Network");
-            break;
+    switch( purpose ) {
+    case NWAMUI_DIALOG_PURPOSE_ADD:
+        purpose_str = _("Add Wireless Network");
+        break;
+    case NWAMUI_DIALOG_PURPOSE_JOIN:
+        purpose_str = _("Join Wireless Network");
+        break;
+    case NWAMUI_DIALOG_PURPOSE_EDIT:
+        purpose_str = _("Edit Wireless Network");
+        break;
+    default:
+        g_assert_not_reached();
+        break;
     }
     
-    if ( title_str != NULL ) {
-        gtk_window_set_title( GTK_WINDOW(self->prv->wireless_dialog), title_str );
+    self->prv->purpose = purpose;
+
+    if ( purpose_str != NULL ) {
+        gtk_window_set_title( GTK_WINDOW(self->prv->wireless_dialog), purpose_str );
     }
 }
 
@@ -809,8 +811,8 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
 
         self->prv->wifi_net = NWAMUI_WIFI_NET(g_object_ref(wifi_net));
 
-        if ( self->prv->title == NWAMUI_WIRELESS_DIALOG_TITLE_EDIT &&
-             self->prv->title == NWAMUI_WIRELESS_DIALOG_TITLE_ADD ) {
+        if ( self->prv->purpose == NWAMUI_DIALOG_PURPOSE_EDIT &&
+             self->prv->purpose == NWAMUI_DIALOG_PURPOSE_ADD ) {
             bssid_list = nwamui_wifi_net_get_fav_bssid_list(wifi_net);
         }
         else {
@@ -818,7 +820,7 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
             bssid_list = nwamui_wifi_net_get_bssid_list(wifi_net);
         }
 
-        if ( self->prv->title == NWAMUI_WIRELESS_DIALOG_TITLE_EDIT ) {
+        if ( self->prv->purpose == NWAMUI_DIALOG_PURPOSE_EDIT ) {
             /* Don't allow user to edit the text if it's not possible */
             gboolean    editable = nwamui_object_can_rename( NWAMUI_OBJECT(wifi_net) );
 
@@ -826,10 +828,10 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
         }
 
         g_object_set(G_OBJECT (self),
-                "essid", nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)),
-                "bssid_list", bssid_list,
-                "security", security,
-                NULL );
+          "essid", nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)),
+          "bssid_list", bssid_list,
+          "security", security,
+          NULL );
 
         if ( bssid_list ) {
             g_list_foreach( bssid_list, (GFunc)g_free, NULL );
@@ -1373,7 +1375,7 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
         self->prv->key_entry_changed = FALSE; /* Mark key entry as unchanged */
         self->prv->sec_mode_changed = FALSE; /* Mark sec_mode as unchanged */
 
-        if ( self->prv->title == NWAMUI_WIRELESS_DIALOG_TITLE_EDIT &&
+        if ( self->prv->purpose == NWAMUI_DIALOG_PURPOSE_EDIT &&
              self->prv->wifi_net != NULL ) {
             /* Don't allow user to edit the text if it's not possible */
             gboolean    editable = nwamui_object_can_rename( NWAMUI_OBJECT(self->prv->wifi_net) );

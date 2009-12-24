@@ -92,8 +92,6 @@ extern NwamuiEnv*           nwamui_env_new_with_handle (nwam_loc_handle_t envh);
 
 extern gboolean             nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh);
 
-extern NwamuiEnv*           nwamui_env_clone( NwamuiEnv* self );
-
 extern void                 nwamui_env_set_nameservices ( NwamuiEnv *self, const GList*   nameservices );
 extern GList*               nwamui_env_get_nameservices ( NwamuiEnv *self );
 

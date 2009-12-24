@@ -128,8 +128,6 @@ extern NwamuiNcp*                   nwamui_daemon_get_active_ncp(NwamuiDaemon *s
 
 extern gchar*                       nwamui_daemon_get_active_ncp_name(NwamuiDaemon *self);
 
-extern void                         nwamui_daemon_set_active_ncp( NwamuiDaemon* self, NwamuiNcp* ncp );
-
 extern gboolean                     nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiNcp* ncp ) ;
 
 extern GList*                       nwamui_daemon_get_ncp_list(NwamuiDaemon *self);
@@ -147,8 +145,6 @@ extern void                         nwamui_daemon_env_selection_set_manual( Nwam
 extern gboolean                     nwamui_daemon_is_active_env(NwamuiDaemon *self, NwamuiEnv* env ) ;
 
 extern NwamuiEnv*                   nwamui_daemon_get_active_env(NwamuiDaemon *self);
-
-extern void                         nwamui_daemon_set_active_env( NwamuiDaemon* self, NwamuiEnv* env );
 
 extern gchar*                       nwamui_daemon_get_active_env_name(NwamuiDaemon *self);
 

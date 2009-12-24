@@ -75,27 +75,29 @@ struct _NwamuiObjectClass
     void (*reload)(NwamuiObject *object);
     gboolean (*destroy)(NwamuiObject *object);
     gboolean (*is_modifiable)(NwamuiObject *object);
+    NwamuiObject *(*clone)(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 };
 
-extern  GType               nwamui_object_get_type (void) G_GNUC_CONST;
+extern GType               nwamui_object_get_type (void) G_GNUC_CONST;
 
-extern const gchar*         nwamui_object_get_name(NwamuiObject *object);
-extern gboolean             nwamui_object_can_rename (NwamuiObject *object);
-extern void                 nwamui_object_set_name(NwamuiObject *object, const gchar* name);
-extern void                 nwamui_object_set_conditions ( NwamuiObject *object, const GList* conditions );
-extern GList*               nwamui_object_get_conditions ( NwamuiObject *object );
-extern gint                 nwamui_object_get_activation_mode(NwamuiObject *object);
-extern void                 nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode);
-extern gboolean             nwamui_object_get_active(NwamuiObject *object);
-extern void                 nwamui_object_set_active(NwamuiObject *object, gboolean active);
-extern gboolean             nwamui_object_get_enabled(NwamuiObject *object);
-extern void                 nwamui_object_set_enabled(NwamuiObject *object, gboolean enabled);
-extern nwam_state_t         nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string);
-extern void                 nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state);
-extern gboolean             nwamui_object_commit(NwamuiObject *object);
-extern void                 nwamui_object_reload(NwamuiObject *object);
-extern gboolean             nwamui_object_destroy(NwamuiObject *object);
-extern gboolean             nwamui_object_is_modifiable(NwamuiObject *object);
+extern const gchar*  nwamui_object_get_name(NwamuiObject *object);
+extern gboolean      nwamui_object_can_rename (NwamuiObject *object);
+extern void          nwamui_object_set_name(NwamuiObject *object, const gchar* name);
+extern void          nwamui_object_set_conditions ( NwamuiObject *object, const GList* conditions );
+extern GList*        nwamui_object_get_conditions ( NwamuiObject *object );
+extern gint          nwamui_object_get_activation_mode(NwamuiObject *object);
+extern void          nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode);
+extern gboolean      nwamui_object_get_active(NwamuiObject *object);
+extern void          nwamui_object_set_active(NwamuiObject *object, gboolean active);
+extern gboolean      nwamui_object_get_enabled(NwamuiObject *object);
+extern void          nwamui_object_set_enabled(NwamuiObject *object, gboolean enabled);
+extern nwam_state_t  nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string);
+extern void          nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state);
+extern gboolean      nwamui_object_commit(NwamuiObject *object);
+extern void          nwamui_object_reload(NwamuiObject *object);
+extern gboolean      nwamui_object_destroy(NwamuiObject *object);
+extern gboolean      nwamui_object_is_modifiable(NwamuiObject *object);
+extern NwamuiObject* nwamui_object_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 
 G_END_DECLS
 

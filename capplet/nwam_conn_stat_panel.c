@@ -38,7 +38,6 @@
 #include "nwam_location_dialog.h"
 #include "nwam_vpn_pref_dialog.h"
 #include "nwam_conn_stat_panel.h"
-#include "nwam_net_conf_panel.h"
 #include "nwam_pref_iface.h"
 #include "capplet-utils.h"
 
@@ -314,9 +313,10 @@ NwamConnStatusPanel*
 nwam_conn_status_panel_new(NwamCappletDialog *pref_dialog)
 {
 	NwamConnStatusPanel *self =  NWAM_CONN_STATUS_PANEL(g_object_new(NWAM_TYPE_CONN_STATUS_PANEL, NULL));
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(self);
         
     /* FIXME - Use GOBJECT Properties */
-    self->prv->pref_dialog = g_object_ref( G_OBJECT( pref_dialog ));
+    prv->pref_dialog = g_object_ref( G_OBJECT( pref_dialog ));
 
     return( self );
 }
@@ -669,7 +669,7 @@ env_clicked_cb( GtkButton *button, gpointer data )
     }
     if ( self->prv->location_dialog != NULL ) {
         nwam_pref_refresh(NWAM_PREF_IFACE(self->prv->location_dialog), NULL, TRUE);
-        response = capplet_dialog_run(NWAM_PREF_IFACE(self->prv->location_dialog), GTK_WIDGET(button) );
+        response = nwam_pref_dialog_run(NWAM_PREF_IFACE(self->prv->location_dialog), GTK_WIDGET(button) );
         
         g_debug("location_dialog returned %d", response );
     }
@@ -685,7 +685,7 @@ vpn_clicked_cb( GtkButton *button, gpointer data )
             self->prv->vpn_dialog = nwam_vpn_pref_dialog_new();
     }
 
-	response = capplet_dialog_run(NWAM_PREF_IFACE(self->prv->vpn_dialog), GTK_WIDGET(button));
+	response = nwam_pref_dialog_run(NWAM_PREF_IFACE(self->prv->vpn_dialog), GTK_WIDGET(button));
 	
 	g_debug("VPN dialog returned %d", response);
 }

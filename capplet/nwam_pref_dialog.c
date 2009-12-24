@@ -39,7 +39,7 @@
 #include "nwam_pref_dialog.h"
 #include "nwam_conn_conf_ip_panel.h"
 #include "nwam_conn_stat_panel.h"
-#include "nwam_net_conf_panel.h"
+#include "nwam_profile_panel.h"
 
 /* Names of Widgets in Glade file */
 #define CAPPLET_DIALOG_NAME           "nwam_capplet"
@@ -163,7 +163,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
 
     /* Construct the Notebook Panels Handling objects. */
     prv->panel[PANEL_CONN_STATUS] = NWAM_PREF_IFACE(nwam_conn_status_panel_new( self ));
-    prv->panel[PANEL_NET_PREF] = NWAM_PREF_IFACE(nwam_net_conf_panel_new(self));
+    prv->panel[PANEL_PROF_PREF] = NWAM_PREF_IFACE(nwam_profile_panel_new(self));
     prv->panel[PANEL_CONF_IP] = NWAM_PREF_IFACE(nwam_conf_ip_panel_new(self));
 
     /* Change Model */
@@ -177,7 +177,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
       NULL);
 
 	show_combo_add (prv->show_combo, G_OBJECT(prv->panel[PANEL_CONN_STATUS]));
-	show_combo_add (prv->show_combo, G_OBJECT(prv->panel[PANEL_NET_PREF]));
+	show_combo_add (prv->show_combo, G_OBJECT(prv->panel[PANEL_PROF_PREF]));
 
     g_signal_connect(self, "notify", (GCallback)object_notify_cb, NULL);
     g_signal_connect(GTK_DIALOG(prv->capplet_dialog), "response", (GCallback)response_cb, (gpointer)self);
@@ -293,7 +293,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 /*         /\* if -1, show the first page. *\/ */
 /*         panel_id = 0; */
 /*     case PANEL_CONN_STATUS: */
-/*     case PANEL_NET_PREF: */
+/*     case PANEL_PROF_PREF: */
 /*         obj = g_object_ref(prv->panel[panel_id]); */
 /*         break; */
 /*     default: */
@@ -404,7 +404,7 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
 		case GTK_RESPONSE_OK:
 			g_debug("GTK_RESPONSE_OK");
             if (nwam_pref_apply (NWAM_PREF_IFACE(self), NULL)) {
-                gtk_widget_hide_all (GTK_WIDGET(self->prv->capplet_dialog));
+                gtk_widget_hide(GTK_WIDGET(self->prv->capplet_dialog));
             }
             else {
                 /* TODO - report error to user */
@@ -419,7 +419,7 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
             if (nwam_pref_cancel (NWAM_PREF_IFACE(self), NULL)) {
-                gtk_widget_hide_all (GTK_WIDGET(self->prv->capplet_dialog));
+                gtk_widget_hide(GTK_WIDGET(self->prv->capplet_dialog));
             }
 			break;
 		case GTK_RESPONSE_HELP:
@@ -465,7 +465,7 @@ show_changed_cb( GtkWidget* widget, gpointer data )
     type = G_OBJECT_TYPE(obj);
     if (type == NWAM_TYPE_CONN_STATUS_PANEL) {
         idx = 0;
-    } else if (type == NWAM_TYPE_NET_CONF_PANEL) {
+    } else if (type == NWAM_TYPE_PROFILE_PANEL) {
         user_data = g_object_ref(self->prv->active_ncp);
         idx = 1;
     } else if (type == NWAMUI_TYPE_NCU) {
@@ -571,7 +571,7 @@ show_combo_cell_cb (GtkCellLayout *cell_layout,
           "text", text,
           "sensitive", TRUE,
           NULL);
-	} else if (NWAM_IS_NET_CONF_PANEL( row_data )) {
+	} else if (NWAM_IS_PROFILE_PANEL(row_data)) {
 		text = _("Network Profile");
 		g_object_set(renderer,
           "text", text,

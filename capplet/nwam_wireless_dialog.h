@@ -46,9 +46,9 @@ G_BEGIN_DECLS
 #define NWAM_WIRELESS_DIALOG_GET_CLASS(obj)     (G_TYPE_INSTANCE_GET_CLASS ((obj), NWAM_TYPE_WIRELESS_DIALOG, NwamWirelessDialogClass))
 
 
-typedef struct _NwamWirelessDialog		NwamWirelessDialog;
-typedef struct _NwamWirelessDialogClass         NwamWirelessDialogClass;
-typedef struct _NwamWirelessDialogPrivate	NwamWirelessDialogPrivate;
+typedef struct _NwamWirelessDialog        NwamWirelessDialog;
+typedef struct _NwamWirelessDialogClass   NwamWirelessDialogClass;
+typedef struct _NwamWirelessDialogPrivate NwamWirelessDialogPrivate;
 
 struct _NwamWirelessDialog
 {
@@ -63,22 +63,12 @@ struct _NwamWirelessDialogClass
 	GObjectClass                parent_class;
 };
 
-
-typedef enum {
-    NWAMUI_WIRELESS_DIALOG_TITLE_ADD,
-    NWAMUI_WIRELESS_DIALOG_TITLE_JOIN,
-    NWAMUI_WIRELESS_DIALOG_TITLE_EDIT,
-    NWAMUI_WIRELESS_DIALOG_TITLE_LAST /* Not to be used directly */
-} nwamui_wireless_dialog_title_t;
-
-
 extern  GType                   nwam_wireless_dialog_get_type (void) G_GNUC_CONST;
 
 extern  NwamWirelessDialog*     nwam_wireless_dialog_get_instance (void);
 
-extern  void                    nwam_wireless_dialog_set_title( NwamWirelessDialog  *self, nwamui_wireless_dialog_title_t title );
-
 extern  void                    nwam_wireless_dialog_show (NwamWirelessDialog  *self);
+
 extern  void                    nwam_wireless_dialog_hide (NwamWirelessDialog  *self);
 
 extern NwamuiWifiNet*           nwam_wireless_dialog_get_wifi_net (NwamWirelessDialog *self);

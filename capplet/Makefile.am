@@ -50,7 +50,8 @@ nwam_manager_properties_SOURCES =		\
 	main.c			\
 	nwam_wireless_dialog.c	\
 	nwam_pref_dialog.c	\
-	nwam_net_conf_panel.c	\
+	nwam_profile_panel.c	\
+	nwam_profile_dialog.c	\
 	nwam_conn_stat_panel.c	\
 	nwam_env_pref_dialog.c	\
 	nwam_vpn_pref_dialog.c	\
@@ -101,10 +102,11 @@ EXTRA_DIST = 		\
 	nwam_condition_vbox.h	\
 	nwam_conn_conf_ip_panel.h	\
 	nwam_conn_stat_panel.h	\
+	nwam_profile_panel.h	\
+	nwam_profile_dialog.h	\
 	nwam_env_pref_dialog.h	\
 	nwam_env_svc.h	\
 	nwam_location_dialog.h	\
-	nwam_net_conf_panel.h	\
 	nwam_pref_dialog.h	\
 	nwam_proxy_password_dialog.h	\
 	nwam_rules_dialog.h	\

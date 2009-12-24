@@ -481,9 +481,6 @@ nwam_tooltip_widget_new(void)
 static gint
 tooltip_ncu_compare(NwamuiObject *a, NwamuiObject *b)
 {
-#define ALWAYS_ON_GROUP_ID              (0)
-#define ALWAYS_OFF_GROUP_ID             (G_MAXINT)
-
     NwamuiObject *object[2] = { a, b };
     int rank[2];
     int i, retval;
@@ -493,19 +490,7 @@ tooltip_ncu_compare(NwamuiObject *a, NwamuiObject *b)
          * filter out non-NCU objects.
          */
         if (NWAMUI_IS_NCU(object[i])) {
-
-            switch (nwamui_object_get_activation_mode(object[i])) {
-            case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
-                rank[i] = nwamui_object_get_enabled(object[i]) ? ALWAYS_ON_GROUP_ID : ALWAYS_OFF_GROUP_ID;
-                break;
-            case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
-                rank[i] = nwamui_ncu_get_priority_group(NWAMUI_NCU(object[i])) + ALWAYS_ON_GROUP_ID + 1;
-                break;
-            default:
-                g_warning("%s: Not supported activation mode %d", __func__, nwamui_object_get_activation_mode(object[i]));
-                rank[i] = ALWAYS_OFF_GROUP_ID;
-                break;
-            }
+            rank[i] = nwamui_ncu_get_priority_group_for_view(NWAMUI_NCU(object[i]));
         } else {
             retval = 0;
             /* We don't need compare anymore, just unref and return. Remember i

@@ -36,7 +36,6 @@
 
 /* Misc. */
 void capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class);
-gint capplet_dialog_run(NwamPrefIFace *iface, GtkWidget *w);
 gboolean capplet_dialog_raise(NwamPrefIFace *iface);
 
 #define CAPPLET_COMPOSE_NWAMUI_OBJECT_LIST_VIEW(treeview)               \
@@ -216,11 +215,6 @@ gint capplet_get_max_name_num(GtkTreeModel *model, const gchar *prefix, gint bas
 gchar* capplet_get_original_name(const gchar *prefix, const gchar *name);
 
 void capplet_util_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
-
-/* NCU */
-/* Values picked to put always ON at top of list, and always off at bottom */
-#define ALWAYS_ON_GROUP_ID              (0)
-#define ALWAYS_OFF_GROUP_ID             (G_MAXINT)
 
 extern gint nwam_ncu_compare_cb(GtkTreeModel *model,
   GtkTreeIter *a,

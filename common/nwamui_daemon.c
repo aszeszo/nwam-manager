@@ -236,12 +236,12 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
                                                           G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_ACTIVE_NCP,
-                                     g_param_spec_object ("active_ncp",
-                                                          _("active_ncp"),
-                                                          _("active_ncp"),
-                                                          NWAMUI_TYPE_NCP,
-                                                          G_PARAM_READWRITE));
+      PROP_ACTIVE_NCP,
+      g_param_spec_object ("active_ncp",
+        _("active_ncp"),
+        _("active_ncp"),
+        NWAMUI_TYPE_NCP,
+        G_PARAM_READABLE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_NCP_LIST,
@@ -457,7 +457,7 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
      */
     if ( (user_ncp = nwamui_daemon_get_ncp_by_name( self, NWAM_NCP_NAME_USER ) ) == NULL ) {
         if ( self->prv->auto_ncp != NULL ) { /* If Auto doesn't exist do nothing */
-            user_ncp = nwamui_ncp_clone( self->prv->auto_ncp, NWAM_NCP_NAME_USER );
+            user_ncp = NWAMUI_NCP(nwamui_object_clone(NWAMUI_OBJECT(self->prv->auto_ncp), NWAM_NCP_NAME_USER, NULL));
             if ( user_ncp != NULL ) {
                 self->prv->ncp_list = g_list_append(self->prv->ncp_list, (gpointer)g_object_ref(user_ncp));
             }
@@ -547,21 +547,6 @@ nwamui_daemon_set_property ( GObject         *object,
             g_object_notify(G_OBJECT(self), "active_env");
             g_object_notify(G_OBJECT(self), "env_selection_mode");
         }
-            break;
-        case PROP_ACTIVE_NCP: {
-                NwamuiNcp *ncp;
-            
-                if ( self->prv->active_ncp != NULL ) {
-                    g_object_unref(G_OBJECT(self->prv->active_ncp));
-                }
-
-                ncp = NWAMUI_NCP(g_value_dup_object( value ));
-
-                /* Assume that activating, will cause signal to say other was
-                 * deactivated too.
-                 */
-                nwamui_object_set_active(NWAMUI_OBJECT(ncp), TRUE);
-            }
             break;
         case PROP_STATUS:
             nwamui_daemon_set_status(self, g_value_get_int( value ));
@@ -1065,26 +1050,6 @@ nwamui_daemon_get_active_ncp(NwamuiDaemon *self)
               NULL);
 
     return( active_ncp );
-}
-
-/**
- * nwamui_daemon_set_active_ncp
- * @self: NwamuiDaemon*
- *
- * Sets the active Environment
- *
- **/
-extern void
-nwamui_daemon_set_active_ncp( NwamuiDaemon* self, NwamuiNcp* ncp )
-{
-    g_assert( NWAMUI_IS_DAEMON(self) );
-
-    if ( ncp != NULL && ncp != self->prv->active_ncp ) {
-        g_object_set (G_OBJECT (self),
-              "active_ncp", ncp,
-              NULL);
-    }
-
 }
 
 /**
@@ -3305,10 +3270,16 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
         }
             break;
         case NWAM_OBJECT_TYPE_NCP:
-            obj = NWAMUI_OBJECT(nwamui_daemon_get_ncp_by_name( daemon, object_name ));
+            obj = NWAMUI_OBJECT(nwamui_daemon_get_ncp_by_name(daemon, object_name));
             nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
             if ( object_state == NWAM_STATE_ONLINE && object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
-                nwamui_daemon_set_active_ncp( daemon, NWAMUI_NCP(obj));
+                /* Assume that activating, will cause signal to say other was
+                 * deactivated too.
+                 */
+                if (obj != NWAMUI_OBJECT(daemon->prv->active_ncp)) {
+                    nwamui_object_set_active(obj, TRUE);
+                    g_object_notify(G_OBJECT(daemon), "active_ncp");
+                }
             } else {
                 status_flags |= STATUS_REASON_NCP;
             }

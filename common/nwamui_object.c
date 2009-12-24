@@ -611,6 +611,14 @@ nwamui_object_is_modifiable(NwamuiObject *object)
     return NWAMUI_OBJECT_GET_CLASS (object)->is_modifiable(object);
 }
 
+extern NwamuiObject*
+nwamui_object_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT(object), NULL);
+
+    return NWAMUI_OBJECT_GET_CLASS (object)->clone(object, name, parent);
+}
+
 /* Callbacks */
 
 static void
