@@ -373,6 +373,14 @@ nwamui_object_set_name(NwamuiObject *object, const gchar* name )
     }
 }
 
+extern void
+nwamui_object_set_handle(NwamuiObject *object, gpointer handle)
+{
+    g_return_if_fail (NWAMUI_IS_OBJECT(object));
+
+    NWAMUI_OBJECT_GET_CLASS(object)->set_handle(object, handle);
+}
+
 /**
  * nwamui_object_get_name:
  * @nwamui_object: a #NwamuiObject.

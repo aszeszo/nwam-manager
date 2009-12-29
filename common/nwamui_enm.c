@@ -35,14 +35,14 @@
 #include <libnwam.h>
 #include "libnwamui.h"
 
-static GObjectClass    *parent_class    = NULL;
-
 struct _NwamuiEnmPrivate {
     gchar*               name;
 
     nwam_enm_handle_t	nwam_enm;
     gboolean        	nwam_enm_modified;
 };
+
+#define NWAMUI_ENM_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), NWAMUI_TYPE_ENM, NwamuiEnmPrivate))
 
 enum {
     PROP_ENABLED = 1,
@@ -79,6 +79,7 @@ static gboolean     set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const
 static guint64      get_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name );
 static gboolean     set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 value );
 
+static void         nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle);
 static nwam_state_t nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
 static gboolean     nwamui_object_real_destroy( NwamuiObject* object );
 static gboolean     nwamui_object_real_can_rename (NwamuiObject *object);
@@ -107,14 +108,12 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
     GObjectClass *gobject_class = (GObjectClass*) klass;
     NwamuiObjectClass *nwamuiobject_class = NWAMUI_OBJECT_CLASS(klass);
         
-    /* Initialise Static Parent Class pointer */
-    parent_class = g_type_class_peek_parent (klass);
-
     /* Override Some Function Pointers */
     gobject_class->set_property = nwamui_enm_set_property;
     gobject_class->get_property = nwamui_enm_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_enm_finalize;
 
+    nwamuiobject_class->set_handle = nwamui_object_real_set_handle;
     nwamuiobject_class->get_name = nwamui_object_real_get_name;
     nwamuiobject_class->can_rename = nwamui_object_real_can_rename;
     nwamuiobject_class->set_name = nwamui_object_real_set_name;
@@ -131,6 +130,8 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
     nwamuiobject_class->reload = nwamui_object_real_reload;
     nwamuiobject_class->destroy = nwamui_object_real_destroy;
     nwamuiobject_class->clone = nwamui_object_real_clone;
+
+	g_type_class_add_private(klass, sizeof(NwamuiEnmPrivate));
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -187,7 +188,9 @@ typedef struct _ncu_info    ncu_info_t;
 static void
 nwamui_enm_init ( NwamuiEnm *self)
 {  
-    self->prv = g_new0 (NwamuiEnmPrivate, 1);
+    NwamuiEnmPrivate *prv      = NWAMUI_ENM_GET_PRIVATE(self);
+
+    self->prv = prv;
 }
 
 static void
@@ -689,47 +692,6 @@ set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 
     return( retval );
 }
 
-
-/**
- * nwamui_enm_update_with_handle:
- * @returns: TRUE if successfully updated
- *
- **/
-extern gboolean
-nwamui_enm_update_with_handle (NwamuiEnm* self, nwam_enm_handle_t enm)
-{
-    char*           name = NULL;
-    nwam_error_t    nerr;
-    nwam_enm_handle_t nwam_enm;
-    
-    if ( (nerr = nwam_enm_get_name (enm, &name)) != NWAM_SUCCESS ) {
-        g_debug ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
-        return( FALSE );
-    }
-
-    if ( ( nerr = nwam_enm_read (name, 0, &nwam_enm) ) != NWAM_SUCCESS ) {
-        g_debug ("Failed to create private handle for enm, error: %s", nwam_strerror (nerr));
-        return( FALSE );
-    }
-
-    if ( self->prv->nwam_enm != NULL ) {
-         nwam_enm_free(self->prv->nwam_enm);
-    }
-    self->prv->nwam_enm = nwam_enm;
-
-    if ( self->prv->name != NULL ) {
-         g_free(self->prv->name);
-    }
-    self->prv->name = name;
-
-    /* Tell GUI to refresh */
-    g_object_notify(G_OBJECT(self), "activation-mode");
-
-    self->prv->nwam_enm_modified = FALSE;
-
-    return( TRUE );
-}
-
 /**
  * nwamui_enm_new_with_handle:
  * @returns: a new #NwamuiEnm.
@@ -741,11 +703,13 @@ nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
     NwamuiEnm*      self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM,
                                    NULL));
     
-    if ( ! nwamui_enm_update_with_handle (self, enm) ) {
-        g_object_unref( self );
-        return( NULL );
+    nwamui_object_set_handle(NWAMUI_OBJECT(self), enm);
+
+    if (self->prv->nwam_enm == NULL) {
+        g_object_unref(self);
+        self = NULL;
     }
-    
+
     return( self );
 }
 
@@ -813,6 +777,45 @@ nwamui_object_real_set_name (   NwamuiObject *object, const gchar*  name )
         g_warning("Unexpected null enm handle");
     }
     self->prv->nwam_enm_modified = TRUE;
+}
+
+static void
+nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
+{
+    NwamuiEnm         *self = NWAMUI_ENM(object);
+    nwam_enm_handle_t  enm  = handle;
+    char*              name = NULL;
+    nwam_error_t       nerr;
+    nwam_enm_handle_t  nwam_enm;
+    
+    if ( (nerr = nwam_enm_get_name (enm, &name)) != NWAM_SUCCESS ) {
+        g_warning ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
+        /* return( FALSE ); */
+        return;
+    }
+
+    if ( ( nerr = nwam_enm_read (name, 0, &nwam_enm) ) != NWAM_SUCCESS ) {
+        g_warning ("Failed to create private handle for enm, error: %s", nwam_strerror (nerr));
+        /* return( FALSE ); */
+        return;
+    }
+
+    if ( self->prv->nwam_enm != NULL ) {
+         nwam_enm_free(self->prv->nwam_enm);
+    }
+    self->prv->nwam_enm = nwam_enm;
+
+    if ( self->prv->name != NULL ) {
+         g_free(self->prv->name);
+    }
+    self->prv->name = name;
+
+    /* Tell GUI to refresh */
+    g_object_notify(G_OBJECT(self), "activation-mode");
+
+    self->prv->nwam_enm_modified = FALSE;
+
+    /* return( TRUE ); */
 }
 
 /**
@@ -1193,11 +1196,11 @@ nwamui_object_real_reload( NwamuiObject *object )
     NwamuiEnm *self = NWAMUI_ENM(object);
     g_return_if_fail( NWAMUI_IS_ENM(self) );
 
-    /* nwamui_enm_update_with_handle will cause re-read from configuration */
+    /* nwamui_object_set_handle will cause re-read from configuration */
     g_object_freeze_notify(G_OBJECT(self));
 
     if ( self->prv->nwam_enm != NULL ) {
-        nwamui_enm_update_with_handle( self, self->prv->nwam_enm );
+        nwamui_object_set_handle(object, self->prv->nwam_enm);
     }
 
     g_object_thaw_notify(G_OBJECT(self));
@@ -1230,7 +1233,7 @@ nwamui_object_real_destroy( NwamuiObject *object )
 static NwamuiObject*
 nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
 {
-    g_assert("Not implement");
+    g_warning("Not implement");
     return NULL;
 }
 
@@ -1309,10 +1312,9 @@ nwamui_enm_finalize (NwamuiEnm *self)
         g_free( self->prv->name );
     }
 
-    g_free (self->prv); 
     self->prv = NULL;
 
-    parent_class->finalize (G_OBJECT (self));
+	G_OBJECT_CLASS(nwamui_enm_parent_class)->finalize(G_OBJECT(self));
 }
 
 static nwam_state_t

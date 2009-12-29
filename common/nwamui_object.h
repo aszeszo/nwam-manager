@@ -59,6 +59,7 @@ struct _NwamuiObjectClass
 {
 	GObjectClass                                parent_class;
 
+    void (*set_handle)(NwamuiObject *object, gpointer handle);
     const gchar* (*get_name)(NwamuiObject *object);
     gboolean (*can_rename)(NwamuiObject *object);
     void (*set_name)(NwamuiObject *object, const gchar* name);
@@ -80,6 +81,7 @@ struct _NwamuiObjectClass
 
 extern GType               nwamui_object_get_type (void) G_GNUC_CONST;
 
+extern void          nwamui_object_set_handle(NwamuiObject *object, gpointer handle);
 extern const gchar*  nwamui_object_get_name(NwamuiObject *object);
 extern gboolean      nwamui_object_can_rename (NwamuiObject *object);
 extern void          nwamui_object_set_name(NwamuiObject *object, const gchar* name);

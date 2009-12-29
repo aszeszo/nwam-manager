@@ -90,8 +90,6 @@ extern NwamuiEnv*           nwamui_env_new ( const gchar* name );
 
 extern NwamuiEnv*           nwamui_env_new_with_handle (nwam_loc_handle_t envh);
 
-extern gboolean             nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh);
-
 extern void                 nwamui_env_set_nameservices ( NwamuiEnv *self, const GList*   nameservices );
 extern GList*               nwamui_env_get_nameservices ( NwamuiEnv *self );
 
@@ -255,6 +253,7 @@ extern gboolean             nwamui_env_has_modifications( NwamuiEnv* self );
 extern gboolean             nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret );
 
 const gchar*                nwam_nameservices_enum_to_string(nwam_nameservices_t ns);
+const gchar*                nwamui_env_nameservices_enum_to_filename(nwamui_env_nameservices_t ns);
 
 G_END_DECLS
 

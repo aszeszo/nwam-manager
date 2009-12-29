@@ -987,26 +987,28 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
             g_assert(name);
 
-            object = nwamui_object_clone(NWAMUI_OBJECT(env), name, NULL);
-            /* nwamui_object_set_name(object, name); */
-            /* CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object); */
+            object = nwamui_object_clone(NWAMUI_OBJECT(env), name, NWAMUI_OBJECT(prv->daemon));
+            if (object) {
+                /* We must add it to view first instead of relying on deamon
+                 * property changes, because we have to select the new added
+                 * row immediately and trigger a renaming mode.
+                 */
+                CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
+
+                /* Select and scroll to this new object. */
+                gtk_tree_view_scroll_to_cell(prv->location_tree,
+                  nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->location_tree)),
+                  NULL, FALSE, 0.0, 0.0);
+                gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->location_tree),
+                  nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->location_tree)));
+                /* Trigger rename on the new object as spec defines. */
+                gtk_button_clicked(prv->location_rename_btn);
+
+                g_object_unref(object);
+            }
+
             g_free(name);
             g_free(prefix);
-
-            /* Select and scroll to this new object. */
-            gtk_tree_view_scroll_to_cell(prv->location_tree,
-              nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->location_tree)),
-              NULL, FALSE, 0.0, 0.0);
-            gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->location_tree),
-              nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->location_tree)));
-            /* Trigger rename on the new object as spec defines. */
-            gtk_button_clicked(prv->location_rename_btn);
-
-            nwamui_daemon_env_append(prv->daemon, NWAMUI_ENV(object) );
-        
-/*             nwamui_daemon_set_active_env(daemon, new_env ); */
-
-            g_object_unref( G_OBJECT(object) );
 
         } else if (button == (gpointer)prv->location_rename_btn) {
 #if 0

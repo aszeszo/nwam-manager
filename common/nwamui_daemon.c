@@ -44,7 +44,6 @@
 
 #include "libnwamui.h"
 
-static GObjectClass    *parent_class    = NULL;
 static NwamuiDaemon*    instance        = NULL;
 
 /* Use above mutex for accessing these variables */
@@ -137,6 +136,8 @@ struct _NwamuiDaemonPrivate {
     gint                    online_enm_num;
 };
 
+#define NWAMUI_DAEMON_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), NWAMUI_TYPE_DAEMON, NwamuiDaemonPrivate))
+
 typedef struct _fav_wlan_walker_data {
     NwamuiNcu  *wireless_ncu;
     GList      *fav_list;
@@ -216,15 +217,14 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
     GObjectClass *gobject_class = (GObjectClass*) klass;
     NwamuiObjectClass *nwamuiobject_class = NWAMUI_OBJECT_CLASS(klass);
         
-    /* Initialise Static Parent Class pointer */
-    parent_class = g_type_class_peek_parent (klass);
-
     /* Override Some Function Pointers */
     gobject_class->set_property = nwamui_daemon_set_property;
     gobject_class->get_property = nwamui_daemon_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_daemon_finalize;
 
     nwamuiobject_class->commit = nwamui_daemon_commit_changed_objects;
+
+	g_type_class_add_private(klass, sizeof(NwamuiDaemonPrivate));
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -402,19 +402,20 @@ nwamui_daemon_class_init (NwamuiDaemonClass *klass)
 static void
 nwamui_daemon_init (NwamuiDaemon *self)
 {
-    GError                 *error = NULL;
-    NwamuiWifiNet          *wifi_net = NULL;
-    NwamuiEnm              *new_enm = NULL;
-    nwam_error_t            nerr;
-    NwamuiNcp*              user_ncp;
+    NwamuiDaemonPrivate *prv      = NWAMUI_DAEMON_GET_PRIVATE(self);
+    GError              *error    = NULL;
+    NwamuiWifiNet       *wifi_net = NULL;
+    NwamuiEnm           *new_enm  = NULL;
+    nwam_error_t         nerr;
+    NwamuiNcp*           user_ncp;
     
-    self->prv = g_new0 (NwamuiDaemonPrivate, 1);
+    self->prv = prv;
     
-    self->prv->communicate_change_to_daemon = TRUE;
-    self->prv->wlan_scan_queue = g_queue_new();
+    prv->communicate_change_to_daemon = TRUE;
+    prv->wlan_scan_queue = g_queue_new();
 
-    self->prv->nwam_events_gthread = g_thread_create(nwam_events_thread, g_object_ref(self), TRUE, &error);
-    if( self->prv->nwam_events_gthread == NULL ) {
+    prv->nwam_events_gthread = g_thread_create(nwam_events_thread, g_object_ref(self), TRUE, &error);
+    if( prv->nwam_events_gthread == NULL ) {
         g_debug("Error creating nwam events thread: %s", (error && error->message)?error->message:"" );
     }
 
@@ -448,19 +449,6 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
              item != NULL;
              item = g_list_next( item ) ) {
             nwamui_daemon_ncp_remove( self, NWAMUI_NCP(item->data));
-        }
-    }
-
-    /* If there isn't a User NCP, then we need to create one which is a clone
-     * of the Automatic NCP - this is only for Phase 1, we will need to look
-     * at an alternative mechanism in the GUI for more than 2 NCP case.
-     */
-    if ( (user_ncp = nwamui_daemon_get_ncp_by_name( self, NWAM_NCP_NAME_USER ) ) == NULL ) {
-        if ( self->prv->auto_ncp != NULL ) { /* If Auto doesn't exist do nothing */
-            user_ncp = NWAMUI_NCP(nwamui_object_clone(NWAMUI_OBJECT(self->prv->auto_ncp), NWAM_NCP_NAME_USER, NULL));
-            if ( user_ncp != NULL ) {
-                self->prv->ncp_list = g_list_append(self->prv->ncp_list, (gpointer)g_object_ref(user_ncp));
-            }
         }
     }
 
@@ -680,10 +668,9 @@ nwamui_daemon_finalize (NwamuiDaemon *self)
     g_list_foreach( self->prv->ncp_list, nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
     g_list_free(self->prv->ncp_list);
     
-    g_free (self->prv); 
     self->prv = NULL;
 
-    parent_class->finalize (G_OBJECT (self));
+	G_OBJECT_CLASS(nwamui_daemon_parent_class)->finalize(G_OBJECT(self));
 }
 
 /* Exported Functions */
@@ -1700,7 +1687,7 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
                     /* Can't re-read if was never committed - at least this is
                      * the case if it exists only in memory.
                      */
-                    nwamui_wifi_net_update_with_handle( NWAMUI_WIFI_NET( found_item->data ), NULL ); /* Re-read configuration */
+                    nwamui_object_set_handle(NWAMUI_OBJECT( found_item->data ), NULL); /* Re-read configuration */
                 }
                 g_object_unref(G_OBJECT(found_item->data));
                 old_copy = g_list_delete_link( old_copy, found_item );
@@ -3182,7 +3169,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 }
                 else {
                     /* NULL will read directly from system */
-                    nwamui_wifi_net_update_with_handle( wifi, NULL ); 
+                    nwamui_object_set_handle(NWAMUI_OBJECT(wifi), NULL);
                 }
             }
         }
@@ -3734,6 +3721,8 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
         if ( nwamui_object_get_active(NWAMUI_OBJECT(new_ncp)) ) {
             prv->active_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
         }
+    } else {
+        g_warning("Failed to create NWAMUI_NCP");
     }
 
     return(0);

@@ -1,3 +1,58 @@
+2009-12-29  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (capplet_get_original_name):
+	Fixed two blanks suffix of "Copy of" name.
+	* capplet/nwam_env_pref_dialog.c (nwam_env_pref_dialog_init),
+	(block_nameservices_signals), (populate_panels_from_env),
+	(nsswitch_default_clicked_cb),
+	(nsswitch_default_file_selection_changed), (apply):
+	Fixed 12593 [RC5] network locations - GUI actions for choosing nsswitch
+	file does not match UI spec
+	* capplet/nwam_location_dialog.c (on_button_clicked):
+	Fixed the dup object isn't selected.
+	* capplet/nwam_profile_dialog.c (net_conf_set_property),
+	(connections_edit_btn_clicked):
+	Fixed failed dup/create ncp object causes crashes.
+	* common/libnwamui.c (nwamui_util_ask_about_dup_obj):
+	Added support for ncp object.
+	* common/nwamui_cond.c (nwamui_cond_class_init),
+	(nwamui_cond_init), (nwamui_cond_finalize):
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_init), (nwamui_daemon_init_lists),
+	(nwamui_daemon_finalize), (nwamui_daemon_set_fav_wifi_networks),
+	(nwamui_daemon_handle_object_action_event), (nwam_ncp_walker_cb):
+	* common/nwamui_enm.c (nwamui_enm_class_init), (nwamui_enm_init),
+	(nwamui_enm_new_with_handle), (nwamui_object_real_set_handle),
+	(nwamui_object_real_reload), (nwamui_object_real_clone),
+	(nwamui_enm_finalize):
+	* common/nwamui_env.c (nwamui_env_class_init), (nwamui_env_init),
+	(nwamui_env_new_with_handle), (nwamui_object_real_clone),
+	(nwamui_object_real_set_handle), (nwamui_object_real_reload),
+	(nwamui_env_finalize), (nwam_nameservices_enum_to_string),
+	(nwamui_env_nameservices_enum_to_filename):
+	* common/nwamui_env.h:
+	* common/nwamui_ip.c (nwamui_ip_class_init), (nwamui_ip_init),
+	(nwamui_ip_finalize):
+	* common/nwamui_ncp.c (nwamui_ncp_class_init), (nwamui_ncp_init),
+	(nwamui_ncp_finalize), (nwamui_ncp_new_with_handle),
+	(nwamui_object_real_clone), (nwamui_object_real_set_handle),
+	(nwamui_object_real_can_rename), (nwamui_object_real_set_name),
+	(nwam_ncu_walker_cb):
+	* common/nwamui_ncu.c (nwamui_ncu_class_init), (nwamui_ncu_init),
+	(nwamui_ncu_new_with_handle), (nwamui_object_real_clone),
+	(nwamui_object_real_reload):
+	* common/nwamui_ncu.h:
+	* common/nwamui_object.c (nwamui_object_set_handle):
+	* common/nwamui_object.h:
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init),
+	(nwamui_wifi_net_init), (nwamui_wifi_net_reload),
+	(nwamui_wifi_net_finalize), (nwamui_wifi_net_new_with_handle),
+	(nwamui_object_real_set_handle):
+	* common/nwamui_wifi_net.h:
+	Clean code, work on the clone functions, clone function require parent
+	object arg, e.g. ncp/env clone requires daemon. Added new vfun
+	set_handle to replace update_with_handle.
+
 2009-12-24  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/Makefile.am:

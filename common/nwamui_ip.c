@@ -40,8 +40,6 @@
 #define ADDRSRC_STATIC     ( 1 << 2 )
 
 
-static GObjectClass *parent_class = NULL;
-
 struct _NwamuiIpPrivate {
     NwamuiNcu*                ncu_parent;
     gchar*                    ncu_device;
@@ -50,6 +48,8 @@ struct _NwamuiIpPrivate {
     gint                      addr_src;
     gchar*                    subnet_prefix;
 };
+
+#define NWAMUI_IP_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), NWAMUI_TYPE_IP, NwamuiIpPrivate))
 
 static void nwamui_ip_set_property (    GObject         *object,
                                         guint            prop_id,
@@ -87,13 +87,12 @@ nwamui_ip_class_init (NwamuiIpClass *klass)
     /* Pointer to GObject Part of Class */
     GObjectClass *gobject_class = (GObjectClass*) klass;
         
-    /* Initialise Static Parent Class pointer */
-    parent_class = g_type_class_peek_parent (klass);
-
     /* Override Some Function Pointers */
     gobject_class->set_property = nwamui_ip_set_property;
     gobject_class->get_property = nwamui_ip_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_ip_finalize;
+
+	g_type_class_add_private(klass, sizeof(NwamuiIpPrivate));
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -150,7 +149,8 @@ nwamui_ip_class_init (NwamuiIpClass *klass)
 static void
 nwamui_ip_init (NwamuiIp *self)
 {
-    NwamuiIpPrivate *prv = (NwamuiIpPrivate*)g_new0 (NwamuiIpPrivate, 1);
+    NwamuiIpPrivate *prv      = NWAMUI_IP_GET_PRIVATE(self);
+    self->prv = prv;
 
     prv->ncu_parent = NULL;
     prv->ncu_device = NULL;
@@ -159,8 +159,6 @@ nwamui_ip_init (NwamuiIp *self)
     prv->subnet_prefix = NULL;
     prv->addr_src = ADDRSRC_NONE;
 
-    self->prv = prv;
-    
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
 
@@ -339,7 +337,7 @@ nwamui_ip_finalize (NwamuiIp *self)
     }
     self->prv = NULL;
 
-    parent_class->finalize (G_OBJECT (self));
+	G_OBJECT_CLASS(nwamui_ip_parent_class)->finalize(G_OBJECT(self));
 }
 
 /* Exported Functions */

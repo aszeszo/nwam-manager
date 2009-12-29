@@ -35,8 +35,6 @@
 
 #include "libnwamui.h"
 
-static GObjectClass *parent_class = NULL;
-
 enum {
     SVC_OBJECT = 0,
     SVC_N_COL,
@@ -123,6 +121,8 @@ enum {
 #endif /* ENABLE_PROXY */
 };
 
+#define NWAMUI_ENV_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), NWAMUI_TYPE_ENV, NwamuiEnvPrivate))
+
 static void nwamui_env_set_property ( GObject         *object,
                                       guint            prop_id,
                                       const GValue    *value,
@@ -154,6 +154,7 @@ static guint64*     get_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const
 static gboolean     set_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , 
                                                     const guint64* value, guint len );
 
+static void         nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle);
 static nwam_state_t nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
 static gboolean     nwamui_object_real_can_rename (NwamuiObject *object);
 static void         nwamui_object_real_set_name ( NwamuiObject *object, const gchar* name );
@@ -200,14 +201,12 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     GObjectClass *gobject_class = (GObjectClass*) klass;
     NwamuiObjectClass *nwamuiobject_class = NWAMUI_OBJECT_CLASS(klass);
         
-    /* Initialise Static Parent Class pointer */
-    parent_class = g_type_class_peek_parent (klass);
-
     /* Override Some Function Pointers */
     gobject_class->set_property = nwamui_env_set_property;
     gobject_class->get_property = nwamui_env_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_env_finalize;
 
+    nwamuiobject_class->set_handle = nwamui_object_real_set_handle;
     nwamuiobject_class->get_name = nwamui_object_real_get_name;
     nwamuiobject_class->can_rename = nwamui_object_real_can_rename;
     nwamuiobject_class->set_name = nwamui_object_real_set_name;
@@ -224,6 +223,8 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     nwamuiobject_class->reload = nwamui_object_real_reload;
     nwamuiobject_class->destroy = nwamui_object_real_destroy;
     nwamuiobject_class->clone = nwamui_object_real_clone;
+
+	g_type_class_add_private(klass, sizeof(NwamuiEnvPrivate));
 
     /* Create some properties */
 
@@ -576,23 +577,24 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
 static void
 nwamui_env_init (NwamuiEnv *self)
 {
-    self->prv = g_new0 (NwamuiEnvPrivate, 1);
+    NwamuiEnvPrivate *prv      = NWAMUI_ENV_GET_PRIVATE(self);
+    self->prv = prv;
     
-    self->prv->svcs_model = gtk_list_store_new(SVC_N_COL, G_TYPE_OBJECT);
+    prv->svcs_model = gtk_list_store_new(SVC_N_COL, G_TYPE_OBJECT);
 
 #ifdef ENABLE_PROXY
-    self->prv->proxy_type = NWAMUI_ENV_PROXY_TYPE_DIRECT;
-    self->prv->proxy_http_port = 80;
-    self->prv->proxy_https_port = 80;
-    self->prv->proxy_ftp_port = 80;
-    self->prv->proxy_gopher_port = 80;
-    self->prv->proxy_socks_port = 1080;
+    prv->proxy_type = NWAMUI_ENV_PROXY_TYPE_DIRECT;
+    prv->proxy_http_port = 80;
+    prv->proxy_https_port = 80;
+    prv->proxy_ftp_port = 80;
+    prv->proxy_gopher_port = 80;
+    prv->proxy_socks_port = 1080;
 #endif /* ENABLE_PROXY */
 
     /*
-    g_signal_connect(G_OBJECT(self->prv->svcs_model), "row-deleted", (GCallback)svc_row_deleted_cb, (gpointer)self);
-    g_signal_connect(G_OBJECT(self->prv->svcs_model), "row-changed", (GCallback)svc_row_inserted_or_changed_cb, (gpointer)self);
-    g_signal_connect(G_OBJECT(self->prv->svcs_model), "row-inserted", (GCallback)svc_row_inserted_or_changed_cb, (gpointer)self);
+    g_signal_connect(G_OBJECT(prv->svcs_model), "row-deleted", (GCallback)svc_row_deleted_cb, (gpointer)self);
+    g_signal_connect(G_OBJECT(prv->svcs_model), "row-changed", (GCallback)svc_row_inserted_or_changed_cb, (gpointer)self);
+    g_signal_connect(G_OBJECT(prv->svcs_model), "row-inserted", (GCallback)svc_row_inserted_or_changed_cb, (gpointer)self);
     */
 }
 
@@ -1195,60 +1197,6 @@ nwamui_env_new ( const gchar* name )
  *
  * Creates a new #NwamuiEnv.
  **/
-extern gboolean
-nwamui_env_update_with_handle (NwamuiEnv* self, nwam_loc_handle_t envh)
-{
-    char               *name;
-    NwamuiEnvPrivate   *prv = self->prv;
-    nwam_error_t        nerr;
-    int                 rval;
-    gboolean            enabled = FALSE;
-    
-    nerr = nwam_loc_get_name (envh, (char **)&name);
-    if (nerr != NWAM_SUCCESS) {
-        g_assert_not_reached ();
-    }
-
-    nwamui_object_set_name(NWAMUI_OBJECT(self), name);
-    free (name);
-
-    nerr = nwam_loc_read (prv->name, 0, &prv->nwam_loc);
-    if (nerr == NWAM_ENTITY_NOT_FOUND ) {
-        /* Most likely only exists in memory right now, so use handle passed
-         * in as parameter.
-         */
-        prv->nwam_loc = envh;
-    }
-    else if (nerr != NWAM_SUCCESS) {
-        prv->nwam_loc = NULL;
-        nwamui_debug("failed to read nwam_loc_handle %s", prv->name);
-        return (FALSE);
-    }
-
-    nwamui_debug ("loaded nwam_loc_handle : %s", prv->name);
-
-    /* Tell GUI to refresh */
-    g_object_notify(G_OBJECT(self), "activation-mode");
-
-    /* Initialise enabled to be the original value */
-    enabled = get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED );
-    nwamui_debug("**** LOCATION: %s : enabled = %s", name, enabled?"TRUE":"FALSE");
-    if ( prv->enabled != enabled ) {
-        g_object_notify(G_OBJECT(self), "enabled" );
-    }
-    prv->enabled = enabled;
-
-    prv->nwam_loc_modified = FALSE;
-
-    return( TRUE );
-}
-
-/**
- * nwamui_env_new_with_handle:
- * @returns: a new #NwamuiEnv.
- *
- * Creates a new #NwamuiEnv.
- **/
 NwamuiEnv*
 nwamui_env_new_with_handle (nwam_loc_handle_t envh)
 {
@@ -1257,9 +1205,11 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
     char               *name;
     NwamuiEnvPrivate   *prv = env->prv;
 
-    if ( nwamui_env_update_with_handle (env, envh) != TRUE ) {
+    nwamui_object_set_handle(NWAMUI_OBJECT(env), envh);
+
+    if (env->prv->nwam_loc == NULL) {
         g_object_unref(env);
-        return( NULL );
+        env = NULL;
     }
 
 #if 0
@@ -1285,21 +1235,21 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
 static NwamuiObject*
 nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
 {
-    NwamuiEnv         *self  = NWAMUI_ENV(object);
+    NwamuiEnv         *self   = NWAMUI_ENV(object);
+    NwamuiDaemon      *daemon = NWAMUI_DAEMON(parent);
     NwamuiEnv         *new_env;
-    NwamuiDaemon      *daemon;
     nwam_error_t       nerr;
     nwam_loc_handle_t  new_env_h;
         
-    g_assert(parent == NULL);
+    g_assert(NWAMUI_IS_ENV(object));
+    g_assert(NWAMUI_IS_DAEMON(parent));
+    g_return_val_if_fail(name != NULL, NULL);
 
     nerr = nwam_loc_copy (self->prv->nwam_loc, name, &new_env_h);
 
     if ( nerr != NWAM_SUCCESS ) { 
         return( NULL );
     }
-
-    daemon = nwamui_daemon_get_instance();
 
     new_env = nwamui_env_new_with_handle (new_env_h);
     
@@ -1325,8 +1275,6 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
     new_env->prv->nwam_loc_modified = TRUE; /* Only exists in-memory, need to commit later */
 
     nwamui_daemon_env_append( daemon, new_env );
-
-    g_object_unref(G_OBJECT(daemon));
 
     return NWAMUI_OBJECT(new_env);
 }
@@ -1891,6 +1839,63 @@ nwamui_object_real_set_name (NwamuiObject *object, const gchar*  name )
         g_debug ("nwam_loc_set_name %s error: %s", prv->name, nwam_strerror (nerr));
     }
     prv->nwam_loc_modified = TRUE;
+}
+
+static void
+nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
+{
+    NwamuiEnv         *self    = NWAMUI_ENV(object);
+    nwam_loc_handle_t  envh    = handle;
+    char              *name;
+    NwamuiEnvPrivate  *prv     = self->prv;
+    nwam_error_t       nerr;
+    int                rval;
+    gboolean           enabled = FALSE;
+    
+    nerr = nwam_loc_get_name (envh, (char **)&name);
+    if (nerr != NWAM_SUCCESS) {
+        g_assert_not_reached ();
+    }
+
+    nwamui_object_set_name(NWAMUI_OBJECT(self), name);
+    free (name);
+
+    nerr = nwam_loc_read (prv->name, 0, &prv->nwam_loc);
+    if (nerr == NWAM_ENTITY_NOT_FOUND ) {
+        /* Most likely only exists in memory right now, so use handle passed
+         * in as parameter.
+         */
+        if (prv->nwam_loc) {
+            nwam_loc_free(prv->nwam_loc);
+        }
+        prv->nwam_loc = envh;
+    }
+    else if (nerr != NWAM_SUCCESS) {
+        if (prv->nwam_loc) {
+            nwam_loc_free(prv->nwam_loc);
+            prv->nwam_loc = NULL;
+        }
+        nwamui_warning("failed to read nwam_loc_handle %s", prv->name);
+        /* return (FALSE); */
+        return;
+    }
+
+    nwamui_debug ("loaded nwam_loc_handle : %s", prv->name);
+
+    /* Tell GUI to refresh */
+    g_object_notify(G_OBJECT(self), "activation-mode");
+
+    /* Initialise enabled to be the original value */
+    enabled = get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED );
+    nwamui_debug("**** LOCATION: %s : enabled = %s", prv->name, enabled?"TRUE":"FALSE");
+    if ( prv->enabled != enabled ) {
+        g_object_notify(G_OBJECT(self), "enabled" );
+    }
+    prv->enabled = enabled;
+
+    prv->nwam_loc_modified = FALSE;
+
+    /* return( TRUE ); */
 }
 
 /**
@@ -3685,11 +3690,11 @@ nwamui_object_real_reload( NwamuiObject *object )
     NwamuiEnv *self = NWAMUI_ENV(object);
     g_return_if_fail( NWAMUI_IS_ENV(self) );
 
-    /* nwamui_env_update_with_handle will cause re-read from configuration */
+    /* nwamui_object_set_handle will cause re-read from configuration */
     g_object_freeze_notify(G_OBJECT(self));
 
     if ( self->prv->nwam_loc != NULL ) {
-        nwamui_env_update_with_handle( self, self->prv->nwam_loc );
+        nwamui_object_set_handle(object, self->prv->nwam_loc);
     }
 
     g_object_thaw_notify(G_OBJECT(self));
@@ -3869,10 +3874,9 @@ nwamui_env_finalize (NwamuiEnv *self)
     }
 #endif /* ENABLE_PROXY */
 
-    g_free (self->prv); 
     self->prv = NULL;
 
-    parent_class->finalize (G_OBJECT (self));
+	G_OBJECT_CLASS(nwamui_env_parent_class)->finalize(G_OBJECT(self));
 }
 
 static nwam_state_t
@@ -3976,6 +3980,23 @@ nwam_nameservices_enum_to_string(nwam_nameservices_t ns)
         return _("NIS");
 	case NWAM_NAMESERVICES_LDAP:
         return _("LDAP");
+    default:
+        return NULL;
+    }
+}
+
+const gchar*
+nwamui_env_nameservices_enum_to_filename(nwamui_env_nameservices_t ns)
+{
+    switch (ns) {
+	case NWAMUI_ENV_NAMESERVICES_DNS:
+        return (SYSCONFDIR "/nsswitch.dns");
+	case NWAMUI_ENV_NAMESERVICES_FILES:
+        return (SYSCONFDIR "/nsswitch.files");
+	case NWAMUI_ENV_NAMESERVICES_NIS:
+        return (SYSCONFDIR "/nsswitch.nis");
+	case NWAMUI_ENV_NAMESERVICES_LDAP:
+        return (SYSCONFDIR "/nsswitch.ldap");
     default:
         return NULL;
     }

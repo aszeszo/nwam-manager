@@ -335,6 +335,8 @@ net_conf_set_property ( GObject         *object,
     case PROP_SELECTED_NCP: {
         NwamuiObject *new_ncp = NWAMUI_OBJECT(g_value_get_object(value));
 
+        g_assert(NWAMUI_IS_NCP(new_ncp));
+
         if (new_ncp != prv->selected_ncp) {
 
             if (prv->selected_ncp) {
@@ -2056,7 +2058,7 @@ connections_edit_btn_clicked(GtkButton *button, gpointer user_data )
                     continue;
                 }
                 /* Should fire events to get it added to UI */
-                new_ncu = NWAMUI_NCU(nwamui_object_clone(NWAMUI_NCU(selected->data), NULL, NWAMUI_NCP(prv->selected_ncp)));
+                new_ncu = NWAMUI_NCU(nwamui_object_clone(NWAMUI_OBJECT(selected->data), NULL, prv->selected_ncp));
                 if ( new_ncu != NULL ) {
                     nwamui_ncp_add_ncu(NWAMUI_NCP(prv->selected_ncp), new_ncu);
                 }

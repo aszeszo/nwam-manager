@@ -304,7 +304,7 @@ nwamui_util_wifi_wpa_config_to_string( nwamui_wifi_wpa_config_t wpa_config ) {
     switch( wpa_config ) {
         case NWAMUI_WIFI_WPA_CONFIG_LEAP:  	return(_("LEAP")); 
         case NWAMUI_WIFI_WPA_CONFIG_PEAP:  	return(_("PEAP/MSCHAPv2")); 
-        case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC:	/*fall through*/
+        case NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC: /*fall through*/
         default:                                return(_("Automatic"));
     }
 }
@@ -1093,8 +1093,10 @@ nwamui_util_ask_about_dup_obj(GtkWindow* parent_window, NwamuiObject* obj )
     if ( NWAMUI_IS_ENV( obj ) ) {
         obj_type_caps = _("Locations");
         obj_type_lower = _("location");
-    }
-    else {
+    } else if ( NWAMUI_IS_NCP( obj ) ) {
+        obj_type_caps = _("Profiles");
+        obj_type_lower = _("profile");
+    } else {
         g_assert_not_reached();
     }
 

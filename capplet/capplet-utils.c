@@ -792,7 +792,7 @@ capplet_get_original_name(const gchar *prefix, const gchar *name)
 			}
 		}
 	} else {
-        oname = g_strdup_printf(_("%s %s"), prefix_str, name);
+        oname = g_strdup_printf(_("%s%s"), prefix_str, name);
     }
     g_free(prefix_str);
     return g_strstrip(oname);

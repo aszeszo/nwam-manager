@@ -143,8 +143,6 @@ extern  NwamuiWifiNet*              nwamui_wifi_net_new_from_wlan_t(    struct _
 extern gboolean                     nwamui_wifi_net_update_from_wlan_t( NwamuiWifiNet*      self, 
                                                                         nwam_wlan_t*  wlan );
 
-extern gboolean                     nwamui_wifi_net_update_with_handle( NwamuiWifiNet* self, nwam_known_wlan_handle_t  handle );
-
 extern void                         nwamui_wifi_net_store_key ( NwamuiWifiNet *self );
 
 extern void                         nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  );

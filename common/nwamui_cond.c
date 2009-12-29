@@ -31,9 +31,6 @@
 
 #include "libnwamui.h"
         
-static GObjectClass    *parent_class    = NULL;
-
-
 struct _NwamuiCondPrivate {
     nwamui_cond_field_t     field;
     nwamui_cond_op_t        op;
@@ -42,6 +39,8 @@ struct _NwamuiCondPrivate {
     /* NCU, ENM and LOC require a pointer to an object */
     GObject*                object;
 };
+
+#define NWAMUI_COND_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), NWAMUI_TYPE_COND, NwamuiCondPrivate))
 
 enum {
     PROP_FIELD = 1,
@@ -74,13 +73,12 @@ nwamui_cond_class_init (NwamuiCondClass *klass)
     /* Pointer to GObject Part of Class */
     GObjectClass *gobject_class = (GObjectClass*) klass;
         
-    /* Initialise Static Parent Class pointer */
-    parent_class = g_type_class_peek_parent (klass);
-
     /* Override Some Function Pointers */
     gobject_class->set_property = nwamui_cond_set_property;
     gobject_class->get_property = nwamui_cond_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_cond_finalize;
+
+	g_type_class_add_private(klass, sizeof(NwamuiCondPrivate));
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
@@ -127,12 +125,13 @@ typedef struct _ncu_info    ncu_info_t;
 static void
 nwamui_cond_init ( NwamuiCond *self)
 {  
-    self->prv = g_new0 (NwamuiCondPrivate, 1);
+    NwamuiCondPrivate *prv      = NWAMUI_COND_GET_PRIVATE(self);
+    self->prv = prv;
     
-    self->prv->field = NWAMUI_COND_FIELD_NCP;
-    self->prv->op = NWAMUI_COND_OP_INCLUDE;
-    self->prv->value = g_strdup("");
-    self->prv->object = NULL;
+    prv->field = NWAMUI_COND_FIELD_NCP;
+    prv->op = NWAMUI_COND_OP_INCLUDE;
+    prv->value = g_strdup("");
+    prv->object = NULL;
 
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
 }
@@ -149,10 +148,9 @@ nwamui_cond_finalize (NwamuiCond *self)
         g_object_unref( G_OBJECT(self->prv->object) );
     }
 
-    g_free (self->prv); 
     self->prv = NULL;
 
-    parent_class->finalize (G_OBJECT (self));
+	G_OBJECT_CLASS(nwamui_cond_parent_class)->finalize(G_OBJECT(self));
 }
 
 static void
