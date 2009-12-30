@@ -582,12 +582,14 @@ nwamui_ncp_set_name (NwamuiObject *object, const gchar*  name )
 static void
 nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
 {
-    NwamuiNcp         *self = NWAMUI_NCP(object);
+    NwamuiNcpPrivate  *prv  = NWAMUI_NCP_GET_PRIVATE(object);
     nwam_ncp_handle_t  ncp  = handle;
     char*              name = NULL;
     nwam_error_t       nerr;
     nwam_ncp_handle_t  nwam_ncp;
     
+    g_assert(NWAMUI_IS_NCP(object));
+
     if ( (nerr = nwam_ncp_get_name (ncp, &name)) != NWAM_SUCCESS ) {
         g_debug ("Failed to get name for ncp, error: %s", nwam_strerror (nerr));
     }
@@ -597,24 +599,24 @@ nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
         /* Most likely only exists in memory right now, so use handle passed
          * in as parameter.
          */
-        self->prv->nwam_ncp = ncp;
+        prv->nwam_ncp = ncp;
     }
     else if (nerr != NWAM_SUCCESS) {
-        self->prv->nwam_ncp = NULL;
-        /* g_object_unref(self); */
+        prv->nwam_ncp = NULL;
+        /* g_object_unref(object); */
         nwamui_warning("Failed to create private handle for ncp, error: %s", nwam_strerror (nerr));
         /* return (NULL); */
         return;
     }
 
-    self->prv->nwam_ncp = nwam_ncp;
+    prv->nwam_ncp = nwam_ncp;
 
-    if (self->prv->name) {
-        g_free(self->prv->name);
+    if (prv->name) {
+        g_free(prv->name);
     }
-    self->prv->name = name;
+    prv->name = name;
 
-    nwamui_ncp_populate_ncu_list( self, NULL );
+    nwamui_ncp_populate_ncu_list(NWAMUI_NCP(object), NULL );
 }
 
 /**

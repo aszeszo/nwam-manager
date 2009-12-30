@@ -1844,58 +1844,73 @@ nwamui_object_real_set_name (NwamuiObject *object, const gchar*  name )
 static void
 nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
 {
-    NwamuiEnv         *self    = NWAMUI_ENV(object);
+    NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(object);
     nwam_loc_handle_t  envh    = handle;
     char              *name;
-    NwamuiEnvPrivate  *prv     = self->prv;
     nwam_error_t       nerr;
     int                rval;
-    gboolean           enabled = FALSE;
+
+    g_assert(NWAMUI_IS_ENV(object));
     
     nerr = nwam_loc_get_name (envh, (char **)&name);
     if (nerr != NWAM_SUCCESS) {
         g_assert_not_reached ();
     }
 
-    nwamui_object_set_name(NWAMUI_OBJECT(self), name);
+    nwamui_object_set_name(object, name);
     free (name);
 
-    nerr = nwam_loc_read (prv->name, 0, &prv->nwam_loc);
-    if (nerr == NWAM_ENTITY_NOT_FOUND ) {
-        /* Most likely only exists in memory right now, so use handle passed
-         * in as parameter.
-         */
-        if (prv->nwam_loc) {
-            nwam_loc_free(prv->nwam_loc);
-        }
-        prv->nwam_loc = envh;
-    }
-    else if (nerr != NWAM_SUCCESS) {
+    if (prv->nwam_loc != handle) {
         if (prv->nwam_loc) {
             nwam_loc_free(prv->nwam_loc);
             prv->nwam_loc = NULL;
         }
-        nwamui_warning("failed to read nwam_loc_handle %s", prv->name);
-        /* return (FALSE); */
-        return;
+        nerr = nwam_loc_read (prv->name, 0, &prv->nwam_loc);
+        if (nerr == NWAM_ENTITY_NOT_FOUND ) {
+            /* Most likely only exists in memory right now, so use handle passed
+             * in as parameter.
+             */
+            prv->nwam_loc = envh;
+            /* Reload all */
+            nwamui_object_reload(object);
+        }
+        else if (nerr != NWAM_SUCCESS) {
+            prv->nwam_loc = NULL;
+            nwamui_warning("failed to read nwam_loc_handle %s", prv->name);
+        }
     }
+}
+
+/**
+ * nwamui_env_reload:   re-load stored configuration
+ **/
+static void
+nwamui_object_real_reload(NwamuiObject *object)
+{
+    NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(object);
+    gboolean           enabled = FALSE;
+
+    g_assert(NWAMUI_IS_ENV(object));
 
     nwamui_debug ("loaded nwam_loc_handle : %s", prv->name);
 
+    /* nwamui_object_set_handle will cause re-read from configuration */
+    g_object_freeze_notify(G_OBJECT(object));
+
     /* Tell GUI to refresh */
-    g_object_notify(G_OBJECT(self), "activation-mode");
+    g_object_notify(G_OBJECT(object), "activation-mode");
 
     /* Initialise enabled to be the original value */
     enabled = get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED );
     nwamui_debug("**** LOCATION: %s : enabled = %s", prv->name, enabled?"TRUE":"FALSE");
     if ( prv->enabled != enabled ) {
-        g_object_notify(G_OBJECT(self), "enabled" );
+        g_object_notify(G_OBJECT(object), "enabled" );
     }
     prv->enabled = enabled;
 
     prv->nwam_loc_modified = FALSE;
 
-    /* return( TRUE ); */
+    g_object_thaw_notify(G_OBJECT(object));
 }
 
 /**
@@ -3681,24 +3696,6 @@ nwamui_env_svc_commit (NwamuiEnv *self, NwamuiSvc *svc)
     return nerr == NWAM_SUCCESS;
 }
 #endif /* 0 */
-/**
- * nwamui_env_reload:   re-load stored configuration
- **/
-static void
-nwamui_object_real_reload( NwamuiObject *object )
-{
-    NwamuiEnv *self = NWAMUI_ENV(object);
-    g_return_if_fail( NWAMUI_IS_ENV(self) );
-
-    /* nwamui_object_set_handle will cause re-read from configuration */
-    g_object_freeze_notify(G_OBJECT(self));
-
-    if ( self->prv->nwam_loc != NULL ) {
-        nwamui_object_set_handle(object, self->prv->nwam_loc);
-    }
-
-    g_object_thaw_notify(G_OBJECT(self));
-}
 
 /**
  * nwamui_env_has_modifications:   test if there are un-saved changes

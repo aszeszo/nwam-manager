@@ -625,7 +625,7 @@ nwam_wireless_dialog_get_property (GObject         *object,
             break;
 	case PROP_ESSID:
             if (self->prv->essid_cbentry != NULL) {
-                g_value_set_string( value, g_strdup(gtk_entry_get_text(GTK_ENTRY(self->prv->essid_cbentry))) );
+                g_value_set_string( value, gtk_entry_get_text(GTK_ENTRY(self->prv->essid_cbentry)) );
             }
             break;
 	case PROP_SECURITY:
@@ -635,7 +635,7 @@ nwam_wireless_dialog_get_property (GObject         *object,
             break;
 	case PROP_WEP_KEY:
             if (self->prv->key_entry != NULL) {
-                g_value_set_string( value, g_strdup(gtk_entry_get_text(GTK_ENTRY(self->prv->key_entry))) );
+                g_value_set_string( value, gtk_entry_get_text(GTK_ENTRY(self->prv->key_entry)) );
             }
             break;            
 	case PROP_WEP_KEY_INDEX:
@@ -651,18 +651,18 @@ nwam_wireless_dialog_get_property (GObject         *object,
             break;
 	case PROP_WPA_USERNAME:
             if (self->prv->wpa_username_entry != NULL) {
-                g_value_set_string( value, g_strdup(gtk_entry_get_text(GTK_ENTRY(self->prv->wpa_username_entry))) );
+                g_value_set_string( value, gtk_entry_get_text(GTK_ENTRY(self->prv->wpa_username_entry)) );
             }
             break;
 	case PROP_WPA_PASSWORD:
             if (self->prv->wpa_password_entry != NULL) {
-                g_value_set_string( value, g_strdup(gtk_entry_get_text(GTK_ENTRY(self->prv->wpa_password_entry))) );
+                g_value_set_string( value, gtk_entry_get_text(GTK_ENTRY(self->prv->wpa_password_entry)) );
             }
             break;
 	case PROP_WPA_CERT_FILE:
             /* TODO - Handle CERT FILE when supported
             if (self->prv->leap_password_entry != NULL) {
-                g_value_set_string( value, g_strdup(gtk_entry_get_text(GTK_ENTRY(self->prv->leap_password_entry))) );
+                g_value_set_string( value, gtk_entry_get_text(GTK_ENTRY(self->prv->leap_password_entry)) );
             }
              */
             break;

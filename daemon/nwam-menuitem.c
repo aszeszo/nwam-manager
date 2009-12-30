@@ -57,10 +57,6 @@ static void nwam_menu_item_forall (GtkContainer   *container,
   gboolean    include_internals,
   GtkCallback     callback,
   gpointer        callback_data);
-static void nwam_menu_item_add (GtkContainer   *container,
-  GtkWidget *child);
-static void nwam_menu_item_remove (GtkContainer   *container,
-  GtkWidget *child);
 static void nwam_menu_item_draw_indicator(GtkCheckMenuItem *check_menu_item,
   GdkRectangle *area);
 static void nwam_menu_item_finalize (NwamMenuItem *self);
@@ -298,16 +294,6 @@ nwam_menu_item_forall (GtkContainer   *container,
             }
         }
     }
-}
-
-static void
-nwam_menu_item_add (GtkContainer *container, GtkWidget *child)
-{
-}
-
-static void
-nwam_menu_item_remove (GtkContainer *container, GtkWidget *child)
-{
 }
 
 static void nwam_menu_item_parent_set(GtkWidget *widget,

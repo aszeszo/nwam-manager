@@ -179,12 +179,12 @@ nwam_proxy_password_dialog_get_property (GObject         *object,
     switch (prop_id) {
 	case PROP_USERNAME:
             if (self->prv->username_entry != NULL) {
-                g_value_set_string( value, g_strdup(gtk_entry_get_text(GTK_ENTRY(self->prv->username_entry))) );
+                g_value_set_string( value, gtk_entry_get_text(GTK_ENTRY(self->prv->username_entry)) );
             }
             break;
 	case PROP_PASSWORD:
             if (self->prv->password_entry != NULL) {
-                g_value_set_string( value, g_strdup(gtk_entry_get_text(GTK_ENTRY(self->prv->password_entry))) );
+                g_value_set_string( value, gtk_entry_get_text(GTK_ENTRY(self->prv->password_entry)) );
             }
             break;
     default:

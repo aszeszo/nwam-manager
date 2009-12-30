@@ -1823,16 +1823,17 @@ nwamui_object_real_destroy( NwamuiObject *object )
 static void
 nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
 {
+    NwamuiNcuPrivate  *prv  = NWAMUI_NCU_GET_PRIVATE(object);
     NwamuiNcu         *self = NWAMUI_NCU(object);
     nwam_ncu_handle_t  ncu  = handle;
     nwam_ncu_class_t   ncu_class;
     
-    g_return_if_fail( NWAMUI_IS_NCU(self) );
+    g_assert(NWAMUI_IS_NCU(object));
 
     ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu, NWAM_NCU_PROP_CLASS);
 
-    g_object_freeze_notify( G_OBJECT(self) );
-    self->prv->initialisation = TRUE;
+    g_object_freeze_notify( G_OBJECT(object) );
+    prv->initialisation = TRUE;
 
     populate_common_ncu_data( self, ncu );
 
@@ -1845,20 +1846,20 @@ nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_LINK );
 
                 if ( ncu_handle != NULL ) {
-                    if ( self->prv->nwam_ncu_phys != NULL ) {
-                        nwam_ncu_free( self->prv->nwam_ncu_phys );
+                    if ( prv->nwam_ncu_phys != NULL ) {
+                        nwam_ncu_free( prv->nwam_ncu_phys );
                     }
 
-                    self->prv->nwam_ncu_phys = ncu_handle;
+                    prv->nwam_ncu_phys = ncu_handle;
                 }
                 else {
-                    self->prv->nwam_ncu_phys = ncu;
+                    prv->nwam_ncu_phys = ncu;
                 }
 
-                enabled = get_nwam_ncu_boolean_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
-                if ( enabled != self->prv->enabled ) {
-                    g_object_notify(G_OBJECT(self), "enabled" );
-                    self->prv->enabled = enabled;
+                enabled = get_nwam_ncu_boolean_prop( prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
+                if ( enabled != prv->enabled ) {
+                    g_object_notify(G_OBJECT(object), "enabled" );
+                    prv->enabled = enabled;
                 }
             }
             break;
@@ -1868,16 +1869,16 @@ nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_INTERFACE );
 
                 if ( ncu_handle != NULL ) {
-                    if ( self->prv->nwam_ncu_iptun != NULL ) {
-                        nwam_ncu_free( self->prv->nwam_ncu_iptun );
+                    if ( prv->nwam_ncu_iptun != NULL ) {
+                        nwam_ncu_free( prv->nwam_ncu_iptun );
                     }
 
-                    self->prv->nwam_ncu_iptun = ncu_handle;
+                    prv->nwam_ncu_iptun = ncu_handle;
                 }
                 else {
-                    self->prv->nwam_ncu_iptun = ncu;
+                    prv->nwam_ncu_iptun = ncu;
                 }
-                populate_iptun_ncu_data( self, self->prv->nwam_ncu_iptun );
+                populate_iptun_ncu_data( self, prv->nwam_ncu_iptun );
             }
             break;
 #endif /* TUNNEL_SUPPORT */
@@ -1887,25 +1888,25 @@ nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_INTERFACE );
 
                 if ( ncu_handle != NULL ) {
-                    if ( self->prv->nwam_ncu_ip != NULL ) {
-                        nwam_ncu_free( self->prv->nwam_ncu_ip );
+                    if ( prv->nwam_ncu_ip != NULL ) {
+                        nwam_ncu_free( prv->nwam_ncu_ip );
                     }
 
-                    self->prv->nwam_ncu_ip = ncu_handle;
+                    prv->nwam_ncu_ip = ncu_handle;
                 }
                 else {
-                    self->prv->nwam_ncu_ip = ncu;
+                    prv->nwam_ncu_ip = ncu;
                 }
-                populate_ip_ncu_data( self, self->prv->nwam_ncu_ip );
+                populate_ip_ncu_data( self, prv->nwam_ncu_ip );
             }
             break;
         default:
             g_error("Unexpected ncu class %u", (guint)ncu_class);
     }
     
-    g_object_thaw_notify( G_OBJECT(self) );
+    g_object_thaw_notify( G_OBJECT(object) );
 
-    self->prv->initialisation = FALSE;
+    prv->initialisation = FALSE;
 }
 
 /**
@@ -3885,24 +3886,13 @@ nwamui_ncu_get_signal_strength_from_dladm( NwamuiNcu* self )
         return( signal );
     }
 
-    if ( dladm_open( &handle ) != DLADM_STATUS_OK ) {
-        g_warning("Error creating dladm handle" );
-        return( signal );
-    }
-    if ( dladm_name2info( handle, self->prv->device_name, &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
-        dladm_close( handle );
-        g_warning("Unable to map device to linkid");
-        return( signal );
-    }
-    else {
-        dladm_status_t status = dladm_wlan_get_linkattr(handle, linkid, &attr);
-        if (status != DLADM_STATUS_OK ) {
-            g_error("cannot get link attributes for %s", self->prv->device_name );
-        }
-        else {
-            if ( attr.la_valid |= DLADM_WLAN_LINKATTR_WLAN &&
-                 attr.la_wlan_attr.wa_valid & DLADM_WLAN_ATTR_STRENGTH ) {
-                switch ( attr.la_wlan_attr.wa_strength ) {
+    if ( dladm_open( &handle ) == DLADM_STATUS_OK ) {
+        if ( dladm_name2info( handle, self->prv->device_name, &linkid, NULL, NULL, NULL ) == DLADM_STATUS_OK ) {
+            dladm_status_t status = dladm_wlan_get_linkattr(handle, linkid, &attr);
+            if (status == DLADM_STATUS_OK ) {
+                if ( attr.la_valid |= DLADM_WLAN_LINKATTR_WLAN &&
+                  attr.la_wlan_attr.wa_valid & DLADM_WLAN_ATTR_STRENGTH ) {
+                    switch ( attr.la_wlan_attr.wa_strength ) {
                     case DLADM_WLAN_STRENGTH_VERY_WEAK:
                         signal = NWAMUI_WIFI_STRENGTH_VERY_WEAK;
                         break;
@@ -3920,12 +3910,18 @@ nwamui_ncu_get_signal_strength_from_dladm( NwamuiNcu* self )
                         break;
                     default:
                         break;
+                    }
                 }
+            } else {
+                g_error("cannot get link attributes for %s", self->prv->device_name );
             }
+        } else {
+            g_warning("Unable to map device to linkid");
         }
+        dladm_close( handle );
+    } else {
+        g_warning("Error creating dladm handle" );
     }
-
-    dladm_close( handle );
     
     return( signal );
 }
@@ -4295,7 +4291,7 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
 {
     nwamui_connection_state_t state         = NWAMUI_STATE_NOT_CONNECTED;
     gchar*                    status_string = NULL;
-    const gchar*              essid         = NULL;
+    gchar*                    essid         = NULL;
 
     g_return_val_if_fail( NWAMUI_IS_NCU( self ), NULL );
 
@@ -4323,26 +4319,25 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
                 datalink_id_t               linkid;
                 dladm_wlan_linkattr_t	    attr;
 
-                if ( dladm_open( &handle ) != DLADM_STATUS_OK ) {
-                    g_warning("Error creating dladm handle" );
-                }
-                else if ( dladm_name2info( handle, self->prv->device_name,
-                                           &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
-                    g_warning("Unable to map device to linkid");
-                    dladm_close(handle);
-                }
-                else if ( dladm_wlan_get_linkattr(handle, linkid, &attr) != DLADM_STATUS_OK ) {
-                    g_warning("cannot get link attributes for %s", self->prv->device_name );
-                    dladm_close(handle);
-                }
-                else if ( attr.la_status == DLADM_WLAN_LINK_CONNECTED ) {
-                    if ( (attr.la_valid | DLADM_WLAN_LINKATTR_WLAN) &&
-                         (attr.la_wlan_attr.wa_valid & DLADM_WLAN_ATTR_ESSID) ) {
-                        char cur_essid[DLADM_STRSIZE];
-                        dladm_wlan_essid2str( &attr.la_wlan_attr.wa_essid, cur_essid );
-                        essid =  g_strdup( cur_essid );
+                if ( dladm_open( &handle ) == DLADM_STATUS_OK ) {
+                    if ( dladm_name2info( handle, self->prv->device_name,
+                        &linkid, NULL, NULL, NULL ) != DLADM_STATUS_OK ) {
+                        g_warning("Unable to map device to linkid");
+                    }
+                    else if ( dladm_wlan_get_linkattr(handle, linkid, &attr) != DLADM_STATUS_OK ) {
+                        g_warning("cannot get link attributes for %s", self->prv->device_name );
+                    }
+                    else if ( attr.la_status == DLADM_WLAN_LINK_CONNECTED ) {
+                        if ( (attr.la_valid | DLADM_WLAN_LINKATTR_WLAN) &&
+                          (attr.la_wlan_attr.wa_valid & DLADM_WLAN_ATTR_ESSID) ) {
+                            char cur_essid[DLADM_STRSIZE];
+                            dladm_wlan_essid2str( &attr.la_wlan_attr.wa_essid, cur_essid );
+                            essid =  g_strdup( cur_essid );
+                        }
                     }
                     dladm_close(handle);
+                } else {
+                    g_warning("Error creating dladm handle" );
                 }
 
                 if ( essid != NULL && self->prv->wifi_info == NULL ) {
@@ -4360,10 +4355,10 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
                      * one in wifi_info, so use it. 
                      * This can happen if we're in need of a key.
                      */
-                    essid = nwamui_object_get_name(NWAMUI_OBJECT(self->prv->wifi_info));
+                    essid = g_strdup(nwamui_object_get_name(NWAMUI_OBJECT(self->prv->wifi_info)));
                 }
                 status_string = g_strdup_printf( _(status_string_fmt[state]), essid);
-
+                g_free(essid);
             }
             break;
 

@@ -1,3 +1,20 @@
+2009-12-30  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_proxy_password_dialog.c
+	(nwam_proxy_password_dialog_get_property):
+	* capplet/nwam_wireless_dialog.c
+	(nwam_wireless_dialog_get_property):
+	* common/nwamui_enm.c (nwamui_object_real_set_handle),
+	(nwamui_object_real_reload):
+	* common/nwamui_env.c (nwamui_object_real_set_handle),
+	(nwamui_object_real_reload):
+	* common/nwamui_ncp.c (nwamui_object_real_set_handle):
+	* common/nwamui_ncu.c:
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init),
+	(nwamui_object_real_reload), (nwamui_object_real_set_handle):
+	* daemon/nwam-menuitem.c:
+	Rework some set_handle/reload functions, fixed some leaks.
+
 2009-12-29  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (capplet_get_original_name):

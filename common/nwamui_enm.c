@@ -782,40 +782,43 @@ nwamui_object_real_set_name (   NwamuiObject *object, const gchar*  name )
 static void
 nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
 {
-    NwamuiEnm         *self = NWAMUI_ENM(object);
-    nwam_enm_handle_t  enm  = handle;
+    NwamuiEnmPrivate  *prv  = NWAMUI_ENM_GET_PRIVATE(object);
+    nwam_enm_handle_t  enmh  = handle;
     char*              name = NULL;
     nwam_error_t       nerr;
     nwam_enm_handle_t  nwam_enm;
     
-    if ( (nerr = nwam_enm_get_name (enm, &name)) != NWAM_SUCCESS ) {
+    g_assert(NWAMUI_IS_ENM(object));
+
+    if ( (nerr = nwam_enm_get_name (enmh, &name)) != NWAM_SUCCESS ) {
         g_warning ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
         /* return( FALSE ); */
         return;
     }
+    nwamui_object_set_name(object, name);
+    free (name);
 
-    if ( ( nerr = nwam_enm_read (name, 0, &nwam_enm) ) != NWAM_SUCCESS ) {
-        g_warning ("Failed to create private handle for enm, error: %s", nwam_strerror (nerr));
-        /* return( FALSE ); */
-        return;
+    if (prv->nwam_enm != handle) {
+        if (prv->nwam_enm) {
+            nwam_enm_free(prv->nwam_enm);
+            prv->nwam_enm = NULL;
+        }
+        nerr = nwam_enm_read (prv->name, 0, &prv->nwam_enm);
+        if (nerr == NWAM_ENTITY_NOT_FOUND ) {
+            /* Most likely only exists in memory right now, so use handle passed
+             * in as parameter.
+             */
+            prv->nwam_enm = enmh;
+            /* Reload all */
+            nwamui_object_reload(object);
+        }
+        else if (nerr != NWAM_SUCCESS) {
+            prv->nwam_enm = NULL;
+            nwamui_warning("failed to read nwam_enm_handle %s", prv->name);
+        }
     }
 
-    if ( self->prv->nwam_enm != NULL ) {
-         nwam_enm_free(self->prv->nwam_enm);
-    }
-    self->prv->nwam_enm = nwam_enm;
-
-    if ( self->prv->name != NULL ) {
-         g_free(self->prv->name);
-    }
-    self->prv->name = name;
-
-    /* Tell GUI to refresh */
-    g_object_notify(G_OBJECT(self), "activation-mode");
-
-    self->prv->nwam_enm_modified = FALSE;
-
-    /* return( TRUE ); */
+    prv->nwam_enm_modified = FALSE;
 }
 
 /**
@@ -1193,17 +1196,17 @@ nwamui_object_real_set_selection_conditions( NwamuiObject *object, const GList* 
 static void
 nwamui_object_real_reload( NwamuiObject *object )
 {
-    NwamuiEnm *self = NWAMUI_ENM(object);
-    g_return_if_fail( NWAMUI_IS_ENM(self) );
+    NwamuiEnmPrivate  *prv  = NWAMUI_ENM_GET_PRIVATE(object);
+
+    g_assert(NWAMUI_IS_ENM(object));
 
     /* nwamui_object_set_handle will cause re-read from configuration */
-    g_object_freeze_notify(G_OBJECT(self));
+    g_object_freeze_notify(G_OBJECT(object));
 
-    if ( self->prv->nwam_enm != NULL ) {
-        nwamui_object_set_handle(object, self->prv->nwam_enm);
-    }
+    /* Tell GUI to refresh */
+    g_object_notify(G_OBJECT(object), "activation-mode");
 
-    g_object_thaw_notify(G_OBJECT(self));
+    g_object_thaw_notify(G_OBJECT(object));
 }
 
 /**
