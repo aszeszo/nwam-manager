@@ -101,10 +101,12 @@ nwam_wifi_item_init (NwamWifiItem *self)
 }
 
 GtkWidget *
-nwam_wifi_item_new(NwamuiWifiNet *wifi)
+nwam_wifi_item_new(NwamuiObject *wifi)
 {
   NwamWifiItem *item;
   gchar *path = NULL;
+
+  g_assert(NWAMUI_IS_WIFI_NET(wifi));
 
   item = g_object_new (NWAM_TYPE_WIFI_ITEM,
     "proxy-object", wifi,

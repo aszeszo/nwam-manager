@@ -55,7 +55,7 @@ struct _NwamEnvItemClass
 
 GType            nwam_env_item_get_type          (void) G_GNUC_CONST;
 
-extern GtkWidget *nwam_env_item_new(NwamuiEnv *env);
+extern GtkWidget *nwam_env_item_new(NwamuiObject *env);
 
 G_END_DECLS
 

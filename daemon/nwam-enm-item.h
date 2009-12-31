@@ -55,7 +55,7 @@ struct _NwamEnmItemClass
 
 GType            nwam_enm_item_get_type          (void) G_GNUC_CONST;
 
-extern GtkWidget *nwam_enm_item_new(NwamuiEnm *enm);
+extern GtkWidget *nwam_enm_item_new(NwamuiObject *enm);
 
 NwamuiEnm *nwam_enm_item_get_enm (NwamEnmItem *self);
 

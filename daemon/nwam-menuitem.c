@@ -86,9 +86,9 @@ typedef struct _NwamMenuItemPrivate NwamMenuItemPrivate;
 
 struct _NwamMenuItemPrivate {
 	GtkWidget *w[MAX_WIDGET_NUM];
-    GObject *object;
-    gboolean draw_indicator;
-    gboolean has_toggle_space;
+    GObject   *object;
+    gboolean   draw_indicator;
+    gboolean   has_toggle_space;
 };
 
 G_DEFINE_TYPE_EXTENDED(NwamMenuItem, nwam_menu_item, GTK_TYPE_CHECK_MENU_ITEM,
@@ -204,28 +204,8 @@ nwam_menu_item_set_property (GObject         *object,
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
 
 	switch (prop_id) {
-	case PROP_OBJECT: {
-        GObject *object = g_value_get_object(value);
-
-        if (prv->object != (gpointer)object) {
-            if (prv->object) {
-                /* Handle disconnect object proxy */
-                NWAM_MENU_ITEM_GET_CLASS(self)->disconnect_object(self, prv->object);
-                g_object_unref(prv->object);
-            }
-            if ((prv->object = object) != NULL) {
-                g_object_ref(prv->object);
-
-                /* Handle connect object proxy */
-                NWAM_MENU_ITEM_GET_CLASS(self)->connect_object(self, prv->object);
-                /* Initializing */
-                NWAM_MENU_ITEM_GET_CLASS(self)->sync_object(self, prv->object, NULL);
-            } else {
-                /* Todo reset all. */
-                default_sync_object(self, NULL, NULL);
-            }
-        }
-    }
+	case PROP_OBJECT:
+        nwam_menu_item_set_proxy(self, g_value_get_object(value));
         break;
 	case PROP_LWIDGET:
         nwam_menu_item_set_widget (self, 0,
@@ -385,6 +365,31 @@ nwam_menu_item_new_with_label (const gchar *label)
 	nwam_menu_item = g_object_new (NWAM_TYPE_MENU_ITEM, NULL);
     menu_item_set_label(GTK_MENU_ITEM(nwam_menu_item), label);
 	return GTK_WIDGET(nwam_menu_item);
+}
+
+void
+nwam_menu_item_set_proxy(NwamMenuItem *self, GObject *object)
+{
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
+
+    if (prv->object != (gpointer)object) {
+        if (prv->object) {
+            /* Handle disconnect object proxy */
+            NWAM_MENU_ITEM_GET_CLASS(self)->disconnect_object(self, prv->object);
+            g_object_unref(prv->object);
+        }
+        if ((prv->object = object) != NULL) {
+            g_object_ref(prv->object);
+
+            /* Handle connect object proxy */
+            NWAM_MENU_ITEM_GET_CLASS(self)->connect_object(self, prv->object);
+            /* Initializing */
+            NWAM_MENU_ITEM_GET_CLASS(self)->sync_object(self, prv->object, NULL);
+        } else {
+            /* Todo reset all. */
+            default_sync_object(self, NULL, NULL);
+        }
+    }
 }
 
 /** 

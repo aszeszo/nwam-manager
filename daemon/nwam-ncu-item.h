@@ -55,7 +55,7 @@ struct _NwamNcuItemClass
 
 GType            nwam_ncu_item_get_type          (void) G_GNUC_CONST;
 
-extern GtkWidget *nwam_ncu_item_new(NwamuiNcu *ncu);
+extern GtkWidget *nwam_ncu_item_new(NwamuiObject *ncu);
 
 G_END_DECLS
 

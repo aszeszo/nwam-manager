@@ -68,6 +68,7 @@ GtkWidget* nwam_menu_item_new (void);
 GtkWidget* nwam_menu_item_new_with_object(GObject *object);
 GtkWidget* nwam_menu_item_new_with_label (const gchar *label);
 
+void nwam_menu_item_set_proxy(NwamMenuItem *self, GObject *object);
 void nwam_menu_item_set_widget (NwamMenuItem *self, gint pos, GtkWidget *image);
 GtkWidget* nwam_menu_item_get_widget (NwamMenuItem *self, gint pos);
 

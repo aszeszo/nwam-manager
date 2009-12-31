@@ -1,3 +1,32 @@
+2009-12-31  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* daemon/nwam-enm-item.c (nwam_enm_item_new):
+	* daemon/nwam-enm-item.h:
+	* daemon/nwam-env-item.c (nwam_env_item_new):
+	* daemon/nwam-env-item.h:
+	* daemon/nwam-menu.c (nwam_menu_real_remove),
+	(nwam_menu_section_delete), (nwam_menu_section_get_list):
+	* daemon/nwam-menu.h:
+	* daemon/nwam-menuitem.c (nwam_menu_item_set_property),
+	(nwam_menu_item_set_proxy):
+	* daemon/nwam-menuitem.h:
+	* daemon/nwam-ncu-item.c (nwam_ncu_item_new):
+	* daemon/nwam-ncu-item.h:
+	* daemon/nwam-wifi-item.c (nwam_wifi_item_new):
+	* daemon/nwam-wifi-item.h:
+	* daemon/status_icon.c (nwam_menu_scan_started),
+	(nwam_menu_create_wifi_menuitems), (ncp_add_ncu), (ncp_remove_ncu),
+	(daemon_add_wifi_fav), (daemon_remove_wifi_fav),
+	(daemon_enm_list_changed), (daemon_env_list_changed),
+	(daemon_active_ncp_changed), (daemon_active_env_changed),
+	(nwam_menu_update_wifi_section),
+	(nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_recreate_env_menuitems),
+	(nwam_menu_recreate_enm_menuitems),
+	(nwam_status_icon_create_menu_item),
+	(nwam_status_icon_delete_menu_item):
+	Recycle nwam-menu-items.
+
 2009-12-30  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_proxy_password_dialog.c

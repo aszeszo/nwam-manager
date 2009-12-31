@@ -101,9 +101,11 @@ nwam_enm_item_init (NwamEnmItem *self)
 }
 
 GtkWidget*
-nwam_enm_item_new(NwamuiEnm *enm)
+nwam_enm_item_new(NwamuiObject *enm)
 {
     GtkWidget *item;
+
+    g_assert(NWAMUI_IS_ENM(enm));
 
     item = g_object_new (NWAM_TYPE_ENM_ITEM,
       "proxy-object", enm,

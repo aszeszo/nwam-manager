@@ -55,7 +55,7 @@ struct _NwamWifiItemClass
 
 GType            nwam_wifi_item_get_type          (void) G_GNUC_CONST;
 
-extern GtkWidget *nwam_wifi_item_new(NwamuiWifiNet *wifi);
+extern GtkWidget *nwam_wifi_item_new(NwamuiObject *wifi);
 
 NwamuiWifiNet *nwam_wifi_item_get_wifi (NwamWifiItem *self);
 

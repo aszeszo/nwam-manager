@@ -267,6 +267,7 @@ nwam_menu_real_remove(GtkContainer *container, GtkWidget *widget)
     } else {
         GTK_CONTAINER_CLASS(nwam_menu_parent_class)->remove(container, widget);
     }
+    /* gtk_widget_unparent(widget); */
 }
 
 static void
@@ -652,8 +653,13 @@ nwam_menu_get_section_positions(NwamMenu *self, gint sec_id,
     menu_section_get_positions(&prvsection[sec_id], ret_start_pos, ret_end_pos);
 }
 
-void
-nwam_menu_section_delete(NwamMenu *self, gint sec_id)
+/**
+ * nwam_menu_section_delete:
+ * @cached: if TRUE, return the widiget list of the sec_id section.
+ *
+ */
+extern GList*
+nwam_menu_section_delete(NwamMenu *self, gint sec_id, gboolean cached)
 {
     NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
     GtkWidget *menu = menu_section_get_menu_widget(&prvsection[sec_id]);
@@ -662,10 +668,36 @@ nwam_menu_section_delete(NwamMenu *self, gint sec_id)
     /* Sorting */
     menu_section_get_children(&prvsection[sec_id], &children, NULL);
 
-    while (children) {
-        REMOVE_MENU_ITEM(menu, children->data);
-        children = g_list_delete_link(children, children);
+    if (cached) {
+        GList *idx;
+        for (idx = children; idx; idx = g_list_next(idx)) {
+            g_object_ref(idx->data);
+            REMOVE_MENU_ITEM(menu, idx->data);
+        }
+        return children;
+    } else {
+        while (children) {
+            REMOVE_MENU_ITEM(menu, children->data);
+            children = g_list_delete_link(children, children);
+        }
     }
+    return NULL;
+}
+
+/**
+ * nwam_menu_section_get_list:
+ * returns a new created menu-item list without ref for each widget.
+ */
+extern GList*
+nwam_menu_section_get_list(NwamMenu *self, gint sec_id)
+{
+    NwamMenuPrivate *prv = NWAM_MENU_GET_PRIVATE(self);
+    GtkWidget *menu = menu_section_get_menu_widget(&prvsection[sec_id]);
+    GList *children;
+
+    /* Sorting */
+    menu_section_get_children(&prvsection[sec_id], &children, NULL);
+    return children;
 }
 
 void

@@ -101,9 +101,11 @@ nwam_ncu_item_init (NwamNcuItem *self)
 }
 
 GtkWidget *
-nwam_ncu_item_new(NwamuiNcu *ncu)
+nwam_ncu_item_new(NwamuiObject *ncu)
 {
     NwamNcuItem *item;
+
+    g_assert(NWAMUI_IS_NCU(ncu));
 
     item = g_object_new (NWAM_TYPE_NCU_ITEM,
       "proxy-object", ncu,

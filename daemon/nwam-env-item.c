@@ -114,9 +114,11 @@ nwam_env_item_init (NwamEnvItem *self)
 }
 
 GtkWidget*
-nwam_env_item_new(NwamuiEnv *env)
+nwam_env_item_new(NwamuiObject *env)
 {
     GtkWidget *item;
+
+    g_assert(NWAMUI_IS_ENV(env));
 
     item = g_object_new (NWAM_TYPE_ENV_ITEM,
       "proxy-object", env,
