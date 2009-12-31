@@ -295,7 +295,7 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
     
     /* Initially refresh self */
     {
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
+        NwamuiObject *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
         if (ncp) {
             nwam_pref_refresh(NWAM_PREF_IFACE(self), ncp, TRUE);
             g_object_unref(ncp);
@@ -565,7 +565,7 @@ conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer dat
 {
     NwamuiObject           *obj;
 	NwamConnStatusPanel    *self = NWAM_CONN_STATUS_PANEL(data);
-    NwamuiNcp              *ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
+    NwamuiObject           *ncp = nwamui_daemon_get_active_ncp(self->prv->daemon);
     gboolean                visible = FALSE;
 
     gtk_tree_model_get(model, iter, 0, &obj, -1);
@@ -579,7 +579,7 @@ conn_view_filter_visible_cb(GtkTreeModel *model, GtkTreeIter *iter, gpointer dat
                 break;
             case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
                 if (ncp) {
-                    if ( nwamui_ncp_get_prio_group(ncp)
+                    if ( nwamui_ncp_get_prio_group(NWAMUI_NCP(ncp))
                          == nwamui_ncu_get_priority_group( NWAMUI_NCU(obj) )) {
                         visible = TRUE;
                     }

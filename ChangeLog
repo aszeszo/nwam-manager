@@ -1,5 +1,73 @@
 2009-12-31  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_condition_vbox.c
+	(table_get_condition_ncu_list_model):
+	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_init),
+	(conn_view_filter_visible_cb):
+	* capplet/nwam_location_dialog.c (apply), (on_button_clicked):
+	* capplet/nwam_pref_dialog.c (nwam_capplet_dialog_init):
+	* capplet/nwam_profile_dialog.c (nwam_profile_dialog_init),
+	(cancel), (connections_edit_btn_clicked):
+	* capplet/nwam_vpn_pref_dialog.c (apply), (vpn_pref_clicked_cb):
+	* capplet/nwam_wireless_chooser.c (join_wireless),
+	(nwam_wifi_chooser_cell_cb):
+	* common/libnwamui.c (nwamui_util_get_env_status_icon):
+	* common/nwamui_daemon.c (nwamui_daemon_init_lists),
+	(nwamui_daemon_set_property), (nwamui_daemon_get_property),
+	(nwamui_daemon_finalize), (nwamui_daemon_wifi_start_scan),
+	(nwamui_daemon_find_wifi_net_in_ncus),
+	(nwamui_daemon_get_ncp_by_name), (nwamui_daemon_get_env_by_name),
+	(nwamui_daemon_get_enm_by_name), (nwamui_daemon_get_active_ncp),
+	(nwamui_daemon_is_active_ncp), (nwamui_daemon_get_ncp_list),
+	(nwamui_daemon_object_append), (nwamui_daemon_object_remove),
+	(nwamui_daemon_env_selection_is_manual),
+	(nwamui_daemon_env_selection_set_manual),
+	(nwamui_daemon_is_active_env), (nwamui_daemon_set_active_env),
+	(nwamui_daemon_get_env_list), (nwamui_daemon_get_enm_list),
+	(nwamui_daemon_get_fav_wifi_networks),
+	(nwamui_daemon_find_fav_wifi_net_by_name),
+	(nwamui_daemon_add_wifi_fav), (nwamui_daemon_remove_wifi_fav),
+	(nwamui_daemon_set_fav_wifi_networks),
+	(nwamui_daemon_commit_changed_objects),
+	(nwamui_daemon_dispatch_wifi_scan_events_from_cache),
+	(dispatch_wifi_scan_events_from_event), (nwamd_event_handler),
+	(nwamui_daemon_update_status),
+	(nwamui_daemon_handle_object_action_event),
+	(nwamui_daemon_handle_object_state_event),
+	(nwamui_daemon_update_online_enm_num), (nwam_loc_walker_cb),
+	(nwam_enm_walker_cb), (nwam_ncp_walker_cb):
+	* common/nwamui_daemon.h:
+	* common/nwamui_enm.c (nwamui_enm_new),
+	(nwamui_enm_new_with_handle), (nwamui_object_real_set_name),
+	(nwamui_object_real_set_handle):
+	* common/nwamui_enm.h:
+	* common/nwamui_env.c (nwamui_env_new),
+	(nwamui_env_new_with_handle), (nwamui_object_real_clone),
+	(nwamui_object_real_set_name), (nwamui_object_real_set_handle):
+	* common/nwamui_env.h:
+	* common/nwamui_ncp.c (nwamui_ncp_class_init), (nwamui_ncp_new),
+	(nwamui_ncp_new_with_handle), (nwamui_object_real_clone),
+	(nwamui_object_real_set_handle), (nwamui_object_real_set_name),
+	(nwamui_ncp_get_ncu_by_device_name),
+	(nwamui_ncp_remove_ncu_by_device_name), (nwamui_ncp_add_ncu),
+	(nwamui_object_real_destroy), (nwam_ncu_walker_cb):
+	* common/nwamui_ncp.h:
+	* common/nwamui_ncu.c (nwamui_ncu_new_with_handle):
+	* common/nwamui_ncu.h:
+	* common/nwamui_object.c (nwamui_object_set_handle):
+	* common/nwamui_object.h:
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_set_essid),
+	(nwamui_object_real_set_handle),
+	(nwamui_wifi_net_get_a11y_description):
+	* daemon/nwam-env-item.c (on_nwam_env_toggled):
+	* daemon/nwam-wifi-item.c (wifi_net_notify):
+	* daemon/status_icon.c (ncu_is_higher_priority_than_active_ncu),
+	(daemon_active_ncp_changed), (join_wireless):
+	Clean code. Add _destroy for NCP. Rework set_name/set_handle of
+	NCP/LOC/ENM.
+
+2009-12-31  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* daemon/nwam-enm-item.c (nwam_enm_item_new):
 	* daemon/nwam-enm-item.h:
 	* daemon/nwam-env-item.c (nwam_env_item_new):

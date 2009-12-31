@@ -58,7 +58,7 @@ struct _NwamCappletDialogPrivate {
 	NwamPrefIFace* panel[N_PANELS];
                 
     /* Other Data */
-    NwamuiNcp*                  active_ncp; /* currently active NCP */
+    NwamuiObject*               active_ncp; /* currently active NCP */
     GList*                      ncp_list; /* currently active NCP */
 
     NwamuiNcu*                  selected_ncu;
@@ -150,7 +150,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
 
 
         if ( first_element != NULL && first_element->data != NULL )  {
-            prv->active_ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(first_element->data)));
+            prv->active_ncp = NWAMUI_OBJECT(g_object_ref(G_OBJECT(first_element->data)));
         }
         
     }

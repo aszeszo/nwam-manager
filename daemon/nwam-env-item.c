@@ -207,7 +207,7 @@ on_nwam_env_toggled (GtkCheckMenuItem *item, gpointer data)
 {
     NwamEnvItemPrivate *prv   = GET_PRIVATE(item);
     NwamuiEnv *env   = NWAMUI_ENV(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(item)));
-    gboolean   active = nwamui_daemon_is_active_env(prv->daemon, env);
+    gboolean   active = nwamui_daemon_is_active_env(prv->daemon, NWAMUI_OBJECT(env));
 
     /* Keep the current state until nwamuiobject refresh it. */
     g_signal_handlers_block_by_func(item, (gpointer)on_nwam_env_toggled, (gpointer)data);

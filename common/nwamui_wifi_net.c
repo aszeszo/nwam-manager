@@ -104,7 +104,7 @@ static guint64*     get_nwam_known_wlan_uint64_array_prop(
 static gboolean     set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handle_t known_wlan, const char* prop_name, 
                                                            const guint64 *value_array, guint len );
 
-static void         nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle);
+static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
 static const gchar* nwamui_wifi_net_get_essid (NwamuiObject *object );
 static void         nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid );
 static gboolean     nwamui_wifi_net_can_rename (NwamuiObject *object);
@@ -1268,40 +1268,40 @@ nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid )
             if ( prv->essid != NULL ) {
                 g_debug("Renaming Favourite WLAN with name : '%s' to '%s'", prv->essid, essid );
 
-                if ( g_strcmp0( prv->essid, essid) != 0 ) {
-                    if ( (nerr = nwam_known_wlan_set_name(prv->known_wlan_h, essid)) != NWAM_SUCCESS) {
-                        g_warning("Error renaming favourite wlan: %s", nwam_strerror(nerr));
-                    }
-                    else {
-                        g_free( prv->essid );
-                        prv->essid = g_strdup(essid);
-                    }
+                if ( (nerr = nwam_known_wlan_set_name(prv->known_wlan_h, essid)) != NWAM_SUCCESS) {
+                    g_warning("Error renaming favourite wlan: %s", nwam_strerror(nerr));
+                }
+                else {
+                    g_free( prv->essid );
+                    prv->essid = g_strdup(essid);
                 }
             }
             else {
                 prv->essid = g_strdup(essid);
                 g_debug("Creating Favourite WLAN with NWAM : %s", self->prv->essid );
 
-                if ( (nerr = nwam_known_wlan_create(prv->essid, &prv->known_wlan_h)) != NWAM_SUCCESS) {
-                    if ( nerr == NWAM_ENTITY_EXISTS ) {
-                        nerr = nwam_known_wlan_read(prv->essid, 0, &self->prv->known_wlan_h);
-                        if (nerr != NWAM_SUCCESS) {
-                            g_warning("Error reading existing favourite wlan: %s", nwam_strerror(nerr));
+                if (prv->known_wlan_h == NULL) {
+                    if ( (nerr = nwam_known_wlan_create(prv->essid, &prv->known_wlan_h)) != NWAM_SUCCESS) {
+                        if ( nerr == NWAM_ENTITY_EXISTS ) {
+                            nerr = nwam_known_wlan_read(prv->essid, 0, &self->prv->known_wlan_h);
+                            if (nerr != NWAM_SUCCESS) {
+                                g_warning("Error reading existing favourite wlan: %s", nwam_strerror(nerr));
+                                prv->known_wlan_h = NULL;
+                                /* Ensure it's marked as a not a
+                                 * favourite since we no longer  have
+                                 * a valid handle. */
+                                self->prv->is_favourite = FALSE;
+
+                            }
+                        }
+                        else {
+                            g_warning("Error creating favourite wlan: %s", nwam_strerror(nerr));
                             prv->known_wlan_h = NULL;
                             /* Ensure it's marked as a not a
                              * favourite since we no longer  have
                              * a valid handle. */
                             self->prv->is_favourite = FALSE;
-
                         }
-                    }
-                    else {
-                        g_warning("Error creating favourite wlan: %s", nwam_strerror(nerr));
-                        prv->known_wlan_h = NULL;
-                        /* Ensure it's marked as a not a
-                         * favourite since we no longer  have
-                         * a valid handle. */
-                        self->prv->is_favourite = FALSE;
                     }
                 }
             }
@@ -1322,7 +1322,7 @@ nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid )
 }
                                 
 static void
-nwamui_object_real_set_handle(NwamuiObject *object, gpointer new_handle)
+nwamui_object_real_set_handle(NwamuiObject *object, const gpointer new_handle)
 {
     NwamuiWifiNetPrivate     *prv        = NWAMUI_WIFI_NET_GET_PRIVATE(object);
     nwam_known_wlan_handle_t  handle     = new_handle;
@@ -1334,7 +1334,6 @@ nwamui_object_real_set_handle(NwamuiObject *object, gpointer new_handle)
 
     if ( prv->modified ) {
         nwamui_debug("Not updating wlan %s from system due to unsaved modifications", prv->essid );
-        /* return( TRUE );  */
         return;
     }
 
@@ -1343,11 +1342,12 @@ nwamui_object_real_set_handle(NwamuiObject *object, gpointer new_handle)
         char*   _name = NULL;
         if ( (nerr = nwam_known_wlan_get_name(handle, &_name)) != NWAM_SUCCESS) {
             g_warning("Error getting name of known wlan: %s", nwam_strerror(nerr));
-            /* return( FALSE ); */
             return;
         }
         name = g_strdup( _name );
         free(_name);
+        /* Mark favourite wifi for set_name. */
+        prv->is_favourite;
     }
     else if ( prv->essid != NULL ) {
         name = g_strdup( prv->essid );
@@ -1358,21 +1358,19 @@ nwamui_object_real_set_handle(NwamuiObject *object, gpointer new_handle)
         return;
     }
 
-    if ( prv->known_wlan_h != NULL ) {
-        nwam_known_wlan_free( prv->known_wlan_h  );
-        prv->known_wlan_h = NULL;
-    }
-    nerr = nwam_known_wlan_read (name, 0, &prv->known_wlan_h);
-
-    if (nerr != NWAM_SUCCESS) {
-        g_error ("nwamui_wifi_net_update_with_handle failed to read nwam_known_wlan handle %s", name );
-        g_free(name);
-        /* return (FALSE); */
-        return;
-    }
-
     nwamui_object_set_name(object, name);
     g_free(name);
+
+    /* if ( prv->known_wlan_h != NULL ) { */
+    /*     nwam_known_wlan_free( prv->known_wlan_h  ); */
+    /*     prv->known_wlan_h = NULL; */
+    /* } */
+    /* nerr = nwam_known_wlan_read (name, 0, &prv->known_wlan_h); */
+
+    /* if (nerr != NWAM_SUCCESS) { */
+    /*     g_error ("nwamui_wifi_net_update_with_handle failed to read nwam_known_wlan handle %s", prv->essid); */
+    /*     return; */
+    /* } */
 
     nwamui_object_reload(object);
 }
@@ -2399,14 +2397,14 @@ nwamui_wifi_net_get_a11y_description( NwamuiWifiNet* self )
     const gchar*    secure_str;
     const gchar*    signal_str;
     NwamuiDaemon*   daemon;
-    NwamuiNcp*      ncp;
+    NwamuiObject*   ncp;
     gboolean        has_many_wifi;
 
     g_return_val_if_fail( NWAMUI_IS_WIFI_NET(self), ret_str );
 
     daemon = nwamui_daemon_get_instance();
     ncp = nwamui_daemon_get_active_ncp( daemon );
-    has_many_wifi = nwamui_ncp_get_wireless_link_num( ncp ) > 1;
+    has_many_wifi = nwamui_ncp_get_wireless_link_num(NWAMUI_NCP(ncp)) > 1;
     g_object_unref(G_OBJECT(ncp));
     g_object_unref(G_OBJECT(daemon));
 

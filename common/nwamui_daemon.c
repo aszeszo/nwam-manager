@@ -109,17 +109,22 @@ enum {
     STATUS_REASON_ENM    = 0x08,
 };
 
+enum {
+	MANAGED_NCP,
+	MANAGED_LOC,
+	MANAGED_ENM,
+	MANAGED_FAV_WIFI,
+	N_MANAGED
+};
+
 static guint nwamui_daemon_signals[LAST_SIGNAL] = { 0, 0 };
 
 struct _NwamuiDaemonPrivate {
-    NwamuiEnv   *active_env;
-    NwamuiNcp   *active_ncp;
-    NwamuiNcp   *auto_ncp;  /* For quick access */
+    NwamuiObject *active_env;
+    NwamuiObject *active_ncp;
+    NwamuiNcp    *auto_ncp;     /* For quick access */
     
-    GList       *env_list;
-    GList       *ncp_list;
-    GList       *enm_list;
-    GList       *wifi_fav_list;
+    GList       *managed_list[N_MANAGED];
 
     GList       *temp_list; /* Used to temporarily track not found objects in walkers */
 
@@ -435,7 +440,7 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
     /* NCPs */
 
     /* Get list of Ncps from libnwam */
-    self->prv->temp_list = g_list_copy( self->prv->ncp_list ); /* not worried about refs here */
+    self->prv->temp_list = g_list_copy( self->prv->managed_list[MANAGED_NCP] ); /* not worried about refs here */
     {
         nwam_error_t nerr;
         int cbret;
@@ -448,26 +453,27 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
         for( GList* item = g_list_first( self->prv->temp_list ); 
              item != NULL;
              item = g_list_next( item ) ) {
-            nwamui_daemon_ncp_remove( self, NWAMUI_NCP(item->data));
+            nwamui_daemon_object_remove( self, NWAMUI_OBJECT(item->data));
         }
     }
 
     /* Env / Locations */
-    self->prv->temp_list = g_list_copy( self->prv->env_list ); /* not worried about refs here */
+    self->prv->temp_list = g_list_copy( self->prv->managed_list[MANAGED_LOC] ); /* not worried about refs here */
     {
         nwam_error_t nerr;
         int cbret;
+
         nerr = nwam_walk_locs (nwam_loc_walker_cb, (void *)self, 0, &cbret);
         if (nerr != NWAM_SUCCESS) {
             g_debug ("[libnwam] nwam_walk_locs %s", nwam_strerror (nerr));
         }
     }
-    if ( self->prv->active_env == NULL && self->prv->env_list  != NULL ) {
-        GList* first_element = g_list_first( self->prv->env_list );
+    if ( self->prv->active_env == NULL && self->prv->managed_list[MANAGED_LOC]  != NULL ) {
+        GList* first_element = g_list_first( self->prv->managed_list[MANAGED_LOC] );
 
 
         if ( first_element != NULL && first_element->data != NULL )  {
-            self->prv->active_env = NWAMUI_ENV(g_object_ref(G_OBJECT(first_element->data)));
+            self->prv->active_env = NWAMUI_OBJECT(g_object_ref(G_OBJECT(first_element->data)));
         }
         
     }
@@ -475,12 +481,12 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
         for( GList* item = g_list_first( self->prv->temp_list ); 
              item != NULL;
              item = g_list_next( item ) ) {
-            nwamui_daemon_env_remove( self, NWAMUI_ENV(item->data));
+            nwamui_daemon_object_remove( self, NWAMUI_OBJECT(item->data));
         }
     }
 
     /* ENMs */
-    self->prv->temp_list = g_list_copy( self->prv->enm_list ); /* not worried about refs here */
+    self->prv->temp_list = g_list_copy( self->prv->managed_list[MANAGED_ENM] ); /* not worried about refs here */
     {
         nwam_error_t nerr;
         int cbret;
@@ -493,7 +499,7 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
         for( GList* item = g_list_first( self->prv->temp_list ); 
              item != NULL;
              item = g_list_next( item ) ) {
-            nwamui_daemon_enm_remove( self, NWAMUI_ENM(item->data));
+            nwamui_daemon_object_remove( self, NWAMUI_OBJECT(item->data));
         }
     }
 
@@ -518,13 +524,14 @@ nwamui_daemon_set_property ( GObject         *object,
 
     switch (prop_id) {
         case PROP_ACTIVE_ENV: {
-            NwamuiEnv *env;
+            NwamuiObject *env;
             
             if ( self->prv->active_env != NULL ) {
                 g_object_unref(G_OBJECT(self->prv->active_env));
             }
 
-            env = NWAMUI_ENV(g_value_dup_object( value ));
+            env = NWAMUI_OBJECT(g_value_dup_object( value ));
+            g_assert(NWAMUI_IS_ENV(env));
 
             /* Always send out this signal. To set active env should
              * call nwamui_env_activate (env) directly, then if it
@@ -572,7 +579,7 @@ nwamui_daemon_get_property (GObject         *object,
             }
             break;
         case PROP_NCP_LIST: {
-                g_value_set_pointer( value, nwamui_util_copy_obj_list( self->prv->ncp_list ) );
+                g_value_set_pointer( value, nwamui_util_copy_obj_list( self->prv->managed_list[MANAGED_NCP] ) );
             }
             break;
         case PROP_STATUS: {
@@ -650,23 +657,23 @@ nwamui_daemon_finalize (NwamuiDaemon *self)
         g_object_unref( G_OBJECT(self->prv->active_env) );
     }
 
-    if ( self->prv->wifi_fav_list != NULL ) {
-        g_list_foreach(self->prv->wifi_fav_list, nwamui_util_obj_unref, NULL );
-        g_list_free( self->prv->wifi_fav_list );
+    if ( self->prv->managed_list[MANAGED_FAV_WIFI] != NULL ) {
+        g_list_foreach(self->prv->managed_list[MANAGED_FAV_WIFI], nwamui_util_obj_unref, NULL );
+        g_list_free( self->prv->managed_list[MANAGED_FAV_WIFI] );
     }
     
     if ( self->prv->wlan_scan_queue != NULL ) {
         g_queue_free( self->prv->wlan_scan_queue );
     }
 
-    g_list_foreach( self->prv->env_list, nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
-    g_list_free(self->prv->env_list);
+    g_list_foreach( self->prv->managed_list[MANAGED_LOC], nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
+    g_list_free(self->prv->managed_list[MANAGED_LOC]);
     
-    g_list_foreach( self->prv->enm_list, nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
-    g_list_free(self->prv->enm_list);
+    g_list_foreach( self->prv->managed_list[MANAGED_ENM], nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
+    g_list_free(self->prv->managed_list[MANAGED_ENM]);
     
-    g_list_foreach( self->prv->ncp_list, nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
-    g_list_free(self->prv->ncp_list);
+    g_list_foreach( self->prv->managed_list[MANAGED_NCP], nwamui_util_obj_unref, NULL ); /* Unref all objects in list */
+    g_list_free(self->prv->managed_list[MANAGED_NCP]);
     
     self->prv = NULL;
 
@@ -790,7 +797,7 @@ trigger_scan_if_wireless(  GtkTreeModel *model,
 extern void 
 nwamui_daemon_wifi_start_scan(NwamuiDaemon *self) 
 {
-    NwamuiNcp              *ncp;
+    NwamuiObject *ncp;
     
     g_debug("Wireless Scan initiated");
  
@@ -798,7 +805,7 @@ nwamui_daemon_wifi_start_scan(NwamuiDaemon *self)
 
     if ( ncp != NULL ) {
         self->prv->emit_wlan_changed_signals = TRUE;
-        nwamui_ncp_foreach_ncu (ncp, trigger_scan_if_wireless, NULL);
+        nwamui_ncp_foreach_ncu (NWAMUI_NCP(ncp), trigger_scan_if_wireless, NULL);
         g_object_unref(ncp);
     }
 }
@@ -851,8 +858,8 @@ find_wifi_net(  GtkTreeModel *model,
 static NwamuiWifiNet*
 nwamui_daemon_find_wifi_net_in_ncus( NwamuiDaemon *self, const gchar* essid )
 {
-    NwamuiNcp              *ncp;
-    find_wifi_net_info_t    find_info;
+    NwamuiObject         *ncp;
+    find_wifi_net_info_t  find_info;
     
     ncp = nwamui_daemon_get_active_ncp (self);
 
@@ -860,7 +867,7 @@ nwamui_daemon_find_wifi_net_in_ncus( NwamuiDaemon *self, const gchar* essid )
         find_info.essid = essid;
         find_info.wifi_net = NULL;
 
-        nwamui_ncp_foreach_ncu (ncp, find_wifi_net, (gpointer)&find_info );
+        nwamui_ncp_foreach_ncu(NWAMUI_NCP(ncp), find_wifi_net, (gpointer)&find_info );
         g_object_unref(ncp);
     }
 
@@ -872,33 +879,33 @@ nwamui_daemon_find_wifi_net_in_ncus( NwamuiDaemon *self, const gchar* essid )
  * @self: NwamuiDaemon*
  * @name: String
  *
- * @returns: NwamuiNcp reference
+ * @returns: NwamuiObject reference
  *
  * Looks up an NCP by name
  *
  **/
-extern NwamuiNcp*
+extern NwamuiObject*
 nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name )
 {
-    GString    *have_names = NULL;
-    NwamuiNcp*  ncp   = NULL;
+    GString       *have_names = NULL;
+    NwamuiObject  *ncp        = NULL;
 
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self) && name != NULL, ncp );
 
     have_names = g_string_new("");
     g_string_append_printf(have_names, "daemon -> find ncp %s in [ ", name);
 
-    for( GList* item = g_list_first( self->prv->ncp_list ); 
+    for( GList* item = g_list_first( self->prv->managed_list[MANAGED_NCP] ); 
          item != NULL;
          item = g_list_next( item ) ) {
         if ( item->data != NULL && NWAMUI_IS_NCP(item->data) ) {
-            NwamuiNcp*   tmp_ncp  = NWAMUI_NCP(item->data);
-            const gchar* ncp_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_ncp));
+            NwamuiObject* tmp_ncp  = NWAMUI_OBJECT(item->data);
+            const gchar*  ncp_name = nwamui_object_get_name(tmp_ncp);
 
             g_string_append_printf(have_names, "%s(0x%p) ", ncp_name, tmp_ncp);
 
             if ( strcmp( name, ncp_name) == 0 ) {
-                ncp = NWAMUI_NCP(g_object_ref(G_OBJECT(tmp_ncp)));
+                ncp = NWAMUI_OBJECT(g_object_ref(tmp_ncp));
                 break;
             }
         }
@@ -915,29 +922,29 @@ nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name )
  * @self: NwamuiDaemon*
  * @name: String
  *
- * @returns: NwamuiEnv reference
+ * @returns: NwamuiObject reference
  *
  * Looks up an ENV by name
  *
  **/
-extern NwamuiEnv*
+extern NwamuiObject*
 nwamui_daemon_get_env_by_name( NwamuiDaemon *self, const gchar* name )
 {
-    NwamuiEnv*  env = NULL;
+    NwamuiObject*  env = NULL;
 
     g_assert( NWAMUI_IS_DAEMON( self ) );
 
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self) && name != NULL, env );
 
-    for( GList* item = g_list_first( self->prv->env_list ); 
+    for( GList* item = g_list_first( self->prv->managed_list[MANAGED_LOC] ); 
          item != NULL;
          item = g_list_next( item ) ) {
         if ( item->data != NULL && NWAMUI_IS_ENV(item->data) ) {
-            NwamuiEnv* tmp_env = NWAMUI_ENV(item->data);
-            const gchar*     env_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_env));
+            NwamuiObject* tmp_env = NWAMUI_OBJECT(item->data);
+            const gchar*     env_name = nwamui_object_get_name(tmp_env);
 
             if ( strcmp( name, env_name) == 0 ) {
-                env = NWAMUI_ENV(g_object_ref(G_OBJECT(tmp_env)));
+                env = NWAMUI_OBJECT(g_object_ref(G_OBJECT(tmp_env)));
                 break;
             }
         }
@@ -950,29 +957,29 @@ nwamui_daemon_get_env_by_name( NwamuiDaemon *self, const gchar* name )
  * @self: NwamuiDaemon*
  * @name: String
  *
- * @returns: NwamuiEnm reference
+ * @returns: NwamuiObject reference
  *
  * Looks up an ENM by name
  *
  **/
-extern NwamuiEnm*
+extern NwamuiObject*
 nwamui_daemon_get_enm_by_name( NwamuiDaemon *self, const gchar* name )
 {
-    NwamuiEnm*  enm = NULL;
+    NwamuiObject*  enm = NULL;
 
     g_assert( NWAMUI_IS_DAEMON( self ) );
 
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self) && name != NULL, enm );
 
-    for( GList* item = g_list_first( self->prv->enm_list ); 
+    for( GList* item = g_list_first( self->prv->managed_list[MANAGED_ENM] ); 
          item != NULL;
          item = g_list_next( item ) ) {
         if ( item->data != NULL && NWAMUI_IS_ENM(item->data) ) {
-            NwamuiEnm* tmp_enm = NWAMUI_ENM(item->data);
-            const gchar*     enm_name = nwamui_object_get_name(NWAMUI_OBJECT(tmp_enm));
+            NwamuiObject* tmp_enm  = NWAMUI_OBJECT(item->data);
+            const gchar*  enm_name = nwamui_object_get_name(tmp_enm);
 
             if ( strcmp( name, enm_name) == 0 ) {
-                enm = NWAMUI_ENM(g_object_ref(G_OBJECT(tmp_enm)));
+                enm = NWAMUI_OBJECT(g_object_ref(tmp_enm));
                 break;
             }
         }
@@ -1016,17 +1023,17 @@ nwamui_daemon_get_active_ncp_name(NwamuiDaemon *self)
  * nwamui_daemon_get_current_ncp:
  * @self: NwamuiDaemon*
  *
- * @returns: NwamuiNcp*.
+ * @returns: NwamuiObject*.
  *
  * Gets the active NCP
  *
  * NOTE: For Phase 1 there is only *one* NCP.
  *
  **/
-extern NwamuiNcp*
+extern NwamuiObject*
 nwamui_daemon_get_active_ncp(NwamuiDaemon *self) 
 {
-    NwamuiNcp*  active_ncp = NULL;
+    NwamuiObject*  active_ncp = NULL;
     
     g_assert( NWAMUI_IS_DAEMON( self ) );
 
@@ -1050,11 +1057,10 @@ nwamui_daemon_get_active_ncp(NwamuiDaemon *self)
  *
  **/
 extern gboolean
-nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiNcp* ncp ) 
+nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiObject* ncp ) 
 {
     g_assert( NWAMUI_IS_DAEMON( self ) );
-
-    g_return_val_if_fail( NWAMUI_IS_DAEMON(self) && NWAMUI_IS_NCP(ncp), FALSE );
+    g_assert( NWAMUI_IS_NCP(ncp) );
 
     return(self->prv->active_ncp == ncp);
 }
@@ -1077,7 +1083,7 @@ nwamui_daemon_get_ncp_list(NwamuiDaemon *self)
 
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self), new_list );
 
-    new_list = g_list_copy(self->prv->ncp_list);
+    new_list = g_list_copy(self->prv->managed_list[MANAGED_NCP]);
     
     /* increase the refcounr for each element if copied list*/
     g_list_foreach(new_list, nwamui_util_obj_ref, NULL );
@@ -1086,53 +1092,76 @@ nwamui_daemon_get_ncp_list(NwamuiDaemon *self)
 }
 
 /**
- * nwamui_daemon_ncp_append:
+ * nwamui_daemon_object_append:
  * @self: NwamuiDaemon*
- * @new_ncp: New #NwamuiNcp to add
+ * @new_ncp: New #NwamuiObject to add
  *
  **/
 extern void
-nwamui_daemon_ncp_append(NwamuiDaemon *self, NwamuiNcp* new_ncp ) 
+nwamui_daemon_object_append(NwamuiDaemon *self, NwamuiObject* object) 
 {
+    gint         idx;
+    const gchar *notify_prop;
     g_assert( NWAMUI_IS_DAEMON( self ) );
-    g_assert( NWAMUI_IS_NCP(new_ncp));
 
-    g_return_if_fail( NWAMUI_IS_DAEMON(self));
+    if ( NWAMUI_IS_NCP(object)) {
+        idx = MANAGED_NCP;
+        notify_prop = "ncp_list";
+    } else if ( NWAMUI_IS_ENV(object)) {
+        idx = MANAGED_LOC;
+        notify_prop = "env_list";
+    } else if ( NWAMUI_IS_ENM(object)) {
+        idx = MANAGED_ENM;
+        notify_prop = "enm_list";
+    } else {
+        g_error("Unsupported object %s", g_type_name(G_TYPE_FROM_INSTANCE(object)));
+    }
 
-    if ( !g_list_find( self->prv->ncp_list, new_ncp ) ) {
-        self->prv->ncp_list = g_list_append(self->prv->ncp_list, (gpointer)g_object_ref(new_ncp));
-        g_object_notify(G_OBJECT(self), "ncp_list" );
+    if ( !g_list_find( self->prv->managed_list[idx], object) ) {
+        self->prv->managed_list[idx] = g_list_append(self->prv->managed_list[idx], (gpointer)g_object_ref(object));
+        g_object_notify(G_OBJECT(self), notify_prop);
     }
 }
 
 /**
- * nwamui_daemon_ncp_remove:
+ * nwamui_daemon_object_remove:
  * @self: NwamuiDaemon*
- * @ncp: #NwamuiNcp to remove
+ * @ncp: #NwamuiObject to remove
  *
  * @returns: TRUE if successfully removed.
  *
  **/
 extern gboolean
-nwamui_daemon_ncp_remove(NwamuiDaemon *self, NwamuiNcp* ncp ) 
+nwamui_daemon_object_remove(NwamuiDaemon *self, NwamuiObject* object)
 {
-    gboolean rval   = FALSE;
+    gboolean     rval = FALSE;
+    gint         idx;
+    const gchar *notify_prop;
     
     g_assert( NWAMUI_IS_DAEMON( self ) );
-    g_assert( NWAMUI_IS_NCP(ncp));
-
-    g_return_val_if_fail( NWAMUI_IS_DAEMON(self), rval );
-
-    g_assert( nwamui_object_is_modifiable(NWAMUI_OBJECT(ncp)) );
+    g_assert( nwamui_object_is_modifiable(object) );
     
-    if (nwamui_object_is_modifiable(NWAMUI_OBJECT(ncp))) {
-        self->prv->ncp_list = g_list_remove(self->prv->ncp_list, (gpointer)ncp);
-        g_object_unref(ncp);
-        g_object_notify(G_OBJECT(self), "ncp_list" );
+    if ( NWAMUI_IS_NCP(object)) {
+        idx = MANAGED_NCP;
+        notify_prop = "ncp_list";
+    } else if ( NWAMUI_IS_ENV(object)) {
+        idx = MANAGED_LOC;
+        notify_prop = "env_list";
+    } else if ( NWAMUI_IS_ENM(object)) {
+        idx = MANAGED_ENM;
+        notify_prop = "enm_list";
+    } else {
+        g_error("Unsupported object %s", g_type_name(G_TYPE_FROM_INSTANCE(object)));
+    }
+
+    if (nwamui_object_is_modifiable(object)) {
+        self->prv->managed_list[idx] = g_list_remove(self->prv->managed_list[idx], (gpointer)object);
+        g_object_unref(object);
+        g_object_notify(G_OBJECT(self), notify_prop);
         rval = TRUE;
     }
     else {
-        g_debug("Ncp is not removeable");
+        g_debug("%s %s is not removeable", g_type_name(G_TYPE_FROM_INSTANCE(object)), nwamui_object_get_name(object));
     }
 
     return(rval);
@@ -1170,7 +1199,7 @@ nwamui_daemon_env_selection_is_manual(NwamuiDaemon *self)
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self), rval );
 
     /* This is determined by looking at the enabled property of env objects */
-    g_list_foreach( self->prv->env_list, check_env_enabled, (gpointer)&rval ); 
+    g_list_foreach( self->prv->managed_list[MANAGED_LOC], check_env_enabled, (gpointer)&rval ); 
 
     return( rval );
 }
@@ -1220,7 +1249,7 @@ nwamui_daemon_env_selection_set_manual(NwamuiDaemon *self, gboolean manual, Nwam
     }
     else {
         /* This is determined by looking at the enabled property of env objects */
-        g_list_foreach( self->prv->env_list, set_env_disabled, NULL ); 
+        g_list_foreach( self->prv->managed_list[MANAGED_LOC], set_env_disabled, NULL ); 
     }
 }
 
@@ -1228,7 +1257,7 @@ nwamui_daemon_env_selection_set_manual(NwamuiDaemon *self, gboolean manual, Nwam
 /**
  * nwamui_daemon_is_active_env
  * @self: NwamuiDaemon*
- * @env: NwamuiEnv*
+ * @env: NwamuiObject*
  *
  * @returns: TRUE if the env passed is the active one.
  *
@@ -1236,7 +1265,7 @@ nwamui_daemon_env_selection_set_manual(NwamuiDaemon *self, gboolean manual, Nwam
  *
  **/
 extern gboolean
-nwamui_daemon_is_active_env(NwamuiDaemon *self, NwamuiEnv* env ) 
+nwamui_daemon_is_active_env(NwamuiDaemon *self, NwamuiObject* env ) 
 {
     g_assert( NWAMUI_IS_DAEMON( self ) );
 
@@ -1281,9 +1310,10 @@ nwamui_daemon_get_active_env(NwamuiDaemon *self)
  *
  **/
 static void
-nwamui_daemon_set_active_env( NwamuiDaemon* self, NwamuiEnv* env )
+nwamui_daemon_set_active_env( NwamuiDaemon* self, NwamuiObject* env )
 {
     g_assert( NWAMUI_IS_DAEMON(self) );
+    g_assert( NWAMUI_IS_ENV(env) );
 
     if ( env != NULL && env != self->prv->active_env ) {
         g_object_set (G_OBJECT (self),
@@ -1337,59 +1367,12 @@ nwamui_daemon_get_env_list(NwamuiDaemon *self)
 
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self), new_list );
 
-    new_list = g_list_copy(self->prv->env_list);
+    new_list = g_list_copy(self->prv->managed_list[MANAGED_LOC]);
     
     /* increase the refcounr for each element if copied list*/
     g_list_foreach(new_list, nwamui_util_obj_ref, NULL );
     
     return(new_list);
-}
-
-/**
- * nwamui_daemon_env_append:
- * @self: NwamuiDaemon*
- * @new_env: New #NwamuiEnv to add
- *
- **/
-extern void
-nwamui_daemon_env_append(NwamuiDaemon *self, NwamuiEnv* new_env ) 
-{
-    g_assert( NWAMUI_IS_DAEMON( self ) );
-    g_assert( NWAMUI_IS_ENV(new_env));
-
-    g_return_if_fail( NWAMUI_IS_DAEMON(self));
-
-    if ( !g_list_find( self->prv->env_list, new_env ) ) {
-        self->prv->env_list = g_list_append(self->prv->env_list, (gpointer)g_object_ref(new_env));
-        g_object_notify(G_OBJECT(self), "env_list" );
-    }
-}
-
-/**
- * nwamui_daemon_env_remove:
- * @self: NwamuiDaemon*
- * @env: #NwamuiEnv to remove
- *
- * @returns: TRUE if successfully removed.
- *
- **/
-extern gboolean
-nwamui_daemon_env_remove(NwamuiDaemon *self, NwamuiEnv* env ) 
-{
-    gboolean rval   = FALSE;
-    
-    g_assert( NWAMUI_IS_DAEMON( self ) );
-    g_assert( NWAMUI_IS_ENV(env));
-
-    g_return_val_if_fail( NWAMUI_IS_DAEMON(self), rval );
-
-    if ( g_list_find( self->prv->env_list, (gpointer)env) ) {
-        self->prv->env_list = g_list_remove(self->prv->env_list, (gpointer)env);
-        g_object_notify(G_OBJECT(self), "env_list" );
-        rval = TRUE;
-    }
-
-    return(rval);
 }
 
 /**
@@ -1410,59 +1393,12 @@ nwamui_daemon_get_enm_list(NwamuiDaemon *self)
 
     g_return_val_if_fail( NWAMUI_IS_DAEMON(self), new_list );
 
-    new_list = g_list_copy(self->prv->enm_list);
+    new_list = g_list_copy(self->prv->managed_list[MANAGED_ENM]);
     
     /* increase the refcounr for each element if copied list*/
     g_list_foreach(new_list, nwamui_util_obj_ref, NULL );
     
     return(new_list);
-}
-
-/**
- * nwamui_daemon_enm_append:
- * @self: NwamuiDaemon*
- * @new_env: New #NwamuiEnm to add
- *
- **/
-extern void
-nwamui_daemon_enm_append(NwamuiDaemon *self, NwamuiEnm* new_enm ) 
-{
-    g_assert( NWAMUI_IS_DAEMON( self ) );
-    g_assert( NWAMUI_IS_ENM(new_enm));
-
-    g_return_if_fail( NWAMUI_IS_DAEMON(self));
-
-    if ( !g_list_find( self->prv->enm_list, new_enm ) ) {
-        self->prv->enm_list = g_list_append(self->prv->enm_list, (gpointer)g_object_ref(new_enm));
-        g_object_notify(G_OBJECT(self), "enm_list" );
-    }
-}
-
-/**
- * nwamui_daemon_enm_remove:
- * @self: NwamuiDaemon*
- * @env: #NwamuiEnm to remove
- *
- * @returns: TRUE if successfully removed.
- *
- **/
-extern gboolean
-nwamui_daemon_enm_remove(NwamuiDaemon *self, NwamuiEnm* enm ) 
-{
-    gboolean rval   = FALSE;
-    
-    g_assert( NWAMUI_IS_DAEMON( self ) );
-    g_assert( NWAMUI_IS_ENM(enm));
-
-    g_return_val_if_fail( NWAMUI_IS_DAEMON(self), rval );
-
-    if ( g_list_find( self->prv->enm_list, (gpointer)enm) ) {
-        self->prv->enm_list = g_list_remove(self->prv->enm_list, (gpointer)enm);
-        g_object_notify(G_OBJECT(self), "enm_list" );
-        rval = TRUE;
-    }
-
-    return(rval);
 }
 
 extern gint
@@ -1485,7 +1421,7 @@ nwamui_daemon_get_fav_wifi_networks(NwamuiDaemon *self)
 {
     GList*  new_list = NULL;
     
-    new_list = g_list_copy(self->prv->wifi_fav_list);
+    new_list = g_list_copy(self->prv->managed_list[MANAGED_FAV_WIFI]);
     
     /* increase the refcounr for each element if copied list*/
     g_list_foreach(new_list, nwamui_util_obj_ref, NULL );
@@ -1568,12 +1504,12 @@ nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name )
     NwamuiWifiNet  *found_wifi_net = NULL;
     GList          *found_elem = NULL;
 
-    if ( self == NULL || name == NULL || self->prv->wifi_fav_list == NULL ) {
+    if ( self == NULL || name == NULL || self->prv->managed_list[MANAGED_FAV_WIFI] == NULL ) {
         nwamui_debug("Searching for wifi_net '%s', returning NULL", name?name:"NULL" );
         return( found_wifi_net );
     }
 
-    if ( (found_elem = g_list_find_custom( self->prv->wifi_fav_list, name, 
+    if ( (found_elem = g_list_find_custom( self->prv->managed_list[MANAGED_FAV_WIFI], name, 
                                            (GCompareFunc)find_compare_wifi_net_with_name)) != NULL ) {
         if ( found_elem != NULL && found_elem->data != NULL && NWAMUI_IS_WIFI_NET(found_elem->data)) {
             found_wifi_net = NWAMUI_WIFI_NET(g_object_ref(G_OBJECT(found_elem->data)));
@@ -1598,7 +1534,7 @@ nwamui_daemon_add_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* new_wifi )
 
     if ( !self->prv->communicate_change_to_daemon
       || nwamui_object_commit(NWAMUI_OBJECT(new_wifi)) ) {
-        self->prv->wifi_fav_list = g_list_insert_sorted(self->prv->wifi_fav_list, (gpointer)g_object_ref(new_wifi),
+        self->prv->managed_list[MANAGED_FAV_WIFI] = g_list_insert_sorted(self->prv->managed_list[MANAGED_FAV_WIFI], (gpointer)g_object_ref(new_wifi),
                                                         find_compare_wifi_net_by_prio);
 
         g_signal_emit (self,
@@ -1622,10 +1558,10 @@ extern void
 nwamui_daemon_remove_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* wifi )
 {
 
-    if( self->prv->wifi_fav_list != NULL ) {
+    if( self->prv->managed_list[MANAGED_FAV_WIFI] != NULL ) {
         if ( !self->prv->communicate_change_to_daemon
              || nwamui_wifi_net_delete_favourite( wifi ) ) {
-            self->prv->wifi_fav_list = g_list_remove(self->prv->wifi_fav_list, (gpointer)wifi);
+            self->prv->managed_list[MANAGED_FAV_WIFI] = g_list_remove(self->prv->managed_list[MANAGED_FAV_WIFI], (gpointer)wifi);
 
             g_signal_emit (self,
               nwamui_daemon_signals[S_WIFI_FAV_REMOVE],
@@ -1649,7 +1585,7 @@ nwamui_daemon_remove_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* wifi )
 extern gboolean
 nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
 {
-    if ( self->prv->wifi_fav_list != NULL && new_list != NULL ) {
+    if ( self->prv->managed_list[MANAGED_FAV_WIFI] != NULL && new_list != NULL ) {
         /* 
          * Most complex case, need to merge and update libnwam as appropriate.
          *
@@ -1665,8 +1601,8 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
          *  Elements remaining in OldCopy have been deleted.
          *    
          */
-        GList* merged_list = self->prv->wifi_fav_list; /* Work on original list */
-        GList *old_copy = nwamui_util_copy_obj_list(self->prv->wifi_fav_list); /* Get a copy to work with */
+        GList* merged_list = self->prv->managed_list[MANAGED_FAV_WIFI]; /* Work on original list */
+        GList *old_copy = nwamui_util_copy_obj_list(self->prv->managed_list[MANAGED_FAV_WIFI]); /* Get a copy to work with */
         GList *new_items = NULL;
 
         for( GList* item = g_list_first( new_list ); 
@@ -1740,12 +1676,12 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
 
         }
 
-        self->prv->wifi_fav_list = merged_list;
+        self->prv->managed_list[MANAGED_FAV_WIFI] = merged_list;
     }
     else if ( new_list == NULL ) {
         /* Delete existing list if any */
-        if( self->prv->wifi_fav_list != NULL ) {
-            for( GList* item = g_list_first( self->prv->wifi_fav_list ); 
+        if( self->prv->managed_list[MANAGED_FAV_WIFI] != NULL ) {
+            for( GList* item = g_list_first( self->prv->managed_list[MANAGED_FAV_WIFI] ); 
                  item != NULL; 
                  item = g_list_next( item ) ) {
                 NwamuiWifiNet* wifi = NWAMUI_WIFI_NET(item->data);
@@ -1768,9 +1704,9 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
                 g_object_unref(G_OBJECT( item->data));
             }
 
-            g_list_free(self->prv->wifi_fav_list);
+            g_list_free(self->prv->managed_list[MANAGED_FAV_WIFI]);
         }
-        self->prv->wifi_fav_list = NULL;
+        self->prv->managed_list[MANAGED_FAV_WIFI] = NULL;
     }
     else {
         for( GList* item = g_list_first(new_list); 
@@ -1781,7 +1717,7 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
             if (!self->prv->communicate_change_to_daemon 
               || nwamui_object_commit(NWAMUI_OBJECT(wifi)) ) {
                 /* Copy on succeeded */
-                self->prv->wifi_fav_list = g_list_prepend(self->prv->wifi_fav_list, g_object_ref(item->data));
+                self->prv->managed_list[MANAGED_FAV_WIFI] = g_list_prepend(self->prv->managed_list[MANAGED_FAV_WIFI], g_object_ref(item->data));
 
                 g_signal_emit (self,
                   nwamui_daemon_signals[S_WIFI_FAV_ADD],
@@ -1793,7 +1729,7 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
         
     }
     /* Ensure is sorted by prio */
-    self->prv->wifi_fav_list = g_list_sort(self->prv->wifi_fav_list, find_compare_wifi_net_by_prio);
+    self->prv->managed_list[MANAGED_FAV_WIFI] = g_list_sort(self->prv->managed_list[MANAGED_FAV_WIFI], find_compare_wifi_net_by_prio);
 
     g_object_notify(G_OBJECT(self), "wifi_fav");
 
@@ -1806,7 +1742,7 @@ nwamui_daemon_commit_changed_objects( NwamuiObject *object)
     NwamuiDaemon *daemon = NWAMUI_DAEMON(object);
     gboolean      rval   = TRUE;
 
-    for( GList* ncp_item = g_list_first(daemon->prv->ncp_list); 
+    for( GList* ncp_item = g_list_first(daemon->prv->managed_list[MANAGED_NCP]); 
          rval && ncp_item != NULL; 
          ncp_item = g_list_next( ncp_item ) ) {
         NwamuiNcp*   ncp      = NWAMUI_NCP(ncp_item->data);
@@ -2094,18 +2030,18 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
 extern void
 nwamui_daemon_dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon )
 {
-    NwamuiNcp              *ncp;
+    NwamuiObject              *ncp;
     
     g_debug("Dispatch wifi scan events from cache called");
  
     ncp = nwamui_daemon_get_active_ncp (daemon);
 
-    if ( ncp != NULL && nwamui_ncp_get_wireless_link_num(ncp) > 0 ) {
+    if ( ncp != NULL && nwamui_ncp_get_wireless_link_num(NWAMUI_NCP(ncp)) > 0 ) {
         daemon->prv->emit_wlan_changed_signals = TRUE;
 
         nwamui_daemon_emit_scan_started_event( daemon );
 
-        nwamui_ncp_foreach_ncu (ncp, dispatch_scan_results_if_wireless, (gpointer)daemon);
+        nwamui_ncp_foreach_ncu (NWAMUI_NCP(ncp), dispatch_scan_results_if_wireless, (gpointer)daemon);
         g_object_unref(ncp);
 
         nwamui_daemon_emit_scan_end_of_results( daemon );
@@ -2116,7 +2052,7 @@ static void
 dispatch_wifi_scan_events_from_event(NwamuiDaemon* daemon, nwam_event_t event )
 {
     NwamuiWifiNet          *wifi_net = NULL;
-    NwamuiNcu              *ncu = NULL;
+    NwamuiObject           *ncu = NULL;
     uint_t                  nwlan;
     const char*             prev_iface_name = NULL;
     const gchar*            name = event->nwe_data.nwe_wlan_info.nwe_name;
@@ -2126,12 +2062,12 @@ dispatch_wifi_scan_events_from_event(NwamuiDaemon* daemon, nwam_event_t event )
     }
 
 
-    ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, name);
+    ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(daemon->prv->active_ncp), name);
 
     nwamui_daemon_emit_scan_started_event( daemon );
 
     if ( ncu != NULL ) {
-        dispatch_scan_results_from_wlan_array( daemon, ncu,  
+        dispatch_scan_results_from_wlan_array( daemon, NWAMUI_NCU(ncu),  
                                                event->nwe_data.nwe_wlan_info.nwe_num_wlans,
                                                event->nwe_data.nwe_wlan_info.nwe_wlans );
 
@@ -2375,22 +2311,23 @@ nwamui_daemon_disable_dhcp_or_wep_key_timeout( NwamuiDaemon* self, NwamuiNcu* nc
 static gboolean
 nwamd_event_handler(gpointer data)
 {
-    NwamuiEvent             *event = (NwamuiEvent *)data;
-    NwamuiDaemon            *daemon = event->daemon;
-	nwam_event_t             nwamevent = event->nwamevent;
-    nwam_error_t             err;
+    NwamuiEvent         *event     = (NwamuiEvent *)data;
+    NwamuiDaemonPrivate *prv       = NWAMUI_DAEMON_GET_PRIVATE(event->daemon);
+    NwamuiDaemon        *daemon    = NWAMUI_DAEMON(event->daemon);
+	nwam_event_t         nwamevent = event->nwamevent;
+    nwam_error_t         err;
 
     switch (event->e) {
     case NWAMUI_DAEMON_INFO_UNKNOWN:
     case NWAMUI_DAEMON_INFO_ERROR:
     case NWAMUI_DAEMON_INFO_INACTIVE:
-        daemon->prv->connected_to_nwamd = FALSE;
+        prv->connected_to_nwamd = FALSE;
         nwamui_daemon_set_status(daemon, NWAMUI_DAEMON_STATUS_ERROR);
         break;
     case NWAMUI_DAEMON_INFO_ACTIVE:
         /* Set to UNINITIALIZED first, status will then be got later when icon is to be shown
          */
-        daemon->prv->connected_to_nwamd = TRUE;
+        prv->connected_to_nwamd = TRUE;
 
         nwamui_daemon_set_status(daemon, NWAMUI_DAEMON_STATUS_UNINITIALIZED);
 
@@ -2433,8 +2370,8 @@ nwamd_event_handler(gpointer data)
             g_debug("Priority group changed to %d",
               nwamevent->nwe_data.nwe_priority_group_info.nwe_priority);
 
-            if ( daemon->prv->active_ncp != NULL ) {
-                nwamui_ncp_set_prio_group( daemon->prv->active_ncp, 
+            if ( prv->active_ncp != NULL ) {
+                nwamui_ncp_set_prio_group(NWAMUI_NCP(prv->active_ncp), 
                   nwamevent->nwe_data.nwe_priority_group_info.nwe_priority);
             }
             /* Re-evaluate status since a change in the priority group
@@ -2471,9 +2408,9 @@ nwamd_event_handler(gpointer data)
             break;
 
 		case NWAM_EVENT_TYPE_LINK_ACTION: {
-            NwamuiNcp*      ncp = nwamui_daemon_get_active_ncp( daemon );
-            nwam_action_t   action = nwamevent->nwe_data.nwe_link_action.nwe_action;
-            const gchar*    name = nwamevent->nwe_data.nwe_link_action.nwe_name;
+            NwamuiObject* ncp    = nwamui_daemon_get_active_ncp( daemon );
+            nwam_action_t action = nwamevent->nwe_data.nwe_link_action.nwe_action;
+            const gchar*  name   = nwamevent->nwe_data.nwe_link_action.nwe_name;
 
             switch (action) {
             case NWAM_ACTION_ADD:
@@ -2531,14 +2468,14 @@ nwamd_event_handler(gpointer data)
                 const gchar*    name = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
                 g_debug("Wireless networks found on %s", name );
 
-                if ( nwamui_ncp_get_wireless_link_num(daemon->prv->auto_ncp) > 0 ) {
-                    NwamuiNcu * ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, name);
+                if ( nwamui_ncp_get_wireless_link_num(prv->auto_ncp) > 0 ) {
+                    NwamuiObject * ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->active_ncp), name);
 
                     /* This is strange, this event may be emitted after the ncu
                      * is destroyed. So work around it. Maybe a bug of nwamd.
                      */
                     if (ncu) {
-                        daemon->prv->emit_wlan_changed_signals = TRUE;
+                        prv->emit_wlan_changed_signals = TRUE;
 
                         nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
 
@@ -2558,18 +2495,18 @@ nwamd_event_handler(gpointer data)
             break;
         case NWAM_EVENT_TYPE_WLAN_CONNECTION_REPORT: {
                 const gchar*   device    = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
-                NwamuiNcu *    ncu       = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, device);
+                NwamuiObject  *ncu       = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->active_ncp), device);
                 NwamuiWifiNet* wifi      = NULL;
                 const gchar*   name      = NULL;
                 const gchar*   wifi_name = NULL;
 
 
                 g_assert(ncu);
-                wifi = nwamui_ncu_get_wifi_info(ncu);
+                wifi = nwamui_ncu_get_wifi_info(NWAMUI_NCU(ncu));
                 if ( wifi ) {
                     wifi_name = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
                 }
-                name = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
+                name = nwamui_object_get_name(ncu);
 
                 if ( nwamevent->nwe_data.nwe_wlan_info.nwe_connected ) {
 
@@ -2585,7 +2522,7 @@ nwamd_event_handler(gpointer data)
                     else {
                         if ( wifi ) {
                             /* Different wifi_net */
-                            nwamui_ncu_set_wifi_info(ncu, NULL);
+                            nwamui_ncu_set_wifi_info(NWAMUI_NCU(ncu), NULL);
                             g_object_unref(wifi); 
                         }
 
@@ -2596,11 +2533,11 @@ nwamd_event_handler(gpointer data)
                                                     &(nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0]));
                         }
                         else {
-                            wifi = nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( ncu, 
+                            wifi = nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t(NWAMUI_NCU(ncu),
                                                     &(nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0]));
                         }
 
-                        nwamui_ncu_set_wifi_info(ncu, wifi);
+                        nwamui_ncu_set_wifi_info(NWAMUI_NCU(ncu), wifi);
                         /* Set wifi status after set ncu, since UI may check
                          * ncu info. */
                         nwamui_wifi_net_set_status(wifi, NWAMUI_WIFI_STATUS_CONNECTED);
@@ -2642,12 +2579,12 @@ nwamd_event_handler(gpointer data)
             }
             break;
         case NWAM_EVENT_TYPE_WLAN_NEED_CHOICE: {
-                const gchar*    device = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
-                NwamuiNcu *     ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, device);
+                const gchar*  device = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
+                NwamuiObject *ncu    = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->active_ncp), device);
 
                 g_debug("No suitable wireless networks found, selection needed.");
 
-                if (daemon->prv->emit_wlan_changed_signals) {
+                if (prv->emit_wlan_changed_signals) {
                     nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
 
                     g_signal_emit (daemon,
@@ -2669,8 +2606,8 @@ nwamd_event_handler(gpointer data)
 
         case NWAM_EVENT_TYPE_WLAN_NEED_KEY: {
                 const gchar*    device = nwamevent->nwe_data.nwe_wlan_info.nwe_name;
-                NwamuiNcu*      ncu = nwamui_ncp_get_ncu_by_device_name(daemon->prv->active_ncp, device);
-                NwamuiWifiNet*  wifi = nwamui_ncu_get_wifi_info( ncu );
+                NwamuiObject   *ncu    = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->active_ncp), device);
+                NwamuiWifiNet*  wifi   = nwamui_ncu_get_wifi_info(NWAMUI_NCU(ncu));
 
 
                 if ( wifi == NULL ) {
@@ -2678,12 +2615,12 @@ nwamd_event_handler(gpointer data)
                                     nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0].nww_essid ) ) != NULL ) {
                         /* Exists as a favourite, so re-use */
                         nwamui_wifi_net_update_from_wlan_t( wifi, 
-                                                &(nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0]));
+                          &(nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0]));
                     } else {
-                        wifi = nwamui_ncu_wifi_hash_lookup_by_essid( ncu, 
-                                    nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0].nww_essid );
+                        wifi = nwamui_ncu_wifi_hash_lookup_by_essid(NWAMUI_NCU(ncu),
+                          nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0].nww_essid );
                     }
-                    nwamui_ncu_set_wifi_info( ncu, wifi );
+                    nwamui_ncu_set_wifi_info( NWAMUI_NCU(ncu), wifi );
                 }
                 else {
                     const char* essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
@@ -2699,12 +2636,12 @@ nwamd_event_handler(gpointer data)
                             nwamui_wifi_net_update_from_wlan_t( new_wifi, 
                                                     &(nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0]));
                         } else {
-                            new_wifi = nwamui_ncu_wifi_hash_lookup_by_essid( ncu, 
-                                            nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0].nww_essid );
+                            new_wifi = nwamui_ncu_wifi_hash_lookup_by_essid(NWAMUI_NCU(ncu),
+                              nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0].nww_essid );
                         }
 
                         g_debug("deWlanKeyNeeded: WifiNets differ, replacing");
-                        nwamui_ncu_set_wifi_info( ncu, new_wifi );
+                        nwamui_ncu_set_wifi_info(NWAMUI_NCU(ncu), new_wifi );
                         g_object_unref(wifi);
                         wifi = new_wifi;
                     }
@@ -2837,7 +2774,7 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
         else {
             NwamuiNcu       *needs_wifi_selection = NULL;
             NwamuiWifiNet   *needs_wifi_key = NULL;
-            if ( !nwamui_ncp_all_ncus_online( prv->active_ncp, &needs_wifi_selection, &needs_wifi_key) ) {
+            if ( !nwamui_ncp_all_ncus_online(NWAMUI_NCP(prv->active_ncp), &needs_wifi_selection, &needs_wifi_key) ) {
                 if ( needs_wifi_selection != NULL ) {
                     to_emit_t *sig = (to_emit_t*)g_malloc0( sizeof( to_emit_t ) );
                     sig->signal_id = nwamui_daemon_signals[WIFI_SELECTION_NEEDED];
@@ -2877,7 +2814,7 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
         /* According to comments#15,16 of 12079, we don't case ENMs state. */
         /* Assuming we've no found an error yet, check the ENMs */
         new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
-        g_list_foreach( daemon->prv->enm_list, check_enm_online, &new_status );
+        g_list_foreach( daemon->prv->managed_list[MANAGED_ENM], check_enm_online, &new_status );
         if ( new_status == NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION ) {
             status_flags |= STATUS_REASON_ENM;
         }
@@ -2934,7 +2871,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
 
     switch ( nwamevent->nwe_data.nwe_object_action.nwe_object_type ) {
     case NWAM_OBJECT_TYPE_NCP: {
-        NwamuiNcp   *ncp = nwamui_daemon_get_ncp_by_name( daemon, object_name );
+        NwamuiObject   *ncp = nwamui_daemon_get_ncp_by_name( daemon, object_name );
 
         switch ( nwamevent->nwe_data.nwe_object_action.nwe_action ) {
         case NWAM_ACTION_ADD: {
@@ -2944,7 +2881,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
 /*                 nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
 /*             } else { */
                 ncp = nwamui_ncp_new( object_name );
-                nwamui_daemon_ncp_append(daemon, ncp );
+                nwamui_daemon_object_append(daemon, ncp );
             }
         }
             break;
@@ -2958,7 +2895,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 g_object_unref(G_OBJECT(daemon->prv->active_ncp));
             }
 
-            daemon->prv->active_ncp = NWAMUI_NCP(g_object_ref( ncp ));
+            daemon->prv->active_ncp = NWAMUI_OBJECT(g_object_ref( ncp ));
             /* We need reload NCP since it may changes when it isn't active. */
 /*             nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
             g_object_notify(G_OBJECT(daemon), "active_ncp");
@@ -2974,7 +2911,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 if ( ncp == prv->active_ncp ) {
                     nwamui_warning("Removing active ncp '%s'!", object_name );
                 }
-                nwamui_daemon_ncp_remove(daemon, ncp );
+                nwamui_daemon_object_remove(daemon, ncp );
             }
         }
             break;
@@ -2986,12 +2923,11 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         break;
     case NWAM_OBJECT_TYPE_NCU: {
         NwamuiObject    *ncp;
-        NwamuiNcu       *ncu;
+        NwamuiObject    *ncu;
         char            *device_name = NULL;
         nwam_ncu_type_t  nwam_ncu_type;
 
-        ncp = NWAMUI_OBJECT(nwamui_daemon_get_ncp_by_name(daemon,
-            nwamevent->nwe_data.nwe_object_action.nwe_parent));
+        ncp = nwamui_daemon_get_ncp_by_name(daemon, nwamevent->nwe_data.nwe_object_action.nwe_parent);
         /* NCU's come in the typed name format (e.g. link:ath0) */
         if ( nwam_ncu_typed_name_to_name(object_name, &nwam_ncu_type, &device_name ) == NWAM_SUCCESS ) {
             /* Assumption here is that such events are only for the active NCP
@@ -3010,25 +2946,25 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 nwamui_object_reload(NWAMUI_OBJECT(ncp));
             } else {
                 /* interface:name/link:name, so a NCU will be added two times. */
-                nwamui_object_reload(NWAMUI_OBJECT(ncu));
+                nwamui_object_reload(ncu);
             }
         }
             break;
         case NWAM_ACTION_DISABLE: {
-            if ( !nwamui_ncu_has_modifications( ncu ) ) {
-                nwamui_object_reload(NWAMUI_OBJECT(ncu));
+            if ( !nwamui_ncu_has_modifications(NWAMUI_NCU(ncu)) ) {
+                nwamui_object_reload(ncu);
             }
         }
             break;
         case NWAM_ACTION_ENABLE: {
-            if ( !nwamui_ncu_has_modifications( ncu ) ) {
-                nwamui_object_reload(NWAMUI_OBJECT(ncu));
+            if ( !nwamui_ncu_has_modifications(NWAMUI_NCU(ncu)) ) {
+                nwamui_object_reload(ncu);
             }
         }
             break;
         case NWAM_ACTION_REFRESH: {
-            if ( !nwamui_ncu_has_modifications( ncu ) ) {
-                nwamui_object_reload(NWAMUI_OBJECT(ncu));
+            if ( !nwamui_ncu_has_modifications(NWAMUI_NCU(ncu)) ) {
+                nwamui_object_reload(ncu);
             }
         }
             break;
@@ -3036,7 +2972,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             /* Fall through. */
         case NWAM_ACTION_DESTROY: {
             if (ncu)
-                nwamui_ncp_remove_ncu(NWAMUI_NCP(ncp), ncu );
+                nwamui_ncp_remove_ncu(NWAMUI_NCP(ncp), NWAMUI_NCU(ncu));
         }
             break;
         }
@@ -3049,13 +2985,13 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
     }
         break;
     case NWAM_OBJECT_TYPE_LOC: {
-        NwamuiEnv   *env = nwamui_daemon_get_env_by_name( daemon, object_name );
+        NwamuiObject   *env = nwamui_daemon_get_env_by_name( daemon, object_name );
 
         switch ( nwamevent->nwe_data.nwe_object_action.nwe_action ) {
         case NWAM_ACTION_ADD: {
             if (env == NULL) {
                 env = nwamui_env_new( object_name );
-                nwamui_daemon_env_append( daemon, env );
+                nwamui_daemon_object_append( daemon, env );
             }
         }
             break;
@@ -3087,7 +3023,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                     g_object_unref(prv->active_env);
                     prv->active_env = NULL;
                 }
-                nwamui_daemon_env_remove( daemon, env );
+                nwamui_daemon_object_remove( daemon, env );
             }
         }
             break;
@@ -3097,20 +3033,22 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
     }
         break;
     case NWAM_OBJECT_TYPE_ENM: {
-        NwamuiEnm   *enm = nwamui_daemon_get_enm_by_name( daemon, object_name );
+        NwamuiObject   *enm = nwamui_daemon_get_enm_by_name( daemon, object_name );
 
         switch ( nwamevent->nwe_data.nwe_object_action.nwe_action ) {
         case NWAM_ACTION_ADD: {
             if ( enm == NULL ) {
                 enm = nwamui_enm_new( object_name );
-                nwamui_daemon_enm_append( daemon, enm );
+                nwamui_daemon_object_append( daemon, enm );
             }
         }
             break;
         case NWAM_ACTION_DISABLE: {
+            nwamui_object_reload(NWAMUI_OBJECT(enm));
         }
             break;
         case NWAM_ACTION_ENABLE: {
+            nwamui_object_reload(NWAMUI_OBJECT(enm));
         }
             break;
         case NWAM_ACTION_REFRESH: {
@@ -3121,7 +3059,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             /* Fall through, basically the same operation */
         case NWAM_ACTION_DESTROY: {
             if (enm)
-                nwamui_daemon_enm_remove( daemon, enm );
+                nwamui_daemon_object_remove( daemon, enm );
         }
             break;
         }
@@ -3229,13 +3167,13 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
         case NWAM_OBJECT_TYPE_NCU: {
             char            *device_name = NULL;
             nwam_ncu_type_t  nwam_ncu_type;
-            NwamuiNcp       *ncp;
+            NwamuiObject    *ncp;
 
             ncp = nwamui_daemon_get_ncp_by_name(daemon, nwamevent->nwe_data.nwe_object_state.nwe_parent);
             if (ncp) {
                 /* NCU's come in the typed name format (e.g. link:ath0) */
                 if ( nwam_ncu_typed_name_to_name(object_name, &nwam_ncu_type, &device_name ) == NWAM_SUCCESS ) {
-                    obj = NWAMUI_OBJECT(nwamui_ncp_get_ncu_by_device_name(ncp, device_name));
+                    obj = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(ncp), device_name);
                     free(device_name);
                 } else {
                     g_assert_not_reached();
@@ -3257,7 +3195,7 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
         }
             break;
         case NWAM_OBJECT_TYPE_NCP:
-            obj = NWAMUI_OBJECT(nwamui_daemon_get_ncp_by_name(daemon, object_name));
+            obj = nwamui_daemon_get_ncp_by_name(daemon, object_name);
             nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
             if ( object_state == NWAM_STATE_ONLINE && object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
                 /* Assume that activating, will cause signal to say other was
@@ -3273,10 +3211,10 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
             g_object_unref(obj);
             break;
         case NWAM_OBJECT_TYPE_LOC:
-            obj = NWAMUI_OBJECT(nwamui_daemon_get_env_by_name( daemon, object_name ));
+            obj = nwamui_daemon_get_env_by_name( daemon, object_name);
             nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
             if ( object_state == NWAM_STATE_ONLINE && object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
-                nwamui_daemon_set_active_env( daemon, NWAMUI_ENV(obj) );
+                nwamui_daemon_set_active_env( daemon, obj);
             } else {
                 status_flags |= STATUS_REASON_LOC;
             }
@@ -3331,7 +3269,7 @@ nwamui_daemon_update_online_enm_num(NwamuiDaemon *self)
 {
     /* Get the number of online ENMs. */
     self->prv->online_enm_num = 0;
-    g_list_foreach(self->prv->enm_list, check_enm_online_num, &self->prv->online_enm_num );
+    g_list_foreach(self->prv->managed_list[MANAGED_ENM], check_enm_online_num, &self->prv->online_enm_num );
     /* Must emit every time even the num isn't changed, since the active ENMs
      * could be changed.
      */
@@ -3611,12 +3549,11 @@ default_remove_wifi_fav_signal_handler (NwamuiDaemon *self, NwamuiWifiNet* new_w
 static int
 nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
 {
+    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON_GET_PRIVATE(data);
+    NwamuiDaemon        *self = NWAMUI_DAEMON(data);
     char *name;
     nwam_error_t nerr;
-    NwamuiEnv* new_env;
-        
-    NwamuiDaemon        *self = NWAMUI_DAEMON(data);
-    NwamuiDaemonPrivate *prv = self->prv;
+    NwamuiObject* new_env;
 
     g_debug ("nwam_loc_walker_cb 0x%p", env);
     
@@ -3633,14 +3570,14 @@ nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
             self->prv->temp_list = g_list_remove( self->prv->temp_list, new_env );
         } else {
             new_env = nwamui_env_new_with_handle (env);
-            prv->env_list = g_list_append(prv->env_list, (gpointer)new_env);
+            prv->managed_list[MANAGED_LOC] = g_list_append(prv->managed_list[MANAGED_LOC], (gpointer)new_env);
         }
         free(name);
     }
             
     if ( new_env != NULL ) {
         if ( nwamui_object_get_active(NWAMUI_OBJECT(new_env)) ) {
-            prv->active_env = NWAMUI_ENV(g_object_ref(new_env));
+            prv->active_env = NWAMUI_OBJECT(g_object_ref(new_env));
         }
     }
 
@@ -3650,12 +3587,11 @@ nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
 static int
 nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data)
 {
+    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON_GET_PRIVATE(data);
+    NwamuiDaemon        *self = NWAMUI_DAEMON(data);
     char *name;
     nwam_error_t nerr;
-    NwamuiEnm* new_enm;
-    
-    NwamuiDaemon        *self = NWAMUI_DAEMON(data);
-    NwamuiDaemonPrivate *prv = self->prv;
+    NwamuiObject* new_enm;
 
     g_debug ("nwam_enm_walker_cb 0x%p", enm);
     
@@ -3672,7 +3608,7 @@ nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data)
             self->prv->temp_list = g_list_remove( self->prv->temp_list, new_enm );
         } else {
             new_enm = nwamui_enm_new_with_handle (enm);
-            prv->enm_list = g_list_append(prv->enm_list, (gpointer)new_enm);
+            prv->managed_list[MANAGED_ENM] = g_list_append(prv->managed_list[MANAGED_ENM], (gpointer)new_enm);
         }
         free(name);
     }
@@ -3683,11 +3619,11 @@ nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data)
 static int
 nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
 {
+    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON_GET_PRIVATE(data);
     NwamuiDaemon        *self = NWAMUI_DAEMON(data);
-    NwamuiDaemonPrivate *prv  = self->prv;
     gchar               *name;
     nwam_error_t         nerr;
-    NwamuiNcp           *new_ncp;
+    NwamuiObject         *new_ncp;
 
     g_debug ("nwam_ncp_walker_cb 0x%p", ncp);
     
@@ -3704,7 +3640,7 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
             self->prv->temp_list = g_list_remove( self->prv->temp_list, new_ncp );
         } else {
             new_ncp = nwamui_ncp_new_with_handle (ncp);
-            prv->ncp_list = g_list_append(prv->ncp_list, (gpointer)new_ncp);
+            prv->managed_list[MANAGED_NCP] = g_list_append(prv->managed_list[MANAGED_NCP], (gpointer)new_ncp);
         }
         free(name);
     }
@@ -3713,13 +3649,13 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
         name = (gchar *)nwamui_object_get_name(NWAMUI_OBJECT(new_ncp));
         if ( name != NULL ) { 
             if ( strncmp( name, NWAM_NCP_NAME_AUTOMATIC, strlen(NWAM_NCP_NAME_AUTOMATIC)) == 0 ) {
-                if ( prv->auto_ncp != new_ncp ) {
+                if ( prv->auto_ncp != NWAMUI_NCP(new_ncp)) {
                     prv->auto_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
                 }
             }
         }
         if ( nwamui_object_get_active(NWAMUI_OBJECT(new_ncp)) ) {
-            prv->active_ncp = NWAMUI_NCP(g_object_ref( new_ncp ));
+            prv->active_ncp = NWAMUI_OBJECT(g_object_ref( new_ncp ));
         }
     } else {
         g_warning("Failed to create NWAMUI_NCP");

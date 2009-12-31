@@ -432,8 +432,8 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
     static NwamWirelessDialog *wifi_dialog = NULL;
 
     NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-    NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(daemon);
-    NwamuiNcu *ncu = NULL;
+    NwamuiObject *ncp    = nwamui_daemon_get_active_ncp(daemon);
+    NwamuiNcu    *ncu    = NULL;
 
     /* TODO popup key dialog */
     if (wifi_dialog == NULL) {
@@ -447,7 +447,7 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
 
     if ( ncu == NULL || nwamui_ncu_get_ncu_type(ncu) != NWAMUI_NCU_TYPE_WIRELESS) {
         /* we need find a wireless interface */
-        nwamui_ncp_foreach_ncu(ncp,
+        nwamui_ncp_foreach_ncu(NWAMUI_NCP(ncp),
           (GtkTreeModelForeachFunc)find_wireless_interface,
           (gpointer)&ncu);
     }
@@ -589,12 +589,12 @@ nwam_wifi_chooser_cell_cb (GtkTreeViewColumn *col,
     NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(data);
     NwamuiWifiNet       *wifi_info  = NULL;
     NwamuiDaemon        *daemon;
-    NwamuiNcp           *ncp;
+    NwamuiObject        *ncp;
     gboolean             has_many_wifi;
 
     daemon = nwamui_daemon_get_instance();
     ncp = nwamui_daemon_get_active_ncp( daemon );
-    has_many_wifi = nwamui_ncp_get_wireless_link_num( ncp ) > 1;
+    has_many_wifi = nwamui_ncp_get_wireless_link_num(NWAMUI_NCP(ncp)) > 1;
     g_object_unref(G_OBJECT(ncp));
     g_object_unref(G_OBJECT(daemon));
 

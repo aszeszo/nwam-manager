@@ -672,7 +672,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                     g_object_unref(found->data);
                     olist = g_list_delete_link(olist, found);
                 } else {
-                    nwamui_daemon_enm_append(daemon, NWAMUI_ENM(i->data));
+                    nwamui_daemon_object_append(daemon, NWAMUI_OBJECT(i->data));
                 }
                 g_object_unref(i->data);
             }
@@ -680,7 +680,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
 
         for (i = olist; i; i = i->next) {
-            nwamui_daemon_enm_remove(daemon, NWAMUI_ENM(i->data));
+            nwamui_daemon_object_remove(daemon, NWAMUI_OBJECT(i->data));
             g_object_unref(i->data);
         }
 
@@ -793,8 +793,16 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
         g_free(name);
         g_object_unref(object);
 
+        /* Select and scroll to this new object. */
+        gtk_tree_view_scroll_to_cell(prv->view,
+          nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->view)),
+          NULL, FALSE, 0.0, 0.0);
         gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->view),
           nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->view)));
+#ifndef USE_DIALOG_FOR_NAME
+        /* Trigger rename on the new object as spec defines. */
+        gtk_button_clicked(prv->rename_btn);
+#endif /* ! USE_DIALOG_FOR_NAME */
         return;
     }
 

@@ -652,7 +652,7 @@ nwam_profile_dialog_init(NwamProfileDialog *self)
 
     /* Initially refresh self */
     {
-        NwamuiNcp *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
+        NwamuiObject *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
         if (ncp) {
             nwam_pref_refresh(NWAM_PREF_IFACE(self), ncp, TRUE);
             g_object_unref(ncp);
@@ -729,14 +729,15 @@ cancel(NwamPrefIFace *iface, gpointer user_data)
     /* NwamProfileDialog        *self = NWAM_PROFILE_DIALOG( iface ); */
     NwamProfileDialogPrivate *prv  = GET_PRIVATE(iface);
     NwamuiObject             *combo_object;
-    NwamuiNcp                *user_ncp;
+    NwamuiObject             *user_ncp;
 
+#if 0
     user_ncp = nwamui_daemon_get_ncp_by_name(prv->daemon, NWAM_NCP_NAME_USER);
     if ( user_ncp ) {
         nwamui_ncp_rollback( user_ncp );
         g_object_unref(G_OBJECT(user_ncp));
     }
-
+#endif
     return(TRUE);
 }
 
@@ -1975,13 +1976,13 @@ connections_edit_btn_clicked(GtkButton *button, gpointer user_data )
 {
     NwamProfileDialog*         self   = NWAM_PROFILE_DIALOG(user_data);
     NwamProfileDialogPrivate*  prv    = GET_PRIVATE(user_data);
-    NwamuiDaemon             *daemon = nwamui_daemon_get_instance();
-    NwamuiNcp                *auto_ncp;
-    GtkTreeModel             *model;
-    gint                      result;
+    NwamuiDaemon              *daemon = nwamui_daemon_get_instance();
+    NwamuiObject              *auto_ncp;
+    GtkTreeModel              *model;
+    gint                       result;
 
     auto_ncp = nwamui_daemon_get_ncp_by_name(daemon, NWAM_NCP_NAME_AUTOMATIC);
-    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(auto_ncp));
+    model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(NWAMUI_NCP(auto_ncp)));
     /* Selected ncus used for show toggle cells. */
     prv->ncu_selection = nwamui_ncp_get_ncu_list(NWAMUI_NCP(prv->selected_ncp));
 

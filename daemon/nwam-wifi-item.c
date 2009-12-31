@@ -328,9 +328,9 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
     g_assert(self);
 
     {
-        NwamuiNcp*    ncp = nwamui_daemon_get_active_ncp(prv->daemon);
+        NwamuiObject*    ncp = nwamui_daemon_get_active_ncp(prv->daemon);
 
-        gchar *label = nwamui_wifi_net_get_display_string(wifi, nwamui_ncp_get_wireless_link_num( ncp ) > 1);
+        gchar *label = nwamui_wifi_net_get_display_string(wifi, nwamui_ncp_get_wireless_link_num(NWAMUI_NCP(ncp)) > 1);
 
         /* If there is any underscores we need to replace them with two since
          * otherwise it's interpreted as a mnemonic

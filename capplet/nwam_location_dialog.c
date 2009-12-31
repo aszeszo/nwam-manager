@@ -638,7 +638,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                     g_object_unref(found->data);
                     olist = g_list_delete_link(olist, found);
                 } else {
-                    nwamui_daemon_env_append(prv->daemon, NWAMUI_ENV(i->data));
+                    nwamui_daemon_object_append(prv->daemon, NWAMUI_OBJECT(i->data));
                 }
                 g_object_unref(i->data);
             }
@@ -646,7 +646,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
 
         for (i = olist; i; i = i->next) {
-            nwamui_daemon_env_remove(prv->daemon, NWAMUI_ENV(i->data));
+            nwamui_daemon_object_remove(prv->daemon, NWAMUI_OBJECT(i->data));
             g_object_unref(i->data);
         }
 
@@ -934,7 +934,7 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 
         object = NWAMUI_OBJECT(nwamui_env_new(name) );
         CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->location_tree))), object);
-        nwamui_daemon_env_append(prv->daemon, NWAMUI_ENV(object));
+        nwamui_daemon_object_append(prv->daemon, NWAMUI_OBJECT(object));
         g_free(name);
         g_object_unref(object);
 

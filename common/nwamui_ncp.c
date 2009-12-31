@@ -110,7 +110,7 @@ static void nwamui_ncp_get_property ( GObject         *object,
 
 static void nwamui_ncp_finalize (     NwamuiNcp *self);
 
-static void          nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle);
+static void          nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
 static nwam_state_t  nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
 static const gchar*  nwamui_object_real_get_name ( NwamuiObject *object );
 static gboolean      nwamui_object_real_can_rename(NwamuiObject *object);
@@ -119,6 +119,7 @@ static void          nwamui_object_real_set_active ( NwamuiObject *object, gbool
 static gboolean      nwamui_object_real_get_active( NwamuiObject *object );
 static gboolean      nwamui_object_real_commit( NwamuiObject *object );
 static void          nwamui_object_real_reload( NwamuiObject *object );
+static gboolean      nwamui_object_real_destroy( NwamuiObject* object );
 static gboolean      nwamui_object_real_is_modifiable(NwamuiObject *object);
 static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 
@@ -162,6 +163,7 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
     nwamuiobject_class->get_nwam_state = nwamui_object_real_get_nwam_state;
     nwamuiobject_class->commit = nwamui_object_real_commit;
     nwamuiobject_class->reload = nwamui_object_real_reload;
+    nwamuiobject_class->destroy = nwamui_object_real_destroy;
     nwamuiobject_class->is_modifiable = nwamui_object_real_is_modifiable;
     nwamuiobject_class->clone = nwamui_object_real_clone;
 
@@ -422,33 +424,18 @@ nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_st
     return(rstate);
 }
 
-extern NwamuiNcp*
+extern NwamuiObject*
 nwamui_ncp_new(const gchar* name )
 {
     NwamuiNcp*      self = NULL;
-    nwam_error_t    nerr;
-    nwam_ncp_handle_t nwam_ncp;
-    
-    /* First check if handle already exists, if so, read it */
-    if ( ( nerr = nwam_ncp_read (name, 0, &nwam_ncp) ) != NWAM_SUCCESS ) {
-        nwamui_debug ("Failed to read handle for ncp '%s', error: %s", name, nwam_strerror (nerr));
-
-        if ( (nerr = nwam_ncp_create (name, 0, &nwam_ncp )) != NWAM_SUCCESS ) {
-            nwamui_warning("Failed to create new ncp '%s', error: %s", name, nwam_strerror (nerr));
-            return( NULL );
-        }
-    }
 
     self = NWAMUI_NCP(g_object_new (NWAMUI_TYPE_NCP,
-                                    NULL));
-
-    self->prv->nwam_ncp = nwam_ncp;
-
-    self->prv->name = g_strdup(name);
+        "name", name,
+        NULL));
 
     nwamui_ncp_populate_ncu_list( self, NULL );
 
-    return( self );
+    return NWAMUI_OBJECT(self);
 }
 
 /**
@@ -456,7 +443,7 @@ nwamui_ncp_new(const gchar* name )
  * @returns: a #NwamuiNcp.
  *
  **/
-extern NwamuiNcp*
+extern NwamuiObject*
 nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp)
 {
     NwamuiNcp*      self = NWAMUI_NCP(g_object_new (NWAMUI_TYPE_NCP,
@@ -468,7 +455,7 @@ nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp)
         self = NULL;
     }
 
-    return( self );
+    return NWAMUI_OBJECT( self );
 }
 
 /**
@@ -483,7 +470,7 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
 {
     NwamuiNcp         *self    = NWAMUI_NCP(object);
     NwamuiDaemon      *daemon  = NWAMUI_DAEMON(parent);
-    NwamuiNcp         *new_ncp = NULL;;
+    NwamuiObject      *new_ncp = NULL;;
     nwam_ncp_handle_t  new_ncp_h;
     nwam_error_t       nerr;
 
@@ -501,7 +488,7 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
 
     new_ncp = nwamui_ncp_new_with_handle (new_ncp_h);
 
-    nwamui_daemon_ncp_append(daemon, new_ncp);
+    nwamui_daemon_object_append(daemon, new_ncp);
 
     return NWAMUI_OBJECT(new_ncp);
 }
@@ -540,53 +527,14 @@ nwamui_ncp_get_nwam_handle( NwamuiNcp* self )
     return (self->prv->nwam_ncp);
 }
 
-/** 
- * nwamui_ncp_set_name:
- * @nwamui_ncp: a #NwamuiNcp.
- * @name: The name to set.
- *
- **/ 
-extern void
-nwamui_ncp_set_name (NwamuiObject *object, const gchar*  name )
-{
-    NwamuiNcp    *self       = NWAMUI_NCP(object);
-    nwam_error_t    nerr;
-
-    g_return_if_fail (NWAMUI_IS_NCP (self));
-    g_assert (name != NULL );
-
-    if ( self->prv->name != NULL ) {
-        g_free( self->prv->name );
-    }
-    self->prv->name = g_strdup(name);
-    /* we may rename here */
-    if (self->prv->nwam_ncp == NULL) {
-        nerr = nwam_ncp_read (self->prv->name, 0, &self->prv->nwam_ncp);
-        if (nerr == NWAM_SUCCESS) {
-            g_debug ("nwamui_ncp_set_property found nwam_loc_handle %s", self->prv->name);
-        } else {
-            nerr = nwam_ncp_create (self->prv->name, 0, &self->prv->nwam_ncp);
-            g_assert (nerr == NWAM_SUCCESS);
-        }
-    }
-    /*
-     * Currently can't set name after creation, but just in case...
-     *
-     nerr = nwam_ncp_set_name (self->prv->nwam_ncp, self->prv->name);
-     if (nerr != NWAM_SUCCESS) {
-     g_debug ("nwam_ncp_set_name %s error: %s", self->prv->name, nwam_strerror (nerr));
-     }
-    */
-}
-
 static void
-nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
+nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
 {
-    NwamuiNcpPrivate  *prv  = NWAMUI_NCP_GET_PRIVATE(object);
-    nwam_ncp_handle_t  ncp  = handle;
-    char*              name = NULL;
-    nwam_error_t       nerr;
-    nwam_ncp_handle_t  nwam_ncp;
+    NwamuiNcpPrivate        *prv  = NWAMUI_NCP_GET_PRIVATE(object);
+    const nwam_ncp_handle_t  ncp  = handle;
+    char*                    name = NULL;
+    nwam_error_t             nerr;
+    nwam_ncp_handle_t        nwam_ncp;
     
     g_assert(NWAMUI_IS_NCP(object));
 
@@ -652,40 +600,42 @@ nwamui_object_real_can_rename(NwamuiObject *object)
 static void
 nwamui_object_real_set_name( NwamuiObject *object, const gchar* name )
 {
-    NwamuiNcp *self = NWAMUI_NCP(object);
-    /* nwam_error_t    nerr; */
+    NwamuiNcpPrivate *prv  = NWAMUI_NCP_GET_PRIVATE(object);
+    nwam_error_t      nerr;
 
-    /* g_return_if_fail (NWAMUI_IS_NCP (self)); */
-    /* g_return_if_fail (name); */
+    g_return_if_fail (NWAMUI_IS_NCP (object));
+    g_return_if_fail (name);
 
-    /* if ( self->prv->name != NULL ) { */
-    /*     g_free( self->prv->name ); */
-    /* } */
-    /* self->prv->name = g_strdup(name); */
-    /* /\* we may rename here *\/ */
-    /* if (self->prv->nwam_ncp == NULL) { */
-    /*     nerr = nwam_ncp_read (self->prv->name, 0, &self->prv->nwam_ncp); */
-    /*     if (nerr == NWAM_SUCCESS) { */
-    /*         g_debug ("nwamui_ncp_set_property found nwam_ncp_handle %s", self->prv->name); */
-    /*     } else { */
-    /*         nerr = nwam_ncp_create (self->prv->name, NULL, &self->prv->nwam_ncp); */
-    /*         if (nerr != NWAM_SUCCESS) { */
-    /*             g_debug ("nwamui_ncp_set_property error creating nwam_ncp_handle %s", self->prv->name); */
-    /*             self->prv->nwam_ncp == NULL; */
-    /*         } */
-    /*     } */
-    /* } */
+    /* Initially set name or rename. */
+    if (prv->name == NULL) {
+        if (prv->nwam_ncp == NULL) {
+            nerr = nwam_ncp_read (name, 0, &prv->nwam_ncp);
+            if (nerr == NWAM_SUCCESS) {
+                /* g_debug ("nwamui_ncp_read found nwam_ncp_handle %s", name); */
+            } else {
+                nerr = nwam_ncp_create (name, NULL, &prv->nwam_ncp);
+                if (nerr != NWAM_SUCCESS) {
+                    g_warning("nwamui_ncp_create error creating nwam_ncp_handle %s", name);
+                    prv->nwam_ncp == NULL;
+                }
+            }
+        }
+    } else {
+        /* /\* we may rename here *\/ */
+        /* if (prv->nwam_ncp != NULL) { */
+        /*     nerr = nwam_ncp_set_name (prv->nwam_ncp, name); */
+        /*     if (nerr != NWAM_SUCCESS) { */
+        /*         g_debug ("nwam_ncp_set_name %s error: %s", name, nwam_strerror (nerr)); */
+        /*     } */
+        /* } */
+        /* else { */
+        /*     g_warning("Unexpected null ncp handle"); */
+        /* } */
+        /* prv->nwam_ncp_modified = TRUE; */
+    }
 
-    /* if (self->prv->nwam_ncp != NULL) { */
-    /*     nerr = nwam_ncp_set_name (self->prv->nwam_ncp, self->prv->name); */
-    /*     if (nerr != NWAM_SUCCESS) { */
-    /*         g_debug ("nwam_ncp_set_name %s error: %s", self->prv->name, nwam_strerror (nerr)); */
-    /*     } */
-    /* } */
-    /* else { */
-    /*     g_warning("Unexpected null ncp handle"); */
-    /* } */
-    /* self->prv->nwam_ncp_modified = TRUE; */
+    g_free(prv->name);
+    prv->name = g_strdup(name);
 }
 
 /**
@@ -1070,12 +1020,12 @@ nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer 
  * Unref is needed
  *
  **/
-extern  NwamuiNcu*
+extern  NwamuiObject*
 nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
 {
-    NwamuiNcu *ret_ncu         = NULL;
-    GString   *have_names       = NULL;
-    gchar     *ncu_device_name = NULL;
+    NwamuiObject *ret_ncu         = NULL;
+    GString      *have_names      = NULL;
+    gchar        *ncu_device_name = NULL;
 
     g_return_val_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL, ret_ncu ); 
     g_return_val_if_fail (device_name, ret_ncu ); 
@@ -1095,7 +1045,7 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
             if ( ncu_device_name != NULL 
                  && g_ascii_strcasecmp( ncu_device_name, device_name ) == 0 ) {
                 /* Set ret_ncu, which will cause for loop to exit */
-                ret_ncu = NWAMUI_NCU(g_object_ref(ncu));
+                ret_ncu = NWAMUI_OBJECT(g_object_ref(ncu));
             }
             g_free(ncu_device_name);
         }
@@ -1105,7 +1055,7 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
     g_debug("%s", have_names->str);
     g_string_free(have_names, TRUE);
 
-    return( ret_ncu );
+    return ret_ncu;
 }
 
 extern void 
@@ -1114,7 +1064,7 @@ nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp* self, const gchar* device_name 
     GtkTreeIter     iter;
     gchar          *ncu_device_name = NULL;
     gboolean        valid_iter = FALSE;
-    NwamuiNcu      *found_ncu = NULL;
+    NwamuiObject   *found_ncu = NULL;
 
     g_return_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL); 
     g_return_if_fail (device_name != NULL && strlen(device_name) > 0 );
@@ -1122,7 +1072,7 @@ nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp* self, const gchar* device_name 
     found_ncu = nwamui_ncp_get_ncu_by_device_name( self, device_name );
 
     if ( found_ncu != NULL ) {
-        nwamui_ncp_remove_ncu( self, found_ncu );
+        nwamui_ncp_remove_ncu( self, NWAMUI_NCU(found_ncu));
     }
 }
 
@@ -1197,7 +1147,7 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
     NwamuiNcpPrivate   *prv;
     GtkTreeIter         iter;
     gboolean            valid_iter = FALSE;
-    NwamuiNcu          *found_ncu = NULL;
+    NwamuiObject       *found_ncu = NULL;
     gchar              *device_name = NULL;
 
     g_return_if_fail (NWAMUI_IS_NCP(self) && NWAMUI_IS_NCU(new_ncu) );
@@ -1226,7 +1176,7 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
                  && g_ascii_strcasecmp( ncu_device_name, device_name ) == 0 ) {
                 /* Set found_ncu, which will cause for loop to exit */
                 nwamui_debug("Compare %s to target %s : SAME", ncu_device_name, device_name);
-                found_ncu = NWAMUI_NCU(g_object_ref(ncu));
+                found_ncu = NWAMUI_OBJECT(g_object_ref(ncu));
             } else {
                 nwamui_debug("Compare %s to target %s : DIFFERENT", ncu_device_name, device_name);
             }
@@ -1237,8 +1187,8 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
     if (found_ncu) {
         self->prv->ncus_removed = g_list_remove(self->prv->ncus_removed, found_ncu );
         nwamui_debug("Found already removed NCU : %s, re-using...", device_name );
-        nwamui_object_reload(NWAMUI_OBJECT(found_ncu));
-        new_ncu = found_ncu;
+        nwamui_object_reload(found_ncu);
+        new_ncu = NWAMUI_NCU(found_ncu);
     }
 
     /* NCU isn't already in the list, so add it */
@@ -1300,6 +1250,26 @@ nwamui_object_real_commit( NwamuiObject *object )
     }
 
     nwamui_ncp_populate_ncu_list( self, NULL );
+
+    return( TRUE );
+}
+
+static gboolean
+nwamui_object_real_destroy( NwamuiObject *object )
+{
+    NwamuiNcpPrivate *prv  = NWAMUI_NCP_GET_PRIVATE(object);
+    nwam_error_t    nerr;
+
+    g_assert(NWAMUI_IS_NCP(object));
+
+    if (prv->nwam_ncp != NULL) {
+
+        if ((nerr = nwam_ncp_destroy(prv->nwam_ncp, 0)) != NWAM_SUCCESS) {
+            g_warning("Failed when destroying NCP for %s", prv->name);
+            return( FALSE );
+        }
+        prv->nwam_ncp = NULL;
+    }
 
     return( TRUE );
 }
@@ -1411,7 +1381,7 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
 {
     char*               name;
     nwam_error_t        nerr;
-    NwamuiNcu*          new_ncu;
+    NwamuiObject*       new_ncu;
     GtkTreeIter         iter;
     NwamuiNcp*          ncp = NWAMUI_NCP(data);
     NwamuiNcpPrivate*   prv = ncp->prv;
@@ -1433,11 +1403,11 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
     if ( (new_ncu = nwamui_ncp_get_ncu_by_device_name( ncp, name )) != NULL ) {
         /* Update rather than create a new object */
         g_debug("Updating existing ncu (%s) from handle 0x%08X", name, ncu );
-        nwamui_object_set_handle(NWAMUI_OBJECT(new_ncu), ncu);
+        nwamui_object_set_handle(new_ncu, ncu);
 
         /* Only count if it's a LINK class (to avoid double count) */
         if ( nwam_ncu_type == NWAM_NCU_TYPE_LINK &&
-             new_ncu && nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
+          new_ncu && nwamui_ncu_get_ncu_type(NWAMUI_NCU(new_ncu)) == NWAMUI_NCU_TYPE_WIRELESS ) {
             _num_wireless++;
         }
 
@@ -1458,7 +1428,7 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
 
         /* Only count if it's a LINK class (to avoid double count) */
         if ( nwam_ncu_type == NWAM_NCU_TYPE_LINK &&
-             new_ncu && nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
+          new_ncu && nwamui_ncu_get_ncu_type(NWAMUI_NCU(new_ncu)) == NWAMUI_NCU_TYPE_WIRELESS ) {
             _num_wireless++;
         }
 

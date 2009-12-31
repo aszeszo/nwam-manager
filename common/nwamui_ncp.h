@@ -69,9 +69,9 @@ struct _NwamuiNcpClass
 
 extern  GType                   nwamui_ncp_get_type (void) G_GNUC_CONST;
 
-extern NwamuiNcp*               nwamui_ncp_new(const gchar* name );
+extern NwamuiObject*            nwamui_ncp_new(const gchar* name );
 
-extern NwamuiNcp*               nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp);
+extern NwamuiObject*            nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp);
 
 extern nwam_ncp_handle_t        nwamui_ncp_get_nwam_handle( NwamuiNcp* self );
 
@@ -91,7 +91,7 @@ extern	GtkListStore*           nwamui_ncp_get_ncu_list_store ( NwamuiNcp *self )
 
 extern	GtkTreeStore*           nwamui_ncp_get_ncu_tree_store ( NwamuiNcp *self );
 
-extern  NwamuiNcu*              nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name );
+extern  NwamuiObject*           nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name );
 
 extern  void                    nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data );
 

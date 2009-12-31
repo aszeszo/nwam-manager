@@ -468,19 +468,19 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_daemon_statu
         }
     }
     {
-        NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-        NwamuiNcp  *ncp = nwamui_daemon_get_active_ncp(daemon);
-        GList      *ncu_list = NULL;
-        NwamuiNcu  *ncu = NULL;
-        gint64      ncp_prio = 0;
-        gint64      ncu_prio;
-        gboolean    found_excl_ncu = FALSE;
+        NwamuiDaemon *daemon         = nwamui_daemon_get_instance();
+        NwamuiObject *ncp            = nwamui_daemon_get_active_ncp(daemon);
+        GList        *ncu_list       = NULL;
+        NwamuiNcu    *ncu            = NULL;
+        gint64        ncp_prio       = 0;
+        gint64        ncu_prio;
+        gboolean      found_excl_ncu = FALSE;
 
         g_object_unref(daemon);
 
         if ( ncp ) {
-            ncu_list = nwamui_ncp_get_ncu_list(ncp);
-            ncp_prio = nwamui_ncp_get_prio_group(ncp);
+            ncu_list = nwamui_ncp_get_ncu_list(NWAMUI_NCP(ncp));
+            ncp_prio = nwamui_ncp_get_prio_group(NWAMUI_NCP(ncp));
             g_object_unref(ncp);
         }
 

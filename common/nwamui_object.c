@@ -374,7 +374,7 @@ nwamui_object_set_name(NwamuiObject *object, const gchar* name )
 }
 
 extern void
-nwamui_object_set_handle(NwamuiObject *object, gpointer handle)
+nwamui_object_set_handle(NwamuiObject *object, const gpointer handle)
 {
     g_return_if_fail (NWAMUI_IS_OBJECT(object));
 

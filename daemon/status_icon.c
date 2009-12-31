@@ -229,7 +229,7 @@ static gboolean
 ncu_is_higher_priority_than_active_ncu( NwamuiNcu* ncu, gboolean *is_active_ptr )
 {
     NwamuiDaemon*  daemon  = nwamui_daemon_get_instance();
-    NwamuiNcp*     active_ncp  = nwamui_daemon_get_active_ncp( daemon );
+    NwamuiObject*  active_ncp  = nwamui_daemon_get_active_ncp( daemon );
     NwamuiNcu*     active_ncu  = NULL;
     gint           ncu_prio    = nwamui_ncu_get_priority_group(ncu);
     gint           active_prio = -1;
@@ -237,7 +237,7 @@ ncu_is_higher_priority_than_active_ncu( NwamuiNcu* ncu, gboolean *is_active_ptr 
     gboolean       retval = FALSE;
 
     if ( active_ncp ) {
-        active_prio = nwamui_ncp_get_prio_group(active_ncp);
+        active_prio = nwamui_ncp_get_prio_group(NWAMUI_NCP(active_ncp));
         g_object_unref(active_ncp);
     }
 
@@ -680,9 +680,9 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 	NwamStatusIcon        *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv  = NWAM_STATUS_ICON_GET_PRIVATE(self);
     gboolean               init = FALSE;
-    NwamuiNcp*             ncp  = daemon_status_is_good(prv->daemon) ? nwamui_daemon_get_active_ncp(prv->daemon) : NULL;
+    NwamuiObject          *ncp  = daemon_status_is_good(prv->daemon) ? nwamui_daemon_get_active_ncp(prv->daemon) : NULL;
 
-    if (prv->active_ncp != ncp) {
+    if (prv->active_ncp != (NwamuiNcp*)ncp) {
 
         if (prv->active_ncp) {
             nwam_menu_stop_update_wifi_timer(self);
@@ -696,7 +696,7 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
             init = TRUE;
         }
 
-        if ((prv->active_ncp = ncp) != NULL) {
+        if ((prv->active_ncp = (NwamuiNcp*)ncp) != NULL) {
 
             g_object_ref(prv->active_ncp);
 
@@ -1071,7 +1071,7 @@ join_wireless(NwamStatusIcon* self, NwamuiWifiNet *wifi, gboolean do_connect )
 {
     NwamPrefIFace          *wifi_dialog = get_wifi_dialog( self );
     NwamuiDaemon           *daemon = nwamui_daemon_get_instance();
-    NwamuiNcp              *ncp = nwamui_daemon_get_active_ncp(daemon);
+    NwamuiObject           *ncp = nwamui_daemon_get_active_ncp(daemon);
     NwamuiNcu              *ncu = NULL;
     GtkWindow              *window = NULL;
 
@@ -1086,7 +1086,7 @@ join_wireless(NwamStatusIcon* self, NwamuiWifiNet *wifi, gboolean do_connect )
 
     if ( ncu == NULL || nwamui_ncu_get_ncu_type(ncu) != NWAMUI_NCU_TYPE_WIRELESS) {
         /* we need find a wireless interface */
-        nwamui_ncp_foreach_ncu(ncp,
+        nwamui_ncp_foreach_ncu(NWAMUI_NCP(ncp),
           (GtkTreeModelForeachFunc)find_wireless_interface,
           (gpointer)&ncu);
     }

@@ -172,7 +172,7 @@ static gboolean     interface_has_addresses(const char *ifname, sa_family_t fami
 
 static gchar*       get_interface_address_str( NwamuiNcu *ncu, sa_family_t family);
 
-static void         nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle);
+static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
 static const gchar* nwamui_ncu_get_vanity_name ( NwamuiObject *object );
 static void         nwamui_ncu_set_vanity_name ( NwamuiObject *object, const gchar* name );
 static gboolean     nwamui_object_real_commit( NwamuiObject* object );
@@ -1436,7 +1436,7 @@ get_nwam_ncu_handle( NwamuiNcu* self, nwam_ncu_type_t ncu_type )
     return( ncu_handle );
 }
 
-extern  NwamuiNcu*
+extern  NwamuiObject*
 nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
 {
     NwamuiNcu*          self = NULL;
@@ -1450,7 +1450,7 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
 
     self->prv->initialisation = FALSE;
 
-    return( self );
+    return NWAMUI_OBJECT( self );
 }
 
 /**
@@ -1821,7 +1821,7 @@ nwamui_object_real_destroy( NwamuiObject *object )
 }
 
 static void
-nwamui_object_real_set_handle(NwamuiObject *object, gpointer handle)
+nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
 {
     NwamuiNcuPrivate  *prv  = NWAMUI_NCU_GET_PRIVATE(object);
     NwamuiNcu         *self = NWAMUI_NCU(object);
@@ -4445,6 +4445,8 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self, gboolean use_new
             }
             g_free(speed_part);
             g_free(addr_part);
+            g_free(v4addr);
+            g_free(v6addr);
         }
             break;
         default:

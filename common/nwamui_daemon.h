@@ -118,23 +118,23 @@ extern NwamuiDaemon*                nwamui_daemon_get_instance (void);
 
 extern nwamui_daemon_status_t       nwamui_daemon_get_status( NwamuiDaemon* self );
 
-extern NwamuiNcp*                   nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name );
+extern NwamuiObject*                nwamui_daemon_get_ncp_by_name( NwamuiDaemon *self, const gchar* name );
 
-extern NwamuiEnv*                   nwamui_daemon_get_env_by_name( NwamuiDaemon *self, const gchar* name );
+extern NwamuiObject*                nwamui_daemon_get_env_by_name( NwamuiDaemon *self, const gchar* name );
 
-extern NwamuiEnm*                   nwamui_daemon_get_enm_by_name( NwamuiDaemon *self, const gchar* name );
+extern NwamuiObject*                nwamui_daemon_get_enm_by_name( NwamuiDaemon *self, const gchar* name );
 
-extern NwamuiNcp*                   nwamui_daemon_get_active_ncp(NwamuiDaemon *self);
+extern NwamuiObject*                nwamui_daemon_get_active_ncp(NwamuiDaemon *self);
 
 extern gchar*                       nwamui_daemon_get_active_ncp_name(NwamuiDaemon *self);
 
-extern gboolean                     nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiNcp* ncp ) ;
+extern gboolean                     nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiObject* ncp ) ;
 
 extern GList*                       nwamui_daemon_get_ncp_list(NwamuiDaemon *self);
 
-extern void                         nwamui_daemon_ncp_append(NwamuiDaemon *self, NwamuiNcp* new_ncp );
+extern void                         nwamui_daemon_object_append(NwamuiDaemon *self, NwamuiObject* object);
 
-extern gboolean                     nwamui_daemon_ncp_remove(NwamuiDaemon *self, NwamuiNcp* ncp );
+extern gboolean                     nwamui_daemon_object_remove(NwamuiDaemon *self, NwamuiObject* object);
 
 extern gboolean                     nwamui_daemon_env_selection_is_manual(NwamuiDaemon *self);
 
@@ -142,7 +142,7 @@ extern void                         nwamui_daemon_env_selection_set_manual( Nwam
                                                                             gboolean manual, 
                                                                             NwamuiEnv* manual_env );
 
-extern gboolean                     nwamui_daemon_is_active_env(NwamuiDaemon *self, NwamuiEnv* env ) ;
+extern gboolean                     nwamui_daemon_is_active_env(NwamuiDaemon *self, NwamuiObject* env ) ;
 
 extern NwamuiEnv*                   nwamui_daemon_get_active_env(NwamuiDaemon *self);
 
@@ -150,17 +150,9 @@ extern gchar*                       nwamui_daemon_get_active_env_name(NwamuiDaem
 
 extern GList*                       nwamui_daemon_get_env_list(NwamuiDaemon *self);
 
-extern void                         nwamui_daemon_env_append(NwamuiDaemon *self, NwamuiEnv* new_env );
-
-extern gboolean                     nwamui_daemon_env_remove(NwamuiDaemon *self, NwamuiEnv* env );
-
 extern GtkTreeModel *               nwamui_get_default_svcs (NwamuiDaemon *self);
 
 extern GList*                       nwamui_daemon_get_enm_list(NwamuiDaemon *self);
-
-extern void                         nwamui_daemon_enm_append(NwamuiDaemon *self, NwamuiEnm* new_enm );
-
-extern gboolean                     nwamui_daemon_enm_remove(NwamuiDaemon *self, NwamuiEnm* enm );
 
 extern gint                         nwamui_daemon_get_online_enm_num(NwamuiDaemon *self);
 

@@ -65,9 +65,9 @@ struct _NwamuiEnmClass
 
 extern  GType               nwamui_enm_get_type (void) G_GNUC_CONST;
 
-extern  NwamuiEnm*          nwamui_enm_new (const gchar*    name );
+extern  NwamuiObject*       nwamui_enm_new (const gchar*    name );
 
-extern  NwamuiEnm*          nwamui_enm_new_with_handle (nwam_enm_handle_t enm);
+extern  NwamuiObject*       nwamui_enm_new_with_handle (nwam_enm_handle_t enm);
 
 extern gboolean             nwamui_enm_set_start_command ( NwamuiEnm *self, const gchar* start_command );
 extern gchar*               nwamui_enm_get_start_command ( NwamuiEnm *self );

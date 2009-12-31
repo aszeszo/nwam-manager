@@ -848,9 +848,9 @@ extern GtkTreeModel *
 table_get_condition_ncu_list_model ()
 {
     NwamuiDaemon   *daemon = nwamui_daemon_get_instance();
-    NwamuiNcp      *active_ncp = nwamui_daemon_get_active_ncp( daemon );
+    NwamuiObject   *active_ncp = nwamui_daemon_get_active_ncp( daemon );
 
-	return (GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(active_ncp)));
+	return (GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(NWAMUI_NCP(active_ncp))));
 }
 
 extern GtkTreeModel *
