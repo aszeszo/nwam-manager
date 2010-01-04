@@ -5,7 +5,7 @@
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
-%define owner dkenny
+%define owner lin
 #
 
 %define OSR developed in the open, no OSR needed:0
@@ -14,7 +14,7 @@
 Name:         nwam-manager
 License:      CDDL
 Group:        System/GUI/GNOME
-Version:      0.99.94
+Version:      0.99.96.3
 Summary:      Network Auto-Magic User Interface
 #Source:       http://src.opensolaris.org/source/raw/jds/nwam-manager/branches/phase-0.5/tarballs/%{name}-%{version}.tar.gz
 Source:       http://www.opensolaris.org/os/project/nwam/picea/%{name}-%{version}.tar.gz

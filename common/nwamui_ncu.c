@@ -2144,19 +2144,20 @@ nwamui_ncu_get_ncu_type ( NwamuiNcu *self )
 extern gboolean
 nwamui_object_real_get_active ( NwamuiObject *object )
 {
-    NwamuiNcu *self = NWAMUI_NCU(object);
-	gboolean active = FALSE;
-    nwam_state_t        state = NWAM_STATE_OFFLINE;
-    nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-    nwam_state_t        link_state = NWAM_STATE_OFFLINE;
-    nwam_aux_state_t    link_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-    gint64              active_prio = nwamui_ncp_get_prio_group( self->prv->ncp );
-    gint64              ncu_prio =  nwamui_ncu_get_priority_group(self);
-    nwamui_cond_activation_mode_t activation_mode;
+    NwamuiNcuPrivate              *prv            = NWAMUI_NCU_GET_PRIVATE(object);
+    NwamuiNcu                     *self           = NWAMUI_NCU(object);
+	gboolean                       active         = FALSE;
+    nwam_state_t                   state          = NWAM_STATE_OFFLINE;
+    nwam_aux_state_t               aux_state      = NWAM_AUX_STATE_UNINITIALIZED;
+    nwam_state_t                   link_state     = NWAM_STATE_OFFLINE;
+    nwam_aux_state_t               link_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+    gint64                         active_prio    = nwamui_ncp_get_prio_group( self->prv->ncp );
+    gint64                         ncu_prio       = nwamui_ncu_get_priority_group(self);
+    nwamui_cond_activation_mode_t  activation_mode;
 
-    activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(self));
+    activation_mode = nwamui_object_get_activation_mode(object);
 
-    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(self), &aux_state, NULL);
+    state = nwamui_object_get_nwam_state(object, &aux_state, NULL);
     link_state = nwamui_ncu_get_link_nwam_state(self, &link_aux_state, NULL);
 
     if ( state == NWAM_STATE_ONLINE ||
@@ -2188,13 +2189,16 @@ nwamui_object_real_get_active ( NwamuiObject *object )
         }
     }
 
-    if ( active != self->prv->active ) {
-        self->prv->active = active;
-        if (self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && self->prv->wifi_info) {
-            nwamui_wifi_net_set_status(self->prv->wifi_info,
-              active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED);
-        }
+    if ( active != prv->active ) {
+        prv->active = active;
     }
+
+    if (prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && prv->wifi_info) {
+        nwamui_wifi_net_set_status(prv->wifi_info,
+          active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED);
+        g_object_notify(G_OBJECT(prv->wifi_info), "status");
+    }
+
     return active;
 }
 
@@ -2207,31 +2211,32 @@ nwamui_object_real_get_active ( NwamuiObject *object )
 static void
 nwamui_object_real_set_active (NwamuiObject *object, gboolean active)
 {
-    NwamuiNcu *self = NWAMUI_NCU(object);
-    nwamui_cond_activation_mode_t activation_mode;
+    NwamuiNcuPrivate              *prv  = NWAMUI_NCU_GET_PRIVATE(object);
+    NwamuiNcu                     *self = NWAMUI_NCU(object);
+    nwamui_cond_activation_mode_t  activation_mode;
 
     g_return_if_fail (NWAMUI_IS_NCU (self));
 
     activation_mode = (nwamui_cond_activation_mode_t)
-      get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE );
+      get_nwam_ncu_uint64_prop( prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE );
                 
     if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL ) {
         /* Activate immediately */
         if ( active ) {
             nwam_error_t nerr;
-            if ( self->prv->nwam_ncu_phys) {
-                if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
+            if ( prv->nwam_ncu_phys) {
+                if ( (nerr = nwam_ncu_enable (prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
                     g_warning("Failed to enable ncu_phys due to error: %s", nwam_strerror(nerr));
                 }
             }
-            if ( self->prv->nwam_ncu_ip) {
-                if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
+            if ( prv->nwam_ncu_ip) {
+                if ( (nerr = nwam_ncu_enable (prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
                     g_warning("Failed to enable ncu_ip due to error: %s", nwam_strerror(nerr));
                 }
             }
 #ifdef TUNNEL_SUPPORT
-            if ( self->prv->nwam_ncu_iptun) {
-                if ( (nerr = nwam_ncu_enable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
+            if ( prv->nwam_ncu_iptun) {
+                if ( (nerr = nwam_ncu_enable (prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
                     g_warning("Failed to enable ncu_iptun due to error: %s", nwam_strerror(nerr));
                 }
             }
@@ -2239,20 +2244,20 @@ nwamui_object_real_set_active (NwamuiObject *object, gboolean active)
         }
         else {
             nwam_error_t nerr;
-            if ( self->prv->nwam_ncu_ip) {
-                if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
+            if ( prv->nwam_ncu_ip) {
+                if ( (nerr = nwam_ncu_disable (prv->nwam_ncu_ip)) != NWAM_SUCCESS ) {
                     g_warning("Failed to disable ncu_ip due to error: %s", nwam_strerror(nerr));
                 }
             }
 #ifdef TUNNEL_SUPPORT
-            if ( self->prv->nwam_ncu_iptun) {
-                if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
+            if ( prv->nwam_ncu_iptun) {
+                if ( (nerr = nwam_ncu_disable (prv->nwam_ncu_iptun)) != NWAM_SUCCESS ) {
                     g_warning("Failed to disable ncu_iptun due to error: %s", nwam_strerror(nerr));
                 }
             }
 #endif /* TUNNEL_SUPPORT */
-            if ( self->prv->nwam_ncu_phys) {
-                if ( (nerr = nwam_ncu_disable (self->prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
+            if ( prv->nwam_ncu_phys) {
+                if ( (nerr = nwam_ncu_disable (prv->nwam_ncu_phys)) != NWAM_SUCCESS ) {
                     g_warning("Failed to disable ncu_phys due to error: %s", nwam_strerror(nerr));
                 }
             }
@@ -3268,7 +3273,7 @@ nwamui_ncu_get_interface_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_
 extern nwam_state_t
 nwamui_ncu_get_link_nwam_state(NwamuiNcu *self, nwam_aux_state_t* aux_state, const gchar**aux_state_string)
 {
-    NwamuiNcuPrivate *prv        = self->prv;
+    NwamuiNcuPrivate *prv      = NWAMUI_NCU_GET_PRIVATE(self);
     nwam_state_t      _state     = NWAM_STATE_UNINITIALIZED;
     nwam_aux_state_t  _aux_state = NWAM_AUX_STATE_UNINITIALIZED;
     time_t            _elapsed_time;
@@ -3341,7 +3346,7 @@ nwamui_ncu_get_link_nwam_state(NwamuiNcu *self, nwam_aux_state_t* aux_state, con
 extern void
 nwamui_ncu_set_link_nwam_state(NwamuiNcu *self, nwam_state_t state, nwam_aux_state_t aux_state)
 {
-    NwamuiNcuPrivate *prv           = self->prv;
+    NwamuiNcuPrivate *prv           = NWAMUI_NCU_GET_PRIVATE(self);
     gboolean          state_changed = FALSE;
 
     g_return_if_fail (NWAMUI_IS_NCU(self));

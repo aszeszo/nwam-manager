@@ -1,3 +1,31 @@
+2010-01-04  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* SUNWnwam-manager.spec:
+	Added nwam-manager-properties to Network Autoconf Admin.
+	* capplet/main.c (main):
+	* common/libnwamui.c:
+	* common/libnwamui.h:
+	* common/nwamui_daemon.c (nwamui_daemon_update_status),
+	(nwamui_daemon_handle_object_action_event),
+	(check_nwamui_object_online),
+	(nwamui_daemon_update_online_enm_num),
+	(check_nwamui_object_online_num):
+	* common/nwamui_ncu.c:
+	* common/nwamui_prof.c (nwamui_prof_class_init),
+	(nwamui_prof_init), (nwamui_prof_set_property),
+	(nwamui_prof_get_property), (nwamui_prof_finalize),
+	(user_has_autoconf_auth), (nwamui_prof_get_ui_auth),
+	(nwamui_prof_check_ui_auth):
+	* common/nwamui_prof.h:
+	* daemon/main.c (main):
+	* daemon/status_icon.c (nwam_status_icon_run),
+	(nwam_status_icon_init), (prof_ui_auth):
+	Make ui support 11321, not fully tested. Menu-items need more work.
+	* data/nwam-manager-properties.desktop.in:
+	Load by gksu
+	* nwam-manager.spec:
+	updated.
+
 2009-12-31  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_condition_vbox.c

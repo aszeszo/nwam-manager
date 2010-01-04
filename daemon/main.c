@@ -178,10 +178,12 @@ main( int argc, char* argv[] )
     sigaction (SIGKILL, &act, NULL);
     sigaction (SIGTERM, &act, NULL);
 
-    if ( ! user_has_autoconf_auth() ) {
-        g_warning("User doesn't have the authorisation (%s) to run nwam-manager.", NET_AUTOCONF_AUTH );
+#if 0
+    if (!nwamui_prof_check_ui_auth(nwamui_prof_get_instance_noref(), UI_AUTH_LEAST)) {
+        g_warning("User doesn't have the enough authorisations to run nwam-manager.");
         exit(0);
     }
+#endif
 
     if ( !nwamui_util_is_debug_mode() ) {
         UniqueApp       *app            = NULL;

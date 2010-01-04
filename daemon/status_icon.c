@@ -53,6 +53,7 @@ typedef struct _NwamStatusIconPrivate NwamStatusIconPrivate;
 #define STATIC_MENUITEM_ID "static_item_id"
 
 /* nwamui preference signal */
+static void prof_ui_auth(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void join_wifi_not_in_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void join_any_fav_wifi(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -1250,6 +1251,7 @@ nwam_status_icon_run(NwamStatusIcon *self)
     connect_nwam_object_signals(G_OBJECT(prv->daemon), G_OBJECT(self));
 
     /* Initial place. Init code must be here. */
+    g_object_notify(G_OBJECT(prv->prof), "ui-auth");
     g_object_notify(G_OBJECT(prv->daemon), "status");
     g_object_notify(G_OBJECT(prv->daemon), "active_ncp");
     g_object_notify(G_OBJECT(prv->daemon), "active_env");
@@ -1587,6 +1589,8 @@ nwam_status_icon_init (NwamStatusIcon *self)
 	prv->daemon = nwamui_daemon_get_instance ();
 
     /* nwamui preference signals */
+    g_signal_connect(prv->prof, "notify::ui-auth",
+      G_CALLBACK(prof_ui_auth), (gpointer) self);
     g_signal_connect(prv->prof, "notify::join-wifi-not-in-fav",
       G_CALLBACK(join_wifi_not_in_fav), (gpointer) self);
     g_signal_connect(prv->prof, "notify::join-any-fav-wifi",
@@ -2005,6 +2009,25 @@ nwam_exec (const gchar **nwam_arg)
 	}
 	g_free (argv[0]);
 	g_free (argv);
+}
+
+static void
+prof_ui_auth(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(data);
+    gboolean               has_auth;
+
+    has_auth = nwamui_prof_check_ui_auth(prv->prof, UI_AUTH_AUTOCONF_WRITE_AUTH);
+    gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_CONN_PROF], has_auth);
+    gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_ENV_PREF], has_auth);
+    gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_VPN_PREF], has_auth);
+
+    has_auth = nwamui_prof_check_ui_auth(prv->prof, UI_AUTH_AUTOCONF_WLAN_AUTH);
+    gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_REFRESH_WLAN], has_auth);
+    gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_JOIN_WLAN], has_auth);
+
+    has_auth = nwamui_prof_check_ui_auth(prv->prof, UI_AUTH_ALL);
+    gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_NET_PREF], has_auth);
 }
 
 static void

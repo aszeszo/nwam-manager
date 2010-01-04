@@ -42,9 +42,6 @@
 #include <sys/ethernet.h>
 #include <inetcfg.h>
 #include <libscf.h>
-#include <pwd.h>
-#include <auth_attr.h>
-#include <secdb.h>
 
 #define NWAM_ENVIRONMENT_RENAME     "nwam_environment_rename"
 #define RENAME_ENVIRONMENT_ENTRY    "rename_environment_entry"
@@ -2427,21 +2424,5 @@ extern FILE*
 get_stdio( void )
 {
     return( stdout );
-}
-
-extern gboolean
-user_has_autoconf_auth( void )
-{
-	struct passwd *pwd;
-	gboolean retval = FALSE;
-
-	if ((pwd = getpwuid(getuid())) == NULL) {
-		g_debug("Unable to get users password entry");
-	} else if (chkauthattr(NET_AUTOCONF_AUTH, pwd->pw_name) == 0) {
-		g_debug("User %s does not have %s", pwd->pw_name, NET_AUTOCONF_AUTH);
-	} else {
-		retval = TRUE;
-	}
-	return (retval);
 }
 

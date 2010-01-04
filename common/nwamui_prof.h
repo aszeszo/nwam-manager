@@ -49,6 +49,33 @@ typedef enum {
     NWAMUI_NO_FAV_ACTION_LAST           /* Not to be used directly */
 } nwamui_action_on_no_fav_networks_t;
 
+/*
+ * Security Auth needed for NWAM to work. Console User and Network Management
+ * profiles will have this.
+ */
+#define	NET_AUTOCONF_AUTH     "solaris.network.autoconf"
+#define	AUTOCONF_READ_AUTH    "solaris.network.autoconf.read"
+#define	AUTOCONF_REFRESH_AUTH "solaris.network.autoconf.refresh"
+#define	AUTOCONF_SELECT_AUTH  "solaris.network.autoconf.select"
+#define	AUTOCONF_WLAN_AUTH    "solaris.network.autoconf.wlan"
+#define	AUTOCONF_WRITE_AUTH   "solaris.network.autoconf.write"
+#define	MANAGE_LOCATION_AUTH  "solaris.smf.manage.location"
+#define	MODIFY_LOCATION_AUTH  "solaris.smf.modify.location"
+/* Value */
+#define	UI_AUTH_AUTOCONF_READ_AUTH    0x01
+#define	UI_AUTH_AUTOCONF_REFRESH_AUTH 0x02
+#define	UI_AUTH_AUTOCONF_SELECT_AUTH  0x04
+#define	UI_AUTH_AUTOCONF_WLAN_AUTH    0x08
+#define	UI_AUTH_AUTOCONF_WRITE_AUTH   0x10
+#define	UI_AUTH_MANAGE_LOCATION_AUTH  0x20
+#define	UI_AUTH_MODIFY_LOCATION_AUTH  0x40
+
+#define UI_AUTH_LEAST (UI_AUTH_AUTOCONF_READ_AUTH | UI_AUTH_AUTOCONF_REFRESH_AUTH | UI_AUTH_AUTOCONF_SELECT_AUTH | UI_AUTH_AUTOCONF_WLAN_AUTH)
+#define UI_AUTH_ALL (UI_AUTH_LEAST | UI_AUTH_AUTOCONF_WRITE_AUTH | UI_AUTH_MANAGE_LOCATION_AUTH | UI_AUTH_MODIFY_LOCATION_AUTH)
+#define UI_AUTH_WIRELESS_DIALIOG (UI_AUTH_AUTOCONF_WLAN_AUTH)
+
+#define UI_CHECK_AUTH(a, b) ((a & b) == b)
+
 typedef struct _NwamuiProf		      NwamuiProf;
 typedef struct _NwamuiProfClass       NwamuiProfClass;
 typedef struct _NwamuiProfPrivate	  NwamuiProfPrivate;
@@ -71,6 +98,10 @@ extern GType                nwamui_prof_get_type (void) G_GNUC_CONST;
 extern NwamuiProf*          nwamui_prof_get_instance ();
 
 extern NwamuiProf*          nwamui_prof_get_instance_noref ();
+
+extern guint                nwamui_prof_get_ui_auth(NwamuiProf *self);
+
+extern gboolean             nwamui_prof_check_ui_auth(NwamuiProf *self, gint auth);
 
 extern void                 nwamui_prof_notify_begin (NwamuiProf* self);
 

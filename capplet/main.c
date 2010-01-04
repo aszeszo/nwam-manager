@@ -164,24 +164,21 @@ main(int argc, char** argv)
                                   GNOME_PARAM_APP_DATADIR, NWAM_MANAGER_DATADIR,
                                   GNOME_PARAM_NONE);
 
-    if ( ! user_has_autoconf_auth() ) {
-        g_warning("User doesn't have the authorisation (%s) to run nwam-manager.", NET_AUTOCONF_AUTH );
+    nwamui_util_set_debug_mode( debug );
+
+    if (!nwamui_prof_check_ui_auth(nwamui_prof_get_instance_noref(), UI_AUTH_ALL)) {
+        g_warning("User doesn't have the enough authorisations to run nwam-manager.");
         exit(0);
     }
-
-    nwamui_util_set_debug_mode( debug );
 
     /* nwamui preference signals */
     {
         NwamuiProf* prof;
 
-        prof = nwamui_prof_get_instance ();
-
-/*         nwamui_prof_notify_begin (prof); */
-        g_object_unref (prof);
+        prof = nwamui_prof_get_instance_noref();
     }
 
-        app = unique_app_new("com.sun.nwam-manager-properties", NULL);
+    app = unique_app_new("com.sun.nwam-manager-properties", NULL);
     if ( !nwamui_util_is_debug_mode() ) {
         if (unique_app_is_running(app)) {
             /* Send request to other app to show itself */

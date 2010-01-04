@@ -26,6 +26,12 @@
  * File:   nwamui_prof.c
  *
  */
+/* Auth related headers */
+#include <sys/types.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <auth_attr.h>
+#include <secdb.h>
 
 #include <glib-object.h>
 #include <glib/gi18n.h>
@@ -41,7 +47,8 @@ enum {
 };
 
 enum {
-    PROP_JOIN_WIFI_NOT_IN_FAV = 1,
+    PROP_UI_AUTH = 1,
+    PROP_JOIN_WIFI_NOT_IN_FAV,
     PROP_JOIN_ANY_FAV_WIFI,
     PROP_ADD_ANY_NEW_WIFI_TO_FAV,
     PROP_ACTION_ON_NO_FAV_NETWORKS,
@@ -61,6 +68,23 @@ enum {
 
 static guint nwamui_prof_signals [LAST_SIGNAL] = { 0 };
 
+struct auth_data {
+    const gchar *name;
+    guint v;
+} auths[] = {
+    { AUTOCONF_READ_AUTH, UI_AUTH_AUTOCONF_READ_AUTH },
+    { AUTOCONF_REFRESH_AUTH, UI_AUTH_AUTOCONF_REFRESH_AUTH },
+    { AUTOCONF_SELECT_AUTH, UI_AUTH_AUTOCONF_SELECT_AUTH },
+    { AUTOCONF_WLAN_AUTH, UI_AUTH_AUTOCONF_WLAN_AUTH },
+    { AUTOCONF_WRITE_AUTH, UI_AUTH_AUTOCONF_WRITE_AUTH },
+    { MANAGE_LOCATION_AUTH, UI_AUTH_MANAGE_LOCATION_AUTH },
+    { MODIFY_LOCATION_AUTH, UI_AUTH_MODIFY_LOCATION_AUTH },
+    { NULL, 0 }
+};
+
+/*
+ * GConf related settings.
+ */
 #define PROF_GCONF_ROOT "/apps/nwam-manager"
 #define PROF_BOOL_JOIN_WIFI_NOT_IN_FAV PROF_GCONF_ROOT \
 	"/join_wifi_not_in_fav"
@@ -103,21 +127,20 @@ static guint nwamui_prof_signals [LAST_SIGNAL] = { 0 };
 
 
 struct _NwamuiProfPrivate {
-
-    /*<private>*/
-    GConfClient                *client;
-    guint                       gconf_notify_id;
+    GConfClient *client;
+    guint        gconf_notify_id;
+    guint        ui_auth;
 };
 
 static void nwamui_prof_set_property ( GObject         *object,
-                                      guint            prop_id,
-                                      const GValue    *value,
-                                      GParamSpec      *pspec);
+  guint            prop_id,
+  const GValue    *value,
+  GParamSpec      *pspec);
 
 static void nwamui_prof_get_property ( GObject         *object,
-                                      guint            prop_id,
-                                      GValue          *value,
-                                      GParamSpec      *pspec);
+  guint            prop_id,
+  GValue          *value,
+  GParamSpec      *pspec);
 
 static void nwamui_prof_finalize (NwamuiProf *self);
 
@@ -125,6 +148,8 @@ static void gconf_notify_cb (GConfClient *client,
   guint cnxn_id,
   GConfEntry *entry,
   gpointer user_data);
+
+static gboolean user_has_autoconf_auth(NwamuiProf *self);
 
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAMUI_TYPE_PROF, NwamuiProfPrivate)) 
@@ -144,6 +169,16 @@ nwamui_prof_class_init (NwamuiProfClass *klass)
     g_type_class_add_private (klass, sizeof (NwamuiProfPrivate));
 
     /* Create some properties */
+    g_object_class_install_property (gobject_class,
+      PROP_UI_AUTH,
+      g_param_spec_uint ("ui_auth",
+        _("ui_auth"),
+        _("ui_auth"),
+        0,
+        G_MAXUINT,
+        0,
+        G_PARAM_READABLE));
+
     g_object_class_install_property (gobject_class,
       PROP_JOIN_WIFI_NOT_IN_FAV,
       g_param_spec_boolean ("join_wifi_not_in_fav",
@@ -267,9 +302,11 @@ static void
 nwamui_prof_init (NwamuiProf *self)
 {
 	NwamuiProfPrivate *prv = GET_PRIVATE(self);
-    GError *err = NULL;
-	self->prv = prv;
+    GError            *err = NULL;
+	self->prv              = prv;
     
+    user_has_autoconf_auth(self);
+
     prv->client = gconf_client_get_default ();
 
     gconf_client_add_dir (prv->client,
@@ -291,8 +328,7 @@ nwamui_prof_set_property (GObject         *object,
   const GValue    *value,
   GParamSpec      *pspec)
 {
-    NwamuiProf *self = NWAMUI_PROF(object);
-    NwamuiProfPrivate *prv = self->prv;
+	NwamuiProfPrivate *prv = GET_PRIVATE(object);
     GError *err = NULL;
 
     switch (prop_id) {
@@ -428,11 +464,14 @@ nwamui_prof_get_property (GObject         *object,
   GValue          *value,
   GParamSpec      *pspec)
 {
-    NwamuiProf *self = NWAMUI_PROF(object);
-    NwamuiProfPrivate *prv = self->prv;
+	NwamuiProfPrivate *prv = GET_PRIVATE(object);
     GError *err = NULL;
 
     switch (prop_id) {
+    case PROP_UI_AUTH:
+        g_value_set_uint(value, nwamui_prof_get_ui_auth(NWAMUI_PROF(object)));
+        break;
+
     case PROP_JOIN_WIFI_NOT_IN_FAV: {
             g_value_set_boolean (value, gconf_client_get_bool (prv->client,
                                    PROF_BOOL_JOIN_WIFI_NOT_IN_FAV,
@@ -559,7 +598,7 @@ nwamui_prof_get_property (GObject         *object,
 static void
 nwamui_prof_finalize (NwamuiProf *self)
 {
-    NwamuiProfPrivate *prv = self->prv;
+	NwamuiProfPrivate *prv = GET_PRIVATE(self);
     GError *err = NULL;
 
     /* we may not need to remove notify */
@@ -648,6 +687,36 @@ gconf_notify_cb (GConfClient *client, guint cnxn_id, GConfEntry *entry, gpointer
     }
 }
 
+static gboolean
+user_has_autoconf_auth(NwamuiProf *self)
+{
+	NwamuiProfPrivate *prv    = GET_PRIVATE(self);
+	struct passwd     *pwd;
+
+	if ((pwd = getpwuid(getuid())) != NULL) {
+        gint i;
+        for (i = 0; auths[i].name; i++) {
+            if (chkauthattr(auths[i].name, pwd->pw_name) == 1) {
+                prv->ui_auth |= auths[i].v;
+                g_message("User %s has %s", pwd->pw_name, auths[i].name);
+            } else {
+                g_debug("User %s does not have %s", pwd->pw_name, auths[i].name);
+            }
+        }
+
+        /* At least has read auth. */
+        if (prv->ui_auth && UI_AUTH_AUTOCONF_READ_AUTH) {
+            g_object_notify(G_OBJECT(self), "ui_auth");
+            return TRUE;
+        }
+
+	} else {
+		g_debug("Unable to get users password entry");
+	}
+
+    return FALSE;
+}
+
 /**
  * nwamui_prof_get_instance_noref:
  * @returns: a #NwamuiProf without updateing ref count.
@@ -708,6 +777,25 @@ nwamui_prof_set_notification_default_timeout ( NwamuiProf *self, gint notificati
       NULL);
 }
 
+extern guint
+nwamui_prof_get_ui_auth(NwamuiProf *self)
+{
+	NwamuiProfPrivate *prv    = GET_PRIVATE(self);
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), 0);
+
+    return prv->ui_auth;
+}
+
+extern gboolean
+nwamui_prof_check_ui_auth(NwamuiProf *self, gint auth)
+{
+	NwamuiProfPrivate *prv    = GET_PRIVATE(self);
+
+    g_return_val_if_fail (NWAMUI_IS_PROF(self), 0);
+
+    return UI_CHECK_AUTH(prv->ui_auth, auth);
+}
 
 extern void
 nwamui_prof_notify_begin (NwamuiProf* self)

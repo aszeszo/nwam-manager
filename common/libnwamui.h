@@ -96,13 +96,6 @@ G_BEGIN_DECLS
 #include "help_refs.h"
 #endif /* _HELP_REFS_H  */
 
-/*
- * Security Auth needed for NWAM to work. Console User and Network Management
- * profiles will have this.
- */
-#define	NET_AUTOCONF_AUTH	"solaris.network.autoconf"
-
-
 /* Disable handling of HOST_FILE since it was removed from location
  * at the end of PHASE 1 work
  */
@@ -380,8 +373,6 @@ extern gboolean                 nwamui_util_split_address_prefix( gboolean v6,
 extern gchar*                   nwamui_util_join_address_prefix( gboolean v6, 
                                                                  const gchar *address, 
                                                                  const gchar *prefix );
-
-extern gboolean                 user_has_autoconf_auth( void );
 
 G_END_DECLS
 

@@ -7,7 +7,7 @@
 # This file and all modifications and additions to the pristine
 # package are under the same license as the package itself.
 #
-%define owner dkenny
+%define owner lin
 #
 %include Solaris.inc
 
@@ -63,6 +63,14 @@ rm -rf $RPM_BUILD_ROOT
 %nwam_manager.install -d %name-%version
 cd %{_builddir}/%name-%version/sun-manpages
 make install DESTDIR=$RPM_BUILD_ROOT
+
+# RBAC related
+mkdir $RPM_BUILD_ROOT/etc/security
+
+# exec_attr(4)
+cat >> $RPM_BUILD_ROOT/etc/security/exec_attr <<EOF
+Network Autoconf Admin:solaris:cmd:::/usr/bin/nwam-manager-properties:
+EOF
 
 %if %build_l10n
 %else
@@ -135,6 +143,7 @@ rm -rf $RPM_BUILD_ROOT
 %dir %attr (-, root, sys) %{_sysconfdir}/xdg
 %dir %attr (-, root, sys) %{_sysconfdir}/xdg/autostart
 %attr (-, root, sys) %{_sysconfdir}/xdg/autostart/*
+%config %class (rbac) %attr (0644, root, sys) /etc/security/exec_attr
 
 %if %build_l10n
 %files l10n
@@ -147,6 +156,8 @@ rm -rf $RPM_BUILD_ROOT
 %endif
 
 %changelog
+* Mon Jan  4 2009 - laca@sun.com
+- Add 
 * Fri Apr  3 2009 - laca@sun.com
 - use desktop-cache instead of postrun
 * Mon Sep 15 2008 - darren.kenny@sun.com

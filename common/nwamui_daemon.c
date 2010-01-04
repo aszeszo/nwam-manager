@@ -178,9 +178,9 @@ static void nwamui_daemon_finalize (     NwamuiDaemon *self);
 
 static void nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self);
 
-static void check_enm_online( gpointer obj, gpointer user_data );
+static void check_nwamui_object_online( gpointer obj, gpointer user_data );
 static void nwamui_daemon_update_online_enm_num(NwamuiDaemon *self);
-static void check_enm_online_num( gpointer obj, gpointer user_data );
+static void check_nwamui_object_online_num( gpointer obj, gpointer user_data );
 
 static void nwamui_daemon_update_status( NwamuiDaemon   *daemon );
 
@@ -2743,22 +2743,21 @@ nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message )
 static void
 nwamui_daemon_update_status( NwamuiDaemon   *daemon )
 {
+    NwamuiDaemonPrivate    *prv = NWAMUI_DAEMON_GET_PRIVATE(daemon);
     nwamui_daemon_status_t  old_status;
     guint                   old_status_flags;
     guint                   status_flags = 0;
     nwamui_daemon_status_t  new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
-    NwamuiDaemonPrivate    *prv;
     GQueue                 *signal_queue = g_queue_new();
     gpointer                ptr;
+
+    g_assert(NWAMUI_IS_DAEMON(daemon));
 
     /* 
      * Determine status from objects 
      */
-    g_assert(NWAMUI_IS_DAEMON(daemon));
-
-    old_status = daemon->prv->status;
-    old_status_flags = daemon->prv->status_flags;
-    prv = NWAMUI_DAEMON(daemon)->prv;
+    old_status = prv->status;
+    old_status_flags = prv->status_flags;
 
     /* First check that the daemon is connected to nwamd */
     if ( !prv->connected_to_nwamd ) {
@@ -2814,7 +2813,7 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
         /* According to comments#15,16 of 12079, we don't case ENMs state. */
         /* Assuming we've no found an error yet, check the ENMs */
         new_status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
-        g_list_foreach( daemon->prv->managed_list[MANAGED_ENM], check_enm_online, &new_status );
+        g_list_foreach( prv->managed_list[MANAGED_ENM], check_nwamui_object_online, &new_status );
         if ( new_status == NWAMUI_DAEMON_STATUS_NEEDS_ATTENTION ) {
             status_flags |= STATUS_REASON_ENM;
         }
@@ -2831,7 +2830,7 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
 
     /* If status has changed, set it, and this will generate an event */
     if ( status_flags != old_status_flags ) {
-        daemon->prv->status_flags = status_flags;
+        prv->status_flags = status_flags;
     }
     nwamui_daemon_set_status(daemon, new_status );
 
@@ -2855,18 +2854,13 @@ nwamui_daemon_update_status( NwamuiDaemon   *daemon )
 static void
 nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent )
 {
-    NwamuiDaemonPrivate    *prv;
+    NwamuiDaemonPrivate    *prv = NWAMUI_DAEMON_GET_PRIVATE(daemon);
     const char             *object_name;
 
-    if ( daemon == NULL || !NWAMUI_IS_DAEMON(daemon) ) {
-        return;
-    }
-
+    g_assert(NWAMUI_IS_DAEMON(daemon));
     g_return_if_fail( nwamevent != NULL );
 
-    daemon->prv->communicate_change_to_daemon = FALSE;
-
-    prv = daemon->prv;
+    prv->communicate_change_to_daemon = FALSE;
     object_name = nwamevent->nwe_data.nwe_object_action.nwe_name;
 
     switch ( nwamevent->nwe_data.nwe_object_action.nwe_object_type ) {
@@ -2875,27 +2869,26 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
 
         switch ( nwamevent->nwe_data.nwe_object_action.nwe_action ) {
         case NWAM_ACTION_ADD: {
-            g_assert(ncp == NULL);
             if (!ncp) {
-/*                 g_warning("We probably shouldn't do this, because we do remove NCPs."); */
-/*                 nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
-/*             } else { */
                 ncp = nwamui_ncp_new( object_name );
                 nwamui_daemon_object_append(daemon, ncp );
+            } else {
+                g_warning("%s %s is existed.", nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_action.nwe_object_type), object_name);
+                /* nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
             }
         }
             break;
         case NWAM_ACTION_DISABLE:
             break;
         case NWAM_ACTION_ENABLE: {
-            /* Don't use nwamui_ncp_set_active() since it will
+            /* Don't use nwamui_object_set_active() since it will
              * actually cause a switch again...
              */
-            if ( daemon->prv->active_ncp != NULL ) {
-                g_object_unref(G_OBJECT(daemon->prv->active_ncp));
+            if ( prv->active_ncp != NULL ) {
+                g_object_unref(G_OBJECT(prv->active_ncp));
             }
 
-            daemon->prv->active_ncp = NWAMUI_OBJECT(g_object_ref( ncp ));
+            prv->active_ncp = NWAMUI_OBJECT(g_object_ref( ncp ));
             /* We need reload NCP since it may changes when it isn't active. */
 /*             nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
             g_object_notify(G_OBJECT(daemon), "active_ncp");
@@ -2992,11 +2985,13 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             if (env == NULL) {
                 env = nwamui_env_new( object_name );
                 nwamui_daemon_object_append( daemon, env );
+            } else {
+                g_warning("%s %s is existed.", nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_action.nwe_object_type), object_name);
             }
         }
             break;
         case NWAM_ACTION_DISABLE: {
-            nwamui_object_set_enabled(NWAMUI_OBJECT(env), FALSE);
+            nwamui_object_set_enabled(env, FALSE);
             g_object_notify(G_OBJECT(daemon), "env_selection_mode");
         }
             break;
@@ -3007,12 +3002,12 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 nwamui_daemon_set_active_env( daemon, env );
             }
 
-            nwamui_object_set_enabled(NWAMUI_OBJECT(env), TRUE);
+            nwamui_object_set_enabled(env, TRUE);
             g_object_notify(G_OBJECT(daemon), "env_selection_mode");
         }
             break;
         case NWAM_ACTION_REFRESH: {
-            nwamui_object_reload(NWAMUI_OBJECT(env));
+            nwamui_object_reload(env);
         }
             break;
         case NWAM_ACTION_REMOVE:
@@ -3040,19 +3035,27 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             if ( enm == NULL ) {
                 enm = nwamui_enm_new( object_name );
                 nwamui_daemon_object_append( daemon, enm );
+            } else {
+                g_warning("%s %s is existed.", nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_action.nwe_object_type), object_name);
             }
         }
             break;
         case NWAM_ACTION_DISABLE: {
-            nwamui_object_reload(NWAMUI_OBJECT(enm));
+            if (!nwamui_enm_has_modifications(NWAMUI_ENM(enm))) {
+                nwamui_object_reload(enm);
+            }
         }
             break;
         case NWAM_ACTION_ENABLE: {
-            nwamui_object_reload(NWAMUI_OBJECT(enm));
+            if (!nwamui_enm_has_modifications(NWAMUI_ENM(enm))) {
+                nwamui_object_reload(enm);
+            }
         }
             break;
         case NWAM_ACTION_REFRESH: {
-            nwamui_object_reload(NWAMUI_OBJECT(enm));
+            if (!nwamui_enm_has_modifications(NWAMUI_ENM(enm))) {
+                nwamui_object_reload(enm);
+            }
         }
             break;
         case NWAM_ACTION_REMOVE:
@@ -3130,9 +3133,9 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             /* Same as Destroy, so fall-through */
         case NWAM_ACTION_DESTROY: {
             if ( wifi != NULL ) {
-                daemon->prv->communicate_change_to_daemon = FALSE;
+                prv->communicate_change_to_daemon = FALSE;
                 nwamui_daemon_remove_wifi_fav(daemon, wifi );
-                daemon->prv->communicate_change_to_daemon = TRUE;
+                prv->communicate_change_to_daemon = TRUE;
             }
         }
             break;
@@ -3146,19 +3149,19 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
     }
         break;
     }
-    daemon->prv->communicate_change_to_daemon = TRUE;
+    prv->communicate_change_to_daemon = TRUE;
 }
 
 static void
 nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent )
 {
-    NwamuiDaemonPrivate    *prv                = NWAMUI_DAEMON(daemon)->prv;
-    guint                   status_flags       = 0;
-    nwam_object_type_t      object_type        = nwamevent->nwe_data.nwe_object_state.nwe_object_type;
-    const char*             object_name        = nwamevent->nwe_data.nwe_object_state.nwe_name;
-    nwam_state_t            object_state       = nwamevent->nwe_data.nwe_object_state.nwe_state;
-    nwam_aux_state_t        object_aux_state   = nwamevent->nwe_data.nwe_object_state.nwe_aux_state;
-    NwamuiObject *obj = NULL;
+    NwamuiDaemonPrivate *prv              = NWAMUI_DAEMON(daemon)->prv;
+    guint                status_flags     = 0;
+    nwam_object_type_t   object_type      = nwamevent->nwe_data.nwe_object_state.nwe_object_type;
+    const char*          object_name      = nwamevent->nwe_data.nwe_object_state.nwe_name;
+    nwam_state_t         object_state     = nwamevent->nwe_data.nwe_object_state.nwe_state;
+    nwam_aux_state_t     object_aux_state = nwamevent->nwe_data.nwe_object_state.nwe_aux_state;
+    NwamuiObject        *obj              = NULL;
 
     /* First check that the daemon is connected to nwamd */
     if ( prv->connected_to_nwamd ) {
@@ -3250,7 +3253,7 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
 }
 
 static void
-check_enm_online( gpointer obj, gpointer user_data )
+check_nwamui_object_online( gpointer obj, gpointer user_data )
 {
     NwamuiObject            *nobj = NWAMUI_OBJECT(obj);
     nwamui_daemon_status_t  *new_status_p = (nwamui_daemon_status_t*)user_data; 
@@ -3269,7 +3272,7 @@ nwamui_daemon_update_online_enm_num(NwamuiDaemon *self)
 {
     /* Get the number of online ENMs. */
     self->prv->online_enm_num = 0;
-    g_list_foreach(self->prv->managed_list[MANAGED_ENM], check_enm_online_num, &self->prv->online_enm_num );
+    g_list_foreach(self->prv->managed_list[MANAGED_ENM], check_nwamui_object_online_num, &self->prv->online_enm_num );
     /* Must emit every time even the num isn't changed, since the active ENMs
      * could be changed.
      */
@@ -3277,7 +3280,7 @@ nwamui_daemon_update_online_enm_num(NwamuiDaemon *self)
 }
 
 static void
-check_enm_online_num( gpointer obj, gpointer user_data )
+check_nwamui_object_online_num( gpointer obj, gpointer user_data )
 {
     NwamuiObject     *nobj       = NWAMUI_OBJECT(obj);
     gint             *online_num = (gint *)user_data;
