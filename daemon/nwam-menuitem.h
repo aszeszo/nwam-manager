@@ -81,9 +81,11 @@ GtkWidget* nwam_menu_item_get_widget (NwamMenuItem *self, gint pos);
 #endif
 
 /* Utils */
-extern void menu_item_set_label(GtkMenuItem *item, const gchar *label);
-extern void menu_item_set_markup(GtkMenuItem *item, const gchar *label);
-extern gint nwam_menu_item_compare(NwamMenuItem *self, NwamMenuItem *other);
+extern void  menu_item_set_label(GtkMenuItem *item, const gchar *label);
+extern void  menu_item_set_markup(GtkMenuItem *item, const gchar *label);
+extern gint  nwam_menu_item_compare(NwamMenuItem *self, NwamMenuItem *other);
+extern guint nwam_menu_item_get_required_auth(NwamMenuItem *self);
+extern void  nwam_menu_item_set_required_auth(NwamMenuItem *self, guint required_auth);
 
 G_END_DECLS
 

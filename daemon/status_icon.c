@@ -67,8 +67,7 @@ static gboolean                           prof_ask_add_to_fav            = TRUE;
 
 
 enum {
-	SECTION_GLOBAL = 0,         /* Not really used */
-	SECTION_WIFI,
+	SECTION_WIFI = 0,
 	SECTION_LOC,
 	SECTION_ENM,
 	SECTION_NCU,
@@ -1874,6 +1873,7 @@ nwam_status_icon_create_menu_item(NwamStatusIcon *self, NwamuiObject *object)
     GType                  type = G_OBJECT_TYPE(object);
     GtkWidget             *item = NULL;
     gint                   sec_id;
+    guint                  required_auth;
     GtkWidget *(*nwam_menu_item_new_func)(NwamuiObject *);
 
 
@@ -1886,18 +1886,22 @@ nwam_status_icon_create_menu_item(NwamStatusIcon *self, NwamuiObject *object)
     if (type == NWAMUI_TYPE_NCU) {
         sec_id = SECTION_NCU;
         nwam_menu_item_new_func = nwam_ncu_item_new;
+        required_auth = UI_AUTH_ENABLE_OBJECT;
     } else if (type == NWAMUI_TYPE_WIFI_NET) {
         sec_id = SECTION_WIFI;
         nwam_menu_item_new_func = nwam_wifi_item_new;
+        required_auth = UI_AUTH_WIRELESS_DIALIOG;
 	} else if (type == NWAMUI_TYPE_ENV) {
         sec_id = SECTION_LOC;
         nwam_menu_item_new_func = nwam_env_item_new;
+        required_auth = UI_AUTH_ENABLE_OBJECT;
 	} else if (type == NWAMUI_TYPE_ENM) {
         sec_id = SECTION_ENM;
         nwam_menu_item_new_func = nwam_enm_item_new;
+        required_auth = UI_AUTH_ENABLE_OBJECT;
 	} else {
-        sec_id = SECTION_GLOBAL;
-        nwam_menu_item_new_func = NULL;
+        g_warning("%s unknown nwamui object", __func__);
+        return NULL;
 	}
 
     if (prv->cached_menuitem_list[sec_id]) {
@@ -1905,8 +1909,9 @@ nwam_status_icon_create_menu_item(NwamStatusIcon *self, NwamuiObject *object)
         item = GTK_WIDGET(prv->cached_menuitem_list[sec_id]->data);
         prv->cached_menuitem_list[sec_id] = g_list_delete_link(prv->cached_menuitem_list[sec_id], prv->cached_menuitem_list[sec_id]);
         nwam_menu_item_set_proxy(NWAM_MENU_ITEM(item), G_OBJECT(object));
-    } else if (sec_id > SECTION_GLOBAL && sec_id < SECTION_WIFI_CONTROL) {
+    } else if (sec_id > SECTION_WIFI && sec_id < SECTION_WIFI_CONTROL) {
         item = nwam_menu_item_new_func(NWAMUI_OBJECT(object));
+        nwam_menu_item_set_required_auth(NWAM_MENU_ITEM(item), required_auth);
     } else {
         g_error("%s unknown nwamui object", __func__);
     }
@@ -1938,7 +1943,8 @@ nwam_status_icon_delete_menu_item(NwamStatusIcon *self, NwamuiObject *object)
  	} else if (type == NWAMUI_TYPE_ENM) {
         sec_id = SECTION_ENM;
  	} else {
-        sec_id = SECTION_GLOBAL;
+        g_warning("%s unknown nwamui object", __func__);
+        return;
  	}
 
     item = nwam_menu_section_get_item_by_proxy(NWAM_MENU(prv->menu), sec_id, G_OBJECT(object));
@@ -2017,12 +2023,12 @@ prof_ui_auth(GObject *gobject, GParamSpec *arg1, gpointer data)
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(data);
     gboolean               has_auth;
 
-    has_auth = nwamui_prof_check_ui_auth(prv->prof, UI_AUTH_AUTOCONF_WRITE_AUTH);
+    has_auth = nwamui_prof_check_ui_auth(prv->prof, UI_AUTH_COMMIT_OBJECT);
     gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_CONN_PROF], has_auth);
     gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_ENV_PREF], has_auth);
     gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_VPN_PREF], has_auth);
 
-    has_auth = nwamui_prof_check_ui_auth(prv->prof, UI_AUTH_AUTOCONF_WLAN_AUTH);
+    has_auth = nwamui_prof_check_ui_auth(prv->prof, UI_AUTH_WIRELESS_DIALIOG);
     gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_REFRESH_WLAN], has_auth);
     gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_JOIN_WLAN], has_auth);
 

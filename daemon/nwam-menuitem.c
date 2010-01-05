@@ -32,6 +32,7 @@
 #include <glib.h>
 #include <glib/gi18n.h>
 
+#include "libnwamui.h"
 #include "nwam-menuitem.h"
 
 static void nwam_obj_proxy_init(NwamObjProxyInterface *iface);
@@ -71,7 +72,8 @@ static void default_sync_object(NwamMenuItem *self, GObject *object, gpointer us
 static gint default_compare(NwamMenuItem *self, NwamMenuItem *other);
 
 /* Callbacks */
-static void nwam_menuitem_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+static void nwam_menuitem_notify_sensitive(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void nwam_menuitem_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 enum {
 	PROP_ZERO,
@@ -79,16 +81,20 @@ enum {
 	PROP_LWIDGET,
 	PROP_RWIDGET,
 	PROP_DRAW_INDICATOR,
+    PROP_REQUIRED_AUTH,
 };
 
 typedef struct _NwamMenuItemPrivate NwamMenuItemPrivate;
 #define NWAM_MENU_ITEM_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), NWAM_TYPE_MENU_ITEM, NwamMenuItemPrivate))
 
 struct _NwamMenuItemPrivate {
-	GtkWidget *w[MAX_WIDGET_NUM];
-    GObject   *object;
-    gboolean   draw_indicator;
-    gboolean   has_toggle_space;
+	GtkWidget  *w[MAX_WIDGET_NUM];
+    GObject    *object;
+    gboolean    draw_indicator;
+    gboolean    has_toggle_space;
+
+    NwamuiProf *prof;
+    guint       required_auth;
 };
 
 G_DEFINE_TYPE_EXTENDED(NwamMenuItem, nwam_menu_item, GTK_TYPE_CHECK_MENU_ITEM,
@@ -173,6 +179,15 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
         TRUE,
         G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 
+    g_object_class_install_property (gobject_class,
+      PROP_REQUIRED_AUTH,
+      g_param_spec_uint ("required_auth",
+        _("required_auth"),
+        _("required_auth"),
+        0,
+        G_MAXUINT,
+        0,
+        G_PARAM_READABLE));
 }
 
 static void
@@ -181,6 +196,7 @@ nwam_menu_item_init (NwamMenuItem *self)
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
     GSList *group = NULL;
 
+    prv->prof = nwamui_prof_get_instance();
     /*
      * TODO - DISABLED because it was causing CRITICAL warnings...
      *
@@ -190,15 +206,16 @@ nwam_menu_item_init (NwamMenuItem *self)
     g_signal_connect (self, "parent-set",
       G_CALLBACK(nwam_menu_item_parent_set), NULL);
 
+    g_signal_connect(G_OBJECT(self), "notify::sensitive", (GCallback)nwam_menuitem_notify_sensitive, (gpointer)self);
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)nwam_menuitem_notify_cb, (gpointer)self);
 
 }
 
 static void
 nwam_menu_item_set_property (GObject         *object,
-			     guint            prop_id,
-			     const GValue    *value,
-			     GParamSpec      *pspec)
+  guint            prop_id,
+  const GValue    *value,
+  GParamSpec      *pspec)
 {
 	NwamMenuItem *self = NWAM_MENU_ITEM (object);
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
@@ -218,6 +235,9 @@ nwam_menu_item_set_property (GObject         *object,
 	case PROP_DRAW_INDICATOR:
         prv->draw_indicator = g_value_get_boolean(value);
         break;
+    case PROP_REQUIRED_AUTH:
+        nwam_menu_item_set_required_auth(self, g_value_get_uint(value));
+        break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
 		break;
@@ -226,9 +246,9 @@ nwam_menu_item_set_property (GObject         *object,
 
 static void
 nwam_menu_item_get_property (GObject         *object,
-                                  guint            prop_id,
-                                  GValue          *value,
-                                  GParamSpec      *pspec)
+  guint            prop_id,
+  GValue          *value,
+  GParamSpec      *pspec)
 {
 	NwamMenuItem *self = NWAM_MENU_ITEM (object);
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
@@ -246,6 +266,9 @@ nwam_menu_item_get_property (GObject         *object,
 		break;
 	case PROP_DRAW_INDICATOR:
         g_value_set_boolean(value, prv->draw_indicator);
+        break;
+    case PROP_REQUIRED_AUTH:
+        g_value_set_uint(value, prv->required_auth);
         break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -463,6 +486,8 @@ nwam_menu_item_finalize (NwamMenuItem *self)
 
         g_object_unref(prv->object);
     }
+
+    g_object_unref(prv->prof);
 
 	G_OBJECT_CLASS(nwam_menu_item_parent_class)->finalize(G_OBJECT (self));
 }
@@ -840,6 +865,33 @@ gint
 nwam_menu_item_compare(NwamMenuItem *self, NwamMenuItem *other)
 {
     return NWAM_MENU_ITEM_GET_CLASS(self)->compare(NWAM_MENU_ITEM(self), NWAM_MENU_ITEM(other));
+}
+
+extern guint
+nwam_menu_item_get_required_auth(NwamMenuItem *self)
+{
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
+    return prv->required_auth;
+}
+
+extern void
+nwam_menu_item_set_required_auth(NwamMenuItem *self, guint required_auth)
+{
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(self);
+    if (prv->required_auth != required_auth) {
+        gtk_widget_set_sensitive(GTK_WIDGET(self),
+          GTK_WIDGET_IS_SENSITIVE(self) && (prv->required_auth == 0 || nwamui_prof_check_ui_auth(prv->prof, required_auth)));
+    }
+    prv->required_auth = required_auth;
+}
+
+static void
+nwam_menuitem_notify_sensitive(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+    NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(gobject);
+
+    gtk_widget_set_sensitive(GTK_WIDGET(gobject),
+      GTK_WIDGET_IS_SENSITIVE(gobject) && (prv->required_auth == 0 || nwamui_prof_check_ui_auth(prv->prof, prv->required_auth)));
 }
 
 static void

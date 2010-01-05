@@ -1,3 +1,19 @@
+2010-01-05  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_prof.h:
+	Add convenient auth macros.
+	* daemon/nwam-menuitem.c (nwam_menu_item_class_init),
+	(nwam_menu_item_init), (nwam_menu_item_set_property),
+	(nwam_menu_item_get_property), (nwam_menu_item_finalize),
+	(nwam_menu_item_get_required_auth),
+	(nwam_menu_item_set_required_auth),
+	(nwam_menuitem_notify_sensitive):
+	* daemon/nwam-menuitem.h:
+	Make nwam menu-item objects check auth for sensitive.
+	* daemon/status_icon.c (nwam_status_icon_create_menu_item),
+	(nwam_status_icon_delete_menu_item), (prof_ui_auth):
+	Add check auth code.
+
 2010-01-04  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* SUNWnwam-manager.spec:
