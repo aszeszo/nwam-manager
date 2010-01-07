@@ -101,7 +101,6 @@ extern struct _NwamuiNcp;
 
 extern NwamuiObject*        nwamui_ncu_new_with_handle( struct _NwamuiNcp* ncp, nwam_ncu_handle_t ncu );
 
-extern gboolean             nwamui_ncu_has_modifications( NwamuiNcu* self );
 extern gboolean             nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret );
 
 extern gchar*               nwamui_ncu_get_device_name ( NwamuiNcu *self );

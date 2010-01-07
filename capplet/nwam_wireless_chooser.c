@@ -406,24 +406,19 @@ nwam_wireless_chooser_finalize(NwamWirelessChooser *self)
  *
  * Return a wireless ncu instance.
  */
-static gboolean
-find_wireless_interface(GtkTreeModel *model,
-  GtkTreePath *path,
-  GtkTreeIter *iter,
-  gpointer data)
+static gint
+find_wireless_interface(gconstpointer data, gconstpointer user_data)
 {
-    NwamuiNcu     **ncu_p = (NwamuiNcu **)data;
-    NwamuiNcu      *ncu;
+    NwamuiNcu **ncu_p = (NwamuiNcu **)user_data;
+    NwamuiNcu  *ncu   = (NwamuiNcu *)data;
 
-    gtk_tree_model_get(model, iter, 0, &ncu, -1);
     g_assert(NWAMUI_IS_NCU(ncu));
 
     if (nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
         *ncu_p = ncu;
-        return TRUE;
+        return 0;
     }
-    g_object_unref(ncu);
-    return FALSE;
+    return 1;
 }
 
 static void
@@ -447,9 +442,7 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
 
     if ( ncu == NULL || nwamui_ncu_get_ncu_type(ncu) != NWAMUI_NCU_TYPE_WIRELESS) {
         /* we need find a wireless interface */
-        nwamui_ncp_foreach_ncu(NWAMUI_NCP(ncp),
-          (GtkTreeModelForeachFunc)find_wireless_interface,
-          (gpointer)&ncu);
+        nwamui_ncp_find_ncu(NWAMUI_NCP(ncp), find_wireless_interface, (gpointer)&ncu);
     }
 
     g_object_unref(ncp);

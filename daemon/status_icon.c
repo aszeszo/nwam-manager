@@ -119,6 +119,7 @@ struct _NwamStatusIconPrivate {
     NwamPrefIFace   *wifi_dialog;
 
 	gboolean has_wifi;
+	gboolean is_scanning;
 
     /* menu-item widget cache */
     GList *cached_menuitem_list[N_SECTION];
@@ -541,11 +542,17 @@ nwam_menu_scan_started(GObject *daemon, gpointer data)
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
-    if (!GTK_WIDGET_VISIBLE(prv->menu)) {
-        prv->cached_menuitem_list[SECTION_WIFI] = g_list_concat(nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_WIFI, TRUE), prv->cached_menuitem_list[SECTION_WIFI]);
+    if (!prv->is_scanning) {
+        prv->is_scanning = TRUE;
 
-        g_signal_connect(daemon, "wifi_scan_result",
-          (GCallback)nwam_menu_create_wifi_menuitems, (gpointer) self);
+        if (!GTK_WIDGET_VISIBLE(prv->menu)) {
+            prv->cached_menuitem_list[SECTION_WIFI] = g_list_concat(nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_WIFI, TRUE), prv->cached_menuitem_list[SECTION_WIFI]);
+
+            g_signal_connect(daemon, "wifi_scan_result",
+              (GCallback)nwam_menu_create_wifi_menuitems, (gpointer) self);
+        }
+    } else {
+        g_debug("%s already started, existing...", __func__);
     }
 }
 
@@ -574,6 +581,9 @@ nwam_menu_create_wifi_menuitems (GObject *daemon, GObject *wifi, gpointer data)
         g_debug("----------- menu item creation is  over -------------");
         g_signal_handlers_disconnect_by_func(prv->daemon,
           (gpointer)nwam_menu_create_wifi_menuitems, (gpointer)self);
+        if (prv->is_scanning) {
+            prv->is_scanning = TRUE;
+        }
     }
 }
 
@@ -689,7 +699,7 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 
             disconnect_nwam_object_signals(G_OBJECT(prv->active_ncp), G_OBJECT(self));
             /* Disconnect ncu signals. */
-            nwamui_ncp_foreach_ncu_list(prv->active_ncp, (GFunc)disconnect_nwam_object_signals, (gpointer)self);
+            nwamui_ncp_foreach_ncu(prv->active_ncp, (GFunc)disconnect_nwam_object_signals, (gpointer)self);
             g_object_unref(prv->active_ncp);
         } else {
             /* Initically run. */
@@ -702,13 +712,13 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 
             connect_nwam_object_signals(G_OBJECT(prv->active_ncp), G_OBJECT(self));
             /* Connect ncu signals. */
-            nwamui_ncp_foreach_ncu_list(prv->active_ncp, (GFunc)connect_nwam_object_signals, (gpointer)self);
+            nwamui_ncp_foreach_ncu(prv->active_ncp, (GFunc)connect_nwam_object_signals, (gpointer)self);
 
             nwam_notification_show_ncp_changed( prv->active_ncp );
 
             /* Init show NCU info. */
             if (init) {
-                nwamui_ncp_foreach_ncu_list(prv->active_ncp, (GFunc)initial_notify_nwam_object, (gpointer)self);
+                nwamui_ncp_foreach_ncu(prv->active_ncp, (GFunc)initial_notify_nwam_object, (gpointer)self);
             }
 
             nwam_menu_recreate_ncu_menuitems(self);
@@ -719,7 +729,8 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 
             nwam_menu_start_update_wifi_timer(self);
 
-            nwam_menu_update_wifi_section(self);
+            /* nwam_menu_recreate_ncu_menuitems will trigger this call. */
+            /* nwam_menu_update_wifi_section(self); */
         } else {
             /* Delete all NCUs. */
             prv->cached_menuitem_list[SECTION_NCU] = g_list_concat(nwam_menu_section_delete(NWAM_MENU(prv->menu), SECTION_NCU, TRUE), prv->cached_menuitem_list[SECTION_NCU]);
@@ -955,7 +966,7 @@ nwam_menu_update_wifi_section(NwamStatusIcon *self)
 
         nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_WIFI, TRUE);
 
-        if (nwamui_ncp_find_ncu_list(prv->active_ncp, NULL, ncp_find_enabled_wireless_ncu)) {
+        if (nwamui_ncp_find_ncu(prv->active_ncp, ncp_find_enabled_wireless_ncu, NULL)) {
             /* Show wireless control since we have enabled wireless links. */
             nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_WIFI_CONTROL, TRUE);
             nwam_menu_section_set_sensitive(NWAM_MENU(prv->menu), SECTION_WIFI_CONTROL, TRUE);
@@ -978,24 +989,19 @@ nwam_menu_update_wifi_section(NwamStatusIcon *self)
  *
  * Return a wireless ncu instance.
  */
-static gboolean
-find_wireless_interface(GtkTreeModel *model,
-  GtkTreePath *path,
-  GtkTreeIter *iter,
-  gpointer data)
+static gint
+find_wireless_interface(gconstpointer data, gconstpointer user_data)
 {
-    NwamuiNcu     **ncu_p = (NwamuiNcu **)data;
-    NwamuiNcu      *ncu;
+    NwamuiNcu **ncu_p = (NwamuiNcu **)user_data;
+    NwamuiNcu  *ncu   = (NwamuiNcu *)data;
 
-    gtk_tree_model_get(model, iter, 0, &ncu, -1);
     g_assert(NWAMUI_IS_NCU(ncu));
 
     if (nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
         *ncu_p = ncu;
-        return TRUE;
+        return 0;
     }
-    g_object_unref(ncu);
-    return FALSE;
+    return 1;
 }
 
 static void
@@ -1086,9 +1092,7 @@ join_wireless(NwamStatusIcon* self, NwamuiWifiNet *wifi, gboolean do_connect )
 
     if ( ncu == NULL || nwamui_ncu_get_ncu_type(ncu) != NWAMUI_NCU_TYPE_WIRELESS) {
         /* we need find a wireless interface */
-        nwamui_ncp_foreach_ncu(NWAMUI_NCP(ncp),
-          (GtkTreeModelForeachFunc)find_wireless_interface,
-          (gpointer)&ncu);
+        nwamui_ncp_find_ncu(NWAMUI_NCP(ncp), find_wireless_interface, (gpointer)&ncu);
     }
 
     g_object_unref(ncp);
@@ -1512,6 +1516,7 @@ update_wifi_timer_func(gpointer user_data)
                 g_assert_not_reached();
                 break;
             }
+            g_object_unref(ncu);
         }
     }
 
@@ -1625,6 +1630,12 @@ nwam_status_icon_finalize (NwamStatusIcon *self)
 /* 		prv->icon_stock_index = 0; */
     }
 
+    if (prv->wifi_dialog) {
+        g_object_unref(prv->wifi_dialog);
+    }
+    if (prv->chooser_dialog) {
+        g_object_unref(prv->chooser_dialog);
+    }
     g_object_unref(prv->menu);
     g_object_unref(prv->tooltip_widget);
 	g_object_unref(prv->daemon);
@@ -1909,7 +1920,7 @@ nwam_status_icon_create_menu_item(NwamStatusIcon *self, NwamuiObject *object)
         item = GTK_WIDGET(prv->cached_menuitem_list[sec_id]->data);
         prv->cached_menuitem_list[sec_id] = g_list_delete_link(prv->cached_menuitem_list[sec_id], prv->cached_menuitem_list[sec_id]);
         nwam_menu_item_set_proxy(NWAM_MENU_ITEM(item), G_OBJECT(object));
-    } else if (sec_id > SECTION_WIFI && sec_id < SECTION_WIFI_CONTROL) {
+    } else if (sec_id >= SECTION_WIFI && sec_id < SECTION_WIFI_CONTROL) {
         item = nwam_menu_item_new_func(NWAMUI_OBJECT(object));
         nwam_menu_item_set_required_auth(NWAM_MENU_ITEM(item), required_auth);
     } else {
@@ -2027,6 +2038,10 @@ prof_ui_auth(GObject *gobject, GParamSpec *arg1, gpointer data)
     gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_CONN_PROF], has_auth);
     gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_ENV_PREF], has_auth);
     gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_VPN_PREF], has_auth);
+
+    has_auth = nwamui_prof_check_ui_auth(prv->prof, UI_AUTH_ENABLE_OBJECT);
+    gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY], has_auth);
+    gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO], has_auth);
 
     has_auth = nwamui_prof_check_ui_auth(prv->prof, UI_AUTH_WIRELESS_DIALIOG);
     gtk_widget_set_sensitive(prv->static_menuitems[MENUITEM_REFRESH_WLAN], has_auth);

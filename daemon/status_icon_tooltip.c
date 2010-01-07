@@ -336,6 +336,7 @@ nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *object)
     for (; ncu_list && w_list; ) {
         g_object_set(w_list->data, "proxy-object", ncu_list->data, NULL);
 
+        g_object_unref(ncu_list->data);
         ncu_list = g_list_delete_link(ncu_list, ncu_list);
         w_list = g_list_delete_link(w_list, w_list);
     }
@@ -343,6 +344,7 @@ nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *object)
      */
     for (; ncu_list;) {
         nwam_tooltip_widget_add_ncu(self, NWAMUI_OBJECT(ncu_list->data));
+        g_object_unref(ncu_list->data);
         ncu_list = g_list_delete_link(ncu_list, ncu_list);
     }
     /* Any remaining w_list entries, then remove them since they are unused.
@@ -389,6 +391,7 @@ nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon)
     for (; ncu_list && w_list; ) {
         g_object_set(w_list->data, "proxy-object", ncu_list->data, NULL);
 
+        g_object_unref(ncu_list->data);
         ncu_list = g_list_delete_link(ncu_list, ncu_list);
         w_list = g_list_delete_link(w_list, w_list);
     }
@@ -396,6 +399,7 @@ nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon)
      */
     for (; ncu_list;) {
         nwam_tooltip_widget_add_ncu(self, NWAMUI_OBJECT(ncu_list->data));
+        g_object_unref(ncu_list->data);
         ncu_list = g_list_delete_link(ncu_list, ncu_list);
     }
     /* Any remaining w_list entries, then remove them since they are unused.
@@ -481,42 +485,8 @@ nwam_tooltip_widget_new(void)
 static gint
 tooltip_ncu_compare(NwamuiObject *a, NwamuiObject *b)
 {
-    NwamuiObject *object[2] = { a, b };
-    int rank[2];
-    int i, retval;
-
-    for (i = 0; i < 2; i++) {
-        /* net_conf dialog uses nwamui_object as a fake node, so we have to
-         * filter out non-NCU objects.
-         */
-        if (NWAMUI_IS_NCU(object[i])) {
-            rank[i] = nwamui_ncu_get_priority_group_for_view(NWAMUI_NCU(object[i]));
-        } else {
-            retval = 0;
-            /* We don't need compare anymore, just unref and return. Remember i
-             * to do unref.
-             */
-            i++;
-            goto L_exit;
-        }
+    if (NWAMUI_IS_NCU(a) && NWAMUI_IS_NCU(b)) {
+        return nwamui_object_sort(a, b, NWAMUI_OBJECT_SORT_BY_GROUP);
     }
-
-    retval = rank[0] - rank[1];
-    if (retval == 0) {
-        retval = g_ascii_strcasecmp(nwamui_ncu_get_display_name(NWAMUI_NCU(object[0])),
-          nwamui_ncu_get_display_name(NWAMUI_NCU(object[1])));
-    }
-
-    g_debug("%s: %s - %s = %d", __func__,
-      nwamui_ncu_get_display_name(NWAMUI_NCU(object[0])), 
-      nwamui_ncu_get_display_name(NWAMUI_NCU(object[1])),
-      retval);
-
-L_exit:
-/*     for (i--; i >=0 ; i--) { */
-/*         g_object_unref(object[i]); */
-/*     } */
-
-    return retval;
-
+    return 0;
 }

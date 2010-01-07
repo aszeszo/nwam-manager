@@ -148,6 +148,12 @@ default_nwamui_object_is_modifiable(NwamuiObject *object)
     return FALSE;
 }
 
+static gboolean
+default_nwamui_object_has_modifications(NwamuiObject *object)
+{
+    return FALSE;
+}
+
 static nwam_state_t
 default_nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string)
 {
@@ -162,6 +168,48 @@ default_nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux
         *aux_state_string = (const gchar*)nwam_aux_state_to_string(prv->nwam_aux_state);
     }
     return prv->nwam_state;
+}
+
+static void
+default_nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state)
+{
+    NwamuiObjectPrivate *prv           = NWAMUI_OBJECT_GET_PRIVATE(object);
+    gboolean             state_changed = FALSE;
+
+    g_return_if_fail (NWAMUI_IS_OBJECT (object));
+
+    /* For NCU object state, we will see dup events for link and interface. But
+     * we actually only (or should) care interface events to avoid dup events and
+     * dup GUI notifications.
+     * We will map cache_index = 0 to type_interface. Then We should monitor 
+     * cache_index is 0 
+     */
+    if ( prv->nwam_state != state ||
+         prv->nwam_aux_state != aux_state ) {
+        state_changed = TRUE;
+    }
+
+    prv->nwam_state = state;
+    prv->nwam_aux_state = aux_state;
+    prv->nwam_state_last_update = time( NULL );;
+    if ( state_changed ) {
+/*         g_debug("Set: %-10s - %s", nwam_state_to_string(state), nwam_aux_state_to_string(aux_state)); */
+        g_object_notify(G_OBJECT(object), "nwam_state" );
+    }
+
+    /* Active property is likely to have changed too, but first check if there
+     * is a get_active function, if so the active property should exist. */
+    /* For NCUs, only care cache_index == 0. Compatible to ENV, ENM, etc. */
+    if ( state_changed) {
+        g_object_notify(G_OBJECT(object), "active" );
+    }
+}
+
+static gint
+default_nwamui_object_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by)
+{
+    /* Default is sort by name, ignoring sort_by. */
+    return g_strcmp0(nwamui_object_get_name(object), nwamui_object_get_name(other));
 }
 
 static gboolean
@@ -204,10 +252,13 @@ nwamui_object_class_init(NwamuiObjectClass *klass)
     klass->get_enabled = default_nwamui_object_get_enabled;
     klass->set_enabled = default_nwamui_object_set_enabled;
     klass->get_nwam_state = default_nwamui_object_get_nwam_state;
+    klass->set_nwam_state = default_nwamui_object_set_nwam_state;
+    klass->sort = default_nwamui_object_sort;
     klass->commit = default_nwamui_object_commit;
     klass->reload = default_nwamui_object_reload;
     klass->destroy = default_nwamui_object_destroy;
     klass->is_modifiable = default_nwamui_object_is_modifiable;
+    klass->has_modifications = default_nwamui_object_has_modifications;
 
 	g_type_class_add_private(klass, sizeof (NwamuiObjectPrivate));
 
@@ -488,6 +539,24 @@ nwamui_object_set_enabled(NwamuiObject *object, gboolean enabled)
     NWAMUI_OBJECT_GET_CLASS (object)->set_enabled(object, enabled);
 }
 
+extern gint
+nwamui_object_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by)
+{
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(object), 0);
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(other), 0);
+
+    return NWAMUI_OBJECT_GET_CLASS(object)->sort(object, other, sort_by);
+}
+
+extern gint
+nwamui_object_sort_by_name(NwamuiObject *object, NwamuiObject *other)
+{
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(object), 0);
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(other), 0);
+
+    return NWAMUI_OBJECT_GET_CLASS(object)->sort(object, other, NWAMUI_OBJECT_SORT_BY_NAME);
+}
+
 extern gboolean
 nwamui_object_commit(NwamuiObject *object)
 {
@@ -526,6 +595,7 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p
 
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), rval );
 
+#if 0
     _current_time = time( NULL );;
 
     _elapsed_time = _current_time - prv->nwam_state_last_update;
@@ -557,11 +627,18 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p
         if ( state_changed) {
             g_object_notify(G_OBJECT(object), "active" );
         }
-    }
-    else {
+    } else {
         _state = prv->nwam_state;
         _aux_state = prv->nwam_aux_state;
     }
+#else
+    /* Initializing nwam state, important for initially show panel icon. */
+    if (prv->nwam_state == NWAM_STATE_UNINITIALIZED && prv->nwam_aux_state == NWAM_AUX_STATE_UNINITIALIZED) {
+        prv->nwam_state = NWAMUI_OBJECT_GET_CLASS (object)->get_nwam_state(object, &prv->nwam_aux_state, NULL);
+    }
+    _state = prv->nwam_state;
+    _aux_state = prv->nwam_aux_state;
+#endif
 
     rval = _state;
 
@@ -576,47 +653,36 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p
     return(rval);
 }
 
+/**
+ * nwamui_object_set_nwam_state:
+ * Child object must call parent implement to cache state and aux_state correctly.
+ */
 extern void
 nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state)
 {
-    NwamuiObjectPrivate *prv           = NWAMUI_OBJECT_GET_PRIVATE(object);
-    gboolean             state_changed = FALSE;
+    g_return_if_fail(NWAMUI_IS_OBJECT(object));
 
-    g_return_if_fail (NWAMUI_IS_OBJECT (object));
-
-    /* For NCU object state, we will see dup events for link and interface. But
-     * we actually only (or should) care interface events to avoid dup events and
-     * dup GUI notifications.
-     * We will map cache_index = 0 to type_interface. Then We should monitor 
-     * cache_index is 0 
-     */
-    if ( prv->nwam_state != state ||
-         prv->nwam_aux_state != aux_state ) {
-        state_changed = TRUE;
-    }
-
-    prv->nwam_state = state;
-    prv->nwam_aux_state = aux_state;
-    prv->nwam_state_last_update = time( NULL );;
-    if ( state_changed ) {
-/*         g_debug("Set: %-10s - %s", nwam_state_to_string(state), nwam_aux_state_to_string(aux_state)); */
-        g_object_notify(G_OBJECT(object), "nwam_state" );
-    }
-
-    /* Active property is likely to have changed too, but first check if there
-     * is a get_active function, if so the active property should exist. */
-    /* For NCUs, only care cache_index == 0. Compatible to ENV, ENM, etc. */
-    if ( state_changed) {
-        g_object_notify(G_OBJECT(object), "active" );
-    }
+    NWAMUI_OBJECT_GET_CLASS(object)->set_nwam_state(object, state, aux_state);
 }
 
 extern gboolean
 nwamui_object_is_modifiable(NwamuiObject *object)
 {
-    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(object), FALSE);
 
-    return NWAMUI_OBJECT_GET_CLASS (object)->is_modifiable(object);
+    return NWAMUI_OBJECT_GET_CLASS(object)->is_modifiable(object);
+}
+
+/**
+ * nwamui_object_has_modifications:   test if there are un-saved changes
+ * @returns: TRUE if unsaved changes exist.
+ **/
+extern gboolean
+nwamui_object_has_modifications(NwamuiObject *object)
+{
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(object), FALSE);
+
+    return NWAMUI_OBJECT_GET_CLASS(object)->has_modifications(object);
 }
 
 extern NwamuiObject*

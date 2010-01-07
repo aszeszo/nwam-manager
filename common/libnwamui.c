@@ -527,6 +527,7 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_daemon_statu
                     }
                 }
             }
+            g_object_unref(ncu);
         }
     }
 

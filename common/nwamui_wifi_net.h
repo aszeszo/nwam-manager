@@ -122,8 +122,6 @@ extern struct _NwamuiNcu; /* forwardref */
 
 extern  GType                       nwamui_wifi_net_get_type (void) G_GNUC_CONST;
 
-extern gboolean                     nwamui_wifi_net_has_modifications( NwamuiWifiNet* self );
-
 extern gboolean                     nwamui_wifi_net_is_favourite(NwamuiWifiNet* self);
 
 extern NwamuiWifiNet*               nwamui_wifi_net_take_favourite(NwamuiWifiNet* self);
@@ -146,8 +144,6 @@ extern gboolean                     nwamui_wifi_net_update_from_wlan_t( NwamuiWi
 extern void                         nwamui_wifi_net_store_key ( NwamuiWifiNet *self );
 
 extern void                         nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  );
-
-extern gint                         nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other );
 
 extern gboolean                     nwamui_wifi_net_create_favourite ( NwamuiWifiNet *self );
 

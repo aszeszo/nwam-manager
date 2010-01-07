@@ -1,3 +1,80 @@
+2010-01-07  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_daemon.c (nwamui_daemon_get_property),
+	(nwamui_daemon_get_status), (trigger_scan_if_wireless),
+	(nwamui_daemon_wifi_start_scan), (find_wifi_net),
+	(nwamui_daemon_find_wifi_net_in_ncus),
+	(nwamui_daemon_set_fav_wifi_networks),
+	(nwamui_daemon_commit_changed_objects),
+	(dispatch_scan_results_if_wireless),
+	(nwamui_daemon_dispatch_wifi_scan_events_from_cache),
+	(nwamd_event_handler), (nwamui_daemon_handle_object_action_event):
+	* common/nwamui_enm.c (nwamui_enm_class_init),
+	(nwamui_enm_set_property), (nwamui_enm_get_property),
+	(nwamui_object_real_get_conditions),
+	(nwamui_object_real_set_conditions),
+	(nwamui_object_real_has_modifications):
+	* common/nwamui_enm.h:
+	* common/nwamui_env.c (nwamui_env_class_init),
+	(nwamui_env_set_property), (nwamui_env_get_property),
+	(nwamui_object_real_set_activation_mode),
+	(nwamui_object_real_get_activation_mode),
+	(nwamui_object_real_set_conditions),
+	(nwamui_object_real_get_conditions),
+	(nwamui_object_real_has_modifications):
+	* common/nwamui_env.h:
+	* common/nwamui_ncp.c (nwamui_object_real_is_modifiable),
+	(nwamui_ncp_foreach_ncu_list_store), (nwamui_ncp_find_ncu),
+	(nwamui_ncp_foreach_ncu), (nwamui_object_real_commit),
+	(nwamui_ncp_freeze_notify_ncus), (nwamui_ncp_thaw_notify_ncus):
+	* common/nwamui_ncp.h:
+	* common/nwamui_ncu.c (nwamui_ncu_class_init),
+	(nwamui_ncu_set_property):
+	* common/nwamui_ncu.h:
+	* common/nwamui_object.c (default_nwamui_object_has_modifications),
+	(default_nwamui_object_set_nwam_state),
+	(default_nwamui_object_sort), (nwamui_object_class_init),
+	(nwamui_object_sort), (nwamui_object_sort_by_name),
+	(nwamui_object_get_nwam_state), (nwamui_object_set_nwam_state),
+	(nwamui_object_is_modifiable), (nwamui_object_has_modifications):
+	* common/nwamui_object.h:
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init),
+	(nwamui_object_real_sort), (nwamui_object_real_has_modifications):
+	* common/nwamui_wifi_net.h: Add _sort/_has_modifications vfun. Add
+	default set_nwam_state vfun and stop using a timer to get the new
+	state, now initially get the nwam state then depend nwamd to
+	update. Reduce to use gobject property feature. Ncu object roll
+	back to the old way to set active wifi. Update sort functions of
+	nwamui_ncu/wifi_net. Stop using NCU tree store foreach of NCP for
+	better performance.
+	* common/nwamui_prof.h: Remove unused auth, and correct used
+	auths.
+	* daemon/main.c:
+	* daemon/nwam-menuitem.c (nwam_menu_item_init),
+	(default_connect_object), (default_disconnect_object),
+	(default_sync_object), (default_compare),
+	(nwam_menu_item_set_required_auth), (prof_ui_auth):
+	* daemon/nwam-ncu-item.c (menu_ncu_item_compare):
+	* daemon/nwam-wifi-item.c (menu_wifi_item_compare):
+	* daemon/status_icon.c (nwam_menu_scan_started),
+	(nwam_menu_create_wifi_menuitems), (daemon_active_ncp_changed),
+	(nwam_menu_update_wifi_section), (find_wireless_interface),
+	(join_wireless), (update_wifi_timer_func),
+	(nwam_status_icon_finalize), (nwam_status_icon_create_menu_item),
+	(prof_ui_auth):
+	* daemon/status_icon_tooltip.c (nwam_tooltip_widget_update_ncp),
+	(nwam_tooltip_widget_update_daemon), (tooltip_ncu_compare):
+	* capplet/capplet-utils.c (nwam_ncu_compare_cb):
+	* capplet/nwam_pref_dialog.c (show_combo_add):
+	* capplet/nwam_wireless_chooser.c (find_wireless_interface),
+	(join_wireless):
+	* common/libnwamui.c (nwamui_util_get_env_status_icon):
+	* tests/main.c (process_ncu), (process_ncp), (process_env),
+	(process_enm), (process_known_wlan): So update all sort related
+	callers. Make nwam-object-items refreshing themselves on ui-auth
+	changing to avoid set sensitive by mistake. Fixed some leaks. And
+	clean code.
+
 2010-01-05  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_prof.h:

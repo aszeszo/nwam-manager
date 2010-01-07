@@ -108,8 +108,10 @@ static void         nwamui_object_real_set_handle(NwamuiObject *object, const gp
 static const gchar* nwamui_wifi_net_get_essid (NwamuiObject *object );
 static void         nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid );
 static gboolean     nwamui_wifi_net_can_rename (NwamuiObject *object);
+static gint         nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by);
 static gboolean     nwamui_wifi_net_commit_favourite ( NwamuiObject *object );
 static void         nwamui_object_real_reload( NwamuiObject* object );
+static gboolean     nwamui_object_real_has_modifications(NwamuiObject* object);
 
 /* Callbacks */
 
@@ -153,8 +155,10 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
     nwamuiobject_class->get_name = nwamui_wifi_net_get_essid;
     nwamuiobject_class->can_rename = nwamui_wifi_net_can_rename;
     nwamuiobject_class->set_name = nwamui_wifi_net_set_essid;
+    nwamuiobject_class->sort = nwamui_object_real_sort;
     nwamuiobject_class->commit = nwamui_wifi_net_commit_favourite;
     nwamuiobject_class->reload = nwamui_object_real_reload;
+    nwamuiobject_class->has_modifications = nwamui_object_real_has_modifications;
 
 	g_type_class_add_private(klass, sizeof(NwamuiWifiNetPrivate));
 
@@ -958,22 +962,27 @@ nwamui_wifi_net_new_from_wlan_t(    NwamuiNcu                       *ncu,
 /** 
  * Compare WifiNet objects, returns values like strcmp().
  */
-extern gint
-nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other )
+static gint
+nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by)
 {
+    NwamuiWifiNetPrivate     *prv[2];
     gint rval = -1;
 
-    if ( !( NWAMUI_IS_WIFI_NET(self) && NWAMUI_IS_WIFI_NET(other) ) ) {
+    /* Ignore sort_by */
+    if ( !( NWAMUI_IS_WIFI_NET(object) && NWAMUI_IS_WIFI_NET(other) ) ) {
         return( rval );
     }
 
-    if ( self->prv->essid == NULL && other->prv->essid == NULL ) {
+    prv[0] = NWAMUI_WIFI_NET_GET_PRIVATE(object);
+    prv[1] = NWAMUI_WIFI_NET_GET_PRIVATE(other);
+
+    if ( prv[0]->essid == NULL && prv[1]->essid == NULL ) {
         rval = 0;
     }
-    else if ( self->prv->essid == NULL || other->prv->essid == NULL ) {
-        rval = self->prv->essid == NULL ? -1:1;
+    else if ( prv[0]->essid == NULL || prv[1]->essid == NULL ) {
+        rval = prv[0]->essid == NULL ? -1:1;
     }
-    else if ( ( rval = g_strcmp0(self->prv->essid, other->prv->essid)) == 0 ) {
+    else if ( ( rval = g_strcmp0(prv[0]->essid, prv[1]->essid)) == 0 ) {
 #ifdef _CARE_FOR_BSSID
         /* Now need to look at BSSID List too if we've no match so far */
         if ( self_bssid_list == NULL && other_bssid_list == NULL ) {
@@ -983,7 +992,7 @@ nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other )
             if ( self_bssid_list != NULL ) {
                 /* Look for a match between other bssid and an entry in the
                  * own bssid_list */
-                GList *match = g_list_find_custom( self_bssid_list, other->prv->bssid, (GCompareFunc)g_strcmp0 );
+                GList *match = g_list_find_custom( self_bssid_list, prv[1]->bssid, (GCompareFunc)g_strcmp0 );
                 if ( match != NULL ) {
                     rval = 0;
                 }
@@ -991,7 +1000,7 @@ nwamui_wifi_net_compare( NwamuiWifiNet *self, NwamuiWifiNet *other )
             if ( rval != 0 && other_bssid_list != NULL ) {
                 /* Look for a match between own bssid and an entry in the
                  * other bssid_list */
-                GList *match = g_list_find_custom( other_bssid_list, self->prv->bssid, (GCompareFunc)g_strcmp0 );
+                GList *match = g_list_find_custom( other_bssid_list, prv[0]->bssid, (GCompareFunc)g_strcmp0 );
                 if ( match != NULL ) {
                     rval = 0;
                 }
@@ -2377,15 +2386,12 @@ nwamui_wifi_net_is_favourite(NwamuiWifiNet* self)
     return self->prv->is_favourite;
 }
 
-extern gboolean
-nwamui_wifi_net_has_modifications( NwamuiWifiNet* self ) 
+static gboolean
+nwamui_object_real_has_modifications(NwamuiObject* object)
 {
-    if ( self != NULL && NWAMUI_IS_WIFI_NET(self) &&
-         self->prv->modified ) {
-        return( TRUE );
-    }
+    NwamuiWifiNetPrivate *prv = NWAMUI_WIFI_NET_GET_PRIVATE(object);
 
-    return( FALSE );
+    return prv->modified;
 }
 
 extern gchar*

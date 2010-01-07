@@ -828,44 +828,20 @@ nwam_ncu_compare_cb(GtkTreeModel *model,
   GtkTreeIter *b,
   gpointer user_data)
 {
-    NwamuiObject *object[2] = { NULL, NULL };
-    GtkTreeIter *iter[2] = { a, b };
-    int rank[2];
-    int i, retval;
+    NwamuiObject *oa, *ob;
+    int retval = 0;
 
-    for (i = 0; i < 2; i++) {
-        gtk_tree_model_get(model, iter[i], 0, &object[i], -1);
+    gtk_tree_model_get(model, a, 0, &oa, -1);
+    gtk_tree_model_get(model, b, 0, &ob, -1);
 
-        /* net_conf dialog uses nwamui_object as a fake node, so we have to
-         * filter out non-NCU objects.
-         */
-        if (NWAMUI_IS_NCU(object[i])) {
-            rank[i] = nwamui_ncu_get_priority_group_for_view(NWAMUI_NCU(object[i]));
-        } else {
-            retval = 0;
-            /* We don't need compare anymore, just unref and return. Remember i
-             * to do unref.
-             */
-            i++;
-            goto L_exit;
-        }
+    /* net_conf dialog uses nwamui_object as a fake node, so we have to
+     * filter out non-NCU objects.
+     */
+    if (NWAMUI_IS_NCU(oa) && NWAMUI_IS_NCU(ob)) {
+        retval = nwamui_object_sort(oa, ob, NWAMUI_OBJECT_SORT_BY_GROUP);
     }
-
-    retval = rank[0] - rank[1];
-    if (retval == 0) {
-        retval = g_ascii_strcasecmp(nwamui_ncu_get_display_name(NWAMUI_NCU(object[0])),
-          nwamui_ncu_get_display_name(NWAMUI_NCU(object[1])));
-    }
-
-    g_debug("%s: %s - %s = %d", __func__,
-      nwamui_ncu_get_display_name(NWAMUI_NCU(object[0])), 
-      nwamui_ncu_get_display_name(NWAMUI_NCU(object[1])),
-      retval);
-
-L_exit:
-    for (i--; i >=0 ; i--) {
-        g_object_unref(object[i]);
-    }
+    g_object_unref(oa);
+    g_object_unref(ob);
 
     return retval;
 }

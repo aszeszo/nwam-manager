@@ -287,7 +287,8 @@ menu_wifi_item_compare(NwamMenuItem *self, NwamMenuItem *other)
     ret = signal_other - signal_self;
 
     if (ret == 0)
-        ret = nwamui_wifi_net_compare(NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))), NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other))));
+        ret = nwamui_object_sort_by_name(NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))),
+          NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other))));
 
     return ret;
 }

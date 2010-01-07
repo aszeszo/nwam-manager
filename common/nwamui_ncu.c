@@ -175,6 +175,7 @@ static gchar*       get_interface_address_str( NwamuiNcu *ncu, sa_family_t famil
 static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
 static const gchar* nwamui_ncu_get_vanity_name ( NwamuiObject *object );
 static void         nwamui_ncu_set_vanity_name ( NwamuiObject *object, const gchar* name );
+static gint         nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by);
 static gboolean     nwamui_object_real_commit( NwamuiObject* object );
 static void         nwamui_object_real_reload( NwamuiObject* object );
 static gboolean     nwamui_object_real_destroy( NwamuiObject* object );
@@ -186,6 +187,7 @@ static gboolean     nwamui_object_real_get_enabled ( NwamuiObject *object );
 static void         nwamui_object_real_set_activation_mode ( NwamuiObject *object, gint  activation_mode );
 static gint         nwamui_object_real_get_activation_mode ( NwamuiObject *object );
 static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
+static gboolean     nwamui_object_real_has_modifications(NwamuiObject* object);
 
 /* Callbacks */
 static void ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data); 
@@ -219,10 +221,12 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     nwamuiobject_class->get_enabled = nwamui_object_real_get_enabled;
     nwamuiobject_class->set_enabled = nwamui_object_real_set_enabled;
     nwamuiobject_class->get_nwam_state = nwamui_ncu_get_interface_nwam_state;
+    nwamuiobject_class->sort = nwamui_object_real_sort;
     nwamuiobject_class->commit = nwamui_object_real_commit;
     nwamuiobject_class->reload = nwamui_object_real_reload;
     nwamuiobject_class->destroy = nwamui_object_real_destroy;
     nwamuiobject_class->is_modifiable = nwamui_object_real_is_modifiable;
+    nwamuiobject_class->has_modifications = nwamui_object_real_has_modifications;
     nwamuiobject_class->clone = nwamui_object_real_clone;
 
 	g_type_class_add_private(klass, sizeof(NwamuiNcuPrivate));
@@ -487,9 +491,9 @@ nwamui_ncu_init (NwamuiNcu *self)
 
 static void
 nwamui_ncu_set_property ( GObject         *object,
-                                    guint            prop_id,
-                                    const GValue    *value,
-                                    GParamSpec      *pspec)
+  guint            prop_id,
+  const GValue    *value,
+  GParamSpec      *pspec)
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
     gchar*      tmpstr = NULL;
@@ -615,29 +619,8 @@ nwamui_ncu_set_property ( GObject         *object,
                 set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
             }
             break;
-        case PROP_WIFI_INFO: {
-		NwamuiWifiNet *new_wifi = NWAMUI_WIFI_NET( g_value_dup_object( value ) );
-                /* Should be a Wireless i/f */
-                g_assert( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS );
-
-		if (self->prv->wifi_info != new_wifi) {
-			if ( self->prv->wifi_info != NULL ) {
-				g_object_unref( self->prv->wifi_info );
-				g_signal_handlers_disconnect_matched(
-					G_OBJECT(self->prv->wifi_info),
-					    G_SIGNAL_MATCH_DATA,
-					    0,
-					    NULL,
-					    NULL,
-					    NULL,
-					    (gpointer)self);
-				nwamui_wifi_net_set_status(self->prv->wifi_info, NWAMUI_WIFI_STATUS_DISCONNECTED);
-			}
-			self->prv->wifi_info = NWAMUI_WIFI_NET( g_value_dup_object( value ) );
-			g_signal_connect (G_OBJECT(self->prv->wifi_info), "notify",
-			    G_CALLBACK(wireless_notify_cb), (gpointer)self);
-		}
-            }
+        case PROP_WIFI_INFO:
+            nwamui_ncu_set_wifi_info(self, NWAMUI_WIFI_NET(g_value_get_object(value)));
             break;
 
         case PROP_ENABLED: {
@@ -1620,20 +1603,20 @@ nwamui_object_real_reload( NwamuiObject *object )
  * nwamui_ncu_has_modifications:   test if there are un-saved changes
  * @returns: TRUE if unsaved changes exist.
  **/
-extern gboolean
-nwamui_ncu_has_modifications( NwamuiNcu* self )
+static gboolean
+nwamui_object_real_has_modifications(NwamuiObject* object)
 {
-	g_return_val_if_fail(NWAMUI_IS_NCU(self), FALSE);
+    NwamuiNcuPrivate *prv = NWAMUI_NCU_GET_PRIVATE(object);
 
 #ifdef TUNNEL_SUPPORT
-    if ( NWAMUI_IS_NCU(self) &&
-          ( self->prv->nwam_ncu_phys_modified 
-         || self->prv->nwam_ncu_ip_modified 
-         || self->prv->nwam_ncu_iptun_modified) ) {
+    if ( NWAMUI_IS_NCU(object) &&
+          ( prv->nwam_ncu_phys_modified 
+         || prv->nwam_ncu_ip_modified 
+         || prv->nwam_ncu_iptun_modified) ) {
 #else
-    if ( NWAMUI_IS_NCU(self) &&
-          ( self->prv->nwam_ncu_phys_modified 
-         || self->prv->nwam_ncu_ip_modified) ) {
+    if ( NWAMUI_IS_NCU(object) &&
+          ( prv->nwam_ncu_phys_modified 
+         || prv->nwam_ncu_ip_modified) ) {
 #endif /* TUNNEL_SUPPORT */
         return( TRUE );
     }
@@ -1692,6 +1675,52 @@ nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret )
 #endif /* TUNNEL_SUPPORT */
 
     return( TRUE );
+}
+
+static gint
+nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by)
+{
+    NwamuiObject *objs[2] = { object, other };
+    int rank[2];
+    int i, retval = 0;
+
+    g_return_val_if_fail(NWAMUI_IS_NCU(object), 0);
+    g_return_val_if_fail(NWAMUI_IS_NCU(other), 0);
+
+    switch (sort_by) {
+    case NWAMUI_OBJECT_SORT_BY_GROUP:
+        for (i = 0; i < 2; i++) {
+            switch (nwamui_object_get_activation_mode(objs[i])) {
+            case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
+                rank[i] = nwamui_object_get_enabled(objs[i]) ? ALWAYS_ON_GROUP_ID : ALWAYS_OFF_GROUP_ID;
+                break;
+            case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
+                rank[i] = nwamui_ncu_get_priority_group(NWAMUI_NCU(objs[i])) + ALWAYS_ON_GROUP_ID + 1;
+                break;
+            default:
+                g_warning("%s: Not supported activation mode %d", __func__, nwamui_object_get_activation_mode(objs[i]));
+                rank[i] = ALWAYS_OFF_GROUP_ID;
+                break;
+            }
+        }
+        retval = rank[0] - rank[1];
+        /* Fall through */
+    case NWAMUI_OBJECT_SORT_BY_NAME:
+        if (retval == 0) {
+            retval = g_strcmp0(nwamui_ncu_get_display_name(NWAMUI_NCU(objs[0])),
+              nwamui_ncu_get_display_name(NWAMUI_NCU(objs[1])));
+        }
+        break;
+    default:
+        g_warning("%s, not implemented", __func__);
+    }
+
+    g_debug("%s: %s - %s = %d", __func__,
+      nwamui_ncu_get_display_name(NWAMUI_NCU(objs[0])), 
+      nwamui_ncu_get_display_name(NWAMUI_NCU(objs[1])),
+      retval);
+
+    return retval;
 }
 
 /**
@@ -2191,12 +2220,11 @@ nwamui_object_real_get_active ( NwamuiObject *object )
 
     if ( active != prv->active ) {
         prv->active = active;
-    }
-
-    if (prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && prv->wifi_info) {
-        nwamui_wifi_net_set_status(prv->wifi_info,
-          active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED);
-        g_object_notify(G_OBJECT(prv->wifi_info), "status");
+        if (prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS && prv->wifi_info) {
+            nwamui_wifi_net_set_status(prv->wifi_info,
+              active? NWAMUI_WIFI_STATUS_CONNECTED:NWAMUI_WIFI_STATUS_DISCONNECTED);
+            g_object_notify(G_OBJECT(prv->wifi_info), "status");
+        }
     }
 
     return active;
@@ -2845,10 +2873,28 @@ nwamui_ncu_set_wifi_info ( NwamuiNcu *self, NwamuiWifiNet* wifi_info )
     g_return_if_fail (NWAMUI_IS_NCU(self)); 
 
     g_assert( wifi_info == NULL || NWAMUI_IS_WIFI_NET( wifi_info ) );
-    
-    g_object_set (G_OBJECT (self),
-                  "wifi_info", wifi_info,
-                  NULL);
+    /* Should be a Wireless i/f */
+    g_assert( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS );
+
+    if (self->prv->wifi_info != wifi_info) {
+        if ( self->prv->wifi_info != NULL ) {
+            g_object_unref( self->prv->wifi_info );
+            g_signal_handlers_disconnect_matched(
+                G_OBJECT(self->prv->wifi_info),
+                  G_SIGNAL_MATCH_DATA,
+                  0,
+                  NULL,
+                  NULL,
+                  NULL,
+                  (gpointer)self);
+            nwamui_wifi_net_set_status(self->prv->wifi_info, NWAMUI_WIFI_STATUS_DISCONNECTED);
+        }
+        self->prv->wifi_info = g_object_ref(wifi_info);
+        g_signal_connect (G_OBJECT(self->prv->wifi_info), "notify",
+          G_CALLBACK(wireless_notify_cb), (gpointer)self);
+
+        g_object_notify(G_OBJECT(self), "wifi_info");
+    }
 }
 
 /**

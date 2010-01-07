@@ -91,11 +91,12 @@ static void         nwamui_object_real_set_enabled ( NwamuiObject *object, gbool
 static gboolean     nwamui_object_real_get_enabled ( NwamuiObject *object );
 static void         nwamui_object_real_set_activation_mode ( NwamuiObject *object, gint activation_mode );
 static gint         nwamui_object_real_get_activation_mode ( NwamuiObject *object );
-static GList*       nwamui_object_real_get_selection_conditions( NwamuiObject* object );
-static void         nwamui_object_real_set_selection_conditions( NwamuiObject* object, const GList* conditions );
+static GList*       nwamui_object_real_get_conditions( NwamuiObject* object );
+static void         nwamui_object_real_set_conditions( NwamuiObject* object, const GList* conditions );
 static gboolean     nwamui_object_real_commit( NwamuiObject* object );
 static void         nwamui_object_real_reload( NwamuiObject* object );
 static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
+static gboolean     nwamui_object_real_has_modifications(NwamuiObject* object);
 
 /* Callbacks */
 
@@ -117,8 +118,8 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
     nwamuiobject_class->get_name = nwamui_object_real_get_name;
     nwamuiobject_class->can_rename = nwamui_object_real_can_rename;
     nwamuiobject_class->set_name = nwamui_object_real_set_name;
-    nwamuiobject_class->get_conditions = nwamui_object_real_get_selection_conditions;
-    nwamuiobject_class->set_conditions = nwamui_object_real_set_selection_conditions;
+    nwamuiobject_class->get_conditions = nwamui_object_real_get_conditions;
+    nwamuiobject_class->set_conditions = nwamui_object_real_set_conditions;
     nwamuiobject_class->get_activation_mode = nwamui_object_real_get_activation_mode;
     nwamuiobject_class->set_activation_mode = nwamui_object_real_set_activation_mode;
     nwamuiobject_class->get_active = nwamui_object_real_get_active;
@@ -130,6 +131,7 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
     nwamuiobject_class->reload = nwamui_object_real_reload;
     nwamuiobject_class->destroy = nwamui_object_real_destroy;
     nwamuiobject_class->clone = nwamui_object_real_clone;
+    nwamuiobject_class->has_modifications = nwamui_object_real_has_modifications;
 
 	g_type_class_add_private(klass, sizeof(NwamuiEnmPrivate));
 
@@ -236,28 +238,8 @@ nwamui_enm_set_property (   GObject         *object,
             }
             break;
 
-        case PROP_CONDITIONS: {
-                if (self->prv->nwam_enm != NULL) {
-                    GList *conditions = g_value_get_pointer( value );
-                    char  **condition_strs = NULL;
-                    guint   len = 0;
-
-                    condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
-                    if ( condition_strs == NULL ) {
-                        /* We need to set activation mode to MANUAL or it will
-                         * not allow deletion of conditions
-                         */
-                        nwamui_object_set_enabled(NWAMUI_OBJECT(self), FALSE );
-                        nwamui_object_set_activation_mode(NWAMUI_OBJECT(self), NWAMUI_COND_ACTIVATION_MODE_MANUAL);
-                    } else {
-                        set_nwam_enm_string_array_prop( self->prv->nwam_enm, NWAM_ENM_PROP_CONDITIONS, condition_strs, len );
-                        free(condition_strs);
-                    }
-                }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
-            }
+        case PROP_CONDITIONS:
+            nwamui_object_real_set_conditions(NWAMUI_OBJECT(object), g_value_get_pointer(value));
             break;
 
         default:
@@ -327,24 +309,8 @@ nwamui_enm_get_property (   GObject         *object,
         }
         break;
 
-        case PROP_CONDITIONS: {
-                gpointer    ptr = NULL;
-
-                if (self->prv->nwam_enm != NULL) {
-                    gchar** condition_strs = get_nwam_enm_string_array_prop( self->prv->nwam_enm, 
-                                                                             NWAM_ENM_PROP_CONDITIONS );
-
-                    GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
-
-                    ptr = (gpointer)conditions;
-
-                    g_strfreev( condition_strs );
-                }
-                else {
-                    g_warning("Unexpected null enm handle");
-                }
-                g_value_set_pointer( value, ptr );
-            }
+        case PROP_CONDITIONS:
+            g_value_set_pointer(value, nwamui_object_real_get_conditions(NWAMUI_OBJECT(object)));
             break;
 
         default:
@@ -1145,31 +1111,50 @@ nwamui_object_real_get_activation_mode ( NwamuiObject *object )
 
 
 static GList*
-nwamui_object_real_get_selection_conditions( NwamuiObject *object )
+nwamui_object_real_get_conditions( NwamuiObject *object )
 {
-    NwamuiEnm *self = NWAMUI_ENM(object);
-    GList*  conditions = NULL;
+    NwamuiEnmPrivate *prv = NWAMUI_ENM_GET_PRIVATE(object);
+    GList *conditions = NULL;
 
-    g_return_val_if_fail (NWAMUI_IS_ENM (self), conditions );
+    g_return_val_if_fail(NWAMUI_IS_ENM(object), conditions );
 
-    g_object_get (G_OBJECT (self),
-                  "conditions", &conditions,
-                  NULL);
+    if (prv->nwam_enm != NULL) {
+        gchar** condition_strs = get_nwam_enm_string_array_prop(prv->nwam_enm, NWAM_ENM_PROP_CONDITIONS);
+        conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
+        g_strfreev( condition_strs );
+    } else {
+        g_warning("Unexpected null enm handle");
+    }
 
-    return( conditions );
+    return conditions;
 }
 
 
 static void
-nwamui_object_real_set_selection_conditions( NwamuiObject *object, const GList* conditions )
+nwamui_object_real_set_conditions( NwamuiObject *object, const GList* conditions )
 {
-    NwamuiEnm *self = NWAMUI_ENM(object);
-    g_return_if_fail (NWAMUI_IS_ENM (self));
+    NwamuiEnmPrivate *prv = NWAMUI_ENM_GET_PRIVATE(object);
 
-    if (conditions) {
-        g_object_set (G_OBJECT (self),
-          "conditions", conditions,
-          NULL);
+    g_return_if_fail(NWAMUI_IS_ENM(object));
+
+    if (prv->nwam_enm != NULL) {
+        char  **condition_strs = NULL;
+        guint   len = 0;
+
+        condition_strs = nwamui_util_map_object_list_to_condition_strings((GList*)conditions, &len);
+        if ( condition_strs == NULL ) {
+            /* We need to set activation mode to MANUAL or it will
+             * not allow deletion of conditions
+             */
+            nwamui_object_set_enabled(object, FALSE );
+            nwamui_object_set_activation_mode(object, NWAMUI_COND_ACTIVATION_MODE_MANUAL);
+        } else {
+            set_nwam_enm_string_array_prop(prv->nwam_enm, NWAM_ENM_PROP_CONDITIONS, condition_strs, len);
+            free(condition_strs);
+        }
+    }
+    else {
+        g_warning("Unexpected null enm handle");
     }
 }
 
@@ -1223,18 +1208,12 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
     return NULL;
 }
 
-/**
- * nwamui_enm_has_modifications:   test if there are un-saved changes
- * @returns: TRUE if unsaved changes exist.
- **/
-extern gboolean
-nwamui_enm_has_modifications( NwamuiEnm* self )
+static gboolean
+nwamui_object_real_has_modifications(NwamuiObject* object)
 {
-    if ( NWAMUI_IS_ENM(self) && self->prv->nwam_enm_modified ) {
-        return( TRUE );
-    }
+    NwamuiEnmPrivate  *prv  = NWAMUI_ENM_GET_PRIVATE(object);
 
-    return( FALSE );
+    return prv->nwam_enm_modified;
 }
 
 /**

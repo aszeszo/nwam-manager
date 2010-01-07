@@ -53,41 +53,10 @@ static GOptionEntry option_entries[] = {
     {NULL}
 };
 
-/* others */
-static gboolean find_wireless_interface(GtkTreeModel *model,
-  GtkTreePath *path,
-  GtkTreeIter *iter,
-  gpointer data);
-
 static void 
 cleanup_and_exit(int sig, siginfo_t *sip, void *data)
 {
     gtk_main_quit ();
-}
-
-/**
- * find_wireless_interface:
- *
- * Return a wireless ncu instance.
- */
-static gboolean
-find_wireless_interface(GtkTreeModel *model,
-  GtkTreePath *path,
-  GtkTreeIter *iter,
-  gpointer data)
-{
-    NwamuiNcu     **ncu_p = (NwamuiNcu **)data;
-    NwamuiNcu      *ncu;
-
-    gtk_tree_model_get(model, iter, 0, &ncu, -1);
-    g_assert(NWAMUI_IS_NCU(ncu));
-
-    if (nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
-        *ncu_p = ncu;
-        return TRUE;
-    }
-    g_object_unref(ncu);
-    return FALSE;
 }
 
 static gboolean

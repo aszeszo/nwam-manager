@@ -83,9 +83,7 @@ extern gboolean                 nwamui_ncp_all_ncus_online (NwamuiNcp       *sel
 
 extern GList*                   nwamui_ncp_get_ncu_list( NwamuiNcp *self );
 
-extern  void                    nwamui_ncp_foreach_ncu_list( NwamuiNcp *self, GFunc func, gpointer user_data );
-
-extern  GList*                  nwamui_ncp_find_ncu_list( NwamuiNcp *self, gconstpointer data, GCompareFunc func);
+extern  GList*                  nwamui_ncp_find_ncu( NwamuiNcp *self, GCompareFunc func, gconstpointer data);
 
 extern	GtkListStore*           nwamui_ncp_get_ncu_list_store ( NwamuiNcp *self );
 
@@ -93,7 +91,9 @@ extern	GtkTreeStore*           nwamui_ncp_get_ncu_tree_store ( NwamuiNcp *self )
 
 extern  NwamuiObject*           nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name );
 
-extern  void                    nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data );
+extern void                     nwamui_ncp_foreach_ncu(NwamuiNcp *self, GFunc func, gpointer user_data);
+
+extern void                     nwamui_ncp_foreach_ncu_list_store( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data );
 
 extern void                     nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon );
 

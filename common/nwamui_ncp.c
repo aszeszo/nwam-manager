@@ -712,12 +712,9 @@ nwamui_object_real_is_modifiable(NwamuiObject *object)
         return TRUE;
     }
 
-    /* function doesn't exist, but will be made available, comment out until
-     * then */
     if ((nerr = nwam_ncp_get_read_only( self->prv->nwam_ncp, &readonly )) == NWAM_SUCCESS) {
         modifiable = readonly?FALSE:TRUE;
-    }
-    else {
+    } else {
         g_warning("Error getting ncp read-only status: %s", nwam_strerror( nerr ) );
     }
 
@@ -953,21 +950,16 @@ nwamui_ncp_get_ncu_list( NwamuiNcp *self )
     return( ncu_list );
 }
 
-/**
- * nwamui_ncp_foreach_ncu_list:
- *
- **/
-extern  void
-nwamui_ncp_foreach_ncu_list( NwamuiNcp *self, GFunc func, gpointer user_data )
+extern void
+nwamui_ncp_foreach_ncu_list_store( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data )
 {
-    g_assert(NWAMUI_IS_NCP(self));
-    g_return_if_fail(func);
-
-    g_list_foreach( self->prv->ncu_list, func, user_data );
+    NwamuiNcpPrivate *prv  = NWAMUI_NCP_GET_PRIVATE(self);
+    g_return_if_fail(NWAMUI_IS_NCP(self) && prv->ncu_tree_store != NULL);
+    gtk_tree_model_foreach(GTK_TREE_MODEL(prv->ncu_tree_store), func, user_data );
 }
 
 extern  GList*
-nwamui_ncp_find_ncu_list( NwamuiNcp *self, gconstpointer data, GCompareFunc func)
+nwamui_ncp_find_ncu( NwamuiNcp *self, GCompareFunc func, gconstpointer data)
 {
     g_assert(NWAMUI_IS_NCP(self));
     g_return_val_if_fail(func, NULL);
@@ -1006,11 +998,11 @@ nwamui_ncp_get_ncu_list_store( NwamuiNcp *self )
  *
  **/
 extern void
-nwamui_ncp_foreach_ncu( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data )
+nwamui_ncp_foreach_ncu(NwamuiNcp *self, GFunc func, gpointer user_data)
 {
-    g_return_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL); 
-    
-    gtk_tree_model_foreach( GTK_TREE_MODEL(self->prv->ncu_tree_store), func, user_data );
+    NwamuiNcpPrivate *prv  = NWAMUI_NCP_GET_PRIVATE(self);
+    g_return_if_fail(func);
+    g_list_foreach(prv->ncu_list, func, user_data);
 }
 
 /**
@@ -1229,27 +1221,47 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
 static gboolean
 nwamui_object_real_commit( NwamuiObject *object )
 {
-    NwamuiNcp    *self       = NWAMUI_NCP(object);
-    gboolean    rval = FALSE;
+    NwamuiNcpPrivate *prv      = NWAMUI_NCP_GET_PRIVATE(object);
+    gboolean          rval     = FALSE;
+    const gchar*      ncp_name = nwamui_object_get_name(object);
 
-    g_return_val_if_fail (NWAMUI_IS_NCP(self), rval );
+    g_return_val_if_fail (NWAMUI_IS_NCP(object), rval );
 
-    if ( self->prv->ncus_removed != NULL ) {
-        /* Make sure they are removed from the system */
-        g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_object_destroy, NULL );
-        g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_util_obj_unref, NULL );
-        g_list_free( self->prv->ncus_removed );
-        self->prv->ncus_removed = NULL;
+    if (nwamui_object_is_modifiable(object)) {
+        if ( prv->ncus_removed != NULL ) {
+            /* Make sure they are removed from the system */
+            g_list_foreach( prv->ncus_removed, (GFunc)nwamui_object_destroy, NULL );
+            g_list_foreach( prv->ncus_removed, (GFunc)nwamui_util_obj_unref, NULL );
+            g_list_free( prv->ncus_removed );
+            prv->ncus_removed = NULL;
+        }
+
+        if ( prv->ncus_added != NULL ) {
+            g_list_foreach( prv->ncus_added, (GFunc)nwamui_object_commit, NULL );
+            g_list_foreach( prv->ncus_added, (GFunc)nwamui_util_obj_unref, NULL );
+            g_list_free( prv->ncus_added );
+            prv->ncus_added = NULL;
+        }
+
+        for(GList* ncu_item = g_list_first(prv->ncu_list);
+             rval && ncu_item != NULL;
+             ncu_item = g_list_next(ncu_item)) {
+            NwamuiNcu*   ncu      = NWAMUI_NCU(ncu_item->data);
+            const gchar* ncu_name = nwamui_ncu_get_display_name( ncu );
+
+            nwamui_debug("Going to commit changes for %s : %s", ncp_name, ncu_name );
+            if (!nwamui_object_commit(NWAMUI_OBJECT(ncu))) {
+                nwamui_debug("Commit FAILED for %s : %s", ncp_name, ncu_name );
+                rval = FALSE;
+                break;
+            }
+        }
+
+        nwamui_ncp_populate_ncu_list(NWAMUI_NCP(object), NULL );
+
+    } else {
+        nwamui_debug("NCP : %s is not modifiable", ncp_name );
     }
-
-    if ( self->prv->ncus_added != NULL ) {
-        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_object_commit, NULL );
-        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_util_obj_unref, NULL );
-        g_list_free( self->prv->ncus_added );
-        self->prv->ncus_added = NULL;
-    }
-
-    nwamui_ncp_populate_ncu_list( self, NULL );
 
     return( TRUE );
 }
@@ -1593,13 +1605,13 @@ freeze_thaw( gpointer obj, gpointer data ) {
 extern void
 nwamui_ncp_freeze_notify_ncus( NwamuiNcp* self )
 {
-    nwamui_ncp_foreach_ncu_list( self, (GFunc)freeze_thaw, (gpointer)TRUE );
+    nwamui_ncp_foreach_ncu( self, (GFunc)freeze_thaw, (gpointer)TRUE );
 }
 
 extern void
 nwamui_ncp_thaw_notify_ncus( NwamuiNcp* self )
 {
-    nwamui_ncp_foreach_ncu_list( self, (GFunc)freeze_thaw, (gpointer)FALSE );
+    nwamui_ncp_foreach_ncu( self, (GFunc)freeze_thaw, (gpointer)FALSE );
 }
 
 /* Callbacks */

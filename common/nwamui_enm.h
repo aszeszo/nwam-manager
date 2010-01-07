@@ -80,7 +80,6 @@ extern gchar*               nwamui_enm_get_stop_command ( NwamuiEnm *self );
 extern gboolean             nwamui_enm_set_smf_fmri ( NwamuiEnm *self, const gchar* smf_frmi );
 extern gchar*               nwamui_enm_get_smf_fmri ( NwamuiEnm *self );
 
-extern gboolean             nwamui_enm_has_modifications( NwamuiEnm* self );
 extern gboolean             nwamui_enm_validate( NwamuiEnm* self, gchar **prop_name_ret );
 
 G_END_DECLS

@@ -171,6 +171,7 @@ static gboolean     nwamui_object_real_commit( NwamuiObject* object );
 static gboolean     nwamui_object_real_destroy( NwamuiObject* object );
 static void         nwamui_object_real_reload( NwamuiObject* object );
 static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
+static gboolean     nwamui_object_real_has_modifications(NwamuiObject* object);
 
 #if 0
 /* These are not needed right now since we don't support property templates,
@@ -223,6 +224,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     nwamuiobject_class->reload = nwamui_object_real_reload;
     nwamuiobject_class->destroy = nwamui_object_real_destroy;
     nwamuiobject_class->clone = nwamui_object_real_clone;
+    nwamuiobject_class->has_modifications = nwamui_object_real_has_modifications;
 
 	g_type_class_add_private(klass, sizeof(NwamuiEnvPrivate));
 
@@ -600,9 +602,9 @@ nwamui_env_init (NwamuiEnv *self)
 
 static void
 nwamui_env_set_property (   GObject         *object,
-                            guint            prop_id,
-                            const GValue    *value,
-                            GParamSpec      *pspec)
+  guint            prop_id,
+  const GValue    *value,
+  GParamSpec      *pspec)
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     NwamuiEnvPrivate *prv = NWAMUI_ENV(object)->prv;
@@ -611,17 +613,8 @@ nwamui_env_set_property (   GObject         *object,
     nwam_error_t nerr;
     
     switch (prop_id) {
-        case PROP_CONDITIONS: {
-                GList *conditions = g_value_get_pointer( value );
-                char  **condition_strs = NULL;
-                guint   len = 0;
-
-                condition_strs = nwamui_util_map_object_list_to_condition_strings( conditions, &len);
-                set_nwam_loc_string_array_prop( self->prv->nwam_loc, NWAM_LOC_PROP_CONDITIONS, condition_strs, len );
-                if (condition_strs) {
-                    free(condition_strs);
-                }
-            }
+        case PROP_CONDITIONS:
+            nwamui_object_real_set_conditions(NWAMUI_OBJECT(self), g_value_get_pointer(value));
             break;
 
         case PROP_NWAM_ENV: {
@@ -900,9 +893,9 @@ nwamui_env_set_property (   GObject         *object,
 
 static void
 nwamui_env_get_property (GObject         *object,
-                                  guint            prop_id,
-                                  GValue          *value,
-                                  GParamSpec      *pspec)
+  guint            prop_id,
+  GValue          *value,
+  GParamSpec      *pspec)
 {
     NwamuiEnv *self = NWAMUI_ENV(object);
     NwamuiEnvPrivate *prv = NWAMUI_ENV(object)->prv;
@@ -911,16 +904,8 @@ nwamui_env_get_property (GObject         *object,
     nwam_value_t **nwamdata;
 
     switch (prop_id) {
-        case PROP_CONDITIONS: {
-                gchar** condition_strs = get_nwam_loc_string_array_prop( self->prv->nwam_loc, 
-                                                                         NWAM_LOC_PROP_CONDITIONS );
-
-                GList *conditions = nwamui_util_map_condition_strings_to_object_list( condition_strs );
-
-                g_value_set_pointer( value, conditions );
-
-                g_strfreev( condition_strs );
-            }
+        case PROP_CONDITIONS:
+            g_value_set_pointer(value, nwamui_object_real_get_conditions(NWAMUI_OBJECT(object)));
             break;
 
         case PROP_ENABLED: {
@@ -3468,10 +3453,9 @@ nwamui_env_get_proxy_socks_port (NwamuiEnv *self)
 static void
 nwamui_object_real_set_activation_mode (   NwamuiObject *object, gint activation_mode )
 {
-    NwamuiEnv *self = NWAMUI_ENV(object);
-    NwamuiEnvPrivate *prv = self->prv;
+    NwamuiEnvPrivate *prv  = NWAMUI_ENV_GET_PRIVATE(object);
 
-    g_return_if_fail (NWAMUI_IS_ENV(self));
+    g_return_if_fail (NWAMUI_IS_ENV(object));
     g_assert (activation_mode >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && activation_mode <= NWAMUI_COND_ACTIVATION_MODE_LAST );
 
     set_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE, activation_mode);
@@ -3488,11 +3472,10 @@ nwamui_object_real_set_activation_mode (   NwamuiObject *object, gint activation
 static gint
 nwamui_object_real_get_activation_mode (NwamuiObject *object)
 {
-    NwamuiEnv *self = NWAMUI_ENV(object);
-    NwamuiEnvPrivate *prv = self->prv;
-    gint  activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
+    NwamuiEnvPrivate *prv             = NWAMUI_ENV_GET_PRIVATE(object);
+    gint              activation_mode = NWAMUI_COND_ACTIVATION_MODE_MANUAL; 
 
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), activation_mode);
+    g_return_val_if_fail (NWAMUI_IS_ENV (object), activation_mode);
 
     activation_mode = (gint)get_nwam_loc_uint64_prop( prv->nwam_loc, NWAM_LOC_PROP_ACTIVATION_MODE );
 
@@ -3506,17 +3489,22 @@ nwamui_object_real_get_activation_mode (NwamuiObject *object)
  * 
  **/ 
 static void
-nwamui_object_real_set_conditions (NwamuiObject *object, const GList* conditions )
+nwamui_object_real_set_conditions(NwamuiObject *object, const GList* conditions )
 {
-    NwamuiEnv *self = NWAMUI_ENV(object);
-    g_return_if_fail (NWAMUI_IS_ENV (self));
+    NwamuiEnvPrivate  *prv            = NWAMUI_ENV_GET_PRIVATE(object);
+    char             **condition_strs = NULL;
+    guint              len            = 0;
+
+    g_return_if_fail(NWAMUI_IS_ENV(object));
 
     if ( conditions != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "conditions", (gpointer)conditions,
-                      NULL);
+        condition_strs = nwamui_util_map_object_list_to_condition_strings((GList*)conditions, &len);
+        set_nwam_loc_string_array_prop(prv->nwam_loc, NWAM_LOC_PROP_CONDITIONS, condition_strs, len);
+        if (condition_strs) {
+            free(condition_strs);
+        }
     } else {
-        nwamui_object_real_set_activation_mode(NWAMUI_OBJECT(self), (gint)NWAMUI_COND_ACTIVATION_MODE_MANUAL);
+        nwamui_object_real_set_activation_mode(object, (gint)NWAMUI_COND_ACTIVATION_MODE_MANUAL);
     }
 }
 
@@ -3527,18 +3515,20 @@ nwamui_object_real_set_conditions (NwamuiObject *object, const GList* conditions
  *
  **/
 static GList*
-nwamui_object_real_get_conditions (NwamuiObject *object)
+nwamui_object_real_get_conditions(NwamuiObject *object)
 {
-    NwamuiEnv *self = NWAMUI_ENV(object);
-    gpointer  conditions = NULL; 
+    NwamuiEnvPrivate *prv = NWAMUI_ENV_GET_PRIVATE(object);
+    gchar**           condition_strs;
+    GList            *conditions;
 
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), conditions);
+    g_return_val_if_fail(NWAMUI_IS_ENV(object), conditions);
 
-    g_object_get (G_OBJECT (self),
-                  "conditions", &conditions,
-                  NULL);
+    condition_strs = get_nwam_loc_string_array_prop(prv->nwam_loc, NWAM_LOC_PROP_CONDITIONS );
+    conditions = nwamui_util_map_condition_strings_to_object_list(condition_strs);
 
-    return( (GList*)conditions );
+    g_strfreev( condition_strs );
+
+    return conditions;
 }
 
 #if 0
@@ -3687,14 +3677,12 @@ nwamui_env_svc_commit (NwamuiEnv *self, NwamuiSvc *svc)
  * nwamui_env_has_modifications:   test if there are un-saved changes
  * @returns: TRUE if unsaved changes exist.
  **/
-extern gboolean
-nwamui_env_has_modifications( NwamuiEnv* self )
+static gboolean
+nwamui_object_real_has_modifications(NwamuiObject* object)
 {
-    if ( NWAMUI_IS_ENV(self) && self->prv->nwam_loc_modified ) {
-        return( TRUE );
-    }
+    NwamuiEnvPrivate *prv = NWAMUI_ENV_GET_PRIVATE(object);
 
-    return( FALSE );
+    return prv->nwam_loc_modified;
 }
 
 /**

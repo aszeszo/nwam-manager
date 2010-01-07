@@ -609,6 +609,7 @@ show_combo_add(GtkComboBox* combo, GObject*  obj)
         for (; ncu_list;) {
             gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
             gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, ncu_list->data, -1);
+            g_object_unref(ncu_list->data);
             ncu_list = g_list_delete_link(ncu_list, ncu_list);
         }
     } else {

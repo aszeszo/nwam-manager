@@ -239,10 +239,10 @@ print_conditions( GObject* obj )
 }
 
 
-static gboolean
-process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
+static void
+process_ncu(gpointer data, gpointer user_data)
 {
-    NwamuiNcu         *ncu = NULL;
+    NwamuiNcu         *ncu = (NwamuiNcu *) data;
     const gchar       *vname, *display_name;
     gchar             *dname, *nwam_qualified_name;
     nwamui_ncu_type_t  type;
@@ -263,8 +263,6 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
 
     printf("%-*s*************************************************************\n", indent, "");
 
-    gtk_tree_model_get(model, iter, 0, &ncu, -1);
-    
     vname = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
     dname = nwamui_ncu_get_device_name( ncu );
     display_name = nwamui_ncu_get_display_name( ncu );
@@ -324,7 +322,7 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
 
     indent -= 4;
 
-    if ( nwamui_ncu_has_modifications( ncu ) ) {
+    if ( nwamui_object_has_modifications(NWAMUI_OBJECT(ncu)) ) {
         g_error("Object shouldn't have modifications");
     }
 
@@ -342,8 +340,6 @@ process_ncu(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer 
     g_free( cfg_str );
 
     printf("%-*s*************************************************************\n", indent, "");
-
-    return(FALSE);
 }
 
 static void 
@@ -361,7 +357,7 @@ process_ncp( gpointer data, gpointer user_data )
         printf("%-*s-------------------------------------------------------------\n", indent, "");
 
         indent +=4;
-        nwamui_ncp_foreach_ncu(ncp, (GtkTreeModelForeachFunc)process_ncu, NULL );
+        nwamui_ncp_foreach_ncu(ncp, process_ncu, NULL );
         indent -=4;
 
         g_object_unref(G_OBJECT(ncp));
@@ -499,7 +495,7 @@ process_env( gpointer data, gpointer user_data )
 
     indent -= 4;
     printf("%-*s*************************************************************\n", indent, "");
-    if ( nwamui_env_has_modifications( env ) ) {
+    if ( nwamui_object_has_modifications(NWAMUI_OBJECT(env)) ) {
         g_error("Object shouldn't have modifications");
     }
 }
@@ -566,7 +562,7 @@ process_enm( gpointer data, gpointer user_data )
 
     printf("%-*s*************************************************************\n", indent, "");
 
-    if ( nwamui_enm_has_modifications( enm ) ) {
+    if ( nwamui_object_has_modifications(NWAMUI_OBJECT(enm)) ) {
         g_error("Object shouldn't have modifications");
     }
 
@@ -629,7 +625,7 @@ process_known_wlan( gpointer data, gpointer user_data )
         indent -=4;
         printf("%-*s=============================================================\n", indent, "");
 
-        if ( nwamui_wifi_net_has_modifications( wifi ) ) {
+        if ( nwamui_object_has_modifications(NWAMUI_OBJECT(wifi)) ) {
             g_error("Object shouldn't have modifications");
         }
         g_object_unref(G_OBJECT(wifi));

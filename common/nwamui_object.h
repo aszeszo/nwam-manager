@@ -72,11 +72,19 @@ struct _NwamuiObjectClass
     gboolean (*get_enabled)(NwamuiObject *object);
     void (*set_enabled)(NwamuiObject *object, gboolean enabled);
     nwam_state_t (*get_nwam_state)(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string);
+    void (*set_nwam_state)(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state);
+    gint (*sort)(NwamuiObject *object, NwamuiObject *other, guint sort_by);
     gboolean (*commit)(NwamuiObject *object);
     void (*reload)(NwamuiObject *object);
     gboolean (*destroy)(NwamuiObject *object);
     gboolean (*is_modifiable)(NwamuiObject *object);
+    gboolean (*has_modifications)(NwamuiObject *object);
     NwamuiObject *(*clone)(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
+};
+
+enum {
+    NWAMUI_OBJECT_SORT_BY_NAME = 0,
+    NWAMUI_OBJECT_SORT_BY_GROUP,
 };
 
 extern GType               nwamui_object_get_type (void) G_GNUC_CONST;
@@ -95,10 +103,13 @@ extern gboolean      nwamui_object_get_enabled(NwamuiObject *object);
 extern void          nwamui_object_set_enabled(NwamuiObject *object, gboolean enabled);
 extern nwam_state_t  nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string);
 extern void          nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state);
+extern gint          nwamui_object_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by);
+extern gint          nwamui_object_sort_by_name(NwamuiObject *object, NwamuiObject *other);
 extern gboolean      nwamui_object_commit(NwamuiObject *object);
 extern void          nwamui_object_reload(NwamuiObject *object);
 extern gboolean      nwamui_object_destroy(NwamuiObject *object);
 extern gboolean      nwamui_object_is_modifiable(NwamuiObject *object);
+extern gboolean      nwamui_object_has_modifications(NwamuiObject *object);
 extern NwamuiObject* nwamui_object_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 
 G_END_DECLS

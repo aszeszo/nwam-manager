@@ -582,9 +582,8 @@ nwamui_daemon_get_property (GObject         *object,
                 g_value_set_pointer( value, nwamui_util_copy_obj_list( self->prv->managed_list[MANAGED_NCP] ) );
             }
             break;
-        case PROP_STATUS: {
-                g_value_set_int(value, self->prv->status);
-            }
+        case PROP_STATUS:
+            g_value_set_int(value, nwamui_daemon_get_status(self));
             break;
         case PROP_WIFI_FAV: {
                 GList *wifi_fav = NULL;
@@ -713,15 +712,9 @@ nwamui_daemon_get_instance (void)
 extern nwamui_daemon_status_t
 nwamui_daemon_get_status( NwamuiDaemon* self )
 {
-    nwamui_daemon_status_t status = NWAMUI_DAEMON_STATUS_UNINITIALIZED;
+    g_return_val_if_fail(NWAMUI_IS_DAEMON(self), NWAMUI_DAEMON_STATUS_UNINITIALIZED);
 
-    g_return_val_if_fail (NWAMUI_IS_DAEMON (self), status );
-
-    g_object_get (G_OBJECT (self),
-                  "status", &status,
-                  NULL);
-
-    return( status );
+    return self->prv->status;
 }
 
 /**
@@ -744,45 +737,30 @@ nwamui_daemon_set_status( NwamuiDaemon* self, nwamui_daemon_status_t status )
     }
 }
 
-static gboolean
-trigger_scan_if_wireless(  GtkTreeModel *model,
-                           GtkTreePath *path,
-                           GtkTreeIter *iter,
-                           gpointer data)
+static void
+trigger_scan_if_wireless(gpointer data, gpointer user_data)
 {
-	NwamuiNcu *ncu = NULL;
+	NwamuiNcu *ncu = data;
 	gchar *name = NULL;
-	
-  	gtk_tree_model_get(model, iter, 0, &ncu, -1);
 
-    if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
-        return( FALSE );
-    }
-    g_assert( NWAMUI_IS_NCU(ncu) );
+    g_return_if_fail(NWAMUI_IS_NCU(ncu));
     
 	name = nwamui_ncu_get_device_name (ncu);
 
     g_debug("i/f %s  = %s (%d)", name,  
-            nwamui_ncu_get_ncu_type (ncu) == NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Wired", nwamui_ncu_get_ncu_type (ncu));
+      nwamui_ncu_get_ncu_type (ncu) == NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Wired", nwamui_ncu_get_ncu_type (ncu));
 
 	if (nwamui_ncu_get_ncu_type (ncu) != NWAMUI_NCU_TYPE_WIRELESS ) {
-        g_object_unref( ncu );
         g_free (name);
-        return( FALSE );
+        return;
 	}
-
 
     if ( name != NULL ) {
         g_debug("calling nwam_wlan_scan( %s )", name );
         nwam_wlan_scan( name );
     }
-    g_free (name);
-    
-    g_object_unref( ncu );
-    
-    return( FALSE );
+    g_free (name);    
 }
-
 
 /**
  * nwamui_daemon_wifi_start_scan:
@@ -797,16 +775,13 @@ trigger_scan_if_wireless(  GtkTreeModel *model,
 extern void 
 nwamui_daemon_wifi_start_scan(NwamuiDaemon *self) 
 {
-    NwamuiObject *ncp;
-    
-    g_debug("Wireless Scan initiated");
- 
-    ncp = nwamui_daemon_get_active_ncp (self);
+    NwamuiDaemonPrivate *prv      = NWAMUI_DAEMON_GET_PRIVATE(self);
 
-    if ( ncp != NULL ) {
-        self->prv->emit_wlan_changed_signals = TRUE;
-        nwamui_ncp_foreach_ncu (NWAMUI_NCP(ncp), trigger_scan_if_wireless, NULL);
-        g_object_unref(ncp);
+    g_debug("Wireless Scan initiated");
+
+    if (prv->active_ncp != NULL) {
+        prv->emit_wlan_changed_signals = TRUE;
+        nwamui_ncp_foreach_ncu(NWAMUI_NCP(prv->active_ncp), trigger_scan_if_wireless, NULL);
     }
 }
 
@@ -816,37 +791,28 @@ typedef struct {
 }
 find_wifi_net_info_t;
 
-static gboolean
-find_wifi_net(  GtkTreeModel *model,
-                           GtkTreePath *path,
-                           GtkTreeIter *iter,
-                           gpointer data)
+static gint
+find_wifi_net(gconstpointer data, gconstpointer user_data)
 {
-	NwamuiNcu              *ncu = NULL;
+	NwamuiNcu              *ncu = (NwamuiNcu *) data;
     NwamuiWifiNet          *wifi = NULL;
-    find_wifi_net_info_t   *find_info_p = (find_wifi_net_info_t*)data;
+    find_wifi_net_info_t   *find_info_p = (find_wifi_net_info_t*)user_data;
 	
-  	gtk_tree_model_get(model, iter, 0, &ncu, -1);
-
     if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) || find_info_p == NULL ) {
-        return( FALSE );
+        return 1;
     }
-    g_assert( NWAMUI_IS_NCU(ncu) );
     
 	if (nwamui_ncu_get_ncu_type (ncu) != NWAMUI_NCU_TYPE_WIRELESS ) {
-        g_object_unref( ncu );
-        return( FALSE );
+        return 1;
 	}
     
     wifi = nwamui_ncu_wifi_hash_lookup_by_essid( ncu, find_info_p->essid );
 
     if ( wifi != NULL ) {
         find_info_p->wifi_net = wifi;
+        return 0;
     }
-    
-    g_object_unref( ncu );
-    
-    return( find_info_p->wifi_net != NULL );
+    return 1;
 }
 
 /**
@@ -858,17 +824,14 @@ find_wifi_net(  GtkTreeModel *model,
 static NwamuiWifiNet*
 nwamui_daemon_find_wifi_net_in_ncus( NwamuiDaemon *self, const gchar* essid )
 {
-    NwamuiObject         *ncp;
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
     find_wifi_net_info_t  find_info;
     
-    ncp = nwamui_daemon_get_active_ncp (self);
-
-    if ( ncp != NULL ) {
+    if (prv->active_ncp != NULL) {
         find_info.essid = essid;
         find_info.wifi_net = NULL;
 
-        nwamui_ncp_foreach_ncu(NWAMUI_NCP(ncp), find_wifi_net, (gpointer)&find_info );
-        g_object_unref(ncp);
+        nwamui_ncp_find_ncu(NWAMUI_NCP(prv->active_ncp), find_wifi_net, (gpointer)&find_info );
     }
 
     return( find_info.wifi_net );
@@ -1610,11 +1573,11 @@ nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list )
              item = g_list_next( item ) ) {
             GList* found_item = NULL;
             
-            if ( (found_item = g_list_find_custom( old_copy, item->data, (GCompareFunc)nwamui_wifi_net_compare )) != NULL ) {
+            if ( (found_item = g_list_find_custom( old_copy, item->data, (GCompareFunc)nwamui_object_sort_by_name)) != NULL ) {
                 /* Same */
                 gboolean committed = TRUE;
 
-                if ( nwamui_wifi_net_has_modifications( NWAMUI_WIFI_NET( found_item->data ) ) ) {
+                if ( nwamui_object_has_modifications( NWAMUI_OBJECT( found_item->data ) ) ) {
                     /* Commit first */
                     committed = nwamui_object_commit( NWAMUI_OBJECT( found_item->data ) );
                 }
@@ -1746,33 +1709,12 @@ nwamui_daemon_commit_changed_objects( NwamuiObject *object)
          rval && ncp_item != NULL; 
          ncp_item = g_list_next( ncp_item ) ) {
         NwamuiNcp*   ncp      = NWAMUI_NCP(ncp_item->data);
-        const gchar* ncp_name = nwamui_object_get_name(NWAMUI_OBJECT(ncp));
 
-        if (nwamui_object_is_modifiable(NWAMUI_OBJECT(ncp))) {
-            nwamui_debug("NCP : %s modifiable", ncp_name );
-            for( GList* ncu_item = g_list_first(nwamui_ncp_get_ncu_list( NWAMUI_NCP(ncp) ) ); 
-                 rval && ncu_item != NULL; 
-                 ncu_item = g_list_next( ncu_item ) ) {
-                NwamuiNcu*   ncu      = NWAMUI_NCU(ncu_item->data);
-                const gchar* ncu_name = nwamui_ncu_get_display_name( ncu );
+        rval = nwamui_object_commit(NWAMUI_OBJECT(ncp));
 
-                if ( nwamui_ncu_has_modifications( ncu ) ) {
-                    nwamui_debug("Going to commit changes for %s : %s", ncp_name, ncu_name );
-                    if ( !nwamui_object_commit(NWAMUI_OBJECT(ncu)) ) {
-                        nwamui_debug("Commit FAILED for %s : %s", ncp_name, ncu_name );
-                        rval = FALSE;
-                        break;
-                    }
-                }
-                else {
-                    nwamui_debug("No changes for %s : %s", ncp_name, ncu_name );
-                }
-            }
+        if (!rval) {
+            break;
         }
-        else {
-            nwamui_debug("NCP : %s read-only", ncp_name );
-        }
-
     }
     return( rval );
 }
@@ -1977,24 +1919,15 @@ dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  ui
 }
 
 
-static gboolean
-dispatch_scan_results_if_wireless(  GtkTreeModel *model,
-                                    GtkTreePath *path,
-                                    GtkTreeIter *iter,
-                                    gpointer data)
+static void
+dispatch_scan_results_if_wireless(gpointer data, gpointer user_data)
 {
-    NwamuiDaemon   *daemon = NWAMUI_DAEMON(data);
-	NwamuiNcu      *ncu = NULL;
-	
-  	gtk_tree_model_get(model, iter, 0, &ncu, -1);
+    NwamuiDaemon   *daemon = NWAMUI_DAEMON(user_data);
+	NwamuiNcu      *ncu = data;
 
-    if ( ncu == NULL || !NWAMUI_IS_NCU(ncu) ) {
-        return( FALSE );
-    }
-
-    g_assert( NWAMUI_IS_NCU(ncu) );
+    g_return_if_fail(NWAMUI_IS_NCU(ncu));
     
-    if ( ncu != NULL ) {
+    {
         uint_t          nwlan = 0;
         nwam_wlan_t    *wlans = NULL;
         nwam_error_t    nerr;
@@ -2019,30 +1952,23 @@ dispatch_scan_results_if_wireless(  GtkTreeModel *model,
         else {
             nwamui_debug("Failed to get device name for ncu %08X", ncu );
         }
-
-        g_object_unref( ncu );
     }
-    
-    return( FALSE );
 }
 
 
 extern void
 nwamui_daemon_dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon )
 {
-    NwamuiObject              *ncp;
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(daemon);
     
     g_debug("Dispatch wifi scan events from cache called");
  
-    ncp = nwamui_daemon_get_active_ncp (daemon);
-
-    if ( ncp != NULL && nwamui_ncp_get_wireless_link_num(NWAMUI_NCP(ncp)) > 0 ) {
+    if (prv->active_ncp != NULL && nwamui_ncp_get_wireless_link_num(NWAMUI_NCP(prv->active_ncp)) > 0 ) {
         daemon->prv->emit_wlan_changed_signals = TRUE;
 
         nwamui_daemon_emit_scan_started_event( daemon );
 
-        nwamui_ncp_foreach_ncu (NWAMUI_NCP(ncp), dispatch_scan_results_if_wireless, (gpointer)daemon);
-        g_object_unref(ncp);
+        nwamui_ncp_foreach_ncu(NWAMUI_NCP(prv->active_ncp), dispatch_scan_results_if_wireless, (gpointer)daemon);
 
         nwamui_daemon_emit_scan_end_of_results( daemon );
     }
@@ -2377,7 +2303,10 @@ nwamd_event_handler(gpointer data)
             /* Re-evaluate status since a change in the priority group
              * means that the status could be different.
              */
-            nwamui_daemon_update_status( daemon );
+            /* I think a change of ncp prior group can't change the state of
+             * daemon, but probably the sequent object events do.
+             */
+            /* nwamui_daemon_update_status(daemon); */
         }
             break;
         case NWAM_EVENT_TYPE_IF_STATE: {
@@ -2408,7 +2337,7 @@ nwamd_event_handler(gpointer data)
             break;
 
 		case NWAM_EVENT_TYPE_LINK_ACTION: {
-            NwamuiObject* ncp    = nwamui_daemon_get_active_ncp( daemon );
+            NwamuiObject* ncp    = prv->active_ncp;
             nwam_action_t action = nwamevent->nwe_data.nwe_link_action.nwe_action;
             const gchar*  name   = nwamevent->nwe_data.nwe_link_action.nwe_name;
 
@@ -2432,9 +2361,6 @@ nwamd_event_handler(gpointer data)
                   nwamevent->nwe_data.nwe_link_action.nwe_name,
                   nwam_action_to_string(nwamevent->nwe_data.nwe_link_action.nwe_action));
                 break;
-            }
-            if ( ncp ) {
-                g_object_unref(G_OBJECT(ncp));
             }
         }
             break;
@@ -2944,19 +2870,19 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         }
             break;
         case NWAM_ACTION_DISABLE: {
-            if ( !nwamui_ncu_has_modifications(NWAMUI_NCU(ncu)) ) {
+            if ( !nwamui_object_has_modifications(ncu) ) {
                 nwamui_object_reload(ncu);
             }
         }
             break;
         case NWAM_ACTION_ENABLE: {
-            if ( !nwamui_ncu_has_modifications(NWAMUI_NCU(ncu)) ) {
+            if ( !nwamui_object_has_modifications(ncu) ) {
                 nwamui_object_reload(ncu);
             }
         }
             break;
         case NWAM_ACTION_REFRESH: {
-            if ( !nwamui_ncu_has_modifications(NWAMUI_NCU(ncu)) ) {
+            if ( !nwamui_object_has_modifications(ncu) ) {
                 nwamui_object_reload(ncu);
             }
         }
@@ -3041,19 +2967,19 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         }
             break;
         case NWAM_ACTION_DISABLE: {
-            if (!nwamui_enm_has_modifications(NWAMUI_ENM(enm))) {
+            if (!nwamui_object_has_modifications(enm)) {
                 nwamui_object_reload(enm);
             }
         }
             break;
         case NWAM_ACTION_ENABLE: {
-            if (!nwamui_enm_has_modifications(NWAMUI_ENM(enm))) {
+            if (!nwamui_object_has_modifications(enm)) {
                 nwamui_object_reload(enm);
             }
         }
             break;
         case NWAM_ACTION_REFRESH: {
-            if (!nwamui_enm_has_modifications(NWAMUI_ENM(enm))) {
+            if (!nwamui_object_has_modifications(enm)) {
                 nwamui_object_reload(enm);
             }
         }
