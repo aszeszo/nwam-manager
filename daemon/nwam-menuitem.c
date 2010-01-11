@@ -69,6 +69,7 @@ static void nwam_menu_item_parent_set(GtkWidget *widget,
 static void default_connect_object(NwamMenuItem *self, GObject *object);
 static void default_disconnect_object(NwamMenuItem *self, GObject *object);
 static void default_sync_object(NwamMenuItem *self, GObject *object, gpointer user_data);
+static void default_reset(NwamMenuItem *self);
 static gint default_compare(NwamMenuItem *self, NwamMenuItem *other);
 
 /* Callbacks */
@@ -144,6 +145,7 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
     klass->connect_object = default_connect_object;
     klass->disconnect_object = default_disconnect_object;
     klass->sync_object = default_sync_object;
+    klass->reset = default_reset;
     klass->compare = default_compare;
 
 	g_type_class_add_private (klass, sizeof (NwamMenuItemPrivate));
@@ -209,7 +211,6 @@ nwam_menu_item_init (NwamMenuItem *self)
     g_signal_connect(prv->prof, "notify::ui-auth", G_CALLBACK(prof_ui_auth), (gpointer) self);
     g_signal_connect(G_OBJECT(self), "notify::sensitive", (GCallback)nwam_menuitem_notify_sensitive, NULL);
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)nwam_menuitem_notify_cb, NULL);
-
 }
 
 static void
@@ -300,7 +301,8 @@ nwam_menu_item_forall (GtkContainer   *container,
     }
 }
 
-static void nwam_menu_item_parent_set(GtkWidget *widget,
+static void
+nwam_menu_item_parent_set(GtkWidget *widget,
   GtkObject *old_parent,
   gpointer   user_data)
 {
@@ -327,6 +329,12 @@ default_disconnect_object(NwamMenuItem *self, GObject *object)
 
 static void
 default_sync_object(NwamMenuItem *self, GObject *object, gpointer user_data)
+{
+    g_warning("%s not implemented", __func__);
+}
+
+static void
+default_reset(NwamMenuItem *self)
 {
     g_warning("%s not implemented", __func__);
 }
@@ -419,8 +427,8 @@ nwam_menu_item_set_proxy(NwamMenuItem *self, GObject *object)
             /* Initializing */
             NWAM_MENU_ITEM_GET_CLASS(self)->sync_object(self, prv->object, NULL);
         } else {
-            /* Todo reset all. */
-            default_sync_object(self, NULL, NULL);
+            /* Reset all. */
+            NWAM_MENU_ITEM_GET_CLASS(self)->reset(self);
         }
     }
 }
@@ -915,8 +923,10 @@ nwam_menuitem_notify_sensitive(GObject *gobject, GParamSpec *arg1, gpointer data
 {
     NwamMenuItemPrivate *prv = NWAM_MENU_ITEM_GET_PRIVATE(gobject);
 
-    gtk_widget_set_sensitive(GTK_WIDGET(gobject),
-      GTK_WIDGET_IS_SENSITIVE(gobject) && (prv->required_auth == 0 || nwamui_prof_check_ui_auth(prv->prof, prv->required_auth)));
+    if (prv->object) {
+        gtk_widget_set_sensitive(GTK_WIDGET(gobject),
+          GTK_WIDGET_IS_SENSITIVE(gobject) && (prv->required_auth == 0 || nwamui_prof_check_ui_auth(prv->prof, prv->required_auth)));
+    }
 }
 
 static void

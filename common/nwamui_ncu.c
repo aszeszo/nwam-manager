@@ -97,7 +97,6 @@ struct _NwamuiNcuPrivate {
     /* For caching link state */
     nwam_state_t     link_state;
     nwam_aux_state_t link_aux_state;
-    time_t           link_state_last_update;
 
     /* For caching gui connection state */
     nwamui_connection_state_t connection_state;
@@ -126,7 +125,6 @@ enum {
         PROP_IPV6_DEFAULT_ROUTE,
         PROP_V6ADDRESSES,
         PROP_WIFI_INFO,
-        PROP_ENABLED,
         PROP_PRIORITY_GROUP,
         PROP_PRIORITY_GROUP_MODE
 };
@@ -407,14 +405,6 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
                                                           G_PARAM_READWRITE));
     
     g_object_class_install_property (gobject_class,
-                                     PROP_ENABLED,
-                                     g_param_spec_boolean ("enabled",
-                                                          _("enabled"),
-                                                          _("enabled"),
-                                                          FALSE,
-                                                          G_PARAM_READWRITE));
-
-    g_object_class_install_property (gobject_class,
                                      PROP_PRIORITY_GROUP,
                                      g_param_spec_uint ("priority_group",
                                                        _("priority_group"),
@@ -445,34 +435,15 @@ nwamui_ncu_init (NwamuiNcu *self)
 
     prv->initialisation = TRUE;
 
-    prv->nwam_ncu_phys = NULL;
-    prv->nwam_ncu_phys_modified = FALSE;
-
-    prv->nwam_ncu_ip = NULL;
-    prv->nwam_ncu_ip_modified = FALSE;
-
-#ifdef TUNNEL_SUPPORT
-    prv->nwam_ncu_iptun = NULL;
-    prv->nwam_ncu_iptun_modified = FALSE;
-#endif /* TUNNEL_SUPPORT */
-
-    prv->vanity_name = NULL;
-    prv->device_name = NULL;
     prv->ncu_type = NWAMUI_NCU_TYPE_WIRED;
-    prv->enabled = FALSE;
-    prv->active = FALSE;
-    prv->ipv4_active = FALSE;
-    prv->ipv4_has_dhcp = FALSE;
-    prv->ipv4_dhcp_ip = NULL;
-    prv->ipv4_primary_static_ip = NULL;
     prv->v4addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
 
-    prv->ipv6_active = FALSE;
     prv->ipv6_has_dhcp = TRUE; /* Always assume present, since it is in Phase 1 */
     prv->ipv6_has_auto_conf = TRUE; /* Always assume present, since it is in Phase 1 */
-    prv->ipv6_primary_static_ip = NULL;
     prv->v6addresses = gtk_list_store_new ( 1, NWAMUI_TYPE_IP);
-    prv->wifi_info = NULL;
+
+    prv->link_state = NWAM_STATE_UNINITIALIZED;
+    prv->link_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
     /* Create WifiNet cache */
     prv->wifi_hash_table = g_hash_table_new_full(  g_str_hash, g_str_equal,
@@ -621,12 +592,6 @@ nwamui_ncu_set_property ( GObject         *object,
             break;
         case PROP_WIFI_INFO:
             nwamui_ncu_set_wifi_info(self, NWAMUI_WIFI_NET(g_value_get_object(value)));
-            break;
-
-        case PROP_ENABLED: {
-                self->prv->enabled = g_value_get_boolean( value );
-                set_modified_flag( self, NWAM_NCU_CLASS_PHYS, TRUE );
-            }
             break;
 
         case PROP_PRIORITY_GROUP: {
@@ -805,11 +770,6 @@ nwamui_ncu_get_property (GObject         *object,
             }
             break;
 
-        case PROP_ENABLED: {
-                g_value_set_boolean( value, self->prv->enabled );
-            }
-            break;
-
         case PROP_PRIORITY_GROUP: {
                 g_value_set_uint( value, (guint)get_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys,
                                                       NWAM_NCU_PROP_PRIORITY_GROUP ) );
@@ -893,16 +853,14 @@ populate_common_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 
     ncu_type = get_if_type( name );
 
+    nwamui_object_set_name(NWAMUI_OBJECT(ncu), name);
+
     g_object_set( ncu,
-                  "device_name", name,
-                  "name", name,
-                  "ncu_type", ncu_type,
-                  NULL);
+      "device_name", name,
+      "ncu_type", ncu_type,
+      NULL);
 
     free(name);
-
-    /* Tell GUI to refresh */
-    g_object_notify(G_OBJECT(ncu), "activation-mode");
 }
 
 #ifdef TUNNEL_SUPPORT
@@ -1429,7 +1387,7 @@ nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
                                     "ncp", ncp,
                                     NULL));
 
-    nwamui_object_set_handle(NWAMUI_OBJECT(self), ncu);
+    nwamui_object_real_set_handle(NWAMUI_OBJECT(self), ncu);
 
     self->prv->initialisation = FALSE;
 
@@ -1482,7 +1440,7 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
 		    }
         }
         if ( nwam_ncu_phys != NULL ) {
-            nwamui_object_set_handle(NWAMUI_OBJECT(new), nwam_ncu_phys);
+            nwamui_object_real_set_handle(NWAMUI_OBJECT(new), nwam_ncu_phys);
             set_modified_flag( new, NWAM_NCU_CLASS_PHYS, TRUE );
         }
     }
@@ -1505,7 +1463,7 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
 	    	}
         }
         if ( nwam_ncu_ip != NULL ) {
-            nwamui_object_set_handle(NWAMUI_OBJECT(new), nwam_ncu_ip);
+            nwamui_object_real_set_handle(NWAMUI_OBJECT(new), nwam_ncu_ip);
             set_modified_flag( new, NWAM_NCU_CLASS_IP, TRUE );
         }
     }
@@ -1529,7 +1487,7 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
 	    	}
         }
         if ( nwam_ncu_iptun != NULL ) {
-            nwamui_object_set_handle(NWAMUI_OBJECT(new), nwam_ncu_iptun);
+            nwamui_object_real_set_handle(NWAMUI_OBJECT(new), nwam_ncu_iptun);
             set_modified_flag( new, NWAM_NCU_CLASS_IPTUN, TRUE );
         }
     }
@@ -1573,28 +1531,42 @@ nwamui_object_real_is_modifiable(NwamuiObject *object)
 static void
 nwamui_object_real_reload( NwamuiObject *object )
 {
-    NwamuiNcu *self = NWAMUI_NCU(object);
+    NwamuiNcuPrivate *prv  = NWAMUI_NCU_GET_PRIVATE(object);
+    NwamuiNcu        *self = NWAMUI_NCU(object);
+
     g_return_if_fail( NWAMUI_IS_NCU(self) );
 
     /* nwamui_object_set_handle will cause re-read from configuration */
     g_object_freeze_notify(G_OBJECT(self));
 
-    if ( self->prv->nwam_ncu_phys != NULL ) {
-        g_debug("Reverting NCU PHYS for %s", self->prv->device_name);
-        nwamui_object_set_handle(NWAMUI_OBJECT(self), self->prv->nwam_ncu_phys);
+    if ( prv->nwam_ncu_phys != NULL ) {
+        gboolean            enabled;
+
+        g_debug("Reverting NCU PHYS for %s", prv->device_name);
+
+        enabled = get_nwam_ncu_boolean_prop( prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
+
+        if ( enabled != prv->enabled ) {
+            prv->enabled = enabled;
+            g_object_notify(G_OBJECT(object), "enabled" );
+        }
     }
 
-    if ( self->prv->nwam_ncu_ip != NULL ) {
-        g_debug("Reverting NCU IP for %s", self->prv->device_name);
-        nwamui_object_set_handle(NWAMUI_OBJECT(self), self->prv->nwam_ncu_ip);
+    if ( prv->nwam_ncu_ip != NULL ) {
+        g_debug("Reverting NCU IP for %s", prv->device_name);
+
+        populate_ip_ncu_data( self, prv->nwam_ncu_ip );
     }
 
 #ifdef TUNNEL_SUPPORT
-    if ( self->prv->nwam_ncu_iptun != NULL ) {
-        g_debug("Reverting NCU IPTUN for %s", self->prv->device_name);
-        nwamui_object_set_handle(NWAMUI_OBJECT(self), self->prv->nwam_ncu_iptun);
+    if ( prv->nwam_ncu_iptun != NULL ) {
+        g_debug("Reverting NCU IPTUN for %s", prv->device_name);
+        populate_iptun_ncu_data( self, prv->nwam_ncu_iptun );
     }
 #endif /* TUNNEL_SUPPORT */
+
+    /* Tell GUI to refresh */
+    g_object_notify(G_OBJECT(self), "activation-mode");
 
     g_object_thaw_notify(G_OBJECT(self));
 }
@@ -1849,13 +1821,17 @@ nwamui_object_real_destroy( NwamuiObject *object )
     return( TRUE );
 }
 
+/**
+ * nwamui_object_real_set_handle:
+ * This function will be called two time by NCP for link/interface object.
+ */
 static void
 nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
 {
-    NwamuiNcuPrivate  *prv  = NWAMUI_NCU_GET_PRIVATE(object);
-    NwamuiNcu         *self = NWAMUI_NCU(object);
-    nwam_ncu_handle_t  ncu  = handle;
-    nwam_ncu_class_t   ncu_class;
+    NwamuiNcuPrivate        *prv  = NWAMUI_NCU_GET_PRIVATE(object);
+    NwamuiNcu               *self = NWAMUI_NCU(object);
+    const nwam_ncu_handle_t  ncu  = handle;
+    nwam_ncu_class_t         ncu_class;
     
     g_assert(NWAMUI_IS_NCU(object));
 
@@ -1870,7 +1846,6 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
         case NWAM_NCU_CLASS_PHYS: {
                 /* CLASS PHYS is of type LINK, so has LINK props */
                 nwam_ncu_handle_t   ncu_handle;
-                gboolean            enabled;
 
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_LINK );
 
@@ -1880,21 +1855,15 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
                     }
 
                     prv->nwam_ncu_phys = ncu_handle;
-                }
-                else {
+                } else {
                     prv->nwam_ncu_phys = ncu;
-                }
-
-                enabled = get_nwam_ncu_boolean_prop( prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
-                if ( enabled != prv->enabled ) {
-                    g_object_notify(G_OBJECT(object), "enabled" );
-                    prv->enabled = enabled;
                 }
             }
             break;
 #ifdef TUNNEL_SUPPORT
         case NWAM_NCU_CLASS_IPTUN: {
                 nwam_ncu_handle_t   ncu_handle;
+
                 ncu_handle = get_nwam_ncu_handle( self, NWAM_NCU_TYPE_INTERFACE );
 
                 if ( ncu_handle != NULL ) {
@@ -1903,11 +1872,9 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
                     }
 
                     prv->nwam_ncu_iptun = ncu_handle;
-                }
-                else {
+                } else {
                     prv->nwam_ncu_iptun = ncu;
                 }
-                populate_iptun_ncu_data( self, prv->nwam_ncu_iptun );
             }
             break;
 #endif /* TUNNEL_SUPPORT */
@@ -1922,17 +1889,17 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
                     }
 
                     prv->nwam_ncu_ip = ncu_handle;
-                }
-                else {
+                } else {
                     prv->nwam_ncu_ip = ncu;
                 }
-                populate_ip_ncu_data( self, prv->nwam_ncu_ip );
             }
             break;
         default:
             g_error("Unexpected ncu class %u", (guint)ncu_class);
     }
-    
+
+    nwamui_object_real_reload(object);
+
     g_object_thaw_notify( G_OBJECT(object) );
 
     prv->initialisation = FALSE;
@@ -2932,7 +2899,7 @@ nwamui_object_real_set_activation_mode (NwamuiObject *object, gint activation_mo
     nwam_error_t    nerr;
 
     g_return_if_fail (NWAMUI_IS_NCU (self));
-    g_assert (activation_mode >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && activation_mode <= NWAMUI_COND_ACTIVATION_MODE_LAST );
+    g_assert (activation_mode >= NWAMUI_COND_ACTIVATION_MODE_MANUAL && activation_mode < NWAMUI_COND_ACTIVATION_MODE_LAST );
 
     switch (activation_mode) {
     case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
@@ -2963,7 +2930,6 @@ nwamui_object_real_set_activation_mode (NwamuiObject *object, gint activation_mo
 
         /* Must update enabled flag. */
         self->prv->enabled = TRUE;
-        set_nwam_ncu_uint64_prop( self->prv->nwam_ncu_phys, NWAM_NCU_PROP_ACTIVATION_MODE, (guint64)activation_mode );
         break;
     default:
         break;
@@ -3004,9 +2970,11 @@ nwamui_object_real_set_enabled(NwamuiObject *object, gboolean enabled)
     NwamuiNcu *self = NWAMUI_NCU(object);
     g_return_if_fail (NWAMUI_IS_NCU (self));
 
-    g_object_set (G_OBJECT (self),
-                  "enabled", enabled,
-                  NULL);
+    if (self->prv->enabled != enabled) {
+        self->prv->enabled = enabled;
+        g_object_notify(G_OBJECT(object), "enabled" );
+        set_modified_flag( self, NWAM_NCU_CLASS_PHYS, TRUE );
+    }
 }
 
 /**
@@ -3019,15 +2987,10 @@ static gboolean
 nwamui_object_real_get_enabled (NwamuiObject *object)
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
-    gboolean  enabled = FALSE; 
 
-    g_return_val_if_fail (NWAMUI_IS_NCU (self), enabled);
+    g_return_val_if_fail (NWAMUI_IS_NCU(self), FALSE);
 
-    g_object_get (G_OBJECT (self),
-                  "enabled", &enabled,
-                  NULL);
-
-    return( enabled );
+    return self->prv->enabled;
 }
 
 /** 
@@ -3233,6 +3196,16 @@ nwamui_ncu_wifi_hash_remove_wifi_net( NwamuiNcu     *self,
     return(rval);
 }
 
+extern void
+nwamui_ncu_wifi_hash_foreach(NwamuiNcu *self, GHFunc func, gpointer user_data)
+{
+    NwamuiNcuPrivate              *prv  = NWAMUI_NCU_GET_PRIVATE(self);
+
+    g_return_if_fail(NWAMUI_IS_NCU(self));
+
+    g_hash_table_foreach(prv->wifi_hash_table, func, user_data);
+}
+
 /**
  * nwamui_ncu_get_priority_group_mode:
  * @nwamui_ncu: a #NwamuiNcu.
@@ -3320,73 +3293,28 @@ extern nwam_state_t
 nwamui_ncu_get_link_nwam_state(NwamuiNcu *self, nwam_aux_state_t* aux_state, const gchar**aux_state_string)
 {
     NwamuiNcuPrivate *prv      = NWAMUI_NCU_GET_PRIVATE(self);
-    nwam_state_t      _state     = NWAM_STATE_UNINITIALIZED;
-    nwam_aux_state_t  _aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-    time_t            _elapsed_time;
-    time_t            _current_time;
 
-    g_return_val_if_fail (NWAMUI_IS_NCU (self), _state);
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), NWAM_STATE_UNINITIALIZED);
 
-    _state = prv->link_state;
-    _aux_state = prv->link_aux_state;
-
-    if ( aux_state ) {
-        *aux_state = _aux_state;
-    }
-
-    if ( aux_state_string ) {
-        *aux_state_string = (const gchar*)nwam_aux_state_to_string( _aux_state );
-    }
-
-
-    _current_time = time( NULL );;
-
-    _elapsed_time = _current_time - prv->link_state_last_update;
-
-    if ( _elapsed_time > 60 ) {
-        gboolean state_changed = FALSE;
-
+    /* Initializing link state, important for initially show panel icon. */
+    if (prv->link_state == NWAM_STATE_UNINITIALIZED && prv->link_aux_state == NWAM_AUX_STATE_UNINITIALIZED) {
         if ( prv->nwam_ncu_phys ) {
-            if ( nwam_ncu_get_state( prv->nwam_ncu_phys, &_state, &_aux_state ) == NWAM_SUCCESS ) {
+            if ( nwam_ncu_get_state(prv->nwam_ncu_phys, &prv->link_state, &prv->link_aux_state) == NWAM_SUCCESS ) {
+            } else {
+                prv->link_state = NWAM_STATE_UNINITIALIZED;
+                prv->link_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
             }
         }
-
-        if ( _state != prv->link_state ) {
-            state_changed = TRUE;
-        }
-        if ( _aux_state != prv->link_aux_state ) {
-            state_changed = TRUE;
-        }
-
-        /* Update internal cache */
-        prv->link_state = _state;
-        prv->link_aux_state = _aux_state;
-        prv->link_state_last_update = _current_time;
-
-        if ( state_changed ) {
-            g_object_notify(G_OBJECT(self), "nwam_state" );
-        }
-
-        /* Active property is likely to have changed too, but first check if there
-         * is a get_active function, if so the active property should exist. */
-        /* For NCUs, only care cache_index == 0. Compatible to ENV, ENM, etc. */
-        if ( state_changed ) {
-            g_object_notify(G_OBJECT(self), "active" );
-        }
-    }
-    else {
-        _state = prv->link_state;
-        _aux_state = prv->link_aux_state;
     }
 
     if ( aux_state ) {
-        *aux_state = _aux_state;
+        *aux_state = prv->link_aux_state;
     }
     if ( aux_state_string ) {
-        *aux_state_string = (const gchar*)nwam_aux_state_to_string( _aux_state );
+        *aux_state_string = (const gchar*)nwam_aux_state_to_string(prv->link_aux_state);
     }
 
-    return( _state );
+    return prv->link_state;
 }
 
 extern void
@@ -3404,7 +3332,7 @@ nwamui_ncu_set_link_nwam_state(NwamuiNcu *self, nwam_state_t state, nwam_aux_sta
 
     prv->link_state = state;
     prv->link_aux_state = aux_state;
-    prv->link_state_last_update = time( NULL );;
+
     if ( state_changed ) {
 /*         g_object_notify(G_OBJECT(self), "nwam_state" ); */
     }

@@ -197,6 +197,8 @@ extern gboolean             nwamui_ncu_wifi_hash_remove_by_essid( NwamuiNcu     
 extern gboolean             nwamui_ncu_wifi_hash_remove_wifi_net( NwamuiNcu     *self, 
                                                                   NwamuiWifiNet *wifi_net );
 
+extern void                 nwamui_ncu_wifi_hash_foreach(NwamuiNcu *self, GHFunc func, gpointer user_data);
+
 extern nwamui_wifi_signal_strength_t nwamui_ncu_get_signal_strength_from_dladm( NwamuiNcu* self );
 
 extern const gchar*         nwamui_ncu_get_signal_strength_string( NwamuiNcu* self );

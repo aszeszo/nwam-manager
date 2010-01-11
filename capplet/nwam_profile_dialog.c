@@ -693,6 +693,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 
     if (force) {
         gtk_entry_set_text(GTK_ENTRY(prv->profile_name_entry), nwamui_object_get_name(refresh_ncp));
+        gtk_widget_set_sensitive(prv->profile_name_entry, nwamui_object_is_modifiable(refresh_ncp));
     }
 
     g_object_set(self, "selected_ncp", refresh_ncp, NULL);
@@ -726,18 +727,10 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 static gboolean
 cancel(NwamPrefIFace *iface, gpointer user_data)
 {
-    /* NwamProfileDialog        *self = NWAM_PROFILE_DIALOG( iface ); */
     NwamProfileDialogPrivate *prv  = GET_PRIVATE(iface);
-    NwamuiObject             *combo_object;
-    NwamuiObject             *user_ncp;
 
-#if 0
-    user_ncp = nwamui_daemon_get_ncp_by_name(prv->daemon, NWAM_NCP_NAME_USER);
-    if ( user_ncp ) {
-        nwamui_ncp_rollback( user_ncp );
-        g_object_unref(G_OBJECT(user_ncp));
-    }
-#endif
+    nwamui_object_reload(prv->selected_ncp);
+
     return(TRUE);
 }
 

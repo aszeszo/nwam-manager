@@ -184,8 +184,6 @@ static void check_nwamui_object_online_num( gpointer obj, gpointer user_data );
 
 static void nwamui_daemon_update_status( NwamuiDaemon   *daemon );
 
-static NwamuiNcu* nwamui_daemon_get_first_wireless_ncu( NwamuiDaemon *self );
-
 static gboolean nwamui_daemon_nwam_connect( gboolean block );
 static void     nwamui_daemon_nwam_disconnect( void );
 
@@ -424,10 +422,18 @@ nwamui_daemon_init (NwamuiDaemon *self)
         g_debug("Error creating nwam events thread: %s", (error && error->message)?error->message:"" );
     }
 
+    /* nwam_events_thread include the initial function call, so this is
+     * dup. Note capplet require this dup call because capplet doesn't handle
+     * daemon related info changes, e.g. NCP list changes, so it may lose info
+     * with this dup call.
+     */
     nwamui_daemon_init_lists ( self );
 }
 
-
+/**
+ * Do not populate fav/ wlan in this function call, because this function will
+ * be invoked two times at initilly time.
+ */
 static void
 nwamui_daemon_init_lists (NwamuiDaemon *self)
 {
@@ -453,7 +459,7 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
         for( GList* item = g_list_first( self->prv->temp_list ); 
              item != NULL;
              item = g_list_next( item ) ) {
-            nwamui_daemon_object_remove( self, NWAMUI_OBJECT(item->data));
+            nwamui_daemon_remove_object( self, NWAMUI_OBJECT(item->data));
         }
     }
 
@@ -481,7 +487,7 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
         for( GList* item = g_list_first( self->prv->temp_list ); 
              item != NULL;
              item = g_list_next( item ) ) {
-            nwamui_daemon_object_remove( self, NWAMUI_OBJECT(item->data));
+            nwamui_daemon_remove_object( self, NWAMUI_OBJECT(item->data));
         }
     }
 
@@ -499,12 +505,9 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
         for( GList* item = g_list_first( self->prv->temp_list ); 
              item != NULL;
              item = g_list_next( item ) ) {
-            nwamui_daemon_object_remove( self, NWAMUI_OBJECT(item->data));
+            nwamui_daemon_remove_object( self, NWAMUI_OBJECT(item->data));
         }
     }
-
-    /* Populate Wifi Favourites List */
-    nwamui_daemon_populate_wifi_fav_list( self );
 
     /* Will generate an event if status changes */
     nwamui_daemon_update_status(self);
@@ -740,26 +743,21 @@ nwamui_daemon_set_status( NwamuiDaemon* self, nwamui_daemon_status_t status )
 static void
 trigger_scan_if_wireless(gpointer data, gpointer user_data)
 {
-	NwamuiNcu *ncu = data;
-	gchar *name = NULL;
+	NwamuiNcu   *ncu = data;
+    const gchar *name;
 
     g_return_if_fail(NWAMUI_IS_NCU(ncu));
-    
-	name = nwamui_ncu_get_device_name (ncu);
 
-    g_debug("i/f %s  = %s (%d)", name,  
-      nwamui_ncu_get_ncu_type (ncu) == NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Wired", nwamui_ncu_get_ncu_type (ncu));
+    name = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
 
-	if (nwamui_ncu_get_ncu_type (ncu) != NWAMUI_NCU_TYPE_WIRELESS ) {
-        g_free (name);
-        return;
-	}
+    g_debug("i/f NCU %s  = %s (%d)", name,
+      nwamui_ncu_get_ncu_type (ncu) == NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Wired",
+      nwamui_ncu_get_ncu_type (ncu));
 
-    if ( name != NULL ) {
+	if (nwamui_ncu_get_ncu_type (ncu) == NWAMUI_NCU_TYPE_WIRELESS ) {
         g_debug("calling nwam_wlan_scan( %s )", name );
         nwam_wlan_scan( name );
-    }
-    g_free (name);    
+	}
 }
 
 /**
@@ -1061,7 +1059,7 @@ nwamui_daemon_get_ncp_list(NwamuiDaemon *self)
  *
  **/
 extern void
-nwamui_daemon_object_append(NwamuiDaemon *self, NwamuiObject* object) 
+nwamui_daemon_append_object(NwamuiDaemon *self, NwamuiObject* object) 
 {
     gint         idx;
     const gchar *notify_prop;
@@ -1087,7 +1085,7 @@ nwamui_daemon_object_append(NwamuiDaemon *self, NwamuiObject* object)
 }
 
 /**
- * nwamui_daemon_object_remove:
+ * nwamui_daemon_remove_object:
  * @self: NwamuiDaemon*
  * @ncp: #NwamuiObject to remove
  *
@@ -1095,7 +1093,7 @@ nwamui_daemon_object_append(NwamuiDaemon *self, NwamuiObject* object)
  *
  **/
 extern gboolean
-nwamui_daemon_object_remove(NwamuiDaemon *self, NwamuiObject* object)
+nwamui_daemon_remove_object(NwamuiDaemon *self, NwamuiObject* object)
 {
     gboolean     rval = FALSE;
     gint         idx;
@@ -2046,46 +2044,6 @@ nwamui_daemon_set_num_scanned_wifi(NwamuiDaemon* self,  gint num_scanned_wifi)
                   NULL); 
 }
 
-static NwamuiNcu*
-nwamui_daemon_get_first_wireless_ncu( NwamuiDaemon *self )
-{
-    NwamuiNcu              *wireless_ncu = NULL;
-    GList                  *wireless_ncus = NULL;
-    guint                   num_wireless;
-
-    /* Always use relative to the Automatic NCP since it will always be
-     * present and should be complete.
-     */
-    if ( self->prv->auto_ncp == NULL || (num_wireless = nwamui_ncp_get_wireless_link_num(self->prv->auto_ncp)) < 1 ) {
-        /* Nothing to do */
-        return( NULL );
-    }
-
-    wireless_ncus = nwamui_ncp_get_wireless_ncus( self->prv->auto_ncp );
-    if ( wireless_ncus == NULL ) {
-        nwamui_warning("Got unexpected empty wireless_ncu list, when num_wirelss = %d", num_wireless );
-        return( NULL );
-    }
-    else {
-        for ( GList *elem = g_list_first(wireless_ncus);
-              elem != NULL;
-              elem = g_list_next( elem ) ) {
-
-            if ( elem->data && NWAMUI_IS_NCU(elem->data) ) {
-                wireless_ncu = NWAMUI_NCU(g_object_ref(G_OBJECT(wireless_ncus->data)));
-                /* Just use the first one */
-                break;
-            }
-        }
-        /* Clean up list */
-        g_list_foreach( wireless_ncus, nwamui_util_obj_unref, NULL );
-        g_list_free( wireless_ncus );
-    }
-
-    return( wireless_ncu );
-}
-
-
 static void
 nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self )
 {
@@ -2101,7 +2059,7 @@ nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self )
         return;
     }
 
-    wireless_ncu = nwamui_daemon_get_first_wireless_ncu( self );
+    wireless_ncu = nwamui_ncp_get_first_wireless_ncu(self->prv->auto_ncp);
 
     if ( wireless_ncu == NULL ) {
         return;
@@ -2258,13 +2216,15 @@ nwamd_event_handler(gpointer data)
         nwamui_daemon_set_status(daemon, NWAMUI_DAEMON_STATUS_UNINITIALIZED);
 
 		/* Now repopulate data here */
-        nwamui_daemon_init_lists ( daemon );
+        nwamui_daemon_init_lists( daemon );
 
-        nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
+        /* Populate Wifi Favourites List and wifi list. */
+        nwamui_daemon_populate_wifi_fav_list(daemon);
+        /* nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon); */
 
         /* Trigger notification of active_ncp/env to ensure widgets update */
-/*         g_object_notify(G_OBJECT(daemon), "active_ncp"); */
-/*         g_object_notify(G_OBJECT(daemon), "active_env"); */
+        /* g_object_notify(G_OBJECT(daemon), "active_ncp"); */
+        /* g_object_notify(G_OBJECT(daemon), "active_env"); */
 
         break;
     case NWAMUI_DAEMON_INFO_RAW:
@@ -2797,9 +2757,11 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         case NWAM_ACTION_ADD: {
             if (!ncp) {
                 ncp = nwamui_ncp_new( object_name );
-                nwamui_daemon_object_append(daemon, ncp );
+                nwamui_daemon_append_object(daemon, ncp );
             } else {
-                g_warning("%s %s is existed.", nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_action.nwe_object_type), object_name);
+                /* Capplet adds the object first, so we can find it here. Do
+                 * nothing. */
+                nwamui_debug("%s %s is existed.", nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_action.nwe_object_type), object_name);
                 /* nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
             }
         }
@@ -2830,7 +2792,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 if ( ncp == prv->active_ncp ) {
                     nwamui_warning("Removing active ncp '%s'!", object_name );
                 }
-                nwamui_daemon_object_remove(daemon, ncp );
+                nwamui_daemon_remove_object(daemon, ncp );
             }
         }
             break;
@@ -2864,8 +2826,10 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             if (ncu == NULL) {
                 nwamui_object_reload(NWAMUI_OBJECT(ncp));
             } else {
-                /* interface:name/link:name, so a NCU will be added two times. */
-                nwamui_object_reload(ncu);
+                /* interface:name/link:name, so a NCU will be added two
+                 * times. Depend ncp's reload to add link NCU.
+                 */
+                nwamui_object_reload(NWAMUI_OBJECT(ncp));
             }
         }
             break;
@@ -2910,9 +2874,11 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         case NWAM_ACTION_ADD: {
             if (env == NULL) {
                 env = nwamui_env_new( object_name );
-                nwamui_daemon_object_append( daemon, env );
+                nwamui_daemon_append_object( daemon, env );
             } else {
-                g_warning("%s %s is existed.", nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_action.nwe_object_type), object_name);
+                /* Capplet adds the object first, so we can find it here. Do
+                 * nothing. */
+                nwamui_debug("%s %s is existed.", nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_action.nwe_object_type), object_name);
             }
         }
             break;
@@ -2939,12 +2905,14 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         case NWAM_ACTION_REMOVE:
             /* Fall through, remove/destroy are the same here */
         case NWAM_ACTION_DESTROY: {
+            /* Capplet removes the object first, so we can find it here. Do
+             * nothing. */
             if (env) {
                 if ( prv->active_env == env ) {
                     g_object_unref(prv->active_env);
                     prv->active_env = NULL;
                 }
-                nwamui_daemon_object_remove( daemon, env );
+                nwamui_daemon_remove_object( daemon, env );
             }
         }
             break;
@@ -2960,9 +2928,11 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         case NWAM_ACTION_ADD: {
             if ( enm == NULL ) {
                 enm = nwamui_enm_new( object_name );
-                nwamui_daemon_object_append( daemon, enm );
+                nwamui_daemon_append_object( daemon, enm );
             } else {
-                g_warning("%s %s is existed.", nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_action.nwe_object_type), object_name);
+                /* Capplet adds the object first, so we can find it here. Do
+                 * nothing. */
+                nwamui_debug("%s %s is existed.", nwam_object_type_to_string(nwamevent->nwe_data.nwe_object_action.nwe_object_type), object_name);
             }
         }
             break;
@@ -2987,8 +2957,11 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         case NWAM_ACTION_REMOVE:
             /* Fall through, basically the same operation */
         case NWAM_ACTION_DESTROY: {
-            if (enm)
-                nwamui_daemon_object_remove( daemon, enm );
+            /* Capplet removes the object first, so we can find it here. Do
+             * nothing. */
+            if (enm) {
+                nwamui_daemon_remove_object( daemon, enm );
+            }
         }
             break;
         }
@@ -3001,7 +2974,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         break;
     case NWAM_OBJECT_TYPE_KNOWN_WLAN: {
         NwamuiWifiNet   *wifi;
-        NwamuiNcu       *wireless_ncu = nwamui_daemon_get_first_wireless_ncu( daemon );
+        NwamuiNcu       *wireless_ncu = nwamui_ncp_get_first_wireless_ncu(prv->auto_ncp);
             
         if ( wireless_ncu == NULL ) {
             nwamui_debug("Got unexpected NULL wireless_ncu when adding a favourite", NULL );

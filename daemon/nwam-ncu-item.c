@@ -49,6 +49,8 @@ enum {
 	PROP_ZERO,
 };
 
+#define	NONCU               _("No network interfaces detected")
+
 static void nwam_ncu_item_set_property (GObject         *object,
   guint            prop_id,
   const GValue    *value,
@@ -64,6 +66,7 @@ static gint menu_ncu_item_compare(NwamMenuItem *self, NwamMenuItem *other);
 static void connect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu);
 static void disconnect_ncu_signals(NwamNcuItem *self, NwamuiNcu *ncu);
 static void sync_ncu(NwamNcuItem *self, NwamuiNcu *ncu, gpointer user_data);
+static void nwam_menu_item_real_reset(NwamMenuItem *menu_item);
 static void on_nwam_ncu_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -84,6 +87,7 @@ nwam_ncu_item_class_init (NwamNcuItemClass *klass)
     nwam_menu_item_class->connect_object = (nwam_menuitem_connect_object_t)connect_ncu_signals;
     nwam_menu_item_class->disconnect_object = (nwam_menuitem_disconnect_object_t)disconnect_ncu_signals;
     nwam_menu_item_class->sync_object = (nwam_menuitem_sync_object_t)sync_ncu;
+    nwam_menu_item_class->reset = nwam_menu_item_real_reset;
     nwam_menu_item_class->compare = (nwam_menuitem_compare_t)menu_ncu_item_compare;
 	
 	g_type_class_add_private (klass, sizeof (NwamNcuItemPrivate));
@@ -98,6 +102,8 @@ nwam_ncu_item_init (NwamNcuItem *self)
 
     g_signal_connect(self, "toggled",
       G_CALLBACK(on_nwam_ncu_toggled), NULL);
+
+    nwam_menu_item_real_reset(NWAM_MENU_ITEM(self));
 }
 
 GtkWidget *
@@ -206,10 +212,19 @@ sync_ncu(NwamNcuItem *self, NwamuiNcu *ncu, gpointer user_data)
 {
     NwamNcuItemPrivate *prv = GET_PRIVATE(self);
 
+    gtk_widget_set_sensitive(GTK_WIDGET(self), TRUE);
     on_nwam_ncu_notify(G_OBJECT(ncu), NULL, (gpointer)self);
 
     /* Now according to activation mode to set sensitive */
 /*     gtk_widget_set_sensitive(GTK_WIDGET(self), prv->sensitive); */
+}
+
+static void
+nwam_menu_item_real_reset(NwamMenuItem *menu_item)
+{
+    g_debug("%s set name %s", __func__, NONCU);
+    menu_item_set_label(GTK_MENU_ITEM(menu_item), NONCU);
+    gtk_widget_set_sensitive(GTK_WIDGET(menu_item), FALSE);
 }
 
 static void
@@ -256,6 +271,7 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation-mode") == 0) {
         nwamui_cond_activation_mode_t mode = nwamui_object_get_activation_mode(object);
 
+        g_message("activation-mode %d", mode);
         switch (mode) {
         case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
             gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);

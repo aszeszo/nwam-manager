@@ -132,9 +132,9 @@ extern gboolean                     nwamui_daemon_is_active_ncp(NwamuiDaemon *se
 
 extern GList*                       nwamui_daemon_get_ncp_list(NwamuiDaemon *self);
 
-extern void                         nwamui_daemon_object_append(NwamuiDaemon *self, NwamuiObject* object);
+extern void                         nwamui_daemon_append_object(NwamuiDaemon *self, NwamuiObject* object);
 
-extern gboolean                     nwamui_daemon_object_remove(NwamuiDaemon *self, NwamuiObject* object);
+extern gboolean                     nwamui_daemon_remove_object(NwamuiDaemon *self, NwamuiObject* object);
 
 extern gboolean                     nwamui_daemon_env_selection_is_manual(NwamuiDaemon *self);
 

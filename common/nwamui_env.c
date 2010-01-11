@@ -72,8 +72,7 @@ struct _NwamuiEnvPrivate {
 };
 
 enum {
-    PROP_ENABLED = 1,
-    PROP_NAMESERVICES,
+    PROP_NAMESERVICES = 1,
     PROP_NAMESERVICES_CONFIG_FILE,
     PROP_DEFAULT_DOMAIN,
     PROP_DNS_NAMESERVICE_CONFIG_SOURCE,
@@ -98,7 +97,6 @@ enum {
     PROP_SVCS_ENABLE,
     PROP_SVCS_DISABLE,
 #endif /* ENABLE_NETSERVICES */
-    PROP_CONDITIONS,
     PROP_NWAM_ENV,
     PROP_SVCS,
 #ifdef ENABLE_PROXY
@@ -229,15 +227,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
 	g_type_class_add_private(klass, sizeof(NwamuiEnvPrivate));
 
     /* Create some properties */
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_ENABLED,
-                                     g_param_spec_boolean ("enabled",
-                                                          _("enabled"),
-                                                          _("enabled"),
-                                                          FALSE,
-                                                          G_PARAM_READWRITE));
-
     g_object_class_install_property (gobject_class,
                                      PROP_NAMESERVICES,
                                      g_param_spec_pointer ("nameservices",
@@ -408,13 +397,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           _("svcs_disable"),
                                                           G_PARAM_READWRITE));
 #endif /* ENABLE_NETSERVICES */
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_CONDITIONS,
-                                     g_param_spec_pointer ("conditions",
-                                                          _("conditions"),
-                                                          _("conditions"),
-                                                          G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_NWAM_ENV,
@@ -613,18 +595,9 @@ nwamui_env_set_property (   GObject         *object,
     nwam_error_t nerr;
     
     switch (prop_id) {
-        case PROP_CONDITIONS:
-            nwamui_object_real_set_conditions(NWAMUI_OBJECT(self), g_value_get_pointer(value));
-            break;
-
         case PROP_NWAM_ENV: {
                 g_assert (prv->nwam_loc == NULL);
                 prv->nwam_loc = g_value_get_pointer (value);
-            }
-            break;
-
-        case PROP_ENABLED: {
-                prv->enabled = g_value_get_boolean( value );
             }
             break;
 
@@ -904,16 +877,6 @@ nwamui_env_get_property (GObject         *object,
     nwam_value_t **nwamdata;
 
     switch (prop_id) {
-        case PROP_CONDITIONS:
-            g_value_set_pointer(value, nwamui_object_real_get_conditions(NWAMUI_OBJECT(object)));
-            break;
-
-        case PROP_ENABLED: {
-                /* Get user desired state for enabled */
-                g_value_set_boolean( value, prv->enabled );
-            }
-            break;
-
         case PROP_NAMESERVICES: {
                 guint       num_nameservices = 0;
                 guint64*    ns_64 = (guint64*)get_nwam_loc_uint64_array_prop(
@@ -1188,7 +1151,7 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
     char               *name;
     NwamuiEnvPrivate   *prv = env->prv;
 
-    nwamui_object_set_handle(NWAMUI_OBJECT(env), envh);
+    nwamui_object_real_set_handle(NWAMUI_OBJECT(env), envh);
 
     if (env->prv->nwam_loc == NULL) {
         g_object_unref(env);
@@ -1257,7 +1220,7 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
     
     NWAMUI_ENV(new_env)->prv->nwam_loc_modified = TRUE; /* Only exists in-memory, need to commit later */
 
-    nwamui_daemon_object_append( daemon, new_env );
+    nwamui_daemon_append_object( daemon, new_env );
 
     return new_env;
 }
@@ -1849,7 +1812,7 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
     nwamui_object_set_name(object, name);
     free (name);
 
-    nwamui_object_reload(object);
+    nwamui_object_real_reload(object);
 }
 
 /**
@@ -1919,14 +1882,16 @@ nwamui_object_real_get_name (NwamuiObject *object)
  * 
  **/ 
 static void
-nwamui_object_real_set_enabled (NwamuiObject *object, gboolean enabled )
+nwamui_object_real_set_enabled(NwamuiObject *object, gboolean enabled )
 {
-    NwamuiEnv *self = NWAMUI_ENV(object);
-    g_return_if_fail (NWAMUI_IS_ENV (self));
+    NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(object);
+    g_return_if_fail(NWAMUI_IS_ENV(object));
 
-    g_object_set (G_OBJECT (self),
-                  "enabled", enabled,
-                  NULL);
+    if (prv->enabled != enabled) {
+        prv->enabled = enabled;
+        g_object_notify(G_OBJECT(object), "enabled" );
+        prv->nwam_loc_modified = TRUE;
+    }
 }
 
 /**
@@ -1936,18 +1901,12 @@ nwamui_object_real_set_enabled (NwamuiObject *object, gboolean enabled )
  *
  **/
 static gboolean
-nwamui_object_real_get_enabled (NwamuiObject *object)
+nwamui_object_real_get_enabled(NwamuiObject *object)
 {
-    NwamuiEnv *self = NWAMUI_ENV(object);
-    gboolean  enabled = FALSE; 
+    NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(object);
+    g_return_val_if_fail(NWAMUI_IS_ENV(object), FALSE);
 
-    g_return_val_if_fail (NWAMUI_IS_ENV (self), enabled);
-
-    g_object_get (G_OBJECT (self),
-                  "enabled", &enabled,
-                  NULL);
-
-    return( enabled );
+    return prv->enabled;
 }
 
 /**
@@ -1962,6 +1921,7 @@ nwamui_object_real_get_active (NwamuiObject *object)
     NwamuiEnv *self = NWAMUI_ENV(object);
     gboolean  active = FALSE; 
     g_return_val_if_fail (NWAMUI_IS_ENV (self), active);
+
     if ( self->prv->nwam_loc ) {
         nwam_state_t    state = NWAM_STATE_OFFLINE;
         nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
@@ -3506,6 +3466,7 @@ nwamui_object_real_set_conditions(NwamuiObject *object, const GList* conditions 
     } else {
         nwamui_object_real_set_activation_mode(object, (gint)NWAMUI_COND_ACTIVATION_MODE_MANUAL);
     }
+    prv->nwam_loc_modified = TRUE;
 }
 
 /**

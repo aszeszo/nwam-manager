@@ -860,7 +860,7 @@ nwamui_wifi_net_new_with_handle(    NwamuiNcu                       *ncu,
     
     self = NWAMUI_WIFI_NET(g_object_new (NWAMUI_TYPE_WIFI_NET, NULL));
 
-    nwamui_object_set_handle(NWAMUI_OBJECT(self), handle);
+    nwamui_object_real_set_handle(NWAMUI_OBJECT(self), handle);
 
     if ( self->prv->known_wlan_h == NULL ) {
         g_object_unref(self);
@@ -1381,7 +1381,7 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer new_handle)
     /*     return; */
     /* } */
 
-    nwamui_object_reload(object);
+    nwamui_object_real_reload(object);
 }
 
 static const gchar*

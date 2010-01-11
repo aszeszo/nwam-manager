@@ -48,6 +48,8 @@ enum {
 	PROP_ZERO,
 };
 
+#define NO_ENABLED_WIRELESS _("No wireless connections enabled")
+
 static void nwam_wifi_item_set_property (GObject         *object,
   guint            prop_id,
   const GValue    *value,
@@ -63,6 +65,7 @@ static gint menu_wifi_item_compare(NwamMenuItem *self, NwamMenuItem *other);
 static void connect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi);
 static void disconnect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi);
 static void sync_wifi_net(NwamWifiItem *self, NwamuiWifiNet *wifi_net, gpointer user_data);
+static void nwam_menu_item_real_reset(NwamMenuItem *menu_item);
 
 static void on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data);
 static void wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data);
@@ -84,6 +87,7 @@ nwam_wifi_item_class_init (NwamWifiItemClass *klass)
     nwam_menu_item_class->connect_object = (nwam_menuitem_connect_object_t)connect_wifi_net_signals;
     nwam_menu_item_class->disconnect_object = (nwam_menuitem_disconnect_object_t)disconnect_wifi_net_signals;
     nwam_menu_item_class->sync_object = (nwam_menuitem_sync_object_t)sync_wifi_net;
+    nwam_menu_item_class->reset = nwam_menu_item_real_reset;
     nwam_menu_item_class->compare = (nwam_menuitem_compare_t)menu_wifi_item_compare;
 
 	g_type_class_add_private (klass, sizeof (NwamWifiItemPrivate));
@@ -315,7 +319,15 @@ disconnect_wifi_net_signals(NwamWifiItem *self, NwamuiWifiNet *wifi)
 static void
 sync_wifi_net(NwamWifiItem *self, NwamuiWifiNet *wifi, gpointer user_data)
 {
+    gtk_widget_set_sensitive(GTK_WIDGET(self), TRUE);
     wifi_net_notify(G_OBJECT(wifi), NULL, (gpointer)self);
+}
+
+static void
+nwam_menu_item_real_reset(NwamMenuItem *menu_item)
+{
+    menu_item_set_label(GTK_MENU_ITEM(menu_item), NO_ENABLED_WIRELESS);
+    gtk_widget_set_sensitive(GTK_WIDGET(menu_item), FALSE);
 }
 
 static void 

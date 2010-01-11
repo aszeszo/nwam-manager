@@ -1,3 +1,107 @@
+2010-01-11  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_env_pref_dialog.c (block_nameservices_signals),
+	(populate_panels_from_env), (on_ns_selection_clicked),
+	(update_nsswitch_file_widgets):
+	Fixed nssswitch file related widgets are shown properly.
+	* capplet/nwam_vpn_pref_dialog.c (apply), (vpn_pref_clicked_cb):
+	* capplet/nwam_location_dialog.c (apply), (on_button_clicked):
+	Updated function name.
+	* capplet/nwam_profile_dialog.c (refresh), (cancel):
+	Disable editing NCP name if it isn't modifiable.
+	* capplet/nwam_wireless_chooser.c (populate_panel),
+	(join_wireless):
+	Clean code.
+	* common/nwamui_daemon.c (nwamui_daemon_init),
+	(nwamui_daemon_init_lists), (trigger_scan_if_wireless),
+	(nwamui_daemon_append_object), (nwamui_daemon_remove_object),
+	(nwamui_daemon_populate_wifi_fav_list), (nwamd_event_handler),
+	(nwamui_daemon_handle_object_action_event):
+	* common/nwamui_daemon.h:
+	Updated function names. Reduce the frequency of scan wifi.
+	* common/nwamui_enm.c (nwamui_enm_class_init),
+	(nwamui_enm_set_property), (nwamui_enm_get_property),
+	(nwamui_enm_new_with_handle), (nwamui_object_real_set_handle),
+	(nwamui_object_real_set_active), (nwamui_object_real_set_enabled),
+	(nwamui_object_real_get_enabled),
+	(nwamui_object_real_set_conditions):
+	* common/nwamui_env.c (nwamui_env_class_init),
+	(nwamui_env_set_property), (nwamui_env_get_property),
+	(nwamui_env_new_with_handle), (nwamui_object_real_clone),
+	(nwamui_object_real_set_handle), (nwamui_object_real_set_enabled),
+	(nwamui_object_real_get_enabled), (nwamui_object_real_get_active),
+	(nwamui_object_real_set_conditions):
+	Move properties enable/conditions to NwamuiObject. Clean code.
+	* common/nwamui_ncp.c (nwamui_ncp_get_property), (nwamui_ncp_new),
+	(nwamui_ncp_new_with_handle), (nwamui_object_real_clone),
+	(nwamui_object_real_reload), (nwamui_object_real_set_handle),
+	(nwamui_object_real_get_active), (nwamui_object_real_set_active),
+	(nwamui_ncp_get_ncu_num), (nwamui_ncp_foreach_ncu_list_store),
+	(nwamui_ncp_get_ncu_by_device_name),
+	(nwamui_ncp_remove_ncu_by_device_name), (nwamui_ncp_remove_ncu),
+	(nwamui_ncp_add_ncu), (nwamui_object_real_commit),
+	(nwam_ncu_walker_cb), (find_ncu_by_device_name),
+	(find_first_wifi_net), (nwamui_ncp_get_first_wireless_ncu),
+	(nwamui_ncp_get_wireless_link_num):
+	* common/nwamui_ncp.h:
+	Fixed wireless_link_num. Use NCU list foreach and find_custom heavily.
+	* common/nwamui_ncu.c (nwamui_ncu_class_init), (nwamui_ncu_init),
+	(nwamui_ncu_set_property), (nwamui_ncu_get_property),
+	(populate_common_ncu_data), (nwamui_ncu_new_with_handle),
+	(nwamui_object_real_clone), (nwamui_object_real_reload):
+	* common/nwamui_ncu.h:
+	Move properties enable/conditions to NwamuiObject. Clean code.
+	get_link_state doesn't use timer and initially run.
+	* common/nwamui_object.c (default_nwamui_object_is_modifiable),
+	(nwamui_object_class_init), (nwamui_object_set_property),
+	(nwamui_object_get_property):
+	Move properties enable/conditions to NwamuiObject. Clean code.
+	* common/nwamui_prof.h:
+	Fixed wireless related auth.
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_new_with_handle),
+	(nwamui_object_real_set_handle):
+	Clean code.
+	* daemon/nwam-enm-item.c (nwam_enm_item_class_init),
+	(nwam_menu_item_real_reset):
+	* daemon/nwam-env-item.c (nwam_env_item_class_init),
+	(nwam_menu_item_real_reset):
+	* daemon/nwam-menu.c (nwam_menu_real_remove),
+	(nwam_menu_real_insert):
+	* daemon/nwam-menuitem.c (nwam_menu_item_class_init),
+	(nwam_menu_item_init), (nwam_menu_item_parent_set),
+	(default_reset), (nwam_menu_item_set_proxy),
+	(nwam_menuitem_notify_sensitive):
+	* daemon/nwam-menuitem.h:
+	* daemon/nwam-ncu-item.c (nwam_ncu_item_class_init),
+	(nwam_ncu_item_init), (sync_ncu), (nwam_menu_item_real_reset),
+	(on_nwam_ncu_notify):
+	* daemon/nwam-tooltip-widget.c
+	(nwam_object_tooltip_widget_class_init),
+	(nwam_menu_item_real_reset):
+	* daemon/nwam-wifi-item.c (nwam_wifi_item_class_init),
+	(sync_wifi_net), (nwam_menu_item_real_reset):
+	Add reset function just for moving fake menu-items like
+	"no wifi/ncu" to each children menu-item implementation,
+	so in status_icon we can cache all nwam-menuitems without
+	filter out the fake items.
+	* daemon/status_icon.c (nwam_menuitem_notify_sensitive),
+	(nwam_menu_scan_started), (nwam_menu_create_wifi_menuitems),
+	(ncp_add_ncu), (ncp_remove_ncu), (daemon_active_ncp_changed),
+	(daemon_active_env_changed), (nwam_menu_update_wifi_section),
+	(join_wireless), (nwam_status_icon_run), (foreach_wireless_update),
+	(update_wifi_timer_func), (on_ncp_notify_many_wireless),
+	(nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_recreate_env_menuitems),
+	(nwam_menu_recreate_enm_menuitems),
+	(nwam_menu_create_static_menuitems),
+	(nwam_menu_create_fake_menuitems),
+	(nwam_status_icon_move_menu_items_to_cache),
+	(nwam_status_icon_create_menu_item), (nwam_menu_get_section_index),
+	(prof_ui_auth):
+	Update cache menu-item related code. Fixed wireless_link_num call.
+	Fixed ncp_add/remove_ncu calls. Move auth code to menu-items' sensitive
+	call.
+
 2010-01-07  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_daemon.c (nwamui_daemon_get_property),

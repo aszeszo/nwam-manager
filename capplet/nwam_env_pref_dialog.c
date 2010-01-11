@@ -297,6 +297,7 @@ static void         svc_button_clicked(GtkButton *button, gpointer  user_data);
 
 static void         nsswitch_default_clicked_cb(GtkButton *button, gpointer  user_data);
 static void         nsswitch_default_file_selection_changed(GtkFileChooserButton *button, gpointer  user_data);
+static void         update_nsswitch_file_widgets(NwamEnvPrefDialog* self);
 
 static void vanity_name_edited ( GtkCellRendererText *cell,
   const gchar         *path_string,
@@ -712,6 +713,7 @@ block_nameservices_signals( NwamEnvPrefDialog* self, gboolean block )
         g_signal_handlers_unblock_by_func(prv->dns_search_entry, (gpointer)on_ns_text_changed, (gpointer)self);
         g_signal_handlers_unblock_by_func(prv->dns_domain_entry, (gpointer)on_ns_text_changed, (gpointer)self);
 
+
         g_signal_handlers_unblock_by_func(prv->nis_service_cb, (gpointer)on_ns_selection_clicked, (gpointer)self);
         g_signal_handlers_unblock_by_func(prv->nis_config_manual_rb, (gpointer)on_ns_source_clicked, (gpointer)self);
         g_signal_handlers_unblock_by_func(prv->nis_config_dhcp_rb, (gpointer)on_ns_source_clicked, (gpointer)self);
@@ -930,36 +932,7 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         prv->num_nameservices = num_nameservices;
 
         /* nsswitch default button is active only if exactly 1 NS selected */
-        config_file = nwamui_env_get_nameservices_config_file(current_env);
-        if (prv->num_nameservices == 1) {
-            gchar *msg;
-            const gchar *filename = nwamui_env_nameservices_enum_to_filename(service);
-
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), TRUE);
-
-            gtk_widget_show(prv->default_file_lbl);
-            /* Service is valid iff num_nameservices == 1 */
-            if (g_strcmp0(config_file, filename) == 0) {
-                msg = g_strdup_printf(_("<small><i><b>Default nsswitch file (in use):</b> %s</i></small>"), filename);
-                g_free(config_file);
-                config_file = NULL;
-            } else {
-                msg = g_strdup_printf(_("<small><i><b>Default nsswitch file (not in use):</b> %s</i></small>"), filename);
-            }
-            gtk_label_set_markup(GTK_LABEL(prv->default_file_lbl), msg);
-            g_free(msg);
-        } else {
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), FALSE);
-            gtk_widget_hide(prv->default_file_lbl);
-        }
-
-        if (config_file) {
-            gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn),
-              config_file);
-            g_free(config_file);
-        } else {
-            gtk_file_chooser_unselect_all(GTK_FILE_CHOOSER(prv->nsswitch_file_btn));
-        }
+        update_nsswitch_file_widgets(self);
     }
 
     /* Update all other toggle buttons, labels and entries. */
@@ -1516,25 +1489,25 @@ on_ns_selection_clicked(GtkButton *button, gpointer user_data)
     nwamui_env_config_source_t  dns_configsrc;
     nwamui_env_config_source_t  nis_configsrc;
 
-	if ( button == (GtkButton*)prv->files_service_cb ) {
+	if ( button == (gpointer)prv->files_service_cb ) {
         if ( active ) {
             new_service = NWAMUI_ENV_NAMESERVICES_FILES;
         }
         files = TRUE;
     }
-    else if ( button == (GtkButton*)prv->dns_service_cb ) {
+    else if ( button == (gpointer)prv->dns_service_cb ) {
         if ( active ) {
             new_service = NWAMUI_ENV_NAMESERVICES_DNS;
         }
         dns = TRUE;
     }
-    else if ( button == (GtkButton*)prv->nis_service_cb ) {
+    else if ( button == (gpointer)prv->nis_service_cb ) {
         if ( active ) {
             new_service = NWAMUI_ENV_NAMESERVICES_NIS;
         }
         nis = TRUE;
     }
-    else if ( button == (GtkButton*)prv->ldap_service_cb ) {
+    else if ( button == (gpointer)prv->ldap_service_cb ) {
         if ( active ) {
             new_service = NWAMUI_ENV_NAMESERVICES_LDAP;
         }
@@ -1671,7 +1644,8 @@ on_ns_selection_clicked(GtkButton *button, gpointer user_data)
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry), (nis_active || ldap_active) );
 
     /* nsswitch default button is active only if exactly 1 NS selected */
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), prv->num_nameservices == 1);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), prv->num_nameservices == 1);
+    update_nsswitch_file_widgets(self);
 }
 
 static void
@@ -1740,6 +1714,46 @@ nsswitch_default_file_selection_changed(GtkFileChooserButton *button, gpointer  
     }
 }
 
+/**
+ * Must call nwamui_env_set_nameservices before use this function.
+ */
+static void
+update_nsswitch_file_widgets(NwamEnvPrefDialog* self)
+{
+	NwamEnvPrefDialogPrivate *prv      = GET_PRIVATE(self);
+    gchar                    *filename = nwamui_env_get_nameservices_config_file(prv->selected_env);
+
+    if (prv->num_nameservices == 1) {
+        GList       *nameservices = nwamui_env_get_nameservices(prv->selected_env);
+        gchar       *msg;
+        const gchar *default_file = nwamui_env_nameservices_enum_to_filename((nwamui_env_nameservices_t)nameservices->data);
+
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), TRUE);
+
+        gtk_widget_show(prv->default_file_lbl);
+        /* Service is valid iff num_nameservices == 1 */
+        if (g_strcmp0(filename, default_file) == 0) {
+            msg = g_strdup_printf(_("<small><i><b>Default nsswitch file (in use):</b> %s</i></small>"), default_file);
+            g_free(filename);
+            /* Flag to set file chooser */
+            filename = NULL;
+        } else {
+            msg = g_strdup_printf(_("<small><i><b>Default nsswitch file (not in use):</b> %s</i></small>"), default_file);
+        }
+        gtk_label_set_markup(GTK_LABEL(prv->default_file_lbl), msg);
+        g_free(msg);
+        g_list_free(nameservices);
+    } else {
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), FALSE);
+        gtk_widget_hide(prv->default_file_lbl);
+    }
+    if (filename) {
+        gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn), filename);
+        g_free(filename);
+    } else {
+        gtk_file_chooser_unselect_all(GTK_FILE_CHOOSER(prv->nsswitch_file_btn));
+    }
+}
 
 #ifdef ENABLE_NETSERVICES
 static void

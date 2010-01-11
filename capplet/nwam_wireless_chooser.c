@@ -77,7 +77,6 @@ static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 static void nwam_wireless_chooser_finalize(NwamWirelessChooser *self);
 static void nwam_wifi_scan_start (GObject *daemon, gpointer data);
 static void nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data);
-static void nwam_rescan_wifi (NwamWirelessChooser *self);
 
 /* Callbacks */
 static void refresh_btn_clicked( GtkButton *widget, gpointer user_data);
@@ -264,7 +263,7 @@ populate_panel( NwamWirelessChooser* self, gboolean set_initial_state )
     g_assert( NWAM_IS_WIRELESS_CHOOSER(self));
 
     /* Populate WiFi */
-    nwam_rescan_wifi (self);
+    nwamui_daemon_wifi_start_scan(self->prv->daemon);
 }
 
 static void
@@ -274,16 +273,6 @@ wifi_add (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi)
 	
 	gtk_list_store_prepend(GTK_LIST_STORE(model), &iter );
 	gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, wifi, -1);
-}
-
-static void
-nwam_rescan_wifi (NwamWirelessChooser *self)
-{
-/*     GtkTreeModel *model; */
-
-/*     model = gtk_tree_view_get_model (self->prv->wifi_tv); */
-
-    nwamui_daemon_wifi_start_scan (self->prv->daemon);
 }
 
 /**
@@ -401,26 +390,6 @@ nwam_wireless_chooser_finalize(NwamWirelessChooser *self)
     G_OBJECT_CLASS(nwam_wireless_chooser_parent_class)->finalize(G_OBJECT(self));
 }
 
-/**
- * find_wireless_interface:
- *
- * Return a wireless ncu instance.
- */
-static gint
-find_wireless_interface(gconstpointer data, gconstpointer user_data)
-{
-    NwamuiNcu **ncu_p = (NwamuiNcu **)user_data;
-    NwamuiNcu  *ncu   = (NwamuiNcu *)data;
-
-    g_assert(NWAMUI_IS_NCU(ncu));
-
-    if (nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
-        *ncu_p = ncu;
-        return 0;
-    }
-    return 1;
-}
-
 static void
 join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
 {
@@ -442,7 +411,7 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
 
     if ( ncu == NULL || nwamui_ncu_get_ncu_type(ncu) != NWAMUI_NCU_TYPE_WIRELESS) {
         /* we need find a wireless interface */
-        nwamui_ncp_find_ncu(NWAMUI_NCP(ncp), find_wireless_interface, (gpointer)&ncu);
+        ncu = nwamui_ncp_get_first_wireless_ncu(NWAMUI_NCP(ncp));
     }
 
     g_object_unref(ncp);

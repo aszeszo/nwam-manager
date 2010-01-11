@@ -75,13 +75,13 @@ extern NwamuiObject*            nwamui_ncp_new_with_handle (nwam_ncp_handle_t nc
 
 extern nwam_ncp_handle_t        nwamui_ncp_get_nwam_handle( NwamuiNcp* self );
 
-extern gboolean                 nwamui_ncp_rollback( NwamuiNcp* self );
-
 extern gboolean                 nwamui_ncp_all_ncus_online (NwamuiNcp       *self,
                                                             NwamuiNcu      **needs_wifi_selection,
                                                             NwamuiWifiNet  **needs_wifi_key );
 
-extern GList*                   nwamui_ncp_get_ncu_list( NwamuiNcp *self );
+extern GList*                   nwamui_ncp_get_ncu_list(NwamuiNcp *self);
+
+extern gint                     nwamui_ncp_get_ncu_num(NwamuiNcp *self);
 
 extern  GList*                  nwamui_ncp_find_ncu( NwamuiNcp *self, GCompareFunc func, gconstpointer data);
 
@@ -95,8 +95,6 @@ extern void                     nwamui_ncp_foreach_ncu(NwamuiNcp *self, GFunc fu
 
 extern void                     nwamui_ncp_foreach_ncu_list_store( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data );
 
-extern void                     nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon );
-
 extern void                     nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu );
 
 extern void                     nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp* self, const gchar* device_name );
@@ -104,6 +102,8 @@ extern void                     nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp*
 extern void                     nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu );
 
 extern GList*                   nwamui_ncp_get_wireless_ncus( NwamuiNcp* self );
+
+extern NwamuiNcu*               nwamui_ncp_get_first_wireless_ncu(NwamuiNcp *self);
 
 extern gint                     nwamui_ncp_get_wireless_link_num( NwamuiNcp* self );
 

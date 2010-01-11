@@ -59,6 +59,7 @@ struct _NwamMenuItemClass
     nwam_menuitem_connect_object_t    connect_object;
     nwam_menuitem_disconnect_object_t disconnect_object;
     nwam_menuitem_sync_object_t       sync_object;
+    void (*reset)(NwamMenuItem *self);
     nwam_menuitem_compare_t           compare;
 };
 

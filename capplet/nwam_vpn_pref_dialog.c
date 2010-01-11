@@ -672,7 +672,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                     g_object_unref(found->data);
                     olist = g_list_delete_link(olist, found);
                 } else {
-                    nwamui_daemon_object_append(daemon, NWAMUI_OBJECT(i->data));
+                    nwamui_daemon_append_object(daemon, NWAMUI_OBJECT(i->data));
                 }
                 g_object_unref(i->data);
             }
@@ -680,7 +680,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
 
         for (i = olist; i; i = i->next) {
-            nwamui_daemon_object_remove(daemon, NWAMUI_OBJECT(i->data));
+            nwamui_daemon_remove_object(daemon, NWAMUI_OBJECT(i->data));
             g_object_unref(i->data);
         }
 
@@ -790,6 +790,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 
         object = NWAMUI_OBJECT(nwamui_enm_new(name) );
         CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->view))), object);
+        nwamui_daemon_append_object(prv->daemon, NWAMUI_OBJECT(object));
         g_free(name);
         g_object_unref(object);
 

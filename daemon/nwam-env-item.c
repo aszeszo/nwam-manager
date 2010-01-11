@@ -62,6 +62,7 @@ static void nwam_env_item_finalize (NwamEnvItem *self);
 static void connect_env_signals(NwamEnvItem *self, NwamuiEnv *env);
 static void disconnect_env_signals(NwamEnvItem *self, NwamuiEnv *env);
 static void sync_env(NwamEnvItem *self, NwamuiEnv *env, gpointer user_data);
+static void nwam_menu_item_real_reset(NwamMenuItem *menu_item);
 static void on_nwam_env_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -83,6 +84,7 @@ nwam_env_item_class_init (NwamEnvItemClass *klass)
     nwam_menu_item_class->connect_object = (nwam_menuitem_connect_object_t)connect_env_signals;
     nwam_menu_item_class->disconnect_object = (nwam_menuitem_disconnect_object_t)disconnect_env_signals;
     nwam_menu_item_class->sync_object = (nwam_menuitem_sync_object_t)sync_env;
+    nwam_menu_item_class->reset = nwam_menu_item_real_reset;
 
 	g_type_class_add_private (klass, sizeof (NwamEnvItemPrivate));
 }
@@ -200,6 +202,13 @@ static void
 sync_env(NwamEnvItem *self, NwamuiEnv *env, gpointer user_data)
 {
     on_nwam_env_notify(G_OBJECT(env), NULL, (gpointer)self);
+}
+
+static void
+nwam_menu_item_real_reset(NwamMenuItem *menu_item)
+{
+    /* menu_item_set_label(GTK_MENU_ITEM(menu_item), NO_ENABLED_WIRELESS); */
+    /* gtk_widget_set_sensitive(GTK_WIDGET(menu_item), FALSE); */
 }
 
 static void

@@ -62,6 +62,7 @@ static void nwam_object_tooltip_widget_finalize (NwamObjectTooltipWidget *self);
 static void connect_object(NwamObjectTooltipWidget *self, NwamuiObject *object);
 static void disconnect_object(NwamObjectTooltipWidget *self, NwamuiObject *object);
 static void sync_object(NwamObjectTooltipWidget *self, NwamuiObject *object, gpointer user_data);
+static void nwam_menu_item_real_reset(NwamMenuItem *menu_item);
 static void nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 static void nwam_object_activation_mode_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
@@ -82,6 +83,7 @@ nwam_object_tooltip_widget_class_init (NwamObjectTooltipWidgetClass *klass)
     nwam_menu_item_class->connect_object = (nwam_menuitem_connect_object_t)connect_object;
     nwam_menu_item_class->disconnect_object = (nwam_menuitem_disconnect_object_t)disconnect_object;
     nwam_menu_item_class->sync_object = (nwam_menuitem_sync_object_t)sync_object;
+    nwam_menu_item_class->reset = nwam_menu_item_real_reset;
 	
 	g_type_class_add_private (klass, sizeof (NwamObjectTooltipWidgetPrivate));
 }
@@ -187,6 +189,13 @@ static void
 sync_object(NwamObjectTooltipWidget *self, NwamuiObject *object, gpointer user_data)
 {
     nwam_object_notify(G_OBJECT(object), NULL, (gpointer)self);
+}
+
+static void
+nwam_menu_item_real_reset(NwamMenuItem *menu_item)
+{
+    /* menu_item_set_label(GTK_MENU_ITEM(menu_item), NONCU); */
+    /* gtk_widget_set_sensitive(GTK_WIDGET(menu_item), FALSE); */
 }
 
 static void

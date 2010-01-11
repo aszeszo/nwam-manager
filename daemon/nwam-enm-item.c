@@ -61,6 +61,7 @@ static void nwam_enm_item_finalize (NwamEnmItem *self);
 static void connect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm);
 static void disconnect_enm_signals(NwamEnmItem *self, NwamuiEnm *enm);
 static void sync_enm(NwamEnmItem *self, NwamuiEnm *enm, gpointer user_data);
+static void nwam_menu_item_real_reset(NwamMenuItem *menu_item);
 static void on_nwam_enm_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_enm_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -81,6 +82,7 @@ nwam_enm_item_class_init (NwamEnmItemClass *klass)
     nwam_menu_item_class->connect_object = (nwam_menuitem_connect_object_t)connect_enm_signals;
     nwam_menu_item_class->disconnect_object = (nwam_menuitem_disconnect_object_t)disconnect_enm_signals;
     nwam_menu_item_class->sync_object = (nwam_menuitem_sync_object_t)sync_enm;
+    nwam_menu_item_class->reset = nwam_menu_item_real_reset;
 	
 	g_type_class_add_private (klass, sizeof (NwamEnmItemPrivate));
 }
@@ -184,6 +186,13 @@ static void
 sync_enm(NwamEnmItem *self, NwamuiEnm *enm, gpointer user_data)
 {
     on_nwam_enm_notify(G_OBJECT(enm), NULL, (gpointer)self);
+}
+
+static void
+nwam_menu_item_real_reset(NwamMenuItem *menu_item)
+{
+    /* menu_item_set_label(GTK_MENU_ITEM(menu_item), NO_ENABLED_WIRELESS); */
+    /* gtk_widget_set_sensitive(GTK_WIDGET(menu_item), FALSE); */
 }
 
 static void

@@ -41,6 +41,7 @@
 #include <libdllink.h>
 
 static NwamuiNcp       *instance        = NULL;
+static gint _num_wireless = 0; /* Count wireless i/fs */
 
 enum {
     PROP_NWAM_NCP = 1,
@@ -80,20 +81,21 @@ typedef struct {
 static guint nwamui_ncp_signals[LAST_SIGNAL] = { 0, 0 };
 
 struct _NwamuiNcpPrivate {
-        nwam_ncp_handle_t           nwam_ncp;
-        gchar*                      name;
-        gint                        wireless_link_num;
+    nwam_ncp_handle_t nwam_ncp;
+    gchar*            name;
+    gboolean          nwam_ncp_modified;
+    gint              wireless_link_num;
 
-        GList*                      ncu_list;
-        GtkTreeStore*               ncu_tree_store;
-        GtkListStore*               ncu_list_store;
-        GList*                      ncus_removed;
-        GList*                      ncus_added;
+    GList*        ncu_list;
+    GtkTreeStore* ncu_tree_store;
+    GtkListStore* ncu_list_store;
+    GList*        ncus_removed;
+    GList*        ncus_added;
 
-        GList*                      temp_ncu_list;
+    GList* temp_ncu_list;
 
-        /* Cached Priority Group */
-        gint                        priority_group;
+    /* Cached Priority Group */
+    gint   priority_group;
 };
 
 #define NWAMUI_NCP_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), NWAMUI_TYPE_NCP, NwamuiNcpPrivate))
@@ -130,10 +132,16 @@ static void default_add_ncu_signal_handler (NwamuiNcp* ncp, NwamuiNcu* ncu, gpoi
 static void default_remove_ncu_signal_handler (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data);
 
 /* Callbacks */
+static int nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data);
 static void ncu_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 static void row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
 static void row_inserted_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data);
 static void rows_reordered_cb(GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer arg3, gpointer user_data);
+
+/* GList callbacks */
+static gint find_ncu_by_device_name(gconstpointer data, gconstpointer user_data);
+static gint find_first_wifi_net(gconstpointer data, gconstpointer user_data);
+static void find_wireless_ncu(gpointer obj, gpointer user_data);
 
 G_DEFINE_TYPE (NwamuiNcp, nwamui_ncp, NWAMUI_TYPE_OBJECT)
 
@@ -347,9 +355,8 @@ nwamui_ncp_get_property (   GObject         *object,
                 g_value_set_object( value, self->prv->ncu_list_store );
             }
             break;
-        case PROP_WIRELESS_LINK_NUM: {
-                g_value_set_int( value, self->prv->wireless_link_num );
-            }
+        case PROP_WIRELESS_LINK_NUM:
+            g_value_set_int( value, nwamui_ncp_get_wireless_link_num(self));
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -433,8 +440,6 @@ nwamui_ncp_new(const gchar* name )
         "name", name,
         NULL));
 
-    nwamui_ncp_populate_ncu_list( self, NULL );
-
     return NWAMUI_OBJECT(self);
 }
 
@@ -448,7 +453,7 @@ nwamui_ncp_new_with_handle (nwam_ncp_handle_t ncp)
 {
     NwamuiNcp*      self = NWAMUI_NCP(g_object_new (NWAMUI_TYPE_NCP,
                                    NULL));
-    nwamui_object_set_handle(NWAMUI_OBJECT(self), ncp);
+    nwamui_object_real_set_handle(NWAMUI_OBJECT(self), ncp);
 
     if (self->prv->nwam_ncp == NULL) {
         g_object_unref(self);
@@ -488,37 +493,105 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
 
     new_ncp = nwamui_ncp_new_with_handle (new_ncp_h);
 
-    nwamui_daemon_object_append(daemon, new_ncp);
+    nwamui_daemon_append_object(daemon, new_ncp);
 
     return NWAMUI_OBJECT(new_ncp);
 }
 
+/**
+ *  Check for new NCUs - useful after reactivation of daemon or signal for new
+ *  NCUs.
+ **/
 static void
 nwamui_object_real_reload( NwamuiObject *object )
 {
-    NwamuiNcp    *self       = NWAMUI_NCP(object);
-    nwam_error_t    nerr;
-    nwam_ncp_handle_t nwam_ncp;
+    NwamuiNcpPrivate *prv                  = NWAMUI_NCP_GET_PRIVATE(object);
+    int               cb_ret               = 0;
+    gboolean          connect_list_signals = FALSE;
+    gboolean          connect_tree_signals = FALSE;
 
-    g_return_if_fail( NWAMUI_IS_NCP(self) );
+    g_return_if_fail(NWAMUI_IS_NCP(object));
+    g_object_freeze_notify(G_OBJECT(object));
 
-    g_object_freeze_notify(G_OBJECT(self));
-
-    g_debug("Reloading NCP %s", self->prv->name);
-
-    if ( ( nerr = nwam_ncp_read ( self->prv->name, 0, &nwam_ncp) ) != NWAM_SUCCESS ) {
-        g_debug ("Failed to create private handle for ncp, error: %s", nwam_strerror (nerr));
+    /* Assumption is that anything that was newly added should be removed,
+     * anything that was removed will still exist unless a commit was done.
+     */
+    if ( prv->ncus_added != NULL ) {
+        /* Make sure they are removed from the system */
+        g_list_foreach( prv->ncus_added, (GFunc)nwamui_object_destroy, NULL );
+        g_list_foreach( prv->ncus_added, (GFunc)nwamui_util_obj_unref, NULL );
+        g_list_free( prv->ncus_added );
+        prv->ncus_added = NULL;
+    }
+    if ( prv->ncus_removed != NULL ) {
+        g_list_foreach( prv->ncus_removed, (GFunc)nwamui_util_obj_unref, NULL );
+        g_list_free( prv->ncus_removed );
+        prv->ncus_removed = NULL;
     }
 
-    if ( self->prv->nwam_ncp != NULL ) {
-        nwam_ncp_free( self->prv->nwam_ncp );
+    g_assert(prv->nwam_ncp != NULL );
+
+    if ( prv->ncu_list_store  == NULL ) {
+        prv->ncu_list_store = gtk_list_store_new ( 1, NWAMUI_TYPE_NCU);
+        connect_list_signals = TRUE;
     }
 
-    self->prv->nwam_ncp = nwam_ncp;
+    if ( prv->ncu_tree_store  == NULL ) {
+        prv->ncu_tree_store = gtk_tree_store_new ( 1, NWAMUI_TYPE_OBJECT);
+        connect_tree_signals = TRUE;
+    }
 
-    nwamui_ncp_populate_ncu_list( self, NULL );
+    g_object_freeze_notify(G_OBJECT(prv->ncu_tree_store));
+    g_object_freeze_notify(G_OBJECT(prv->ncu_list_store));
 
-    g_object_thaw_notify(G_OBJECT(self));
+    /*
+     * Set temp_ncu_list, which is being used to find NCUs that
+     * have been removed from the system.
+     */
+    if ( prv->ncu_list != NULL ) {
+        prv->temp_ncu_list = nwamui_util_copy_obj_list( prv->ncu_list );
+    }
+    else {
+        prv->temp_ncu_list = NULL;
+    }
+
+    _num_wireless = 0;
+    nwam_ncp_walk_ncus( prv->nwam_ncp, nwam_ncu_walker_cb, (void*)object,
+      NWAM_FLAG_NCU_TYPE_CLASS_ALL, &cb_ret );
+
+    if ( prv->temp_ncu_list != NULL ) {
+        g_debug("Found some NCUs that have been removed from the system");
+        for (GList *elem = g_list_first(prv->temp_ncu_list);
+             elem != NULL;
+             elem = g_list_next(elem) ) {
+            if ( elem->data != NULL && NWAMUI_IS_NCU(elem->data) ) {
+                nwamui_ncp_remove_ncu(NWAMUI_NCP(object), NWAMUI_NCU(elem->data) );
+            }
+        }
+        nwamui_util_free_obj_list( prv->temp_ncu_list );
+        prv->temp_ncu_list = NULL;
+    }
+    g_object_thaw_notify(G_OBJECT(prv->ncu_tree_store));
+    g_object_thaw_notify(G_OBJECT(prv->ncu_list_store));
+
+    if ( connect_list_signals ) {
+        g_signal_connect(prv->ncu_list_store, "row_deleted", G_CALLBACK(row_deleted_cb), (gpointer)object);
+        g_signal_connect(prv->ncu_list_store, "row_inserted", G_CALLBACK(row_inserted_cb), (gpointer)object);
+        g_signal_connect(prv->ncu_list_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), (gpointer)object);
+    }
+
+    if ( connect_tree_signals ) {
+        g_signal_connect(prv->ncu_tree_store, "row_deleted", G_CALLBACK(row_deleted_cb), (gpointer)object);
+        g_signal_connect(prv->ncu_tree_store, "row_inserted", G_CALLBACK(row_inserted_cb), (gpointer)object);
+        g_signal_connect(prv->ncu_tree_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), (gpointer)object);
+    }
+
+    if ( prv->wireless_link_num != _num_wireless ) {
+        prv->wireless_link_num = _num_wireless;
+        g_object_notify(G_OBJECT(object), "wireless_link_num" );
+    }
+
+    g_object_thaw_notify(G_OBJECT(object));
 }
 
 extern nwam_ncp_handle_t
@@ -548,8 +621,7 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
          * in as parameter.
          */
         prv->nwam_ncp = ncp;
-    }
-    else if (nerr != NWAM_SUCCESS) {
+    } else if (nerr != NWAM_SUCCESS) {
         prv->nwam_ncp = NULL;
         /* g_object_unref(object); */
         nwamui_warning("Failed to create private handle for ncp, error: %s", nwam_strerror (nerr));
@@ -564,7 +636,7 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
     }
     prv->name = name;
 
-    nwamui_ncp_populate_ncu_list(NWAMUI_NCP(object), NULL );
+    nwamui_object_real_reload(object);
 }
 
 /**
@@ -655,7 +727,8 @@ nwamui_object_real_get_active( NwamuiObject *object )
         nwam_state_t        state = NWAM_STATE_OFFLINE;
         nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-        nwam_ncp_get_state( self->prv->nwam_ncp, &state, &aux_state );
+        state = nwamui_object_get_nwam_state(object, &aux_state, NULL);
+
         if ( state == NWAM_STATE_ONLINE ) {
             active = TRUE;
         }
@@ -680,7 +753,7 @@ nwamui_object_real_set_active (NwamuiObject *object, gboolean active)
 
     g_return_if_fail (NWAMUI_IS_NCP (self));
 
-    nwam_ncp_get_state( self->prv->nwam_ncp, &state, &aux_state );
+    state = nwamui_object_get_nwam_state(object, &aux_state, NULL);
 
     if ( state != NWAM_STATE_ONLINE && active ) {
         nwam_error_t nerr;
@@ -950,11 +1023,19 @@ nwamui_ncp_get_ncu_list( NwamuiNcp *self )
     return( ncu_list );
 }
 
+extern gint
+nwamui_ncp_get_ncu_num(NwamuiNcp *self)
+{
+    g_return_val_if_fail (NWAMUI_IS_NCP(self), 0); 
+
+    return g_list_length(self->prv->ncu_list);
+}
+
 extern void
 nwamui_ncp_foreach_ncu_list_store( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data )
 {
     NwamuiNcpPrivate *prv  = NWAMUI_NCP_GET_PRIVATE(self);
-    g_return_if_fail(NWAMUI_IS_NCP(self) && prv->ncu_tree_store != NULL);
+    g_return_if_fail(NWAMUI_IS_NCP(self) && prv->ncu_list_store != NULL);
     gtk_tree_model_foreach(GTK_TREE_MODEL(prv->ncu_tree_store), func, user_data );
 }
 
@@ -1016,37 +1097,16 @@ extern  NwamuiObject*
 nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
 {
     NwamuiObject *ret_ncu         = NULL;
-    GString      *have_names      = NULL;
     gchar        *ncu_device_name = NULL;
+    GList        *found_list;
 
-    g_return_val_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL, ret_ncu ); 
     g_return_val_if_fail (device_name, ret_ncu ); 
 
-    have_names = g_string_new("");
-    g_string_append_printf(have_names, "ncp %s -> find %s in [ ", self->prv->name, device_name);
+    found_list = g_list_find_custom(self->prv->ncu_list, (gpointer)device_name, find_ncu_by_device_name);
 
-    for (GList *elem = g_list_first(self->prv->ncu_list);
-         elem != NULL && ret_ncu == NULL;
-         elem = g_list_next(elem) ) {
-        if ( elem->data != NULL && NWAMUI_IS_NCU(elem->data) ) {
-            NwamuiNcu* ncu = NWAMUI_NCU(elem->data);
-            gchar *ncu_device_name = nwamui_ncu_get_device_name( ncu );
-
-            g_string_append_printf(have_names, "%s(0x%p) ", ncu_device_name, ncu);
-
-            if ( ncu_device_name != NULL 
-                 && g_ascii_strcasecmp( ncu_device_name, device_name ) == 0 ) {
-                /* Set ret_ncu, which will cause for loop to exit */
-                ret_ncu = NWAMUI_OBJECT(g_object_ref(ncu));
-            }
-            g_free(ncu_device_name);
-        }
+    if (found_list) {
+        ret_ncu = NWAMUI_OBJECT(g_object_ref(found_list->data));
     }
-
-    g_string_append_printf(have_names, "] %s", ret_ncu ? "OK" : "FAILD");
-    g_debug("%s", have_names->str);
-    g_string_free(have_names, TRUE);
-
     return ret_ncu;
 }
 
@@ -1058,7 +1118,6 @@ nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp* self, const gchar* device_name 
     gboolean        valid_iter = FALSE;
     NwamuiObject   *found_ncu = NULL;
 
-    g_return_if_fail (NWAMUI_IS_NCP(self) && self->prv->ncu_tree_store != NULL); 
     g_return_if_fail (device_name != NULL && strlen(device_name) > 0 );
 
     found_ncu = nwamui_ncp_get_ncu_by_device_name( self, device_name );
@@ -1071,27 +1130,28 @@ nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp* self, const gchar* device_name 
 extern void 
 nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu ) 
 {
-    GtkTreeIter     iter;
-    gboolean        valid_iter = FALSE;
+    NwamuiNcpPrivate *prv        = NWAMUI_NCP_GET_PRIVATE(self);
+    GtkTreeIter       iter;
+    gboolean          valid_iter = FALSE;
 
     g_return_if_fail (NWAMUI_IS_NCP(self) && NWAMUI_IS_NCU(ncu) );
 
+    g_object_freeze_notify(G_OBJECT(self));
+    g_object_freeze_notify(G_OBJECT(prv->ncu_tree_store));
+    g_object_freeze_notify(G_OBJECT(prv->ncu_list_store));
 
-    g_object_freeze_notify(G_OBJECT(self->prv->ncu_tree_store));
-    g_object_freeze_notify(G_OBJECT(self->prv->ncu_list_store));
-
-    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter);
+    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(prv->ncu_tree_store), &iter);
          valid_iter;
-         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter)) {
+         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(prv->ncu_tree_store), &iter)) {
         NwamuiNcu      *_ncu;
 
-        gtk_tree_model_get( GTK_TREE_MODEL(self->prv->ncu_tree_store), &iter, 0, &_ncu, -1);
+        gtk_tree_model_get( GTK_TREE_MODEL(prv->ncu_tree_store), &iter, 0, &_ncu, -1);
 
         if ( _ncu == ncu ) {
-            gtk_tree_store_remove(GTK_TREE_STORE(self->prv->ncu_tree_store), &iter);
+            gtk_tree_store_remove(GTK_TREE_STORE(prv->ncu_tree_store), &iter);
 
             if ( nwamui_ncu_get_ncu_type( _ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
-                self->prv->wireless_link_num--;
+                prv->wireless_link_num--;
                 g_object_notify(G_OBJECT(self), "wireless_link_num" );
             }
 
@@ -1102,16 +1162,16 @@ nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu )
         g_object_unref(_ncu);
     }
 
-    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter);
+    for (valid_iter = gtk_tree_model_get_iter_first( GTK_TREE_MODEL(prv->ncu_list_store), &iter);
          valid_iter;
-         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter)) {
+         valid_iter = gtk_tree_model_iter_next( GTK_TREE_MODEL(prv->ncu_list_store), &iter)) {
         NwamuiNcu      *_ncu;
 
-        gtk_tree_model_get( GTK_TREE_MODEL(self->prv->ncu_list_store), &iter, 0, &_ncu, -1);
+        gtk_tree_model_get( GTK_TREE_MODEL(prv->ncu_list_store), &iter, 0, &_ncu, -1);
 
 
         if ( _ncu == ncu ) {
-            gtk_list_store_remove(GTK_LIST_STORE(self->prv->ncu_list_store), &iter);
+            gtk_list_store_remove(GTK_LIST_STORE(prv->ncu_list_store), &iter);
 
             g_object_notify(G_OBJECT(self), "ncu_list_store" );
             g_object_unref(_ncu);
@@ -1120,31 +1180,31 @@ nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu )
         g_object_unref(_ncu);
     }
 
-    self->prv->ncu_list = g_list_remove( self->prv->ncu_list, ncu );
+    prv->ncu_list = g_list_remove( prv->ncu_list, ncu );
+    prv->ncus_removed = g_list_append(prv->ncus_removed, ncu );
 
     g_signal_emit (self,
       nwamui_ncp_signals[REMOVE_NCU],
       0, /* details */
       ncu);
 
-    self->prv->ncus_removed = g_list_append(self->prv->ncus_removed, ncu );
-
-    g_object_thaw_notify(G_OBJECT(self->prv->ncu_tree_store));
-    g_object_thaw_notify(G_OBJECT(self->prv->ncu_list_store));
+    g_object_thaw_notify(G_OBJECT(prv->ncu_tree_store));
+    g_object_thaw_notify(G_OBJECT(prv->ncu_list_store));
+    g_object_thaw_notify(G_OBJECT(self));
 }
 
 extern void 
 nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu ) 
 {
-    NwamuiNcpPrivate   *prv;
-    GtkTreeIter         iter;
-    gboolean            valid_iter = FALSE;
-    NwamuiObject       *found_ncu = NULL;
-    gchar              *device_name = NULL;
+    NwamuiNcpPrivate *prv         = NWAMUI_NCP_GET_PRIVATE(self);
+    GtkTreeIter       iter;
+    gboolean          valid_iter  = FALSE;
+    NwamuiObject     *found_ncu   = NULL;
+    gchar            *device_name = NULL;
+    GList            *found_list;
 
     g_return_if_fail (NWAMUI_IS_NCP(self) && NWAMUI_IS_NCU(new_ncu) );
 
-    prv = self->prv;
     device_name = nwamui_ncu_get_device_name(new_ncu);
 
     if ( device_name ) {
@@ -1153,27 +1213,18 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
 
     if ( found_ncu ) { 
         nwamui_warning("Tried to add existing NCU '%s' to NCP", device_name?device_name:"NULL");
+        g_free(device_name);
+        g_object_unref(found_ncu);
         return;
     }
 
-    /* Next check if it was previously removed in the UI! */
-    for (GList *elem = g_list_first(self->prv->ncus_removed);
-         elem != NULL && found_ncu == NULL;
-         elem = g_list_next(elem) ) {
-        if ( elem->data != NULL && NWAMUI_IS_NCU(elem->data) ) {
-            NwamuiNcu* ncu = NWAMUI_NCU(elem->data);
-            gchar *ncu_device_name = nwamui_ncu_get_device_name( ncu );
+    g_object_freeze_notify(G_OBJECT(self));
 
-            if ( ncu_device_name != NULL 
-                 && g_ascii_strcasecmp( ncu_device_name, device_name ) == 0 ) {
-                /* Set found_ncu, which will cause for loop to exit */
-                nwamui_debug("Compare %s to target %s : SAME", ncu_device_name, device_name);
-                found_ncu = NWAMUI_OBJECT(g_object_ref(ncu));
-            } else {
-                nwamui_debug("Compare %s to target %s : DIFFERENT", ncu_device_name, device_name);
-            }
-            g_free(ncu_device_name);
-        }
+    /* Next check if it was previously removed in the UI! */
+    found_list = g_list_find_custom(self->prv->ncus_removed, (gpointer)device_name, find_ncu_by_device_name);
+
+    if (found_list) {
+        found_ncu = NWAMUI_OBJECT(found_list->data);
     }
 
     if (found_ncu) {
@@ -1181,24 +1232,18 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
         nwamui_debug("Found already removed NCU : %s, re-using...", device_name );
         nwamui_object_reload(found_ncu);
         new_ncu = NWAMUI_NCU(found_ncu);
+    } else {
+        if ( nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
+            self->prv->wireless_link_num++;
+            g_object_notify(G_OBJECT (self), "wireless_link_num" );
+        }
     }
-
-    /* NCU isn't already in the list, so add it */
 
     g_object_freeze_notify(G_OBJECT(self->prv->ncu_tree_store));
     g_object_freeze_notify(G_OBJECT(self->prv->ncu_list_store));
 
-    if ( nwamui_ncu_get_ncu_type( new_ncu ) == NWAMUI_NCU_TYPE_WIRELESS ) {
-        self->prv->wireless_link_num--;
-        g_object_notify(G_OBJECT (self), "wireless_link_num" );
-    }
-
+    /* NCU isn't already in the list, so add it */
     prv->ncu_list = g_list_append( prv->ncu_list, g_object_ref(new_ncu) );
-
-    g_signal_emit (self,
-      nwamui_ncp_signals[ADD_NCU],
-      0, /* details */
-      new_ncu);
 
     gtk_list_store_append( prv->ncu_list_store, &iter );
     gtk_list_store_set( prv->ncu_list_store, &iter, 0, new_ncu, -1 );
@@ -1213,9 +1258,16 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
     self->prv->ncus_added = g_list_append( self->prv->ncus_added, 
                                            g_object_ref(new_ncu));
 
+    g_free(device_name);
+
+    g_signal_emit (self,
+      nwamui_ncp_signals[ADD_NCU],
+      0, /* details */
+      new_ncu);
+
     g_object_thaw_notify(G_OBJECT(self->prv->ncu_tree_store));
     g_object_thaw_notify(G_OBJECT(self->prv->ncu_list_store));
-
+    g_object_thaw_notify(G_OBJECT(self));
 }
 
 static gboolean
@@ -1257,8 +1309,8 @@ nwamui_object_real_commit( NwamuiObject *object )
             }
         }
 
-        nwamui_ncp_populate_ncu_list(NWAMUI_NCP(object), NULL );
-
+        /* I assume commit will cause REFRESH event, so comment out this line. */
+        /* nwamui_object_real_reload(object); */
     } else {
         nwamui_debug("NCP : %s is not modifiable", ncp_name );
     }
@@ -1282,34 +1334,6 @@ nwamui_object_real_destroy( NwamuiObject *object )
         }
         prv->nwam_ncp = NULL;
     }
-
-    return( TRUE );
-}
-
-extern gboolean
-nwamui_ncp_rollback( NwamuiNcp* self )
-{
-    gboolean    rval = FALSE;
-
-    g_return_val_if_fail (NWAMUI_IS_NCP(self), rval );
-
-    /* Assumption is that anything that was newly added should be removed,
-     * anything that was removed will still exist unless a commit was done.
-     */
-    if ( self->prv->ncus_added != NULL ) {
-        /* Make sure they are removed from the system */
-        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_object_destroy, NULL );
-        g_list_foreach( self->prv->ncus_added, (GFunc)nwamui_util_obj_unref, NULL );
-        g_list_free( self->prv->ncus_added );
-        self->prv->ncus_added = NULL;
-    }
-    if ( self->prv->ncus_removed != NULL ) {
-        g_list_foreach( self->prv->ncus_removed, (GFunc)nwamui_util_obj_unref, NULL );
-        g_list_free( self->prv->ncus_removed );
-        self->prv->ncus_removed = NULL;
-    }
-
-    nwamui_ncp_populate_ncu_list( self, NULL );
 
     return( TRUE );
 }
@@ -1386,8 +1410,6 @@ get_nwam_ncu_type( nwam_ncu_handle_t ncu )
     return( rval );
 }
 
-static gint _num_wireless = 0; /* Count wireless i/fs */
-
 static int
 nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
 {
@@ -1399,11 +1421,11 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
     NwamuiNcpPrivate*   prv = ncp->prv;
     nwam_ncu_type_t     nwam_ncu_type;
 
-    g_debug ("nwam_ncu_walker_cb 0x%p", ncu);
-
     if ( (nerr = nwam_ncu_get_name (ncu, &name)) != NWAM_SUCCESS ) {
         g_debug ("Failed to get name for ncu, error: %s", nwam_strerror (nerr));
     }
+
+    g_debug ("nwam_ncu_walker_cb '%s' 0x%p", name, ncu);
 
     if ( !device_exists_on_system( name ) ) {
         /* Skip device that don't have a physical equivalent */
@@ -1411,6 +1433,7 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
     }
 
     nwam_ncu_type = get_nwam_ncu_type(ncu);
+    g_debug ("nwam_ncu_walker_cb '%s' type %d 0x%p", name, nwam_ncu_type, ncu);
 
     if ( (new_ncu = nwamui_ncp_get_ncu_by_device_name( ncp, name )) != NULL ) {
         /* Update rather than create a new object */
@@ -1472,81 +1495,6 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
     return(1);
 }
 
-/**
- *  Check for new NCUs - useful after reactivation of daemon or signal for new
- *  NCUs.
- **/
-extern void 
-nwamui_ncp_populate_ncu_list( NwamuiNcp* self, GObject* _daemon ) 
-{
-    int cb_ret = 0;
-    gboolean connect_list_signals = FALSE;
-    gboolean connect_tree_signals = FALSE;
-
-    g_assert(self->prv->nwam_ncp != NULL );
-
-    if ( self->prv->ncu_list_store  == NULL ) {
-        self->prv->ncu_list_store = gtk_list_store_new ( 1, NWAMUI_TYPE_NCU);
-        connect_list_signals = TRUE;
-    }
-
-    if ( self->prv->ncu_tree_store  == NULL ) {
-        self->prv->ncu_tree_store = gtk_tree_store_new ( 1, NWAMUI_TYPE_OBJECT);
-        connect_tree_signals = TRUE;
-    }
-
-    g_object_freeze_notify(G_OBJECT(self->prv->ncu_tree_store));
-    g_object_freeze_notify(G_OBJECT(self->prv->ncu_list_store));
-
-    /*
-     * Set temp_ncu_list, which is being used to find NCUs that
-     * have been removed from the system.
-     */
-    if ( self->prv->ncu_list != NULL ) {
-        self->prv->temp_ncu_list = nwamui_util_copy_obj_list( self->prv->ncu_list );
-    }
-    else {
-        self->prv->temp_ncu_list = NULL;
-    }
-
-    _num_wireless = 0;
-    nwam_ncp_walk_ncus( self->prv->nwam_ncp, nwam_ncu_walker_cb, (void*)self,
-                        NWAM_FLAG_NCU_TYPE_CLASS_ALL, &cb_ret );
-
-    if ( self->prv->temp_ncu_list != NULL ) {
-        g_debug("Found some NCUs that have been removed from the system");
-        for (GList *elem = g_list_first(self->prv->temp_ncu_list);
-             elem != NULL;
-             elem = g_list_next(elem) ) {
-            if ( elem->data != NULL && NWAMUI_IS_NCU(elem->data) ) {
-                nwamui_ncp_remove_ncu( self, NWAMUI_NCU(elem->data) );
-            }
-        }
-        nwamui_util_free_obj_list( self->prv->temp_ncu_list );
-        self->prv->temp_ncu_list = NULL;
-    }
-    g_object_thaw_notify(G_OBJECT(self->prv->ncu_tree_store));
-    g_object_thaw_notify(G_OBJECT(self->prv->ncu_list_store));
-
-    if ( connect_list_signals ) {
-        g_signal_connect(self->prv->ncu_list_store, "row_deleted", G_CALLBACK(row_deleted_cb), self );
-        g_signal_connect(self->prv->ncu_list_store, "row_inserted", G_CALLBACK(row_inserted_cb), self );
-        g_signal_connect(self->prv->ncu_list_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), self );
-    }
-
-    if ( connect_tree_signals ) {
-        g_signal_connect(self->prv->ncu_tree_store, "row_deleted", G_CALLBACK(row_deleted_cb), self );
-        g_signal_connect(self->prv->ncu_tree_store, "row_inserted", G_CALLBACK(row_inserted_cb), self );
-        g_signal_connect(self->prv->ncu_tree_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), self );
-    }
-
-    if ( self->prv->wireless_link_num != _num_wireless ) {
-        self->prv->wireless_link_num = _num_wireless;
-        g_object_notify(G_OBJECT (self), "wireless_link_num" );
-    }
-
-}
-
 static void
 find_wireless_ncu( gpointer obj, gpointer user_data )
 {
@@ -1576,18 +1524,64 @@ nwamui_ncp_get_wireless_ncus( NwamuiNcp* self )
     return( ncu_list );
 }
 
+static gint
+find_ncu_by_device_name(gconstpointer data, gconstpointer user_data)
+{
+    NwamuiNcu*  ncu             = NWAMUI_NCU(data);
+    gchar      *ncu_device_name = nwamui_ncu_get_device_name( ncu );
+    gchar      *device_name     = (gchar *)user_data;
+    gint        found           = 1;
+
+    g_return_val_if_fail(NWAMUI_IS_NCU(data), 1);
+    g_return_val_if_fail(user_data, 1);
+
+    if (g_ascii_strcasecmp(ncu_device_name, device_name) == 0) {
+        found = 0;
+        nwamui_debug("Compare %s ( 0x%p ) to target %s : SAME", ncu_device_name, data, device_name);
+    } else {
+        found = 1;
+        nwamui_debug("Compare %s ( 0x%p ) to target %s : DIFFERENT", ncu_device_name, data, device_name);
+    }
+    g_free(ncu_device_name);
+    return found;
+}
+
+static gint
+find_first_wifi_net(gconstpointer data, gconstpointer user_data)
+{
+	NwamuiNcu  *ncu          = (NwamuiNcu *) data;
+    NwamuiNcu **wireless_ncu = (NwamuiNcu **) user_data;
+	
+    g_return_val_if_fail(NWAMUI_IS_NCU(ncu), 1);
+    g_return_val_if_fail(user_data, 1);
+    
+	if (nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS ) {
+        *wireless_ncu = g_object_ref(ncu);
+        return 0;
+	}
+    return 1;
+}
+
+extern NwamuiNcu*
+nwamui_ncp_get_first_wireless_ncu(NwamuiNcp *self)
+{
+    NwamuiNcu *wireless_ncu = NULL;
+
+    g_return_val_if_fail(NWAMUI_IS_NCP(self), NULL);
+
+    if (self->prv->wireless_link_num > 0) {
+        nwamui_ncp_find_ncu(self, find_first_wifi_net, &wireless_ncu);
+    }
+
+    return wireless_ncu;
+}
+
 extern gint
 nwamui_ncp_get_wireless_link_num( NwamuiNcp* self )
 {
-    gboolean many_wireless = FALSE;
+    g_return_val_if_fail( NWAMUI_IS_NCP(self), 0);
 
-    g_return_val_if_fail( NWAMUI_IS_NCP(self), many_wireless );
-
-    g_object_get (G_OBJECT (self),
-                  "wireless_link_num", &many_wireless,
-                  NULL);
-
-    return( many_wireless );
+    return self->prv->wireless_link_num;
 }
 
 static void
