@@ -1,3 +1,13 @@
+2010-01-13  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_wireless_dialog.c (nwam_wireless_dialog_init),
+	(set_purpose), (nwam_wireless_dialog_set_wifi_net),
+	(key_entry_focus_in_cb): Remove focus_out callback. focus_in
+	callback only work one time. When user edits a known wifi, after
+	click passwd entry he must enter a new passwd or click cacel
+	button of this dialog. Fixed 13530 difficult to enable show
+	passwords while typing.
+
 2010-01-11  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_env_pref_dialog.c (block_nameservices_signals),

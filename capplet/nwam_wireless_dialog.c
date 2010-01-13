@@ -154,7 +154,6 @@ static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void essid_changed_cb( GtkWidget* widget, gpointer data );
 static void key_entry_changed_cb( GtkWidget* widget, gpointer data );
 static gboolean key_entry_focus_in_cb( GtkWidget* widget, GdkEventFocus *event, gpointer data );
-static gboolean key_entry_focus_out_cb( GtkWidget* widget, GdkEventFocus *event, gpointer data );
 static void security_selection_cb( GtkWidget* widget, gpointer data );
 static void show_password_cb( GtkToggleButton* widget, gpointer data );
 static void presistant_cb(GtkToggleButton* widget, gpointer data);
@@ -394,10 +393,8 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
     g_signal_connect(GTK_DIALOG(self->prv->wireless_dialog), "response", (GCallback)response_cb, (gpointer)self);
     g_signal_connect(GTK_ENTRY(self->prv->essid_cbentry), "changed", (GCallback)essid_changed_cb, (gpointer)self);
     g_signal_connect(GTK_ENTRY(self->prv->key_entry), "changed", (GCallback)key_entry_changed_cb, (gpointer)self);
-    g_signal_connect(GTK_ENTRY(self->prv->key_entry), "focus-in-event", (GCallback)key_entry_focus_in_cb, (gpointer)self);
-    g_signal_connect(GTK_ENTRY(self->prv->key_entry), "focus-out-event", (GCallback)key_entry_focus_out_cb, (gpointer)self);
     g_signal_connect(GTK_COMBO_BOX(self->prv->security_combo), "changed", (GCallback)security_selection_cb, (gpointer)self);
-    g_signal_connect(GTK_TOGGLE_BUTTON(self->prv->show_password_cbutton), "toggled", (GCallback)show_password_cb, (gpointer)self);
+    g_signal_connect(GTK_TOGGLE_BUTTON(self->prv->show_password_cbutton), "clicked", (GCallback)show_password_cb, (gpointer)self);
     g_signal_connect(GTK_TOGGLE_BUTTON(self->prv->persistant_cbutton), "toggled", (GCallback)presistant_cb, (gpointer)self);
     g_signal_connect(GTK_BUTTON(self->prv->bssid_add_btn), "clicked", (GCallback)bssid_add_cb, 
                                (gpointer)self->prv->bssid_list_tv);
@@ -756,6 +753,8 @@ set_purpose(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose)
         purpose_str = _("Join Wireless Network");
         break;
     case NWAMUI_DIALOG_PURPOSE_EDIT:
+        g_signal_connect(GTK_ENTRY(self->prv->key_entry), "focus-in-event", (GCallback)key_entry_focus_in_cb, (gpointer)self);
+
         purpose_str = _("Edit Wireless Network");
         break;
     default:
@@ -811,7 +810,7 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
 
         self->prv->wifi_net = NWAMUI_WIFI_NET(g_object_ref(wifi_net));
 
-        if ( self->prv->purpose == NWAMUI_DIALOG_PURPOSE_EDIT &&
+        if ( self->prv->purpose == NWAMUI_DIALOG_PURPOSE_EDIT ||
              self->prv->purpose == NWAMUI_DIALOG_PURPOSE_ADD ) {
             bssid_list = nwamui_wifi_net_get_fav_bssid_list(wifi_net);
         }
@@ -1720,30 +1719,18 @@ key_entry_focus_in_cb( GtkWidget* widget, GdkEventFocus *event, gpointer data )
     NwamWirelessDialog        *self = NWAM_WIRELESS_DIALOG(data);
     NwamWirelessDialogPrivate *prv  = self->prv;
 
-    if (!self->prv->do_connect && prv->wifi_net && nwamui_wifi_net_is_favourite(prv->wifi_net)) {
+    /* This callback only work one time. */
+    g_signal_handlers_disconnect_by_func(widget, (gpointer)key_entry_focus_in_cb, data);
+    
+    if (prv->purpose == NWAMUI_DIALOG_PURPOSE_EDIT && prv->wifi_net && nwamui_wifi_net_is_favourite(prv->wifi_net)) {
         /* Show invisible chars, and clean the fake password and enable show_password_cb */
         gtk_entry_set_visibility(GTK_ENTRY(self->prv->key_entry), FALSE);
         gtk_entry_set_text(GTK_ENTRY(widget), "");
         gtk_widget_set_sensitive(GTK_WIDGET(self->prv->show_password_cbutton), TRUE);
-    }
-    return FALSE;
-}
+        /* Set toggle correctly to the default one. */
+        gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->prv->show_password_cbutton), FALSE);
 
-static gboolean
-key_entry_focus_out_cb( GtkWidget* widget, GdkEventFocus *event, gpointer data )
-{
-    NwamWirelessDialog        *self = NWAM_WIRELESS_DIALOG(data);
-    NwamWirelessDialogPrivate *prv  = self->prv;
-
-    /* If user doesn't really input a new string, set fake back and disable show_password_cb */
-    if (!self->prv->do_connect && prv->wifi_net && nwamui_wifi_net_is_favourite(prv->wifi_net)) {
-        /* Clean the fake password and enable show_password_cb */
-        if (strlen(gtk_entry_get_text(GTK_ENTRY(widget))) == 0 ||
-          gtk_entry_get_text(GTK_ENTRY(widget)) == NULL) {
-            gtk_entry_set_text(GTK_ENTRY(widget), WIRELESS_FAKE_KEY);
-            gtk_entry_set_visibility(GTK_ENTRY(self->prv->key_entry), TRUE);
-            gtk_widget_set_sensitive(GTK_WIDGET(self->prv->show_password_cbutton), FALSE);
-        }
+        gtk_dialog_set_response_sensitive(prv->wireless_dialog, GTK_RESPONSE_OK, FALSE);
     }
     return FALSE;
 }
@@ -1859,9 +1846,17 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
 static void
 key_entry_changed_cb( GtkWidget* widget, gpointer data )
 {
-    NwamWirelessDialog *self = NWAM_WIRELESS_DIALOG(data);
+    NwamWirelessDialog        *self = NWAM_WIRELESS_DIALOG(data);
+    NwamWirelessDialogPrivate *prv  = self->prv;
 
     self->prv->key_entry_changed = TRUE;
+    if (prv->purpose == NWAMUI_DIALOG_PURPOSE_EDIT && prv->wifi_net && nwamui_wifi_net_is_favourite(prv->wifi_net)) {
+        if (gtk_entry_get_text_length(GTK_ENTRY(widget)) > 0) {
+            gtk_dialog_set_response_sensitive(prv->wireless_dialog, GTK_RESPONSE_OK, TRUE);
+        } else {
+            gtk_dialog_set_response_sensitive(prv->wireless_dialog, GTK_RESPONSE_OK, FALSE);
+        }
+    }
 }
 
 /* ESSID Changed */
