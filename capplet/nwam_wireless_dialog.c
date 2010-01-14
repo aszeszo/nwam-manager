@@ -580,21 +580,8 @@ nwam_wireless_dialog_set_property ( GObject         *object,
             }
              */
             break;
-        case PROP_BSSID_LIST: {
-                GList          *blist = (GList *) g_value_get_pointer (value);
-                GtkTreeModel   *model = NULL;
-                GtkTreeIter     iter;
-
-                model = gtk_tree_view_get_model (self->prv->bssid_list_tv);
-                gtk_list_store_clear( GTK_LIST_STORE(model) );
-
-                for ( GList* elem = g_list_first( blist );
-                      elem != NULL;
-                      elem = g_list_next(elem) ) {
-                    gtk_list_store_append(GTK_LIST_STORE(model), &iter );
-                    gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, elem->data, -1);
-                }
-            }
+        case PROP_BSSID_LIST:
+            nwam_wireless_dialog_set_bssid_list(self, (GList *)g_value_get_pointer(value));
             break;
         case PROP_PERSISTANT:
             gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(self->prv->persistant_cbutton), g_value_get_boolean (value));
@@ -663,26 +650,8 @@ nwam_wireless_dialog_get_property (GObject         *object,
             }
              */
             break;
-        case PROP_BSSID_LIST: {
-                GList          *blist = NULL;
-                GtkTreeModel   *model = NULL;
-                GtkTreeIter     iter;
-
-                model = gtk_tree_view_get_model (self->prv->bssid_list_tv);
-
-                if ( gtk_tree_model_get_iter_first( model, &iter ) ) {
-                    do {
-                        gchar*  string = NULL;
-                        gtk_tree_model_get(model, &iter, 0, &string, -1);
-
-                        if ( string != NULL ) {
-                            blist = g_list_append( blist, string );
-                        }
-                    }
-                    while ( gtk_tree_model_iter_next( model, &iter ) );
-                }
-                g_value_set_pointer( value, blist );
-            }
+    case PROP_BSSID_LIST:
+            g_value_set_pointer( value, nwam_wireless_dialog_get_bssid_list(self));
             break;
 	case PROP_PERSISTANT:
             if (self->prv->persistant_cbutton != NULL) {
@@ -1155,27 +1124,46 @@ void
 nwam_wireless_dialog_set_bssid_list (NwamWirelessDialog  *self,
                                      GList               *bssid_list )
 {
-    g_return_if_fail (NWAM_IS_WIRELESS_DIALOG (self));
-    g_assert (bssid_list != NULL );
+    GtkTreeModel   *model = NULL;
+    GtkTreeIter     iter;
 
-    if ( bssid_list != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "bssid_list", bssid_list,
-                      NULL);
+    g_return_if_fail (NWAM_IS_WIRELESS_DIALOG (self));
+
+    model = gtk_tree_view_get_model (self->prv->bssid_list_tv);
+    gtk_list_store_clear( GTK_LIST_STORE(model) );
+
+    for ( GList* elem = g_list_first( bssid_list );
+          elem != NULL;
+          elem = g_list_next(elem) ) {
+        gtk_list_store_append(GTK_LIST_STORE(model), &iter );
+        gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, elem->data, -1);
     }
 }
                                 
 GList*                  
 nwam_wireless_dialog_get_bssid_list (NwamWirelessDialog *self )
 {
-    GList*  bssid_list = NULL;
-    
-    g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), bssid_list);
+    GList          *blist = NULL;
+    GtkTreeModel   *model = NULL;
+    GtkTreeIter     iter;
 
-    g_object_get (G_OBJECT (self),
-                  "bssid_list", &bssid_list,
-                  NULL);
-    return( bssid_list );
+    g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), blist);
+
+    model = gtk_tree_view_get_model (self->prv->bssid_list_tv);
+
+    if ( gtk_tree_model_get_iter_first( model, &iter ) ) {
+        do {
+            gchar*  string = NULL;
+            gtk_tree_model_get(model, &iter, 0, &string, -1);
+
+            if ( string != NULL ) {
+                blist = g_list_append( blist, string );
+            }
+        }
+        while ( gtk_tree_model_iter_next( model, &iter ) );
+    }
+
+    return blist;
 }
 
 void                    
@@ -1868,11 +1856,33 @@ essid_changed_cb( GtkWidget* widget, gpointer data )
     GtkTreeIter         iter;
     gboolean            state = strlen(gtk_entry_get_text(GTK_ENTRY(widget))) != 0 ;
     gint                int_data;
+    gchar              *essid;
     
+    /* Clean the bssid view. */
+    nwam_wireless_dialog_set_bssid_list(self, NULL);
+
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(self->prv->essid_combo));
     if ( gtk_combo_box_get_active_iter(GTK_COMBO_BOX(self->prv->essid_combo), &iter ) ) {
         gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 2, &int_data,  -1);
         nwam_wireless_dialog_set_security(self, (nwamui_wifi_security_t)int_data);
+
+        if (self->prv->ncu) {
+            NwamuiWifiNet *wifi;
+            gtk_tree_model_get(GTK_TREE_MODEL(model), &iter, 0, &essid,  -1);
+
+            wifi = nwamui_ncu_wifi_hash_lookup_by_essid(self->prv->ncu, essid);
+            
+            if (wifi) {
+                GList *bssid_list;
+                bssid_list = nwamui_wifi_net_get_bssid_list(wifi);
+                if ( bssid_list ) {
+                    nwam_wireless_dialog_set_bssid_list(self, bssid_list);
+                    g_list_foreach( bssid_list, (GFunc)g_free, NULL );
+                    g_list_free(bssid_list);
+                }
+            }
+            g_free(essid);
+        }
     }
     
     gtk_dialog_set_response_sensitive(GTK_DIALOG(self->prv->wireless_dialog), GTK_RESPONSE_OK, state );

@@ -1026,6 +1026,16 @@ nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiObject* ncp )
     return(self->prv->active_ncp == ncp);
 }
 
+extern void
+nwamui_daemon_foreach_ncp(NwamuiDaemon *self, GFunc func, gpointer user_data)
+{
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
+
+    g_return_if_fail(NWAMUI_IS_DAEMON(self));
+
+    g_list_foreach(prv->managed_list[MANAGED_NCP], func, user_data);
+}
+
 /**
  * nwamui_daemon_get_ncp_list:
  * @self: NwamuiDaemon*
@@ -2828,8 +2838,13 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             } else {
                 /* interface:name/link:name, so a NCU will be added two
                  * times. Depend ncp's reload to add link NCU.
+                 *
+                 * When add a new NCU to an empty NCP, reload which will run
+                 * nwam_ncp_walk_ncus can not get any NCUs, then the new added
+                 * NCU will be removed.
                  */
-                nwamui_object_reload(NWAMUI_OBJECT(ncp));
+                /* nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
+                nwamui_object_reload(NWAMUI_OBJECT(ncu));
             }
         }
             break;

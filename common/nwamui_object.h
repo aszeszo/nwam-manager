@@ -62,7 +62,7 @@ struct _NwamuiObjectClass
     void (*set_handle)(NwamuiObject *object, const gpointer handle);
     const gchar* (*get_name)(NwamuiObject *object);
     gboolean (*can_rename)(NwamuiObject *object);
-    void (*set_name)(NwamuiObject *object, const gchar* name);
+    gboolean (*set_name)(NwamuiObject *object, const gchar* name);
     GList* (*get_conditions)(NwamuiObject *object);
     void (*set_conditions)(NwamuiObject *object, const GList* conditions);
     gint (*get_activation_mode)(NwamuiObject *object);
@@ -92,7 +92,7 @@ extern GType               nwamui_object_get_type (void) G_GNUC_CONST;
 extern void          nwamui_object_set_handle(NwamuiObject *object, const gpointer handle);
 extern const gchar*  nwamui_object_get_name(NwamuiObject *object);
 extern gboolean      nwamui_object_can_rename (NwamuiObject *object);
-extern void          nwamui_object_set_name(NwamuiObject *object, const gchar* name);
+extern gboolean      nwamui_object_set_name(NwamuiObject *object, const gchar* name);
 extern void          nwamui_object_set_conditions ( NwamuiObject *object, const GList* conditions );
 extern GList*        nwamui_object_get_conditions ( NwamuiObject *object );
 extern gint          nwamui_object_get_activation_mode(NwamuiObject *object);

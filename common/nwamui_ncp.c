@@ -116,13 +116,14 @@ static void          nwamui_object_real_set_handle(NwamuiObject *object, const g
 static nwam_state_t  nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
 static const gchar*  nwamui_object_real_get_name ( NwamuiObject *object );
 static gboolean      nwamui_object_real_can_rename(NwamuiObject *object);
-static void          nwamui_object_real_set_name(NwamuiObject *object, const gchar* name);
+static gboolean      nwamui_object_real_set_name(NwamuiObject *object, const gchar* name);
 static void          nwamui_object_real_set_active ( NwamuiObject *object, gboolean active );
 static gboolean      nwamui_object_real_get_active( NwamuiObject *object );
 static gboolean      nwamui_object_real_commit( NwamuiObject *object );
-static void          nwamui_object_real_reload( NwamuiObject *object );
+static void          nwamui_object_real_reload(NwamuiObject* object);
 static gboolean      nwamui_object_real_destroy( NwamuiObject* object );
 static gboolean      nwamui_object_real_is_modifiable(NwamuiObject *object);
+static gboolean      nwamui_object_real_has_modifications(NwamuiObject* object);
 static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 
 /* Default signal handlers */
@@ -173,6 +174,7 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
     nwamuiobject_class->reload = nwamui_object_real_reload;
     nwamuiobject_class->destroy = nwamui_object_real_destroy;
     nwamuiobject_class->is_modifiable = nwamui_object_real_is_modifiable;
+    nwamuiobject_class->has_modifications = nwamui_object_real_has_modifications;
     nwamuiobject_class->clone = nwamui_object_real_clone;
 
 	g_type_class_add_private(klass, sizeof(NwamuiNcpPrivate));
@@ -297,6 +299,16 @@ nwamui_ncp_init ( NwamuiNcp *self)
         nwamui_debug("Error getting active priortiy group: %d (%s)", 
           nerr, nwam_strerror(nerr) );
     }
+
+    prv->ncu_list_store = gtk_list_store_new ( 1, NWAMUI_TYPE_NCU);
+    prv->ncu_tree_store = gtk_tree_store_new ( 1, NWAMUI_TYPE_OBJECT);
+
+    g_signal_connect(prv->ncu_list_store, "row_deleted", G_CALLBACK(row_deleted_cb), (gpointer)self);
+    g_signal_connect(prv->ncu_list_store, "row_inserted", G_CALLBACK(row_inserted_cb), (gpointer)self);
+    g_signal_connect(prv->ncu_list_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), (gpointer)self);
+    g_signal_connect(prv->ncu_tree_store, "row_deleted", G_CALLBACK(row_deleted_cb), (gpointer)self);
+    g_signal_connect(prv->ncu_tree_store, "row_inserted", G_CALLBACK(row_inserted_cb), (gpointer)self);
+    g_signal_connect(prv->ncu_tree_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), (gpointer)self);
 }
 
 static void
@@ -498,19 +510,52 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
     return NWAMUI_OBJECT(new_ncp);
 }
 
+static nwam_ncp_handle_t
+get_nwam_ncp_handle(NwamuiNcp* self)
+{
+    NwamuiNcpPrivate *prv  = NWAMUI_NCP_GET_PRIVATE(self);
+    nwam_ncp_handle_t ncp_handle = NULL;
+
+    g_return_val_if_fail(NWAMUI_IS_NCP(self), ncp_handle);
+
+    if (prv->name) {
+        nwam_error_t      nerr;
+
+        nerr = nwam_ncp_read(prv->name, 0, &ncp_handle);
+        if (nerr != NWAM_SUCCESS) {
+            if (nerr == NWAM_ENTITY_NOT_FOUND) {
+                g_debug("Failed to read ncp information for %s error: %s", prv->name, nwam_strerror(nerr));
+            } else {
+                g_warning("Failed to read ncp information for %s error: %s", prv->name, nwam_strerror(nerr));
+            }
+            return ( NULL );
+        }
+    }
+    return ncp_handle;
+}
+
 /**
  *  Check for new NCUs - useful after reactivation of daemon or signal for new
  *  NCUs.
  **/
 static void
-nwamui_object_real_reload( NwamuiObject *object )
+nwamui_object_real_reload(NwamuiObject* object)
 {
-    NwamuiNcpPrivate *prv                  = NWAMUI_NCP_GET_PRIVATE(object);
-    int               cb_ret               = 0;
-    gboolean          connect_list_signals = FALSE;
-    gboolean          connect_tree_signals = FALSE;
+    NwamuiNcpPrivate  *prv                  = NWAMUI_NCP_GET_PRIVATE(object);
+    int                cb_ret               = 0;
+    nwam_error_t       nerr;
+    nwam_loc_handle_t  handle;
 
     g_return_if_fail(NWAMUI_IS_NCP(object));
+
+    handle = get_nwam_ncp_handle(NWAMUI_NCP(object));
+    if (handle) {
+        if (prv->nwam_ncp) {
+            nwam_ncp_free(prv->nwam_ncp);
+        }
+        prv->nwam_ncp = handle;
+    }
+
     g_object_freeze_notify(G_OBJECT(object));
 
     /* Assumption is that anything that was newly added should be removed,
@@ -531,16 +576,6 @@ nwamui_object_real_reload( NwamuiObject *object )
 
     g_assert(prv->nwam_ncp != NULL );
 
-    if ( prv->ncu_list_store  == NULL ) {
-        prv->ncu_list_store = gtk_list_store_new ( 1, NWAMUI_TYPE_NCU);
-        connect_list_signals = TRUE;
-    }
-
-    if ( prv->ncu_tree_store  == NULL ) {
-        prv->ncu_tree_store = gtk_tree_store_new ( 1, NWAMUI_TYPE_OBJECT);
-        connect_tree_signals = TRUE;
-    }
-
     g_object_freeze_notify(G_OBJECT(prv->ncu_tree_store));
     g_object_freeze_notify(G_OBJECT(prv->ncu_list_store));
 
@@ -556,8 +591,14 @@ nwamui_object_real_reload( NwamuiObject *object )
     }
 
     _num_wireless = 0;
-    nwam_ncp_walk_ncus( prv->nwam_ncp, nwam_ncu_walker_cb, (void*)object,
+    nerr = nwam_ncp_walk_ncus( prv->nwam_ncp, nwam_ncu_walker_cb, (void*)object,
       NWAM_FLAG_NCU_TYPE_CLASS_ALL, &cb_ret );
+    if (nerr != NWAM_SUCCESS) {
+        nwamui_warning("Failed to walk ncus of ncp  %s error: %s", prv->name, nwam_strerror(nerr));
+        g_list_foreach(prv->temp_ncu_list, nwamui_util_obj_unref, NULL );    
+        g_list_free(prv->temp_ncu_list);
+        prv->temp_ncu_list = NULL;
+    }
 
     if ( prv->temp_ncu_list != NULL ) {
         g_debug("Found some NCUs that have been removed from the system");
@@ -573,18 +614,6 @@ nwamui_object_real_reload( NwamuiObject *object )
     }
     g_object_thaw_notify(G_OBJECT(prv->ncu_tree_store));
     g_object_thaw_notify(G_OBJECT(prv->ncu_list_store));
-
-    if ( connect_list_signals ) {
-        g_signal_connect(prv->ncu_list_store, "row_deleted", G_CALLBACK(row_deleted_cb), (gpointer)object);
-        g_signal_connect(prv->ncu_list_store, "row_inserted", G_CALLBACK(row_inserted_cb), (gpointer)object);
-        g_signal_connect(prv->ncu_list_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), (gpointer)object);
-    }
-
-    if ( connect_tree_signals ) {
-        g_signal_connect(prv->ncu_tree_store, "row_deleted", G_CALLBACK(row_deleted_cb), (gpointer)object);
-        g_signal_connect(prv->ncu_tree_store, "row_inserted", G_CALLBACK(row_inserted_cb), (gpointer)object);
-        g_signal_connect(prv->ncu_tree_store, "rows_reordered", G_CALLBACK(rows_reordered_cb), (gpointer)object);
-    }
 
     if ( prv->wireless_link_num != _num_wireless ) {
         prv->wireless_link_num = _num_wireless;
@@ -605,36 +634,35 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
 {
     NwamuiNcpPrivate        *prv  = NWAMUI_NCP_GET_PRIVATE(object);
     const nwam_ncp_handle_t  ncp  = handle;
+    const nwam_ncp_handle_t  ncp_handle;
     char*                    name = NULL;
     nwam_error_t             nerr;
     nwam_ncp_handle_t        nwam_ncp;
     
-    g_assert(NWAMUI_IS_NCP(object));
+    g_return_if_fail(NWAMUI_IS_NCP(object));
 
     if ( (nerr = nwam_ncp_get_name (ncp, &name)) != NWAM_SUCCESS ) {
         g_debug ("Failed to get name for ncp, error: %s", nwam_strerror (nerr));
     }
 
-    nerr = nwam_ncp_read (name, 0, &nwam_ncp);
-    if (nerr == NWAM_ENTITY_NOT_FOUND ) {
+    nwamui_object_set_name(object, name);
+
+    nwam_ncp = get_nwam_ncp_handle(NWAMUI_NCP(object));
+    if (nwam_ncp) {
+        if (prv->nwam_ncp) {
+            nwam_ncp_free(prv->nwam_ncp);
+        }
+        prv->nwam_ncp = nwam_ncp;
+    } else {
         /* Most likely only exists in memory right now, so use handle passed
          * in as parameter.
          */
         prv->nwam_ncp = ncp;
-    } else if (nerr != NWAM_SUCCESS) {
+        nwamui_object_real_reload(object);
         prv->nwam_ncp = NULL;
-        /* g_object_unref(object); */
-        nwamui_warning("Failed to create private handle for ncp, error: %s", nwam_strerror (nerr));
-        /* return (NULL); */
-        return;
     }
 
     prv->nwam_ncp = nwam_ncp;
-
-    if (prv->name) {
-        g_free(prv->name);
-    }
-    prv->name = name;
 
     nwamui_object_real_reload(object);
 }
@@ -666,30 +694,41 @@ nwamui_object_real_can_rename(NwamuiObject *object)
     /*     } */
     /* } */
     /* return FALSE; */
-    return( TRUE );
+
+    return (prv->nwam_ncp == NULL);
 }
 
-static void
+static gboolean
 nwamui_object_real_set_name( NwamuiObject *object, const gchar* name )
 {
     NwamuiNcpPrivate *prv  = NWAMUI_NCP_GET_PRIVATE(object);
     nwam_error_t      nerr;
 
-    g_return_if_fail (NWAMUI_IS_NCP (object));
-    g_return_if_fail (name);
+    g_return_val_if_fail(NWAMUI_IS_NCP(object), FALSE);
+    g_return_val_if_fail(name, FALSE);
 
     /* Initially set name or rename. */
     if (prv->name == NULL) {
         if (prv->nwam_ncp == NULL) {
+            /* prv->nwam_ncp = get_nwam_ncp_handle(NWAMUI_NCP(object)); */
+
+            /* nerr = nwam_ncp_read (name, 0, &prv->nwam_ncp); */
+            /* if (nerr == NWAM_SUCCESS) { */
+            /*     /\* g_debug ("nwamui_ncp_read found nwam_ncp_handle %s", name); *\/ */
+            /* } else { */
+            /*     nerr = nwam_ncp_create (name, NULL, &prv->nwam_ncp); */
+            /*     if (nerr != NWAM_SUCCESS) { */
+            /*         g_warning("nwamui_ncp_create error creating nwam_ncp_handle %s", name); */
+            /*         prv->nwam_ncp == NULL; */
+            /*     } */
+            /* } */
+
             nerr = nwam_ncp_read (name, 0, &prv->nwam_ncp);
             if (nerr == NWAM_SUCCESS) {
                 /* g_debug ("nwamui_ncp_read found nwam_ncp_handle %s", name); */
             } else {
-                nerr = nwam_ncp_create (name, NULL, &prv->nwam_ncp);
-                if (nerr != NWAM_SUCCESS) {
-                    g_warning("nwamui_ncp_create error creating nwam_ncp_handle %s", name);
-                    prv->nwam_ncp == NULL;
-                }
+                /* New NCP */
+                prv->nwam_ncp_modified = TRUE;
             }
         }
     } else {
@@ -703,11 +742,23 @@ nwamui_object_real_set_name( NwamuiObject *object, const gchar* name )
         /* else { */
         /*     g_warning("Unexpected null ncp handle"); */
         /* } */
-        /* prv->nwam_ncp_modified = TRUE; */
+
+        if (prv->nwam_ncp == NULL) {
+            nerr = nwam_ncp_read (name, 0, &prv->nwam_ncp);
+            if (nerr == NWAM_SUCCESS) {
+                /* g_debug ("nwamui_ncp_read found nwam_ncp_handle %s", name); */
+                /* NCP is existed. */
+                nwam_ncp_free(prv->nwam_ncp);
+                prv->nwam_ncp = NULL;
+                return FALSE;
+            }
+        }
+        prv->nwam_ncp_modified = TRUE;
     }
 
     g_free(prv->name);
     prv->name = g_strdup(name);
+    return TRUE;
 }
 
 /**
@@ -799,6 +850,14 @@ nwamui_object_real_is_modifiable(NwamuiObject *object)
     /* } */
 
     return( modifiable );
+}
+
+static gboolean
+nwamui_object_real_has_modifications(NwamuiObject* object)
+{
+    NwamuiNcpPrivate *prv  = NWAMUI_NCP_GET_PRIVATE(object);
+
+    return prv->nwam_ncp_modified;
 }
 
 extern gint64
@@ -1276,10 +1335,21 @@ nwamui_object_real_commit( NwamuiObject *object )
     NwamuiNcpPrivate *prv      = NWAMUI_NCP_GET_PRIVATE(object);
     gboolean          rval     = FALSE;
     const gchar*      ncp_name = nwamui_object_get_name(object);
+    nwam_error_t      nerr;
 
     g_return_val_if_fail (NWAMUI_IS_NCP(object), rval );
 
-    if (nwamui_object_is_modifiable(object)) {
+    if (prv->nwam_ncp == NULL) {
+        /* This is a new added NCP */
+        nerr = nwam_ncp_create (prv->name, NULL, &prv->nwam_ncp);
+        if (nerr != NWAM_SUCCESS) {
+            g_warning("nwamui_ncp_create error creating nwam_ncp_handle %s", prv->name);
+            return FALSE;
+        }
+        prv->nwam_ncp_modified = FALSE;
+    }
+
+    if (nwamui_object_real_is_modifiable(object)) {
         if ( prv->ncus_removed != NULL ) {
             /* Make sure they are removed from the system */
             g_list_foreach( prv->ncus_removed, (GFunc)nwamui_object_destroy, NULL );
@@ -1315,7 +1385,12 @@ nwamui_object_real_commit( NwamuiObject *object )
         nwamui_debug("NCP : %s is not modifiable", ncp_name );
     }
 
-    return( TRUE );
+    /* if ((nerr = nwam_ncp_commit(prv->nwam_ncp, 0)) != NWAM_SUCCESS) { */
+    /*     g_warning("Failed when committing NCP for %s, %s", prv->name, nwam_strerror(nerr)); */
+    /*     return FALSE; */
+    /* } */
+
+    return TRUE;
 }
 
 static gboolean

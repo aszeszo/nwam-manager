@@ -651,13 +651,13 @@ nwam_profile_dialog_init(NwamProfileDialog *self)
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
 
     /* Initially refresh self */
-    {
-        NwamuiObject *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
-        if (ncp) {
-            nwam_pref_refresh(NWAM_PREF_IFACE(self), ncp, TRUE);
-            g_object_unref(ncp);
-        }
-    }
+    /* { */
+    /*     NwamuiObject *ncp = nwamui_daemon_get_active_ncp(prv->daemon); */
+    /*     if (ncp) { */
+    /*         nwam_pref_refresh(NWAM_PREF_IFACE(self), ncp, TRUE); */
+    /*         g_object_unref(ncp); */
+    /*     } */
+    /* } */
 }
 
 /**
@@ -693,7 +693,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 
     if (force) {
         gtk_entry_set_text(GTK_ENTRY(prv->profile_name_entry), nwamui_object_get_name(refresh_ncp));
-        gtk_widget_set_sensitive(prv->profile_name_entry, nwamui_object_is_modifiable(refresh_ncp));
+        gtk_widget_set_sensitive(prv->profile_name_entry, nwamui_object_can_rename(refresh_ncp));
     }
 
     g_object_set(self, "selected_ncp", refresh_ncp, NULL);
@@ -717,7 +717,9 @@ apply(NwamPrefIFace *iface, gpointer user_data)
           &iter);
 
         /* rename */
-        nwamui_object_set_name(prv->selected_ncp, gtk_entry_get_text(GTK_ENTRY(prv->profile_name_entry)));
+        if (GTK_WIDGET_IS_SENSITIVE(prv->profile_name_entry)) {
+            nwamui_object_set_name(prv->selected_ncp, gtk_entry_get_text(GTK_ENTRY(prv->profile_name_entry)));
+        }
         nwamui_object_commit(prv->selected_ncp);
     }
 
@@ -1123,18 +1125,18 @@ vanity_name_editing_started (GtkCellRenderer *cell,
 
 static void
 vanity_name_edited ( GtkCellRendererText *cell,
-                     const gchar         *path_string,
-                     const gchar         *new_text,
-                     gpointer             data)
+  const gchar         *path_string,
+  const gchar         *new_text,
+  gpointer             data)
 {
-  	NwamProfileDialog*       self = NWAM_PROFILE_DIALOG(data);
-    GtkTreeModel *model;
-    GtkTreePath *path = gtk_tree_path_new_from_string (path_string);
-    GtkTreeIter iter;
+    NwamProfileDialogPrivate *prv  = GET_PRIVATE(data);
+    GtkTreeModel             *model;
+    GtkTreePath              *path = gtk_tree_path_new_from_string (path_string);
+    GtkTreeIter               iter;
 
     gint column = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM));
 
-	model = gtk_tree_view_get_model(self->prv->net_conf_treeview);
+	model = gtk_tree_view_get_model(prv->net_conf_treeview);
     if ( gtk_tree_model_get_iter (model, &iter, path))
     switch (column) {
         case CONNVIEW_INFO:      {
@@ -2055,6 +2057,10 @@ connections_edit_btn_clicked(GtkButton *button, gpointer user_data )
                 new_ncu = NWAMUI_NCU(nwamui_object_clone(NWAMUI_OBJECT(selected->data), NULL, prv->selected_ncp));
                 if ( new_ncu != NULL ) {
                     nwamui_ncp_add_ncu(NWAMUI_NCP(prv->selected_ncp), new_ncu);
+                } else {
+                    nwamui_warning("Clone NCP %s NCU %s failed",
+                      nwamui_object_get_name(prv->selected_ncp),
+                      nwamui_object_get_name(NWAMUI_OBJECT(selected->data)));
                 }
             }
         }
@@ -2511,12 +2517,14 @@ edit_profile_changed(NwamProfileDialog *self, NwamuiObject *ncp)
     /* Update widgets */
     selection_changed(gtk_tree_view_get_selection(prv->net_conf_treeview), (gpointer)self);
 
+    gtk_widget_set_sensitive(prv->profile_name_entry, nwamui_object_can_rename(prv->selected_ncp));
+
     if (nwamui_object_is_modifiable(prv->selected_ncp)) {
-        gtk_widget_set_sensitive(prv->profile_name_entry, TRUE);
+        /* gtk_widget_set_sensitive(prv->profile_name_entry, TRUE); */
         gtk_widget_set_sensitive(GTK_WIDGET(prv->net_conf_treeview), TRUE);
         gtk_widget_set_sensitive(GTK_WIDGET(prv->connections_edit_btn), TRUE);
     } else {
-        gtk_widget_set_sensitive(prv->profile_name_entry, FALSE);
+        /* gtk_widget_set_sensitive(prv->profile_name_entry, FALSE); */
         gtk_widget_set_sensitive(GTK_WIDGET(prv->net_conf_treeview), FALSE);
         gtk_widget_set_sensitive(GTK_WIDGET(prv->connections_edit_btn), FALSE);
     }

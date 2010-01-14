@@ -19,7 +19,7 @@
  * CDDL HEADER END
  */
 /*
- * Copyright 2009 Sun Microsystems, Inc.  All rights reserved.
+ * Copyright 2010 Sun Microsystems, Inc.  All rights reserved.
  * Use is subject to license terms.
  */
 
@@ -936,8 +936,6 @@ extern nwam_error_t nwam_wlan_set_key(const char *, const char *, const char *,
 #define	NWAM_EVENT_REQUEST_WLAN			1
 #define	NWAM_EVENT_REQUEST_KEY			2
 
-#define	NWAM_NAMESIZE		32 /* LIFNAMSIZ, _LIFNAMSIZ, IFNAMESIZ ... */
-
 /*
  * Actions for nwamd to perform, used in conjunction with
  * nwam_request_type_t in nwam_door_arg_t.
@@ -1016,7 +1014,6 @@ struct nwam_event {
 
 		struct nwam_event_if_state {
 			char nwe_name[NWAM_MAX_NAME_LEN];
-			char nwe_ifname[NWAM_MAX_NAME_LEN];
 			uint32_t nwe_flags;
 			uint32_t nwe_index;
 			uint32_t nwe_addr_valid; /* boolean */

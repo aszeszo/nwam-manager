@@ -155,7 +155,7 @@ static gboolean     set_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const
 static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
 static nwam_state_t nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
 static gboolean     nwamui_object_real_can_rename (NwamuiObject *object);
-static void         nwamui_object_real_set_name ( NwamuiObject *object, const gchar* name );
+static gboolean     nwamui_object_real_set_name ( NwamuiObject *object, const gchar* name );
 static const gchar* nwamui_object_real_get_name ( NwamuiObject *object );
 static void         nwamui_object_real_set_activation_mode ( NwamuiObject *object, gint activation_mode );
 static gint         nwamui_object_real_get_activation_mode ( NwamuiObject *object );
@@ -167,7 +167,7 @@ static void         nwamui_object_real_set_enabled ( NwamuiObject *object, gbool
 static gboolean     nwamui_object_real_get_enabled ( NwamuiObject *object );
 static gboolean     nwamui_object_real_commit( NwamuiObject* object );
 static gboolean     nwamui_object_real_destroy( NwamuiObject* object );
-static void         nwamui_object_real_reload( NwamuiObject* object );
+static void         nwamui_object_real_reload(NwamuiObject* object);
 static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 static gboolean     nwamui_object_real_has_modifications(NwamuiObject* object);
 
@@ -1751,14 +1751,14 @@ nwamui_object_real_can_rename (NwamuiObject *object)
  * @name: The name to set.
  * 
  **/ 
-static void
+static gboolean
 nwamui_object_real_set_name (NwamuiObject *object, const gchar*  name )
 {
     NwamuiEnvPrivate *prv  = NWAMUI_ENV_GET_PRIVATE(object);
     nwam_error_t      nerr;
 
-    g_return_if_fail (NWAMUI_IS_ENV (object));
-    g_return_if_fail (name);
+    g_return_val_if_fail(NWAMUI_IS_ENV(object), FALSE);
+    g_return_val_if_fail(name, FALSE);
 
     /* Initially set name or rename. */
     if (prv->name == NULL) {
@@ -1781,6 +1781,7 @@ nwamui_object_real_set_name (NwamuiObject *object, const gchar*  name )
             nerr = nwam_loc_set_name (prv->nwam_loc, name);
             if (nerr != NWAM_SUCCESS) {
                 g_debug ("nwam_loc_set_name %s error: %s", name, nwam_strerror (nerr));
+                return FALSE;
             }
         }
         else {
@@ -1791,6 +1792,31 @@ nwamui_object_real_set_name (NwamuiObject *object, const gchar*  name )
 
     g_free(prv->name);
     prv->name = g_strdup(name);
+    return TRUE;
+}
+
+static nwam_loc_handle_t
+get_nwam_env_handle(NwamuiEnv* self)
+{
+    NwamuiEnvPrivate *prv  = NWAMUI_ENV_GET_PRIVATE(self);
+    nwam_loc_handle_t loc_handle = NULL;
+
+    g_return_val_if_fail(NWAMUI_IS_ENV(self), loc_handle);
+
+    if (prv->name) {
+        nwam_error_t      nerr;
+
+        nerr = nwam_loc_read(prv->name, 0, &loc_handle);
+        if (nerr != NWAM_SUCCESS) {
+            if (nerr == NWAM_ENTITY_NOT_FOUND) {
+                g_debug("Failed to read loc information for %s error: %s", prv->name, nwam_strerror(nerr));
+            } else {
+                g_warning("Failed to read loc information for %s error: %s", prv->name, nwam_strerror(nerr));
+            }
+            return ( NULL );
+        }
+    }
+    return loc_handle;
 }
 
 static void
@@ -1802,7 +1828,7 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
     nwam_error_t             nerr;
     int                      rval;
 
-    g_assert(NWAMUI_IS_ENV(object));
+    g_return_if_fail(NWAMUI_IS_ENV(object));
     
     nerr = nwam_loc_get_name (envh, (char **)&name);
     if (nerr != NWAM_SUCCESS) {
@@ -1819,12 +1845,22 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
  * nwamui_env_reload:   re-load stored configuration
  **/
 static void
-nwamui_object_real_reload(NwamuiObject *object)
+nwamui_object_real_reload(NwamuiObject* object)
 {
     NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(object);
     gboolean           enabled = FALSE;
+    nwam_error_t       nerr;
+    nwam_loc_handle_t  handle;
 
-    g_assert(NWAMUI_IS_ENV(object));
+    g_return_if_fail(NWAMUI_IS_ENV(object));
+
+    handle = get_nwam_env_handle(NWAMUI_ENV(object));
+    if (handle) {
+        if (prv->nwam_loc) {
+            nwam_loc_free(prv->nwam_loc);
+        }
+        prv->nwam_loc = handle;
+    }
 
     nwamui_debug ("loaded nwam_loc_handle : %s", prv->name);
 

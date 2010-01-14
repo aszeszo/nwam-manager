@@ -143,6 +143,10 @@ static void nwamui_ncu_get_property ( GObject         *object,
 
 static void nwamui_ncu_finalize (     NwamuiNcu *self);
 
+static void populate_iptun_ncu_data(NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu);
+static void populate_ip_ncu_data(NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu);
+static void populate_phys_ncu_data(NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu);
+
 static void nwamui_ncu_set_display_name ( NwamuiNcu *self );
 static void set_modified_flag( NwamuiNcu* self, nwam_ncu_class_t ncu_class, gboolean value );
 
@@ -172,10 +176,10 @@ static gchar*       get_interface_address_str( NwamuiNcu *ncu, sa_family_t famil
 
 static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
 static const gchar* nwamui_ncu_get_vanity_name ( NwamuiObject *object );
-static void         nwamui_ncu_set_vanity_name ( NwamuiObject *object, const gchar* name );
+static gboolean     nwamui_ncu_set_vanity_name ( NwamuiObject *object, const gchar* name );
 static gint         nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by);
 static gboolean     nwamui_object_real_commit( NwamuiObject* object );
-static void         nwamui_object_real_reload( NwamuiObject* object );
+static void         nwamui_object_real_reload(NwamuiObject* object);
 static gboolean     nwamui_object_real_destroy( NwamuiObject* object );
 static gboolean     nwamui_object_real_is_modifiable(NwamuiObject *object);
 static void         nwamui_object_real_set_active ( NwamuiObject *object, gboolean active );
@@ -473,7 +477,7 @@ nwamui_ncu_set_property ( GObject         *object,
     gboolean     read_only = FALSE;
 
     if ( !self->prv->initialisation ) {
-        read_only = !nwamui_object_is_modifiable(NWAMUI_OBJECT(self));
+        read_only = !nwamui_object_real_is_modifiable(NWAMUI_OBJECT(self));
 
         if ( read_only && prop_id != PROP_WIFI_INFO ) {
             g_error("Attempting to modify read-only ncu %s", self->prv->device_name?self->prv->device_name:"NULL");
@@ -1121,6 +1125,18 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 
 }
 
+static void
+populate_phys_ncu_data(NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu)
+{
+    NwamuiNcuPrivate *prv = NWAMUI_NCU_GET_PRIVATE(ncu);
+    gboolean          enabled;
+
+    enabled = get_nwam_ncu_boolean_prop(nwam_ncu, NWAM_NCU_PROP_ENABLED);
+    if ( enabled != prv->enabled ) {
+        prv->enabled = enabled;
+        g_object_notify(G_OBJECT(ncu), "enabled" );
+    }
+}
 
 static gboolean 
 append_to_glist( GtkTreeModel *model,
@@ -1357,24 +1373,29 @@ get_device_from_ncu_name( const gchar* ncu_name )
 static nwam_ncu_handle_t
 get_nwam_ncu_handle( NwamuiNcu* self, nwam_ncu_type_t ncu_type )
 {
+    NwamuiNcuPrivate *prv      = NWAMUI_NCU_GET_PRIVATE(self);
     nwam_ncu_handle_t ncu_handle = NULL;
 
-    if (self != NULL && self->prv != NULL && \
-        self->prv->ncp != NULL && self->prv->device_name != NULL ) {
+    g_return_val_if_fail(NWAMUI_IS_NCU(self), ncu_handle);
+
+    if (prv->ncp != NULL && prv->device_name != NULL) {
 
         nwam_ncp_handle_t ncp_handle;
         nwam_error_t      nerr;
 
-        ncp_handle = nwamui_ncp_get_nwam_handle( self->prv->ncp );
+        ncp_handle = nwamui_ncp_get_nwam_handle(prv->ncp);
+        nerr = nwam_ncu_read(ncp_handle, prv->device_name, ncu_type, 0, &ncu_handle);
 
-        if ( (nerr = nwam_ncu_read( ncp_handle, self->prv->device_name, ncu_type, 0,
-                                    &ncu_handle ) ) != NWAM_SUCCESS  ) {
-			g_warning("Failed to read ncu information for %s error: %s", self->prv->device_name, nwam_strerror(nerr));
+        if (nerr != NWAM_SUCCESS) {
+            if (nerr == NWAM_ENTITY_NOT_FOUND) {
+                g_debug("Failed to read ncu information for %s error: %s", prv->device_name, nwam_strerror(nerr));
+            } else {
+                g_warning("Failed to read ncu information for %s error: %s", prv->device_name, nwam_strerror(nerr));
+            }
             return ( NULL );
         }
     }
-
-    return( ncu_handle );
+    return ncu_handle;
 }
 
 extern  NwamuiObject*
@@ -1529,32 +1550,38 @@ nwamui_object_real_is_modifiable(NwamuiObject *object)
  * nwamui_ncu_reload:   re-load stored configuration
  **/
 static void
-nwamui_object_real_reload( NwamuiObject *object )
+nwamui_object_real_reload(NwamuiObject* object)
 {
-    NwamuiNcuPrivate *prv  = NWAMUI_NCU_GET_PRIVATE(object);
-    NwamuiNcu        *self = NWAMUI_NCU(object);
+    NwamuiNcuPrivate  *prv  = NWAMUI_NCU_GET_PRIVATE(object);
+    NwamuiNcu         *self = NWAMUI_NCU(object);
+    nwam_ncu_handle_t  handle;
 
     g_return_if_fail( NWAMUI_IS_NCU(self) );
 
     /* nwamui_object_set_handle will cause re-read from configuration */
     g_object_freeze_notify(G_OBJECT(self));
 
-    if ( prv->nwam_ncu_phys != NULL ) {
-        gboolean            enabled;
-
-        g_debug("Reverting NCU PHYS for %s", prv->device_name);
-
-        enabled = get_nwam_ncu_boolean_prop( prv->nwam_ncu_phys, NWAM_NCU_PROP_ENABLED );
-
-        if ( enabled != prv->enabled ) {
-            prv->enabled = enabled;
-            g_object_notify(G_OBJECT(object), "enabled" );
+    handle = get_nwam_ncu_handle(NWAMUI_NCU(object), NWAM_NCU_TYPE_LINK);
+    if (handle) {
+        if (prv->nwam_ncu_phys) {
+            nwam_ncu_free(prv->nwam_ncu_phys);
         }
+        prv->nwam_ncu_phys = handle;
+    }
+    if ( prv->nwam_ncu_phys != NULL ) {
+        g_debug("Reverting NCU PHYS for %s", prv->device_name);
+        populate_phys_ncu_data(self, prv->nwam_ncu_phys);
     }
 
+    handle = get_nwam_ncu_handle(NWAMUI_NCU(object), NWAM_NCU_TYPE_INTERFACE);
+    if (handle) {
+        if (prv->nwam_ncu_ip) {
+            nwam_ncu_free(prv->nwam_ncu_ip);
+        }
+        prv->nwam_ncu_ip = handle;
+    }
     if ( prv->nwam_ncu_ip != NULL ) {
         g_debug("Reverting NCU IP for %s", prv->device_name);
-
         populate_ip_ncu_data( self, prv->nwam_ncu_ip );
     }
 
@@ -1833,7 +1860,7 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
     const nwam_ncu_handle_t  ncu  = handle;
     nwam_ncu_class_t         ncu_class;
     
-    g_assert(NWAMUI_IS_NCU(object));
+    g_return_if_fail(NWAMUI_IS_NCU(object));
 
     ncu_class = (nwam_ncu_class_t)get_nwam_ncu_uint64_prop(ncu, NWAM_NCU_PROP_CLASS);
 
@@ -1855,8 +1882,9 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
                     }
 
                     prv->nwam_ncu_phys = ncu_handle;
+                    populate_phys_ncu_data(self, prv->nwam_ncu_phys);
                 } else {
-                    prv->nwam_ncu_phys = ncu;
+                    populate_phys_ncu_data(self, ncu);
                 }
             }
             break;
@@ -1872,8 +1900,9 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
                     }
 
                     prv->nwam_ncu_iptun = ncu_handle;
+                    populate_iptun_ncu_data(self, prv->nwam_ncu_iptun);
                 } else {
-                    prv->nwam_ncu_iptun = ncu;
+                    populate_iptun_ncu_data(self, ncu);
                 }
             }
             break;
@@ -1889,16 +1918,15 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
                     }
 
                     prv->nwam_ncu_ip = ncu_handle;
+                    populate_ip_ncu_data(self, prv->nwam_ncu_ip);
                 } else {
-                    prv->nwam_ncu_ip = ncu;
+                    populate_ip_ncu_data(self, ncu);
                 }
             }
             break;
         default:
             g_error("Unexpected ncu class %u", (guint)ncu_class);
     }
-
-    nwamui_object_real_reload(object);
 
     g_object_thaw_notify( G_OBJECT(object) );
 
@@ -1924,11 +1952,11 @@ nwamui_ncu_get_vanity_name ( NwamuiObject *object )
  * @name: null-terminated C String with the vanity name of the the NCU.
  *
  **/
-static void
+static gboolean
 nwamui_ncu_set_vanity_name ( NwamuiObject *object, const gchar* name )
 {
     NwamuiNcu *self = NWAMUI_NCU(object);
-    g_return_if_fail (NWAMUI_IS_NCU(self)); 
+    g_return_val_if_fail(NWAMUI_IS_NCU(self), FALSE); 
     
     g_assert (name != NULL );
 
@@ -1937,6 +1965,7 @@ nwamui_ncu_set_vanity_name ( NwamuiObject *object, const gchar* name )
     }
     self->prv->vanity_name = g_strdup(name);
     nwamui_ncu_set_display_name(self);
+    return TRUE;
 }
 
 /**
@@ -3125,7 +3154,6 @@ nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( NwamuiNcu    *self,
     if ( (wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid( self, 
                                                 wlan->nww_essid ) ) != NULL ) {
         nwamui_wifi_net_update_from_wlan_t( wifi_net, wlan);
-        g_object_ref(wifi_net);
     }
     else {
         wifi_net = nwamui_wifi_net_new_from_wlan_t( self, wlan );
@@ -3154,7 +3182,6 @@ nwamui_ncu_wifi_hash_insert_or_update_from_handle( NwamuiNcu                 *se
 
     if ( (wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid( self, essid ) ) != NULL ) {
         nwamui_object_set_handle(NWAMUI_OBJECT(wifi_net), wlan_h);
-        g_object_ref(wifi_net);
     }
     else {
         wifi_net = nwamui_wifi_net_new_with_handle( self, wlan_h );

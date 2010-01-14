@@ -130,6 +130,8 @@ extern gchar*                       nwamui_daemon_get_active_ncp_name(NwamuiDaem
 
 extern gboolean                     nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiObject* ncp ) ;
 
+extern void                         nwamui_daemon_foreach_ncp(NwamuiDaemon *self, GFunc func, gpointer user_data);
+
 extern GList*                       nwamui_daemon_get_ncp_list(NwamuiDaemon *self);
 
 extern void                         nwamui_daemon_append_object(NwamuiDaemon *self, NwamuiObject* object);

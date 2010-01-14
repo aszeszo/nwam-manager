@@ -106,11 +106,11 @@ static gboolean     set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handl
 
 static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
 static const gchar* nwamui_wifi_net_get_essid (NwamuiObject *object );
-static void         nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid );
+static gboolean     nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid );
 static gboolean     nwamui_wifi_net_can_rename (NwamuiObject *object);
 static gint         nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by);
 static gboolean     nwamui_wifi_net_commit_favourite ( NwamuiObject *object );
-static void         nwamui_object_real_reload( NwamuiObject* object );
+static void         nwamui_object_real_reload(NwamuiObject* object);
 static gboolean     nwamui_object_real_has_modifications(NwamuiObject* object);
 
 /* Callbacks */
@@ -757,14 +757,14 @@ nwamui_wifi_net_get_property (GObject         *object,
  * nwamui_object_real_reload:   re-load stored configuration
  **/
 static void
-nwamui_object_real_reload( NwamuiObject* object )
+nwamui_object_real_reload(NwamuiObject* object)
 {
     NwamuiWifiNetPrivate     *prv        = NWAMUI_WIFI_NET_GET_PRIVATE(object);
     nwam_error_t              nerr;
     uint32_t                  sec_mode;
     nwamui_wifi_security_t    security;
 
-    g_assert(NWAMUI_IS_WIFI_NET(object));
+    g_return_if_fail(NWAMUI_IS_WIFI_NET(object));
 
     g_object_freeze_notify(G_OBJECT(object));
 
@@ -1262,14 +1262,14 @@ nwamui_wifi_net_can_rename (NwamuiObject *object)
 }
 
 /* Get/Set ESSID */
-static void                    
+static gboolean
 nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid )
 {
     NwamuiWifiNet *self = NWAMUI_WIFI_NET(object);
     NwamuiWifiNetPrivate *prv = self->prv;
     nwam_error_t    nerr;
 
-    g_return_if_fail (NWAMUI_IS_WIFI_NET(self));
+    g_return_val_if_fail(NWAMUI_IS_WIFI_NET(self), FALSE);
     g_assert (essid != NULL );
 
     if ( prv->is_favourite ) {
@@ -1327,7 +1327,7 @@ nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid )
         }
         prv->essid = g_strdup(essid);
     }
-
+    return TRUE;
 }
                                 
 static void

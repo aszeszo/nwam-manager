@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 echo_cp() {
     echo "cp '${1}' \\
@@ -11,6 +11,7 @@ read NWAM_PHASE1_REPO
 
 [ -z "$NWAM_PHASE1_REPO" ] && NWAM_PHASE1_REPO=$HOME/nwam-gate
 
+NWAM_CORE_DIR=`dirname $0`
 CLONE_HEADERS="usr/src/lib/libnwam/common/libnwam.h
 usr/src/lib/libinetcfg/common/inetcfg.h
 usr/src/lib/libdladm/common/*.h"
@@ -34,6 +35,7 @@ echo "**************************************************************************
 echo "Using ONNV source repo of ${REPO}"
 echo "**************************************************************************"
 
+cd $NWAM_CORE_DIR
 if [ ! -d "${REPO}/usr/src/lib/libnwam" ]; then
     echo "Repository doesn't appear to exist, exiting...."
     exit 1

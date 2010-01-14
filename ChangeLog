@@ -1,3 +1,52 @@
+2010-01-14  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_profile_dialog.c (nwam_profile_dialog_init),
+	(refresh), (apply), (vanity_name_edited),
+	(connections_edit_btn_clicked), (edit_profile_changed): Support
+	multiple NCPs. Work around 11682, 8679. Real create NCPs before
+	edit, ok, cancel.
+	* capplet/nwam_wireless_dialog.c
+	(nwam_wireless_dialog_set_property),
+	(nwam_wireless_dialog_get_property),
+	(nwam_wireless_dialog_set_bssid_list),
+	(nwam_wireless_dialog_get_bssid_list): Fixed can not show bssid
+	list.
+	* common/nwamui_daemon.c (nwamui_daemon_foreach_ncp),
+	(nwamui_daemon_handle_object_action_event): Fixed add
+	link/interface NCU.
+	* common/nwamui_daemon.h: Add a foreach NCP function.
+	* common/nwamui_enm.c (nwamui_object_real_set_name),
+	(get_nwam_enm_handle), (nwamui_object_real_set_handle),
+	(nwamui_object_real_reload):
+	* common/nwamui_env.c (nwamui_object_real_set_name),
+	(get_nwam_env_handle), (nwamui_object_real_set_handle),
+	(nwamui_object_real_reload):
+	* common/nwamui_ncp.c (nwamui_ncp_class_init), (nwamui_ncp_init),
+	(get_nwam_ncp_handle), (nwamui_object_real_reload),
+	(nwamui_object_real_set_handle), (nwamui_object_real_can_rename),
+	(nwamui_object_real_set_name),
+	(nwamui_object_real_has_modifications),
+	(nwamui_object_real_commit):
+	* common/nwamui_ncu.c (nwamui_ncu_set_property),
+	(populate_phys_ncu_data), (get_nwam_ncu_handle),
+	(nwamui_object_real_reload): nwamui_ncu_wifi_hash_lookup_by_essid
+	return the wifinet without ref, so fixed all references of this
+	functions.
+	* common/nwamui_object.c (nwamui_object_set_name):
+	* common/nwamui_object.h:
+	* common/nwamui_wifi_net.c (nwamui_object_real_reload),
+	(nwamui_wifi_net_set_essid): _set_name return true or false to
+	show if set it correctly. Fixed _reload should use snapshots of
+	nwam_handles.
+	* nwam_core/copy_onnv_headers.sh:
+	* nwam_core/lib/i386/libnwam.so.1:
+	* nwam_core/usr/include/inetcfg.h:
+	* nwam_core/usr/include/libdladm_impl.h:
+	* nwam_core/usr/include/libdlvnic.h:
+	* nwam_core/usr/include/libnwam.h:
+	* nwam_core/usr/include/sys/dld.h:
+	Update 130 headers and lib which supports multiple NCPs.
+
 2010-01-13  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_wireless_dialog.c (nwam_wireless_dialog_init),

@@ -95,7 +95,7 @@ default_nwamui_object_can_rename (NwamuiObject *object)
     return FALSE;
 }
 
-static void
+static gboolean
 default_nwamui_object_set_name(NwamuiObject *object, const gchar* name)
 {
 }
@@ -436,19 +436,22 @@ nwamui_object_can_rename (NwamuiObject *object)
  * @name: Value to set name to.
  * 
  **/ 
-extern void
+extern gboolean
 nwamui_object_set_name(NwamuiObject *object, const gchar* name )
 {
     NwamuiObjectPrivate *prv = NWAMUI_OBJECT_GET_PRIVATE(object);
 
-    g_return_if_fail (NWAMUI_IS_OBJECT (object));
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(object), FALSE);
 
     if (prv->name == NULL || g_strcmp0(prv->name, name) != 0) {
-        NWAMUI_OBJECT_GET_CLASS (object)->set_name(object, name);
-        /* Must cache the return value of name */
-        prv->name = NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);
-        g_object_notify(G_OBJECT(object), "name");
+        if (NWAMUI_OBJECT_GET_CLASS (object)->set_name(object, name)) {
+            /* Must cache the return value of name */
+            prv->name = NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);
+            g_object_notify(G_OBJECT(object), "name");
+            return TRUE;
+        }
     }
+    return FALSE;
 }
 
 /**
@@ -456,6 +459,10 @@ nwamui_object_set_name(NwamuiObject *object, const gchar* name )
  * Generally be invoked in nwam object walker function, input a constant @handle
  * only used by get the name of the nwam object, so we can get the real handle
  * by the name. We shouldn't remain the @handle.
+ *
+ * A nwam_*_handle_t is actually a set of nvpairs we need to get our
+ * own handle (i.e. snapshot) since the handle we are passed may be freed by
+ * the owner of it (e.g. walkprop does this).
  */
 extern void
 nwamui_object_set_handle(NwamuiObject *object, const gpointer handle)
