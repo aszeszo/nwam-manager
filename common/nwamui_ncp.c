@@ -499,15 +499,15 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
 
     if ( nerr != NWAM_SUCCESS ) { 
         nwamui_warning("Failed to clone new NCP %s from existing NCP %s: %s",
-                       name, self->prv->name, nwam_strerror(nerr) );
-        return NWAMUI_OBJECT(new_ncp);
+          name, self->prv->name, nwam_strerror(nerr) );
+        return new_ncp;
     }
 
     new_ncp = nwamui_ncp_new_with_handle(new_ncp_h);
 
     nwamui_daemon_append_object(daemon, new_ncp);
 
-    return NWAMUI_OBJECT(new_ncp);
+    return new_ncp;
 }
 
 static nwam_ncp_handle_t

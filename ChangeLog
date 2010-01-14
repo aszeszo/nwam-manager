@@ -1,5 +1,26 @@
 2010-01-14  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_profile_panel.c (nwam_pref_init),
+	(nwam_profile_panel_class_init), (nwam_profile_panel_set_property),
+	(nwam_profile_panel_get_property), (nwam_compose_tree_view),
+	(nwam_profile_panel_init), (nwam_profile_panel_new),
+	(nwam_update_obj), (refresh), (cancel), (apply), (help),
+	(nwam_profile_panel_finalize), (nwam_object_model_compare_cb),
+	(nwam_object_activate_toggled_cb), (vanity_name_editing_started),
+	(vanity_name_editing_canceled), (vanity_name_edited),
+	(nwam_treeview_update_widget_cb), (on_button_clicked),
+	(object_notify_cb), (nwam_object_toggled_cell_sensitive_func),
+	(ncp_create_or_dup_before_edit_or_commit),
+	(foreach_commit_new_ncp), (ncp_foreach_ncu_get_info):
+	* capplet/nwam_profile_panel.h:
+	Forgot to add these two files.
+	* common/nwamui_enm.c (nwamui_object_real_clone):
+	Implemented enm clone.
+	* common/nwamui_ncp.c (nwamui_object_real_clone):
+	Clean code.
+
+2010-01-14  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_daemon.c
 	(nwamui_daemon_handle_object_action_event):
 	* common/nwamui_ncp.c (nwamui_object_real_clone),

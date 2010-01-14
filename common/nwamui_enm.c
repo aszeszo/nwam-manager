@@ -1199,8 +1199,29 @@ nwamui_object_real_destroy( NwamuiObject *object )
 static NwamuiObject*
 nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
 {
-    g_warning("Not implement");
-    return NULL;
+    NwamuiEnm         *self    = NWAMUI_ENM(object);
+    NwamuiDaemon      *daemon  = NWAMUI_DAEMON(parent);
+    NwamuiObject      *new_enm = NULL;;
+    nwam_enm_handle_t  new_enm_h;
+    nwam_error_t       nerr;
+
+    g_return_val_if_fail(NWAMUI_IS_ENM(object), NULL);
+    g_return_val_if_fail(NWAMUI_IS_DAEMON(parent), NULL);
+    g_return_val_if_fail(name != NULL, NULL);
+
+    nerr = nwam_enm_copy(self->prv->nwam_enm, name, &new_enm_h);
+
+    if (nerr != NWAM_SUCCESS) { 
+        nwamui_warning("Failed to clone new ENM %s from existing ENM %s: %s",
+          name, self->prv->name, nwam_strerror(nerr) );
+        return new_enm;
+    }
+
+    new_enm = nwamui_enm_new_with_handle(new_enm_h);
+
+    nwamui_daemon_append_object(daemon, new_enm);
+
+    return NWAMUI_OBJECT(new_enm);
 }
 
 static gboolean
