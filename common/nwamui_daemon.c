@@ -2820,17 +2820,23 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
 
         ncp = nwamui_daemon_get_ncp_by_name(daemon, nwamevent->nwe_data.nwe_object_action.nwe_parent);
         /* NCU's come in the typed name format (e.g. link:ath0) */
-        if ( nwam_ncu_typed_name_to_name(object_name, &nwam_ncu_type, &device_name ) == NWAM_SUCCESS ) {
-            /* Assumption here is that such events are only for the active NCP
-             * since there is no way to qualify the object's parent from the
-             * name.
-             */
-            ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(ncp), device_name);
-            free(device_name);
+        if (ncp) {
+            if ( nwam_ncu_typed_name_to_name(object_name, &nwam_ncu_type, &device_name ) == NWAM_SUCCESS ) {
+                /* Assumption here is that such events are only for the active NCP
+                 * since there is no way to qualify the object's parent from the
+                 * name.
+                 */
+                ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(ncp), device_name);
+                free(device_name);
+            } else {
+                g_assert_not_reached();
+            }
         } else {
-            g_assert_not_reached();
+            /* Work around because nwam_ncp_copy will not emit ncp add event,
+             * so the sequenct ncu add will fail here.
+             */
+            break;
         }
-
         switch ( nwamevent->nwe_data.nwe_object_action.nwe_action ) {
         case NWAM_ACTION_ADD: {
             if (ncu == NULL) {

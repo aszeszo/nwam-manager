@@ -491,8 +491,8 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
     nwam_ncp_handle_t  new_ncp_h;
     nwam_error_t       nerr;
 
-    g_assert(NWAMUI_IS_NCP(object));
-    g_assert(NWAMUI_IS_DAEMON(parent));
+    g_return_val_if_fail(NWAMUI_IS_NCP(object), NULL);
+    g_return_val_if_fail(NWAMUI_IS_DAEMON(parent), NULL);
     g_return_val_if_fail(name != NULL, NULL);
 
     nerr = nwam_ncp_copy (self->prv->nwam_ncp, name, &new_ncp_h);
@@ -503,7 +503,7 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
         return NWAMUI_OBJECT(new_ncp);
     }
 
-    new_ncp = nwamui_ncp_new_with_handle (new_ncp_h);
+    new_ncp = nwamui_ncp_new_with_handle(new_ncp_h);
 
     nwamui_daemon_append_object(daemon, new_ncp);
 
@@ -653,18 +653,19 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
             nwam_ncp_free(prv->nwam_ncp);
         }
         prv->nwam_ncp = nwam_ncp;
+
+        nwamui_object_real_reload(object);
     } else {
         /* Most likely only exists in memory right now, so use handle passed
          * in as parameter.
+         * in clone mode, the new handle gets from nwam_ncp_copy can't be read
+         * again.
          */
         prv->nwam_ncp = ncp;
         nwamui_object_real_reload(object);
-        prv->nwam_ncp = NULL;
+        /* prv->nwam_ncp = NULL; */
     }
-
-    prv->nwam_ncp = nwam_ncp;
-
-    nwamui_object_real_reload(object);
+    g_free(name);
 }
 
 /**

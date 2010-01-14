@@ -1,5 +1,14 @@
 2010-01-14  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwamui_daemon.c
+	(nwamui_daemon_handle_object_action_event):
+	* common/nwamui_ncp.c (nwamui_object_real_clone),
+	(nwamui_object_real_set_handle): Work around that nwam_ncp_copy
+	won't emit NCP ADD event and the sequent nwam_ncp_read will fail
+	in clone mode.
+
+2010-01-14  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_profile_dialog.c (nwam_profile_dialog_init),
 	(refresh), (apply), (vanity_name_edited),
 	(connections_edit_btn_clicked), (edit_profile_changed): Support
