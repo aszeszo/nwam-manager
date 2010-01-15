@@ -1,3 +1,22 @@
+2010-01-15  Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+
+	Remove intention that pressing Esc while typing in password
+	field should restore the previous password, due to implementation
+	difficulties. (Edit Wireless Network dialog). Instead, pressing
+	Esc will just activate the Cancel button, reverting all changes
+	made in the dialog while it was open.
+
+	Add Network Profile button no longer opens Add Network Profile
+	dialog, but just adds a new unnamed profile to the list, which
+	can be renamed in-place, and subsequently edited by clicking
+	the Edit Network Profile button. This behaviour isn't ideal, 
+	but is due to a limitation of the underlying implementation, 
+	and is at least consistent with the addition/renaming of ENMs 
+	(aka VPN Applications) and Locations in the GUI.
+
 2009-12-15  Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
