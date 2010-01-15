@@ -62,6 +62,9 @@ struct _NwamuiNcuPrivate {
         gboolean                        active;
         gboolean                        enabled;
 
+        gboolean                        link_state_flag;
+        gboolean                        if_state_flag;
+
         /* General Properties */
         gchar*                          vanity_name;
         gchar*                          device_name;
@@ -4165,11 +4168,12 @@ static const gchar* status_string_fmt[NWAMUI_STATE_LAST] = {
 extern nwamui_connection_state_t
 nwamui_ncu_get_connection_state( NwamuiNcu* self ) 
 {
-    nwamui_connection_state_t   state = NWAMUI_STATE_UNKNOWN;
-    nwam_state_t                link_state;
-    nwam_aux_state_t            link_aux_state;
-    nwam_state_t                iface_state;
-    nwam_aux_state_t            iface_aux_state;
+    NwamuiNcuPrivate          *prv   = NWAMUI_NCU_GET_PRIVATE(self);
+    nwamui_connection_state_t  state = NWAMUI_STATE_UNKNOWN;
+    nwam_state_t               link_state;
+    nwam_aux_state_t           link_aux_state;
+    nwam_state_t               iface_state;
+    nwam_aux_state_t           iface_aux_state;
 
     /* Use cached state */
     link_state = nwamui_ncu_get_link_nwam_state(self, &link_aux_state, NULL);
@@ -4190,12 +4194,12 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             break;
         case NWAM_STATE_DISABLED:
         case NWAM_STATE_OFFLINE:
-            if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRED && 
+            if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRED && 
                  ( iface_aux_state == NWAM_AUX_STATE_DOWN || 
                    iface_aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET ) ) {
                 state = NWAMUI_STATE_CABLE_UNPLUGGED;
                 break;
-            } else if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+            } else if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
                 if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
                     state = NWAMUI_STATE_SCANNING;
                     break;
@@ -4216,7 +4220,7 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             state = NWAMUI_STATE_NOT_CONNECTED;
             break;
         case NWAM_STATE_OFFLINE_TO_ONLINE:
-            if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+            if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
                 if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
                     state = NWAMUI_STATE_SCANNING;
                     break;
@@ -4250,7 +4254,7 @@ nwamui_ncu_get_connection_state( NwamuiNcu* self )
             break;
         case NWAM_STATE_ONLINE:
             if ( iface_aux_state == NWAM_AUX_STATE_UP ) {
-                if ( self->prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+                if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
                     state = NWAMUI_STATE_CONNECTED_ESSID;
                     break;
                 }

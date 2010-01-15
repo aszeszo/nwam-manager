@@ -65,7 +65,8 @@ struct _NwamProfilePanelPrivate {
     GtkWidget* always_enabled_lbl;
     GtkWidget* always_disabled_lbl;
 
-    NwamuiObject* toggled_object;
+    NwamuiObject        *toggled_object;
+    GtkTreeRowReference *toggled_row;
 
     /* NCUs info of a NCP */
     gint   always_enabled;
@@ -109,6 +110,8 @@ static void nwam_profile_panel_get_property (GObject         *object,
   guint            prop_id,
   GValue          *value,
   GParamSpec      *pspec);
+
+static void nwam_profile_panel_set_toggled_row(NwamProfilePanel *self, GtkTreePath *path);
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -221,6 +224,20 @@ nwam_profile_panel_get_property( GObject         *object,
     default: 
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
+    }
+}
+
+static void
+nwam_profile_panel_set_toggled_row(NwamProfilePanel *self, GtkTreePath *path)
+{
+    NwamProfilePanelPrivate  *prv = GET_PRIVATE(self);
+    if (prv->toggled_row) {
+        gtk_tree_row_reference_free(prv->toggled_row);
+        prv->toggled_row = NULL;
+    }
+
+    if (path) {
+        prv->toggled_row = gtk_tree_row_reference_new(gtk_tree_view_get_model(prv->object_view), path);
     }
 }
 
@@ -392,6 +409,7 @@ cancel(NwamPrefIFace *iface, gpointer user_data)
     /* Re-read objects from system 
      */
     g_object_set(self, "toggled_object", NULL, NULL);
+    nwam_profile_panel_set_toggled_row(self, NULL);
 
     return TRUE;
 }
@@ -406,9 +424,23 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     nwamui_daemon_foreach_ncp(prv->daemon, foreach_commit_new_ncp, (gpointer)self);
 
     /* Activate the selected NCP. */
+#if 0
     if (prv->toggled_object) {
         nwamui_object_set_active(prv->toggled_object, TRUE);
     }
+#else
+    if (prv->toggled_row && gtk_tree_row_reference_valid(prv->toggled_row)) {
+        GtkTreePath *path = gtk_tree_row_reference_get_path(prv->toggled_row);
+        GtkTreeIter iter;
+        if (gtk_tree_model_get_iter(gtk_tree_view_get_model(prv->object_view), &iter, path)) {
+            NwamuiObject *toggled_ncp;
+
+            gtk_tree_model_get(gtk_tree_view_get_model(prv->object_view), &iter, 0, &toggled_ncp, -1);
+            nwamui_object_set_active(toggled_ncp, TRUE);
+            g_object_unref(toggled_ncp);
+        }
+    }
+#endif
     return TRUE;
 }
 
@@ -481,6 +513,7 @@ nwam_object_activate_toggled_cb(GtkCellRendererToggle *cell_renderer,
         gtk_tree_model_get(model, &iter, 0, &object, -1);
 
         g_object_set(self, "toggled_object", object, NULL);
+        nwam_profile_panel_set_toggled_row(self, tpath);
 
         g_object_unref(object);
     }
@@ -585,6 +618,7 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         /* Clean before foreach */
         prv->always_enabled = 0;
         prv->always_disabled = 0;
+        g_list_free(prv->groups);
         prv->groups = NULL;
         prv->first_enabled_name = NULL;
         prv->first_disabled_name = NULL;
@@ -810,6 +844,7 @@ nwam_object_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
     gtk_tree_model_get(model, iter, 0, &object, -1);
     
     if (object) {
+#if 0
         if (!prv->toggled_object) {
             g_object_set(G_OBJECT(renderer),
               "active", nwamui_object_get_active(NWAMUI_OBJECT(object)),
@@ -824,6 +859,28 @@ nwam_object_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
               "active", FALSE,
               NULL); 
         }
+#else
+        if (!prv->toggled_row) {
+            g_object_set(G_OBJECT(renderer),
+              "active", nwamui_object_get_active(NWAMUI_OBJECT(object)),
+              NULL);
+        } else {
+            g_object_set(G_OBJECT(renderer),
+              "active", FALSE,
+              NULL); 
+            if (gtk_tree_row_reference_valid(prv->toggled_row)) {
+                GtkTreePath *path = gtk_tree_row_reference_get_path(prv->toggled_row);
+                GtkTreePath *cur = gtk_tree_model_get_path(model, iter);
+                if (gtk_tree_path_compare(path, cur) == 0) {
+                    /* Show active, commit later. */
+                    g_object_set(G_OBJECT(renderer),
+                      "active", TRUE,
+                      NULL);
+                }
+                gtk_tree_path_free(cur);
+            }
+        }
+#endif
         g_object_unref(G_OBJECT(object));
     } else {
         g_object_set(G_OBJECT(renderer),

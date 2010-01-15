@@ -2239,31 +2239,29 @@ nwamd_event_handler(gpointer data)
         break;
     case NWAMUI_DAEMON_INFO_RAW:
     {
-        g_debug("NWAMUI_DAEMON_INFO_RAW event type %d (%s)", 
-                nwamevent->nwe_type, nwam_event_type_to_string( nwamevent->nwe_type ));
         switch (nwamevent->nwe_type) {
-        case NWAM_EVENT_TYPE_INIT: {
-                /* should repopulate data here */
+        case NWAM_EVENT_TYPE_INIT:
+            /* should repopulate data here */
+            g_debug("%s  NWAM", nwam_event_type_to_string(nwamevent->nwe_type));
                 
-                g_debug ("NWAM daemon started.");
-                /* Redispatch as INFO_ACTIVE */
-                g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
-                  nwamd_event_handler,
-                  (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_ACTIVE, NULL),
-                  (GDestroyNotify) nwamui_event_free);
-            }
+            /* Redispatch as INFO_ACTIVE */
+            g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+              nwamd_event_handler,
+              (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_ACTIVE, NULL),
+              (GDestroyNotify) nwamui_event_free);
             break;
-        case NWAM_EVENT_TYPE_SHUTDOWN: {
-                g_debug ("NWAM daemon stopped.");
-                /* Redispatch as INFO_INACTIVE */
-                g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
-                  nwamd_event_handler,
-                  (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_INACTIVE, NULL),
-                  (GDestroyNotify) nwamui_event_free);
-            }
+        case NWAM_EVENT_TYPE_SHUTDOWN:
+            g_debug("%s  NWAM", nwam_event_type_to_string(nwamevent->nwe_type));
+
+            /* Redispatch as INFO_INACTIVE */
+            g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
+              nwamd_event_handler,
+              (gpointer) nwamui_event_new(daemon, NWAMUI_DAEMON_INFO_INACTIVE, NULL),
+              (GDestroyNotify) nwamui_event_free);
             break;
         case NWAM_EVENT_TYPE_PRIORITY_GROUP: {
-            g_debug("Priority group changed to %d",
+            g_debug("%s  %d",
+              nwam_event_type_to_string(nwamevent->nwe_type),
               nwamevent->nwe_data.nwe_priority_group_info.nwe_priority);
 
             if ( prv->active_ncp != NULL ) {
@@ -2280,53 +2278,61 @@ nwamd_event_handler(gpointer data)
         }
             break;
         case NWAM_EVENT_TYPE_IF_STATE: {
-                NwamuiNcu*      ncu;
-                const gchar*    name = nwamevent->nwe_data.nwe_if_state.nwe_name;
-                const gchar*    address = NULL;
+            g_debug("%s  %s flag(%u) index(%u) valid(%u) added(%u)",
+              nwam_event_type_to_string(nwamevent->nwe_type),
+              nwamevent->nwe_data.nwe_if_state.nwe_name,
+              nwamevent->nwe_data.nwe_if_state.nwe_flags,
+              nwamevent->nwe_data.nwe_if_state.nwe_index,
+              nwamevent->nwe_data.nwe_if_state.nwe_addr_valid,
+              nwamevent->nwe_data.nwe_if_state.nwe_addr_added);
 
+            if (nwamevent->nwe_data.nwe_if_state.nwe_addr_valid) {
+                NwamuiNcu          *ncu;
+                const gchar        *address = NULL;
+                struct sockaddr_in *sin;
 
-                if (nwamevent->nwe_data.nwe_if_state.nwe_addr_valid) {
-                    struct sockaddr_in *sin;
-
-                    sin = (struct sockaddr_in *)
-                        &(nwamevent->nwe_data.nwe_if_state.nwe_addr);
-                    address = inet_ntoa(sin->sin_addr);
-                    g_debug ("Interface %s is up with address %s", name, address );
-                }
+                sin = (struct sockaddr_in *)
+                  &(nwamevent->nwe_data.nwe_if_state.nwe_addr);
+                address = inet_ntoa(sin->sin_addr);
+                g_debug("Interface %s is up with address %s",
+                  nwamevent->nwe_data.nwe_link_state.nwe_name,
+                  address);
             }
+        }
             break;
 
         case NWAM_EVENT_TYPE_LINK_STATE: {
-                const gchar*    name = nwamevent->nwe_data.nwe_link_state.nwe_name;
+            g_debug("%s  %s %s",
+              nwam_event_type_to_string(nwamevent->nwe_type),
+              nwamevent->nwe_data.nwe_link_state.nwe_name,
+              nwamevent->nwe_data.nwe_link_state.nwe_link_up? "up" : "down");
 
-                g_debug( "%s\t%s %s",
-                  nwam_event_type_to_string(nwamevent->nwe_type),
-                  nwamevent->nwe_data.nwe_link_state.nwe_name,
-                  nwamevent->nwe_data.nwe_link_state.nwe_link_up? "up" : "down" );
+            if (prv->active_ncp) {
+                /* NwamuiObject *ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->active_ncp), nwamevent->nwe_data.nwe_link_state.nwe_name); */
             }
+        }
             break;
 
 		case NWAM_EVENT_TYPE_LINK_ACTION: {
-            NwamuiObject* ncp    = prv->active_ncp;
             nwam_action_t action = nwamevent->nwe_data.nwe_link_action.nwe_action;
             const gchar*  name   = nwamevent->nwe_data.nwe_link_action.nwe_name;
 
             switch (action) {
-            case NWAM_ACTION_ADD:
-/*                 g_debug("Interface %s added", name ); */
-/*                 nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
-                break;
-            case NWAM_ACTION_REMOVE: {
-/*                 NwamuiNcu *ncu = get_ncu_by_device_name( daemon, ncp, name ); */
-/*                 g_debug("Interface %s removed", name ); */
-/*                 if ( ncu ) { */
-/*                     nwamui_ncp_remove_ncu( ncp, ncu ); */
-/*                     g_object_unref(ncu); */
-/*                 } */
-            }
-                break;
+            /* case NWAM_ACTION_ADD: */
+            /*     g_debug("Interface %s added", name ); */
+            /*     nwamui_object_reload(prv->active_ncp); */
+            /*     break; */
+            /* case NWAM_ACTION_REMOVE: { */
+            /*     NwamuiObject *ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->active_ncp), name); */
+            /*     g_debug("Interface %s removed", name); */
+            /*     if ( ncu ) { */
+            /*         nwamui_ncp_remove_ncu(NWAMUI_NCP(prv->active_ncp), NWAMUI_NCU(ncu)); */
+            /*         g_object_unref(ncu); */
+            /*     } */
+            /* } */
+            /*     break; */
             default:
-                g_debug( "%s\t%s %s %s",
+                g_debug("%s  %s %s",
                   nwam_event_type_to_string(nwamevent->nwe_type),
                   nwamevent->nwe_data.nwe_link_action.nwe_name,
                   nwam_action_to_string(nwamevent->nwe_data.nwe_link_action.nwe_action));
@@ -2431,6 +2437,9 @@ nwamd_event_handler(gpointer data)
                         else {
                             wifi = nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t(NWAMUI_NCU(ncu),
                                                     &(nwamevent->nwe_data.nwe_wlan_info.nwe_wlans[0]));
+                            if (wifi) {
+                                g_object_ref(wifi);
+                            }
                         }
 
                         nwamui_ncu_set_wifi_info(NWAMUI_NCU(ncu), wifi);
@@ -2566,6 +2575,10 @@ nwamd_event_handler(gpointer data)
 #endif
 
         default:
+            g_debug("NWAMUI_DAEMON_INFO_RAW event type %d (%s)", 
+              nwamevent->nwe_type,
+              nwam_event_type_to_string(nwamevent->nwe_type));
+
             /* Directly deliver to upper consumers */
             g_signal_emit (daemon,
               nwamui_daemon_signals[DAEMON_INFO],
