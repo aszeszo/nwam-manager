@@ -2277,16 +2277,16 @@ nwamd_event_handler(gpointer data)
             /* nwamui_daemon_update_status(daemon); */
         }
             break;
-        case NWAM_EVENT_TYPE_IF_STATE: {
-            g_debug("%s  %s flag(%u) index(%u) valid(%u) added(%u)",
-              nwam_event_type_to_string(nwamevent->nwe_type),
-              nwamevent->nwe_data.nwe_if_state.nwe_name,
-              nwamevent->nwe_data.nwe_if_state.nwe_flags,
-              nwamevent->nwe_data.nwe_if_state.nwe_index,
-              nwamevent->nwe_data.nwe_if_state.nwe_addr_valid,
-              nwamevent->nwe_data.nwe_if_state.nwe_addr_added);
-
-            if (nwamevent->nwe_data.nwe_if_state.nwe_addr_valid) {
+        case NWAM_EVENT_TYPE_IF_STATE:
+            if (!nwamevent->nwe_data.nwe_if_state.nwe_addr_valid) {
+                g_debug("%s  %s flag(%u) index(%u) valid(%u) added(%u)",
+                  nwam_event_type_to_string(nwamevent->nwe_type),
+                  nwamevent->nwe_data.nwe_if_state.nwe_name,
+                  nwamevent->nwe_data.nwe_if_state.nwe_flags,
+                  nwamevent->nwe_data.nwe_if_state.nwe_index,
+                  nwamevent->nwe_data.nwe_if_state.nwe_addr_valid,
+                  nwamevent->nwe_data.nwe_if_state.nwe_addr_added);
+            } else {
                 NwamuiNcu          *ncu;
                 const gchar        *address = NULL;
                 struct sockaddr_in *sin;
@@ -2294,11 +2294,16 @@ nwamd_event_handler(gpointer data)
                 sin = (struct sockaddr_in *)
                   &(nwamevent->nwe_data.nwe_if_state.nwe_addr);
                 address = inet_ntoa(sin->sin_addr);
-                g_debug("Interface %s is up with address %s",
-                  nwamevent->nwe_data.nwe_link_state.nwe_name,
+
+                g_debug("%s  %s flag(%u) index(%u) valid(%u) added(%u) address %s",
+                  nwam_event_type_to_string(nwamevent->nwe_type),
+                  nwamevent->nwe_data.nwe_if_state.nwe_name,
+                  nwamevent->nwe_data.nwe_if_state.nwe_flags,
+                  nwamevent->nwe_data.nwe_if_state.nwe_index,
+                  nwamevent->nwe_data.nwe_if_state.nwe_addr_valid,
+                  nwamevent->nwe_data.nwe_if_state.nwe_addr_added,
                   address);
             }
-        }
             break;
 
         case NWAM_EVENT_TYPE_LINK_STATE: {
@@ -3105,7 +3110,13 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
             nwam_ncu_type_t  nwam_ncu_type;
             NwamuiObject    *ncp;
 
-            ncp = nwamui_daemon_get_ncp_by_name(daemon, nwamevent->nwe_data.nwe_object_state.nwe_parent);
+            /* Work around: OBJECT_STATE  ncu link:iwk0 -> offline*, need WiFi network selection (parent ) */
+            if (nwamevent->nwe_data.nwe_object_state.nwe_parent
+              && *nwamevent->nwe_data.nwe_object_state.nwe_parent == '\0') {
+                ncp = prv->active_ncp;
+            } else {
+                ncp = nwamui_daemon_get_ncp_by_name(daemon, nwamevent->nwe_data.nwe_object_state.nwe_parent);
+            }
             if (ncp) {
                 /* NCU's come in the typed name format (e.g. link:ath0) */
                 if ( nwam_ncu_typed_name_to_name(object_name, &nwam_ncu_type, &device_name ) == NWAM_SUCCESS ) {

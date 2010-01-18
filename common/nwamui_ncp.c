@@ -1156,9 +1156,10 @@ nwamui_ncp_foreach_ncu(NwamuiNcp *self, GFunc func, gpointer user_data)
 extern  NwamuiObject*
 nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
 {
-    NwamuiObject *ret_ncu         = NULL;
-    gchar        *ncu_device_name = NULL;
-    GList        *found_list;
+    NwamuiNcpPrivate *prv             = NWAMUI_NCP_GET_PRIVATE(self);
+    NwamuiObject     *ret_ncu         = NULL;
+    gchar            *ncu_device_name = NULL;
+    GList            *found_list;
 
     g_return_val_if_fail (device_name, ret_ncu ); 
 
@@ -1166,6 +1167,9 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
 
     if (found_list) {
         ret_ncu = NWAMUI_OBJECT(g_object_ref(found_list->data));
+        nwamui_debug("NCP %s found NCU %s (0x%p) OK", prv->name, device_name, found_list->data);
+    } else {
+        nwamui_debug("NCP %s found NCU %s FAILED", prv->name, device_name);
     }
     return ret_ncu;
 }
@@ -1285,6 +1289,7 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
 
     if (found_list) {
         found_ncu = NWAMUI_OBJECT(found_list->data);
+        nwamui_debug("NCP %s found removed NCU %s (0x%p) OK", prv->name, device_name, found_list->data);
     }
 
     if (found_ncu) {
@@ -1613,10 +1618,8 @@ find_ncu_by_device_name(gconstpointer data, gconstpointer user_data)
 
     if (g_ascii_strcasecmp(ncu_device_name, device_name) == 0) {
         found = 0;
-        nwamui_debug("Compare %s ( 0x%p ) to target %s : SAME", ncu_device_name, data, device_name);
     } else {
         found = 1;
-        nwamui_debug("Compare %s ( 0x%p ) to target %s : DIFFERENT", ncu_device_name, data, device_name);
     }
     g_free(ncu_device_name);
     return found;

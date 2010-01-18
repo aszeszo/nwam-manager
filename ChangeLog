@@ -1,3 +1,19 @@
+2010-01-18  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_daemon.c (nwamd_event_handler),
+	(nwamui_daemon_handle_object_state_event): Clean code, work around
+	wifi need selection event doesn't have a parent.
+	* common/nwamui_ncp.c (nwamui_ncp_get_ncu_by_device_name),
+	(nwamui_ncp_add_ncu), (find_ncu_by_device_name):
+	* common/nwamui_object.c (default_nwamui_object_set_nwam_state),
+	(nwamui_object_get_nwam_state), (nwamui_object_set_nwam_state):
+	Clean code.
+	* configure.in:
+	* nwam_core/lib/i386/libnwam.so.1:
+	* nwam_core/lib/sparc/libnwam.so.1:
+	* nwam_core/usr/include/libnwam.h:
+	Bump to 0.99.97 base nwam_131
+
 2010-01-15  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_profile_panel.c

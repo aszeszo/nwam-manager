@@ -62,6 +62,10 @@ extern "C" {
 #define	NWAM_FLAG_CREATE		0x00000002
 /* Tell destroy functions not to free handle */
 #define	NWAM_FLAG_DO_NOT_FREE		0x00000004
+/* Object is being enabled/disabled */
+#define	NWAM_FLAG_ENTITY_ENABLE		0x00000008
+/* Known WLAN being read, committed or destroyed */
+#define	NWAM_FLAG_ENTITY_KNOWN_WLAN	0x00000010
 
 /* nwam flags used for selecting ncu type for walk */
 #define	NWAM_FLAG_NCU_TYPE_LINK		0x00000001ULL << 32

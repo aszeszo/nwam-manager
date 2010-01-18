@@ -193,16 +193,15 @@ default_nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, n
 
     prv->nwam_state = state;
     prv->nwam_aux_state = aux_state;
+#if 0
     prv->nwam_state_last_update = time( NULL );;
+#endif
     if ( state_changed ) {
 /*         g_debug("Set: %-10s - %s", nwam_state_to_string(state), nwam_aux_state_to_string(aux_state)); */
         g_object_notify(G_OBJECT(object), "nwam_state" );
-    }
-
-    /* Active property is likely to have changed too, but first check if there
-     * is a get_active function, if so the active property should exist. */
-    /* For NCUs, only care cache_index == 0. Compatible to ENV, ENM, etc. */
-    if ( state_changed) {
+        /* Active property is likely to have changed too, but first check if there
+         * is a get_active function, if so the active property should exist. */
+        /* For NCUs, only care cache_index == 0. Compatible to ENV, ENM, etc. */
         g_object_notify(G_OBJECT(object), "active" );
     }
 }
@@ -636,7 +635,7 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), rval );
 
 #if 0
-    _current_time = time( NULL );;
+    _current_time = time( NULL );
 
     _elapsed_time = _current_time - prv->nwam_state_last_update;
 
@@ -700,9 +699,16 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p
 extern void
 nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state)
 {
+    NwamuiObjectPrivate *prv         = NWAMUI_OBJECT_GET_PRIVATE(object);
+
     g_return_if_fail(NWAMUI_IS_OBJECT(object));
 
     NWAMUI_OBJECT_GET_CLASS(object)->set_nwam_state(object, state, aux_state);
+    /* Always cache the value even if this function is overridden. Since the
+     * default function need to detect state change. So update it after that.
+     */
+    prv->nwam_state = state;
+    prv->nwam_aux_state = aux_state;
 }
 
 extern gboolean
