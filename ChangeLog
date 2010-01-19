@@ -1,5 +1,13 @@
 2010-01-19  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwamui_daemon.c (nwamui_daemon_handle_object_state_event):
+	That work around don't ref the active_ncp causes active_ncp is
+	destroyed and crashes the app.
+	* common/nwamui_ncp.c (row_deleted_cb), (row_inserted_cb): Fixed
+	mem leak.
+
+2010-01-19  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init),
 	(nwamui_wifi_net_set_property), (nwamui_wifi_net_get_property),
 	(nwamui_wifi_net_update_from_wlan_t),

@@ -3118,7 +3118,7 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
             /* Work around: OBJECT_STATE  ncu link:iwk0 -> offline*, need WiFi network selection (parent ) */
             if (nwamevent->nwe_data.nwe_object_state.nwe_parent
               && *nwamevent->nwe_data.nwe_object_state.nwe_parent == '\0') {
-                ncp = prv->active_ncp;
+                ncp = g_object_ref(prv->active_ncp);
             } else {
                 ncp = nwamui_daemon_get_ncp_by_name(daemon, nwamevent->nwe_data.nwe_object_state.nwe_parent);
             }

@@ -1747,8 +1747,6 @@ row_deleted_cb (GtkTreeModel *model, GtkTreePath *path, gpointer user_data)
 {
     NwamuiNcp     *ncp = NWAMUI_NCP(user_data);
 
-    g_debug("NwamuiNcp: NCU List: Row Deleted: %s", gtk_tree_path_to_string(path));
-
     if ( model == GTK_TREE_MODEL(ncp->prv->ncu_list_store )) {
         g_debug("NCU Removed from List, but not propagated.");
     }
@@ -1758,11 +1756,9 @@ row_deleted_cb (GtkTreeModel *model, GtkTreePath *path, gpointer user_data)
 }
 
 static void
-row_inserted_cb (GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data)
+row_inserted_cb(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data)
 {
     NwamuiNcp     *ncp = NWAMUI_NCP(user_data);
-
-    g_debug("NwamuiNcp: NCU List: Row Inserted: %s",gtk_tree_path_to_string(path));
 
     if ( model == GTK_TREE_MODEL(ncp->prv->ncu_list_store )) {
         g_debug("NCU Inserted in List, but not propagated.");
