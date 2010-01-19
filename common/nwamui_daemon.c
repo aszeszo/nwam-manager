@@ -435,7 +435,7 @@ nwamui_daemon_init (NwamuiDaemon *self)
  * be invoked two times at initilly time.
  */
 static void
-nwamui_daemon_init_lists (NwamuiDaemon *self)
+nwamui_daemon_init_lists(NwamuiDaemon *self)
 {
     GError                 *error = NULL;
     NwamuiWifiNet          *wifi_net = NULL;
@@ -513,6 +513,9 @@ nwamui_daemon_init_lists (NwamuiDaemon *self)
     nwamui_daemon_update_status(self);
 
     nwamui_daemon_update_online_enm_num(self);
+
+    /* Populate Wifi Favourites List */
+    nwamui_daemon_populate_wifi_fav_list(self);
 }
 
 static void
@@ -1404,8 +1407,7 @@ nwamui_daemon_get_fav_wifi_networks(NwamuiDaemon *self)
  * Compare a WifiNet (a) with a string (b).
  */
 static gint
-find_compare_wifi_net_with_name( gconstpointer a,
-                                 gconstpointer b)
+find_compare_wifi_net_with_name(gconstpointer a, gconstpointer b)
 {
     NwamuiWifiNet *wifi_net  = NWAMUI_WIFI_NET(a);
     const gchar   *name      = (const gchar*)b;
@@ -1415,23 +1417,15 @@ find_compare_wifi_net_with_name( gconstpointer a,
     if ( wifi_net != NULL ) {
         wifi_name = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
 
-        if ( wifi_name == NULL && name == NULL ) {
-            rval = 0;
-            g_debug("%s: wifi_name == NULL && name == NULL : returning %d", __func__, rval );
-        }
-        else if (wifi_name == NULL || name == NULL ) {
-            rval = (wifi_name == NULL)?1:-1;
-            g_debug("%s: wifi_name == NULL || name == NULL : returning %d", __func__, rval );
-        }
-        else {
+        if (wifi_name != NULL && name != NULL) {
             int len = NWAM_MAX_NAME_LEN;
-            rval = strncmp( wifi_name, name, len );
-            g_debug("%s: strcmp( %s, %s, %d ) returning %d", __func__, wifi_name, name, len, rval);
+            rval = strncmp(wifi_name, name, len);
+        } else {
+            rval = (gint)(wifi_name - name);
         }
     }
 
     return (rval);
-
 }
 
 /*
@@ -1475,19 +1469,22 @@ nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name )
     NwamuiWifiNet  *found_wifi_net = NULL;
     GList          *found_elem = NULL;
 
-    if ( self == NULL || name == NULL || self->prv->managed_list[MANAGED_FAV_WIFI] == NULL ) {
-        nwamui_debug("Searching for wifi_net '%s', returning NULL", name?name:"NULL" );
-        return( found_wifi_net );
-    }
+    g_return_val_if_fail(NWAMUI_IS_DAEMON(self), NULL);
+    g_return_val_if_fail(name, NULL);
 
-    if ( (found_elem = g_list_find_custom( self->prv->managed_list[MANAGED_FAV_WIFI], name, 
-                                           (GCompareFunc)find_compare_wifi_net_with_name)) != NULL ) {
-        if ( found_elem != NULL && found_elem->data != NULL && NWAMUI_IS_WIFI_NET(found_elem->data)) {
+    /* if ( self == NULL || name == NULL || self->prv->managed_list[MANAGED_FAV_WIFI] == NULL ) { */
+    /*     nwamui_debug("Searching for wifi_net '%s', returning NULL", name?name:"NULL" ); */
+    /*     return( found_wifi_net ); */
+    /* } */
+
+    if ((found_elem = g_list_find_custom(self->prv->managed_list[MANAGED_FAV_WIFI], name, 
+          (GCompareFunc)find_compare_wifi_net_with_name)) != NULL) {
+        if (NWAMUI_IS_WIFI_NET(found_elem->data)) {
             found_wifi_net = NWAMUI_WIFI_NET(g_object_ref(G_OBJECT(found_elem->data)));
         }
     }
     
-    nwamui_debug("Searching for wifi_net '%s', returning 0x%08x", name, found_wifi_net );
+    nwamui_debug("Searching for wifi_net '%s', returning 0x%08x", name, found_wifi_net);
     return( found_wifi_net );
 }
 
@@ -1500,13 +1497,16 @@ nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name )
  *
  **/
 extern void
-nwamui_daemon_add_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* new_wifi )
+nwamui_daemon_add_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* new_wifi)
 {
+    g_return_if_fail(NWAMUI_IS_DAEMON(self));
+    g_return_if_fail(new_wifi && NWAMUI_IS_WIFI_NET(new_wifi));
 
     if ( !self->prv->communicate_change_to_daemon
       || nwamui_object_commit(NWAMUI_OBJECT(new_wifi)) ) {
-        self->prv->managed_list[MANAGED_FAV_WIFI] = g_list_insert_sorted(self->prv->managed_list[MANAGED_FAV_WIFI], (gpointer)g_object_ref(new_wifi),
-                                                        find_compare_wifi_net_by_prio);
+        self->prv->managed_list[MANAGED_FAV_WIFI] = g_list_insert_sorted(self->prv->managed_list[MANAGED_FAV_WIFI],
+          (gpointer)g_object_ref(new_wifi),
+          find_compare_wifi_net_by_prio);
 
         g_signal_emit (self,
           nwamui_daemon_signals[S_WIFI_FAV_ADD],
@@ -1526,10 +1526,12 @@ nwamui_daemon_add_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* new_wifi )
  *
  **/
 extern void
-nwamui_daemon_remove_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* wifi )
+nwamui_daemon_remove_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* wifi)
 {
+    g_return_if_fail(NWAMUI_IS_DAEMON(self));
+    g_return_if_fail(wifi && NWAMUI_IS_WIFI_NET(wifi));
 
-    if( self->prv->managed_list[MANAGED_FAV_WIFI] != NULL ) {
+    if(self->prv->managed_list[MANAGED_FAV_WIFI] != NULL ) {
         if ( !self->prv->communicate_change_to_daemon
              || nwamui_wifi_net_delete_favourite( wifi ) ) {
             self->prv->managed_list[MANAGED_FAV_WIFI] = g_list_remove(self->prv->managed_list[MANAGED_FAV_WIFI], (gpointer)wifi);
@@ -1848,7 +1850,11 @@ dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  ui
     
 	name = nwamui_ncu_get_device_name (ncu);
 
-    nwamui_debug("Dispatch scan events for i/f %s  = %s (%d)", name,  nwamui_ncu_get_ncu_type (ncu) == NWAMUI_NCU_TYPE_WIRELESS?"Wireless":"Wired", nwamui_ncu_get_ncu_type (ncu));
+    nwamui_debug("Dispatch scan events for i/f %s  = %s (%d)",
+      name,
+      nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS ? "Wireless":"Wired",
+      nwamui_ncu_get_ncu_type (ncu));
+
 	if (nwamui_ncu_get_ncu_type (ncu) != NWAMUI_NCU_TYPE_WIRELESS ) {
         g_free (name);
         return( FALSE );
@@ -1878,7 +1884,7 @@ dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  ui
                     /* Ensure it's being cached in the ncu, and if already
                      * theere will update it with new information.
                      */
-                    wifi_net = nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( ncu, wlan_p);
+                    wifi_net = nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t(ncu, wlan_p);
 
                     nwamui_debug( "ESSID: %s ; NCU = %08X ; wifi_net = %08X", wlan_p->nww_essid, ncu, wifi_net );
 
@@ -2089,7 +2095,7 @@ nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self )
      * communication of changes to daemon */
     self->prv->communicate_change_to_daemon = FALSE;
     nwamui_daemon_set_fav_wifi_networks(self, walker_data.fav_list);
-    nwamui_daemon_dispatch_wifi_scan_events_from_cache( self );
+    /* nwamui_daemon_dispatch_wifi_scan_events_from_cache( self ); */
     self->prv->communicate_change_to_daemon = TRUE;
 
     g_object_notify(G_OBJECT(self), "wifi_fav");
@@ -2228,9 +2234,8 @@ nwamd_event_handler(gpointer data)
 		/* Now repopulate data here */
         nwamui_daemon_init_lists( daemon );
 
-        /* Populate Wifi Favourites List and wifi list. */
-        nwamui_daemon_populate_wifi_fav_list(daemon);
-        /* nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon); */
+        /* Populate wifi list. */
+        nwamui_daemon_dispatch_wifi_scan_events_from_cache(daemon);
 
         /* Trigger notification of active_ncp/env to ensure widgets update */
         /* g_object_notify(G_OBJECT(daemon), "active_ncp"); */

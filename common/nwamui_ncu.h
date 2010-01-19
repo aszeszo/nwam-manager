@@ -79,7 +79,7 @@ typedef enum {
 
 /* NOTE: If updated please change status_string_fmt */
 typedef enum {
-    NWAMUI_STATE_UNKNOWN,
+    NWAMUI_STATE_UNKNOWN = 0,
     NWAMUI_STATE_DISABLED,
     NWAMUI_STATE_NOT_CONNECTED,
     NWAMUI_STATE_SCANNING,
@@ -204,7 +204,7 @@ extern nwamui_wifi_signal_strength_t nwamui_ncu_get_signal_strength_from_dladm( 
 extern const gchar*         nwamui_ncu_get_signal_strength_string( NwamuiNcu* self );
 
 extern nwamui_connection_state_t
-                            nwamui_ncu_get_connection_state( NwamuiNcu* self );
+                            nwamui_ncu_update_state( NwamuiNcu* self );
 
 extern nwamui_connection_state_t
                             nwamui_ncu_get_updated_connection_state( NwamuiNcu* self );

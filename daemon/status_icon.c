@@ -770,7 +770,7 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 
             /* Init show NCU info. */
             if (init) {
-                nwamui_ncp_foreach_ncu(prv->active_ncp, (GFunc)initial_notify_nwam_object, (gpointer)self);
+                /* nwamui_ncp_foreach_ncu(prv->active_ncp, (GFunc)initial_notify_nwam_object, (gpointer)self); */
             }
 
             nwam_menu_recreate_ncu_menuitems(self);

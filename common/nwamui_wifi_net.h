@@ -213,8 +213,8 @@ extern void                         nwamui_wifi_net_set_wpa_cert_file ( NwamuiWi
                       
 extern gchar*                       nwamui_wifi_net_get_wpa_cert_file ( NwamuiWifiNet *self );
 
-extern void                         nwamui_wifi_net_set_bssid_list ( NwamuiWifiNet *self, const GList*   bssid_list );
-extern GList*                       nwamui_wifi_net_get_bssid_list ( NwamuiWifiNet *self );
+extern void                         nwamui_wifi_net_set_bssid_list(NwamuiWifiNet *self, GList *bssid_list);
+extern GList*                       nwamui_wifi_net_get_bssid_list(NwamuiWifiNet *self);
                           
 extern void                         nwamui_wifi_net_set_fav_bssid_list ( NwamuiWifiNet *self, const GList*   bssid_list );
 extern GList*                       nwamui_wifi_net_get_fav_bssid_list ( NwamuiWifiNet *self );

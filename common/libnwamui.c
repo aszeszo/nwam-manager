@@ -699,7 +699,7 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu, gint size )
     }
     if ( active ) {
         /* Double check the state using nwam state */
-        connection_state = nwamui_ncu_get_connection_state( ncu);
+        connection_state = nwamui_ncu_get_updated_connection_state( ncu);
         if ( connection_state == NWAMUI_STATE_CONNECTED 
            || connection_state == NWAMUI_STATE_CONNECTED_ESSID ) {
             daemon_state = NWAMUI_DAEMON_STATUS_ALL_OK;

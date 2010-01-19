@@ -1,3 +1,30 @@
+2010-01-19  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init),
+	(nwamui_wifi_net_set_property), (nwamui_wifi_net_get_property),
+	(nwamui_wifi_net_update_from_wlan_t),
+	(nwamui_wifi_net_new_from_wlan_t), (nwamui_object_real_can_rename),
+	(nwamui_wifi_net_set_essid), (nwamui_object_real_set_handle),
+	(nwamui_wifi_net_set_bssid_list), (nwamui_wifi_net_get_bssid_list):
+	* common/nwamui_wifi_net.h:
+	* common/nwamui_daemon.c (nwamui_daemon_init_lists),
+	(find_compare_wifi_net_with_name),
+	(nwamui_daemon_find_fav_wifi_net_by_name),
+	(nwamui_daemon_add_wifi_fav), (nwamui_daemon_remove_wifi_fav),
+	(dispatch_scan_results_from_wlan_array),
+	(nwamui_daemon_populate_wifi_fav_list), (nwamd_event_handler):
+	Fixed can't show BSSID list issue. And capplet doesn't populate
+	fav-wlans so remove will crash.
+	* capplet/nwam_conn_stat_panel.c
+	(nwam_conn_status_update_status_cell_cb):
+	* common/libnwamui.c (nwamui_util_get_ncu_status_icon):
+	* common/nwamui_ncu.c (nwamui_ncu_class_init), (nwamui_ncu_init):
+	* common/nwamui_ncu.h:
+	* common/nwamui_object.c (nwamui_object_set_nwam_state):
+	* daemon/nwam-wifi-item.c (is_wifi_active):
+	* daemon/status_icon.c (daemon_active_ncp_changed): Fixed NCU
+	disconnect notifications are annoying.
+
 2010-01-18  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_daemon.c (nwamd_event_handler),

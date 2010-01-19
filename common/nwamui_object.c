@@ -703,12 +703,16 @@ nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_
 
     g_return_if_fail(NWAMUI_IS_OBJECT(object));
 
+    g_object_freeze_notify(G_OBJECT(object));
+
     NWAMUI_OBJECT_GET_CLASS(object)->set_nwam_state(object, state, aux_state);
     /* Always cache the value even if this function is overridden. Since the
      * default function need to detect state change. So update it after that.
      */
     prv->nwam_state = state;
     prv->nwam_aux_state = aux_state;
+
+    g_object_thaw_notify(G_OBJECT(object));
 }
 
 extern gboolean

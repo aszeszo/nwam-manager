@@ -481,7 +481,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
     ncu_type = nwamui_ncu_get_ncu_type(ncu);
 
     /* Get REAL interface status rather than what NWAM says */
-    switch( nwamui_ncu_get_connection_state( ncu ) ) {
+    switch( nwamui_ncu_get_updated_connection_state( ncu ) ) {
         case NWAMUI_STATE_CONNECTED:
         case NWAMUI_STATE_CONNECTED_ESSID: 
             ncu_status = TRUE;

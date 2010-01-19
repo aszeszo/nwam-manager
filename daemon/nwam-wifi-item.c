@@ -193,7 +193,7 @@ is_wifi_active(NwamuiWifiNet *wifi)
             state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL);
 
             if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_UP ) {
-                connection_state = nwamui_ncu_get_connection_state( ncu);
+                connection_state = nwamui_ncu_get_updated_connection_state( ncu);
                 if ( connection_state == NWAMUI_STATE_CONNECTED 
                   || connection_state == NWAMUI_STATE_CONNECTED_ESSID ) {
                     active = TRUE;

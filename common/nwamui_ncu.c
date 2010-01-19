@@ -100,9 +100,12 @@ struct _NwamuiNcuPrivate {
     /* For caching link state */
     nwam_state_t     link_state;
     nwam_aux_state_t link_aux_state;
+    nwam_state_t     iface_state;
+    nwam_aux_state_t iface_aux_state;
 
     /* For caching gui connection state */
     nwamui_connection_state_t connection_state;
+    nwamui_connection_state_t state;
 };
 
 enum {
@@ -193,6 +196,7 @@ static void         nwamui_object_real_set_activation_mode ( NwamuiObject *objec
 static gint         nwamui_object_real_get_activation_mode ( NwamuiObject *object );
 static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 static gboolean     nwamui_object_real_has_modifications(NwamuiObject* object);
+static void         nwamui_object_set_interface_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state);
 
 /* Callbacks */
 static void ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data); 
@@ -204,7 +208,7 @@ static void wireless_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer user
 G_DEFINE_TYPE (NwamuiNcu, nwamui_ncu, NWAMUI_TYPE_OBJECT)
 
 static void
-nwamui_ncu_class_init (NwamuiNcuClass *klass)
+nwamui_ncu_class_init(NwamuiNcuClass *klass)
 {
     /* Pointer to GObject Part of Class */
     GObjectClass *gobject_class = (GObjectClass*) klass;
@@ -226,6 +230,7 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
     nwamuiobject_class->get_enabled = nwamui_object_real_get_enabled;
     nwamuiobject_class->set_enabled = nwamui_object_real_set_enabled;
     nwamuiobject_class->get_nwam_state = nwamui_ncu_get_interface_nwam_state;
+    nwamuiobject_class->set_nwam_state = nwamui_object_set_interface_nwam_state;
     nwamuiobject_class->sort = nwamui_object_real_sort;
     nwamuiobject_class->commit = nwamui_object_real_commit;
     nwamuiobject_class->reload = nwamui_object_real_reload;
@@ -435,7 +440,7 @@ nwamui_ncu_class_init (NwamuiNcuClass *klass)
 
 
 static void
-nwamui_ncu_init (NwamuiNcu *self)
+nwamui_ncu_init(NwamuiNcu *self)
 {
     NwamuiNcuPrivate *prv      = NWAMUI_NCU_GET_PRIVATE(self);
     self->prv = prv;
@@ -452,10 +457,12 @@ nwamui_ncu_init (NwamuiNcu *self)
     prv->link_state = NWAM_STATE_UNINITIALIZED;
     prv->link_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
+    prv->state = NWAMUI_STATE_UNKNOWN;
+
     /* Create WifiNet cache */
     prv->wifi_hash_table = g_hash_table_new_full(  g_str_hash, g_str_equal,
-                                                         (GDestroyNotify)g_free,
-                                                         (GDestroyNotify)g_object_unref);
+      (GDestroyNotify)g_free,
+      (GDestroyNotify)g_object_unref);
     
 
 /*     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self); */
@@ -2197,9 +2204,9 @@ nwamui_object_real_get_active ( NwamuiObject *object )
     else if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_MANUAL || ncu_prio == active_prio) {
 
         if (link_state == NWAM_STATE_OFFLINE_TO_ONLINE
-          && (link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION
-            || link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY
-            /* || aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING */ ) ) {
+          && (link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY
+            /* || link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION */
+            /* || aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING */)) {
 
             /* Lin, nwamd may hang on wifi connecting state for a very long
              * time. We should not set active to true in this case which
@@ -3100,21 +3107,19 @@ nwamui_ncu_set_priority_group_mode (   NwamuiNcu                       *self,
  * Functions to handle a hash table of wifi_net objects for the NCU.
  */
 extern NwamuiWifiNet*
-nwamui_ncu_wifi_hash_lookup_by_essid( NwamuiNcu    *self, 
-                                      const gchar  *essid )
+nwamui_ncu_wifi_hash_lookup_by_essid(NwamuiNcu *self, const gchar *essid)
 {
     NwamuiWifiNet  *wifi_net = NULL;
     gpointer        value;
 
-    if ( !self || !essid ) {
-        return( wifi_net );
-    }
+    g_return_val_if_fail(NWAMUI_IS_NCU(self), NULL);
+    g_return_val_if_fail(essid, NULL);
 
     if ( (value = g_hash_table_lookup( self->prv->wifi_hash_table, essid )) != NULL ) {
         wifi_net = NWAMUI_WIFI_NET(value);
     }
 
-    nwamui_debug("search for essid '%s' - returning %08x", essid, wifi_net );
+    nwamui_debug("search for essid '%s' - returning 0x%p", essid, wifi_net);
 
     return(wifi_net);
 }
@@ -3150,9 +3155,8 @@ nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( NwamuiNcu    *self,
 {
     NwamuiWifiNet   *wifi_net = NULL;
 
-    if ( !self || !wlan ) {
-        return(NULL);
-    }
+    g_return_val_if_fail(NWAMUI_IS_NCU(self), NULL);
+    g_return_val_if_fail(wlan, NULL);
 
     if ( (wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid( self, 
                                                 wlan->nww_essid ) ) != NULL ) {
@@ -3174,9 +3178,8 @@ nwamui_ncu_wifi_hash_insert_or_update_from_handle( NwamuiNcu                 *se
     char           *essid = NULL;
     nwam_error_t    nerr;
 
-    if ( !self || !wlan_h ) {
-        return(NULL);
-    }
+    g_return_val_if_fail(NWAMUI_IS_NCU(self), NULL);
+    g_return_val_if_fail(wlan_h, NULL);
 
     if ( (nerr = nwam_known_wlan_get_name(wlan_h, &essid)) != NWAM_SUCCESS) {
         g_warning("Error getting name of known wlan: %s", nwam_strerror(nerr));
@@ -3285,38 +3288,77 @@ nwamui_ncu_finalize (NwamuiNcu *self)
 	G_OBJECT_CLASS(nwamui_ncu_parent_class)->finalize(G_OBJECT(self));
 }
 
-extern nwam_state_t
-nwamui_ncu_get_interface_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p)
+/**
+ * nwamui_object_real_set_interface_state:
+ *
+ * Interface event emits after link event, e.g.
+LINK_STATE             e1000g0 -> state up                                     
+OBJECT_STATE           ncu link:e1000g0 -> state offline*, interface/link is u 
+OBJECT_STATE           ncu link:e1000g0 -> state online, interface/link is up  
+OBJECT_STATE           ncu interface:e1000g0 -> state offline*, (re)initialize 
+OBJECT_STATE           ncu interface:e1000g0 -> state offline*, waiting for IP 
+IF_STATE               e1000g0 -> state (17) flags 1000842                     
+IF_STATE               e1000g0 -> state (17) flags 1000842                     
+IF_STATE               e1000g0 -> state (17) flags 1000843                     
+IF_STATE               e1000g0 -> state (17) flags 2000840                     
+IF_STATE               e1000g0 -> state (17) flags 2000840                     
+IF_STATE               e1000g0 -> state (17) flags 2000841                     
+IF_STATE               e1000g0 -> state (17) flags 1004843                     
+IF_STATE               e1000g0 -> state (17) flags 1004842                     
+IF_STATE               e1000g0 -> state (17) flags 1004843                     
+IF_STATE               e1000g0 -> state (17) flags 1004842                     
+IF_STATE               e1000g0 -> state index 17 flags 0x0 address 129.158.217 
+OBJECT_STATE           ncu interface:e1000g0 -> state offline*, interface/link 
+OBJECT_STATE           ncu interface:e1000g0 -> state online, interface/link i 
+
+LINK_STATE             e1000g0 -> state down                                   
+OBJECT_STATE           ncu link:e1000g0 -> state online*, interface/link is do 
+OBJECT_STATE           ncu link:e1000g0 -> state offline, interface/link is do 
+OBJECT_STATE           ncu interface:e1000g0 -> state online*, conditions for  
+OBJECT_STATE           ncu interface:e1000g0 -> state offline, conditions for  
+ */
+static void
+nwamui_object_set_interface_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state)
 {
-    nwam_state_t      rstate = NWAM_STATE_UNINITIALIZED;
-    NwamuiNcu        *ncu;
-    nwam_state_t      state;
-    nwam_aux_state_t  aux_state;
+    NwamuiNcuPrivate          *prv             = NWAMUI_NCU_GET_PRIVATE(object);
 
-    if ( aux_state_p ) {
-        *aux_state_p = NWAM_AUX_STATE_UNINITIALIZED;
+    if ( prv->iface_state != state ||
+         prv->iface_aux_state != aux_state ) {
+        prv->iface_state = state;
+        prv->iface_aux_state = aux_state;
+
+        g_object_notify(G_OBJECT(object), "nwam_state" );
     }
 
-    if ( aux_state_string_p ) {
-        *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( NWAM_AUX_STATE_UNINITIALIZED );
+    nwamui_ncu_update_state(NWAMUI_NCU(object));
+	/* NWAMUI_OBJECT_CLASS(nwamui_ncu_parent_class)->set_nwam_state(object, state, aux_state); */
+}
+
+extern nwam_state_t
+nwamui_ncu_get_interface_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string)
+{
+    NwamuiNcuPrivate *prv    = NWAMUI_NCU_GET_PRIVATE(object);
+
+    g_return_val_if_fail(NWAMUI_IS_NCU( object ), NWAM_STATE_UNINITIALIZED);
+
+    if (prv->iface_state == NWAM_STATE_UNINITIALIZED && prv->iface_aux_state == NWAM_AUX_STATE_UNINITIALIZED) {
+        if (prv->nwam_ncu_ip) {
+            if (nwam_ncu_get_state(prv->nwam_ncu_ip, &prv->iface_state, &prv->iface_aux_state) == NWAM_SUCCESS) {
+            } else {
+                prv->iface_state = NWAM_STATE_UNINITIALIZED;
+                prv->iface_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+            }
+        }
     }
 
-    g_return_val_if_fail(NWAMUI_IS_NCU( object ), rstate);
-    ncu = NWAMUI_NCU(object);
-
-    if ( ncu->prv->nwam_ncu_ip &&
-      nwam_ncu_get_state( ncu->prv->nwam_ncu_ip, &state, &aux_state ) == NWAM_SUCCESS ) {
-        rstate = state;
+    if ( aux_state ) {
+        *aux_state = prv->iface_aux_state;
+    }
+    if ( aux_state_string ) {
+        *aux_state_string = (const gchar*)nwam_aux_state_to_string(prv->iface_aux_state);
     }
 
-    if ( aux_state_p ) {
-        *aux_state_p = aux_state;
-    }
-    if ( aux_state_string_p ) {
-        *aux_state_string_p = (const gchar*)nwam_aux_state_to_string( aux_state );
-    }
-
-    return(rstate);
+    return prv->iface_state;
 }
 
 extern nwam_state_t
@@ -3324,12 +3366,12 @@ nwamui_ncu_get_link_nwam_state(NwamuiNcu *self, nwam_aux_state_t* aux_state, con
 {
     NwamuiNcuPrivate *prv      = NWAMUI_NCU_GET_PRIVATE(self);
 
-    g_return_val_if_fail (NWAMUI_IS_NCU (self), NWAM_STATE_UNINITIALIZED);
+    g_return_val_if_fail(NWAMUI_IS_NCU(self), NWAM_STATE_UNINITIALIZED);
 
     /* Initializing link state, important for initially show panel icon. */
     if (prv->link_state == NWAM_STATE_UNINITIALIZED && prv->link_aux_state == NWAM_AUX_STATE_UNINITIALIZED) {
-        if ( prv->nwam_ncu_phys ) {
-            if ( nwam_ncu_get_state(prv->nwam_ncu_phys, &prv->link_state, &prv->link_aux_state) == NWAM_SUCCESS ) {
+        if (prv->nwam_ncu_phys) {
+            if (nwam_ncu_get_state(prv->nwam_ncu_phys, &prv->link_state, &prv->link_aux_state) == NWAM_SUCCESS) {
             } else {
                 prv->link_state = NWAM_STATE_UNINITIALIZED;
                 prv->link_aux_state = NWAM_AUX_STATE_UNINITIALIZED;
@@ -3351,28 +3393,25 @@ extern void
 nwamui_ncu_set_link_nwam_state(NwamuiNcu *self, nwam_state_t state, nwam_aux_state_t aux_state)
 {
     NwamuiNcuPrivate *prv           = NWAMUI_NCU_GET_PRIVATE(self);
-    gboolean          state_changed = FALSE;
 
     g_return_if_fail (NWAMUI_IS_NCU(self));
 
+    g_object_freeze_notify(G_OBJECT(self));
+
     if ( prv->link_state != state ||
          prv->link_aux_state != aux_state ) {
-        state_changed = TRUE;
+        prv->link_state = state;
+        prv->link_aux_state = aux_state;
+
+        g_object_notify(G_OBJECT(self), "nwam_state" );
     }
 
-    prv->link_state = state;
-    prv->link_aux_state = aux_state;
+    /* Make sure interface state is updated. */
+    nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), NULL, NULL);
 
-    if ( state_changed ) {
-/*         g_object_notify(G_OBJECT(self), "nwam_state" ); */
-    }
+    nwamui_ncu_update_state(NWAMUI_NCU(self));
 
-    /* Active property is likely to have changed too, but first check if there
-     * is a get_active function, if so the active property should exist. */
-    /* For NCUs, only care cache_index == 0. Compatible to ENV, ENM, etc. */
-/*     if ( state_changed && NWAMUI_OBJECT_GET_CLASS (self)->get_active != NULL ) { */
-/*         g_object_notify(G_OBJECT(self), "active" ); */
-/*     } */
+    g_object_thaw_notify(G_OBJECT(self));
 }
 
 static gchar*
@@ -4166,130 +4205,155 @@ static const gchar* status_string_fmt[NWAMUI_STATE_LAST] = {
 };
 
 extern nwamui_connection_state_t
-nwamui_ncu_get_connection_state( NwamuiNcu* self ) 
+nwamui_ncu_update_state(NwamuiNcu* self) 
 {
-    NwamuiNcuPrivate          *prv   = NWAMUI_NCU_GET_PRIVATE(self);
-    nwamui_connection_state_t  state = NWAMUI_STATE_UNKNOWN;
-    nwam_state_t               link_state;
-    nwam_aux_state_t           link_aux_state;
-    nwam_state_t               iface_state;
-    nwam_aux_state_t           iface_aux_state;
+    NwamuiNcuPrivate          *prv             = NWAMUI_NCU_GET_PRIVATE(self);
+    nwam_state_t               link_state      = prv->link_state;
+    nwam_aux_state_t           link_aux_state  = prv->link_aux_state;
+    nwam_state_t               iface_state     = prv->iface_state;
+    nwam_aux_state_t           iface_aux_state = prv->iface_aux_state;
+    nwamui_connection_state_t  new_state       = prv->state;
 
     /* Use cached state */
-    link_state = nwamui_ncu_get_link_nwam_state(self, &link_aux_state, NULL);
-/*     g_debug("Get  link state %-3X: %-10s - %s", link_state, nwam_state_to_string(link_state), nwam_aux_state_to_string(link_aux_state)); */
+    /* link_state = nwamui_ncu_get_link_nwam_state(self, &link_aux_state, NULL); */
+    /* g_debug("Get  link state %-3X: %-10s - %s", link_state, nwam_state_to_string(link_state), nwam_aux_state_to_string(link_aux_state)); */
 
-    iface_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), &iface_aux_state, NULL);
-/*     g_debug("Get iface state %-3X: %-10s - %s", iface_state, nwam_state_to_string(iface_state), nwam_aux_state_to_string(iface_aux_state)); */
+    /* iface_state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), &iface_aux_state, NULL); */
+    /* g_debug("Get iface state %-3X: %-10s - %s", iface_state, nwam_state_to_string(iface_state), nwam_aux_state_to_string(iface_aux_state)); */
 
     switch ( iface_state ) { 
-        case NWAM_STATE_UNINITIALIZED:
-            state = NWAMUI_STATE_UNKNOWN;
-            break;
-        case NWAM_STATE_MAINTENANCE:
-        case NWAM_STATE_DEGRADED:
-        case NWAM_STATE_INITIALIZED:
-        case NWAM_STATE_ONLINE_TO_OFFLINE:
-            state = NWAMUI_STATE_NETWORK_UNAVAILABLE;
-            break;
-        case NWAM_STATE_DISABLED:
-        case NWAM_STATE_OFFLINE:
-            if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRED && 
-                 ( iface_aux_state == NWAM_AUX_STATE_DOWN || 
-                   iface_aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET ) ) {
-                state = NWAMUI_STATE_CABLE_UNPLUGGED;
-                break;
-            } else if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-                if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
-                    state = NWAMUI_STATE_SCANNING;
-                    break;
-                }
-                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
-                    state = NWAMUI_STATE_NEEDS_SELECTION;
-                    break;
-                }
-                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
-                    state = NWAMUI_STATE_NEEDS_KEY_ESSID;
-                    break;
-                }
-                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
-                    state = NWAMUI_STATE_CONNECTING_ESSID;
-                    break;
+    case NWAM_STATE_UNINITIALIZED:
+        new_state = NWAMUI_STATE_UNKNOWN;
+        break;
+    case NWAM_STATE_MAINTENANCE:
+    case NWAM_STATE_DEGRADED:
+    case NWAM_STATE_INITIALIZED:
+        new_state = NWAMUI_STATE_NETWORK_UNAVAILABLE;
+        break;
+    case NWAM_STATE_ONLINE_TO_OFFLINE:
+        break;
+    case NWAM_STATE_DISABLED:
+    case NWAM_STATE_OFFLINE:
+        if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRED) {
+            if (iface_aux_state == NWAM_AUX_STATE_DOWN || 
+              iface_aux_state == NWAM_AUX_STATE_CONDITIONS_NOT_MET) {
+                /* iface state_offline and conditions_not_met also happens when
+                 * nwamd try up an inf, e.g. try different NCP groups. So only
+                 * change state when it change from active.
+                 */
+                if (new_state == NWAMUI_STATE_CONNECTED) {
+                    new_state = NWAMUI_STATE_CABLE_UNPLUGGED;
+                } else {
+                    /* new_state = NWAMUI_STATE_NOT_CONNECTED; */
+                    new_state = NWAMUI_STATE_NETWORK_UNAVAILABLE;
                 }
             }
-            state = NWAMUI_STATE_NOT_CONNECTED;
             break;
-        case NWAM_STATE_OFFLINE_TO_ONLINE:
+        } else if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+            if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
+                new_state = NWAMUI_STATE_SCANNING;
+                break;
+            }
+            else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
+                new_state = NWAMUI_STATE_NEEDS_SELECTION;
+                break;
+            }
+            else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
+                new_state = NWAMUI_STATE_NEEDS_KEY_ESSID;
+                break;
+            }
+            else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
+                new_state = NWAMUI_STATE_CONNECTING_ESSID;
+                break;
+            } else {
+                new_state = NWAMUI_STATE_NETWORK_UNAVAILABLE;
+            }
+        } else {
+            /* new_state = NWAMUI_STATE_NOT_CONNECTED; */
+        }
+        break;
+    case NWAM_STATE_OFFLINE_TO_ONLINE:
+        if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
+            if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
+                new_state = NWAMUI_STATE_SCANNING;
+                break;
+            }
+            else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
+                new_state = NWAMUI_STATE_NEEDS_SELECTION;
+                break;
+            }
+            else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
+                new_state = NWAMUI_STATE_NEEDS_KEY_ESSID;
+                break;
+            }
+            else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
+                new_state = NWAMUI_STATE_CONNECTING_ESSID;
+                break;
+            }
+        }
+        if ( iface_aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR ) {
+            new_state = NWAMUI_STATE_WAITING_FOR_ADDRESS;
+            break;
+        }
+        else if ( iface_aux_state == NWAM_AUX_STATE_IF_DHCP_TIMED_OUT ) {
+            new_state = NWAMUI_STATE_DHCP_TIMED_OUT;
+            break;
+        }
+        else if ( iface_aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR ) {
+            new_state = NWAMUI_STATE_DHCP_DUPLICATE_ADDR;
+            break;
+        }
+        new_state = NWAMUI_STATE_CONNECTING;
+        break;
+    case NWAM_STATE_ONLINE:
+        if ( iface_aux_state == NWAM_AUX_STATE_UP ) {
             if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-                if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
-                    state = NWAMUI_STATE_SCANNING;
-                    break;
-                }
-                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
-                    state = NWAMUI_STATE_NEEDS_SELECTION;
-                    break;
-                }
-                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
-                    state = NWAMUI_STATE_NEEDS_KEY_ESSID;
-                    break;
-                }
-                else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
-                    state = NWAMUI_STATE_CONNECTING_ESSID;
-                    break;
-                }
-            }
-	        if ( iface_aux_state == NWAM_AUX_STATE_IF_WAITING_FOR_ADDR ) {
-                state = NWAMUI_STATE_WAITING_FOR_ADDRESS;
+                new_state = NWAMUI_STATE_CONNECTED_ESSID;
                 break;
             }
-            else if ( iface_aux_state == NWAM_AUX_STATE_IF_DHCP_TIMED_OUT ) {
-                state = NWAMUI_STATE_DHCP_TIMED_OUT;
-                break;
-            }
-            else if ( iface_aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR ) {
-                state = NWAMUI_STATE_DHCP_DUPLICATE_ADDR;
-                break;
-            }
-            state = NWAMUI_STATE_CONNECTING;
+            new_state = NWAMUI_STATE_CONNECTED;
             break;
-        case NWAM_STATE_ONLINE:
-            if ( iface_aux_state == NWAM_AUX_STATE_UP ) {
-                if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
-                    state = NWAMUI_STATE_CONNECTED_ESSID;
-                    break;
-                }
-                state = NWAMUI_STATE_CONNECTED;
-                break;
-            }
-            break;
+        }
+        break;
+    default:
+        break;
     }
 
-    return( state );
+    if (prv->state != new_state) {
+        prv->state = new_state;
+        {
+            gchar *str;
+            g_debug("NCU %s currently STATE STRING: %s",
+              prv->vanity_name,
+              (str = nwamui_ncu_get_connection_state_string(self)));
+            g_free(str);
+        }
+
+        g_object_notify(G_OBJECT(self), "active" );
+    }
+
+    return new_state;
 }
 
 extern nwamui_connection_state_t
 nwamui_ncu_get_updated_connection_state( NwamuiNcu* self ) 
 {
-    nwamui_connection_state_t   state = nwamui_ncu_get_connection_state(self);
+    NwamuiNcuPrivate          *prv   = NWAMUI_NCU_GET_PRIVATE(self);
+    /* nwamui_connection_state_t   state = nwamui_ncu_get_connection_state(self); */
 
-    g_debug("ncu %s connection cached state %d, currently state %d",
-      self->prv->vanity_name,
-      self->prv->connection_state,
-      state);
-
-    {
-        gchar *str;
-        g_debug("ncu %s currently state string: %s",
-          self->prv->vanity_name,
-          (str = nwamui_ncu_get_connection_state_string(self)));
-        g_free(str);
+    if (prv->state == NWAMUI_STATE_UNKNOWN) {
+        /* Initilaly update state */
+        nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), NULL, NULL);
+        nwamui_ncu_get_link_nwam_state(self, NULL, NULL);
+        prv->state = nwamui_ncu_update_state(self);
     }
 
-    if (self->prv->connection_state != state) {
-        self->prv->connection_state = state;
-        return( state );
-    }
-    return NWAMUI_STATE_LAST;
+    /* if (prv->connection_state != prv->state) { */
+    /*     prv->connection_state = prv->state; */
+    /*     return prv->state; */
+    /* } */
+    /* return NWAMUI_STATE_LAST; */
+    return prv->state;
 }
 
 /*
@@ -4299,13 +4363,15 @@ nwamui_ncu_get_updated_connection_state( NwamuiNcu* self )
 extern gchar*
 nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
 {
-    nwamui_connection_state_t state         = NWAMUI_STATE_NOT_CONNECTED;
-    gchar*                    status_string = NULL;
-    gchar*                    essid         = NULL;
+    NwamuiNcuPrivate          *prv           = NWAMUI_NCU_GET_PRIVATE(self);
+    nwamui_connection_state_t  state         = NWAMUI_STATE_UNKNOWN;
+    gchar*                     status_string = NULL;
+    gchar*                     essid         = NULL;
 
     g_return_val_if_fail( NWAMUI_IS_NCU( self ), NULL );
 
-    state = nwamui_ncu_get_connection_state( self );
+    /* state = nwamui_ncu_get_connection_state( self ); */
+    state = prv->state;
 
     switch( state ) {
         case NWAMUI_STATE_UNKNOWN:
@@ -4395,7 +4461,8 @@ nwamui_ncu_get_connection_state_detail_string( NwamuiNcu* self, gboolean use_new
 
     g_return_val_if_fail( NWAMUI_IS_NCU( self ), NULL );
 
-    state = nwamui_ncu_get_connection_state( self );
+    /* state = nwamui_ncu_update_connection_state( self ); */
+    state = self->prv->state;
 
     switch( state ) {
         case NWAMUI_STATE_CONNECTED:
