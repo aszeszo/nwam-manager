@@ -89,7 +89,8 @@ struct _NwamProfileDialogPrivate {
     GtkDialog*          edit_connections_dialog;
 	GtkTreeView*	    connection_treeview;
 
-    GList*              ncu_selection;
+    GList*              ncu_list;
+    GList*              ncu_rm_list;
 
 	/* Other Data */
     NwamuiDaemon            *daemon;
@@ -163,6 +164,9 @@ static void nwam_connection_cell_func (GtkTreeViewColumn *col,
   GtkTreeModel      *model,
   GtkTreeIter       *iter,
   gpointer           data);
+static void nwam_connection_cell_toggled(GtkCellRendererToggle *cell_renderer,
+  gchar                 *path,
+  gpointer               user_data);
 
 static void net_conf_set_property (GObject         *object,
   guint            prop_id,
@@ -211,9 +215,6 @@ static void condition_view_drag_data_received(GtkWidget        *widget,
   guint             time,
   gpointer          user_data);
 
-static void nwam_connection_cell_toggled(GtkCellRendererToggle *cell_renderer,
-  gchar                 *path,
-  gpointer               user_data);
 static void nwam_net_pref_connection_enabled_toggled_cb(    GtkCellRendererToggle *cell_renderer,
   gchar                 *path,
   gpointer               user_data); /* unused */
@@ -335,8 +336,6 @@ net_conf_set_property ( GObject         *object,
     case PROP_SELECTED_NCP: {
         NwamuiObject *new_ncp = NWAMUI_OBJECT(g_value_get_object(value));
 
-        g_assert(NWAMUI_IS_NCP(new_ncp));
-
         if (new_ncp != prv->selected_ncp) {
 
             if (prv->selected_ncp) {
@@ -351,16 +350,20 @@ net_conf_set_property ( GObject         *object,
                 g_object_unref (prv->selected_ncp);
             }
 
-            prv->selected_ncp = g_object_ref(new_ncp);
+            prv->selected_ncp = new_ncp;
 
-            g_signal_connect(prv->selected_ncp, "add_ncu",
-              G_CALLBACK(ncp_add_ncu), (gpointer) self);
+            if (prv->selected_ncp) {
+                g_object_ref(prv->selected_ncp);
 
-            g_signal_connect(prv->selected_ncp, "remove_ncu",
-              G_CALLBACK(ncp_remove_ncu), (gpointer) self);
+                g_signal_connect(prv->selected_ncp, "add_ncu",
+                  G_CALLBACK(ncp_add_ncu), (gpointer) self);
 
-            /* Update edit ncp combo */
-            edit_profile_changed(self, prv->selected_ncp);
+                g_signal_connect(prv->selected_ncp, "remove_ncu",
+                  G_CALLBACK(ncp_remove_ncu), (gpointer) self);
+
+                /* Update edit ncp combo */
+                edit_profile_changed(self, prv->selected_ncp);
+            }
         }
     }
         break;
@@ -730,8 +733,10 @@ static gboolean
 cancel(NwamPrefIFace *iface, gpointer user_data)
 {
     NwamProfileDialogPrivate *prv  = GET_PRIVATE(iface);
+    NwamProfileDialog        *self = NWAM_PROFILE_DIALOG( iface );
 
     nwamui_object_reload(prv->selected_ncp);
+    g_object_set(self, "selected_ncp", NULL, NULL);
 
     return(TRUE);
 }
@@ -979,34 +984,28 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
   gpointer           data)
 {
     NwamProfileDialogPrivate   *prv = GET_PRIVATE(data);
-    GList                      *ncus = prv->ncu_selection;
     NwamuiObject               *obj;
     const gchar                *name;
     gboolean                    is_active = FALSE;
-    gboolean                    is_in_ncp = FALSE;
+    gboolean                    is_in_ncp;
     NwamuiObject               *found_object = NULL;
 
     gtk_tree_model_get(model, iter, 0, &obj, -1);
 
     /* We are using the NCU list in Automatic NCP. */
-    name = nwamui_object_get_name(obj);
-
-    /* Find equivalent object in NCU list of the selected profile */
-    while (ncus && !is_in_ncp) {
-        const gchar *ncu_name = nwamui_object_get_name(NWAMUI_OBJECT(ncus->data));
-
-        if (g_ascii_strcasecmp(name, ncu_name) == 0) {
-            is_in_ncp = TRUE;
-        }
-        ncus = g_list_next(ncus);
+    if (g_list_find(prv->ncu_list, obj)) {
+        is_in_ncp = TRUE;
+    } else {
+        is_in_ncp = FALSE;
     }
 
-    /* prv->ncu_selection may mix NCUs of different NCPs, so we have to find
-     * the real NCU. */
+    /* prv->ncu_list only contains ncus of automaic ncp, so we have to find the
+     * real NCU. */
+    name = nwamui_object_get_name(obj);
     found_object = NWAMUI_OBJECT(nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->selected_ncp), name));
     if ( found_object != NULL ) {
         /* Now we change to interface state */
-        if ( nwamui_object_get_nwam_state( found_object, NULL, NULL) == NWAM_STATE_ONLINE ) {
+        if (nwamui_object_get_nwam_state(found_object, NULL, NULL) == NWAM_STATE_ONLINE) {
             is_active = TRUE;
         }
         /* Safely unref though we still use this pointer. */
@@ -1034,6 +1033,41 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
         g_free(disp_text);
     }
     g_object_unref(obj);
+}
+
+static void
+nwam_connection_cell_toggled(GtkCellRendererToggle *cell_renderer,
+  gchar                 *path_str,
+  gpointer               user_data)
+{
+    NwamProfileDialogPrivate*    prv = GET_PRIVATE(user_data);
+    GtkTreeIter iter;
+    GtkTreeModel *model;
+    GtkTreePath  *path;
+    NwamuiNcu*  ncu;
+    const gchar *name;
+    const gchar *ncu_name;
+    GList *hit = NULL;
+
+    model = gtk_tree_view_get_model(prv->connection_treeview);
+    path = gtk_tree_path_new_from_string(path_str);
+    gtk_tree_model_get_iter(model, &iter, path);
+    gtk_tree_model_get(model, &iter, 0, &ncu, -1);
+
+    name = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
+
+    if (gtk_cell_renderer_toggle_get_active(cell_renderer)) {
+        prv->ncu_list = g_list_remove(prv->ncu_list, ncu);
+        prv->ncu_rm_list = g_list_prepend(prv->ncu_rm_list, ncu);
+    } else {
+        if (g_list_find(prv->ncu_list, ncu) == NULL) {
+            prv->ncu_rm_list = g_list_remove(prv->ncu_rm_list, ncu);
+            prv->ncu_list = g_list_prepend(prv->ncu_list, ncu);
+        }
+    }
+    gtk_tree_model_row_changed(model, path, &iter);
+    g_object_unref(ncu);
+    gtk_tree_path_free(path);
 }
 
 /*
@@ -1335,52 +1369,6 @@ condition_view_drag_data_received(GtkWidget        *widget,
     }
     gtk_drag_finish(drag_context, flag, FALSE, time);
     return;
-}
-
-static void
-nwam_connection_cell_toggled(GtkCellRendererToggle *cell_renderer,
-  gchar                 *path_str,
-  gpointer               user_data)
-{
-    NwamProfileDialogPrivate*    prv = GET_PRIVATE(user_data);
-    GtkTreeIter iter;
-    GtkTreeModel *model;
-    GtkTreePath  *path;
-    GList *ncus = prv->ncu_selection;
-    NwamuiNcu*  ncu;
-    const gchar *name;
-    const gchar *ncu_name;
-    GList *hit = NULL;
-
-    model = gtk_tree_view_get_model(prv->connection_treeview);
-    path = gtk_tree_path_new_from_string(path_str);
-    gtk_tree_model_get_iter (model, &iter, path);
-    gtk_tree_model_get(model, &iter, 0, &ncu, -1);
-
-    name = nwamui_object_get_name(NWAMUI_OBJECT(ncu));
-    while (ncus && !hit) {
-        ncu_name = nwamui_object_get_name(NWAMUI_OBJECT(ncus->data));
-        if (g_ascii_strcasecmp(name, ncu_name) == 0) {
-            hit = ncus;
-        }
-        ncus = g_list_next(ncus);
-    }
-
-    if (gtk_cell_renderer_toggle_get_active(cell_renderer)) {
-        if (hit) {
-            g_object_unref(hit->data);
-            prv->ncu_selection = g_list_delete_link(prv->ncu_selection, hit);
-        }
-    } else {
-        if (!hit) {
-            /* TODO, maybe we need clone this ncu? */
-            g_object_ref(ncu);
-            prv->ncu_selection = g_list_prepend(prv->ncu_selection, ncu);
-        }
-    }
-    gtk_tree_model_row_changed(model, path, &iter);
-    g_object_unref(ncu);
-    gtk_tree_path_free(path);
 }
 
 /*
@@ -1967,6 +1955,20 @@ on_button_clicked(GtkButton *button, gpointer user_data)
 }
 
 static void
+foreach_ncu_dup_and_append_to_list_if_in_selected_ncp(NwamuiObject *obj, gpointer self)
+{
+    NwamProfileDialogPrivate*  prv    = GET_PRIVATE(self);
+
+    g_return_if_fail(NWAMUI_IS_OBJECT(obj));
+
+    if (nwamui_ncp_find_ncu(NWAMUI_NCP(prv->selected_ncp),
+        nwamui_util_find_nwamui_object_by_name,
+        nwamui_object_get_name(obj))) {
+        prv->ncu_list = g_list_prepend(prv->ncu_list, g_object_ref(obj));
+    }
+}
+
+static void
 connections_edit_btn_clicked(GtkButton *button, gpointer user_data )
 {
     NwamProfileDialog*         self   = NWAM_PROFILE_DIALOG(user_data);
@@ -1979,7 +1981,11 @@ connections_edit_btn_clicked(GtkButton *button, gpointer user_data )
     auto_ncp = nwamui_daemon_get_ncp_by_name(daemon, NWAM_NCP_NAME_AUTOMATIC);
     model = GTK_TREE_MODEL(nwamui_ncp_get_ncu_list_store(NWAMUI_NCP(auto_ncp)));
     /* Selected ncus used for show toggle cells. */
-    prv->ncu_selection = nwamui_ncp_get_ncu_list(NWAMUI_NCP(prv->selected_ncp));
+    g_assert(prv->ncu_list == NULL);
+    g_assert(prv->ncu_rm_list == NULL);
+    nwamui_ncp_foreach_ncu(NWAMUI_NCP(auto_ncp),
+      (GFunc)foreach_ncu_dup_and_append_to_list_if_in_selected_ncp,
+      (gpointer)self);
 
     gtk_tree_view_set_model(prv->connection_treeview, model);
 
@@ -1991,68 +1997,30 @@ connections_edit_btn_clicked(GtkButton *button, gpointer user_data )
     {
     case GTK_RESPONSE_OK: {
         /* Handle the updated prv->ncu_selection */
-        GList *cur_list = nwamui_ncp_get_ncu_list(NWAMUI_NCP(prv->selected_ncp));
-        for ( GList *elem = g_list_first( cur_list );
-              elem != NULL;
-              elem = g_list_next( elem ) ) {
-            gchar      *elem_name = NULL;
-            gboolean    found_selected = FALSE;
-                
-            if ( !NWAMUI_IS_NCU(elem->data) ) {
-                continue;
-            }
+        for (GList *elem = g_list_first(prv->ncu_rm_list);
+             elem != NULL;
+             elem = g_list_delete_link(elem, elem)) {
+            gchar      *dev_name = NULL;
 
-            elem_name = nwamui_ncu_get_device_name( NWAMUI_NCU(elem->data) );
-
-            for ( GList *selected = g_list_first( prv->ncu_selection );
-                  selected != NULL;
-                  /* leave until later the selecte++ */ ) {
-                gchar*  selected_name = NULL;
-
-                if ( !NWAMUI_IS_NCU(selected->data) ) {
-                    continue;
-                }
-
-                selected_name = nwamui_ncu_get_device_name( NWAMUI_NCU(selected->data) );
-
-                if ( strcmp(elem_name, selected_name) == 0 ) {
-                    gboolean is_first = (selected == prv->ncu_selection);
-
-                    /* In both lists, so remove from ncu_selection list */
-                    g_object_unref(G_OBJECT(selected->data));
-                    selected = g_list_remove( selected, selected->data );
-                    if ( is_first ) {
-                        /* If it was the first element we removed, we
-                         * need to update the list pointer.
-                         */
-                        prv->ncu_selection = selected;
-                    }
-                    found_selected = TRUE;
-                    break;
-                }
-                else {
-                    selected = g_list_next( selected );
-                }
-                
-                g_free(selected_name);
-            }
-            if ( !found_selected ) {
-                /* Need to remove, since it's not in the selected list */
-                nwamui_ncp_remove_ncu(NWAMUI_NCP(prv->selected_ncp), NWAMUI_NCU(elem->data));
-            }
-
-            g_free(elem_name);
+            dev_name = nwamui_ncu_get_device_name(NWAMUI_NCU(elem->data));
+            /* Need to remove, since it's not in the selected list */
+            nwamui_ncp_remove_ncu_by_device_name(NWAMUI_NCP(prv->selected_ncp), dev_name);
+            /* Need unref. */
+            g_object_unref(elem->data);
+            g_free(dev_name);
         }
-        if ( prv->ncu_selection != NULL ) {
-            /* Need to add new ncus to this */
-            NwamuiNcu *new_ncu;
+        prv->ncu_rm_list = NULL;
 
-            for ( GList *selected = g_list_first( prv->ncu_selection );
-                  selected != NULL;
-                  selected = g_list_next( selected ) ) {
-                if ( !NWAMUI_IS_NCU(selected->data) ) {
-                    continue;
-                }
+        /* Need to add new ncus to this */
+        for (GList *selected = g_list_first(prv->ncu_list);
+             selected;
+             selected = g_list_delete_link(selected, selected)) {
+
+            if (nwamui_ncp_find_ncu(NWAMUI_NCP(prv->selected_ncp),
+                nwamui_util_find_nwamui_object_by_name,
+                nwamui_object_get_name(NWAMUI_OBJECT(selected->data))) == NULL) {
+
+                NwamuiNcu *new_ncu;
                 /* Should fire events to get it added to UI */
                 new_ncu = NWAMUI_NCU(nwamui_object_clone(NWAMUI_OBJECT(selected->data), NULL, prv->selected_ncp));
                 if ( new_ncu != NULL ) {
@@ -2063,20 +2031,28 @@ connections_edit_btn_clicked(GtkButton *button, gpointer user_data )
                       nwamui_object_get_name(NWAMUI_OBJECT(selected->data)));
                 }
             }
+            /* Need unref. */
+            g_object_unref(selected->data);
         }
+        prv->ncu_list = NULL;
+
         edit_profile_changed(self, prv->selected_ncp);
     }
         break;
     default:
+        if (prv->ncu_list != NULL) {
+            g_list_foreach(prv->ncu_list, nwamui_util_obj_unref, NULL);
+            g_list_free(prv->ncu_list);
+            prv->ncu_list = NULL;
+        }
+        if (prv->ncu_rm_list != NULL) {
+            g_list_foreach(prv->ncu_rm_list, nwamui_util_obj_unref, NULL);
+            g_list_free(prv->ncu_rm_list);
+            prv->ncu_rm_list = NULL;
+        }
         break;
     }
     gtk_widget_hide(GTK_WIDGET(prv->edit_connections_dialog));
-
-    if ( prv->ncu_selection != NULL ) {
-        g_list_foreach(prv->ncu_selection, nwamui_util_obj_unref, NULL);
-        g_list_free(prv->ncu_selection);
-        prv->ncu_selection = NULL;
-    }
 }
 
 static void

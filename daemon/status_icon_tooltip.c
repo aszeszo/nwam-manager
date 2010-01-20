@@ -303,15 +303,16 @@ foreach_ncu_update_tooltip(gpointer obj, gpointer self)
 }
 
 void
-nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon)
+nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *ncp)
 {
     NwamTooltipWidgetPrivate *prv = NWAM_TOOLTIP_WIDGET_GET_PRIVATE(self);
-    NwamuiObject *ncp = NWAMUI_OBJECT(nwamui_daemon_get_active_ncp(NWAMUI_DAEMON(daemon)));
+
+    g_return_if_fail(NWAMUI_IS_NCP(ncp));
 
     g_object_set(prv->ncp_widget, "proxy-object", ncp, NULL);
-    g_object_ref(ncp);
 
     /* Get list of children, remove non-NCU children and then process.  */
+    g_assert(prv->w_list == NULL);
     prv->w_list = gtk_container_get_children(GTK_CONTAINER(prv->ncu_vbox));
 
     /* For each entry in the ncu_list, re-use any existing w_list nodes by
@@ -322,8 +323,7 @@ nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon)
     /* Any remaining w_list entries, then remove them since they are unused.
      */
     for (; prv->w_list; ) {
-        g_assert(prv->w_list->data != prv->env_widget && prv->w_list->data != prv->ncp_widget);
-        gtk_container_remove(GTK_CONTAINER(self), GTK_WIDGET(prv->w_list->data));
+        gtk_container_remove(GTK_CONTAINER(prv->ncu_vbox), GTK_WIDGET(prv->w_list->data));
         prv->w_list = g_list_delete_link(prv->w_list, prv->w_list);
     }
 }
@@ -381,8 +381,7 @@ nwam_tooltip_widget_remove_ncu(NwamTooltipWidget *self, NwamuiObject *object)
         NwamuiObject *old = (NwamuiObject*)nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(w_list->data));
         
         if (old == (gpointer)object) {
-            g_assert(w_list->data != prv->env_widget && w_list->data != prv->ncp_widget);
-            gtk_container_remove(GTK_CONTAINER(self), GTK_WIDGET(w_list->data));
+            gtk_container_remove(GTK_CONTAINER(prv->ncu_vbox), GTK_WIDGET(w_list->data));
             break;
         }
         w_list = g_list_delete_link(w_list, w_list);

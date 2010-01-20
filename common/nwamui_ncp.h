@@ -79,8 +79,6 @@ extern gboolean                 nwamui_ncp_all_ncus_online (NwamuiNcp       *sel
                                                             NwamuiNcu      **needs_wifi_selection,
                                                             NwamuiWifiNet  **needs_wifi_key );
 
-extern GList*                   nwamui_ncp_get_ncu_list(NwamuiNcp *self);
-
 extern gint                     nwamui_ncp_get_ncu_num(NwamuiNcp *self);
 
 extern  GList*                  nwamui_ncp_find_ncu(NwamuiNcp *self, GCompareFunc func, gconstpointer data);

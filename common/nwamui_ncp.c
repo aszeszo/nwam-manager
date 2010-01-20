@@ -561,16 +561,18 @@ nwamui_object_real_reload(NwamuiObject* object)
     /* Assumption is that anything that was newly added should be removed,
      * anything that was removed will still exist unless a commit was done.
      */
-    if ( prv->ncus_added != NULL ) {
-        /* Make sure they are removed from the system */
-        g_list_foreach( prv->ncus_added, (GFunc)nwamui_object_destroy, NULL );
-        g_list_foreach( prv->ncus_added, (GFunc)nwamui_util_obj_unref, NULL );
-        g_list_free( prv->ncus_added );
-        prv->ncus_added = NULL;
+    for (;prv->ncus_added;
+         prv->ncus_added = g_list_delete_link(prv->ncus_added, prv->ncus_added)) {
+        /* Remove from ncu list. */
+        prv->ncu_list = g_list_remove(prv->ncu_list, prv->ncus_added->data);
+
+        nwamui_object_destroy(NWAMUI_OBJECT(prv->ncus_added->data));
+        g_object_unref(prv->ncus_added->data);
     }
+
+    /* Roll back removed list. */
     if ( prv->ncus_removed != NULL ) {
-        g_list_foreach( prv->ncus_removed, (GFunc)nwamui_util_obj_unref, NULL );
-        g_list_free( prv->ncus_removed );
+        prv->ncu_list = g_list_concat(prv->ncu_list, prv->ncus_removed);
         prv->ncus_removed = NULL;
     }
 
@@ -1064,19 +1066,6 @@ nwamui_ncp_get_ncu_tree_store( NwamuiNcp *self )
     return( ncu_tree_store );
 }
 
-/**
- * nwamui_ncp_get_ncu_list:
- * @returns: GList containing NwamuiNcu elements
- *
- **/
-extern GList*
-nwamui_ncp_get_ncu_list( NwamuiNcp *self )
-{
-    g_return_val_if_fail(NWAMUI_IS_NCP(self), NULL);
-    
-    return nwamui_util_copy_obj_list(self->prv->ncu_list);
-}
-
 extern gint
 nwamui_ncp_get_ncu_num(NwamuiNcp *self)
 {
@@ -1184,6 +1173,7 @@ nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp* self, const gchar* device_name 
 
     if ( found_ncu != NULL ) {
         nwamui_ncp_remove_ncu( self, NWAMUI_NCU(found_ncu));
+        g_object_unref(found_ncu);
     }
 }
 

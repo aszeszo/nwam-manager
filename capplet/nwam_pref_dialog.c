@@ -273,22 +273,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     NwamCappletDialogPrivate *prv      = NWAM_CAPPLET_DIALOG_GET_PRIVATE(iface);
 	NwamCappletDialog*        self     = NWAM_CAPPLET_DIALOG(iface);
     GObject                  *obj      = capplet_combo_get_active_object(GTK_COMBO_BOX(prv->show_combo));
-/*     gint                      panel_id = (gint)user_data; */
 
-/*     switch(panel_id) { */
-/*     case -1: */
-/*         /\* if -1, show the first page. *\/ */
-/*         panel_id = 0; */
-/*     case PANEL_CONN_STATUS: */
-/*     case PANEL_PROF_PREF: */
-/*         obj = g_object_ref(prv->panel[panel_id]); */
-/*         break; */
-/*     default: */
-/*         /\* Remember the active object and select it later. *\/ */
-/*         obj = capplet_combo_get_active_object(GTK_COMBO_BOX(prv->show_combo)); */
-/*         break; */
-/*     } */
-    
     if (force) {
         NwamuiDaemon *daemon = nwamui_daemon_get_instance();
         /* Refresh show-combo */
@@ -593,7 +578,6 @@ show_combo_remove(GtkComboBox* combo, GObject*  obj)
 {
 	GtkTreeModel *model = gtk_combo_box_get_model(combo);
 	GtkTreeIter parent;
-    GObject *data;
 
     if (capplet_model_find_object(model, obj, &parent)) {
         /* If it is NCP, remove child NCUs. */
@@ -610,7 +594,9 @@ show_combo_remove(GtkComboBox* combo, GObject*  obj)
             gtk_tree_path_free(path);
 
             /* Delete NCUs. */
-            if(gtk_tree_store_remove(GTK_TREE_STORE(model), &parent))
+            if(gtk_tree_store_remove(GTK_TREE_STORE(model), &parent)) {
+                GObject *data;
+
                 do {
                     gtk_tree_model_get(model, &parent, 0, &data, -1);
                     if (data)
@@ -618,8 +604,7 @@ show_combo_remove(GtkComboBox* combo, GObject*  obj)
                     else
                         break;
                 } while (gtk_tree_store_remove(GTK_TREE_STORE(model), &parent));
-
-
+            }
         } else {
             /* Remove whatever it is. */
             gtk_tree_store_remove(GTK_TREE_STORE(model), &parent);

@@ -2444,6 +2444,19 @@ nwamui_util_foreach_nwam_object_dup_and_append_to_list(NwamuiObject *obj, GList 
 }
 
 extern gint
+nwamui_util_find_nwamui_object_by_name(gconstpointer obj, gconstpointer name)
+{
+    const gchar *cur_name = NULL;
+    gchar       *obj_name = (gchar *)name;
+
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(obj), 1);
+    g_return_val_if_fail(name, 1);
+
+    cur_name = nwamui_object_get_name(NWAMUI_OBJECT(obj));
+    return g_strcmp0(cur_name, obj_name);
+}
+
+extern gint
 nwamui_util_find_active_nwamui_object(gconstpointer data, gconstpointer user_data)
 {
 	NwamuiObject  *obj     = (NwamuiObject *)data;

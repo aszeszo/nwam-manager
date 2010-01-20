@@ -66,7 +66,6 @@ void
 capplet_list_foreach_merge_to_list_store(gpointer data, gpointer user_data)
 {
     CAPPLET_LIST_STORE_ADD(user_data, data);
-	g_object_unref(data);
 }
 
 void
@@ -74,7 +73,6 @@ capplet_list_foreach_merge_to_tree_store(gpointer data, gpointer user_data)
 {
     GtkTreeIter iter;
     CAPPLET_TREE_STORE_ADD(user_data, NULL, data, &iter);
-	g_object_unref(data);
 }
 
 static gboolean

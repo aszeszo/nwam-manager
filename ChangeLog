@@ -1,5 +1,36 @@
 2010-01-20  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/capplet-utils.c
+	(capplet_list_foreach_merge_to_list_store),
+	(capplet_list_foreach_merge_to_tree_store): Should not unref in
+	foreach callback, because the passed obj isn't refed.
+	* capplet/nwam_pref_dialog.c (refresh), (show_combo_remove): Clean
+	code.
+	* capplet/nwam_profile_dialog.c (net_conf_set_property), (cancel),
+	(nwam_connection_cell_func), (nwam_connection_cell_toggled),
+	(foreach_ncu_dup_and_append_to_list_if_in_selected_ncp),
+	(connections_edit_btn_clicked): Rework connection view. Use a dup
+	ncu list from automatic ncp instead of a mixed ncu list from the
+	selected ncp. If user clicks cancel, must set selected ncp to
+	NULL, otherwise if user edit the same ncp next time, the dialog
+	doesn't repopulate.
+	* capplet/nwam_profile_panel.c (refresh): Clean code.
+	* common/libnwamui.c (nwamui_util_find_nwamui_object_by_name):
+	* common/libnwamui.h: Added a new foreach callback.
+	* common/nwamui_ncp.c (nwamui_object_real_reload),
+	(nwamui_ncp_remove_ncu_by_device_name):
+	* common/nwamui_ncp.h: Reload function should clean
+	ncus_added/remove/list to roll back correctly. Fixed mem
+	leak. Removed get_ncu_list.
+	* daemon/status_icon.c (ncp_add_ncu), (ncp_remove_ncu),
+	(daemon_active_ncp_changed):
+	* daemon/status_icon_tooltip.c (nwam_tooltip_widget_update_ncp),
+	(nwam_tooltip_widget_remove_ncu):
+	* daemon/status_icon_tooltip.h: Clean code for tooltip, more fast
+	and fixed add/remove from a wrong container.
+
+2010-01-20  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/capplet-utils.c (capplet_update_model_from_daemon):
 	* capplet/nwam_condition_vbox.c
 	(foreach_nwam_fav_wifi_add_to_combo), (_cu_wifi_combo_entry_new):

@@ -637,8 +637,7 @@ ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
 
     connect_nwam_object_signals(G_OBJECT(ncu), G_OBJECT(self));
     nwam_status_icon_create_menu_item(self, NWAMUI_OBJECT(ncu));
-    nwam_tooltip_widget_update_daemon(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->daemon));
-/*     nwam_tooltip_widget_add_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu)); */
+    nwam_tooltip_widget_add_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu));
 }
 
 static void
@@ -649,8 +648,7 @@ ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
 
     disconnect_nwam_object_signals(G_OBJECT(ncu), G_OBJECT(self));
     nwam_status_icon_delete_menu_item(self, NWAMUI_OBJECT(ncu));
-    nwam_tooltip_widget_update_daemon(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->daemon));
-/*     nwam_tooltip_widget_remove_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu)); */
+    nwam_tooltip_widget_remove_ncu(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(ncu));
 
     /* The ncu is already removed. */
     if (nwamui_ncp_get_ncu_num(ncp) == 0) {
@@ -770,9 +768,7 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 
             g_object_notify(G_OBJECT(prv->active_ncp), "wireless_link_num");
 
-            nwam_tooltip_widget_update_daemon(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->daemon));
-
-/*             nwam_tooltip_widget_update_ncp(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->active_ncp)); */
+            nwam_tooltip_widget_update_ncp(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), NWAMUI_OBJECT(prv->active_ncp));
 
             nwam_menu_start_update_wifi_timer(self);
 

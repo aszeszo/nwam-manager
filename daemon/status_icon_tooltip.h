@@ -60,7 +60,7 @@ void nwam_tooltip_widget_update_enm(NwamTooltipWidget *self, const gchar *vpn_in
 void nwam_tooltip_widget_add_ncu(NwamTooltipWidget *self, NwamuiObject *object);
 void nwam_tooltip_widget_remove_ncu(NwamTooltipWidget *self, NwamuiObject *object);
 
-void nwam_tooltip_widget_update_daemon(NwamTooltipWidget *self, NwamuiObject *daemon);
+void nwam_tooltip_widget_update_ncp(NwamTooltipWidget *self, NwamuiObject *ncp);
 
 
 G_END_DECLS

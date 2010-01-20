@@ -380,7 +380,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
     NwamProfilePanel        *self = NWAM_PROFILE_PANEL( iface );
 	NwamProfilePanelPrivate *prv  = GET_PRIVATE(self);
-    gboolean                   flag = nwamui_daemon_env_selection_is_manual(prv->daemon);
     
     g_debug("NwamProfilePanel: Refresh");
     g_assert(NWAM_IS_PROFILE_PANEL(self));
