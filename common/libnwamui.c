@@ -35,6 +35,7 @@
 #include <libnwamui.h>
 #include <libgnome/libgnome.h>
 #include <string.h>
+#include <strings.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <arpa/inet.h>
@@ -364,15 +365,11 @@ nwamui_util_copy_obj_list( GList*   obj_list )
 {
     GList*  new_list = NULL;
     
-    if ( obj_list == NULL ) {
-        return( NULL );
-    }
-    
-    new_list = g_list_copy( obj_list );
-    
-    g_list_foreach(new_list, nwamui_util_obj_ref, NULL );    
+    g_list_foreach(obj_list,
+      (GFunc)nwamui_util_foreach_nwam_object_dup_and_append_to_list,
+      (gpointer)&new_list);    
 
-    return( new_list );
+    return new_list;
 }
 
 static gint             small_icon_size = -1;
@@ -442,6 +439,72 @@ get_pixbuf( const gchar* stock_id, gboolean small )
     return (get_pixbuf_with_size( stock_id, small?small_icon_size:normal_icon_size ));
 }
 
+struct info_for_env_status_icon {
+    gint   activate_wired_num;
+    gint   activate_wireless_num;
+    gint   average_signal_strength;
+    gint64 ncp_prio;
+};
+
+extern gint
+foreach_gather_info_for_env_status_icon_from_ncp(gconstpointer data, gconstpointer user_data)
+{
+	NwamuiNcu                       *ncu            = (NwamuiNcu *)data;
+    struct info_for_env_status_icon *info           = (struct info_for_env_status_icon *)user_data;
+    gint64                           ncu_prio;
+    gint                             found_excl_ncu = 1;
+	
+    g_return_val_if_fail(NWAMUI_IS_NCU(ncu), 1);
+    g_return_val_if_fail(info, 0);
+    
+    ncu_prio = nwamui_ncu_get_priority_group(ncu);
+
+    /* Only care about current prio ncus, and first exclusive NCU
+     * that's in UP state 
+     */
+    if ( ncu_prio == info->ncp_prio) {
+        if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
+            nwam_state_t            state;
+            nwam_aux_state_t        aux_state;
+            nwamui_cond_activation_mode_t 
+              activation_mode;
+            nwamui_cond_priority_group_mode_t 
+              prio_group_mode;
+                    
+            state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL);
+            activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(ncu));
+            prio_group_mode = nwamui_ncu_get_priority_group_mode( ncu );
+
+            if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED ) {
+                if ( prio_group_mode == NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE ) {
+                    if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_UP ) {
+                        /* Stop here. */
+                        found_excl_ncu = 0;
+                    }
+                }
+            }
+
+            switch(nwamui_ncu_get_ncu_type(ncu)) {
+#ifdef TUNNEL_SUPPORT
+            case NWAMUI_NCU_TYPE_TUNNEL:
+#endif /* TUNNEL_SUPPORT */
+            case NWAMUI_NCU_TYPE_WIRED:
+                info->activate_wired_num++;
+                break;
+            case NWAMUI_NCU_TYPE_WIRELESS:
+                info->activate_wireless_num++;
+                info->average_signal_strength += nwamui_ncu_get_wifi_signal_strength(ncu);
+                break;
+            default:
+                g_assert_not_reached();
+                break;
+            }
+        }
+    }
+
+    return found_excl_ncu;
+}
+
 /* 
  * Returns a GdkPixbuf that reflects the status of the overall environment
  * If force_size equals 0, uses the size of status icon.
@@ -449,12 +512,9 @@ get_pixbuf( const gchar* stock_id, gboolean small )
 extern GdkPixbuf*
 nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_daemon_status_t daemon_status, gint force_size )
 {
-    gint                      activate_wired_num      = 0;
-    gint                      activate_wireless_num   = 0;
-    gint                      average_signal_strength = 0;
-    gint                      signal_strength;
-    nwamui_ncu_type_t         ncu_type;
-    nwamui_connection_state_t connection_state        = NWAMUI_STATE_UNKNOWN;
+    struct info_for_env_status_icon info;
+    nwamui_ncu_type_t               ncu_type;
+    nwamui_connection_state_t       connection_state = NWAMUI_STATE_UNKNOWN;
 
     if (force_size == 0) {
         if (status_icon != NULL && gtk_status_icon_is_embedded(status_icon)) {
@@ -467,80 +527,29 @@ nwamui_util_get_env_status_icon( GtkStatusIcon* status_icon, nwamui_daemon_statu
     {
         NwamuiDaemon *daemon         = nwamui_daemon_get_instance();
         NwamuiObject *ncp            = nwamui_daemon_get_active_ncp(daemon);
-        GList        *ncu_list       = NULL;
-        NwamuiNcu    *ncu            = NULL;
-        gint64        ncp_prio       = 0;
-        gint64        ncu_prio;
-        gboolean      found_excl_ncu = FALSE;
 
         g_object_unref(daemon);
 
         if ( ncp ) {
-            ncu_list = nwamui_ncp_get_ncu_list(NWAMUI_NCP(ncp));
-            ncp_prio = nwamui_ncp_get_prio_group(NWAMUI_NCP(ncp));
+            /* Clean */
+            bzero(&info, sizeof(info));
+
+            info.ncp_prio = nwamui_ncp_get_prio_group(NWAMUI_NCP(ncp));
+            nwamui_ncp_find_ncu(NWAMUI_NCP(ncp), foreach_gather_info_for_env_status_icon_from_ncp, &info);
             g_object_unref(ncp);
-        }
-
-        while (ncu_list) {
-            ncu = NWAMUI_NCU(ncu_list->data);
-            ncu_list = g_list_delete_link(ncu_list, ncu_list);
-            ncu_prio = nwamui_ncu_get_priority_group( ncu );
-
-             /* Only care about current prio ncus, and first exclusive NCU
-              * that's in UP state 
-              */
-            if ( ncu_prio == ncp_prio && !found_excl_ncu ) {
-                if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
-                    nwam_state_t            state;
-                    nwam_aux_state_t        aux_state;
-                    nwamui_cond_activation_mode_t 
-                                            activation_mode;
-                    nwamui_cond_priority_group_mode_t 
-                                            prio_group_mode;
-                    
-                    state = nwamui_object_get_nwam_state( NWAMUI_OBJECT(ncu), &aux_state, NULL);
-                    activation_mode = nwamui_object_get_activation_mode(NWAMUI_OBJECT(ncu));
-                    prio_group_mode = nwamui_ncu_get_priority_group_mode( ncu );
-
-                    if ( activation_mode == NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED ) {
-                        if ( prio_group_mode == NWAMUI_COND_PRIORITY_GROUP_MODE_EXCLUSIVE ) {
-                            if ( state == NWAM_STATE_ONLINE && aux_state == NWAM_AUX_STATE_UP ) {
-                                found_excl_ncu = TRUE;
-                            }
-                        }
-                    }
-
-                    switch(nwamui_ncu_get_ncu_type(ncu)) {
-#ifdef TUNNEL_SUPPORT
-                    case NWAMUI_NCU_TYPE_TUNNEL:
-#endif /* TUNNEL_SUPPORT */
-                    case NWAMUI_NCU_TYPE_WIRED:
-                        activate_wired_num++;
-                        break;
-                    case NWAMUI_NCU_TYPE_WIRELESS:
-                        activate_wireless_num++;
-                        average_signal_strength += nwamui_ncu_get_wifi_signal_strength(ncu);
-                        break;
-                    default:
-                        g_assert_not_reached();
-                        break;
-                    }
-                }
-            }
-            g_object_unref(ncu);
         }
     }
 
-    if (activate_wireless_num > 0) {
+    if (info.activate_wireless_num > 0) {
         ncu_type = NWAMUI_NCU_TYPE_WIRELESS;
-        average_signal_strength /= activate_wireless_num;
+        info.average_signal_strength /= info.activate_wireless_num;
     } else {
         ncu_type = NWAMUI_NCU_TYPE_WIRED;
-        average_signal_strength = NWAMUI_WIFI_STRENGTH_NONE;
+        info.average_signal_strength = NWAMUI_WIFI_STRENGTH_NONE;
     }
 
     return nwamui_util_get_network_status_icon(ncu_type, 
-      average_signal_strength,
+      info.average_signal_strength,
       daemon_status,
       force_size);
 }
@@ -699,7 +708,7 @@ nwamui_util_get_ncu_status_icon( NwamuiNcu* ncu, gint size )
     }
     if ( active ) {
         /* Double check the state using nwam state */
-        connection_state = nwamui_ncu_get_updated_connection_state( ncu);
+        connection_state = nwamui_ncu_get_connection_state( ncu);
         if ( connection_state == NWAMUI_STATE_CONNECTED 
            || connection_state == NWAMUI_STATE_CONNECTED_ESSID ) {
             daemon_state = NWAMUI_DAEMON_STATUS_ALL_OK;
@@ -2425,5 +2434,48 @@ extern FILE*
 get_stdio( void )
 {
     return( stdout );
+}
+
+extern void
+nwamui_util_foreach_nwam_object_dup_and_append_to_list(NwamuiObject *obj, GList **list)
+{
+    g_return_if_fail(NWAMUI_IS_OBJECT(obj));
+    *list = g_list_prepend(*list, g_object_ref(obj));
+}
+
+extern gint
+nwamui_util_find_active_nwamui_object(gconstpointer data, gconstpointer user_data)
+{
+	NwamuiObject  *obj     = (NwamuiObject *)data;
+	NwamuiObject **ret_obj = (NwamuiObject **)user_data;
+	
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(obj), 1);
+    g_return_val_if_fail(user_data, 1);
+    
+	if (nwamui_object_get_active(obj)) {
+        *ret_obj = g_object_ref(obj);
+        return 0;
+	}
+    return 1;
+}
+
+extern void
+nwamui_util_foreach_nwam_object_add_to_list_store(gpointer object, gpointer list_store)
+{
+    GtkTreeIter   iter;
+    NwamuiObject* obj = NWAMUI_OBJECT(object);
+    
+    gtk_list_store_append(GTK_LIST_STORE(list_store), &iter);
+    gtk_list_store_set(GTK_LIST_STORE(list_store), &iter, 0, obj, -1);
+}
+
+extern void
+nwamui_util_foreach_nwam_object_add_to_tree_store(gpointer object, gpointer list_store)
+{
+    GtkTreeIter   iter;
+    NwamuiObject* obj = NWAMUI_OBJECT(object);
+    
+    gtk_tree_store_append(GTK_TREE_STORE(list_store), &iter, NULL);
+    gtk_tree_store_set(GTK_TREE_STORE(list_store), &iter, 0, obj, -1);
 }
 

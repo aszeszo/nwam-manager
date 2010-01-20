@@ -130,10 +130,6 @@ extern gchar*                       nwamui_daemon_get_active_ncp_name(NwamuiDaem
 
 extern gboolean                     nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiObject* ncp ) ;
 
-extern void                         nwamui_daemon_foreach_ncp(NwamuiDaemon *self, GFunc func, gpointer user_data);
-
-extern GList*                       nwamui_daemon_get_ncp_list(NwamuiDaemon *self);
-
 extern void                         nwamui_daemon_append_object(NwamuiDaemon *self, NwamuiObject* object);
 
 extern gboolean                     nwamui_daemon_remove_object(NwamuiDaemon *self, NwamuiObject* object);
@@ -150,11 +146,7 @@ extern NwamuiEnv*                   nwamui_daemon_get_active_env(NwamuiDaemon *s
 
 extern gchar*                       nwamui_daemon_get_active_env_name(NwamuiDaemon *self);
 
-extern GList*                       nwamui_daemon_get_env_list(NwamuiDaemon *self);
-
 extern GtkTreeModel *               nwamui_get_default_svcs (NwamuiDaemon *self);
-
-extern GList*                       nwamui_daemon_get_enm_list(NwamuiDaemon *self);
 
 extern gint                         nwamui_daemon_get_online_enm_num(NwamuiDaemon *self);
 
@@ -163,8 +155,6 @@ extern void                         nwamui_daemon_wifi_start_scan(NwamuiDaemon *
 extern void                         nwamui_daemon_dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon );
 
 extern gint                         nwamui_daemon_get_num_scanned_wifi(NwamuiDaemon* self );
-
-extern GList*                       nwamui_daemon_get_fav_wifi_networks(NwamuiDaemon *self);
 
 extern gboolean                     nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list );
 
@@ -179,6 +169,15 @@ extern void                         nwamui_daemon_emit_info_message( NwamuiDaemo
 extern nwamui_daemon_status_t       nwamui_daemon_get_status_icon_type( NwamuiDaemon *daemon );
 
 extern const gchar*                 nwamui_deamon_status_to_string( nwamui_daemon_status_t status );
+
+extern void                         nwamui_daemon_foreach_ncp(NwamuiDaemon *self, GFunc func, gpointer user_data);
+extern void                         nwamui_daemon_foreach_loc(NwamuiDaemon *self, GFunc func, gpointer user_data);
+extern void                         nwamui_daemon_foreach_enm(NwamuiDaemon *self, GFunc func, gpointer user_data);
+extern void                         nwamui_daemon_foreach_fav_wifi(NwamuiDaemon *self, GFunc func, gpointer user_data);
+extern GList*                       nwamui_daemon_find_ncp(NwamuiDaemon *self, GCompareFunc func, gconstpointer user_data);
+extern GList*                       nwamui_daemon_find_loc(NwamuiDaemon *self, GCompareFunc func, gconstpointer user_data);
+extern GList*                       nwamui_daemon_find_enm(NwamuiDaemon *self, GCompareFunc func, gconstpointer user_data);
+extern GList*                       nwamui_daemon_find_fav_wifi(NwamuiDaemon *self, GCompareFunc func, gconstpointer user_data);
 
 G_END_DECLS
 

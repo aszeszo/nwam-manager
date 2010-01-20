@@ -158,6 +158,7 @@ static void set_wireless_chooser_urgency( NwamStatusIcon *self, gboolean urgent 
 static void join_wireless(NwamStatusIcon* self, NwamuiWifiNet *wifi, gboolean do_connect );
 static void set_join_wireless_urgency( NwamStatusIcon *self, gboolean urgent );
 static gboolean daemon_status_is_good(NwamuiDaemon *daemon);
+static void foreach_nwam_object_create_menuitem(gpointer data, gpointer user_data);
 
 /* call back */
 static void location_model_menuitems(GtkMenuItem *menuitem, gpointer user_data);
@@ -536,7 +537,7 @@ ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
     }
 #endif
     /* Ncu state filter. */
-    switch(nwamui_ncu_get_updated_connection_state(ncu)) {
+    switch(nwamui_ncu_get_connection_state(ncu)) {
     case NWAMUI_STATE_CONNECTED_ESSID:
     case NWAMUI_STATE_CONNECTED:
         prv->needs_wifi_selection_seen = FALSE;
@@ -706,7 +707,6 @@ static void
 daemon_online_enm_num_notify(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     NwamStatusIconPrivate *prv              = NWAM_STATUS_ICON_GET_PRIVATE(data);
-    GList*                 enm_elem;
     NwamuiEnm*             enm;
     int                    enm_active_count = nwamui_daemon_get_online_enm_num(prv->daemon);
     gchar*                 enm_str          = NULL;
@@ -715,20 +715,13 @@ daemon_online_enm_num_notify(GObject *gobject, GParamSpec *arg1, gpointer data)
     if ( enm_active_count == 0 ) {
         enm_str = g_strdup(_("None Active"));
     } else if (enm_active_count > 1) {
-        enm_str = g_strdup_printf("%d Active", enm_active_count);
+        enm_str = g_strdup_printf(_("%d Active"), enm_active_count);
     } else {
-        for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(prv->daemon)));
-              enm_elem != NULL;
-              enm_elem = g_list_delete_link(enm_elem, enm_elem) ) {
-        
-            enm = NWAMUI_ENM(enm_elem->data);
-        
-            if  ( nwamui_object_get_active(NWAMUI_OBJECT(enm))) {
-                enm_str = g_strdup_printf("%s Active", nwamui_object_get_name(NWAMUI_OBJECT(enm)));
-                break;
-            }
+        NwamuiObject *enm = NULL;
+        if (nwamui_daemon_find_enm(prv->daemon, nwamui_util_find_active_nwamui_object, (gconstpointer)&enm)) {
+            enm_str = g_strdup_printf(_("%s Active"), nwamui_object_get_name(enm));
+            g_object_unref(enm);
         }
-        g_list_free(enm_elem);
     }
         
     nwam_tooltip_widget_update_enm(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), enm_str);
@@ -1675,19 +1668,11 @@ static void
 nwam_menu_recreate_ncu_menuitems (NwamStatusIcon *self)
 {
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    GList *ncu_list = nwamui_ncp_get_ncu_list(prv->active_ncp);
-    GList *idx = NULL;
-	GtkWidget* item = NULL;
-    gboolean has_wireless_inf = FALSE;
 
     nwam_status_icon_move_menu_items_to_cache(self, SECTION_NCU);
 
-    if (ncu_list) {
-        for (idx = ncu_list; idx; idx = g_list_delete_link(idx, idx)) {
-            //nwam_menuitem_proxy_new(action, ncu_group);
-            item = nwam_status_icon_create_menu_item(self, NWAMUI_OBJECT(idx->data));
-            g_object_unref(idx->data);
-        }
+    if (nwamui_ncp_get_ncu_num(prv->active_ncp) > 0) {
+        nwamui_ncp_foreach_ncu(prv->active_ncp, foreach_nwam_object_create_menuitem, (gpointer)self);
 	} else {
         /* Make sure ref'ed, since menu is a container. */
         nwam_menu_create_fake_menuitems(self, MENUITEM_NONCU);
@@ -1700,34 +1685,20 @@ static void
 nwam_menu_recreate_env_menuitems (NwamStatusIcon *self)
 {
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    GList *env_list = nwamui_daemon_get_env_list(prv->daemon);
-    GList *idx = NULL;
-	GtkWidget* item = NULL;
 
     nwam_status_icon_move_menu_items_to_cache(self, SECTION_LOC);
 
-	for (idx = env_list; idx; idx = g_list_delete_link(idx, idx)) {
-        //nwam_menuitem_proxy_new(action, env_group);
-        item = nwam_status_icon_create_menu_item(self, NWAMUI_OBJECT(idx->data));
-        g_object_unref(idx->data);
-	}
+    nwamui_daemon_foreach_loc(prv->daemon, foreach_nwam_object_create_menuitem, (gpointer)self);
 }
 
 static void
 nwam_menu_recreate_enm_menuitems (NwamStatusIcon *self)
 {
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    GList *enm_list = nwamui_daemon_get_enm_list(prv->daemon);
-	GList *idx = NULL;
-	GtkWidget* item = NULL;
 
     nwam_status_icon_move_menu_items_to_cache(self, SECTION_ENM);
 
-	for (idx = enm_list; idx; idx = g_list_delete_link(idx, idx)) {
-        //nwam_menuitem_proxy_new(action, vpn_group);
-        item = nwam_status_icon_create_menu_item(self, NWAMUI_OBJECT(idx->data));
-        g_object_unref(idx->data);
-	}
+    nwamui_daemon_foreach_enm(prv->daemon, foreach_nwam_object_create_menuitem, (gpointer)self);
 }
 
 static void
@@ -2117,5 +2088,15 @@ action_on_no_fav_networks(GObject *gobject, GParamSpec *arg1, gpointer data)
     body = g_strdup_printf ("prof_action_if_no_fav_networks = %d", prof_action_if_no_fav_networks);
 /*     nwam_notification_show_message("Prof signal", body, NULL, NOTIFY_EXPIRES_DEFAULT); */
     g_free (body);
+}
+
+static void
+foreach_nwam_object_create_menuitem(gpointer data, gpointer user_data)
+{
+    NwamStatusIcon        *self = NWAM_STATUS_ICON(user_data);
+	GtkWidget* item = NULL;
+
+    //nwam_menuitem_proxy_new(action, env_group);
+    item = nwam_status_icon_create_menu_item(self, NWAMUI_OBJECT(data));
 }
 

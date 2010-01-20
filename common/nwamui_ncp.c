@@ -1072,15 +1072,9 @@ nwamui_ncp_get_ncu_tree_store( NwamuiNcp *self )
 extern GList*
 nwamui_ncp_get_ncu_list( NwamuiNcp *self )
 {
-    GList*  ncu_list = NULL;
-
-    g_return_val_if_fail (NWAMUI_IS_NCP(self), ncu_list); 
+    g_return_val_if_fail(NWAMUI_IS_NCP(self), NULL);
     
-    g_object_get (G_OBJECT (self),
-                  "ncu_list", &ncu_list,
-                  NULL);
-
-    return( ncu_list );
+    return nwamui_util_copy_obj_list(self->prv->ncu_list);
 }
 
 extern gint
@@ -1102,10 +1096,12 @@ nwamui_ncp_foreach_ncu_list_store( NwamuiNcp *self, GtkTreeModelForeachFunc func
 extern  GList*
 nwamui_ncp_find_ncu( NwamuiNcp *self, GCompareFunc func, gconstpointer data)
 {
-    g_assert(NWAMUI_IS_NCP(self));
-    g_return_val_if_fail(func, NULL);
+    g_return_val_if_fail(NWAMUI_IS_NCP(self), NULL);
 
-    return g_list_find_custom(self->prv->ncu_list, data, func);
+    if (func)
+        return g_list_find_custom(self->prv->ncu_list, data, func);
+    else
+        return g_list_find(self->prv->ncu_list, data);
 }
 
 /**
@@ -1308,7 +1304,7 @@ nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu )
     g_object_freeze_notify(G_OBJECT(self->prv->ncu_list_store));
 
     /* NCU isn't already in the list, so add it */
-    prv->ncu_list = g_list_append( prv->ncu_list, g_object_ref(new_ncu) );
+    prv->ncu_list = g_list_insert_sorted(prv->ncu_list, g_object_ref(new_ncu), (GCompareFunc)nwamui_object_sort_by_name);
 
     gtk_list_store_append( prv->ncu_list_store, &iter );
     gtk_list_store_set( prv->ncu_list_store, &iter, 0, new_ncu, -1 );
@@ -1553,7 +1549,7 @@ nwam_ncu_walker_cb (nwam_ncu_handle_t ncu, void *data)
 
     /* NCU isn't already in the list, so add it */
     if ( new_ncu != NULL ) {
-        prv->ncu_list = g_list_append( prv->ncu_list, g_object_ref(new_ncu) );
+        prv->ncu_list = g_list_insert_sorted(prv->ncu_list, g_object_ref(new_ncu), (GCompareFunc)nwamui_object_sort_by_name);
 
         gtk_list_store_append( prv->ncu_list_store, &iter );
         gtk_list_store_set( prv->ncu_list_store, &iter, 0, new_ncu, -1 );

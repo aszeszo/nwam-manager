@@ -391,18 +391,14 @@ test_ncp_gobject( void )
 {
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     
-    GList           *ncp_list = nwamui_daemon_get_ncp_list(daemon);
-    
     printf("%-*s=============================================================\n", indent, "");
     printf("%-*s NCPs \n", indent, "");
     printf("%-*s=============================================================\n", indent, "");
 
     indent += 4;
-    g_list_foreach(ncp_list, process_ncp, NULL );
+    nwamui_daemon_foreach_ncp(daemon, process_ncp, NULL );
     indent -= 4;
-    
-    g_list_foreach(ncp_list, nwamui_util_obj_unref, NULL );
-    g_list_free( ncp_list );
+
     g_object_unref(G_OBJECT(daemon));
 }
 
@@ -504,17 +500,14 @@ static void
 test_env_gobject( void )
 {
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
-    GList           *env_list = nwamui_daemon_get_env_list(daemon);
     
     printf("%-*s=============================================================\n", indent, "");
     printf("%-*s Locations (ENVs) \n", indent, "");
     printf("%-*s=============================================================\n", indent, "");
     indent += 4;
-    g_list_foreach(env_list, process_env, NULL );
+    nwamui_daemon_foreach_loc(daemon, process_env, NULL );
     indent -= 4;
     
-    g_list_foreach(env_list, nwamui_util_obj_unref, NULL );
-    g_list_free( env_list );
     g_object_unref(G_OBJECT(daemon));
     
 }
@@ -584,17 +577,14 @@ static void
 test_enm_gobject( void )
 {
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
-    GList           *enm_list = nwamui_daemon_get_enm_list(daemon);
     
     printf("%-*s=============================================================\n", indent, "");
     printf("%-*s ENMs \n", indent, "");
     printf("%-*s=============================================================\n", indent, "");
     indent += 4;
-    g_list_foreach(enm_list, process_enm, NULL );
+    nwamui_daemon_foreach_loc(daemon, process_enm, NULL );
     indent -= 4;
     
-    g_list_foreach(enm_list, nwamui_util_obj_unref, NULL );
-    g_list_free( enm_list );
     g_object_unref(G_OBJECT(daemon));
     
 }
@@ -640,18 +630,14 @@ test_known_wlan_gobject( void )
 {
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     
-    GList           *known_wlan_list = nwamui_daemon_get_fav_wifi_networks(daemon);
-    
     printf("%-*s=============================================================\n", indent, "");
     printf("%-*s WLANs \n", indent, "");
     printf("%-*s=============================================================\n", indent, "");
 
     indent += 4;
-    g_list_foreach(known_wlan_list, process_known_wlan, NULL );
+    nwamui_daemon_foreach_fav_wifi(daemon, process_known_wlan, NULL );
     indent -= 4;
     
-    g_list_foreach(known_wlan_list, nwamui_util_obj_unref, NULL );
-    g_list_free( known_wlan_list );
     g_object_unref(G_OBJECT(daemon));
 }
 

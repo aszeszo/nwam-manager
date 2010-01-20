@@ -638,8 +638,6 @@ populate_wifi_fav( NwamConnConfIPPanel* self, gboolean set_initial_state )
 {
     NwamConnConfIPPanelPrivate* prv = GET_PRIVATE(self);
     GtkTreeModel*   model;
-    GList*          fav_list;
-    GtkTreeIter     iter;
     
     gtk_widget_show_all( GTK_WIDGET(self->prv->wireless_tab) );
     
@@ -650,18 +648,7 @@ populate_wifi_fav( NwamConnConfIPPanel* self, gboolean set_initial_state )
     /* Populate WiFi Favourites */
     model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->wifi_fav_tv)));
     gtk_list_store_clear(GTK_LIST_STORE(model));
-    
-    fav_list = nwamui_daemon_get_fav_wifi_networks( NWAMUI_DAEMON(prv->daemon) );
-    for( GList* elem = g_list_first(fav_list); elem != NULL; elem = g_list_next( elem ) ) {
-        NwamuiWifiNet*  wifi_net = NWAMUI_WIFI_NET(elem->data);
-        
-        gtk_list_store_append(GTK_LIST_STORE( model ), &iter );
-        
-        gtk_list_store_set( GTK_LIST_STORE( model ), &iter, 0, wifi_net, -1 );
-    }
-    if (fav_list) {
-        nwamui_util_free_obj_list( fav_list );
-    }
+    nwamui_daemon_foreach_fav_wifi(prv->daemon, nwamui_util_foreach_nwam_object_add_to_list_store, (gpointer)model);
 
     /* Populate WiFi conditions */
     {

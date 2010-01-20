@@ -556,10 +556,8 @@ nwamui_daemon_set_property ( GObject         *object,
                 self->prv->num_scanned_wifi = g_value_get_int(value);
             }
             break;
-        case PROP_WIFI_FAV: {
-                GList *wifi_fav = (GList*)g_value_get_pointer( value );
-                nwamui_daemon_set_fav_wifi_networks( self, wifi_fav );
-            }
+        case PROP_WIFI_FAV:
+            nwamui_daemon_set_fav_wifi_networks( self, (GList*)g_value_get_pointer(value));
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -591,13 +589,8 @@ nwamui_daemon_get_property (GObject         *object,
         case PROP_STATUS:
             g_value_set_int(value, nwamui_daemon_get_status(self));
             break;
-        case PROP_WIFI_FAV: {
-                GList *wifi_fav = NULL;
-
-                wifi_fav = nwamui_daemon_get_fav_wifi_networks( self );
-
-                g_value_set_pointer( value, wifi_fav );
-            }
+        case PROP_WIFI_FAV:
+            g_value_set_pointer( value, nwamui_util_copy_obj_list(self->prv->managed_list[MANAGED_FAV_WIFI]));
             break;
         case PROP_NUM_SCANNED_WIFI: {
                 g_value_set_int(value, self->prv->num_scanned_wifi);
@@ -1029,42 +1022,6 @@ nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiObject* ncp )
     return(self->prv->active_ncp == ncp);
 }
 
-extern void
-nwamui_daemon_foreach_ncp(NwamuiDaemon *self, GFunc func, gpointer user_data)
-{
-    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
-
-    g_return_if_fail(NWAMUI_IS_DAEMON(self));
-
-    g_list_foreach(prv->managed_list[MANAGED_NCP], func, user_data);
-}
-
-/**
- * nwamui_daemon_get_ncp_list:
- * @self: NwamuiDaemon*
- *
- * @returns: a GList* of NwamuiNcp*
- *
- * Gets a list of the known Ncpironments.
- *
- **/
-extern GList*
-nwamui_daemon_get_ncp_list(NwamuiDaemon *self) 
-{
-    GList*      new_list = NULL;
-    
-    g_assert( NWAMUI_IS_DAEMON( self ) );
-
-    g_return_val_if_fail( NWAMUI_IS_DAEMON(self), new_list );
-
-    new_list = g_list_copy(self->prv->managed_list[MANAGED_NCP]);
-    
-    /* increase the refcounr for each element if copied list*/
-    g_list_foreach(new_list, nwamui_util_obj_ref, NULL );
-    
-    return(new_list);
-}
-
 /**
  * nwamui_daemon_object_append:
  * @self: NwamuiDaemon*
@@ -1323,84 +1280,11 @@ nwamui_daemon_get_active_env_name(NwamuiDaemon *self)
     return( name );
 }
 
-/**
- * nwamui_daemon_get_env_list:
- * @self: NwamuiDaemon*
- *
- * @returns: a GList* of NwamuiEnv*
- *
- * Gets a list of the known Environments.
- *
- **/
-extern GList*
-nwamui_daemon_get_env_list(NwamuiDaemon *self) 
-{
-    GList*      new_list = NULL;
-    
-    g_assert( NWAMUI_IS_DAEMON( self ) );
-
-    g_return_val_if_fail( NWAMUI_IS_DAEMON(self), new_list );
-
-    new_list = g_list_copy(self->prv->managed_list[MANAGED_LOC]);
-    
-    /* increase the refcounr for each element if copied list*/
-    g_list_foreach(new_list, nwamui_util_obj_ref, NULL );
-    
-    return(new_list);
-}
-
-/**
- * nwamui_daemon_get_enm_list:
- * @self: NwamuiDaemon*
- *
- * @returns: a GList* of NwamuiEnm*
- *
- * Gets a list of the known External Network Modifiers (ENMs).
- *
- **/
-extern GList*
-nwamui_daemon_get_enm_list(NwamuiDaemon *self) 
-{
-    GList*      new_list = NULL;
-    
-    g_assert( NWAMUI_IS_DAEMON( self ) );
-
-    g_return_val_if_fail( NWAMUI_IS_DAEMON(self), new_list );
-
-    new_list = g_list_copy(self->prv->managed_list[MANAGED_ENM]);
-    
-    /* increase the refcounr for each element if copied list*/
-    g_list_foreach(new_list, nwamui_util_obj_ref, NULL );
-    
-    return(new_list);
-}
-
 extern gint
 nwamui_daemon_get_online_enm_num(NwamuiDaemon *self)
 {
     g_return_val_if_fail(NWAMUI_IS_DAEMON(self), 0);
     return self->prv->online_enm_num;
-}
-
-/**
- * nwamui_daemon_get_fav_wifi_networks:
- * @self: NwamuiDaemon*
- * @returns: a GList* of NwamuiWifiNet*
- *
- * Gets a list of the Favourite (Preferred) Wifi Networks
- *
- **/
-extern GList*
-nwamui_daemon_get_fav_wifi_networks(NwamuiDaemon *self) 
-{
-    GList*  new_list = NULL;
-    
-    new_list = g_list_copy(self->prv->managed_list[MANAGED_FAV_WIFI]);
-    
-    /* increase the refcounr for each element if copied list*/
-    g_list_foreach(new_list, nwamui_util_obj_ref, NULL );
-    
-    return( new_list );
 }
 
 /*
@@ -1411,10 +1295,11 @@ find_compare_wifi_net_with_name(gconstpointer a, gconstpointer b)
 {
     NwamuiWifiNet *wifi_net  = NWAMUI_WIFI_NET(a);
     const gchar   *name      = (const gchar*)b;
-    const gchar   *wifi_name = NULL;
     gint           rval      = -1;
 
     if ( wifi_net != NULL ) {
+        const gchar   *wifi_name = NULL;
+
         wifi_name = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
 
         if (wifi_name != NULL && name != NULL) {
@@ -1464,18 +1349,13 @@ find_compare_wifi_net_by_prio( gconstpointer a,
  *
  **/
 extern NwamuiWifiNet*
-nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name ) 
+nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name) 
 {
     NwamuiWifiNet  *found_wifi_net = NULL;
     GList          *found_elem = NULL;
 
     g_return_val_if_fail(NWAMUI_IS_DAEMON(self), NULL);
     g_return_val_if_fail(name, NULL);
-
-    /* if ( self == NULL || name == NULL || self->prv->managed_list[MANAGED_FAV_WIFI] == NULL ) { */
-    /*     nwamui_debug("Searching for wifi_net '%s', returning NULL", name?name:"NULL" ); */
-    /*     return( found_wifi_net ); */
-    /* } */
 
     if ((found_elem = g_list_find_custom(self->prv->managed_list[MANAGED_FAV_WIFI], name, 
           (GCompareFunc)find_compare_wifi_net_with_name)) != NULL) {
@@ -2855,9 +2735,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 g_assert_not_reached();
             }
         } else {
-            /* Work around because nwam_ncp_copy will not emit ncp add event,
-             * so the sequenct ncu add will fail here.
-             */
+            g_warning("Work around because nwam_ncp_copy will not emit ncp add event, so the sequenct ncu add will fail here.");
             break;
         }
         switch ( nwamevent->nwe_data.nwe_object_action.nwe_action ) {
@@ -3632,5 +3510,97 @@ nwam_known_wlan_walker_cb (nwam_known_wlan_handle_t wlan_h, void *data)
     }
 
     return(0);
+}
+
+extern void
+nwamui_daemon_foreach_ncp(NwamuiDaemon *self, GFunc func, gpointer user_data)
+{
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
+
+    g_return_if_fail(NWAMUI_IS_DAEMON(self));
+
+    g_list_foreach(prv->managed_list[MANAGED_NCP], func, user_data);
+}
+
+extern void
+nwamui_daemon_foreach_loc(NwamuiDaemon *self, GFunc func, gpointer user_data)
+{
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
+
+    g_return_if_fail(NWAMUI_IS_DAEMON(self));
+
+    g_list_foreach(prv->managed_list[MANAGED_LOC], func, user_data);
+}
+
+extern void
+nwamui_daemon_foreach_enm(NwamuiDaemon *self, GFunc func, gpointer user_data)
+{
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
+
+    g_return_if_fail(NWAMUI_IS_DAEMON(self));
+
+    g_list_foreach(prv->managed_list[MANAGED_ENM], func, user_data);
+}
+
+extern void
+nwamui_daemon_foreach_fav_wifi(NwamuiDaemon *self, GFunc func, gpointer user_data)
+{
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
+
+    g_return_if_fail(NWAMUI_IS_DAEMON(self));
+
+    g_list_foreach(prv->managed_list[MANAGED_FAV_WIFI], func, user_data);
+}
+
+extern GList*
+nwamui_daemon_find_ncp(NwamuiDaemon *self, GCompareFunc func, gconstpointer user_data)
+{
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
+
+    g_return_val_if_fail(NWAMUI_IS_DAEMON(self), NULL);
+
+    if (func)
+        return g_list_find_custom(prv->managed_list[MANAGED_NCP], user_data, func);
+    else
+        return g_list_find(prv->managed_list[MANAGED_NCP], user_data);
+}
+
+extern GList*
+nwamui_daemon_find_loc(NwamuiDaemon *self, GCompareFunc func, gconstpointer user_data)
+{
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
+
+    g_return_val_if_fail(NWAMUI_IS_DAEMON(self), NULL);
+
+    if (func)
+        return g_list_find_custom(prv->managed_list[MANAGED_LOC], user_data, func);
+    else
+        return g_list_find(prv->managed_list[MANAGED_LOC], user_data);
+}
+
+extern GList*
+nwamui_daemon_find_enm(NwamuiDaemon *self, GCompareFunc func, gconstpointer user_data)
+{
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
+
+    g_return_val_if_fail(NWAMUI_IS_DAEMON(self), NULL);
+
+    if (func)
+        return g_list_find_custom(prv->managed_list[MANAGED_ENM], user_data, func);
+    else
+        return g_list_find(prv->managed_list[MANAGED_ENM], user_data);
+}
+
+extern GList*
+nwamui_daemon_find_fav_wifi(NwamuiDaemon *self, GCompareFunc func, gconstpointer user_data)
+{
+    NwamuiDaemonPrivate  *prv = NWAMUI_DAEMON_GET_PRIVATE(self);
+
+    g_return_val_if_fail(NWAMUI_IS_DAEMON(self), NULL);
+
+    if (func)
+        return g_list_find_custom(prv->managed_list[MANAGED_FAV_WIFI], user_data, func);
+    else
+        return g_list_find(prv->managed_list[MANAGED_FAV_WIFI], user_data);
 }
 

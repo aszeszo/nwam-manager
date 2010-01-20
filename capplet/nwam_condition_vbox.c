@@ -664,21 +664,21 @@ _cu_cond_combo_new (GtkTreeModel *model)
     return combo;
 }
 
+static void
+foreach_nwam_fav_wifi_add_to_combo(gpointer data, gpointer user_data)
+{
+    gtk_combo_box_append_text(GTK_COMBO_BOX(user_data), nwamui_object_get_name(NWAMUI_OBJECT(data)));
+}
+
 static GtkWidget*
 _cu_wifi_combo_entry_new ( void )
 {
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     GtkWidget       *combo;
-    GtkCellRenderer *renderer;
-	GList           *obj_list = nwamui_daemon_get_fav_wifi_networks(daemon);
 
-    combo = gtk_combo_box_entry_new_text ();
+    combo = gtk_combo_box_entry_new_text();
 
-    for ( GList *elem = g_list_first( obj_list );
-          elem != NULL;
-          elem = g_list_next( elem ) ) {
-        gtk_combo_box_append_text( GTK_COMBO_BOX(combo), nwamui_object_get_name(NWAMUI_OBJECT(elem->data)));
-    }
+    nwamui_daemon_foreach_fav_wifi(daemon, foreach_nwam_fav_wifi_add_to_combo, (gpointer)combo);
 
     return combo;
 }

@@ -83,7 +83,7 @@ extern GList*                   nwamui_ncp_get_ncu_list(NwamuiNcp *self);
 
 extern gint                     nwamui_ncp_get_ncu_num(NwamuiNcp *self);
 
-extern  GList*                  nwamui_ncp_find_ncu( NwamuiNcp *self, GCompareFunc func, gconstpointer data);
+extern  GList*                  nwamui_ncp_find_ncu(NwamuiNcp *self, GCompareFunc func, gconstpointer data);
 
 extern	GtkListStore*           nwamui_ncp_get_ncu_list_store ( NwamuiNcp *self );
 

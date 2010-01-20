@@ -1,3 +1,61 @@
+2010-01-20  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (capplet_update_model_from_daemon):
+	* capplet/nwam_condition_vbox.c
+	(foreach_nwam_fav_wifi_add_to_combo), (_cu_wifi_combo_entry_new):
+	* capplet/nwam_conn_conf_ip_panel.c (populate_wifi_fav):
+	* capplet/nwam_conn_stat_panel.c
+	(nwam_conn_status_update_status_cell_cb),
+	(daemon_online_enm_num_notify):
+	* capplet/nwam_location_dialog.c (apply):
+	* capplet/nwam_pref_dialog.c (nwam_capplet_dialog_init),
+	(nwam_capplet_dialog_finalize), (refresh), (show_combo_add),
+	(nwam_capplet_dialog_set_ok_sensitive_by_voting),
+	(foreach_ncp_add_to_combo):
+	* capplet/nwam_profile_dialog.c (ncp_add_ncu), (ncp_remove_ncu),
+	(edit_profile_changed), (ncu_pri_treeview_add),
+	(ncu_pri_treeview_remove):
+	* capplet/nwam_vpn_pref_dialog.c (apply):
+	* common/libnwamui.c (nwamui_util_copy_obj_list),
+	(foreach_gather_info_for_env_status_icon_from_ncp),
+	(nwamui_util_get_env_status_icon),
+	(nwamui_util_get_ncu_status_icon),
+	(nwamui_util_foreach_nwam_object_dup_and_append_to_list),
+	(nwamui_util_find_active_nwamui_object),
+	(nwamui_util_foreach_nwam_object_add_to_list_store),
+	(nwamui_util_foreach_nwam_object_add_to_tree_store):
+	* common/libnwamui.h:
+	* common/nwamui_daemon.c (nwamui_daemon_set_property),
+	(nwamui_daemon_get_property), (find_compare_wifi_net_with_name),
+	(nwamui_daemon_find_fav_wifi_net_by_name),
+	(nwamui_daemon_handle_object_action_event),
+	(nwamui_daemon_foreach_ncp), (nwamui_daemon_foreach_loc),
+	(nwamui_daemon_foreach_enm), (nwamui_daemon_foreach_fav_wifi),
+	(nwamui_daemon_find_ncp), (nwamui_daemon_find_loc),
+	(nwamui_daemon_find_enm), (nwamui_daemon_find_fav_wifi):
+	* common/nwamui_daemon.h: Use foreach and find_custom instead of
+	get_*_list. If GCompare callback is NULL, uses default find
+	function.
+	* common/nwamui_ncp.c (nwamui_ncp_get_ncu_list),
+	(nwamui_ncp_find_ncu), (nwamui_ncp_add_ncu), (nwam_ncu_walker_cb):
+	* common/nwamui_ncp.h:
+	* common/nwamui_ncu.c:
+	* common/nwamui_ncu.h:
+	* daemon/nwam-wifi-item.c (is_wifi_active):
+	* daemon/status_icon.c (ncu_notify_active),
+	(daemon_online_enm_num_notify), (nwam_menu_recreate_ncu_menuitems),
+	(nwam_menu_recreate_env_menuitems),
+	(nwam_menu_recreate_enm_menuitems),
+	(foreach_nwam_object_create_menuitem):
+	* daemon/status_icon_tooltip.c (nwam_tooltip_widget_init),
+	(foreach_ncu_update_tooltip), (nwam_tooltip_widget_update_daemon),
+	(nwam_tooltip_widget_add_ncu), (nwam_tooltip_widget_remove_ncu),
+	(nwam_tooltip_widget_new):
+	* daemon/status_icon_tooltip.h:
+	* tests/main.c (test_ncp_gobject), (test_env_gobject),
+	(test_enm_gobject), (test_known_wlan_gobject):
+	Reduce using get_*_list functions.
+
 2010-01-19  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_daemon.c (nwamui_daemon_handle_object_state_event):

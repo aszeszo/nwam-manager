@@ -207,7 +207,7 @@ extern nwamui_connection_state_t
                             nwamui_ncu_update_state( NwamuiNcu* self );
 
 extern nwamui_connection_state_t
-                            nwamui_ncu_get_updated_connection_state( NwamuiNcu* self );
+                            nwamui_ncu_get_connection_state( NwamuiNcu* self );
 
 extern gchar*               nwamui_ncu_get_connection_state_string( NwamuiNcu* self );
 

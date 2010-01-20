@@ -104,7 +104,6 @@ struct _NwamuiNcuPrivate {
     nwam_aux_state_t iface_aux_state;
 
     /* For caching gui connection state */
-    nwamui_connection_state_t connection_state;
     nwamui_connection_state_t state;
 };
 
@@ -4336,10 +4335,9 @@ nwamui_ncu_update_state(NwamuiNcu* self)
 }
 
 extern nwamui_connection_state_t
-nwamui_ncu_get_updated_connection_state( NwamuiNcu* self ) 
+nwamui_ncu_get_connection_state( NwamuiNcu* self ) 
 {
     NwamuiNcuPrivate          *prv   = NWAMUI_NCU_GET_PRIVATE(self);
-    /* nwamui_connection_state_t   state = nwamui_ncu_get_connection_state(self); */
 
     if (prv->state == NWAMUI_STATE_UNKNOWN) {
         /* Initilaly update state */
@@ -4348,11 +4346,6 @@ nwamui_ncu_get_updated_connection_state( NwamuiNcu* self )
         prv->state = nwamui_ncu_update_state(self);
     }
 
-    /* if (prv->connection_state != prv->state) { */
-    /*     prv->connection_state = prv->state; */
-    /*     return prv->state; */
-    /* } */
-    /* return NWAMUI_STATE_LAST; */
     return prv->state;
 }
 

@@ -261,8 +261,8 @@ static NwamuiObject* create_group_object( gint group_id,
 static GtkTreePath* ncu_pri_group_get_path(GtkTreeModel *model, gint group_id, gint group_mode, GtkTreeIter *parent);
 static gboolean ncu_pri_group_get_iter(GtkTreeModel *model, gint group_id, gint group_mode, GtkTreeIter *parent);
 static void ncu_pri_group_update(GtkTreeModel *model);
-static void ncu_pri_treeview_add(GtkTreeView *treeview, GtkTreeModel *model, NwamuiObject *object);
-static void ncu_pri_treeview_remove(GtkTreeView *treeview, GtkTreeModel *model, NwamuiObject *object);
+static void ncu_pri_treeview_add(NwamuiObject *object, GtkTreeView *treeview);
+static void ncu_pri_treeview_remove(GtkTreeView *treeview, NwamuiObject *object);
 static void capplet_tree_store_move_children(GtkTreeStore *model,
   GtkTreePath *target_path,
   GtkTreePath *source_path,
@@ -2451,9 +2451,7 @@ ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
 {
     NwamProfileDialogPrivate*    prv = GET_PRIVATE(data);
 
-    ncu_pri_treeview_add(prv->net_conf_treeview,
-      gtk_tree_view_get_model(prv->net_conf_treeview),
-      NWAMUI_OBJECT(ncu));
+    ncu_pri_treeview_add(NWAMUI_OBJECT(ncu), prv->net_conf_treeview);
 }
 
 static void
@@ -2462,7 +2460,6 @@ ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
     NwamProfileDialogPrivate*    prv = GET_PRIVATE(data);
 
     ncu_pri_treeview_remove(prv->net_conf_treeview,
-      gtk_tree_view_get_model(prv->net_conf_treeview),
       NWAMUI_OBJECT(ncu));
 }
 
@@ -2491,19 +2488,12 @@ edit_profile_changed(NwamProfileDialog *self, NwamuiObject *ncp)
 
     gtk_tree_store_clear(GTK_TREE_STORE(model));
 
-    {
-        GList *obj_list = nwamui_ncp_get_ncu_list(NWAMUI_NCP(prv->selected_ncp));
+    nwamui_ncp_foreach_ncu(NWAMUI_NCP(prv->selected_ncp), (GFunc)ncu_pri_treeview_add, (gpointer)prv->net_conf_treeview);
 
-        while (obj_list) {
-            ncu_pri_treeview_add(prv->net_conf_treeview, model, NWAMUI_OBJECT(obj_list->data));
-            g_object_unref(obj_list->data);
-            obj_list = g_list_delete_link(obj_list, obj_list);
-        }
-        /* Check if all or none group have nodes. */
-        ncu_pri_treeview_add(prv->net_conf_treeview, model, NULL);
-        /* Update hash, collapse group id. */
-        ncu_pri_group_update(model);
-    }
+    /* Check if all or none group have nodes. */
+    ncu_pri_treeview_add(NULL, prv->net_conf_treeview);
+    /* Update hash, collapse group id. */
+    ncu_pri_group_update(model);
 
     gtk_widget_show(GTK_WIDGET(prv->net_conf_treeview));
 
@@ -2732,11 +2722,12 @@ ncu_pri_group_update(GtkTreeModel *model)
 }
 
 static void
-ncu_pri_treeview_add(GtkTreeView *treeview, GtkTreeModel *model, NwamuiObject *object)
+ncu_pri_treeview_add(NwamuiObject *object, GtkTreeView *treeview)
 {
-    GtkTreePath *path;
-    GtkTreeIter parent;
-    GtkTreeIter iter;
+    GtkTreeModel *model = gtk_tree_view_get_model(treeview);
+    GtkTreePath  *path;
+    GtkTreeIter   parent;
+    GtkTreeIter   iter;
 
     if (object && NWAMUI_IS_NCU(object)) {
         gboolean ret;
@@ -2764,12 +2755,13 @@ ncu_pri_treeview_add(GtkTreeView *treeview, GtkTreeModel *model, NwamuiObject *o
 }
 
 static void
-ncu_pri_treeview_remove(GtkTreeView *treeview, GtkTreeModel *model, NwamuiObject *object)
+ncu_pri_treeview_remove(GtkTreeView *treeview, NwamuiObject *object)
 {
-    GtkTreeIter parent;
-    GtkTreeIter temp;
-    GtkTreePath *path;
-    NwamuiObject *obj;
+    GtkTreeModel        *model = gtk_tree_view_get_model(treeview);
+    GtkTreeIter          parent;
+    GtkTreeIter          temp;
+    GtkTreePath         *path;
+    NwamuiObject        *obj;
     GtkTreeRowReference *group_rr;
 
     g_return_if_fail(object && NWAMUI_IS_NCU(object));

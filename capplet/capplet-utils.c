@@ -209,23 +209,18 @@ capplet_model_remove_object(GtkTreeModel *model, GObject *object)
 void
 capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon, GType type)
 {
-	GList *obj_list;
-
 	gtk_list_store_clear(GTK_LIST_STORE(model));
 
 	if (type == NWAMUI_TYPE_NCP) {
-		obj_list = nwamui_daemon_get_ncp_list(daemon);
+        nwamui_daemon_foreach_ncp(daemon, capplet_list_foreach_merge_to_list_store, (gpointer)model);
 	/* } else if (type == NWAMUI_TYPE_NCU) { */
 	} else if (type == NWAMUI_TYPE_ENV) {
-		obj_list = nwamui_daemon_get_env_list(daemon);
+        nwamui_daemon_foreach_loc(daemon, capplet_list_foreach_merge_to_list_store, (gpointer)model);
 	} else if (type == NWAMUI_TYPE_ENM) {
-		obj_list = nwamui_daemon_get_enm_list(daemon);
+        nwamui_daemon_foreach_enm(daemon, capplet_list_foreach_merge_to_list_store, (gpointer)model);
 	} else {
 		g_error("unknow supported get nwamui obj list");
 	}
-
-	g_list_foreach(obj_list, capplet_list_foreach_merge_to_list_store, (gpointer)model);
-	g_list_free(obj_list);
 }
 
 void

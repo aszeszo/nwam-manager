@@ -59,7 +59,6 @@ struct _NwamCappletDialogPrivate {
                 
     /* Other Data */
     NwamuiObject*               active_ncp; /* currently active NCP */
-    GList*                      ncp_list; /* currently active NCP */
 
     NwamuiNcu*                  selected_ncu;
     NwamuiNcu*                  prev_selected_ncu;
@@ -90,6 +89,7 @@ static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void show_changed_cb( GtkWidget* widget, gpointer data );
 
 /* Utility Functions */
+static void foreach_ncp_add_to_combo(gpointer data, gpointer user_data);
 static void show_combo_add (GtkComboBox* combo, GObject*  obj);
 static void show_combo_remove (GtkComboBox* combo, GObject*  obj);
 
@@ -140,20 +140,9 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     /* Get NCPs and Current NCP */
     daemon = nwamui_daemon_get_instance();
     prv->active_ncp = nwamui_daemon_get_active_ncp( daemon );
-    prv->ncp_list = nwamui_daemon_get_ncp_list( daemon );
 
     prv->selected_ncu = NULL;
     prv->prev_selected_ncu = NULL;
-
-    if ( prv->active_ncp == NULL && prv->ncp_list  != NULL ) {
-        GList* first_element = g_list_first( prv->ncp_list );
-
-
-        if ( first_element != NULL && first_element->data != NULL )  {
-            prv->active_ncp = NWAMUI_OBJECT(g_object_ref(G_OBJECT(first_element->data)));
-        }
-        
-    }
 
     g_object_unref( daemon );
     daemon = NULL;
@@ -263,8 +252,6 @@ nwam_capplet_dialog_finalize(NwamCappletDialog *self)
 	if ( prv->active_ncp != NULL )
 		g_object_unref(G_OBJECT(prv->active_ncp));
 	
-    g_list_foreach(prv->ncp_list, nwamui_util_obj_unref, NULL );
-
 	G_OBJECT_CLASS(nwam_capplet_dialog_parent_class)->finalize(G_OBJECT(self));
 }
 
@@ -304,20 +291,11 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     
     if (force) {
         NwamuiDaemon *daemon = nwamui_daemon_get_instance();
-        GList*        ncp_list;
-
         /* Refresh show-combo */
-        ncp_list = nwamui_daemon_get_ncp_list(daemon);
-        g_object_unref(daemon);
-
         gtk_widget_hide(GTK_WIDGET(prv->show_combo));
-        for (; ncp_list;) {
-            /* TODO need be more efficient. */
-            show_combo_remove(prv->show_combo, G_OBJECT(ncp_list->data));
-            show_combo_add(prv->show_combo, G_OBJECT(ncp_list->data));
-            ncp_list = g_list_delete_link(ncp_list, ncp_list);
-        }
+        nwamui_daemon_foreach_ncp(daemon, foreach_ncp_add_to_combo, (gpointer)self);
         gtk_widget_show(GTK_WIDGET(prv->show_combo));
+        g_object_unref(daemon);
     }
 
     if (NWAM_IS_PREF_IFACE(obj)) {
@@ -601,17 +579,10 @@ show_combo_add(GtkComboBox* combo, GObject*  obj)
     gtk_tree_store_append (GTK_TREE_STORE(model), &iter, NULL);
 
     if (NWAMUI_IS_NCP(obj)) {
-        GList *ncu_list;
         /* Make the previous line become a separator. */
         gtk_tree_store_append (GTK_TREE_STORE(model), &iter, NULL);
         gtk_tree_store_set (GTK_TREE_STORE(model), &iter, 0, obj, -1);
-        ncu_list = nwamui_ncp_get_ncu_list(NWAMUI_NCP(obj));
-        for (; ncu_list;) {
-            gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
-            gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, ncu_list->data, -1);
-            g_object_unref(ncu_list->data);
-            ncu_list = g_list_delete_link(ncu_list, ncu_list);
-        }
+        nwamui_ncp_foreach_ncu(NWAMUI_NCP(obj), nwamui_util_foreach_nwam_object_add_to_tree_store, (gpointer)model);
     } else {
         gtk_tree_store_set (GTK_TREE_STORE(model), &iter, 0, obj, -1);
     }
@@ -682,4 +653,12 @@ nwam_capplet_dialog_set_ok_sensitive_by_voting(NwamCappletDialog *self, gboolean
     }
     
     gtk_dialog_set_response_sensitive(prv->capplet_dialog, GTK_RESPONSE_OK, insensitive_voting_count == 0 ? TRUE : FALSE);
+}
+
+static void
+foreach_ncp_add_to_combo(gpointer data, gpointer user_data)
+{
+    NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(user_data);
+    show_combo_remove(prv->show_combo, G_OBJECT(data));
+    show_combo_add(prv->show_combo, G_OBJECT(data));
 }

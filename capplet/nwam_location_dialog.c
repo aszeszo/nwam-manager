@@ -624,8 +624,13 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 
     if (retval) {
         GList *nlist = capplet_model_to_list(model);
-        GList *olist = nwamui_daemon_get_env_list(prv->daemon);
+        GList *olist = NULL;
         GList *i;
+
+        nwamui_daemon_foreach_loc(prv->daemon,
+          (GFunc)nwamui_util_foreach_nwam_object_dup_and_append_to_list,
+          (gpointer)&olist);
+
         /* Sync o and b */
         if (nlist) {
             /* We remove the element from olist if it existed in both list. So

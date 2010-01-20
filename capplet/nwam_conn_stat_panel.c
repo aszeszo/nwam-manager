@@ -481,7 +481,7 @@ nwam_conn_status_update_status_cell_cb (GtkTreeViewColumn *col,
     ncu_type = nwamui_ncu_get_ncu_type(ncu);
 
     /* Get REAL interface status rather than what NWAM says */
-    switch( nwamui_ncu_get_updated_connection_state( ncu ) ) {
+    switch( nwamui_ncu_get_connection_state( ncu ) ) {
         case NWAMUI_STATE_CONNECTED:
         case NWAMUI_STATE_CONNECTED_ESSID: 
             ncu_status = TRUE;
@@ -716,34 +716,25 @@ on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
 static void
 daemon_online_enm_num_notify(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
-    GList*                  enm_elem;
-    NwamuiEnm*              enm;
-    int                     enm_active_count = nwamui_daemon_get_online_enm_num(prv->daemon);
-    gchar* enm_str = NULL;
+	NwamConnStatusPanelPrivate *prv              = GET_PRIVATE(data);
+    NwamuiEnm*                  enm;
+    int                         enm_active_count = nwamui_daemon_get_online_enm_num(prv->daemon);
+    gchar*                      enm_str          = NULL;
 
     
     if ( enm_active_count == 0 ) {
         enm_str = g_strdup(_("None Active"));
     } else if (enm_active_count > 1) {
-        enm_str = g_strdup_printf("%d Active", enm_active_count);
+        enm_str = g_strdup_printf(_("%d Active"), enm_active_count);
     } else {
-        for ( enm_elem = g_list_first(nwamui_daemon_get_enm_list(NWAMUI_DAEMON(prv->daemon)));
-              enm_elem != NULL;
-              enm_elem = g_list_delete_link(enm_elem, enm_elem) ) {
-        
-            enm = NWAMUI_ENM(enm_elem->data);
-        
-            if  ( nwamui_object_get_active(NWAMUI_OBJECT(enm))) {
-                enm_str = g_strdup_printf("%s Active", nwamui_object_get_name(NWAMUI_OBJECT(enm)));
-                break;
-            }
+        NwamuiObject *enm = NULL;
+        if (nwamui_daemon_find_enm(prv->daemon, nwamui_util_find_active_nwamui_object, (gconstpointer)&enm)) {
+            enm_str = g_strdup_printf(_("%s Active"), nwamui_object_get_name(enm));
+            g_object_unref(enm);
         }
-        g_list_free(enm_elem);
     }
         
     gtk_label_set_text(prv->current_vpn_lbl, enm_str );
-        
     g_free( enm_str );
 }
 
