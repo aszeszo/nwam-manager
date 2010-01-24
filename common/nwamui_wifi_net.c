@@ -42,8 +42,6 @@
 struct _NwamuiWifiNetPrivate {
     nwam_known_wlan_handle_t       known_wlan_h;
     gboolean                       is_favourite;
-    /* Self contain favourite wlan object. */
-    NwamuiWifiNet                 *fav;
     gboolean                       modified;
     gchar                         *essid;            
     NwamuiNcu                     *ncu;
@@ -60,6 +58,7 @@ struct _NwamuiWifiNetPrivate {
     gchar                         *wpa_password;
     gchar                         *wpa_cert_file;
     gint                           status;
+    nwamui_wifi_life_state_t       life_state;
 
     /* For non-favourites store prio and bssid_strv in memory only */
     gchar** bssid_strv;         /* NULL terminated list of strings */
@@ -325,21 +324,12 @@ nwamui_wifi_net_init (NwamuiWifiNet *self)
 
     prv->modified = FALSE;
 
-    prv->essid = NULL;            
     prv->is_favourite = TRUE; /* Assume it's a favorite by default */
-    prv->bssid_strv = NULL;
-    prv->priority = 0;
     prv->security = NWAMUI_WIFI_SEC_NONE;
     prv->signal_strength = NWAMUI_WIFI_STRENGTH_NONE;
     prv->bss_type = NWAMUI_WIFI_BSS_TYPE_AUTO;
-    prv->speed = 0;
-    prv->mode = NULL;
     prv->wpa_config = NWAMUI_WIFI_WPA_CONFIG_AUTOMATIC; 
     prv->wep_key_index = 1;
-    prv->wep_password = NULL;
-    prv->wpa_username = NULL;
-    prv->wpa_password = NULL;
-    prv->wpa_cert_file = NULL;
     prv->status = NWAMUI_WIFI_STATUS_DISCONNECTED;
 }
 
@@ -490,9 +480,8 @@ nwamui_wifi_net_set_property (  GObject         *object,
             }
             break;
 
-        case PROP_STATUS: {
-                self->prv->status = g_value_get_int( value );
-            }
+        case PROP_STATUS:
+            nwamui_wifi_net_set_status(self, g_value_get_int(value));
             break;
 
         case PROP_FAV_BSSID_LIST: {
@@ -1299,15 +1288,18 @@ nwamui_wifi_net_get_display_string (NwamuiWifiNet *self, gboolean has_many_wirel
 {
     gchar*  ret_str = NULL;
     gchar*  name = NULL;
-    gchar*  dev_name = NULL;
     GString* gstr = g_string_new("");
     
     g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), ret_str);
     
     if ( self->prv->ncu && has_many_wireless ) {
+        gchar*  dev_name = NULL;
+
         dev_name = nwamui_ncu_get_device_name( self->prv->ncu );
 
         g_string_append_printf(gstr, _("[%s] "), dev_name );
+
+        g_free(dev_name);
     }
 
     name = self->prv->essid?self->prv->essid:"";
@@ -1324,14 +1316,17 @@ nwamui_wifi_net_get_display_string (NwamuiWifiNet *self, gboolean has_many_wirel
 }
 
 extern void
-nwamui_wifi_net_set_status ( NwamuiWifiNet *self, nwamui_wifi_status_t status )
+nwamui_wifi_net_set_status(NwamuiWifiNet *self, nwamui_wifi_status_t status)
 {
+    NwamuiWifiNetPrivate     *prv        = NWAMUI_WIFI_NET_GET_PRIVATE(self);
+
     g_return_if_fail (NWAMUI_IS_WIFI_NET(self));
     g_assert (status >= NWAMUI_WIFI_STATUS_CONNECTED && status < NWAMUI_WIFI_STATUS_LAST );
 
-    g_object_set (G_OBJECT (self),
-                  "status", status,
-                  NULL);
+    if (prv->status != status) {
+        prv->status = status;
+        g_object_notify(G_OBJECT(self), "status");
+    }
 }
           
 extern nwamui_wifi_status_t
@@ -1925,6 +1920,22 @@ nwamui_wifi_net_get_priority (NwamuiWifiNet *self)
                   NULL);
 
     return( priority );
+}
+
+extern void
+nwamui_wifi_net_set_life_state(NwamuiWifiNet *self, nwamui_wifi_life_state_t life_state)
+{
+    NwamuiWifiNetPrivate *prv = NWAMUI_WIFI_NET_GET_PRIVATE(self);
+
+    prv->life_state = life_state;
+}
+
+extern nwamui_wifi_life_state_t
+nwamui_wifi_net_get_life_state(NwamuiWifiNet *self)
+{
+    NwamuiWifiNetPrivate *prv = NWAMUI_WIFI_NET_GET_PRIVATE(self);
+
+    return prv->life_state;
 }
 
 extern uint32_t 

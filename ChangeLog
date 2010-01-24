@@ -1,3 +1,49 @@
+2010-01-24  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c (ncu_changed_notify_cb):
+	Dialog doesn't care about object changed notifications.
+	* capplet/nwam_wireless_chooser.c (nwam_wireless_chooser_init),
+	(foreach_wifi_in_ncu_add_to_list_store),
+	(foreach_wireless_foreach_wifi_net), (populate_panel),
+	(dialog_run), (refresh_btn_clicked), (nwam_wifi_chooser_cell_cb),
+	(presistant_cb), (daemon_info): Click refresh button to rescan
+	wifi only instead of refresh the dialog. Before show dialog, we
+	need refresh it to get the latest wlan list. Initially sync wlans.
+	* capplet/nwam_wireless_dialog.c (nwam_wireless_dialog_init),
+	(foreach_wifi_in_ncu_add_to_list_store), (populate_essid_combo),
+	(set_purpose): Initially sync wlans. And don't care wlans changes.
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_init), (nwamui_daemon_finalize),
+	(foreach_wireless_trigger_scan), (nwamui_daemon_wifi_start_scan),
+	(nwamui_daemon_append_object), (nwamui_daemon_remove_object),
+	(nwamui_object_real_commit), (foreach_wifi_in_ncu_emit),
+	(dispatch_scan_results_from_wlan_array),
+	(nwamui_daemon_dispatch_wifi_scan_events_from_cache),
+	(nwamui_daemon_populate_wifi_fav_list), (nwamd_event_handler),
+	(nwamui_daemon_handle_object_action_event): Remove wifi_start_scan
+	and result signals. Only send added/removed wlans, callees have to
+	sync wlans first (make sure ignore DEAD wlans) and then monitor
+	dameon_info signals.
+	* common/nwamui_daemon.h:
+	* common/nwamui_ncp.c (nwamui_object_real_commit): Fixed 14031
+	Network connection modifications can not be saved.
+	* common/nwamui_ncu.c:
+	* common/nwamui_ncu.h: Manage wlans life state in order to send
+	added/removed wlan signals.
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_init),
+	(nwamui_wifi_net_set_property),
+	(nwamui_wifi_net_get_display_string), (nwamui_wifi_net_set_status),
+	(nwamui_wifi_net_set_life_state), (nwamui_wifi_net_get_life_state):
+	* common/nwamui_wifi_net.h: Manage wlan life state.
+	* daemon/status_icon.c (daemon_info), (daemon_active_ncp_changed),
+	(connect_nwam_object_signals),
+	(foreach_wifi_in_ncu_add_to_menuitem),
+	(foreach_wireless_foreach_wifi_net),
+	(nwam_menu_update_wifi_section), (show_wireless_chooser),
+	(nwam_status_icon_run), (nwam_menu_recreate_wifi_menuitems):
+	Initially sync wlans. Ignore env-list and enm-list notifications,
+	use object added/removed to mantain env/enm list.
+
 2010-01-20  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c

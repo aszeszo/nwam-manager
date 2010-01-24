@@ -118,6 +118,12 @@ typedef enum {
     NWAMUI_WIFI_BSS_TYPE_LAST /* Not to be used directly */	
 } nwamui_wifi_bss_type_t;
 
+typedef enum {
+    NWAMUI_WIFI_LIFE_NEW,
+    NWAMUI_WIFI_LIFE_MODIFIED,
+    NWAMUI_WIFI_LIFE_DEAD,
+} nwamui_wifi_life_state_t;
+
 extern struct _NwamuiNcu; /* forwardref */
 
 extern  GType                       nwamui_wifi_net_get_type (void) G_GNUC_CONST;
@@ -223,6 +229,8 @@ extern GList*                       nwamui_wifi_net_get_fav_bssid_list ( NwamuiW
 extern void                         nwamui_wifi_net_set_priority ( NwamuiWifiNet *self, guint64 priority );
 extern guint64                      nwamui_wifi_net_get_priority ( NwamuiWifiNet *self );
 
+extern void                         nwamui_wifi_net_set_life_state(NwamuiWifiNet *self, nwamui_wifi_life_state_t life_state);
+extern nwamui_wifi_life_state_t     nwamui_wifi_net_get_life_state(NwamuiWifiNet *self);
 
 extern nwamui_wifi_security_t       nwamui_wifi_net_security_map ( uint32_t _sec_mode );
 

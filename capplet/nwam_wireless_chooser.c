@@ -75,8 +75,6 @@ static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_wireless_chooser_finalize(NwamWirelessChooser *self);
-static void nwam_wifi_scan_start (GObject *daemon, gpointer data);
-static void nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data);
 
 /* Callbacks */
 static void refresh_btn_clicked( GtkButton *widget, gpointer user_data);
@@ -92,9 +90,10 @@ static gint nwam_wifi_chooser_comp_cb (GtkTreeModel *model,
   GtkTreeIter *a,
   GtkTreeIter *b,
   gpointer user_data);
-static void wifi_add (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi);
 static void presistant_cb(GtkToggleButton* widget, gpointer data);
 
+/* Daemon */
+static void daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data);
 /* Prof */
 static void add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -229,15 +228,9 @@ nwam_wireless_chooser_init(NwamWirelessChooser *self)
     gtk_widget_set_sensitive (GTK_WIDGET(self->prv->connect_wireless_connect_btn), FALSE);
 
 
-    g_signal_connect(self->prv->connect_wireless_refresh_btn, "clicked",
-                     (GCallback)refresh_btn_clicked, (gpointer)self);
+    g_signal_connect(self->prv->connect_wireless_refresh_btn, "clicked", (GCallback)refresh_btn_clicked, (gpointer)self);
 	g_signal_connect(self->prv->wireless_chooser, "response", (GCallback)response_cb, (gpointer)self);
-    g_signal_connect(self->prv->daemon, "wifi_scan_started",
-      (GCallback)nwam_wifi_scan_start, (gpointer) self);
-	g_signal_connect((gpointer) self->prv->daemon, "wifi_scan_result",
-      (GCallback)nwam_create_wifi_cb, (gpointer) self);
-	g_signal_connect(G_OBJECT(self), "notify",
-      (GCallback)object_notify_cb, NULL);
+	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
     g_signal_connect(GTK_TOGGLE_BUTTON(self->prv->add_to_preferred_cbox), "toggled", (GCallback)presistant_cb, (gpointer)self);
 
     /* Populate WiFi conditions */
@@ -254,7 +247,40 @@ nwam_wireless_chooser_init(NwamWirelessChooser *self)
       (gpointer)self);
     add_any_new_wifi_to_fav(G_OBJECT(nwamui_prof_get_instance_noref()), NULL, (gpointer)self);
 
-    nwam_pref_refresh (NWAM_PREF_IFACE(self), NULL, TRUE);
+    g_signal_connect(self->prv->daemon, "daemon_info", G_CALLBACK(daemon_info), (gpointer)self);
+
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
+}
+
+static void
+foreach_wifi_in_ncu_add_to_list_store(gpointer key, gpointer value, gpointer user_data)
+{
+    NwamuiWifiNet          *wifi  = value;
+    GtkTreeModel           *model = (GtkTreeModel*)user_data;
+    GtkTreeIter             iter;
+
+    g_return_if_fail(NWAMUI_WIFI_NET(wifi));
+
+    if (nwamui_wifi_net_get_life_state(wifi) != NWAMUI_WIFI_LIFE_DEAD) {
+        gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+        gtk_list_store_set(GTK_LIST_STORE (model), &iter, 0, wifi, -1);
+    }
+}
+
+static void
+foreach_wireless_foreach_wifi_net(gpointer data, gpointer user_data)
+{
+    NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(user_data);
+	NwamuiNcu           *ncu  = data;
+    GtkTreeModel        *model;
+
+    g_return_if_fail(NWAMUI_IS_NCU(ncu));
+
+    model = gtk_tree_view_get_model(self->prv->wifi_tv);
+
+	if (nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
+        nwamui_ncu_wifi_hash_foreach(ncu, foreach_wifi_in_ncu_add_to_list_store, (gpointer)model);
+	}
 }
 
 static void
@@ -262,17 +288,33 @@ populate_panel( NwamWirelessChooser* self, gboolean set_initial_state )
 {
     g_assert( NWAM_IS_WIRELESS_CHOOSER(self));
 
-    /* Populate WiFi */
-    nwamui_daemon_wifi_start_scan(self->prv->daemon);
-}
+    if (set_initial_state) {
+        NwamuiObject *ncp   = nwamui_daemon_get_active_ncp(self->prv->daemon);
+        GtkTreeModel *model = gtk_tree_view_get_model(self->prv->wifi_tv);
 
-static void
-wifi_add (NwamWirelessChooser *self, GtkTreeModel *model, NwamuiWifiNet *wifi)
-{
-	GtkTreeIter         iter;
-	
-	gtk_list_store_prepend(GTK_LIST_STORE(model), &iter );
-	gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, wifi, -1);
+        gtk_widget_hide (GTK_WIDGET(self->prv->wifi_tv));
+
+        nwamui_util_set_busy_cursor( GTK_WIDGET(self->prv->wireless_chooser) );
+
+        gtk_widget_set_sensitive(GTK_WIDGET(self->prv->connect_wireless_refresh_btn), FALSE);
+
+        gtk_list_store_clear (GTK_LIST_STORE(model));
+
+        /* Init WiFis */
+        if (ncp) {
+            nwamui_ncp_foreach_ncu(NWAMUI_NCP(ncp), foreach_wireless_foreach_wifi_net, (gpointer)self);
+            g_object_unref(ncp);
+        }
+
+        gtk_widget_show (GTK_WIDGET(self->prv->wifi_tv));
+
+        nwamui_util_restore_default_cursor(GTK_WIDGET(self->prv->wireless_chooser));
+
+        gtk_widget_set_sensitive(GTK_WIDGET(self->prv->connect_wireless_refresh_btn), TRUE);
+    } else {
+        /* Populate WiFis */
+        nwamui_daemon_wifi_start_scan(self->prv->daemon);
+    }
 }
 
 /**
@@ -304,14 +346,9 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 	}
 	
 	if ( self->prv->wireless_chooser != NULL ) {
-        /* Set busy cursor from start */
-        nwamui_util_set_busy_cursor( GTK_WIDGET(self->prv->wireless_chooser) );
-
 		response =  gtk_dialog_run(GTK_DIALOG(self->prv->wireless_chooser));
 		
 		gtk_widget_hide( GTK_WIDGET(self->prv->wireless_chooser) );
-        nwamui_util_restore_default_cursor(GTK_WIDGET(self->prv->wireless_chooser) );
-
 	}
 	return(response);
 }
@@ -447,7 +484,8 @@ refresh_btn_clicked( GtkButton *widget, gpointer user_data)
 	NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(user_data);
     NwamWirelessChooserPrivate* prv = self->prv;
 
-    nwam_pref_refresh (NWAM_PREF_IFACE(self), NULL, TRUE);
+    /* Populate WiFis */
+    nwamui_daemon_wifi_start_scan(self->prv->daemon);
 }
 
 static void 
@@ -562,7 +600,7 @@ nwam_wifi_chooser_cell_cb (GtkTreeViewColumn *col,
 
     gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &wifi_info, -1);
     
-    g_assert(NWAMUI_IS_WIFI_NET(wifi_info));
+    g_return_if_fail(NWAMUI_IS_WIFI_NET(wifi_info));
     
     switch (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (renderer), "nwam_wifi_fav_column_id"))) {
     case WIFI_FAV_ESSID:
@@ -613,44 +651,8 @@ nwam_wifi_chooser_cell_cb (GtkTreeViewColumn *col,
     default:
         g_assert_not_reached ();
     }
-}
 
-static void
-nwam_wifi_scan_start (GObject *daemon, gpointer data)
-{
-    NwamWirelessChooser* self = NWAM_WIRELESS_CHOOSER(data);
-    GtkTreeModel *model;
-
-    model = gtk_tree_view_get_model (self->prv->wifi_tv);
-
-    gtk_widget_hide (GTK_WIDGET(self->prv->wifi_tv));
-
-    nwamui_util_set_busy_cursor( GTK_WIDGET(self->prv->wireless_chooser) );
-
-    gtk_widget_set_sensitive(GTK_WIDGET(self->prv->connect_wireless_refresh_btn), FALSE);
-
-    gtk_list_store_clear (GTK_LIST_STORE(model));
-
-    gtk_widget_show (GTK_WIDGET(self->prv->wifi_tv));
-}
-
-static void
-nwam_create_wifi_cb (GObject *daemon, GObject *wifi, gpointer data)
-{
-    NwamWirelessChooser* self = NWAM_WIRELESS_CHOOSER(data);
-    GtkTreeModel *model;
-
-    model = gtk_tree_view_get_model (self->prv->wifi_tv);
-
-    /* TODO - Make this more efficient */
-    if (wifi) {
-        wifi_add (self, model, NWAMUI_WIFI_NET(wifi));
-    } else {
-        /* scan is over */
-        gtk_widget_show (GTK_WIDGET(self->prv->wifi_tv));
-        nwamui_util_restore_default_cursor(GTK_WIDGET(self->prv->wireless_chooser) );
-        gtk_widget_set_sensitive(GTK_WIDGET(self->prv->connect_wireless_refresh_btn), TRUE);
-    }
+    g_object_unref(wifi_info);
 }
 
 static void
@@ -660,6 +662,33 @@ presistant_cb(GtkToggleButton* widget, gpointer data)
     g_object_set(nwamui_prof_get_instance_noref(),
       "add_any_new_wifi_to_fav", gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(widget)),
       NULL);
+}
+
+static void
+daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data)
+{
+    NwamWirelessChooser        *self  = NWAM_WIRELESS_CHOOSER(user_data);
+    NwamWirelessChooserPrivate *prv   = self->prv;
+    GtkTreeModel               *model = gtk_tree_view_get_model(prv->wifi_tv);
+    GtkTreeIter                 iter;
+
+    switch (type) {
+    case NWAMUI_DAEMON_INFO_OBJECT_ADDED:
+        if (!capplet_model_find_object(model, obj, &iter)) {
+            gtk_list_store_prepend(GTK_LIST_STORE(model), &iter);
+            gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, obj, -1);
+        }
+
+        break;
+    case NWAMUI_DAEMON_INFO_OBJECT_REMOVED:
+        if (capplet_model_find_object(model, obj, &iter)) {
+            gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+        }
+
+        break;
+    default:
+        break;
+    }
 }
 
 static void

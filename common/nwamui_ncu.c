@@ -3102,6 +3102,47 @@ nwamui_ncu_set_priority_group_mode (   NwamuiNcu                       *self,
                   NULL);
 }
 
+static void
+foreach_wifi_clean_dead(gpointer key, gpointer value, gpointer user_data)
+{
+    GList **deads = (GList **)user_data;
+    
+    if (nwamui_wifi_net_get_life_state(NWAMUI_WIFI_NET(value)) == NWAMUI_WIFI_LIFE_DEAD) {
+        /* No ref */
+        *deads = g_list_prepend(*deads, value);
+    }
+}
+
+extern void
+nwamui_ncu_wifi_hash_clean_dead_wifi_nets(NwamuiNcu *self)
+{
+    GList *deads = NULL;
+
+    g_return_if_fail(NWAMUI_IS_NCU(self));
+
+    nwamui_ncu_wifi_hash_foreach(self, foreach_wifi_clean_dead, (gpointer)&deads);
+
+    for (; deads; deads = g_list_delete_link(deads, deads)) {
+        nwamui_ncu_wifi_hash_remove_wifi_net(self, NWAMUI_WIFI_NET(deads->data));
+    }
+}
+
+static void
+foreach_wifi_mark(gpointer key, gpointer value, gpointer user_data)
+{
+    nwamui_wifi_life_state_t state = (nwamui_wifi_life_state_t)user_data;
+    
+    nwamui_wifi_net_set_life_state(NWAMUI_WIFI_NET(value), state);
+}
+
+extern void
+nwamui_ncu_wifi_hash_mark_each(NwamuiNcu *self, nwamui_wifi_life_state_t state)
+{
+    g_return_if_fail(NWAMUI_IS_NCU(self));
+
+    nwamui_ncu_wifi_hash_foreach(self, foreach_wifi_mark, (gpointer)state);
+}
+
 /*
  * Functions to handle a hash table of wifi_net objects for the NCU.
  */
@@ -3130,9 +3171,8 @@ nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     *self,
     gpointer     value = NULL;
     const gchar* essid;
 
-    if ( !self || !wifi_net ) {
-        return;
-    }
+    g_return_if_fail(NWAMUI_IS_NCU(self));
+    g_return_if_fail(NWAMUI_IS_WIFI_NET(wifi_net));
 
     essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
 
@@ -3140,6 +3180,8 @@ nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     *self,
         if ( (value = g_hash_table_lookup( self->prv->wifi_hash_table, essid )) == NULL ) {
             g_hash_table_insert(self->prv->wifi_hash_table, g_strdup(essid),
               g_object_ref(wifi_net) );
+
+            nwamui_wifi_net_set_life_state(NWAMUI_WIFI_NET(wifi_net), NWAMUI_WIFI_LIFE_NEW);
             /* hash table taken ownership of essid */
         }
         else {
@@ -3149,24 +3191,23 @@ nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     *self,
 }
 
 extern NwamuiWifiNet*
-nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( NwamuiNcu    *self, 
-                                                   nwam_wlan_t  *wlan )
+nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t(NwamuiNcu *self, nwam_wlan_t *wlan)
 {
     NwamuiWifiNet   *wifi_net = NULL;
 
     g_return_val_if_fail(NWAMUI_IS_NCU(self), NULL);
     g_return_val_if_fail(wlan, NULL);
 
-    if ( (wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid( self, 
-                                                wlan->nww_essid ) ) != NULL ) {
-        nwamui_wifi_net_update_from_wlan_t( wifi_net, wlan);
-    }
-    else {
-        wifi_net = nwamui_wifi_net_new_from_wlan_t( self, wlan );
-        nwamui_ncu_wifi_hash_insert_wifi_net( self, wifi_net );
+    if ((wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid(self, wlan->nww_essid)) != NULL) {
+        g_object_ref(wifi_net);
+        nwamui_wifi_net_update_from_wlan_t(wifi_net, wlan);
+        nwamui_wifi_net_set_life_state(NWAMUI_WIFI_NET(wifi_net), NWAMUI_WIFI_LIFE_MODIFIED);
+    } else {
+        wifi_net = nwamui_wifi_net_new_from_wlan_t(self, wlan);
+        nwamui_ncu_wifi_hash_insert_wifi_net(self, wifi_net);
     }
 
-    return( wifi_net );
+    return wifi_net;
 }
 
 extern NwamuiWifiNet*
@@ -3187,6 +3228,7 @@ nwamui_ncu_wifi_hash_insert_or_update_from_handle( NwamuiNcu                 *se
 
     if ( (wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid( self, essid ) ) != NULL ) {
         nwamui_object_set_handle(NWAMUI_OBJECT(wifi_net), wlan_h);
+        nwamui_wifi_net_set_life_state(NWAMUI_WIFI_NET(wifi_net), NWAMUI_WIFI_LIFE_MODIFIED);
     }
     else {
         wifi_net = nwamui_wifi_net_new_with_handle( self, wlan_h );
@@ -3201,9 +3243,8 @@ extern gboolean
 nwamui_ncu_wifi_hash_remove_by_essid( NwamuiNcu     *self, 
                                       const gchar   *essid )
 {
-    if ( !self || !essid ) {
-        return(FALSE);
-    }
+    g_return_val_if_fail(NWAMUI_IS_NCU(self), FALSE);
+    g_return_val_if_fail(essid, FALSE);
 
     return( g_hash_table_remove(self->prv->wifi_hash_table, essid ) );
 }
@@ -3215,9 +3256,8 @@ nwamui_ncu_wifi_hash_remove_wifi_net( NwamuiNcu     *self,
     const gchar* essid;
     gboolean     rval = FALSE;
 
-    if ( !self || !wifi_net ) {
-        return(rval);
-    }
+    g_return_val_if_fail(NWAMUI_IS_NCU(self), FALSE);
+    g_return_val_if_fail(wifi_net, FALSE);
 
     essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_net));
 

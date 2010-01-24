@@ -62,6 +62,9 @@ typedef enum {
     NWAMUI_DAEMON_INFO_INACTIVE,
     NWAMUI_DAEMON_INFO_ACTIVE,
     NWAMUI_DAEMON_INFO_RAW,
+    NWAMUI_DAEMON_INFO_OBJECT_ADDED,
+    NWAMUI_DAEMON_INFO_OBJECT_REMOVED,
+    NWAMUI_DAEMON_INFO_OBJECT_UPDATED,
     NWAMUI_DAEMON_INFO_WLAN_CHANGED,
     NWAMUI_DAEMON_INFO_WLAN_CONNECTED,
     NWAMUI_DAEMON_INFO_WLAN_DISCONNECTED, /* unused */
@@ -152,7 +155,7 @@ extern gint                         nwamui_daemon_get_online_enm_num(NwamuiDaemo
 
 extern void                         nwamui_daemon_wifi_start_scan(NwamuiDaemon *self);
 
-extern void                         nwamui_daemon_dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon );
+extern void                         nwamui_daemon_dispatch_wifi_scan_events_from_cache(NwamuiDaemon* daemon);
 
 extern gint                         nwamui_daemon_get_num_scanned_wifi(NwamuiDaemon* self );
 

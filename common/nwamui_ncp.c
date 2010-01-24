@@ -1325,11 +1325,10 @@ static gboolean
 nwamui_object_real_commit( NwamuiObject *object )
 {
     NwamuiNcpPrivate *prv      = NWAMUI_NCP_GET_PRIVATE(object);
-    gboolean          rval     = FALSE;
-    const gchar*      ncp_name = nwamui_object_get_name(object);
+    gboolean          rval     = TRUE;
     nwam_error_t      nerr;
 
-    g_return_val_if_fail (NWAMUI_IS_NCP(object), rval );
+    g_return_val_if_fail (NWAMUI_IS_NCP(object), FALSE);
 
     if (prv->nwam_ncp == NULL) {
         /* This is a new added NCP */
@@ -1358,14 +1357,13 @@ nwamui_object_real_commit( NwamuiObject *object )
         }
 
         for(GList* ncu_item = g_list_first(prv->ncu_list);
-             rval && ncu_item != NULL;
-             ncu_item = g_list_next(ncu_item)) {
+            ncu_item;
+            ncu_item = g_list_next(ncu_item)) {
             NwamuiNcu*   ncu      = NWAMUI_NCU(ncu_item->data);
             const gchar* ncu_name = nwamui_ncu_get_display_name( ncu );
 
-            nwamui_debug("Going to commit changes for %s : %s", ncp_name, ncu_name );
             if (!nwamui_object_commit(NWAMUI_OBJECT(ncu))) {
-                nwamui_debug("Commit FAILED for %s : %s", ncp_name, ncu_name );
+                nwamui_debug("Commit FAILED for %s : %s", prv->name, ncu_name );
                 rval = FALSE;
                 break;
             }
@@ -1374,7 +1372,7 @@ nwamui_object_real_commit( NwamuiObject *object )
         /* I assume commit will cause REFRESH event, so comment out this line. */
         /* nwamui_object_real_reload(object); */
     } else {
-        nwamui_debug("NCP : %s is not modifiable", ncp_name );
+        nwamui_debug("NCP : %s is not modifiable", prv->name );
     }
 
     /* if ((nerr = nwam_ncp_commit(prv->nwam_ncp, 0)) != NWAM_SUCCESS) { */
@@ -1382,7 +1380,7 @@ nwamui_object_real_commit( NwamuiObject *object )
     /*     return FALSE; */
     /* } */
 
-    return TRUE;
+    return rval;
 }
 
 static gboolean

@@ -161,6 +161,8 @@ static void bssid_add_cb(GtkWidget *button, gpointer data);
 static void bssid_remove_cb(GtkWidget *widget, gpointer data);
 static void bssid_edited_cb (GtkCellRendererText *renderer, gchar *path,
                              gchar *new_text, gpointer user_data);
+/* Daemon */
+static void daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data);
 /* Prof */
 static void add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
 
@@ -385,10 +387,6 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
         gtk_combo_box_append_text(GTK_COMBO_BOX(self->prv->wpa_config_combo), nwamui_util_wifi_wpa_config_to_string( i ));
     }
     
-    /* Fill in the essid list using a scan */
-    populate_essid_combo(self, GTK_COMBO_BOX_ENTRY(self->prv->essid_combo));
-
-
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, (gpointer)self);
     g_signal_connect(GTK_DIALOG(self->prv->wireless_dialog), "response", (GCallback)response_cb, (gpointer)self);
     g_signal_connect(GTK_ENTRY(self->prv->essid_cbentry), "changed", (GCallback)essid_changed_cb, (gpointer)self);
@@ -407,6 +405,14 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
       (GCallback)add_any_new_wifi_to_fav,
       (gpointer)self);
     add_any_new_wifi_to_fav(G_OBJECT(nwamui_prof_get_instance_noref()), NULL, (gpointer)self);
+
+    {
+        NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
+        g_signal_connect(daemon, "daemon_info", G_CALLBACK(daemon_info), (gpointer)self);
+        g_object_unref(daemon);
+        /* Fill in the essid list using a scan */
+        populate_essid_combo(self, GTK_COMBO_BOX_ENTRY(self->prv->essid_combo));
+    }
 }
 
 static void
@@ -430,42 +436,27 @@ change_essid_cbentry_model(GtkComboBoxEntry *cbentry)
 }
 
 static void
-add_essid_list_item_to_essid_liststore(GObject* daemon, GObject* wifi, gpointer user_data)
+foreach_wifi_in_ncu_add_to_list_store(gpointer key, gpointer value, gpointer user_data)
 {
-    NwamuiWifiNet          *wifi_elem = NULL;
-    GtkTreeModel           *model     = (GtkTreeModel*)user_data;
-    GtkIconTheme           *icon_theme;
+    NwamuiWifiNet          *wifi  = (NwamuiWifiNet *)value;
+    GtkTreeModel           *model = (GtkTreeModel*)user_data;
     GdkPixbuf              *icon;
     GtkTreeIter             iter;
     nwamui_wifi_security_t  sec;
     const gchar*            essid;
 
-    g_debug("Got : WifiResult Signal");
+    g_return_if_fail(wifi && NWAMUI_WIFI_NET(wifi));
     
-    if ( wifi == NULL ) {
-        /* End of Scan */
-        g_debug("End Of Scan");
-        
-        /* De-register interest in events here */
-        g_signal_handlers_disconnect_by_func(daemon, (gpointer)add_essid_list_item_to_essid_liststore, user_data);
-        g_debug("Unregistered interest in WifiScanResults");
-        return;
+    if (nwamui_wifi_net_get_life_state(wifi) != NWAMUI_WIFI_LIFE_DEAD) {
+        essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
+        sec = nwamui_wifi_net_get_security(wifi);
+        icon = nwamui_util_get_network_security_icon(sec, TRUE);
+    
+        gtk_list_store_append(GTK_LIST_STORE(model), &iter);
+        gtk_list_store_set(GTK_LIST_STORE (model), &iter, 0, essid, 1, icon, 2, (gint)sec, -1);
+
+        g_object_unref(icon);
     }
-    
-    g_assert( NWAMUI_WIFI_NET(wifi) );
-    
-    wifi_elem = NWAMUI_WIFI_NET(wifi);
-    
-    essid = nwamui_object_get_name(NWAMUI_OBJECT(wifi_elem));
-    sec = nwamui_wifi_net_get_security(wifi_elem);
-    
-    icon = nwamui_util_get_network_security_icon( sec, TRUE );
-    
-    gtk_list_store_append (GTK_LIST_STORE (model), &iter);
-    gtk_list_store_set (GTK_LIST_STORE (model), &iter,
-                        0, essid, 1, icon, 2, (gint)sec, -1);
-    g_object_unref (icon);
-    
 }
 
 static void 
@@ -473,16 +464,13 @@ populate_essid_combo(NwamWirelessDialog *self, GtkComboBoxEntry *cbentry)
 {
     GtkTreeModel    *model;
     GList           *list = NULL;
-    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     
     model = gtk_combo_box_get_model(GTK_COMBO_BOX(cbentry));
     gtk_list_store_clear (GTK_LIST_STORE (model)); /* Empry list */
 
-    g_signal_connect(daemon, "wifi_scan_result", (GCallback)add_essid_list_item_to_essid_liststore, (gpointer)model);
-    
-    nwamui_daemon_dispatch_wifi_scan_events_from_cache( daemon );
-
-    g_object_unref(G_OBJECT(daemon));
+    if (self->prv->ncu) {
+        nwamui_ncu_wifi_hash_foreach(self->prv->ncu, foreach_wifi_in_ncu_add_to_list_store, (gpointer)model);
+    }
 }
 
 static void
@@ -711,8 +699,9 @@ nwam_wireless_dialog_set_ncu (NwamWirelessDialog *self,
 static void
 set_purpose(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose)
 {
-    NwamWirelessDialog *self        = NWAM_WIRELESS_DIALOG(iface);
-    const gchar*        purpose_str = NULL;
+    NwamWirelessDialog        *self        = NWAM_WIRELESS_DIALOG(iface);
+    NwamWirelessDialogPrivate *prv         = self->prv;
+    const gchar               *purpose_str = NULL;
 
     switch( purpose ) {
     case NWAMUI_DIALOG_PURPOSE_ADD:
@@ -720,6 +709,7 @@ set_purpose(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose)
         break;
     case NWAMUI_DIALOG_PURPOSE_JOIN:
         purpose_str = _("Join Wireless Network");
+        g_return_if_fail(prv->ncu && NWAMUI_IS_NCU(prv->ncu));
         break;
     case NWAMUI_DIALOG_PURPOSE_EDIT:
         g_signal_connect(GTK_ENTRY(self->prv->key_entry), "focus-in-event", (GCallback)key_entry_focus_in_cb, (gpointer)self);
@@ -1948,7 +1938,28 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
     if ( g_ascii_strcasecmp(arg1->name, "ncu") == 0 ) {
         populate_essid_combo(self, GTK_COMBO_BOX_ENTRY(self->prv->essid_combo));
     }
+}
 
+static void
+daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data)
+{
+    /* switch (type) { */
+    /* case NWAMUI_DAEMON_INFO_OBJECT_ADDED: */
+    /*     if (!capplet_model_find_object(model, obj, &iter)) { */
+    /*         gtk_list_store_prepend(GTK_LIST_STORE(model), &iter); */
+    /*         gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, obj, -1); */
+    /*     } */
+
+    /*     break; */
+    /* case NWAMUI_DAEMON_INFO_OBJECT_REMOVED: */
+    /*     if (capplet_model_find_object(model, obj, &iter)) { */
+    /*         gtk_list_store_remove(gtk_list_store(model), &iter); */
+    /*     } */
+
+    /*     break; */
+    /* default: */
+    /*     break; */
+    /* } */
 }
 
 static void

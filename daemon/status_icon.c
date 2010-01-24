@@ -357,6 +357,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
 {
     NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
     gchar *msg = NULL;
+
     switch (type) {
     case NWAMUI_DAEMON_INFO_WLAN_CONNECTED: {
         if ( NWAMUI_IS_WIFI_NET( obj ) ) {
@@ -432,6 +433,20 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
             g_object_unref(ncu);
         }
     }
+        break;
+    case NWAMUI_DAEMON_INFO_OBJECT_ADDED:
+        nwamui_debug("%s %s is added",
+          g_type_name(G_TYPE_FROM_INSTANCE(obj)),
+          nwamui_object_get_name(NWAMUI_OBJECT(obj)));
+
+        nwam_status_icon_create_menu_item(self, NWAMUI_OBJECT(obj));
+        break;
+    case NWAMUI_DAEMON_INFO_OBJECT_REMOVED:
+        nwamui_debug("%s %s is removed",
+          g_type_name(G_TYPE_FROM_INSTANCE(obj)),
+          nwamui_object_get_name(NWAMUI_OBJECT(obj)));
+
+        nwam_status_icon_delete_menu_item(self, NWAMUI_OBJECT(obj));
         break;
     default:
         break;
@@ -721,7 +736,7 @@ daemon_online_enm_num_notify(GObject *gobject, GParamSpec *arg1, gpointer data)
             g_object_unref(enm);
         }
     }
-        
+
     nwam_tooltip_widget_update_enm(NWAM_TOOLTIP_WIDGET(prv->tooltip_widget), enm_str);
 
     g_free( enm_str );
@@ -778,6 +793,8 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
             /* No Ncp is active */
             /* Delete all NCUs. */
             nwam_status_icon_move_menu_items_to_cache(self, SECTION_NCU);
+            /* Delete all WLANs. */
+            nwam_status_icon_move_menu_items_to_cache(self, SECTION_WIFI);
 
             /* Should not be happened. We should disable all ncu related menu items here. */
             nwam_menu_section_set_sensitive(NWAM_MENU(prv->menu), SECTION_WIFI_CONTROL, FALSE);
@@ -865,11 +882,11 @@ connect_nwam_object_signals(GObject *obj, GObject *self)
         g_signal_connect(daemon, "notify::status",
           G_CALLBACK(daemon_status_changed), (gpointer)self);
 
-        g_signal_connect(daemon, "notify::enm-list",
-          G_CALLBACK(daemon_enm_list_changed), (gpointer)self);
+        /* g_signal_connect(daemon, "notify::enm-list", */
+        /*   G_CALLBACK(daemon_enm_list_changed), (gpointer)self); */
 
-        g_signal_connect(daemon, "notify::env-list",
-          G_CALLBACK(daemon_env_list_changed), (gpointer)self);
+        /* g_signal_connect(daemon, "notify::env-list", */
+        /*   G_CALLBACK(daemon_env_list_changed), (gpointer)self); */
 
         g_signal_connect(daemon, "daemon_info",
           G_CALLBACK(daemon_info), (gpointer)self);
@@ -886,8 +903,10 @@ connect_nwam_object_signals(GObject *obj, GObject *self)
         g_signal_connect(daemon, "wifi_selection_needed",
           G_CALLBACK(daemon_wifi_selection_needed), (gpointer)self);
 
+#if 0
         g_signal_connect(daemon, "wifi_scan_started",
           (GCallback)nwam_menu_scan_started, (gpointer) self);
+#endif
 
         g_signal_connect(daemon, "notify::env-selection-mode",
           G_CALLBACK(switch_loc_manually_changed), (gpointer)self);
@@ -996,6 +1015,31 @@ ncp_find_enabled_wireless_ncu(gconstpointer a, gconstpointer b)
     return 1;
 }
 
+static void
+foreach_wifi_in_ncu_add_to_menuitem(gpointer key, gpointer value, gpointer user_data)
+{
+    NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
+
+    g_return_if_fail(NWAMUI_WIFI_NET(value));
+
+    if (nwamui_wifi_net_get_life_state(NWAMUI_WIFI_NET(value)) != NWAMUI_WIFI_LIFE_DEAD) {
+        nwam_status_icon_create_menu_item(self, NWAMUI_OBJECT(value));
+    }
+}
+
+static void
+foreach_wireless_foreach_wifi_net(gpointer data, gpointer user_data)
+{
+    NwamStatusIcon *self = NWAM_STATUS_ICON(user_data);
+	NwamuiNcu      *ncu  = data;
+
+    g_return_if_fail(NWAMUI_IS_NCU(ncu));
+
+	if (nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
+        nwamui_ncu_wifi_hash_foreach(ncu, foreach_wifi_in_ncu_add_to_menuitem, (gpointer)self);
+	}
+}
+
 /**
  * nwam_menu_update_wifi_section:
  * Set visible of the wifi section according to if there is a wireless link
@@ -1029,8 +1073,8 @@ nwam_menu_update_wifi_section(NwamStatusIcon *self, gboolean rescan_wifi)
         nwam_status_icon_move_menu_items_to_cache(self, SECTION_WIFI);
 
         nwam_menu_section_set_visible(NWAM_MENU(prv->menu), SECTION_WIFI, TRUE);
-        /* This call will clean SECTION_WIFI. Re-init wlan menu items.  */
-        nwamui_daemon_dispatch_wifi_scan_events_from_cache(prv->daemon);
+        /* Sync all wlan menuitems */
+        nwamui_ncp_foreach_ncu(prv->active_ncp, foreach_wireless_foreach_wifi_net, (gpointer)self);
     }
 }
 
@@ -1066,7 +1110,8 @@ show_wireless_chooser( NwamStatusIcon *self )
 
     chooser_dialog = get_chooser_dialog( self );
 
-    nwamui_daemon_dispatch_wifi_scan_events_from_cache(prv->daemon );
+    /* chooser dialog should do it itself. */
+    nwam_pref_refresh(chooser_dialog, NULL, TRUE);
 
     window = nwam_pref_dialog_get_window(chooser_dialog);
 
@@ -1284,11 +1329,14 @@ nwam_status_icon_run(NwamStatusIcon *self)
     connect_nwam_object_signals(G_OBJECT(prv->daemon), G_OBJECT(self));
 
     /* Initial place. Init code must be here. */
+    nwam_menu_recreate_env_menuitems(self);
+    nwam_menu_recreate_enm_menuitems(self);
+    daemon_online_enm_num_notify(NULL, NULL, (gpointer)self);
     g_object_notify(G_OBJECT(prv->daemon), "status");
     g_object_notify(G_OBJECT(prv->daemon), "active_ncp");
     g_object_notify(G_OBJECT(prv->daemon), "active_env");
-    g_object_notify(G_OBJECT(prv->daemon), "env_list");
-    g_object_notify(G_OBJECT(prv->daemon), "enm_list");
+    /* g_object_notify(G_OBJECT(prv->daemon), "env_list"); */
+    /* g_object_notify(G_OBJECT(prv->daemon), "enm_list"); */
 }
 
 void
@@ -1654,9 +1702,8 @@ nwam_menu_recreate_wifi_menuitems (NwamStatusIcon *self, gboolean force_scan )
 
     if ( force_scan ) {
         nwamui_daemon_wifi_start_scan(prv->daemon);
-    }
-    else {
-        nwamui_daemon_dispatch_wifi_scan_events_from_cache(prv->daemon );
+    } else {
+        nwamui_daemon_dispatch_wifi_scan_events_from_cache(prv->daemon);
     }
 }
 

@@ -1240,7 +1240,7 @@ ncu_changed_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     g_debug("NwamConnConfIPPanel: ncu_changed " );
 
-    nwam_pref_refresh(NWAM_PREF_IFACE(data), NWAMUI_NCU(gobject), TRUE); /* Refresh IP Data */
+    nwam_pref_refresh(NWAM_PREF_IFACE(data), NWAMUI_NCU(gobject), FALSE); /* Refresh IP Data */
 }
 
 static void

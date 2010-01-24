@@ -179,6 +179,10 @@ extern void                 nwamui_ncu_set_priority_group_mode ( NwamuiNcu *self
 extern nwamui_cond_priority_group_mode_t 
                             nwamui_ncu_get_priority_group_mode ( NwamuiNcu *self );
 
+extern void                 nwamui_ncu_wifi_hash_clean_dead_wifi_nets(NwamuiNcu *self);
+
+extern void                 nwamui_ncu_wifi_hash_mark_each(NwamuiNcu *self, nwamui_wifi_life_state_t state);
+
 extern NwamuiWifiNet*       nwamui_ncu_wifi_hash_lookup_by_essid( NwamuiNcu    *self, 
                                                                   const gchar  *essid );
 
