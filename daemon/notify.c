@@ -914,7 +914,7 @@ nwam_notification_show_ncp_changed( NwamuiNcp* ncp )
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
 
-    summary_str = g_strdup_printf(_("Switched to Network Profile '%s'"),
+    summary_str = g_strdup_printf(_("Switched to network profile '%s'"),
       nwamui_object_get_name(NWAMUI_OBJECT(ncp)));
 
     nwam_notification_show_message(summary_str,
@@ -950,7 +950,7 @@ nwam_notification_show_location_changed( NwamuiEnv* env )
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
 
-    summary_str = g_strdup_printf(_("Switch to Location '%s'"), nwamui_object_get_name(NWAMUI_OBJECT(env)));
+    summary_str = g_strdup_printf(_("Switched to location '%s'"), nwamui_object_get_name(NWAMUI_OBJECT(env)));
 
     nwam_notification_show_message(summary_str,
             "",

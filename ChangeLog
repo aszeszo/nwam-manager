@@ -1,3 +1,11 @@
+2010-01-25  Calum Benson  <Calum.Benson@Sun.COM>
+
+	* daemon/notify.c: (nwam_notification_show_ncp_changed),
+	(nwam_notification_show_location_changed):
+
+	Minor capitalisation fixes in status notification messages,
+	to match UI spec.
+
 2010-01-25  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_profile_panel.c (nwam_treeview_update_widget_cb):
