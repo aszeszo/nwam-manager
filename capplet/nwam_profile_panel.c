@@ -594,15 +594,15 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         NwamuiObject *object;
         gchar        *info;
         NwamuiObject *dup_ncp;
+        gboolean      modifiable;
 
         gtk_tree_model_get(model, &iter, 0, &object, -1);
         dup_ncp = g_object_get_data(G_OBJECT(object), REFER_DUP_NCP);
 
-        if (!nwamui_object_is_modifiable(object)) {
-            /* gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_edit_btn), FALSE); */
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_rename_btn), FALSE);
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_remove_btn), FALSE);
-        }
+        modifiable = nwamui_object_is_modifiable(object);
+        /* gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_edit_btn), modifiable); */
+        /* gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_rename_btn), modifiable && nwamui_object_can_rename(object)); */
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_remove_btn), modifiable && !nwamui_object_get_active(object));
 
         gtk_label_set_text(GTK_LABEL(prv->selected_profile_lbl), nwamui_object_get_name(object));
 

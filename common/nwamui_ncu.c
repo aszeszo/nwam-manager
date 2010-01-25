@@ -3159,8 +3159,6 @@ nwamui_ncu_wifi_hash_lookup_by_essid(NwamuiNcu *self, const gchar *essid)
         wifi_net = NWAMUI_WIFI_NET(value);
     }
 
-    nwamui_debug("search for essid '%s' - returning 0x%p", essid, wifi_net);
-
     return(wifi_net);
 }
 
@@ -3183,8 +3181,7 @@ nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     *self,
 
             nwamui_wifi_net_set_life_state(NWAMUI_WIFI_NET(wifi_net), NWAMUI_WIFI_LIFE_NEW);
             /* hash table taken ownership of essid */
-        }
-        else {
+        } else {
             nwamui_warning("Unexpected existing wifi_net in hash table with essid : %s", essid );
         }
     }
@@ -3201,7 +3198,13 @@ nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t(NwamuiNcu *self, nwam_wlan_t *
     if ((wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid(self, wlan->nww_essid)) != NULL) {
         g_object_ref(wifi_net);
         nwamui_wifi_net_update_from_wlan_t(wifi_net, wlan);
-        nwamui_wifi_net_set_life_state(NWAMUI_WIFI_NET(wifi_net), NWAMUI_WIFI_LIFE_MODIFIED);
+        /* Only mark non-NEW object to modified, since the same essid may have
+         * multiple bssid and run it multiple times. The NEW objects in the
+         * next time wlan_scan_report will be marked as DEAD.
+         */
+        if (nwamui_wifi_net_get_life_state(NWAMUI_WIFI_NET(wifi_net)) != NWAMUI_WIFI_LIFE_NEW) {
+            nwamui_wifi_net_set_life_state(NWAMUI_WIFI_NET(wifi_net), NWAMUI_WIFI_LIFE_MODIFIED);
+        }
     } else {
         wifi_net = nwamui_wifi_net_new_from_wlan_t(self, wlan);
         nwamui_ncu_wifi_hash_insert_wifi_net(self, wifi_net);

@@ -1928,6 +1928,7 @@ nwamui_wifi_net_set_life_state(NwamuiWifiNet *self, nwamui_wifi_life_state_t lif
     NwamuiWifiNetPrivate *prv = NWAMUI_WIFI_NET_GET_PRIVATE(self);
 
     prv->life_state = life_state;
+    g_debug("ESSID %s life state %d", prv->essid, prv->life_state);
 }
 
 extern nwamui_wifi_life_state_t

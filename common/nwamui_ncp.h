@@ -91,6 +91,8 @@ extern  NwamuiObject*           nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *se
 
 extern void                     nwamui_ncp_foreach_ncu(NwamuiNcp *self, GFunc func, gpointer user_data);
 
+extern void                     nwamui_ncp_foreach_ncu_foreach_wifi_info(NwamuiNcp *self, GHFunc func, gpointer user_data);
+
 extern void                     nwamui_ncp_foreach_ncu_list_store( NwamuiNcp *self, GtkTreeModelForeachFunc func, gpointer user_data );
 
 extern void                     nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu );

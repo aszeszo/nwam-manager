@@ -93,6 +93,8 @@ static gint nwam_wifi_chooser_comp_cb (GtkTreeModel *model,
 static void presistant_cb(GtkToggleButton* widget, gpointer data);
 
 /* Daemon */
+static void daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
+static void daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
 static void daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data);
 /* Prof */
 static void add_any_new_wifi_to_fav(GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -132,7 +134,7 @@ nwam_compose_wifi_chooser_view (NwamWirelessChooser *self, GtkTreeView *view)
     GtkCellRenderer *renderer;
     GtkTreeModel *model;
 
-    model = GTK_TREE_MODEL(gtk_list_store_new (1, G_TYPE_OBJECT /* NwamuiWifiNet Object */));
+    model = GTK_TREE_MODEL(gtk_list_store_new (1, NWAMUI_TYPE_WIFI_NET));
     gtk_tree_view_set_model (view, model);
 
     g_object_set (G_OBJECT(view),
@@ -247,6 +249,8 @@ nwam_wireless_chooser_init(NwamWirelessChooser *self)
       (gpointer)self);
     add_any_new_wifi_to_fav(G_OBJECT(nwamui_prof_get_instance_noref()), NULL, (gpointer)self);
 
+    g_signal_connect(self->prv->daemon, "notify::status", G_CALLBACK(daemon_status_changed), (gpointer)self);
+    g_signal_connect(self->prv->daemon, "notify::active-ncp", G_CALLBACK(daemon_active_ncp_changed), (gpointer) self);
     g_signal_connect(self->prv->daemon, "daemon_info", G_CALLBACK(daemon_info), (gpointer)self);
 
     nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
@@ -260,27 +264,12 @@ foreach_wifi_in_ncu_add_to_list_store(gpointer key, gpointer value, gpointer use
     GtkTreeIter             iter;
 
     g_return_if_fail(NWAMUI_WIFI_NET(wifi));
+    g_message("add '%s' to list store", nwamui_object_get_name(NWAMUI_OBJECT(wifi)));
 
     if (nwamui_wifi_net_get_life_state(wifi) != NWAMUI_WIFI_LIFE_DEAD) {
         gtk_list_store_append(GTK_LIST_STORE(model), &iter);
         gtk_list_store_set(GTK_LIST_STORE (model), &iter, 0, wifi, -1);
     }
-}
-
-static void
-foreach_wireless_foreach_wifi_net(gpointer data, gpointer user_data)
-{
-    NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(user_data);
-	NwamuiNcu           *ncu  = data;
-    GtkTreeModel        *model;
-
-    g_return_if_fail(NWAMUI_IS_NCU(ncu));
-
-    model = gtk_tree_view_get_model(self->prv->wifi_tv);
-
-	if (nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
-        nwamui_ncu_wifi_hash_foreach(ncu, foreach_wifi_in_ncu_add_to_list_store, (gpointer)model);
-	}
 }
 
 static void
@@ -302,7 +291,7 @@ populate_panel( NwamWirelessChooser* self, gboolean set_initial_state )
 
         /* Init WiFis */
         if (ncp) {
-            nwamui_ncp_foreach_ncu(NWAMUI_NCP(ncp), foreach_wireless_foreach_wifi_net, (gpointer)self);
+            nwamui_ncp_foreach_ncu_foreach_wifi_info(NWAMUI_NCP(ncp), foreach_wifi_in_ncu_add_to_list_store, (gpointer)model);
             g_object_unref(ncp);
         }
 
@@ -496,10 +485,10 @@ nwam_wifi_selection_changed(GtkTreeSelection *selection, gpointer data)
 	
 	GtkTreeIter iter;
 	
-    if (prv->selected_wifi != NULL) {
+    if (prv->selected_wifi) {
         g_object_unref(prv->selected_wifi);
+        prv->selected_wifi = NULL;
     }
-    prv->selected_wifi = NULL;
 
 	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
 		GtkTreeModel   *model = gtk_tree_view_get_model(GTK_TREE_VIEW(prv->wifi_tv));
@@ -510,9 +499,9 @@ nwam_wifi_selection_changed(GtkTreeSelection *selection, gpointer data)
 
 		prv->selected_wifi = g_object_ref(G_OBJECT(wifi_net));
 		
-		if (wifi_net) {
-            gtk_widget_set_sensitive (GTK_WIDGET(self->prv->connect_wireless_connect_btn), TRUE);
-        }
+        gtk_widget_set_sensitive (GTK_WIDGET(self->prv->connect_wireless_connect_btn), TRUE);
+
+		g_object_unref(wifi_net);
 		return;
 	}
 
@@ -665,6 +654,32 @@ presistant_cb(GtkToggleButton* widget, gpointer data)
 }
 
 static void
+daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data)
+{
+    NwamWirelessChooser        *self  = NWAM_WIRELESS_CHOOSER(user_data);
+    NwamWirelessChooserPrivate *prv   = self->prv;
+
+    switch(nwamui_daemon_get_status(daemon)) {
+    case NWAMUI_DAEMON_STATUS_ALL_OK:
+        break;
+    case NWAMUI_DAEMON_STATUS_ERROR:
+        daemon_active_ncp_changed(self->prv->daemon, NULL, (gpointer)self);
+        break;
+    default:
+        break;
+    }
+}
+
+static void
+daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
+{
+    NwamWirelessChooser        *self = NWAM_WIRELESS_CHOOSER(data);
+
+    /* Re create wlan list */
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
+}
+
+static void
 daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data)
 {
     NwamWirelessChooser        *self  = NWAM_WIRELESS_CHOOSER(user_data);
@@ -672,22 +687,24 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
     GtkTreeModel               *model = gtk_tree_view_get_model(prv->wifi_tv);
     GtkTreeIter                 iter;
 
-    switch (type) {
-    case NWAMUI_DAEMON_INFO_OBJECT_ADDED:
-        if (!capplet_model_find_object(model, obj, &iter)) {
-            gtk_list_store_prepend(GTK_LIST_STORE(model), &iter);
-            gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, obj, -1);
-        }
+    if (NWAMUI_IS_WIFI_NET(obj)) {
+        switch (type) {
+        case NWAMUI_DAEMON_INFO_OBJECT_ADDED:
+            if (!capplet_model_find_object(model, obj, &iter)) {
+                gtk_list_store_prepend(GTK_LIST_STORE(model), &iter);
+                gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, obj, -1);
+            }
 
-        break;
-    case NWAMUI_DAEMON_INFO_OBJECT_REMOVED:
-        if (capplet_model_find_object(model, obj, &iter)) {
-            gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
-        }
+            break;
+        case NWAMUI_DAEMON_INFO_OBJECT_REMOVED:
+            if (capplet_model_find_object(model, obj, &iter)) {
+                gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+            }
 
-        break;
-    default:
-        break;
+            break;
+        default:
+            break;
+        }
     }
 }
 

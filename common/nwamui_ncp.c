@@ -1131,6 +1131,29 @@ nwamui_ncp_foreach_ncu(NwamuiNcp *self, GFunc func, gpointer user_data)
     g_list_foreach(prv->ncu_list, func, user_data);
 }
 
+static void
+foreach_wireless_ncu_foreach_wifi_net(gpointer data, gpointer user_data)
+{
+    gpointer  *data_set = (gpointer *)user_data;
+	NwamuiNcu *ncu  = data;
+
+    g_return_if_fail(NWAMUI_IS_NCU(ncu));
+
+	if (nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS) {
+        nwamui_ncu_wifi_hash_foreach(ncu, (GHFunc)data_set[1], data_set[2]);
+	}
+}
+
+extern void
+nwamui_ncp_foreach_ncu_foreach_wifi_info(NwamuiNcp *self, GHFunc func, gpointer user_data)
+{
+    NwamuiNcpPrivate *prv  = NWAMUI_NCP_GET_PRIVATE(self);
+    gpointer data_set[] = { self, (gpointer)func, user_data };
+
+    g_return_if_fail(func);
+    g_list_foreach(prv->ncu_list, foreach_wireless_ncu_foreach_wifi_net, data_set);
+}
+
 /**
  * nwamui_ncp_get_ncu_by_device_name
  * 

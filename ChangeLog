@@ -1,3 +1,36 @@
+2010-01-25  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_profile_panel.c (nwam_treeview_update_widget_cb):
+	Active ncp shouldn't enable remove button.
+	* capplet/nwam_wireless_chooser.c (nwam_compose_wifi_chooser_view),
+	(nwam_wireless_chooser_init),
+	(foreach_wifi_in_ncu_add_to_list_store), (populate_panel),
+	(nwam_wifi_selection_changed), (daemon_status_changed),
+	(daemon_active_ncp_changed), (daemon_info): Fixed some places
+	forgot to unref wifi_net. Recreate wlan list on daemon status
+	change or active ncp change events. Filter out non wifi_net object
+	added/removed events.
+	* common/nwamui_daemon.c (nwamui_daemon_find_fav_wifi_net_by_name),
+	(dispatch_scan_results_from_wlan_array),
+	(dispatch_scan_results_if_wireless), (nwamd_event_handler),
+	(nwamui_daemon_handle_object_action_event),
+	(nwam_known_wlan_walker_cb): Clean code.
+	* common/nwamui_ncp.c (foreach_wireless_ncu_foreach_wifi_net),
+	(nwamui_ncp_foreach_ncu_foreach_wifi_info):
+	* common/nwamui_ncp.h: Added two convenient functions to foreach
+	wlans.
+	* common/nwamui_ncu.c: Only set life_state to modified when its
+	previous state is dead to avoid the wlan with multiple BSSID is
+	marked as modified in the second querying.
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_set_life_state): Added
+	debug info.
+	* daemon/status_icon.c (daemon_info),
+	(connect_nwam_object_signals), (nwam_menu_update_wifi_section),
+	(on_ncp_notify_many_wireless), (nwam_menu_recreate_ncu_menuitems),
+	(nwam_status_icon_create_menu_item),
+	(nwam_status_icon_delete_menu_item): Clean code. Filter out ncp
+	object added/removed events.
+
 2010-01-24  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_conf_ip_panel.c (ncu_changed_notify_cb):
