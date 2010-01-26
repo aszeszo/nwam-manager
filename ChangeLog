@@ -1,5 +1,12 @@
 2010-01-26  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* daemon/status_icon.c (nwam_menuitem_notify_sensitive),
+	(nwam_status_icon_run), (nwam_menu_create_static_menuitems),
+	(prof_ui_auth): Fixed the required ui-auth of each preference
+	dialog, and implement prof_ui_auth.
+
+2010-01-26  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_conn_conf_ip_panel.c (nwam_compose_wifi_fav_view),
 	(apply), (wireless_tab_add_button_clicked_cb): Fixed add fav wlan
 	dialog does not have a wlan list.

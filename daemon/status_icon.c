@@ -235,14 +235,12 @@ nwam_menuitem_notify_sensitive(GObject *gobject, GParamSpec *arg1, gpointer data
     case MENUITEM_CONN_PROF:
     case MENUITEM_ENV_PREF:
     case MENUITEM_VPN_PREF:
-        required_auth = UI_AUTH_COMMIT_OBJECT;
+    case MENUITEM_NET_PREF:
+        required_auth = UI_AUTH_ALL;
         break;
     case MENUITEM_REFRESH_WLAN:
     case MENUITEM_JOIN_WLAN:
         required_auth = UI_AUTH_WIRELESS_DIALOG;
-        break;
-    case MENUITEM_NET_PREF:
-        required_auth = UI_AUTH_ALL;
         break;
     /* case MENUITEM_HELP: */
     default:
@@ -1192,6 +1190,8 @@ nwam_status_icon_run(NwamStatusIcon *self)
     /* Must create static menus before connect to any signals. */
     nwam_menu_create_static_menuitems(self);
 
+    g_object_notify(G_OBJECT(prv->prof), "ui_auth");
+
     /* Connect signals */
     g_signal_connect(G_OBJECT (self), "popup-menu",
       G_CALLBACK (status_icon_popup), NULL);
@@ -1211,14 +1211,11 @@ nwam_status_icon_run(NwamStatusIcon *self)
     connect_nwam_object_signals(G_OBJECT(prv->daemon), G_OBJECT(self));
 
     /* Initial place. Init code must be here. */
-    nwam_menu_recreate_env_menuitems(self);
     nwam_menu_recreate_enm_menuitems(self);
     daemon_online_enm_num_notify(NULL, NULL, (gpointer)self);
     g_object_notify(G_OBJECT(prv->daemon), "status");
     g_object_notify(G_OBJECT(prv->daemon), "active_ncp");
     g_object_notify(G_OBJECT(prv->daemon), "active_env");
-    /* g_object_notify(G_OBJECT(prv->daemon), "env_list"); */
-    /* g_object_notify(G_OBJECT(prv->daemon), "enm_list"); */
 }
 
 void
@@ -1664,10 +1661,10 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
     {                                                                   \
         NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self); \
         prv->static_menuitems[id] = menuitem;                           \
-        g_signal_connect(menuitem, "notify::sensitive",                 \
-          (GCallback)nwam_menuitem_notify_sensitive, (gpointer)self);   \
         g_object_set_data(G_OBJECT(menuitem),                           \
           STATIC_MENUITEM_ID, (gpointer)id);                            \
+        g_signal_connect(menuitem, "notify::sensitive",                 \
+          (GCallback)nwam_menuitem_notify_sensitive, (gpointer)self);   \
     }
 
     sub_menu = nwam_menu_new(N_SECTION);
@@ -1963,9 +1960,12 @@ nwam_exec (const gchar **nwam_arg)
 static void
 prof_ui_auth(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    /* NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(data); */
-    /* gboolean               has_auth; */
-    /* TODO refresh related widgets here. */
+    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(data);
+    gint i;
+
+    for (i = 0; i < MENUITEM_HELP; i++) {
+        nwam_menuitem_notify_sensitive(G_OBJECT(prv->static_menuitems[i]), NULL, data);
+    }
 }
 
 static void
