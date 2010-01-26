@@ -299,7 +299,7 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
     GtkCellRenderer *renderer;
     GtkTreeModel *model;
 
-    model = GTK_TREE_MODEL(gtk_list_store_new (1, G_TYPE_OBJECT /* NwamuiWifiNet Object */));
+    model = GTK_TREE_MODEL(gtk_list_store_new (1, NWAMUI_TYPE_WIFI_NET));
     gtk_tree_view_set_model (view, model);
 
     g_object_set (G_OBJECT(view),
@@ -924,7 +924,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         g_list_foreach( fav_list, wifi_fav_set_prio_next, &prio );
         nwamui_daemon_set_fav_wifi_networks( NWAMUI_DAEMON(prv->daemon),  fav_list);
         if (fav_list) {
-            nwamui_util_free_obj_list( fav_list );
+            nwamui_util_free_obj_list(fav_list);
         }
 
         /* Apply WiFi conditions */
@@ -1755,6 +1755,7 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
     
     g_debug("wireless_tab_add_button clicked");
 
+    nwam_wireless_dialog_set_ncu(self->prv->wifi_dialog, self->prv->ncu);
     nwam_wireless_dialog_set_wifi_net(self->prv->wifi_dialog, NULL );
     nwam_pref_set_purpose(NWAM_PREF_IFACE(self->prv->wifi_dialog), NWAMUI_DIALOG_PURPOSE_ADD);
 

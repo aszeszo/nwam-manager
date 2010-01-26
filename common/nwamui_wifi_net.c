@@ -59,6 +59,7 @@ struct _NwamuiWifiNetPrivate {
     gchar                         *wpa_cert_file;
     gint                           status;
     nwamui_wifi_life_state_t       life_state;
+    gboolean                       enabled;
 
     /* For non-favourites store prio and bssid_strv in memory only */
     gchar** bssid_strv;         /* NULL terminated list of strings */
@@ -108,7 +109,10 @@ static const gchar* nwamui_wifi_net_get_essid (NwamuiObject *object );
 static gboolean     nwamui_wifi_net_set_essid ( NwamuiObject  *object, const gchar    *essid );
 static gboolean     nwamui_object_real_can_rename (NwamuiObject *object);
 static gint         nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by);
-static gboolean     nwamui_wifi_net_commit_favourite ( NwamuiObject *object );
+static void         nwamui_object_real_set_enabled(NwamuiObject *object, gboolean enabled);
+static gboolean     nwamui_object_real_get_enabled(NwamuiObject *object);
+static gboolean     nwamui_wifi_net_commit_favourite(NwamuiObject *object);
+static gboolean     nwamui_wifi_net_delete_favourite(NwamuiObject *object);
 static void         nwamui_object_real_reload(NwamuiObject* object);
 static gboolean     nwamui_object_real_has_modifications(NwamuiObject* object);
 
@@ -155,7 +159,10 @@ nwamui_wifi_net_class_init (NwamuiWifiNetClass *klass)
     nwamuiobject_class->can_rename = nwamui_object_real_can_rename;
     nwamuiobject_class->set_name = nwamui_wifi_net_set_essid;
     nwamuiobject_class->sort = nwamui_object_real_sort;
+    nwamuiobject_class->get_enabled = nwamui_object_real_get_enabled;
+    nwamuiobject_class->set_enabled = nwamui_object_real_set_enabled;
     nwamuiobject_class->commit = nwamui_wifi_net_commit_favourite;
+    nwamuiobject_class->destroy = nwamui_wifi_net_delete_favourite;
     nwamuiobject_class->reload = nwamui_object_real_reload;
     nwamuiobject_class->has_modifications = nwamui_object_real_has_modifications;
 
@@ -585,11 +592,12 @@ nwamui_wifi_net_get_property (GObject         *object,
 
                 if ( prv->is_favourite && self->prv->known_wlan_h != NULL ) {
                     rval = get_nwam_known_wlan_uint64_prop( self->prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_KEYSLOT );
+                    /* 0 if the entity isn't existing. */
                 }
                 else {
                     rval = prv->wep_key_index;
                 }
-                g_value_set_uint64( value, rval );
+                g_value_set_uint64( value, rval == 0 ? 1 : rval );
             }
             break;
         case PROP_WEP_PASSWORD: {
@@ -659,8 +667,6 @@ nwamui_object_real_reload(NwamuiObject* object)
 {
     NwamuiWifiNetPrivate     *prv        = NWAMUI_WIFI_NET_GET_PRIVATE(object);
     nwam_error_t              nerr;
-    uint32_t                  sec_mode;
-    nwamui_wifi_security_t    security;
 
     g_return_if_fail(NWAMUI_IS_WIFI_NET(object));
 
@@ -668,14 +674,6 @@ nwamui_object_real_reload(NwamuiObject* object)
 
     if (!prv->modified) {
         if (prv->known_wlan_h) {
-            sec_mode = get_nwam_known_wlan_uint64_prop( prv->known_wlan_h, NWAM_KNOWN_WLAN_PROP_SECURITY_MODE );
-            
-            security = nwamui_wifi_net_security_map ( sec_mode );
-
-            if ( prv->security != security ) {
-                prv->security = security;
-                g_object_notify(G_OBJECT(object), "security");
-            }
             /* Ensure it's marked as a favourite since we now have a valid handle. */
             prv->is_favourite = TRUE;
         }
@@ -906,6 +904,23 @@ nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by
     return( rval );
 }
 
+static void
+nwamui_object_real_set_enabled(NwamuiObject *object, gboolean enabled)
+{
+    NwamuiWifiNetPrivate *prv = NWAMUI_WIFI_NET_GET_PRIVATE(object);
+    g_return_if_fail(NWAMUI_IS_WIFI_NET(object));
+
+    prv->enabled = enabled;
+}
+
+static gboolean
+nwamui_object_real_get_enabled(NwamuiObject *object)
+{
+    NwamuiWifiNetPrivate *prv = NWAMUI_WIFI_NET_GET_PRIVATE(object);
+    g_return_val_if_fail(NWAMUI_IS_WIFI_NET(object), FALSE);
+    return prv->enabled;
+}
+
 /**
  * Ask NWAM to store the password information
  **/
@@ -977,7 +992,7 @@ nwamui_wifi_net_store_key ( NwamuiWifiNet *self )
  * Ask NWAM to connect to this network.
  **/
 extern void
-nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  )
+nwamui_wifi_net_connect(NwamuiWifiNet *self, gboolean add_to_favourites)
 {
     gchar          *device = nwamui_ncu_get_device_name(self->prv->ncu);
     nwam_error_t    nerr;
@@ -1000,18 +1015,21 @@ nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  )
             sec_mode_str = "???";
     }
 
-    nwamui_debug("nwam_wlan_select( %s, %s, NULL, %s[%d], %s[%d])", 
-                    device, self->prv->essid, 
-                    sec_mode_str, sec_mode,
-                    add_to_favourites?"TRUE":"FALSE",
-                    add_to_favourites?B_TRUE:B_FALSE );
+    nwamui_debug("nwam_wlan_select(%s, %s, NULL, %s[%d], fav(%s))", 
+      device, self->prv->essid, 
+      sec_mode_str, sec_mode,
+      add_to_favourites?"TRUE":"FALSE");
 
-    if ( (nerr = nwam_wlan_select( device, self->prv->essid, NULL, sec_mode,
-                    add_to_favourites?B_TRUE:B_FALSE )) != NWAM_SUCCESS ) {
+    nerr = nwam_wlan_select(device, self->prv->essid, NULL, sec_mode, add_to_favourites?B_TRUE:B_FALSE);
+
+    if (nerr != NWAM_SUCCESS) {
         NwamuiDaemon*   daemon = nwamui_daemon_get_instance();
 
-        g_warning("Error selecting network with NWAM : %s", nwam_strerror(nerr));
-        nwamui_daemon_emit_info_message(daemon, _("Failed to initiate connection to wireless network."));
+        if (nerr == NWAM_ENTITY_INVALID_STATE) {
+            nwamui_daemon_emit_info_message(daemon, _("Failed to connect to wireless network, please try it later."));
+        } else {
+            g_warning("Error selecting network with NWAM : %s", nwam_strerror(nerr));
+        }
 
         g_object_unref(daemon);
     }
@@ -1022,9 +1040,10 @@ nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  )
 /**
  * Ask NWAM to delete this favourite network.
  **/
-extern gboolean
-nwamui_wifi_net_delete_favourite ( NwamuiWifiNet *self )
+static gboolean
+nwamui_wifi_net_delete_favourite(NwamuiObject *object)
 {
+    NwamuiWifiNet *self = NWAMUI_WIFI_NET(object);
     nwam_error_t                nerr;
     nwam_known_wlan_handle_t    wlan_h;
 
@@ -1239,13 +1258,26 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer new_handle)
 
     /* Accept NULL to allow for simple re-read from system */
     if (handle != NULL) {
-        char*   _name = NULL;
+        char*                  _name = NULL;
+        uint32_t               sec_mode;
+        nwamui_wifi_security_t security;
+
         if ( (nerr = nwam_known_wlan_get_name(handle, &_name)) != NWAM_SUCCESS) {
             g_warning("Error getting name of known wlan: %s", nwam_strerror(nerr));
             return;
         }
         name = g_strdup( _name );
         free(_name);
+
+        sec_mode = get_nwam_known_wlan_uint64_prop(handle, NWAM_KNOWN_WLAN_PROP_SECURITY_MODE);
+            
+        security = nwamui_wifi_net_security_map ( sec_mode );
+
+        if ( prv->security != security ) {
+            prv->security = security;
+            g_object_notify(G_OBJECT(object), "security");
+        }
+
         /* Mark favourite wifi for set_name. */
         prv->is_favourite = TRUE;
     }
@@ -1626,14 +1658,14 @@ nwamui_wifi_net_set_wep_key_index (  NwamuiWifiNet  *self,
     g_return_if_fail ( wep_key_index >= 1 && wep_key_index <= 4 );
 
     g_object_set (G_OBJECT (self),
-                  "wep_key_index", wep_key_index,
+      "wep_key_index", (guint64)wep_key_index,
                   NULL);
 }
                                 
 extern guint
 nwamui_wifi_net_get_wep_key_index (NwamuiWifiNet *self )
 {
-    guint  rval = 0;
+    guint64  rval = 0;
     
     g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), rval);
 
@@ -1641,7 +1673,7 @@ nwamui_wifi_net_get_wep_key_index (NwamuiWifiNet *self )
                   "wep_key_index", &rval,
                   NULL);
     
-    return( rval );
+    return (guint64)rval;
 }
 
 /* Get/Set WPA Username */
@@ -1873,7 +1905,7 @@ nwamui_wifi_net_get_bssid_list(NwamuiWifiNet *self)
                  elem = g_list_next(elem) ) {
                 if ( elem->data != NULL ) {
                     if (g_list_find_custom( bssid_list, elem->data, (GCompareFunc)g_strcmp0) == NULL) {
-                        bssid_list = g_list_prepend(bssid_list, elem->data);
+                        bssid_list = g_list_prepend(bssid_list, g_strdup(elem->data));
                     }
                 }
             }

@@ -1,3 +1,59 @@
+2010-01-26  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c (nwam_compose_wifi_fav_view),
+	(apply), (wireless_tab_add_button_clicked_cb): Fixed add fav wlan
+	dialog does not have a wlan list.
+	* capplet/nwam_profile_panel.c
+	(nwam_profile_panel_set_toggled_row), (refresh),
+	(nwam_object_activate_toggled_cb): Hide/show the whole view when
+	toggle a row to force the last one toggle off.
+	* capplet/nwam_wireless_chooser.c (daemon_info): Updated due to
+	seperating wlan added/removed/updated events from object events.
+	* capplet/nwam_wireless_dialog.c (nwam_wireless_dialog_class_init),
+	(nwam_wireless_dialog_set_property),
+	(nwam_wireless_dialog_get_property),
+	(nwam_wireless_dialog_set_wifi_net): To compatible with
+	NwamWifiNet.
+	* common/libnwamui.c (nwamui_util_strv_to_glist): Filter out empty
+	"" string, basically for bssid list which will add an empty row on
+	nwam_wireless_dialog.
+	* common/nwamui_daemon.c (nwamui_daemon_remove_wifi_fav),
+	(nwamui_daemon_set_fav_wifi_networks), (foreach_wifi_in_ncu_emit),
+	(dispatch_scan_results_from_wlan_array),
+	(nwamui_daemon_populate_wifi_fav_list), (nwamd_event_handler),
+	(nwamui_daemon_handle_object_action_event),
+	(nwam_known_wlan_walker_cb):
+	* common/nwamui_daemon.h: Seperate wlan added/removed/updated
+	events from object events and update all references. Clean
+	code. Fixed unref NULL in wlan_need_key, etc. Fixed ref/unref
+	wrong in merge known wlans. IMPORTANT, do not mix normal wlans and
+	known wlans.
+	* common/nwamui_ncu.c: Only set life_state to modified when its
+	previous state is dead.
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init),
+	(nwamui_wifi_net_get_property), (nwamui_object_real_reload),
+	(nwamui_object_real_set_enabled), (nwamui_object_real_get_enabled),
+	(nwamui_wifi_net_connect), (nwamui_wifi_net_delete_favourite),
+	(nwamui_object_real_set_handle),
+	(nwamui_wifi_net_set_wep_key_index),
+	(nwamui_wifi_net_get_wep_key_index),
+	(nwamui_wifi_net_get_bssid_list):
+	* common/nwamui_wifi_net.h: Move reload code to set_handle like
+	other objects. If wireless NCU is in inactive mode, connect a wlan
+	will fail, ignore that now. Plan to add "enabled" to fix that, but
+	currently I don't see it's necessary.
+	* configure.in: Bump to 0.99.98
+	* daemon/nwam-wifi-item.c (on_nwam_wifi_toggled),
+	(wifi_net_notify): GConf also controls when user try to connect a
+	wlan from popup menu.
+	* daemon/status_icon.c (daemon_info): Seperate wlan
+	added/removed/updated events from object events and update all
+	references.
+	* nwam_core/lib/i386/libnwam.so.1:
+	* nwam_core/lib/sparc/libnwam.so.1: Migrated to nwam_132-nd
+	* tests/main.c (main), (test_enm_gobject), (process_known_wlan),
+	(process_wlan), (wlans_changed): Fixed for the latest code.
+
 2010-01-25  Calum Benson  <Calum.Benson@Sun.COM>
 
 	* daemon/notify.c: (nwam_notification_show_ncp_changed),

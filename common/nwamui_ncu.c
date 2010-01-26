@@ -3210,6 +3210,7 @@ nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t(NwamuiNcu *self, nwam_wlan_t *
         nwamui_ncu_wifi_hash_insert_wifi_net(self, wifi_net);
     }
 
+    /* g_assert(!nwamui_wifi_net_is_favourite(wifi_net)); */
     return wifi_net;
 }
 
@@ -3230,10 +3231,12 @@ nwamui_ncu_wifi_hash_insert_or_update_from_handle( NwamuiNcu                 *se
     }
 
     if ( (wifi_net = nwamui_ncu_wifi_hash_lookup_by_essid( self, essid ) ) != NULL ) {
+        g_object_ref(wifi_net);
         nwamui_object_set_handle(NWAMUI_OBJECT(wifi_net), wlan_h);
-        nwamui_wifi_net_set_life_state(NWAMUI_WIFI_NET(wifi_net), NWAMUI_WIFI_LIFE_MODIFIED);
-    }
-    else {
+        if (nwamui_wifi_net_get_life_state(NWAMUI_WIFI_NET(wifi_net)) != NWAMUI_WIFI_LIFE_NEW) {
+            nwamui_wifi_net_set_life_state(NWAMUI_WIFI_NET(wifi_net), NWAMUI_WIFI_LIFE_MODIFIED);
+        }
+    } else {
         wifi_net = nwamui_wifi_net_new_with_handle( self, wlan_h );
         nwamui_ncu_wifi_hash_insert_wifi_net( self, wifi_net );
     }

@@ -40,8 +40,9 @@ static void test_env_gobject( void );
 static void test_enm_gobject( void );
 static void test_known_wlan_gobject( void );
 
-static void scan_started(GObject *daemon, gpointer data);
-static void scan_result (GObject *daemon, GObject *wifi, gpointer data);
+static void wlans_changed(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data);
+
+static void process_wlan(gpointer key, gpointer value, gpointer user_data);
 
 /* Command-line options */
 static gboolean debug = FALSE;
@@ -94,11 +95,8 @@ main(int argc, char** argv)
 
     daemon = nwamui_daemon_get_instance();
 
-    g_signal_connect(daemon, "wifi_scan_result",
-          (GCallback)scan_started, (gpointer) NULL);
-
-    g_signal_connect(daemon, "wifi_scan_result",
-          (GCallback)scan_result, (gpointer) NULL);
+    g_signal_connect(daemon, "daemon_info",
+      G_CALLBACK(wlans_changed), (gpointer)NULL);
 
     nwamui_daemon_wifi_start_scan(daemon);
 
@@ -107,7 +105,6 @@ main(int argc, char** argv)
     test_env_gobject();
     test_enm_gobject();
     test_known_wlan_gobject();
-        
 
     gtk_main();
 
@@ -582,7 +579,7 @@ test_enm_gobject( void )
     printf("%-*s ENMs \n", indent, "");
     printf("%-*s=============================================================\n", indent, "");
     indent += 4;
-    nwamui_daemon_foreach_loc(daemon, process_enm, NULL );
+    nwamui_daemon_foreach_enm(daemon, process_enm, NULL );
     indent -= 4;
     
     g_object_unref(G_OBJECT(daemon));
@@ -618,7 +615,6 @@ process_known_wlan( gpointer data, gpointer user_data )
         if ( nwamui_object_has_modifications(NWAMUI_OBJECT(wifi)) ) {
             g_error("Object shouldn't have modifications");
         }
-        g_object_unref(G_OBJECT(wifi));
     }
 
     g_object_unref(G_OBJECT(daemon));
@@ -641,24 +637,28 @@ test_known_wlan_gobject( void )
     g_object_unref(G_OBJECT(daemon));
 }
 
-static void
-scan_started(GObject *daemon, gpointer data)
+static void 
+process_wlan(gpointer key, gpointer value, gpointer user_data)
 {
-    g_debug( "** Scan Started **");
+    if (nwamui_wifi_net_get_life_state(value) != NWAMUI_WIFI_LIFE_DEAD) {
+        process_known_wlan(value, user_data);
+    }
 }
 
 static void
-scan_result (GObject *daemon, GObject *wifi, gpointer data)
+wlans_changed(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data)
 {
-	if (wifi) {
+    switch (type) {
+    case NWAMUI_DAEMON_INFO_WLANS_CHANGED:
         printf( "** Scan RESULT START **\n");
         indent += 4;
-        process_known_wlan( (gpointer) wifi, NULL);
+        nwamui_ncp_foreach_ncu_foreach_wifi_info(NWAMUI_NCP(nwamui_daemon_get_active_ncp(daemon)), process_wlan, NULL);
         indent -= 4;
         printf( "** Scan RESULT END   **\n");
-	} else {
-        printf("** END OF SCAN RESULTS **\n");
-        gtk_main_quit();
+
+        break;
+    default:
+        break;
     }
 }
 

@@ -1282,7 +1282,7 @@ nwamui_util_strv_to_glist( gchar **strv )
 {
     GList   *new_list = NULL;
 
-    for ( char** strp = strv; strp != NULL && *strp != NULL; strp++ ) {
+    for ( char** strp = strv; strp != NULL && *strp != NULL && **strp != '\0'; strp++ ) {
         new_list = g_list_append( new_list, g_strdup( *strp ) );
     }
 

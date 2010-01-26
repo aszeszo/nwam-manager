@@ -687,24 +687,22 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
     GtkTreeModel               *model = gtk_tree_view_get_model(prv->wifi_tv);
     GtkTreeIter                 iter;
 
-    if (NWAMUI_IS_WIFI_NET(obj)) {
-        switch (type) {
-        case NWAMUI_DAEMON_INFO_OBJECT_ADDED:
-            if (!capplet_model_find_object(model, obj, &iter)) {
-                gtk_list_store_prepend(GTK_LIST_STORE(model), &iter);
-                gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, obj, -1);
-            }
-
-            break;
-        case NWAMUI_DAEMON_INFO_OBJECT_REMOVED:
-            if (capplet_model_find_object(model, obj, &iter)) {
-                gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
-            }
-
-            break;
-        default:
-            break;
+    switch (type) {
+    case NWAMUI_DAEMON_INFO_WLAN_ADDED:
+        if (!capplet_model_find_object(model, obj, &iter)) {
+            gtk_list_store_prepend(GTK_LIST_STORE(model), &iter);
+            gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, obj, -1);
         }
+
+        break;
+    case NWAMUI_DAEMON_INFO_WLAN_REMOVED:
+        if (capplet_model_find_object(model, obj, &iter)) {
+            gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+        }
+
+        break;
+    default:
+        break;
     }
 }
 

@@ -233,7 +233,7 @@ nwam_wireless_dialog_class_init (NwamWirelessDialogClass *klass)
 
     g_object_class_install_property (gobject_class,
                                      PROP_WEP_KEY_INDEX,
-                                     g_param_spec_int ("key_index",
+                                     g_param_spec_uint64 ("key_index",
                                                           _("Wireless Security Key Index"),
                                                           _("The Wireless security key index."),
                                                           1, /* Min */
@@ -530,7 +530,7 @@ nwam_wireless_dialog_set_property ( GObject         *object,
         case PROP_WEP_KEY_INDEX:
             if (self->prv->key_index_spinbtn != NULL) {
                 gtk_spin_button_set_value(GTK_SPIN_BUTTON(self->prv->key_index_spinbtn),
-                  g_value_get_int(value));
+                  g_value_get_uint64(value));
             }
             break;
 	case PROP_WPA_CONFIG_TYPE:
@@ -612,7 +612,7 @@ nwam_wireless_dialog_get_property (GObject         *object,
             break;            
 	case PROP_WEP_KEY_INDEX:
             if (self->prv->key_index_spinbtn != NULL) {
-                g_value_set_int(value,
+                g_value_set_uint64(value,
                   gtk_spin_button_get_value_as_int(GTK_SPIN_BUTTON(self->prv->key_index_spinbtn)));
             }
             break;            
@@ -809,7 +809,7 @@ nwam_wireless_dialog_set_wifi_net (NwamWirelessDialog *self, NwamuiWifiNet* wifi
             case NWAMUI_WIFI_SEC_WPA_PERSONAL:
                 g_object_set(G_OBJECT (self),
                   "key", "",
-                  "key_index", nwamui_wifi_net_get_wep_key_index(wifi_net),
+                  "key_index", (guint64)nwamui_wifi_net_get_wep_key_index(wifi_net),
                   NULL);
                 break;
 #if 0

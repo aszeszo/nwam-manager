@@ -153,8 +153,6 @@ extern void                         nwamui_wifi_net_connect ( NwamuiWifiNet *sel
 
 extern gboolean                     nwamui_wifi_net_create_favourite ( NwamuiWifiNet *self );
 
-extern gboolean                     nwamui_wifi_net_delete_favourite ( NwamuiWifiNet *self );
-
 extern gboolean                     nwamui_wifi_net_validate_favourite( NwamuiWifiNet *self, gchar**error_prop );
 
 extern void                         nwamui_wifi_net_set_ncu ( NwamuiWifiNet *self, struct _NwamuiNcu* ncu );

@@ -391,7 +391,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
         }
     }
         break;
-    case NWAMUI_DAEMON_INFO_WLAN_CHANGED: {
+    case NWAMUI_DAEMON_INFO_WLANS_CHANGED: {
         gboolean show_message = FALSE;
 
         if ( obj != NULL && NWAMUI_IS_NCU(obj) ) {
@@ -430,6 +430,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
     }
         break;
     case NWAMUI_DAEMON_INFO_OBJECT_ADDED:
+    case NWAMUI_DAEMON_INFO_WLAN_ADDED:
         /* nwamui_debug("%s %s is added", */
         /*   g_type_name(G_TYPE_FROM_INSTANCE(obj)), */
         /*   nwamui_object_get_name(NWAMUI_OBJECT(obj))); */
@@ -437,6 +438,7 @@ daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpoint
         nwam_status_icon_create_menu_item(self, NWAMUI_OBJECT(obj));
         break;
     case NWAMUI_DAEMON_INFO_OBJECT_REMOVED:
+    case NWAMUI_DAEMON_INFO_WLAN_REMOVED:
         /* nwamui_debug("%s %s is removed", */
         /*   g_type_name(G_TYPE_FROM_INSTANCE(obj)), */
         /*   nwamui_object_get_name(NWAMUI_OBJECT(obj))); */

@@ -220,6 +220,7 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
     NwamuiNcu           *ncu  = NULL;
     NwamuiWifiNet       *wifi = NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(item)));
     const gchar         *name;
+    gboolean             prof_ask_add_to_fav;
 
     /* Should we temporary set active to false for self, and wait for
      * wifi_net_notify to update self? */
@@ -244,13 +245,18 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
      * wifi_net.
      */
     ncu = nwamui_wifi_net_get_ncu ( wifi );
+
+    g_return_if_fail(nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS);
         
     name = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
 
+    g_object_get (nwamui_prof_get_instance_noref(),
+      "add_any_new_wifi_to_fav", &prof_ask_add_to_fav,
+      NULL);
+
     if (ncu != NULL) {
-        g_assert(nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS);
         g_debug("Using wifi_net's own NCU 0x%X\n\tENABLE\tWlan 0x%p - %s", ncu, wifi, name);
-        nwamui_wifi_net_connect(wifi, TRUE);
+        nwamui_wifi_net_connect(wifi, prof_ask_add_to_fav);
         g_object_unref(ncu);
     } else {
         g_warning("Orphan Wlan 0x%p - %s\n", wifi, name);
@@ -393,8 +399,4 @@ wifi_net_notify( GObject *gobject, GParamSpec *arg1, gpointer user_data)
             g_free( a11y_str );
         }
     }
-
-#if 0
-    g_debug("%s update wifi 0x%p %s '%s'", __func__, wifi, gtk_menu_item_get_label(GTK_MENU_ITEM(self)), nwamui_wifi_net_get_status(wifi) == NWAMUI_WIFI_STATUS_CONNECTED ? "Active" : "Deactive");
-#endif
 }

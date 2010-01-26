@@ -230,14 +230,16 @@ nwam_profile_panel_get_property( GObject         *object,
 static void
 nwam_profile_panel_set_toggled_row(NwamProfilePanel *self, GtkTreePath *path)
 {
-    NwamProfilePanelPrivate  *prv = GET_PRIVATE(self);
+    NwamProfilePanelPrivate *prv      = GET_PRIVATE(self);
+    GtkTreeModel            *model    = gtk_tree_view_get_model(prv->object_view);
+
     if (prv->toggled_row) {
         gtk_tree_row_reference_free(prv->toggled_row);
         prv->toggled_row = NULL;
     }
 
     if (path) {
-        prv->toggled_row = gtk_tree_row_reference_new(gtk_tree_view_get_model(prv->object_view), path);
+        prv->toggled_row = gtk_tree_row_reference_new(model, path);
     }
 }
 
@@ -378,19 +380,21 @@ nwam_update_obj (NwamProfilePanel *self, GObject *obj)
 static gboolean
 refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
-    NwamProfilePanel        *self = NWAM_PROFILE_PANEL( iface );
+    NwamProfilePanel        *self = NWAM_PROFILE_PANEL(iface);
 	NwamProfilePanelPrivate *prv  = GET_PRIVATE(self);
     
     g_debug("NwamProfilePanel: Refresh");
     g_assert(NWAM_IS_PROFILE_PANEL(self));
     
     if (force) {
+        GtkTreeModel *model = gtk_tree_view_get_model(prv->object_view);
+
         gtk_widget_hide(GTK_WIDGET(self->prv->object_view));
-        capplet_update_model_from_daemon(gtk_tree_view_get_model(self->prv->object_view), prv->daemon, NWAMUI_TYPE_NCP);
+        capplet_update_model_from_daemon(model, prv->daemon, NWAMUI_TYPE_NCP);
         gtk_widget_show(GTK_WIDGET(self->prv->object_view));
     }
 
-    nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(self->prv->object_view),
+    nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(prv->object_view),
       (gpointer)self);
 
     return( TRUE );
@@ -506,16 +510,24 @@ nwam_object_activate_toggled_cb(GtkCellRendererToggle *cell_renderer,
 
 	model = gtk_tree_view_get_model(prv->object_view);
     tpath = gtk_tree_path_new_from_string(path);
+#if 0
     if (gtk_tree_model_get_iter (model, &iter, tpath)) {
         NwamuiObject*  object;
 
         gtk_tree_model_get(model, &iter, 0, &object, -1);
 
         g_object_set(self, "toggled_object", object, NULL);
-        nwam_profile_panel_set_toggled_row(self, tpath);
 
         g_object_unref(object);
     }
+#else
+    /* I have to hide/show the view since I found the last toggled row can't be
+     * updated, even I emit row-changed event on that row.
+     */
+    gtk_widget_hide(GTK_WIDGET(prv->object_view));
+    nwam_profile_panel_set_toggled_row(self, tpath);
+    gtk_widget_show(GTK_WIDGET(prv->object_view));
+#endif
     gtk_tree_path_free(tpath);
 }
 
