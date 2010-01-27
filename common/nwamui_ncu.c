@@ -2873,7 +2873,7 @@ nwamui_ncu_get_wifi_info ( NwamuiNcu *self )
  * NULL to unset a wifi info and set the disconnected flag.
  **/
 extern void
-nwamui_ncu_set_wifi_info ( NwamuiNcu *self, NwamuiWifiNet* wifi_info )
+nwamui_ncu_set_wifi_info(NwamuiNcu *self, NwamuiWifiNet* wifi_info)
 {
     g_return_if_fail (NWAMUI_IS_NCU(self)); 
 
@@ -2883,7 +2883,7 @@ nwamui_ncu_set_wifi_info ( NwamuiNcu *self, NwamuiWifiNet* wifi_info )
 
     if (self->prv->wifi_info != wifi_info) {
         if ( self->prv->wifi_info != NULL ) {
-            g_object_unref( self->prv->wifi_info );
+
             g_signal_handlers_disconnect_matched(
                 G_OBJECT(self->prv->wifi_info),
                   G_SIGNAL_MATCH_DATA,
@@ -2892,9 +2892,13 @@ nwamui_ncu_set_wifi_info ( NwamuiNcu *self, NwamuiWifiNet* wifi_info )
                   NULL,
                   NULL,
                   (gpointer)self);
+
             nwamui_wifi_net_set_status(self->prv->wifi_info, NWAMUI_WIFI_STATUS_DISCONNECTED);
+
+            g_object_unref( self->prv->wifi_info );
         }
         self->prv->wifi_info = g_object_ref(wifi_info);
+
         g_signal_connect (G_OBJECT(self->prv->wifi_info), "notify",
           G_CALLBACK(wireless_notify_cb), (gpointer)self);
 

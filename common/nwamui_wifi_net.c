@@ -685,27 +685,29 @@ nwamui_object_real_reload(NwamuiObject* object)
 }
 
 static void
-nwamui_wifi_net_finalize (NwamuiWifiNet *self)
+nwamui_wifi_net_finalize(NwamuiWifiNet *self)
 {
-    g_debug("%s wifi 0x%p essid %s", __func__, self, self->prv->essid ? self->prv->essid:"nil");
-    g_assert(self->prv->status == NWAMUI_WIFI_STATUS_DISCONNECTED);
-    if ( self->prv->essid ) {
-        g_free( self->prv->essid );
+    NwamuiWifiNetPrivate *prv = NWAMUI_WIFI_NET_GET_PRIVATE(self);
+
+    g_debug("%s wifi 0x%p essid %s", __func__, self, prv->essid ? prv->essid:"nil");
+
+    if ( prv->essid ) {
+        g_free( prv->essid );
     }
-    if (self->prv->mode != NULL ) {
-        g_free( self->prv->mode );
+    if (prv->mode != NULL ) {
+        g_free( prv->mode );
     }
 
-    if ( self->prv->known_wlan_h != NULL ) {
-        nwam_known_wlan_free( self->prv->known_wlan_h );
+    if ( prv->known_wlan_h != NULL ) {
+        nwam_known_wlan_free( prv->known_wlan_h );
     }
 
-    if ( !self->prv->is_favourite ) {
-        if ( self->prv->bssid_strv != NULL ) {
-            g_strfreev( self->prv->bssid_strv );
+    if ( !prv->is_favourite ) {
+        if ( prv->bssid_strv != NULL ) {
+            g_strfreev( prv->bssid_strv );
         }
     }
-    self->prv = NULL;
+    prv = NULL;
 
 	G_OBJECT_CLASS(nwamui_wifi_net_parent_class)->finalize(G_OBJECT(self));
 }

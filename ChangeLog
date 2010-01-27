@@ -1,3 +1,11 @@
+2010-01-27  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_daemon.c (nwamd_event_handler):
+	* common/nwamui_ncu.c:
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_finalize): Fixed 14183
+	wlan_connection_report (failed report) doesn't contain a valid
+	ESSID causes UI daemon crash
+
 2010-01-26  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* daemon/status_icon.c (nwam_menuitem_notify_sensitive),
