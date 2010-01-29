@@ -1,3 +1,15 @@
+2010-01-29  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_ncp.c (nwamui_ncp_init), (nwamui_ncp_get_property),
+	(nwamui_ncp_finalize), (nwamui_object_real_reload),
+	(nwamui_ncp_remove_ncu), (nwamui_ncp_add_ncu),
+	(nwam_ncu_walker_cb), (ncu_notify_cb), (row_deleted_cb),
+	(row_inserted_cb), (rows_reordered_cb):
+	* common/nwamui_ncp.h: Clean unused code.
+	* common/nwamui_prof.c:
+	* common/nwamui_prof.h: Fixed 14232 [132] nwam gui unavailable to
+	non root users.
+
 2010-01-27  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_daemon.c (nwamd_event_handler):
