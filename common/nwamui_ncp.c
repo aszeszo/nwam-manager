@@ -47,7 +47,6 @@ enum {
     PROP_NWAM_NCP = 1,
     PROP_PRIORITY_GROUP,
     PROP_NCU_LIST,
-    PROP_NCU_TREE_STORE,
     PROP_NCU_LIST_STORE,
     PROP_ACTIVE_NCU,
     PROP_WIRELESS_LINK_NUM
@@ -202,14 +201,6 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
                                                           _("GList of NCUs in the NCP"),
                                                           _("GList of NCUs in the NCP"),
                                                            G_PARAM_READABLE));
-
-    g_object_class_install_property (gobject_class,
-                                     PROP_NCU_TREE_STORE,
-                                     g_param_spec_object ("ncu_tree_store",
-                                                          _("TreeStore of NCUs in the NCP"),
-                                                          _("TreeStore of NCUs in the NCP"),
-                                                          GTK_TYPE_TREE_STORE,
-                                                          G_PARAM_READABLE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_NCU_LIST_STORE,
