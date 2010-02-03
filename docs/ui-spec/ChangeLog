@@ -1,3 +1,14 @@
+2010-02-03  Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+
+	Indicate which functions are disabled if user only has
+	Network Autoconf User rights profile.
+
+	Add 'Switched profile' notification message, which is already
+	implemented but wasn't in the UI spec.
+
 2010-01-15  Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
