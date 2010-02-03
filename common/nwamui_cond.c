@@ -680,7 +680,7 @@ nwamui_cond_field_to_str( nwamui_cond_field_t field )
     switch( field ) {
         case NWAMUI_COND_FIELD_NCP:          return(_("Active network profile"));
         case NWAMUI_COND_FIELD_NCU:          return(_("Active connections"));
-        case NWAMUI_COND_FIELD_ENM:          return(_("Running VPN applications"));
+        case NWAMUI_COND_FIELD_ENM:          return(_("Running network modifiers"));
         case NWAMUI_COND_FIELD_LOC:          return(_("Current location"));
         case NWAMUI_COND_FIELD_IP_ADDRESS:   return(_("Any IP address"));
         case NWAMUI_COND_FIELD_ADV_DOMAIN:   return(_("Any advertised domain name"));

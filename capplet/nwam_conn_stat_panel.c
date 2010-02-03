@@ -687,7 +687,7 @@ vpn_clicked_cb( GtkButton *button, gpointer data )
 
 	response = nwam_pref_dialog_run(NWAM_PREF_IFACE(self->prv->vpn_dialog), GTK_WIDGET(button));
 	
-	g_debug("VPN dialog returned %d", response);
+	g_debug("ENM dialog returned %d", response);
 }
 
 static void

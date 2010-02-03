@@ -1,3 +1,21 @@
+2010-02-03  Calum Benson  <set EMAIL_ADDRESS environment variable>
+
+	* capplet/main.c:
+	* capplet/nwam_conn_stat_panel.c: (vpn_clicked_cb):
+	* capplet/nwam_vpn_pref_dialog.c: (vpn_pref_clicked_cb),
+	(nwam_vpn_pre_selection_validate):
+	* common/nwamui_cond.c: (nwamui_cond_field_to_str):
+	* daemon/nwam-tooltip-widget.c: (nwam_object_notify):
+	* daemon/status_icon.c: (nwam_menu_create_static_menuitems):
+	* daemon/status_icon_tooltip.c: (nwam_tooltip_widget_update_enm):
+	* tests/main.c:
+	* ui/nwam-manager-properties.ui:
+
+	Change all user-visible occurrences of 'VPN Application' and
+	related variations, to 'Network Modifier' or equivalent variation.
+	Per agreement on nwam-dev mailing list:
+	http://mail.opensolaris.org/pipermail/nwam-dev/2010-February/005821.html
+
 2010-02-01  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_vpn_pref_dialog.c (nwam_vpn_selection_changed):

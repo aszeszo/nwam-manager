@@ -252,7 +252,7 @@ nwam_object_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data)
         nwam_state_t            state = NWAM_STATE_UNINITIALIZED;
         nwam_aux_state_t        aux_state = NWAM_AUX_STATE_UNINITIALIZED;
         state = nwamui_object_get_nwam_state(object, &aux_state, NULL);
-        g_string_append_printf(gstr, _("<b>VPN %s:</b> %s"), name, nwam_aux_state_to_string(aux_state));
+        g_string_append_printf(gstr, _("<b>Network Modifier %s:</b> %s"), name, nwam_aux_state_to_string(aux_state));
 	} else {
 	}
     menu_item_set_markup(GTK_MENU_ITEM(user_data), gstr->str);

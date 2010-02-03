@@ -282,7 +282,7 @@ nwam_tooltip_widget_update_enm(NwamTooltipWidget *self, const gchar *vpn_info)
     NwamTooltipWidgetPrivate *prv = NWAM_TOOLTIP_WIDGET_GET_PRIVATE(self);
     gchar *text;
 
-    text = g_strdup_printf(_("<b>VPN:</b> %s"), vpn_info);
+    text = g_strdup_printf(_("<b>Network Modifiers:</b> %s"), vpn_info);
     menu_item_set_markup(GTK_MENU_ITEM(prv->vpn_widget), text);
     g_free(text);
 }

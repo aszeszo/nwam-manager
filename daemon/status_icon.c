@@ -1737,11 +1737,11 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
     END_MENU_SECTION_SEPARATOR(sub_menu, SECTION_ENM, TRUE);
 
     menu_append_item(sub_menu,
-      GTK_TYPE_MENU_ITEM, _("_VPN Preferences..."),
+      GTK_TYPE_MENU_ITEM, _("_Network Modifier Preferences..."),
       on_activate_static_menuitems, self);
     CACHE_STATIC_MENUITEMS(self, MENUITEM_VPN_PREF);
     menu_append_item_with_submenu(root_menu,
-      GTK_TYPE_MENU_ITEM,_("_VPN Applications"), sub_menu);
+      GTK_TYPE_MENU_ITEM,_("Network _Modifier Applications"), sub_menu);
 
     menu_append_separator(root_menu);
 

@@ -789,7 +789,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
         gchar *name;
         NwamuiObject *object;
 
-        name = capplet_get_increasable_name(gtk_tree_view_get_model(prv->view), _("Unnamed VPN"), G_OBJECT(self));
+        name = capplet_get_increasable_name(gtk_tree_view_get_model(prv->view), _("Unnamed Modifier"), G_OBJECT(self));
 
         g_assert(name);
 
@@ -872,7 +872,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
                 nwamui_util_show_message(GTK_WINDOW(prv->vpn_pref_dialog),
                   GTK_MESSAGE_ERROR,
                   summary,
-                  _("VPN applications can only be renamed immediately after\nthey have been created."),
+                  _("Network modifiers can only be renamed immediately after\nthey have been created."),
                   FALSE);
                 g_free(summary);
             }
@@ -1002,7 +1002,7 @@ nwam_vpn_pre_selection_validate(   GtkTreeSelection *selection,
     gboolean                  retval = TRUE;
 
     if ( path_currently_selected ) {
-        g_debug( "Same VPN selected, do nothing" );
+        g_debug( "Same ENM selected, do nothing" );
         return( TRUE );
     }
 
@@ -1025,7 +1025,7 @@ nwam_vpn_pre_selection_validate(   GtkTreeSelection *selection,
                 retval = FALSE;
             }
             else if ( !nwamui_enm_validate( NWAMUI_ENM(obj), &prop_name ) ) {
-                gchar* message = g_strdup_printf(_("An error occurred validating the VPN configuration.\nThe property '%s' caused this failure"), prop_name );
+                gchar* message = g_strdup_printf(_("An error occurred validating the network modifier configuration.\nThe property '%s' caused this failure"), prop_name );
                 nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
                                           GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
                 g_free(prop_name);

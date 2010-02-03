@@ -425,7 +425,7 @@
                                     <child>
                                       <object class="GtkLabel" id="label94">
                                         <property name="visible">True</property>
-                                        <property name="label" translatable="yes">_VPN Applications...</property>
+                                        <property name="label" translatable="yes">_Modifiers...</property>
                                         <property name="use_underline">True</property>
                                       </object>
                                       <packing>
@@ -525,7 +525,7 @@
                           <object class="GtkLabel" id="vpn_status_lbl">
                             <property name="visible">True</property>
                             <property name="xalign">1</property>
-                            <property name="label" translatable="yes">&lt;b&gt;VPN:&lt;/b&gt;</property>
+                            <property name="label" translatable="yes">&lt;b&gt;Network Modifiers:&lt;/b&gt;</property>
                             <property name="use_markup">True</property>
                             <accessibility>
                               <relation type="label-for" target="current_vpn_lbl"/>
@@ -3732,7 +3732,7 @@ Disable these services when this location is active:</property>
     </action-widgets>
   </object>
   <object class="GtkDialog" id="vpn_config">
-    <property name="title" translatable="yes">VPN Applications</property>
+    <property name="title" translatable="yes">Network Modifiers</property>
     <property name="icon">icons/network-idle.png</property>
     <property name="type_hint">dialog</property>
     <property name="has_separator">False</property>
@@ -3755,7 +3755,7 @@ Disable these services when this location is active:</property>
                   <object class="GtkLabel" id="label104">
                     <property name="visible">True</property>
                     <property name="xalign">0</property>
-                    <property name="label" translatable="yes">Available VPN applications:</property>
+                    <property name="label" translatable="yes">Available network modifiers:</property>
                   </object>
                   <packing>
                     <property name="expand">False</property>
@@ -3776,7 +3776,7 @@ Disable these services when this location is active:</property>
                         <property name="spacing">12</property>
                         <child>
                           <object class="GtkCheckButton" id="vpn_conditional_cb">
-                            <property name="label" translatable="yes">Start/stop '$vpn' according to rules</property>
+                            <property name="label" translatable="yes">Start/stop modifier according to rules</property>
                             <property name="visible">True</property>
                             <property name="can_focus">True</property>
                             <property name="receives_default">False</property>
@@ -4144,7 +4144,7 @@ Disable these services when this location is active:</property>
                     </child>
                     <child type="label">
                       <object class="GtkRadioButton" id="vpn_cli_rb">
-                        <property name="label" translatable="yes">Manage VPN using command line applications:</property>
+                        <property name="label" translatable="yes">Manage modifier using command line applications:</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
@@ -4239,7 +4239,7 @@ system/system-log:default
                     </child>
                     <child type="label">
                       <object class="GtkRadioButton" id="vpn_smf_rb">
-                        <property name="label" translatable="yes">Manage VPN using an SMF service:</property>
+                        <property name="label" translatable="yes">Manage modifier using an SMF service:</property>
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="receives_default">False</property>
