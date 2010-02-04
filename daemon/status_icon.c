@@ -1741,7 +1741,7 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
       on_activate_static_menuitems, self);
     CACHE_STATIC_MENUITEMS(self, MENUITEM_VPN_PREF);
     menu_append_item_with_submenu(root_menu,
-      GTK_TYPE_MENU_ITEM,_("Network _Modifier Applications"), sub_menu);
+      GTK_TYPE_MENU_ITEM,_("Network _Modifiers"), sub_menu);
 
     menu_append_separator(root_menu);
 

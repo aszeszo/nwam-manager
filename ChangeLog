@@ -1,4 +1,15 @@
-2010-02-03  Calum Benson  <set EMAIL_ADDRESS environment variable>
+2010-02-04  Calum Benson  <calum.benson@sun.com>
+
+	* capplet/main.c:
+	* common/libnwamui.h:
+	* daemon/status_icon.c: (nwam_menu_create_static_menuitems):
+
+	Tweak new panel menu wording slightly to match online help
+	(s/Network Modifier Applications/ Network Modifiers), 
+	and change command line options from -v/--vpn-pref-dialog to 
+	-m/--nm-pref-dialog.
+
+2010-02-03  Calum Benson  <calum.benson@sun.com>
 
 	* capplet/main.c:
 	* capplet/nwam_conn_stat_panel.c: (vpn_clicked_cb):
