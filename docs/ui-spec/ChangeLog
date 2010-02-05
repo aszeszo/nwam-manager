@@ -1,3 +1,13 @@
+2010-02-05  Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+	* img/capplet/vpn-dlg-initial.png
+	* img/capplet/vpn-dlg-adding.png
+
+	Change 'VPN Applications' to 'Network Modifiers' throughout. Bump
+	to version 1.16.0.
+
 2010-02-03  Calum Benson  <calum.benson@sun.com>
 
 	* nwam-ui-spec.pages
@@ -8,6 +18,8 @@
 
 	Add 'Switched profile' notification message, which is already
 	implemented but wasn't in the UI spec.
+
+	Bump to version 1.15.2.
 
 2010-01-15  Calum Benson  <calum.benson@sun.com>
 
