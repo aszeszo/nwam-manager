@@ -1366,15 +1366,11 @@ nwamui_wifi_net_set_status(NwamuiWifiNet *self, nwamui_wifi_status_t status)
 extern nwamui_wifi_status_t
 nwamui_wifi_net_get_status ( NwamuiWifiNet *self )
 {
-    gint    retval = NWAMUI_WIFI_STATUS_CONNECTED;
+    NwamuiWifiNetPrivate     *prv        = NWAMUI_WIFI_NET_GET_PRIVATE(self);
     
-    g_return_val_if_fail (NWAMUI_IS_WIFI_NET (self), (nwamui_wifi_status_t)retval);
+    g_return_val_if_fail(NWAMUI_IS_WIFI_NET (self), NWAMUI_WIFI_STATUS_DISCONNECTED);
 
-    g_object_get (G_OBJECT (self),
-                  "status", &retval,
-                  NULL);
-    
-    return( (nwamui_wifi_status_t)retval );
+    return prv->status;
 }
 
 /* Get/Set Security Type */

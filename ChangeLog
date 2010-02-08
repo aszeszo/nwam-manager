@@ -1,3 +1,11 @@
+2010-02-05  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_daemon.c (dispatch_scan_results_from_wlan_array):
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_get_status): Fixed
+	multiple bssid wlan connection only one bssid has the connected
+	flag, so it may be set to disconnect when handle others.
+	* nwam_core/lib/i386/libnwam.so.1: Sync with nwamd_133 x86.
+
 2010-02-04  Calum Benson  <calum.benson@sun.com>
 
 	* capplet/main.c:
@@ -5,8 +13,8 @@
 	* daemon/status_icon.c: (nwam_menu_create_static_menuitems):
 
 	Tweak new panel menu wording slightly to match online help
-	(s/Network Modifier Applications/ Network Modifiers), 
-	and change command line options from -v/--vpn-pref-dialog to 
+	(s/Network Modifier Applications/ Network Modifiers),
+	and change command line options from -v/--vpn-pref-dialog to
 	-m/--nm-pref-dialog.
 
 2010-02-03  Calum Benson  <calum.benson@sun.com>

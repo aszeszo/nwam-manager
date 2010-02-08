@@ -1742,8 +1742,12 @@ dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  ui
                         /* Ignore selected flag. */
                         g_warning("ESSID %s BSSID %s is connected but not selected", wlan_p->nww_essid, wlan_p->nww_bssid);
                     }
-                } else {
-                    nwamui_wifi_net_set_status(wifi_net, NWAMUI_WIFI_STATUS_DISCONNECTED);
+                /* } else { */
+                    /* Should run this since a wlan with multiple bssid only
+                     * one has connect flag, when other are processed will
+                     * set it to discoonected.
+                     */
+                    /* nwamui_wifi_net_set_status(wifi_net, NWAMUI_WIFI_STATUS_DISCONNECTED); */
                 }
 
                 g_object_unref(wifi_net);
