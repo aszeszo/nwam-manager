@@ -1,5 +1,11 @@
 2010-02-09  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* configure.in: Bump to 0.99.99
+	* nwam_core/lib/i386/libnwam.so.1:
+	* nwam_core/lib/sparc/libnwam.so.1: Sync with 14427 nightly build
+
+2010-02-09  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_daemon.c
 	(nwamui_daemon_handle_object_action_event): Reload NCP once it is
 	enabled, so it may fix the problem - attach a wusb.
