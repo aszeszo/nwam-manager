@@ -479,17 +479,16 @@ nwamui_ncu_set_property ( GObject         *object,
   const GValue    *value,
   GParamSpec      *pspec)
 {
-    NwamuiNcu *self = NWAMUI_NCU(object);
-    gchar*      tmpstr = NULL;
-    gint        tmpint = 0;
-
-    gboolean     read_only = FALSE;
+    NwamuiNcu *self      = NWAMUI_NCU(object);
+    gchar*     tmpstr    = NULL;
+    gint       tmpint    = 0;
+    gboolean   read_only = FALSE;
 
     if ( !self->prv->initialisation ) {
         read_only = !nwamui_object_real_is_modifiable(NWAMUI_OBJECT(self));
 
         if ( read_only && prop_id != PROP_WIFI_INFO ) {
-            g_error("Attempting to modify read-only ncu %s", self->prv->device_name?self->prv->device_name:"NULL");
+            g_warning("Attempting to modify read-only ncu %s", self->prv->device_name?self->prv->device_name:"NULL");
             return;
         }
     }
@@ -3558,7 +3557,7 @@ delete_nwam_ncu_prop( nwam_ncu_handle_t ncu, const char* prop_name )
     g_return_val_if_fail( prop_name != NULL, retval );
 
     if ( prop_is_readonly( prop_name ) ) {
-        g_error("Attempting to delete a read-only ncu property %s", prop_name );
+        g_warning("Attempting to delete a read-only ncu property %s", prop_name );
         return retval;
     }
 
@@ -3592,7 +3591,7 @@ set_nwam_ncu_string_prop( nwam_ncu_handle_t ncu, const char* prop_name, const gc
     }
 
     if ( prop_is_readonly( prop_name ) ) {
-        g_error("Attempting to set a read-only ncu property %s", prop_name );
+        g_warning("Attempting to set a read-only ncu property %s", prop_name );
         return retval;
     }
 
@@ -3705,7 +3704,7 @@ set_nwam_ncu_string_array_prop( nwam_ncu_handle_t ncu, const char* prop_name, ch
     }
 
     if ( prop_is_readonly( prop_name ) ) {
-        g_error("Attempting to set a read-only ncu property %s", prop_name );
+        g_warning("Attempting to set a read-only ncu property %s", prop_name );
         return retval;
     }
 
@@ -3785,7 +3784,7 @@ set_nwam_ncu_boolean_prop( nwam_ncu_handle_t ncu, const char* prop_name, gboolea
     }
 
     if ( prop_is_readonly( prop_name ) ) {
-        g_error("Attempting to set a read-only ncu property %s", prop_name );
+        g_warning("Attempting to set a read-only ncu property %s", prop_name );
         return retval;
     }
 
@@ -3862,7 +3861,7 @@ set_nwam_ncu_uint64_prop( nwam_ncu_handle_t ncu, const char* prop_name, guint64 
     }
 
     if ( prop_is_readonly( prop_name ) ) {
-        g_error("Attempting to set a read-only ncu property %s", prop_name );
+        g_warning("Attempting to set a read-only ncu property %s", prop_name );
         return retval;
     }
 
@@ -3948,7 +3947,7 @@ set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const char* prop_name,
     }
 
     if ( prop_is_readonly( prop_name ) ) {
-        g_error("Attempting to set a read-only ncu property %s", prop_name );
+        g_warning("Attempting to set a read-only ncu property %s", prop_name );
         return retval;
     }
 
@@ -4010,7 +4009,7 @@ nwamui_ncu_get_signal_strength_from_dladm( NwamuiNcu* self )
                     }
                 }
             } else {
-                g_error("cannot get link attributes for %s", self->prv->device_name );
+                g_warning("cannot get link attributes for %s", self->prv->device_name);
             }
         } else {
             g_warning("Unable to map device to linkid");
@@ -4482,11 +4481,11 @@ nwamui_ncu_get_connection_state_string( NwamuiNcu* self )
             break;
 
         default:
-            g_error("Unexpected value for connection state %d", (int)state );
+            g_warning("Unexpected value for connection state %d", (int)state);
             break;
     }
 
-    return( status_string );
+    return status_string;
 }
 
 /*

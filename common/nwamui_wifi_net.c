@@ -1295,17 +1295,6 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer new_handle)
     nwamui_object_set_name(object, name);
     g_free(name);
 
-    /* if ( prv->known_wlan_h != NULL ) { */
-    /*     nwam_known_wlan_free( prv->known_wlan_h  ); */
-    /*     prv->known_wlan_h = NULL; */
-    /* } */
-    /* nerr = nwam_known_wlan_read (name, 0, &prv->known_wlan_h); */
-
-    /* if (nerr != NWAM_SUCCESS) { */
-    /*     g_error ("nwamui_wifi_net_update_with_handle failed to read nwam_known_wlan handle %s", prv->essid); */
-    /*     return; */
-    /* } */
-
     nwamui_object_real_reload(object);
 }
 

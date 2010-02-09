@@ -312,7 +312,7 @@ nwamui_ncp_set_property (   GObject         *object,
     read_only = !nwamui_object_is_modifiable(NWAMUI_OBJECT(self));
 
     if (read_only) {
-        g_error("Attempting to modify read-only ncp %s", self->prv->name);
+        g_warning("Attempting to modify read-only ncp %s", self->prv->name);
         return;
     }
 
