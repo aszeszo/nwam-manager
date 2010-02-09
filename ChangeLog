@@ -1,3 +1,7 @@
+2010-02-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* data/nwam-network.desktop.in: Use preferences-system-network.png
+
 2010-02-08  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* data/Makefile.am:

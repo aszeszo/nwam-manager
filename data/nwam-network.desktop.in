@@ -2,7 +2,7 @@
 Encoding=UTF-8
 Name=Network (NWAM)
 Comment=Configure network devices and connections
-Icon=/usr/share/icons/nimbus/48x48/actions/network.png
+Icon=preferences-system-network.png
 Exec=/usr/bin/gksu "nwam-manager-properties"
 Terminal=false
 Type=Application
