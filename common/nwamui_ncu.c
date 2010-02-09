@@ -4274,6 +4274,10 @@ nwamui_ncu_update_state(NwamuiNcu* self)
         new_state = NWAMUI_STATE_UNKNOWN;
         break;
     case NWAM_STATE_MAINTENANCE:
+        if (iface_aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR) {
+            new_state = NWAMUI_STATE_DHCP_DUPLICATE_ADDR;
+            break;
+        }
     case NWAM_STATE_DEGRADED:
     case NWAM_STATE_INITIALIZED:
         new_state = NWAMUI_STATE_NETWORK_UNAVAILABLE;
@@ -4347,10 +4351,11 @@ nwamui_ncu_update_state(NwamuiNcu* self)
             new_state = NWAMUI_STATE_DHCP_TIMED_OUT;
             break;
         }
-        else if ( iface_aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR ) {
-            new_state = NWAMUI_STATE_DHCP_DUPLICATE_ADDR;
-            break;
-        }
+        /* Disabled due to 14427 */
+        /* else if ( iface_aux_state == NWAM_AUX_STATE_IF_DUPLICATE_ADDR ) { */
+        /*     new_state = NWAMUI_STATE_DHCP_DUPLICATE_ADDR; */
+        /*     break; */
+        /* } */
         new_state = NWAMUI_STATE_CONNECTING;
         break;
     case NWAM_STATE_ONLINE:

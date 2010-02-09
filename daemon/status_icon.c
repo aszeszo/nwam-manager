@@ -561,6 +561,9 @@ ncu_notify_active(GObject *gobject, GParamSpec *arg1, gpointer data)
         /* Only show if in transition to down for sure */
         nwam_notification_show_ncu_disconnected(ncu, NULL, NULL);
         break;
+    case NWAMUI_STATE_DHCP_DUPLICATE_ADDR:
+        nwam_notification_show_ncu_dup_address(ncu);
+        break;
     case NWAMUI_STATE_NETWORK_UNAVAILABLE:
     case NWAMUI_STATE_CONNECTING_ESSID:
     case NWAMUI_STATE_NEEDS_KEY_ESSID:

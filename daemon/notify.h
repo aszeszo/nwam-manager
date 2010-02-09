@@ -79,6 +79,8 @@ void nwam_notification_show_ncu_disconnected( NwamuiNcu*           ncu,
  */
 void nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu );
 
+void nwam_notification_show_ncu_dup_address(NwamuiNcu* ncu);
+
 /* 
  * Show a message to tell the user that wireless key is needed.
  */

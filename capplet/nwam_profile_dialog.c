@@ -990,49 +990,52 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
     gboolean                    is_in_ncp;
     NwamuiObject               *found_object = NULL;
 
-    gtk_tree_model_get(model, iter, 0, &obj, -1);
+    if (prv->selected_ncp) {
 
-    /* We are using the NCU list in Automatic NCP. */
-    if (g_list_find(prv->ncu_list, obj)) {
-        is_in_ncp = TRUE;
-    } else {
-        is_in_ncp = FALSE;
-    }
+        gtk_tree_model_get(model, iter, 0, &obj, -1);
 
-    /* prv->ncu_list only contains ncus of automaic ncp, so we have to find the
-     * real NCU. */
-    name = nwamui_object_get_name(obj);
-    found_object = NWAMUI_OBJECT(nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->selected_ncp), name));
-    if ( found_object != NULL ) {
-        /* Now we change to interface state */
-        if (nwamui_object_get_nwam_state(found_object, NULL, NULL) == NWAM_STATE_ONLINE) {
-            is_active = TRUE;
-        }
-        /* Safely unref though we still use this pointer. */
-        g_object_unref(found_object);
-    }
-
-    /* Set sensitivity based on whether it's active or not */
-    g_object_set( G_OBJECT(renderer), "sensitive", !is_active, NULL );
-
-    if (GTK_IS_CELL_RENDERER_TOGGLE(renderer)) {
-        g_object_set(renderer, "active", is_in_ncp, NULL);
-        g_object_set( G_OBJECT(renderer), "activatable", !is_active, NULL );
-    } else {
-        gchar   *disp_text;
-
-        if ( is_active ) {
-            disp_text = g_strdup_printf( _("%s  (active)"), name );
-        }
-        else {
-            disp_text = g_strdup( name );
+        /* We are using the NCU list in Automatic NCP. */
+        if (g_list_find(prv->ncu_list, obj)) {
+            is_in_ncp = TRUE;
+        } else {
+            is_in_ncp = FALSE;
         }
 
-        g_object_set(renderer, "text", disp_text, NULL);
+        /* prv->ncu_list only contains ncus of automaic ncp, so we have to find the
+         * real NCU. */
+        name = nwamui_object_get_name(obj);
+        found_object = NWAMUI_OBJECT(nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->selected_ncp), name));
+        if ( found_object != NULL ) {
+            /* Now we change to interface state */
+            if (nwamui_object_get_nwam_state(found_object, NULL, NULL) == NWAM_STATE_ONLINE) {
+                is_active = TRUE;
+            }
+            /* Safely unref though we still use this pointer. */
+            g_object_unref(found_object);
+        }
 
-        g_free(disp_text);
+        /* Set sensitivity based on whether it's active or not */
+        g_object_set( G_OBJECT(renderer), "sensitive", !is_active, NULL );
+
+        if (GTK_IS_CELL_RENDERER_TOGGLE(renderer)) {
+            g_object_set(renderer, "active", is_in_ncp, NULL);
+            g_object_set( G_OBJECT(renderer), "activatable", !is_active, NULL );
+        } else {
+            gchar   *disp_text;
+
+            if ( is_active ) {
+                disp_text = g_strdup_printf( _("%s  (active)"), name );
+            }
+            else {
+                disp_text = g_strdup( name );
+            }
+
+            g_object_set(renderer, "text", disp_text, NULL);
+
+            g_free(disp_text);
+        }
+        g_object_unref(obj);
     }
-    g_object_unref(obj);
 }
 
 static void

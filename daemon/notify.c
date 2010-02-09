@@ -761,6 +761,31 @@ nwam_notification_show_ncu_wifi_connect_failed( NwamuiNcu* ncu )
     }
 }
 
+void
+nwam_notification_show_ncu_dup_address(NwamuiNcu* ncu)
+{
+    GdkPixbuf       *icon = NULL;
+    gchar           *summary_str = NULL;
+    gchar           *body_str = NULL;
+    gchar           *display_name = NULL;
+
+    g_return_if_fail( ncu != NULL );
+
+    icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
+
+    display_name = g_strdup(nwamui_ncu_get_display_name( ncu ));
+
+    summary_str = g_strdup_printf(_("%s disconnected"), display_name );
+    body_str = nwamui_ncu_get_connection_state_string(ncu);
+
+    nwam_notification_show_message(summary_str, body_str,
+      icon, NOTIFY_EXPIRES_DEFAULT);
+
+    g_free(display_name);
+    g_free(summary_str);
+    g_free(body_str);
+}
+
 /* 
  * Show a message to tell the user that wireless selection is needed.
  */
