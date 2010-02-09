@@ -2592,22 +2592,25 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             break;
         case NWAM_ACTION_DISABLE:
             break;
-        case NWAM_ACTION_ENABLE: {
-            /* Don't use nwamui_object_set_active() since it will
-             * actually cause a switch again...
-             */
-            if ( prv->active_ncp != NULL ) {
-                g_object_unref(G_OBJECT(prv->active_ncp));
-            }
+        case NWAM_ACTION_ENABLE:
+            if (ncp) {
+                /* Don't use nwamui_object_set_active() since it will
+                 * actually cause a switch again...
+                 */
+                if ( prv->active_ncp != NULL ) {
+                    g_object_unref(G_OBJECT(prv->active_ncp));
+                }
 
-            prv->active_ncp = NWAMUI_OBJECT(g_object_ref( ncp ));
-            /* We need reload NCP since it may changes when it isn't active. */
-/*             nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
-            g_object_notify(G_OBJECT(daemon), "active_ncp");
-        }
+                prv->active_ncp = NWAMUI_OBJECT(g_object_ref( ncp ));
+                /* We need reload NCP since it may changes when it isn't active. */
+                /* nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
+                g_object_notify(G_OBJECT(daemon), "active_ncp");
+            }
             break;
         case NWAM_ACTION_REFRESH:
-            nwamui_object_reload(NWAMUI_OBJECT(ncp));
+            if (ncp) {
+                nwamui_object_reload(NWAMUI_OBJECT(ncp));
+            }
             break;
         case NWAM_ACTION_REMOVE:
             /* Treat REMOVE and DESTROY as the same */
@@ -2666,30 +2669,23 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             }
         }
             break;
-        case NWAM_ACTION_DISABLE: {
-            if ( !nwamui_object_has_modifications(ncu) ) {
+        case NWAM_ACTION_DISABLE:
+        case NWAM_ACTION_ENABLE:
+        case NWAM_ACTION_REFRESH:
+            /* When add a new wusb, nwamd has a bug that add object happens on a
+             * NCP, after add a known wlan, the NCU refresh event happens on
+             * another. This is a workaround since ncu maybe NULL.
+             */
+            if (ncu && !nwamui_object_has_modifications(ncu)) {
                 nwamui_object_reload(ncu);
             }
-        }
-            break;
-        case NWAM_ACTION_ENABLE: {
-            if ( !nwamui_object_has_modifications(ncu) ) {
-                nwamui_object_reload(ncu);
-            }
-        }
-            break;
-        case NWAM_ACTION_REFRESH: {
-            if ( !nwamui_object_has_modifications(ncu) ) {
-                nwamui_object_reload(ncu);
-            }
-        }
             break;
         case NWAM_ACTION_REMOVE:
             /* Fall through. */
-        case NWAM_ACTION_DESTROY: {
-            if (ncu)
+        case NWAM_ACTION_DESTROY:
+            if (ncu) {
                 nwamui_ncp_remove_ncu(NWAMUI_NCP(ncp), NWAMUI_NCU(ncu));
-        }
+            }
             break;
         }
         if (ncu) {
@@ -2715,25 +2711,28 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             }
         }
             break;
-        case NWAM_ACTION_DISABLE: {
-            nwamui_object_set_enabled(env, FALSE);
-            g_object_notify(G_OBJECT(daemon), "env_selection_mode");
-        }
-            break;
-        case NWAM_ACTION_ENABLE: {
-            /* Ensure that correct active env pointer */
-            if ( prv->active_env != env ) {
-                /* New active ENV */
-                nwamui_daemon_set_active_env( daemon, env );
+        case NWAM_ACTION_DISABLE:
+            if (env) {
+                nwamui_object_set_enabled(env, FALSE);
+                g_object_notify(G_OBJECT(daemon), "env_selection_mode");
             }
-
-            nwamui_object_set_enabled(env, TRUE);
-            g_object_notify(G_OBJECT(daemon), "env_selection_mode");
-        }
             break;
-        case NWAM_ACTION_REFRESH: {
-            nwamui_object_reload(env);
-        }
+        case NWAM_ACTION_ENABLE:
+            if (env) {
+                /* Ensure that correct active env pointer */
+                if ( prv->active_env != env ) {
+                    /* New active ENV */
+                    nwamui_daemon_set_active_env( daemon, env );
+                }
+
+                nwamui_object_set_enabled(env, TRUE);
+                g_object_notify(G_OBJECT(daemon), "env_selection_mode");
+            }
+            break;
+        case NWAM_ACTION_REFRESH:
+            if (env) {
+                nwamui_object_reload(env);
+            }
             break;
         case NWAM_ACTION_REMOVE:
             /* Fall through, remove/destroy are the same here */
@@ -2776,7 +2775,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             /* } */
             break;
         case NWAM_ACTION_REFRESH:
-            if (!nwamui_object_has_modifications(enm)) {
+            if (enm && !nwamui_object_has_modifications(enm)) {
                 nwamui_object_reload(enm);
             }
             break;
