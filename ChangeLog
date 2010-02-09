@@ -1,6 +1,13 @@
 2010-02-09  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_daemon.c
+	(nwamui_daemon_handle_object_action_event): Reload NCP once it is
+	enabled, so it may fix the problem - attach a wusb.
+	* common/nwamui_ncu.c: Clean code.
+
+2010-02-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_daemon.c
 	(nwamui_daemon_handle_object_action_event): When add a new wusb,
 	nwamd has a bug that add object happens on a NCP, after add a
 	known wlan, the NCU refresh event happens on another. This is a

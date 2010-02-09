@@ -4304,22 +4304,16 @@ nwamui_ncu_update_state(NwamuiNcu* self)
         } else if ( prv->ncu_type == NWAMUI_NCU_TYPE_WIRELESS ) {
             if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_SCANNING ) {
                 new_state = NWAMUI_STATE_SCANNING;
-                break;
-            }
-            else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
+            } else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_SELECTION ) {
                 new_state = NWAMUI_STATE_NEEDS_SELECTION;
-                break;
-            }
-            else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
+            } else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_NEED_KEY ) {
                 new_state = NWAMUI_STATE_NEEDS_KEY_ESSID;
-                break;
-            }
-            else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
+            } else if ( link_aux_state == NWAM_AUX_STATE_LINK_WIFI_CONNECTING ) {
                 new_state = NWAMUI_STATE_CONNECTING_ESSID;
-                break;
             } else {
                 new_state = NWAMUI_STATE_NETWORK_UNAVAILABLE;
             }
+            break;
         } else {
             /* new_state = NWAMUI_STATE_NOT_CONNECTED; */
         }

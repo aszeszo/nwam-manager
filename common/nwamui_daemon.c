@@ -2597,13 +2597,15 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 /* Don't use nwamui_object_set_active() since it will
                  * actually cause a switch again...
                  */
-                if ( prv->active_ncp != NULL ) {
-                    g_object_unref(G_OBJECT(prv->active_ncp));
+                if (prv->active_ncp != NULL) {
+                    g_object_unref(prv->active_ncp);
                 }
 
-                prv->active_ncp = NWAMUI_OBJECT(g_object_ref( ncp ));
+                prv->active_ncp = g_object_ref(ncp);
                 /* We need reload NCP since it may changes when it isn't active. */
-                /* nwamui_object_reload(NWAMUI_OBJECT(ncp)); */
+                if (!nwamui_object_has_modifications(ncp)) {
+                    nwamui_object_reload(ncp);
+                }
                 g_object_notify(G_OBJECT(daemon), "active_ncp");
             }
             break;
