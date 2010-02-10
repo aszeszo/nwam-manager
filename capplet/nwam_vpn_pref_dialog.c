@@ -283,13 +283,17 @@ capplet_tree_model_row_changed_func(GtkTreeModel *tree_model,
   GtkTreeIter  *iter,
   gpointer      user_data)
 {
-    NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(user_data);
-    GtkTreeSelection *selection = gtk_tree_view_get_selection(prv->view);
+    NwamVPNPrefDialogPrivate *prv       = GET_PRIVATE(user_data);
+    GtkTreeSelection         *selection = gtk_tree_view_get_selection(prv->view);
+    GtkTreeSelectionFunc      func      = gtk_tree_selection_get_select_function(selection);
+    gpointer                  data      = gtk_tree_selection_get_user_data(selection);
 
     if (gtk_tree_selection_path_is_selected(selection, path)) {
         /* Re-select the row to update the panel. */
-        gtk_tree_selection_unselect_path(selection, path);
-        gtk_tree_selection_select_path(selection, path);
+        nwam_vpn_selection_changed(selection, user_data);
+        /* if (func) { */
+        /*     func(selection, tree_model, path, TRUE, data); */
+        /* } */
     }
 }
 
@@ -1066,6 +1070,7 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 
             title = g_strdup_printf(_("Start/stop '%s' according to rules"), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
             g_object_set(prv->vpn_conditional_cb, "label", title, NULL);
+            gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_conditional_cb), TRUE);
 
             g_free(title);
 
@@ -1150,32 +1155,32 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
                 }
 
             }
-		} else {
-			gtk_entry_set_text (prv->start_cmd_entry, "");
-			gtk_entry_set_text (prv->stop_cmd_entry, "");
-			gtk_entry_set_text (prv->process_entry, "");
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->rename_btn), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_entry), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->process_entry), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_lbl), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_lbl), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->process_lbl), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->desc_lbl), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_conditional_cb), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_cli_rb), FALSE);
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_smf_rb), FALSE);
+            return;
 		}
-	}
+    }
+    gtk_entry_set_text (prv->start_cmd_entry, "");
+    gtk_entry_set_text (prv->stop_cmd_entry, "");
+    gtk_entry_set_text (prv->process_entry, "");
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->rename_btn), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_entry), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->process_entry), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_lbl), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_lbl), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->process_lbl), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->desc_lbl), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_conditional_cb), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_cli_rb), FALSE);
+    gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_smf_rb), FALSE);
 }
 
 static void

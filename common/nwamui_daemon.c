@@ -2772,10 +2772,6 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             break;
         case NWAM_ACTION_DISABLE:
         case NWAM_ACTION_ENABLE:
-            /* if (!nwamui_object_has_modifications(enm)) { */
-            /*     nwamui_object_reload(enm); */
-            /* } */
-            break;
         case NWAM_ACTION_REFRESH:
             if (enm && !nwamui_object_has_modifications(enm)) {
                 nwamui_object_reload(enm);

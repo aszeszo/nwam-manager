@@ -57,7 +57,6 @@ struct _NwamuiObjectPrivate {
      * classes to have extra state per NCU class type */
     nwam_state_t      nwam_state;
     nwam_aux_state_t  nwam_aux_state;
-    time_t            nwam_state_last_update;
 };
 
 static GObject* nwamui_object_constructor(GType type,
@@ -193,9 +192,6 @@ default_nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, n
 
     prv->nwam_state = state;
     prv->nwam_aux_state = aux_state;
-#if 0
-    prv->nwam_state_last_update = time( NULL );;
-#endif
     if ( state_changed ) {
 /*         g_debug("Set: %-10s - %s", nwam_state_to_string(state), nwam_aux_state_to_string(aux_state)); */
         g_object_notify(G_OBJECT(object), "nwam_state" );
@@ -325,7 +321,7 @@ nwamui_object_init(NwamuiObject *self)
     prv->name = NWAMUI_OBJECT_GET_CLASS(self)->get_name(self);
     prv->activation_mode = NWAMUI_OBJECT_GET_CLASS(self)->get_activation_mode(self);
 
-/*     g_signal_connect(G_OBJECT(self), "notify", (GCallback)nwamui_object_notify_cb, (gpointer)self); */
+    g_signal_connect(G_OBJECT(self), "notify", (GCallback)nwamui_object_notify_cb, (gpointer)self);
 }
 
 static void
@@ -538,11 +534,15 @@ nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
 
     if (prv->activation_mode != activation_mode) {
+        g_object_freeze_notify(object);
+
         NWAMUI_OBJECT_GET_CLASS(object)->set_activation_mode(object, activation_mode);
         /* Cache it */
         prv->activation_mode = activation_mode;
 
         g_object_notify(G_OBJECT(object), "activation-mode");
+
+        g_object_thaw_notify(object);
     }
 }
 
@@ -634,50 +634,12 @@ nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p
 
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), rval );
 
-#if 0
-    _current_time = time( NULL );
-
-    _elapsed_time = _current_time - prv->nwam_state_last_update;
-
-    if ( _elapsed_time > _nwamui_state_timeout ) {
-        gboolean state_changed = FALSE;
-
-        _state = NWAMUI_OBJECT_GET_CLASS (object)->get_nwam_state(object, &_aux_state, NULL);
-
-        if ( _state != prv->nwam_state ) {
-            state_changed = TRUE;
-        }
-        if ( _aux_state != prv->nwam_aux_state ) {
-            state_changed = TRUE;
-        }
-
-        /* Update internal cache */
-        prv->nwam_state = _state;
-        prv->nwam_aux_state = _aux_state;
-        prv->nwam_state_last_update = _current_time;
-
-        if ( state_changed ) {
-            g_object_notify(G_OBJECT(object), "nwam_state" );
-        }
-
-        /* Active property is likely to have changed too, but first check if there
-         * is a get_active function, if so the active property should exist. */
-        /* For NCUs, only care cache_index == 0. Compatible to ENV, ENM, etc. */
-        if ( state_changed) {
-            g_object_notify(G_OBJECT(object), "active" );
-        }
-    } else {
-        _state = prv->nwam_state;
-        _aux_state = prv->nwam_aux_state;
-    }
-#else
     /* Initializing nwam state, important for initially show panel icon. */
     if (prv->nwam_state == NWAM_STATE_UNINITIALIZED && prv->nwam_aux_state == NWAM_AUX_STATE_UNINITIALIZED) {
         prv->nwam_state = NWAMUI_OBJECT_GET_CLASS (object)->get_nwam_state(object, &prv->nwam_aux_state, NULL);
     }
     _state = prv->nwam_state;
     _aux_state = prv->nwam_aux_state;
-#endif
 
     rval = _state;
 
@@ -744,7 +706,6 @@ nwamui_object_clone(NwamuiObject *object, const gchar *name, NwamuiObject *paren
 }
 
 /* Callbacks */
-
 static void
 nwamui_object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {

@@ -97,7 +97,6 @@ enum {
     PROP_SVCS_ENABLE,
     PROP_SVCS_DISABLE,
 #endif /* ENABLE_NETSERVICES */
-    PROP_NWAM_ENV,
     PROP_SVCS,
 #ifdef ENABLE_PROXY
     PROP_PROXY_TYPE,
@@ -399,14 +398,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
 #endif /* ENABLE_NETSERVICES */
 
     g_object_class_install_property (gobject_class,
-                                     PROP_NWAM_ENV,
-                                     g_param_spec_pointer ("nwam_env",
-                                                          _("Nwam Env handle"),
-                                                          _("Nwam Env handle"),
-                                                          G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
-
-
-    g_object_class_install_property (gobject_class,
                                      PROP_SVCS,
                                      g_param_spec_object ("svcs",
                                                           _("smf services"),
@@ -595,12 +586,6 @@ nwamui_env_set_property (   GObject         *object,
     nwam_error_t nerr;
     
     switch (prop_id) {
-        case PROP_NWAM_ENV: {
-                g_assert (prv->nwam_loc == NULL);
-                prv->nwam_loc = g_value_get_pointer (value);
-            }
-            break;
-
         case PROP_NAMESERVICES: {
                 GList*                  ns_list = (GList*)g_value_get_pointer( value );
                 guint64*                ns_array = NULL;

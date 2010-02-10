@@ -1,3 +1,34 @@
+2010-02-10  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_vpn_pref_dialog.c
+	(capplet_tree_model_row_changed_func),
+	(nwam_vpn_selection_changed): Fixed all widgets are enabled even
+	there is no ENMs in the view. Fixed conditional toggle buttun
+	never sensitive.
+	* common/nwamui_daemon.c
+	(nwamui_daemon_handle_object_action_event): Reload ENMs on action
+	enabled/disabled/refresh.
+	* common/nwamui_enm.c (nwamui_enm_class_init),
+	(nwamui_enm_set_property), (nwamui_enm_new),
+	(nwamui_enm_new_with_handle), (nwamui_object_real_set_name),
+	(nwamui_object_real_set_handle), (nwamui_object_real_set_active),
+	(nwamui_object_real_set_enabled), (nwamui_enm_set_start_command),
+	(nwamui_enm_set_stop_command), (nwamui_enm_set_smf_fmri),
+	(nwamui_object_real_set_activation_mode),
+	(nwamui_object_real_set_conditions), (nwamui_object_real_commit):
+	Fixed enable ENMs from panel pop up doesn't work due to it has
+	modification by default after new the object.
+	* common/nwamui_env.c (nwamui_env_class_init),
+	(nwamui_env_set_property):
+	* common/nwamui_ncp.c (nwamui_ncp_class_init),
+	(nwamui_ncp_set_property): Removed the properties "nwam_xxx",
+	since they may cause problems like ENM, and actually no one use
+	them.
+	* common/nwamui_object.c (default_nwamui_object_set_nwam_state),
+	(nwamui_object_init), (nwamui_object_set_activation_mode),
+	(nwamui_object_get_nwam_state):
+	Clean code.
+
 2010-02-09  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* configure.in: Bump to 0.99.99

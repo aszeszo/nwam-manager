@@ -44,8 +44,7 @@ static NwamuiNcp       *instance        = NULL;
 static gint _num_wireless = 0; /* Count wireless i/fs */
 
 enum {
-    PROP_NWAM_NCP = 1,
-    PROP_PRIORITY_GROUP,
+    PROP_PRIORITY_GROUP = 1,
     PROP_NCU_LIST,
     PROP_NCU_LIST_STORE,
     PROP_ACTIVE_NCU,
@@ -179,13 +178,6 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
-                                     PROP_NWAM_NCP,
-                                     g_param_spec_pointer ("nwam_ncp",
-                                                           _("Nwam Ncp handle"),
-                                                           _("Nwam Ncp handle"),
-                                                           G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
-
-    g_object_class_install_property (gobject_class,
       PROP_PRIORITY_GROUP,
       g_param_spec_int64("priority_group",
         _("priority group"),
@@ -317,12 +309,6 @@ nwamui_ncp_set_property (   GObject         *object,
     }
 
     switch (prop_id) {
-        case PROP_NWAM_NCP: {
-                g_assert (self->prv->nwam_ncp == NULL);
-                self->prv->nwam_ncp = g_value_get_pointer (value);
-            }
-            break;
-
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;

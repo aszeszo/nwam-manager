@@ -48,7 +48,6 @@ enum {
     PROP_START_COMMAND = 1,
     PROP_STOP_COMMAND,
     PROP_SMF_FMRI,
-    PROP_NWAM_ENM,
 };
 
 
@@ -135,36 +134,28 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
 
     /* Create some properties */
     g_object_class_install_property (gobject_class,
-                                     PROP_START_COMMAND,
-                                     g_param_spec_string ("start_command",
-                                                          _("start_command"),
-                                                          _("start_command"),
-                                                          "",
-                                                          G_PARAM_READWRITE));
+      PROP_START_COMMAND,
+      g_param_spec_string ("start_command",
+        _("start_command"),
+        _("start_command"),
+        "",
+        G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_STOP_COMMAND,
-                                     g_param_spec_string ("stop_command",
-                                                          _("stop_command"),
-                                                          _("stop_command"),
-                                                          "",
-                                                          G_PARAM_READWRITE));
+      PROP_STOP_COMMAND,
+      g_param_spec_string ("stop_command",
+        _("stop_command"),
+        _("stop_command"),
+        "",
+        G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
-                                     PROP_SMF_FMRI,
-                                     g_param_spec_string ("smf_fmri",
-                                                          _("smf_fmri"),
-                                                          _("smf_fmri"),
-                                                          "",
-                                                          G_PARAM_READWRITE));
-
-
-    g_object_class_install_property (gobject_class,
-      PROP_NWAM_ENM,
-      g_param_spec_pointer ("nwam_enm",
-        _("Nwam Enm handle"),
-        _("Nwam Enm handle"),
-        G_PARAM_CONSTRUCT_ONLY | G_PARAM_WRITABLE));
+      PROP_SMF_FMRI,
+      g_param_spec_string ("smf_fmri",
+        _("smf_fmri"),
+        _("smf_fmri"),
+        "",
+        G_PARAM_READWRITE));
 
 }
 
@@ -211,15 +202,13 @@ nwamui_enm_set_property (   GObject         *object,
             }
             break;
 
-        case PROP_NWAM_ENM: {
-                self->prv->nwam_enm = g_value_get_pointer (value);
-            }
-            break;
-
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
             break;
     }
+    /* Note, contruct properties will set this flag initially, so make sure
+     * after xxx_new function unset this flag. The same to other objects.
+     */
     self->prv->nwam_enm_modified = TRUE;
 }
 
@@ -283,12 +272,11 @@ nwamui_enm_get_property (   GObject         *object,
  *
  **/
 extern  NwamuiObject*          
-nwamui_enm_new (    const gchar*    name )
+nwamui_enm_new (const gchar *name)
 {
-    NwamuiEnm *self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM, 
-                "name", name,
-                NULL));
+    NwamuiEnm *self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM, NULL));
 
+    nwamui_object_set_name(NWAMUI_OBJECT(self), name);
     return NWAMUI_OBJECT( self );
 }
 
@@ -624,8 +612,7 @@ set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 
 extern  NwamuiObject*          
 nwamui_enm_new_with_handle (nwam_enm_handle_t enm)
 {
-    NwamuiEnm*      self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM,
-                                   NULL));
+    NwamuiEnm *self = NWAMUI_ENM(g_object_new(NWAMUI_TYPE_ENM, NULL));
     
     nwamui_object_real_set_handle(NWAMUI_OBJECT(self), enm);
 
@@ -695,11 +682,11 @@ nwamui_object_real_set_name(NwamuiObject *object, const gchar*  name)
                 g_debug ("nwam_enm_set_name %s error: %s", name, nwam_strerror (nerr));
                 return FALSE;
             }
-        }
-        else {
+            prv->nwam_enm_modified = TRUE;
+            g_debug ("nwam_enm_set_name %s", name);
+        } else {
             g_warning("Unexpected null enm handle");
         }
-        prv->nwam_enm_modified = TRUE;
     }
 
     g_free(prv->name);
@@ -747,11 +734,10 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
         return;
     }
     nwamui_object_set_name(object, name);
+
     free (name);
 
     nwamui_object_real_reload(object);
-
-    prv->nwam_enm_modified = FALSE;
 }
 
 /**
@@ -807,9 +793,7 @@ nwamui_object_real_set_active(NwamuiObject *object, gboolean active)
                 g_debug ("nwam_enm_stop error: %s", nwam_strerror (nerr));
             }
         }
-        g_object_notify(G_OBJECT(self), "active");
-    }
-    else {
+    } else {
         g_warning("Unexpected null enm handle");
     }
 }
@@ -856,8 +840,8 @@ nwamui_object_real_set_enabled (   NwamuiObject *object, gboolean        enabled
         if ( !set_nwam_enm_boolean_prop( prv->nwam_enm, NWAM_ENM_PROP_ENABLED, enabled ) ) {
             g_debug("Error setting ENM boolean prop ENABLED");
         }
-        g_object_notify(G_OBJECT(object), "enabled" );
         prv->nwam_enm_modified = TRUE;
+        g_object_notify(G_OBJECT(object), "enabled" );
     } else {
         g_warning("Unexpected null enm handle");
     }
@@ -915,8 +899,8 @@ nwamui_enm_set_start_command (   NwamuiEnm *self,
                 return( FALSE );
             }
         }
-        g_object_notify(G_OBJECT (self), "start_command");
         self->prv->nwam_enm_modified = TRUE;
+        g_object_notify(G_OBJECT (self), "start_command");
     }
     else {
         g_warning("Unexpected null enm handle");
@@ -967,8 +951,8 @@ nwamui_enm_set_stop_command (   NwamuiEnm *self,
             if ( (nerr = nwam_enm_delete_prop( self->prv->nwam_enm, NWAM_ENM_PROP_STOP ))  != NWAM_SUCCESS ) {
             }
         }
-        g_object_notify(G_OBJECT (self), "stop_command");
         self->prv->nwam_enm_modified = TRUE;
+        g_object_notify(G_OBJECT (self), "stop_command");
     } else {
         g_warning("Unexpected null enm handle");
         return( FALSE );
@@ -1026,8 +1010,8 @@ nwamui_enm_set_smf_fmri (   NwamuiEnm *self,
                 return( FALSE );
             }
         }
-        g_object_notify(G_OBJECT (self), "smf_fmri");
         self->prv->nwam_enm_modified = TRUE;
+        g_object_notify(G_OBJECT (self), "smf_fmri");
     }
     else {
         g_warning("Unexpected null enm handle");
@@ -1067,8 +1051,7 @@ nwamui_object_real_set_activation_mode ( NwamuiObject *object, gint activation_m
 
         set_nwam_enm_uint64_prop( self->prv->nwam_enm, NWAM_ENM_PROP_ACTIVATION_MODE, (guint64)nwamui_from_ui_activation_mode(activation_mode) );
         self->prv->nwam_enm_modified = TRUE;
-    }
-    else {
+    } else {
         g_warning("Unexpected null enm handle");
     }
 }
@@ -1130,13 +1113,14 @@ nwamui_object_real_set_conditions( NwamuiObject *object, const GList* conditions
             /* We need to set activation mode to MANUAL or it will
              * not allow deletion of conditions
              */
-            nwamui_object_set_enabled(object, FALSE );
-            nwamui_object_set_activation_mode(object, NWAMUI_COND_ACTIVATION_MODE_MANUAL);
+            nwamui_object_real_set_enabled(object, FALSE );
+            nwamui_object_real_set_activation_mode(object, NWAMUI_COND_ACTIVATION_MODE_MANUAL);
         } else {
             set_nwam_enm_string_array_prop(prv->nwam_enm, NWAM_ENM_PROP_CONDITIONS, condition_strs, len);
+            prv->nwam_enm_modified = TRUE;
+            g_debug("%s set conditions", prv->name);
             free(condition_strs);
         }
-        prv->nwam_enm_modified = TRUE;
     }
     else {
         g_warning("Unexpected null enm handle");
@@ -1277,6 +1261,7 @@ nwamui_object_real_commit( NwamuiObject *object )
             g_warning("Failed when committing ENM for %s, %s", self->prv->name, nwam_strerror( nerr ));
             return( FALSE );
         }
+        self->prv->nwam_enm_modified = FALSE;
     }
 
     return( TRUE );
