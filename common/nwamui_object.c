@@ -321,7 +321,9 @@ nwamui_object_init(NwamuiObject *self)
     prv->name = NWAMUI_OBJECT_GET_CLASS(self)->get_name(self);
     prv->activation_mode = NWAMUI_OBJECT_GET_CLASS(self)->get_activation_mode(self);
 
+#if 0
     g_signal_connect(G_OBJECT(self), "notify", (GCallback)nwamui_object_notify_cb, (gpointer)self);
+#endif
 }
 
 static void
@@ -534,7 +536,7 @@ nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
 
     if (prv->activation_mode != activation_mode) {
-        g_object_freeze_notify(object);
+        g_object_freeze_notify(G_OBJECT(object));
 
         NWAMUI_OBJECT_GET_CLASS(object)->set_activation_mode(object, activation_mode);
         /* Cache it */
@@ -542,7 +544,7 @@ nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
 
         g_object_notify(G_OBJECT(object), "activation-mode");
 
-        g_object_thaw_notify(object);
+        g_object_thaw_notify(G_OBJECT(object));
     }
 }
 

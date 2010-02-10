@@ -1,5 +1,11 @@
 2010-02-10  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwamui_object.c (nwamui_object_init): Disable debug info,
+	fixed build warnings.
+	* configure.in: Bump to 0.99.99.1
+
+2010-02-10  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_vpn_pref_dialog.c
 	(capplet_tree_model_row_changed_func),
 	(nwam_vpn_selection_changed): Fixed all widgets are enabled even
