@@ -339,7 +339,7 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
 
 	/* column APP_NAME */
 	col = capplet_column_new(view,
-      "title", _("Application Name"),
+      "title", _("Modifier Name"),
       "expand", FALSE,
       "resizable", TRUE,
       "clickable", FALSE,

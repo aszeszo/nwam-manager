@@ -1709,7 +1709,7 @@ nwam_menu_create_static_menuitems (NwamStatusIcon *self)
     END_MENU_SECTION_SEPARATOR(sub_menu, SECTION_NCU, TRUE);
 
     menu_append_item(sub_menu,
-      GTK_TYPE_MENU_ITEM, _("_Connection Profile..."),
+      GTK_TYPE_MENU_ITEM, _("Network _Profile..."),
       on_activate_static_menuitems, self);
     CACHE_STATIC_MENUITEMS(self, MENUITEM_CONN_PROF);
 

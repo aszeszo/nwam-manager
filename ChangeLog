@@ -1,3 +1,12 @@
+2010-02-10  Calum Benson  <set EMAIL_ADDRESS environment variable>
+
+	* capplet/nwam_vpn_pref_dialog.c: (nwam_compose_tree_view):
+	Change 'Application Name' column header to 'Modifier Name'
+
+	* daemon/status_icon.c: (nwam_menu_create_static_menuitems):
+	Change 'Connection Profile' menu item to 'Network Profile', to
+	match preferences dialog and online help.
+
 2010-02-10  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_daemon.c (dispatch_scan_results_from_wlan_array):
