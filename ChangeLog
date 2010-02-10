@@ -1,5 +1,11 @@
 2010-02-10  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwamui_daemon.c (dispatch_scan_results_from_wlan_array):
+	When wlan_scan_report get 0 wlans, there is no choice to tell gui
+	the dead wlans.
+
+2010-02-10  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_object.c (nwamui_object_init): Disable debug info,
 	fixed build warnings.
 	* configure.in: Bump to 0.99.99.1

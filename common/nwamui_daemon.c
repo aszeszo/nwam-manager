@@ -1753,11 +1753,10 @@ dispatch_scan_results_from_wlan_array( NwamuiDaemon *daemon, NwamuiNcu* ncu,  ui
                 g_object_unref(wifi_net);
             }
         }
-        /* Emit new/dead/modified accordingly */
-        nwamui_ncu_wifi_hash_foreach(ncu, foreach_wifi_in_ncu_emit, (gpointer)daemon);
-
         g_free(sorted_wlans);
     }
+    /* Emit new/dead/modified accordingly */
+    nwamui_ncu_wifi_hash_foreach(ncu, foreach_wifi_in_ncu_emit, (gpointer)daemon);
 
     return( TRUE );
 }
