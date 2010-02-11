@@ -1,3 +1,12 @@
+2010-02-11  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* common/nwamui_prof.c:
+	* common/nwamui_prof.h: Fixed for the coming change of doo 14499
+	New: remove solaris.network.autoconf.refresh authorization
+	* configure.in: Bump to 0.99.99.2
+	* nwam_core/lib/i386/libnwam.so.1:
+	* nwam_core/lib/sparc/libnwam.so.1: Sync with nwam1_133.2
+
 2010-02-10  Calum Benson  <set EMAIL_ADDRESS environment variable>
 
 	* capplet/nwam_vpn_pref_dialog.c: (nwam_compose_tree_view):
