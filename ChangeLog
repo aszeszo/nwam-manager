@@ -1,3 +1,26 @@
+2010-02-12  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am:
+	* data/Makefile.am:
+	* data/nwam-manager-properties:
+	* data/nwam-manager-properties.desktop.in:
+	* data/nwam-network.desktop.in: Fixed 14234 [132] two 'Network
+	Locations' window can be opened.
+	* help/C/graphics/connection-properties-ipv4.png:
+	* help/C/graphics/connection-properties-wireless.png:
+	* help/C/graphics/connection-status.png:
+	* help/C/graphics/locationprefs-dialog.png:
+	* help/C/graphics/network-profile-view.png:
+	* help/C/graphics/nwprofile-auto.png:
+	* help/C/graphics/nwprofile-user.png:
+	* help/C/graphics/nwstatus-context-menu.png:
+	* help/C/graphics/vpn-dialog.png:
+	* help/C/graphics/wireless-chooser-dlg.png:
+	* help/C/graphics/wireless-chooser.png:
+	* help/C/nwam-manager.xml:
+	* help/Makefile.am: Updated OLH. And fixed 14522 [nwam133] Network
+	Modifier help is set to VPN Applications
+
 2010-02-11  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* common/nwamui_prof.c:

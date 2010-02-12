@@ -44,9 +44,9 @@ AM_LDFLAGS = \
 	$(NWAM_MANAGER_LIBS)		\
 	$(NULL)
 
-bin_PROGRAMS = nwam-manager-properties
+libexec_PROGRAMS = nwam-manager-properties
 
-nwam_manager_properties_SOURCES =		\
+nwam_manager_properties_SOURCES =	\
 	main.c			\
 	nwam_wireless_dialog.c	\
 	nwam_pref_dialog.c	\

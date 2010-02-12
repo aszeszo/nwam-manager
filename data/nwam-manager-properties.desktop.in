@@ -2,7 +2,7 @@
 Name=Network Locations
 Comment=Create, edit, delete and switch locations.
 Categories=GNOME;GTK;Application;System;Settings;
-Exec=/usr/bin/gksu "nwam-manager-properties -l"
+Exec=nwam-manager-properties -l
 Icon=network-location.png
 StartupNotify=true
 Terminal=false

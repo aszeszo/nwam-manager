@@ -21,6 +21,8 @@ schemasdir       = $(GCONF_SCHEMA_FILE_DIR)
 schemas_in_files = nwam-manager.schemas.in
 schemas_DATA     = $(schemas_in_files:.schemas.in=.schemas)
 
+dist_bin_SCRIPTS = nwam-manager-properties
+
 if GCONF_SCHEMAS_INSTALL
 install-data-local:
 	if test -z "$(DESTDIR)" ; then \

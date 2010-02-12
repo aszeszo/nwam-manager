@@ -13,13 +13,13 @@ DOC_FIGURES = \
 	graphics/nwstatus-context-menu.png \
 	graphics/panel-all-disconnect.png \
 	graphics/panel-wired-connect.png \
-	graphics/nwprofile-user.png \
+	graphics/network-profile-view.png \
 	graphics/vpn-dialog.png \
 	graphics/condition-location.png \
 	graphics/connection-status.png \
 	graphics/manual-location.png \
 	graphics/locationprefs-dialog.png \
-	graphics/wireless-chooser.png \
+	graphics/wireless-chooser-dlg.png \
 	graphics/panel-some-disconnect.png
 
 DOC_LINGUAS = 

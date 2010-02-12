@@ -1,0 +1,28 @@
+#!/bin/sh
+
+PATH=/usr/bin:$PATH
+
+NWAM_MANAGER_PROPERTIES=/usr/lib/nwam-manager-properties
+GKSU=/usr/bin/gksu
+PROFILES=/usr/bin/profiles
+
+HAS_PROFILES=no
+
+primary_administrator="Primary Administrator"
+network_autoconf_admin="Network Autoconf Admin"
+
+IFS="
+"
+
+for prof in `$PROFILES`; do
+    if [ x"$prof" = x"$primary_administrator" -o x"$prof" = x"$network_autoconf_admin" ]; then
+	HAS_PROFILES=yes
+	break
+    fi
+done
+
+if [ x"$HAS_PROFILES" = xyes ]; then
+    exec $NWAM_MANAGER_PROPERTIES "$@"
+else
+    exec $GKSU "$NWAM_MANAGER_PROPERTIES $@"
+fi

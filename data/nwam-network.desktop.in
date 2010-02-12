@@ -1,10 +1,11 @@
 [Desktop Entry]
 Encoding=UTF-8
-Name=Network (NWAM)
+Name=Network
 Comment=Configure network devices and connections
 Icon=preferences-system-network.png
-Exec=/usr/bin/gksu "nwam-manager-properties"
+Exec=nwam-manager-properties
 Terminal=false
 Type=Application
 Categories=GNOME;GTK;Application;System;Settings;
 X-GNOME-Autostart-enabled=true
+NoDisplay=true
