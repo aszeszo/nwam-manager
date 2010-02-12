@@ -1,3 +1,8 @@
+2010-02-12  Calum Benson  <Calum.Benson@Sun.COM>
+
+	* common/nwamui_prof.c: (nwamui_prof_get_no_fav_action_string):
+	Change wording of dropdown list item to match UI spec.
+
 2010-02-12  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/Makefile.am:

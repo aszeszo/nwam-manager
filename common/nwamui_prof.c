@@ -817,7 +817,7 @@ nwamui_prof_get_no_fav_action_string( nwamui_action_on_no_fav_networks_t action 
 {
     switch( action ) {
         case NWAMUI_NO_FAV_ACTION_NONE:
-            return( _("Do nothing") );
+            return( _("Do not connect") );
         case NWAMUI_NO_FAV_ACTION_SHOW_LIST_DIALOG:
             return( _("Show list of available networks") );
         default:
