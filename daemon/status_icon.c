@@ -482,21 +482,18 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
 
         /* Don't show anything if we've not scanned any networks */
         if ( nwamui_daemon_get_num_scanned_wifi( daemon ) != 0 ) {
-            if (!prv->needs_wifi_selection_seen) {
-                if ( prof_action_if_no_fav_networks == NWAMUI_NO_FAV_ACTION_SHOW_LIST_DIALOG ) {
-                    show_wireless_chooser( self );
+            if (prof_action_if_no_fav_networks == NWAMUI_NO_FAV_ACTION_SHOW_LIST_DIALOG) {
+                if (!prv->needs_wifi_selection_seen) {
+                    show_wireless_chooser(self);
+                    prv->needs_wifi_selection_seen = TRUE;
+                } else { /* If dialog still visibie raise it */
+                    set_wireless_chooser_urgency(self, TRUE);
                 }
-                else {
-                    nwam_notification_show_ncu_wifi_selection_needed( ncu, notifyaction_popup_menus, G_OBJECT(self) );
-                }
-
-                prv->needs_wifi_selection_seen = TRUE;
-            }
-            else { /* If dialog still visibie raise it */
-                set_wireless_chooser_urgency( self, TRUE );
+            } else {
+                nwam_notification_show_ncu_wifi_selection_needed(ncu, notifyaction_popup_menus, G_OBJECT(self));
             }
         }
-    } 
+    }
 }
 
 static void

@@ -1,6 +1,11 @@
-#!/bin/sh
+#!/bin/ksh -ph
 
-PATH=/usr/bin:$PATH
+#Figure out location of BASEDIR
+BASEDIR=${0%/bin/*}
+BASEDIR=${BASEDIR:-/usr} 
+
+PATH=/usr/bin:/usr/sbin:/sbin:${BASEDIR}/sbin:${PATH}
+export PATH
 
 NWAM_MANAGER_PROPERTIES=/usr/lib/nwam-manager-properties
 GKSU=/usr/bin/gksu
@@ -13,7 +18,6 @@ network_autoconf_admin="Network Autoconf Admin"
 
 IFS="
 "
-
 for prof in `$PROFILES`; do
     if [ x"$prof" = x"$primary_administrator" -o x"$prof" = x"$network_autoconf_admin" ]; then
 	HAS_PROFILES=yes
@@ -21,8 +25,24 @@ for prof in `$PROFILES`; do
     fi
 done
 
-if [ x"$HAS_PROFILES" = xyes ]; then
-    exec $NWAM_MANAGER_PROPERTIES "$@"
+isRunningNWAM() {
+    state_nwam=`/usr/bin/svcs -H -o state svc:/network/physical:nwam 2>/dev/null`
+
+    if [ "${state_nwam}" = "online" ]
+    then
+        return 0
+    else
+        return 1
+    fi
+}
+
+
+if isRunningNWAM; then
+    if [ x"$HAS_PROFILES" = xyes ]; then
+	exec $NWAM_MANAGER_PROPERTIES "$@"
+    else
+	exec $GKSU "$NWAM_MANAGER_PROPERTIES $@"
+    fi
 else
-    exec $GKSU "$NWAM_MANAGER_PROPERTIES $@"
+    exec ${BASEDIR}/lib/network-admin ${1+"$@"}
 fi

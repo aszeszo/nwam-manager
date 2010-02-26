@@ -389,6 +389,10 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     if (force) {
         GtkTreeModel *model = gtk_tree_view_get_model(prv->object_view);
 
+        /* Re-read objects from system */
+        g_object_set(self, "toggled_object", NULL, NULL);
+        nwam_profile_panel_set_toggled_row(self, NULL);
+
         gtk_widget_hide(GTK_WIDGET(self->prv->object_view));
         capplet_update_model_from_daemon(model, prv->daemon, NWAMUI_TYPE_NCP);
         gtk_widget_show(GTK_WIDGET(self->prv->object_view));
@@ -409,8 +413,7 @@ cancel(NwamPrefIFace *iface, gpointer user_data)
     /* Make sure new added which do not have a handle are committed. */
     nwamui_daemon_foreach_ncp(prv->daemon, foreach_commit_new_ncp, (gpointer)self);
 
-    /* Re-read objects from system 
-     */
+    /* Re-read objects from system */
     g_object_set(self, "toggled_object", NULL, NULL);
     nwam_profile_panel_set_toggled_row(self, NULL);
 
@@ -456,7 +459,7 @@ static gboolean
 help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug ("NwamProfilePanel: Help");
-    nwamui_util_show_help (HELP_REF_LOCATIONPREFS_DIALOG);
+    nwamui_util_show_help (HELP_REF_NWPROFILES_CONFIGURING);
 }
 
 
@@ -464,9 +467,9 @@ static void
 nwam_profile_panel_finalize(NwamProfilePanel *self)
 {
 	NwamProfilePanelPrivate *prv       = GET_PRIVATE(self);
-    g_object_unref(G_OBJECT(self->prv->profile_add_btn));	
-    g_object_unref(G_OBJECT(self->prv->profile_remove_btn));	
-    g_object_unref(G_OBJECT(self->prv->profile_rename_btn));	
+    g_object_unref(G_OBJECT(self->prv->profile_add_btn));
+    g_object_unref(G_OBJECT(self->prv->profile_remove_btn));
+    g_object_unref(G_OBJECT(self->prv->profile_rename_btn));
 
     if (prv->toggled_object)
         g_object_unref(prv->toggled_object);

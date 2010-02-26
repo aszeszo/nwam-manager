@@ -62,10 +62,10 @@ struct _NwamCappletDialogClass
 };
 
 enum {
-	PANEL_CONN_STATUS = 0,
-	PANEL_PROF_PREF,
-	PANEL_CONF_IP,
-	N_PANELS
+    PANEL_CONN_STATUS = 0,
+    PANEL_PROF_PREF,
+    PANEL_CONF_IP,
+    N_PANELS
 };
 
 extern GType                   nwam_capplet_dialog_get_type (void) G_GNUC_CONST;
@@ -73,6 +73,8 @@ extern GType                   nwam_capplet_dialog_get_type (void) G_GNUC_CONST;
 extern NwamCappletDialog* nwam_capplet_dialog_new (void);
 
 extern void nwam_capplet_dialog_select_ncu(NwamCappletDialog *self, NwamuiNcu *ncu );
+
+extern void nwam_capplet_dialog_select_tab(NwamCappletDialog *self, gint index, gboolean reload);
 
 extern void nwam_capplet_dialog_set_ok_sensitive_by_voting(NwamCappletDialog *self, gboolean setting);
 

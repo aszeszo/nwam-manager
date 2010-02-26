@@ -37,7 +37,7 @@ G_BEGIN_DECLS
 #define HELP_REF_NWSTATUS_ICON                   "nwstatus-icon"                 /* About the Network Status Notification Icon */
 #define HELP_REF_CONNECTION_NAMES                "connection-names"              /* How Connection Names Are Displayed */
 #define HELP_REF_STATUS_CONTXTMENU               "status-contxtmenu"             /* Working With the Network Status Notification Icon Menu */
-#define HELP_REF_VIEWSTATUS_INFO                 "viewstatus-info"               /* Obtaining Information About Network Status */
+#define HELP_REF_VIEWSTATUS_INFO                 "viewstatus-info"               /* Obtaining Information About Your Network's Status */
 #define HELP_REF_OBTAINSTATUS_CURRENT            "obtainstatus-current"          /* To Show Details of Enabled Network Connections */
 #define HELP_REF_CONFIGURE_NETWORK               "configure-network"             /* Controlling Network Connections */
 #define HELP_REF_CONNECTWIRELESS_STARTUP         "connectwireless-startup"       /* To Modify the Default Connection Priority */
@@ -53,13 +53,15 @@ G_BEGIN_DECLS
 #define HELP_REF_CONNECTSTATUS_VIEW              "connectstatus-view"            /*  Connection Status View */
 #define HELP_REF_NETWORKPROFILE_VIEW             "networkprofile-view"           /* Network Profile View */
 #define HELP_REF_CONNECTPROP_VIEW                "connectprop-view"              /* Connection Properties View */
-#define HELP_REF_NWPROFILES_CONFIGURING          "nwprofiles-configuring"        /* Working With Network Profiles */
-#define HELP_REF_PROFILE_VIEWINFO                "profile-viewinfo"              /* Viewing Information About Your Network Profile */
+#define HELP_REF_NWPROFILES_CONFIGURING          "nwprofiles-configuring"        /* Managing Network Profiles */
+#define HELP_REF_PROFILE_VIEWINFO                "profile-viewinfo"              /* Viewing Available Network Profiles */
 #define HELP_REF_PROFILES_SWITCHING              "profiles-switching"            /* To Switch From One Network Profile to Another Network Profile */
-#define HELP_REF_GIKAR                           "gikar"                         /* To Add or Remove Connections from the User Network Profile */
-#define HELP_REF_ENABLE_DISABLE_CONNECTION       "enable-disable-connection"     /* To Enable and Disable Connections in the User Network Profile */
-#define HELP_REF_RENAME_CONNECTION               "rename-connection"             /* To Rename Connections in the User Network Profile */
-#define HELP_REF_PRIORITYGRP_TASKS               "prioritygrp-tasks"             /* Working With Priority Groups */
+#define HELP_REF_PROFILES_ADDNEW                 "profiles-addnew"               /* To Add or Remove a Network Profile */
+#define HELP_REF_PROFILES_EDITING                "profiles-editing"              /* Editing Network Profiles */
+#define HELP_REF_EDITPROFILE_OPENDIALOG          "editprofile-opendialog"        /* Opening the Edit Network Profile Dialog */
+#define HELP_REF_ENABLE_DISABLE_CONNECTION       "enable-disable-connection"     /* To Always Enable or Always Disable Connections */
+#define HELP_REF_PRIORITYGRP_TASKS               "prioritygrp-tasks"             /* To Add, Edit, or Delete Priority Groups */
+#define HELP_REF_USERPROFILE_ADDCONNECT          "userprofile-addconnect"        /* To Add or Remove Connections */
 #define HELP_REF_CONNECTPROPS_CONFIG             "connectprops-config"           /* Configuring Network Connection Properties */
 #define HELP_REF_CONNECTPROPS_SETUPIPV4          "connectprops-setupipv4"        /* To Set Up IPv4 Addresses */
 #define HELP_REF_CONNECTPROPS_SETUPIPV6          "connectprops-setupipv6"        /* To Set Up IPv6 Addresses */
@@ -76,14 +78,13 @@ G_BEGIN_DECLS
 #define HELP_REF_LOCATION_DUPLICATE              "location-duplicate"            /* To Duplicate a Location  */
 #define HELP_REF_EDITLOCATIONS_NAMESVC           "editlocations-namesvc"         /* To Configure Name Services For a Location */
 #define HELP_REF_EDITLOCATIONS_SECURITY          "editlocations-security"        /* To Configure Security Features for a Location */
-#define HELP_REF_EDITLOCATIONS_SMFSVC            "editlocations-smfsvc"          /* Enabling and Disabling SMF Services for a Location */
-#define HELP_REF_VPN_CONFIGURING                 "vpn-configuring"               /* Configuring VPN Applications */
-#define HELP_REF_VPNPREFS_DIALOG                 "vpnprefs-dialog"               /* About the VPN Applications Dialog */
-#define HELP_REF_VPNAPP_CLICONTROLLED            "vpnapp-clicontrolled"          /* To Add a Command-Line VPN Application */
-#define HELP_REF_VPN_ADDSERVICE                  "vpn-addservice"                /* To Add a VPN Application Service */
-#define HELP_REF_VPNCONFIG_STARTSTOP             "vpnconfig-startstop"           /* To Start and Stop a VPN Application */
-#define HELP_REF_VPN_SETRULES                    "vpn-setrules"                  /* To Set Rules for a VPN Application */
-#define HELP_REF_VPNAPPLICATION_REMOVE           "vpnapplication-remove"         /* To Remove a VPN Application */
+#define HELP_REF_VPN_CONFIGURING                 "vpn-configuring"               /* Configuring Network Modifiers */
+#define HELP_REF_VPNPREFS_DIALOG                 "vpnprefs-dialog"               /* About the Network Modifiers Dialog */
+#define HELP_REF_VPNAPP_CLICONTROLLED            "vpnapp-clicontrolled"          /* To Add a Command-Line Network Modifier */
+#define HELP_REF_VPN_ADDSERVICE                  "vpn-addservice"                /* To Add a Network Modifier Service */
+#define HELP_REF_VPNCONFIG_STARTSTOP             "vpnconfig-startstop"           /* To Start and Stop a Network Modifier */
+#define HELP_REF_VPN_SETRULES                    "vpn-setrules"                  /* To Set Rules for a Network Modifier */
+#define HELP_REF_VPNAPPLICATION_REMOVE           "vpnapplication-remove"         /* To Remove a Network Modifier */
 #define HELP_REF_GIMFA                           "gimfa"                         /* Reference */
 #define HELP_REF_EDITING_TABLES                  "editing-tables"                /* Working With Editable Tables */
 #define HELP_REF_RULES_DIALOG                    "rules-dialog"                  /* Working With the Rules Dialog */

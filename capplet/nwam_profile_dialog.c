@@ -794,7 +794,7 @@ static gboolean
 help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug("NwamProfileDialog: Help");
-    nwamui_util_show_help (HELP_REF_NETWORKPROFILE_VIEW);
+    nwamui_util_show_help (HELP_REF_PROFILES_EDITING);
 }
 
 static void

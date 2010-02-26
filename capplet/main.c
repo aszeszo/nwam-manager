@@ -295,7 +295,7 @@ main(int argc, char** argv)
         capplet_dialog = NWAM_PREF_IFACE(nwam_capplet_dialog_new());
         
         if (net_pref_view) {
-            nwam_pref_refresh(capplet_dialog, (gpointer)PANEL_PROF_PREF, TRUE);
+            nwam_capplet_dialog_select_tab(NWAM_CAPPLET_DIALOG(capplet_dialog), PANEL_PROF_PREF, TRUE);
         }
         add_unique_message_handler( app, capplet_dialog );
 
