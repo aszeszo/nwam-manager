@@ -1,3 +1,8 @@
+2010-03-01  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* data/nwam-manager-properties: Fixed a nit since network-admin
+	is moved to /usr/bin
+
 2010-02-26  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/main.c (main):

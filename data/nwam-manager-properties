@@ -7,7 +7,7 @@ BASEDIR=${BASEDIR:-/usr}
 PATH=/usr/bin:/usr/sbin:/sbin:${BASEDIR}/sbin:${PATH}
 export PATH
 
-NWAM_MANAGER_PROPERTIES=/usr/lib/nwam-manager-properties
+NWAM_MANAGER_PROPERTIES=${BASEDIR}/lib/nwam-manager-properties
 GKSU=/usr/bin/gksu
 PROFILES=/usr/bin/profiles
 
@@ -44,5 +44,5 @@ if isRunningNWAM; then
 	exec $GKSU "$NWAM_MANAGER_PROPERTIES $@"
     fi
 else
-    exec ${BASEDIR}/lib/network-admin ${1+"$@"}
+    exec ${BASEDIR}/bin/network-admin ${1+"$@"}
 fi
