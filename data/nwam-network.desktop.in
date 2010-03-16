@@ -4,8 +4,8 @@ Name=Network
 Comment=Configure network devices and connections
 Icon=preferences-system-network.png
 Exec=nwam-manager-properties
+StartupNotify=true
 Terminal=false
 Type=Application
 Categories=GNOME;GTK;Application;System;Settings;
 X-GNOME-Autostart-enabled=true
-
