@@ -12,8 +12,7 @@ read NWAM_PHASE1_REPO
 [ -z "$NWAM_PHASE1_REPO" ] && NWAM_PHASE1_REPO=$HOME/nwam-gate
 
 NWAM_CORE_DIR=`dirname $0`
-CLONE_HEADERS="usr/src/lib/libnwam/common/libnwam.h
-usr/src/lib/libinetcfg/common/inetcfg.h
+CLONE_HEADERS="usr/src/lib/libinetcfg/common/inetcfg.h
 usr/src/lib/libdladm/common/*.h"
 
 CLONE_SYS_HEADERS="usr/src/uts/common/sys/mac.h
@@ -54,4 +53,6 @@ for f in ${CLONE_SYS_HEADERS}
 do
     echo_cp "${REPO}/${f}" usr/include/sys/
 done
+
+echo_cp "/usr/include/libnwam.h" .
 

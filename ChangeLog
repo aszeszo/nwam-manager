@@ -1,5 +1,22 @@
 2010-03-22  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* nwam_core/copy_onnv_headers.sh: copy system libnwam.h instead of
+	repos.
+	* nwam_core/libnwam.h: move this header out of build include path,
+	because we use the sysetem one. Keep this to check the header
+	changes.
+	* nwam_core/usr/include/libdladm.h:
+	* nwam_core/usr/include/libdladm_impl.h:
+	* nwam_core/usr/include/libdllink.h:
+	* nwam_core/usr/include/libdlstat.h:
+	* nwam_core/usr/include/libdlvnic.h:
+	* nwam_core/usr/include/libnwam.h:
+	* nwam_core/usr/include/sys/dld.h:
+	* nwam_core/usr/include/sys/mac.h:
+	* nwam_core/usr/include/sys/mac_flow.h: Update from onnv gate.
+
+2010-03-22  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_init),
 	(refresh), (daemon_active_ncp_notify_cb),
 	(daemon_active_env_notify_cb): Fixed active profile label isn't
