@@ -451,6 +451,14 @@ nwamui_object_set_name(NwamuiObject *object, const gchar* name )
     return FALSE;
 }
 
+extern gint
+nwamui_object_open(NwamuiObject *object, gint flag)
+{
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(object), -1);
+
+    return NWAMUI_OBJECT_GET_CLASS(object)->open(object, flag);
+}
+
 /**
  * nwamui_object_set_handle:
  * Generally be invoked in nwam object walker function, input a constant @handle

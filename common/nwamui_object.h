@@ -59,9 +59,13 @@ struct _NwamuiObjectClass
 {
 	GObjectClass                                parent_class;
 
+    /* Create or open handle from the name. */
+    gint (*open)(NwamuiObject *object, gint flag);
+    /* Set name based on the passed handle, then open handle from the name. */
     void (*set_handle)(NwamuiObject *object, const gpointer handle);
     const gchar* (*get_name)(NwamuiObject *object);
     gboolean (*can_rename)(NwamuiObject *object);
+    /* Set name only on init. If change name, need call nwam_*_set_name. */
     gboolean (*set_name)(NwamuiObject *object, const gchar* name);
     GList* (*get_conditions)(NwamuiObject *object);
     void (*set_conditions)(NwamuiObject *object, const GList* conditions);
@@ -83,12 +87,18 @@ struct _NwamuiObjectClass
 };
 
 enum {
+    NWAMUI_OBJECT_CREATE = 0,
+    NWAMUI_OBJECT_OPEN,
+};
+
+enum {
     NWAMUI_OBJECT_SORT_BY_NAME = 0,
     NWAMUI_OBJECT_SORT_BY_GROUP,
 };
 
 extern GType               nwamui_object_get_type (void) G_GNUC_CONST;
 
+extern gint          nwamui_object_open(NwamuiObject *object, gint flag);
 extern void          nwamui_object_set_handle(NwamuiObject *object, const gpointer handle);
 extern const gchar*  nwamui_object_get_name(NwamuiObject *object);
 extern gboolean      nwamui_object_can_rename (NwamuiObject *object);

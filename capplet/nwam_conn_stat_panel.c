@@ -102,7 +102,8 @@ static void nwam_conn_status_conn_view_row_activated_cb (GtkTreeView *tree_view,
 static void repair_clicked_cb( GtkButton *button, gpointer data );
 static void env_clicked_cb( GtkButton *button, gpointer data );
 static void vpn_clicked_cb( GtkButton *button, gpointer data );
-static void on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void daemon_active_ncp_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
+static void daemon_active_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void daemon_online_enm_num_notify(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void ncp_notify_pri_group_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void connview_info_width_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -281,7 +282,11 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
 	g_signal_connect(GTK_BUTTON(prv->env_btn), "clicked", (GCallback)env_clicked_cb, (gpointer)self);
 	g_signal_connect(GTK_BUTTON(prv->vpn_btn), "clicked", (GCallback)vpn_clicked_cb, (gpointer)self);
 	g_signal_connect(GTK_BUTTON(btn), "clicked", (GCallback)repair_clicked_cb, (gpointer)self);
-    g_signal_connect (prv->daemon, "notify::active-env", G_CALLBACK(on_nwam_env_notify_cb), (gpointer)self);
+    g_signal_connect (prv->daemon, "notify::active-ncp", G_CALLBACK(daemon_active_ncp_notify_cb), (gpointer)self);
+    g_signal_connect (prv->daemon, "notify::active-env", G_CALLBACK(daemon_active_env_notify_cb), (gpointer)self);
+    /* Connect daemon update enm list signal to get the latest enm list */
+    g_signal_connect(prv->daemon, "notify::online-enm-num", G_CALLBACK(daemon_online_enm_num_notify), (gpointer)self);
+    
 
     nwam_compose_tree_view(self);
 
@@ -290,9 +295,6 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
                      (GCallback)nwam_conn_status_conn_view_row_activated_cb,
                      (gpointer)self);
 
-    /* Connect daemon update enm list signal to get the latest enm list */
-    g_signal_connect(prv->daemon, "notify::online-enm-num", G_CALLBACK(daemon_online_enm_num_notify), (gpointer)self);
-    
     /* Initially refresh self */
     {
         NwamuiObject *ncp = nwamui_daemon_get_active_ncp(prv->daemon);
@@ -351,7 +353,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
 	NwamConnStatusPanelPrivate *prv  = GET_PRIVATE(iface);
     GList*                      enm_elem;
-    gchar*                      text = NULL;
     NwamConnStatusPanel*        self = NWAM_CONN_STATUS_PANEL( iface );
 
     g_assert(NWAM_IS_CONN_STATUS_PANEL(self));
@@ -396,34 +397,22 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         gtk_tree_model_filter_set_visible_func(GTK_TREE_MODEL_FILTER(filter), conn_view_filter_visible_cb,
           (gpointer)self, NULL);
         gtk_tree_model_filter_refilter(GTK_TREE_MODEL_FILTER(filter));
-        gtk_widget_hide(GTK_WIDGET(self->prv->conn_status_treeview));
-        gtk_tree_view_set_model(self->prv->conn_status_treeview, filter);
+        gtk_widget_hide(GTK_WIDGET(prv->conn_status_treeview));
+        gtk_tree_view_set_model(prv->conn_status_treeview, filter);
         nwamui_ncp_thaw_notify_ncus( ncp );
-        gtk_widget_show(GTK_WIDGET(self->prv->conn_status_treeview));
+        gtk_widget_show(GTK_WIDGET(prv->conn_status_treeview));
         g_object_unref(model);
         g_object_unref(filter);
 
-        text = nwamui_daemon_get_active_ncp_name(NWAMUI_DAEMON(self->prv->daemon));
-        if (text) {
-            gtk_label_set_text(self->prv->current_profile_lbl, text);
-            g_free (text);
-        } else {
-            gtk_label_set_text(self->prv->current_profile_lbl, _("Unknow profile"));
-        }
+        daemon_active_ncp_notify_cb(G_OBJECT(prv->daemon), NULL, (gpointer)self);
 
         prv->active_ncp = g_object_ref(ncp);
         g_signal_connect(prv->active_ncp, "notify::priority-group",
           G_CALLBACK(ncp_notify_pri_group_changed), (gpointer)self);
     }
 
-    text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(self->prv->daemon));
-    if (text) {
-        gtk_label_set_text(self->prv->current_env_lbl, text);
-        g_free(text);
-    } else {
-        gtk_label_set_text(self->prv->current_env_lbl, _("Unknow env"));
-    }
-    daemon_online_enm_num_notify(NULL, NULL, (gpointer)self);
+    daemon_active_env_notify_cb(G_OBJECT(prv->daemon), NULL, (gpointer)self);
+    daemon_online_enm_num_notify(G_OBJECT(prv->daemon), NULL, (gpointer)self);
     return(TRUE);
 }
 
@@ -697,19 +686,32 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 }
 
 static void
-on_nwam_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
+daemon_active_ncp_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
     gchar *text;
 
-    if ( g_ascii_strcasecmp(arg1->name, "active_env") == 0 ) {
-        if (text) {
-            text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(prv->daemon));
-            gtk_label_set_text(prv->current_env_lbl, text);
-            g_free (text);
-        } else {
-            gtk_label_set_text(prv->current_env_lbl, _("Unknow env"));
-        }
+    text = nwamui_daemon_get_active_ncp_name(NWAMUI_DAEMON(gobject));
+    if (text) {
+        gtk_label_set_text(prv->current_profile_lbl, text);
+        g_free (text);
+    } else {
+        gtk_label_set_text(prv->current_profile_lbl, _("Unknown profile"));
+    }
+}
+
+static void
+daemon_active_env_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
+    gchar *text;
+
+    if (text) {
+        text = nwamui_daemon_get_active_env_name(NWAMUI_DAEMON(gobject));
+        gtk_label_set_text(prv->current_env_lbl, text);
+        g_free (text);
+    } else {
+        gtk_label_set_text(prv->current_env_lbl, _("Unknown env"));
     }
 }
 

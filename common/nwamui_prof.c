@@ -695,7 +695,7 @@ user_has_autoconf_auth(NwamuiProf *self)
         for (i = 0; auths[i].name; i++) {
             if (chkauthattr(auths[i].name, pwd->pw_name) == 1) {
                 prv->ui_auth |= auths[i].v;
-                g_message("User %s has %s", pwd->pw_name, auths[i].name);
+                g_debug("User %s has %s", pwd->pw_name, auths[i].name);
             } else {
                 g_debug("User %s does not have %s", pwd->pw_name, auths[i].name);
             }

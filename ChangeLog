@@ -1,3 +1,35 @@
+2010-03-22  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_stat_panel.c (nwam_conn_status_panel_init),
+	(refresh), (daemon_active_ncp_notify_cb),
+	(daemon_active_env_notify_cb): Fixed active profile label isn't
+	updated on changing.
+	* common/nwamui_enm.c (nwamui_enm_class_init), (nwamui_enm_new),
+	(nwamui_object_real_set_name), (nwamui_object_real_open),
+	(nwamui_object_real_set_handle), (nwamui_object_real_reload),
+	(nwamui_object_real_clone):
+	* common/nwamui_env.c (nwamui_env_class_init), (nwamui_env_new),
+	(nwamui_object_real_set_name), (nwamui_object_real_clone),
+	(nwamui_object_real_open), (nwamui_object_real_set_handle),
+	(nwamui_object_real_reload):
+	* common/nwamui_ncp.c (nwamui_ncp_class_init), (nwamui_ncp_new),
+	(nwamui_object_real_clone), (nwamui_object_real_reload),
+	(nwamui_object_real_open), (nwamui_object_real_set_handle),
+	(nwamui_object_real_set_name):
+	* common/nwamui_object.c (nwamui_object_open):
+	* common/nwamui_object.h: Fixed copy 14847 [nwam-133] copy of
+	location does does not copy settings. Rework part of code for that
+	fix. Now we cleary call nwamui_object_open to create a handle or
+	open a handle. Update NCP, LOC, ENM code for that. But we still
+	need update NCU and WLAN code.
+	* common/nwamui_prof.c (user_has_autoconf_auth): Remove auth
+	message.
+	* nwam_core/lib/i386/libnwam.so:
+	* nwam_core/lib/i386/libnwam.so.1:
+	* nwam_core/lib/sparc/libnwam.so:
+	* nwam_core/lib/sparc/libnwam.so.1: Do not keep private libs
+	because we have integrated.
+
 2010-03-16  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* data/nwam-network.desktop.in: Forgot StartupNotify=true, thanks Calum.

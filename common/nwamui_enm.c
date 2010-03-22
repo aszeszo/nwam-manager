@@ -76,6 +76,7 @@ static gboolean     set_nwam_enm_string_array_prop( nwam_enm_handle_t enm, const
 static guint64      get_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name );
 static gboolean     set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 value );
 
+static gint         nwamui_object_real_open(NwamuiObject *object, gint flag);
 static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
 static nwam_state_t nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
 static gboolean     nwamui_object_real_destroy( NwamuiObject* object );
@@ -111,6 +112,7 @@ nwamui_enm_class_init (NwamuiEnmClass *klass)
     gobject_class->get_property = nwamui_enm_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_enm_finalize;
 
+    nwamuiobject_class->open = nwamui_object_real_open;
     nwamuiobject_class->set_handle = nwamui_object_real_set_handle;
     nwamuiobject_class->get_name = nwamui_object_real_get_name;
     nwamuiobject_class->can_rename = nwamui_object_real_can_rename;
@@ -274,9 +276,13 @@ nwamui_enm_get_property (   GObject         *object,
 extern  NwamuiObject*          
 nwamui_enm_new (const gchar *name)
 {
-    NwamuiEnm *self = NWAMUI_ENM(g_object_new (NWAMUI_TYPE_ENM, NULL));
+    NwamuiObject *self = NWAMUI_OBJECT(g_object_new (NWAMUI_TYPE_ENM, NULL));
 
     nwamui_object_set_name(NWAMUI_OBJECT(self), name);
+
+    if (nwamui_object_real_open(self, NWAMUI_OBJECT_OPEN) != 0) {
+        nwamui_object_real_open(self, NWAMUI_OBJECT_CREATE);
+    }
     return NWAMUI_OBJECT( self );
 }
 
@@ -661,20 +667,7 @@ nwamui_object_real_set_name(NwamuiObject *object, const gchar*  name)
     g_return_val_if_fail(name, FALSE);
 
     /* Initially set name or rename. */
-    if (prv->name == NULL) {
-        if (prv->nwam_enm == NULL) {
-            nerr = nwam_enm_read (name, 0, &prv->nwam_enm);
-            if (nerr == NWAM_SUCCESS) {
-                /* g_debug ("nwamui_enm_read found nwam_enm_handle %s", name); */
-            } else {
-                nerr = nwam_enm_create (name, NULL, &prv->nwam_enm);
-                if (nerr != NWAM_SUCCESS) {
-                    g_warning("nwamui_enm_create error creating nwam_enm_handle %s", name);
-                    prv->nwam_enm == NULL;
-                }
-            }
-        }
-    } else {
+    if (prv->name) {
         /* we may rename here */
         if (prv->nwam_enm != NULL) {
             nerr = nwam_enm_set_name (prv->nwam_enm, name);
@@ -694,28 +687,46 @@ nwamui_object_real_set_name(NwamuiObject *object, const gchar*  name)
     return TRUE;
 }
 
-static nwam_enm_handle_t
-get_nwam_enm_handle(NwamuiEnm* self)
+static gint
+nwamui_object_real_open(NwamuiObject *object, gint flag)
 {
-    NwamuiEnmPrivate *prv  = NWAMUI_ENM_GET_PRIVATE(self);
-    nwam_enm_handle_t enm_handle = NULL;
+    NwamuiEnmPrivate *prv = NWAMUI_ENM_GET_PRIVATE(object);
+    nwam_error_t      nerr;
 
-    g_return_val_if_fail(NWAMUI_IS_ENM(self), enm_handle);
-
-    if (prv->name) {
-        nwam_error_t      nerr;
-
-        nerr = nwam_enm_read(prv->name, 0, &enm_handle);
+    if (flag == NWAMUI_OBJECT_CREATE) {
+        g_assert(prv->name);
+        nerr = nwam_enm_create(prv->name, NULL, &prv->nwam_enm);
         if (nerr != NWAM_SUCCESS) {
+            g_warning("nwamui_enm_create error creating nwam_enm_handle %s", prv->name);
+            prv->nwam_enm == NULL;
+        }
+    } else if (flag == NWAMUI_OBJECT_OPEN) {
+        nwam_enm_handle_t  handle;
+
+        g_assert(prv->name);
+
+        nerr = nwam_enm_read(prv->name, 0, &handle);
+        if (nerr == NWAM_SUCCESS) {
+            if (prv->nwam_enm) {
+                nwam_enm_free(prv->nwam_enm);
+            }
+            prv->nwam_enm = handle;
+        } else {
             if (nerr == NWAM_ENTITY_NOT_FOUND) {
+                /* Most likely only exists in memory right now, so we should use
+                 * handle passed in as parameter. In clone mode, the new handle
+                 * gets from nwam_enm_copy can't be read again.
+                 */
                 g_debug("Failed to read enm information for %s error: %s", prv->name, nwam_strerror(nerr));
             } else {
                 g_warning("Failed to read enm information for %s error: %s", prv->name, nwam_strerror(nerr));
             }
-            return ( NULL );
+            prv->nwam_enm == NULL;
         }
+    } else {
+        g_assert_not_reached();
     }
-    return enm_handle;
+    return nerr;
 }
 
 static void
@@ -733,11 +744,14 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
         /* return( FALSE ); */
         return;
     }
+    /* Will update handle. */
     nwamui_object_set_name(object, name);
 
-    free (name);
+    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
 
     nwamui_object_real_reload(object);
+
+    free (name);
 }
 
 /**
@@ -1135,17 +1149,10 @@ nwamui_object_real_reload(NwamuiObject* object)
 {
     NwamuiEnmPrivate  *prv  = NWAMUI_ENM_GET_PRIVATE(object);
     nwam_error_t       nerr;
-    nwam_loc_handle_t  handle;
 
     g_return_if_fail(NWAMUI_IS_ENM(object));
 
-    handle = get_nwam_enm_handle(NWAMUI_ENM(object));
-    if (handle) {
-        if (prv->nwam_enm) {
-            nwam_enm_free(prv->nwam_enm);
-        }
-        prv->nwam_enm = handle;
-    }
+    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
 
     /* nwamui_object_set_handle will cause re-read from configuration */
     g_object_freeze_notify(G_OBJECT(object));
@@ -1188,6 +1195,7 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
     NwamuiObject      *new_enm = NULL;;
     nwam_enm_handle_t  new_enm_h;
     nwam_error_t       nerr;
+    NwamuiEnmPrivate *new_prv;
 
     g_return_val_if_fail(NWAMUI_IS_ENM(object), NULL);
     g_return_val_if_fail(NWAMUI_IS_DAEMON(parent), NULL);
@@ -1201,7 +1209,12 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
         return new_enm;
     }
 
-    new_enm = nwamui_enm_new_with_handle(new_enm_h);
+    /* new_enm = nwamui_enm_new_with_handle(new_enm_h); */
+    new_enm = NWAMUI_OBJECT(g_object_new(NWAMUI_TYPE_ENM,
+        "name", name,
+        NULL));
+    new_prv = NWAMUI_ENM_GET_PRIVATE(new_enm);
+    new_prv->nwam_enm = new_enm_h;
 
     nwamui_daemon_append_object(daemon, new_enm);
 

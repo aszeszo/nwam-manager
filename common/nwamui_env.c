@@ -151,6 +151,7 @@ static guint64*     get_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const
 static gboolean     set_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , 
                                                     const guint64* value, guint len );
 
+static gint         nwamui_object_real_open(NwamuiObject *object, gint flag);
 static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
 static nwam_state_t nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
 static gboolean     nwamui_object_real_can_rename (NwamuiObject *object);
@@ -204,6 +205,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     gobject_class->get_property = nwamui_env_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_env_finalize;
 
+    nwamuiobject_class->open = nwamui_object_real_open;
     nwamuiobject_class->set_handle = nwamui_object_real_set_handle;
     nwamuiobject_class->get_name = nwamui_object_real_get_name;
     nwamuiobject_class->can_rename = nwamui_object_real_can_rename;
@@ -1115,11 +1117,15 @@ nwamui_env_get_property (GObject         *object,
 NwamuiObject*
 nwamui_env_new ( const gchar* name )
 {
-    NwamuiEnv   *env = NWAMUI_ENV(g_object_new(NWAMUI_TYPE_ENV,
+    NwamuiObject *self = NWAMUI_OBJECT(g_object_new(NWAMUI_TYPE_ENV,
         "name", name,
         NULL));
     
-    return NWAMUI_OBJECT( env );
+    if (nwamui_object_real_open(self, NWAMUI_OBJECT_OPEN) != 0) {
+        nwamui_object_real_open(self, NWAMUI_OBJECT_CREATE);
+    }
+
+    return self;
 }
 
 /**
@@ -1154,60 +1160,6 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
 #endif /* 0 */
     
     return NWAMUI_OBJECT( env );
-}
-
-/**
- * nwamui_env_clone:
- * @returns: a copy of an existing #NwamuiEnv.
- *
- * Creates a new #NwamuiEnv and copies properties.
- *
- **/
-static NwamuiObject*
-nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
-{
-    NwamuiEnv         *self   = NWAMUI_ENV(object);
-    NwamuiDaemon      *daemon = NWAMUI_DAEMON(parent);
-    NwamuiObject      *new_env;
-    nwam_error_t       nerr;
-    nwam_loc_handle_t  new_env_h;
-        
-    g_assert(NWAMUI_IS_ENV(object));
-    g_assert(NWAMUI_IS_DAEMON(parent));
-    g_return_val_if_fail(name != NULL, NULL);
-
-    nerr = nwam_loc_copy (self->prv->nwam_loc, name, &new_env_h);
-
-    if ( nerr != NWAM_SUCCESS ) { 
-        return( NULL );
-    }
-
-    new_env = nwamui_env_new_with_handle (new_env_h);
-    
-    g_object_set (G_OBJECT (new_env),
-#ifdef ENABLE_PROXY
-            "proxy_type", self->prv->proxy_type,
-            "use_http_proxy_for_all", self->prv->use_http_proxy_for_all,
-            "proxy_pac_file", self->prv->proxy_pac_file,
-            "proxy_http_server", self->prv->proxy_http_server,
-            "proxy_https_server", self->prv->proxy_https_server,
-            "proxy_ftp_server", self->prv->proxy_ftp_server,
-            "proxy_gopher_server", self->prv->proxy_gopher_server,
-            "proxy_socks_server", self->prv->proxy_socks_server,
-            "proxy_bypass_list", self->prv->proxy_bypass_list,
-            "proxy_http_port", self->prv->proxy_http_port,
-            "proxy_https_port", self->prv->proxy_https_port,
-            "proxy_ftp_port", self->prv->proxy_ftp_port,
-            "proxy_gopher_port", self->prv->proxy_gopher_port,
-            "proxy_socks_port", self->prv->proxy_socks_port,
-#endif /* ENABLE_PROXY */
-             NULL);
-    
-    NWAMUI_ENV(new_env)->prv->nwam_loc_modified = TRUE; /* Only exists in-memory, need to commit later */
-
-    nwamui_daemon_append_object( daemon, new_env );
-
-    return new_env;
 }
 
 static gchar*
@@ -1746,20 +1698,7 @@ nwamui_object_real_set_name (NwamuiObject *object, const gchar*  name )
     g_return_val_if_fail(name, FALSE);
 
     /* Initially set name or rename. */
-    if (prv->name == NULL) {
-        if (prv->nwam_loc == NULL) {
-            nerr = nwam_loc_read (name, 0, &prv->nwam_loc);
-            if (nerr == NWAM_SUCCESS) {
-                /* g_debug ("nwamui_loc_read found nwam_loc_handle %s", name); */
-            } else {
-                nerr = nwam_loc_create(name, &prv->nwam_loc);
-                if (nerr != NWAM_SUCCESS) {
-                    g_warning("nwamui_loc_create error creating nwam_loc_handle %s", name);
-                    prv->nwam_loc == NULL;
-                }
-            }
-        }
-    } else {
+    if (prv->name) {
         /* we may rename here */
 
         if (prv->nwam_loc != NULL) {
@@ -1780,28 +1719,107 @@ nwamui_object_real_set_name (NwamuiObject *object, const gchar*  name )
     return TRUE;
 }
 
-static nwam_loc_handle_t
-get_nwam_env_handle(NwamuiEnv* self)
+/**
+ * nwamui_env_clone:
+ * @returns: a copy of an existing #NwamuiEnv.
+ *
+ * Creates a new #NwamuiEnv and copies properties.
+ *
+ **/
+static NwamuiObject*
+nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
 {
-    NwamuiEnvPrivate *prv  = NWAMUI_ENV_GET_PRIVATE(self);
-    nwam_loc_handle_t loc_handle = NULL;
+    NwamuiEnv         *self   = NWAMUI_ENV(object);
+    NwamuiDaemon      *daemon = NWAMUI_DAEMON(parent);
+    NwamuiObject      *new_env;
+    nwam_error_t       nerr;
+    nwam_loc_handle_t  new_env_h;
+    NwamuiEnvPrivate *new_prv;
 
-    g_return_val_if_fail(NWAMUI_IS_ENV(self), loc_handle);
+        
+    g_assert(NWAMUI_IS_ENV(object));
+    g_assert(NWAMUI_IS_DAEMON(parent));
+    g_return_val_if_fail(name != NULL, NULL);
 
-    if (prv->name) {
-        nwam_error_t      nerr;
+    nerr = nwam_loc_copy (self->prv->nwam_loc, name, &new_env_h);
 
-        nerr = nwam_loc_read(prv->name, 0, &loc_handle);
+    if ( nerr != NWAM_SUCCESS ) { 
+        return( NULL );
+    }
+
+    /* new_env = nwamui_env_new_with_handle(new_env_h); */
+    new_env = NWAMUI_OBJECT(g_object_new(NWAMUI_TYPE_ENV,
+        "name", name,
+        NULL));
+    new_prv = NWAMUI_ENV_GET_PRIVATE(new_env);
+    new_prv->nwam_loc = new_env_h;
+    
+    g_object_set (G_OBJECT (new_env),
+#ifdef ENABLE_PROXY
+            "proxy_type", self->prv->proxy_type,
+            "use_http_proxy_for_all", self->prv->use_http_proxy_for_all,
+            "proxy_pac_file", self->prv->proxy_pac_file,
+            "proxy_http_server", self->prv->proxy_http_server,
+            "proxy_https_server", self->prv->proxy_https_server,
+            "proxy_ftp_server", self->prv->proxy_ftp_server,
+            "proxy_gopher_server", self->prv->proxy_gopher_server,
+            "proxy_socks_server", self->prv->proxy_socks_server,
+            "proxy_bypass_list", self->prv->proxy_bypass_list,
+            "proxy_http_port", self->prv->proxy_http_port,
+            "proxy_https_port", self->prv->proxy_https_port,
+            "proxy_ftp_port", self->prv->proxy_ftp_port,
+            "proxy_gopher_port", self->prv->proxy_gopher_port,
+            "proxy_socks_port", self->prv->proxy_socks_port,
+#endif /* ENABLE_PROXY */
+             NULL);
+    
+    NWAMUI_ENV(new_env)->prv->nwam_loc_modified = TRUE; /* Only exists in-memory, need to commit later */
+
+    nwamui_daemon_append_object( daemon, new_env );
+
+    return new_env;
+}
+
+static gint
+nwamui_object_real_open(NwamuiObject *object, gint flag)
+{
+    NwamuiEnvPrivate *prv = NWAMUI_ENV_GET_PRIVATE(object);
+    nwam_error_t      nerr;
+
+    if (flag == NWAMUI_OBJECT_CREATE) {
+        g_assert(prv->name);
+        nerr = nwam_loc_create(prv->name, &prv->nwam_loc);
         if (nerr != NWAM_SUCCESS) {
+            g_warning("nwamui_loc_create error creating nwam_loc_handle %s", prv->name);
+            prv->nwam_loc == NULL;
+        }
+    } else if (flag == NWAMUI_OBJECT_OPEN) {
+        nwam_loc_handle_t  handle;
+
+        g_assert(prv->name);
+
+        nerr = nwam_loc_read(prv->name, 0, &handle);
+        if (nerr == NWAM_SUCCESS) {
+            if (prv->nwam_loc) {
+                nwam_loc_free(prv->nwam_loc);
+            }
+            prv->nwam_loc = handle;
+        } else {
             if (nerr == NWAM_ENTITY_NOT_FOUND) {
+                /* Most likely only exists in memory right now, so we should use
+                 * handle passed in as parameter. In clone mode, the new handle
+                 * gets from nwam_env_copy can't be read again.
+                 */
                 g_debug("Failed to read loc information for %s error: %s", prv->name, nwam_strerror(nerr));
             } else {
                 g_warning("Failed to read loc information for %s error: %s", prv->name, nwam_strerror(nerr));
             }
-            return ( NULL );
+            prv->nwam_loc == NULL;
         }
+    } else {
+        g_assert_not_reached();
     }
-    return loc_handle;
+    return nerr;
 }
 
 static void
@@ -1811,7 +1829,6 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
     const nwam_loc_handle_t  envh = handle;
     char                    *name;
     nwam_error_t             nerr;
-    int                      rval;
 
     g_return_if_fail(NWAMUI_IS_ENV(object));
     
@@ -1820,10 +1837,14 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
         g_warning ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
     }
 
+    /* Will update handle. */
     nwamui_object_set_name(object, name);
-    free (name);
+
+    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
 
     nwamui_object_real_reload(object);
+
+    free (name);
 }
 
 /**
@@ -1834,18 +1855,10 @@ nwamui_object_real_reload(NwamuiObject* object)
 {
     NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(object);
     gboolean           enabled = FALSE;
-    nwam_error_t       nerr;
-    nwam_loc_handle_t  handle;
 
     g_return_if_fail(NWAMUI_IS_ENV(object));
 
-    handle = get_nwam_env_handle(NWAMUI_ENV(object));
-    if (handle) {
-        if (prv->nwam_loc) {
-            nwam_loc_free(prv->nwam_loc);
-        }
-        prv->nwam_loc = handle;
-    }
+    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
 
     nwamui_debug ("loaded nwam_loc_handle : %s", prv->name);
 

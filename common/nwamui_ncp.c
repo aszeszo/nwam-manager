@@ -109,6 +109,7 @@ static void nwamui_ncp_get_property ( GObject         *object,
 
 static void nwamui_ncp_finalize (     NwamuiNcp *self);
 
+static gint         nwamui_object_real_open(NwamuiObject *object, gint flag);
 static void          nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
 static nwam_state_t  nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
 static const gchar*  nwamui_object_real_get_name ( NwamuiObject *object );
@@ -160,6 +161,7 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
     klass->add_ncu = default_add_ncu_signal_handler;
     klass->remove_ncu = default_remove_ncu_signal_handler;
 
+    nwamuiobject_class->open = nwamui_object_real_open;
     nwamuiobject_class->set_handle = nwamui_object_real_set_handle;
     nwamuiobject_class->get_name = nwamui_object_real_get_name;
     nwamuiobject_class->set_name = nwamui_object_real_set_name;
@@ -409,11 +411,14 @@ nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_st
 extern NwamuiObject*
 nwamui_ncp_new(const gchar* name )
 {
-    NwamuiNcp*      self = NULL;
-
-    self = NWAMUI_NCP(g_object_new (NWAMUI_TYPE_NCP,
+    NwamuiObject* self = NWAMUI_OBJECT(g_object_new (NWAMUI_TYPE_NCP,
         "name", name,
         NULL));
+
+    /* Try open only, do not create. */
+    if (nwamui_object_real_open(self, NWAMUI_OBJECT_OPEN) != 0) {
+        g_debug("NCP %s open handle failed", name);
+    }
 
     return NWAMUI_OBJECT(self);
 }
@@ -453,6 +458,7 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
     NwamuiObject      *new_ncp = NULL;;
     nwam_ncp_handle_t  new_ncp_h;
     nwam_error_t       nerr;
+    NwamuiNcpPrivate *new_prv;
 
     g_return_val_if_fail(NWAMUI_IS_NCP(object), NULL);
     g_return_val_if_fail(NWAMUI_IS_DAEMON(parent), NULL);
@@ -466,35 +472,16 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
         return new_ncp;
     }
 
-    new_ncp = nwamui_ncp_new_with_handle(new_ncp_h);
+    /* new_ncp = nwamui_ncp_new_with_handle(new_ncp_h); */
+    new_ncp = NWAMUI_OBJECT(g_object_new(NWAMUI_TYPE_NCP,
+        "name", name,
+        NULL));
+    new_prv = NWAMUI_NCP_GET_PRIVATE(new_ncp);
+    new_prv->nwam_ncp = new_ncp_h;
 
     nwamui_daemon_append_object(daemon, new_ncp);
 
     return new_ncp;
-}
-
-static nwam_ncp_handle_t
-get_nwam_ncp_handle(NwamuiNcp* self)
-{
-    NwamuiNcpPrivate *prv  = NWAMUI_NCP_GET_PRIVATE(self);
-    nwam_ncp_handle_t ncp_handle = NULL;
-
-    g_return_val_if_fail(NWAMUI_IS_NCP(self), ncp_handle);
-
-    if (prv->name) {
-        nwam_error_t      nerr;
-
-        nerr = nwam_ncp_read(prv->name, 0, &ncp_handle);
-        if (nerr != NWAM_SUCCESS) {
-            if (nerr == NWAM_ENTITY_NOT_FOUND) {
-                g_debug("Failed to read ncp information for %s error: %s", prv->name, nwam_strerror(nerr));
-            } else {
-                g_warning("Failed to read ncp information for %s error: %s", prv->name, nwam_strerror(nerr));
-            }
-            return ( NULL );
-        }
-    }
-    return ncp_handle;
 }
 
 /**
@@ -507,17 +494,10 @@ nwamui_object_real_reload(NwamuiObject* object)
     NwamuiNcpPrivate  *prv                  = NWAMUI_NCP_GET_PRIVATE(object);
     int                cb_ret               = 0;
     nwam_error_t       nerr;
-    nwam_loc_handle_t  handle;
 
     g_return_if_fail(NWAMUI_IS_NCP(object));
 
-    handle = get_nwam_ncp_handle(NWAMUI_NCP(object));
-    if (handle) {
-        if (prv->nwam_ncp) {
-            nwam_ncp_free(prv->nwam_ncp);
-        }
-        prv->nwam_ncp = handle;
-    }
+    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
 
     g_object_freeze_notify(G_OBJECT(object));
 
@@ -592,15 +572,55 @@ nwamui_ncp_get_nwam_handle( NwamuiNcp* self )
     return (self->prv->nwam_ncp);
 }
 
+static gint
+nwamui_object_real_open(NwamuiObject *object, gint flag)
+{
+    NwamuiNcpPrivate *prv = NWAMUI_NCP_GET_PRIVATE(object);
+    nwam_error_t      nerr;
+
+    if (flag == NWAMUI_OBJECT_CREATE) {
+        g_assert(prv->name);
+        nerr = nwam_ncp_create(prv->name, NULL, &prv->nwam_ncp);
+        if (nerr != NWAM_SUCCESS) {
+            g_warning("nwamui_ncp_create error creating nwam_ncp_handle %s", prv->name);
+            prv->nwam_ncp == NULL;
+        }
+    } else if (flag == NWAMUI_OBJECT_OPEN) {
+        nwam_ncp_handle_t  handle;
+
+        g_assert(prv->name);
+
+        nerr = nwam_ncp_read(prv->name, 0, &handle);
+        if (nerr == NWAM_SUCCESS) {
+            if (prv->nwam_ncp) {
+                nwam_ncp_free(prv->nwam_ncp);
+            }
+            prv->nwam_ncp = handle;
+        } else {
+            if (nerr == NWAM_ENTITY_NOT_FOUND) {
+                /* Most likely only exists in memory right now, so we should use
+                 * handle passed in as parameter. In clone mode, the new handle
+                 * gets from nwam_ncp_copy can't be read again.
+                 */
+                g_debug("Failed to read ncp information for %s error: %s", prv->name, nwam_strerror(nerr));
+            } else {
+                g_warning("Failed to read ncp information for %s error: %s", prv->name, nwam_strerror(nerr));
+            }
+            prv->nwam_ncp == NULL;
+        }
+    } else {
+        g_assert_not_reached();
+    }
+    return nerr;
+}
+
 static void
 nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
 {
     NwamuiNcpPrivate        *prv  = NWAMUI_NCP_GET_PRIVATE(object);
     const nwam_ncp_handle_t  ncp  = handle;
-    const nwam_ncp_handle_t  ncp_handle;
     char*                    name = NULL;
     nwam_error_t             nerr;
-    nwam_ncp_handle_t        nwam_ncp;
     
     g_return_if_fail(NWAMUI_IS_NCP(object));
 
@@ -608,26 +628,13 @@ nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
         g_debug ("Failed to get name for ncp, error: %s", nwam_strerror (nerr));
     }
 
+    /* Will update handle. */
     nwamui_object_set_name(object, name);
 
-    nwam_ncp = get_nwam_ncp_handle(NWAMUI_NCP(object));
-    if (nwam_ncp) {
-        if (prv->nwam_ncp) {
-            nwam_ncp_free(prv->nwam_ncp);
-        }
-        prv->nwam_ncp = nwam_ncp;
+    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
 
-        nwamui_object_real_reload(object);
-    } else {
-        /* Most likely only exists in memory right now, so use handle passed
-         * in as parameter.
-         * in clone mode, the new handle gets from nwam_ncp_copy can't be read
-         * again.
-         */
-        prv->nwam_ncp = ncp;
-        nwamui_object_real_reload(object);
-        /* prv->nwam_ncp = NULL; */
-    }
+    nwamui_object_real_reload(object);
+
     g_free(name);
 }
 
@@ -672,30 +679,7 @@ nwamui_object_real_set_name( NwamuiObject *object, const gchar* name )
     g_return_val_if_fail(name, FALSE);
 
     /* Initially set name or rename. */
-    if (prv->name == NULL) {
-        if (prv->nwam_ncp == NULL) {
-            /* prv->nwam_ncp = get_nwam_ncp_handle(NWAMUI_NCP(object)); */
-
-            /* nerr = nwam_ncp_read (name, 0, &prv->nwam_ncp); */
-            /* if (nerr == NWAM_SUCCESS) { */
-            /*     /\* g_debug ("nwamui_ncp_read found nwam_ncp_handle %s", name); *\/ */
-            /* } else { */
-            /*     nerr = nwam_ncp_create (name, NULL, &prv->nwam_ncp); */
-            /*     if (nerr != NWAM_SUCCESS) { */
-            /*         g_warning("nwamui_ncp_create error creating nwam_ncp_handle %s", name); */
-            /*         prv->nwam_ncp == NULL; */
-            /*     } */
-            /* } */
-
-            nerr = nwam_ncp_read (name, 0, &prv->nwam_ncp);
-            if (nerr == NWAM_SUCCESS) {
-                /* g_debug ("nwamui_ncp_read found nwam_ncp_handle %s", name); */
-            } else {
-                /* New NCP */
-                prv->nwam_ncp_modified = TRUE;
-            }
-        }
-    } else {
+    if (prv->name) {
         /* /\* we may rename here *\/ */
         /* if (prv->nwam_ncp != NULL) { */
         /*     nerr = nwam_ncp_set_name (prv->nwam_ncp, name); */
@@ -722,6 +706,8 @@ nwamui_object_real_set_name( NwamuiObject *object, const gchar* name )
 
     g_free(prv->name);
     prv->name = g_strdup(name);
+
+    prv->nwam_ncp_modified = TRUE;
     return TRUE;
 }
 
