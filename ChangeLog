@@ -1,5 +1,47 @@
 2010-03-23  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* configure.in: bump to 1.0.1
+	* Makefile.am: Clean removed files.
+	* common/nwamui_env.c (nwamui_env_set_property),
+	(nwamui_env_get_property), (set_nwam_loc_string_prop),
+	(nwamui_env_set_nameservices), (nwamui_env_get_nameservices),
+	(nwamui_env_set_nameservices_config_file),
+	(nwamui_env_get_nameservices_config_file),
+	(nwamui_env_set_default_domainname),
+	(nwamui_env_get_default_domainname),
+	(nwamui_env_set_dns_nameservice_domain),
+	(nwamui_env_get_dns_nameservice_domain),
+	(nwamui_env_set_dns_nameservice_config_source),
+	(nwamui_env_get_dns_nameservice_config_source),
+	(nwamui_env_set_dns_nameservice_servers),
+	(nwamui_env_get_dns_nameservice_servers),
+	(nwamui_env_set_dns_nameservice_search),
+	(nwamui_env_get_dns_nameservice_search),
+	(nwamui_env_set_nis_nameservice_config_source),
+	(nwamui_env_get_nis_nameservice_config_source),
+	(nwamui_env_set_nis_nameservice_servers),
+	(nwamui_env_get_nis_nameservice_servers),
+	(nwamui_env_set_ldap_nameservice_config_source),
+	(nwamui_env_get_ldap_nameservice_config_source),
+	(nwamui_env_set_ldap_nameservice_servers),
+	(nwamui_env_get_ldap_nameservice_servers),
+	(nwamui_env_set_hosts_file), (nwamui_env_get_hosts_file),
+	(nwamui_env_set_nfsv4_domain), (nwamui_env_get_nfsv4_domain),
+	(nwamui_env_set_ipfilter_config_file),
+	(nwamui_env_get_ipfilter_config_file),
+	(nwamui_env_set_ipfilter_v6_config_file),
+	(nwamui_env_get_ipfilter_v6_config_file),
+	(nwamui_env_set_ipnat_config_file),
+	(nwamui_env_get_ipnat_config_file),
+	(nwamui_env_set_ippool_config_file),
+	(nwamui_env_get_ippool_config_file),
+	(nwamui_env_set_ike_config_file), (nwamui_env_get_ike_config_file),
+	(nwamui_env_set_ipsecpolicy_config_file),
+	(nwamui_env_get_ipsecpolicy_config_file): Fixed 15298 [nwam] can't
+	clear settings (e.g. dncp domain) in Location Properties dialog
+
+2010-03-23  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_location_dialog.c (cancel), (apply),
 	(nwam_location_connection_enabled_toggled_cb), (on_button_clicked),
 	(location_switch_loc_cb_toggled): cancel dialog forgot clear
