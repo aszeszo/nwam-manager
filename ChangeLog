@@ -1,3 +1,32 @@
+2010-03-23  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_location_dialog.c (cancel), (apply),
+	(nwam_location_connection_enabled_toggled_cb), (on_button_clicked),
+	(location_switch_loc_cb_toggled): cancel dialog forgot clear
+	toggled-env, which caused the next show time would show the wrong
+	active env. Clean the code for auto/manually activate env. Fixed
+	that when apply changes check the modifications first. Fixed
+	remove to-be-toggled object will lose the toggle flag.
+	* capplet/nwam_profile_panel.c (nwam_profile_panel_is_toggled_row),
+	(on_button_clicked), (nwam_object_toggled_cell_sensitive_func):
+	Removed unused code. Fixed remove to-be-toggled object will lose
+	the toggle flag.
+	* capplet/nwam_wireless_chooser.c
+	(foreach_wifi_in_ncu_add_to_list_store):
+	* common/nwamui_daemon.c (nwamui_daemon_set_property),
+	(find_enabled_env), (nwamui_daemon_env_selection_is_manual),
+	(set_env_disabled):
+	* common/nwamui_daemon.h:
+	* common/nwamui_env.c:
+	* daemon/nwam-env-item.c (on_nwam_env_toggled): Clean the code for
+	auto/manually activate env.
+	* daemon/nwam-menu.c (menu_section_get_children):
+	* daemon/nwam-ncu-item.c (on_nwam_ncu_notify): Changed g_message
+	to g_debug
+	* daemon/status_icon.c (daemon_active_env_changed),
+	(location_model_menuitems): Clean the code for auto/manually
+	activate env.
+
 2010-03-22  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* nwam_core/copy_onnv_headers.sh: copy system libnwam.h instead of

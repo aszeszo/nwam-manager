@@ -752,8 +752,6 @@ daemon_active_env_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
     gchar *summary, *body;
     NwamuiEnv* env = daemon_status_is_good(prv->daemon) ? nwamui_daemon_get_active_env(prv->daemon) : NULL;
 
-    g_message("flag is %d", nwamui_daemon_env_selection_is_manual(prv->daemon));
-
     g_signal_handlers_block_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO])),
       (gpointer)location_model_menuitems, self );
     g_signal_handlers_block_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])),
@@ -1341,19 +1339,16 @@ location_model_menuitems(GtkMenuItem *menuitem, gpointer user_data)
     NwamStatusIconPrivate *prv         = NWAM_STATUS_ICON_GET_PRIVATE(self);
     gint                   menuitem_id = (gint)g_object_get_data(G_OBJECT(menuitem), STATIC_MENUITEM_ID);
     gboolean               active      = gtk_check_menu_item_get_active( GTK_CHECK_MENU_ITEM(menuitem) );
+    NwamuiEnv             *env         = NULL;
 
     switch (menuitem_id) {
     case MENUITEM_SWITCH_LOC_MANUALLY:
-        if ( active ) {
-            NwamuiEnv *env = nwamui_daemon_get_active_env(prv->daemon);
-            nwamui_daemon_env_selection_set_manual(prv->daemon, TRUE, env);
-            g_object_unref(env);
-        }
         break;
     case MENUITEM_SWITCH_LOC_AUTO:
-        if ( active ) {
-            nwamui_daemon_env_selection_set_manual(prv->daemon, FALSE, NULL);
-        }
+        /* Get the current active env, disactive and wait for nwamd. */
+        env = nwamui_daemon_get_active_env(prv->daemon);
+        nwamui_object_set_active(NWAMUI_OBJECT(env), FALSE);
+        g_object_unref(env);
         break;
     default:
         g_assert_not_reached();

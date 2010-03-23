@@ -519,8 +519,9 @@ menu_section_get_children(MenuSection *sec, GList **ret_children, gint *ret_star
             }
             g_list_free(i);
         }
-    } else
-        g_message("Sort menu out of range.");
+    } else {
+        g_debug("Sort menu out of range.");
+    }
 
     /* Return found children, or NULL. */
     *ret_children = children;

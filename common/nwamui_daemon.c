@@ -520,7 +520,11 @@ nwamui_daemon_set_property ( GObject         *object,
              */
             self->prv->active_env = env;
             g_object_notify(G_OBJECT(self), "active_env");
-            g_object_notify(G_OBJECT(self), "env_selection_mode");
+            /* Comment out this line because when a loc is enabled, we will get
+             * an event first, when handling the event, we will notify this
+             * signal.
+             */
+            /* g_object_notify(G_OBJECT(self), "env_selection_mode"); */
         }
             break;
         case PROP_STATUS:
@@ -1075,40 +1079,37 @@ nwamui_daemon_remove_object(NwamuiDaemon *self, NwamuiObject* object)
 }
 
 
-static void
-check_env_enabled( gpointer obj, gpointer user_data )
+static gint
+find_enabled_env(gconstpointer a, gconstpointer b)
 {
-    NwamuiObject            *nobj = NWAMUI_OBJECT(obj);
-    gboolean                *is_manual_p = (gboolean*)user_data;
-
-    if ( is_manual_p == NULL ) {
-        return;
-    }
+    NwamuiObject *obj = NWAMUI_OBJECT(a);
 
     /* Only check if we've not already found that something's enabled */
-    if ( !(*is_manual_p) && nwamui_object_get_enabled( NWAMUI_OBJECT(nobj) ) ) {
-        *is_manual_p = TRUE;
+    if (nwamui_object_get_enabled(NWAMUI_OBJECT(obj))) {
+        return 0;
     }
+    return 1;
 }
 
 /**
  * nwamui_daemon_env_selection_is_manual
  * @self: NwamuiDaemon*
  *
+ * When in auto mode, the "enabled" property of every loc is "false".
  * @returns: TRUE if the env selection is manual.
  *
  **/
 extern gboolean
 nwamui_daemon_env_selection_is_manual(NwamuiDaemon *self)
 {
-    gboolean rval = FALSE;
-
-    g_return_val_if_fail( NWAMUI_IS_DAEMON(self), rval );
+    g_return_val_if_fail(NWAMUI_IS_DAEMON(self), FALSE);
 
     /* This is determined by looking at the enabled property of env objects */
-    g_list_foreach( self->prv->managed_list[MANAGED_LOC], check_env_enabled, (gpointer)&rval ); 
+    if (g_list_find_custom(self->prv->managed_list[MANAGED_LOC], NULL, find_enabled_env)) {
+        return TRUE;
+    }
 
-    return( rval );
+    return FALSE;
 }
 
 static void
@@ -1121,45 +1122,16 @@ set_env_disabled( gpointer obj, gpointer user_data )
     /* Only disable an env if it's not marked as offline or disabled already,
      * best to make sure we pick the correct one here.
      */
-    state = nwamui_object_get_nwam_state(nobj, &aux_state, NULL);
-    if ( state != NWAM_STATE_OFFLINE && state != NWAM_STATE_DISABLED ) {
+    /* state = nwamui_object_get_nwam_state(nobj, &aux_state, NULL); */
+    /* if ( state != NWAM_STATE_OFFLINE && state != NWAM_STATE_DISABLED ) { */
+    /*     nwamui_object_set_active(nobj, FALSE); */
+    /* } */
+
+    /* We only check the enabled flag, and commit immediately. */
+    if (nwamui_object_get_enabled(nobj)) {
         nwamui_object_set_active(nobj, FALSE);
     }
 }
-
-/**
- * nwamui_daemon_env_selection_set_manual
- * @self: NwamuiDaemon*
- *
- * Sets activation of Envs to be manual with immediate effect.
- *
- * This entails doing the following:
- *
- * - If Manual
- *
- *   Specifcially activate the passed environment.
- *
- * - If not Manual
- *
- *   Loop through each Env and ensure it's disabled, returning control to the
- *   system to decide on best selection.
- *
- **/
-extern void
-nwamui_daemon_env_selection_set_manual(NwamuiDaemon *self, gboolean manual, NwamuiEnv* manual_env )
-{
-    g_return_if_fail( NWAMUI_IS_DAEMON(self) );
-
-    if ( manual ) {
-        /* Specifcially set the env active, will disable others  */
-        nwamui_object_set_active( NWAMUI_OBJECT(manual_env), TRUE );
-    }
-    else {
-        /* This is determined by looking at the enabled property of env objects */
-        g_list_foreach( self->prv->managed_list[MANAGED_LOC], set_env_disabled, NULL ); 
-    }
-}
-
 
 /**
  * nwamui_daemon_is_active_env

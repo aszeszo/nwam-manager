@@ -111,6 +111,7 @@ static void nwam_profile_panel_get_property (GObject         *object,
   GValue          *value,
   GParamSpec      *pspec);
 
+static gboolean nwam_profile_panel_is_toggled_row(NwamProfilePanel *self, GtkTreePath *path);
 static void nwam_profile_panel_set_toggled_row(NwamProfilePanel *self, GtkTreePath *path);
 
 /* Callbacks */
@@ -225,6 +226,27 @@ nwam_profile_panel_get_property( GObject         *object,
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
         break;
     }
+}
+
+static gboolean
+nwam_profile_panel_is_toggled_row(NwamProfilePanel *self, GtkTreePath *path)
+{
+    NwamProfilePanelPrivate *prv   = GET_PRIVATE(self);
+    GtkTreeModel            *model = gtk_tree_view_get_model(prv->object_view);
+
+    if (gtk_tree_row_reference_valid(prv->toggled_row)) {
+        GtkTreePath *cur = gtk_tree_row_reference_get_path(prv->toggled_row);
+
+        if (gtk_tree_path_compare(cur, path) == 0) {
+            return TRUE;
+        }
+    } else {
+        /* Invalid? clear it. */
+        gtk_tree_row_reference_free(prv->toggled_row);
+        prv->toggled_row = NULL;
+    }
+
+    return FALSE;
 }
 
 static void
@@ -353,23 +375,6 @@ nwam_profile_panel_new(NwamCappletDialog *pref_dialog)
     prv->pref_dialog = g_object_ref(pref_dialog);
 
     return( self );
-}
-
-/* FIXME, if update failed, popup dialog and return FALSE */
-static gboolean
-nwam_update_obj (NwamProfilePanel *self, GObject *obj)
-{
-	NwamProfilePanelPrivate  *prv = GET_PRIVATE(self);
-    gboolean enabled;
-    gint cond;
-	const gchar *txt = NULL;
-    gchar* prev_txt = NULL;
-
-    if (!NWAMUI_IS_ENV(obj)) {
-        return( FALSE );
-    }
-
-	return TRUE;
 }
 
 /**
@@ -746,10 +751,19 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(prv->object_view), (gpointer)self);
 
         } else if (button == (gpointer)prv->profile_remove_btn) {
-
             gchar*  message = g_strdup_printf(_("Remove network profile: '%s'?"), nwamui_object_get_name(object));
             if (nwamui_util_confirm_removal(nwam_pref_dialog_get_window(NWAM_PREF_IFACE(prv->pref_dialog)), _("Remove network profile?"), message )) {
+                GtkTreePath *selected_path = gtk_tree_model_get_path(model, &iter);
+
+                if (nwam_profile_panel_is_toggled_row(self, selected_path)) {
+                    /* Clear toggled-env, otherwise the toggled flag will be lost. */
+                    /* g_object_set(self, "toggled_object", NULL, NULL); */
+                    nwam_profile_panel_set_toggled_row(self, NULL);
+                }
+                gtk_tree_path_free(selected_path);
+
                 gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+
                 nwamui_object_destroy(object);
                 /* Must remove it, because it currectly may haven't been created.
                  */
@@ -852,6 +866,7 @@ nwam_object_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
   GtkTreeIter       *iter,
   gpointer           data)
 {
+    NwamProfilePanel        *self   = NWAM_PROFILE_PANEL(data);
 	NwamProfilePanelPrivate *prv    = GET_PRIVATE(data);
     NwamuiObject*            object = NULL;
     
@@ -879,20 +894,18 @@ nwam_object_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
               "active", nwamui_object_get_active(NWAMUI_OBJECT(object)),
               NULL);
         } else {
+            GtkTreePath *cur = gtk_tree_model_get_path(model, iter);
+
             g_object_set(G_OBJECT(renderer),
               "active", FALSE,
               NULL); 
-            if (gtk_tree_row_reference_valid(prv->toggled_row)) {
-                GtkTreePath *path = gtk_tree_row_reference_get_path(prv->toggled_row);
-                GtkTreePath *cur = gtk_tree_model_get_path(model, iter);
-                if (gtk_tree_path_compare(path, cur) == 0) {
-                    /* Show active, commit later. */
-                    g_object_set(G_OBJECT(renderer),
-                      "active", TRUE,
-                      NULL);
-                }
-                gtk_tree_path_free(cur);
+            if (nwam_profile_panel_is_toggled_row(self, cur)) {
+                /* Show active, commit later. */
+                g_object_set(G_OBJECT(renderer),
+                  "active", TRUE,
+                  NULL);
             }
+            gtk_tree_path_free(cur);
         }
 #endif
         g_object_unref(G_OBJECT(object));

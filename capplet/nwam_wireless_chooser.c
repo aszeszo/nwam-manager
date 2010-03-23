@@ -264,7 +264,7 @@ foreach_wifi_in_ncu_add_to_list_store(gpointer key, gpointer value, gpointer use
     GtkTreeIter             iter;
 
     g_return_if_fail(NWAMUI_WIFI_NET(wifi));
-    g_message("add '%s' to list store", nwamui_object_get_name(NWAMUI_OBJECT(wifi)));
+    g_debug("add '%s' to list store", nwamui_object_get_name(NWAMUI_OBJECT(wifi)));
 
     if (nwamui_wifi_net_get_life_state(wifi) != NWAMUI_WIFI_LIFE_DEAD) {
         gtk_list_store_append(GTK_LIST_STORE(model), &iter);

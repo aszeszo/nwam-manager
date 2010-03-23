@@ -271,7 +271,6 @@ on_nwam_ncu_notify( GObject *gobject, GParamSpec *arg1, gpointer data)
     if (!arg1 || g_ascii_strcasecmp(arg1->name, "activation-mode") == 0) {
         nwamui_cond_activation_mode_t mode = nwamui_object_get_activation_mode(object);
 
-        g_message("activation-mode %d", mode);
         switch (mode) {
         case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED:
             gtk_widget_set_sensitive(GTK_WIDGET(self), FALSE);

@@ -1974,10 +1974,23 @@ nwamui_object_real_get_active (NwamuiObject *object)
 }
 
 /** 
- * nwamui_env_set_active:
+ * nwamui_env_set_active
  * @nwamui_env: a #NwamuiEnv.
  * @active: Immediately activates/deactivates the env.
  * 
+ * Sets activation of Envs to be manual with immediate effect.
+ *
+ * This entails doing the following:
+ *
+ * - If Manual
+ *
+ *   Specifcially activate the passed environment.
+ *
+ * - If not Manual
+ *
+ *   Loop through each Env and ensure it's disabled, returning control to the
+ *   system to decide on best selection.
+ *
  **/ 
 static void
 nwamui_object_real_set_active (NwamuiObject *object, gboolean active )

@@ -420,23 +420,6 @@ nwam_location_dialog_new(void)
     return( self );
 }
 
-/* FIXME, if update failed, popup dialog and return FALSE */
-static gboolean
-nwam_update_obj (NwamLocationDialog *self, GObject *obj)
-{
-	NwamLocationDialogPrivate  *prv = GET_PRIVATE(self);
-    gboolean enabled;
-    gint cond;
-	const gchar *txt = NULL;
-    gchar* prev_txt = NULL;
-
-    if (!NWAMUI_IS_ENV(obj)) {
-        return( FALSE );
-    }
-
-	return TRUE;
-}
-
 static gint
 dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 {
@@ -532,9 +515,13 @@ cancel(NwamPrefIFace *iface, gpointer user_data)
     GtkTreeModel          *model;
     NwamLocationDialog    *self = NWAM_LOCATION_DIALOG( iface );
 
+    /* Clean toggled_env after use it, because the next time show this dialog
+     * may not show the correct active env.
+     */
+    g_object_set(self, "toggled_env", NULL, NULL);
+
     /* Re-read objects from system 
      */
-
 	model = gtk_tree_view_get_model(self->prv->location_tree);
     gtk_tree_model_foreach(model,
                            tree_model_foreach_revert,
@@ -551,76 +538,71 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 	GtkTreeIter                iter;
     GtkTreePath               *path      = NULL;
     GtkTreeModel              *model;
-    GObject                   *obj;
+    NwamuiObject              *obj;
     gboolean                   retval    = TRUE;
 
     model = gtk_tree_view_get_model (prv->location_tree);
-
-    if (prv->switch_loc_manually_flag) {
-        NwamuiEnv *env;
-        if (prv->toggled_env) {
-            env = g_object_ref(prv->toggled_env);
-        } else {
-            env = nwamui_daemon_get_active_env(prv->daemon);
-        }
-        nwamui_object_set_enabled(NWAMUI_OBJECT(env), TRUE);
-        g_object_unref(env);
-    } else {
-        NwamuiEnv *env;
-        env = nwamui_daemon_get_active_env(prv->daemon);
-        nwamui_object_set_enabled(NWAMUI_OBJECT(env), FALSE);
-        g_object_unref(env);
-    }
 
     /* Apply all changes, if no errors, hide all. */
     if (retval && gtk_tree_model_get_iter_first (model, &iter)) {
         gchar* prop_name = NULL;
         do {
             gtk_tree_model_get (model, &iter, 0, &obj, -1);
-            if (!nwam_update_obj (self, obj)) {
-                g_object_unref(obj);
-                retval = FALSE;
-                break;
-            }
-            if (nwamui_env_validate (NWAMUI_ENV (obj), &prop_name)) {
-                if (!nwamui_object_commit (NWAMUI_OBJECT (obj))) {
-                    /* Start highlight relevant ENV */
+
+            if (nwamui_object_has_modifications(obj)) {
+                if (nwamui_env_validate (NWAMUI_ENV (obj), &prop_name)) {
+                    if (!nwamui_object_commit (NWAMUI_OBJECT (obj))) {
+                        /* Start highlight relevant ENV */
+                        path = gtk_tree_model_get_path (model, &iter);
+                        gtk_tree_view_set_cursor(prv->location_tree, path, NULL, TRUE);
+                        gtk_tree_path_free (path);
+
+                        gchar *msg = g_strdup_printf (_("Committing %s failed..."), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
+                        nwamui_util_show_message (GTK_WINDOW(prv->location_dialog),
+                          GTK_MESSAGE_ERROR,
+                          _("Commit ENV error"),
+                          msg, TRUE);
+                        g_free (msg);
+                        g_object_unref(obj);
+                        retval = FALSE;
+                        break;
+                    }
+                }
+                else {
+                    gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), nwamui_object_get_name(NWAMUI_OBJECT(obj)), prop_name);
+
+                    /* Start highligh relevant ENV */
                     path = gtk_tree_model_get_path (model, &iter);
                     gtk_tree_view_set_cursor(prv->location_tree, path, NULL, TRUE);
                     gtk_tree_path_free (path);
 
-                    gchar *msg = g_strdup_printf (_("Committing %s failed..."), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
                     nwamui_util_show_message (GTK_WINDOW(prv->location_dialog),
                       GTK_MESSAGE_ERROR,
-                      _("Commit ENV error"),
+                      _("Validation error"),
                       msg, TRUE);
                     g_free (msg);
+                    g_free (prop_name);
                     g_object_unref(obj);
                     retval = FALSE;
                     break;
                 }
             }
-            else {
-                gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), nwamui_object_get_name(NWAMUI_OBJECT(obj)), prop_name);
-
-                /* Start highligh relevant ENV */
-                path = gtk_tree_model_get_path (model, &iter);
-                gtk_tree_view_set_cursor(prv->location_tree, path, NULL, TRUE);
-                gtk_tree_path_free (path);
-
-                nwamui_util_show_message (GTK_WINDOW(prv->location_dialog),
-                  GTK_MESSAGE_ERROR,
-                  _("Validation error"),
-                  msg, TRUE);
-                g_free (msg);
-                g_free (prop_name);
-                g_object_unref(obj);
-                retval = FALSE;
-                break;
-            }
             g_object_unref(obj);
         } while (gtk_tree_model_iter_next (model, &iter));
     }
+
+    if (prv->switch_loc_manually_flag) {
+		nwamui_object_set_active(NWAMUI_OBJECT(prv->toggled_env), TRUE);
+    } else {
+        /* Get the current active env, disactive and wait for nwamd. */
+        NwamuiEnv *env = nwamui_daemon_get_active_env(prv->daemon);
+        nwamui_object_set_active(NWAMUI_OBJECT(env), FALSE);
+        g_object_unref(env);
+    }
+    /* Clean toggled_env after use it, because the next time show this dialog
+     * may not show the correct active env.
+     */
+    g_object_set(self, "toggled_env", NULL, NULL);
 
     if (retval) {
         GList *nlist = capplet_model_to_list(model);
@@ -727,40 +709,12 @@ nwam_location_connection_enabled_toggled_cb(GtkCellRendererToggle *cell_renderer
 
         gtk_tree_model_get(model, &iter, 0, &env, -1);
 
-        /* First change prior selection, before changing new one */
-        if ( prv->toggled_env != NULL ) {
-            nwamui_object_set_enabled(NWAMUI_OBJECT(prv->toggled_env), FALSE);
-        }
-        else {
-            NwamuiEnv *active_env;
-
-            active_env = nwamui_daemon_get_active_env(prv->daemon);
-
-            /* Use active env */
-            nwamui_object_set_enabled(NWAMUI_OBJECT(active_env), FALSE);
-
-            g_object_unref(active_env);
-        }
-
         g_object_set(self, "toggled_env", env, NULL);
+        /* Refresh the treeview anyway. */
+        gtk_widget_hide(GTK_WIDGET(prv->location_tree));
+        gtk_widget_show(GTK_WIDGET(prv->location_tree));
 
         if (env) {
-            nwamui_object_set_enabled(NWAMUI_OBJECT(env), gtk_cell_renderer_toggle_get_active(cell_renderer));
-
-/*             gchar *name = nwamui_env_get_name(env); */
-
-/*             /\* Figer out which one is enabled, change it to disabled *\/ */
-/*             gtk_tree_model_foreach(model, */
-/*               tree_model_foreach_find_enabled_env, */
-/*               NULL); */
-
-/*             if (gtk_cell_renderer_toggle_get_active(cell_renderer)) { */
-/*                 nwamui_object_set_active(NWAMUI_OBJECT(env), FALSE); */
-/*             } else { */
-/*                 nwamui_object_set_active(NWAMUI_OBJECT(env), TRUE); */
-/*             } */
-
-/*             g_free(name); */
             g_object_unref(env);
         }
         
@@ -975,7 +929,13 @@ on_button_clicked(GtkButton *button, gpointer user_data)
             if (nwamui_util_confirm_removal( GTK_WINDOW(prv->location_dialog), _("Remove Location?"), message )) {
                 g_debug("Removing location: '%s'", nwamui_object_get_name(NWAMUI_OBJECT(env)));
             
+                if (env == (gpointer)prv->toggled_env) {
+                    /* Clear toggled-env, otherwise the toggled flag will be lost. */
+                    g_object_set(self, "toggled_env", NULL, NULL);
+                }
+
                 gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
+
                 nwamui_object_destroy(NWAMUI_OBJECT(env));
             }
         
@@ -1085,7 +1045,6 @@ location_switch_loc_cb_toggled(GtkToggleButton *button, gpointer user_data)
     /* Refresh the treeview anyway. */
     gtk_widget_hide(GTK_WIDGET(prv->location_tree));
     gtk_widget_show(GTK_WIDGET(prv->location_tree));
-
 }
 
 static void
