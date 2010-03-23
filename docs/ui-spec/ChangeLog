@@ -2,6 +2,19 @@
 
 	* nwam-ui-spec.pages
 	* nwam-ui-spec.pdf
+	* img/capplet/connection-status.png
+
+	Remove reference to System>Administration>Network Locations menu,
+	which should go away.  Wasn't terribly useful, and was
+	problematic when NWAM not being used.
+
+	Update image that still mentioned 'VPN Applications'
+	rather than 'Network Modifiers'.
+
+2010-02-05  Calum Benson  <calum.benson@sun.com>
+
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
 	* img/capplet/vpn-dlg-initial.png
 	* img/capplet/vpn-dlg-adding.png
 
