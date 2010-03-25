@@ -1,3 +1,12 @@
+2010-03-25  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* data/Makefile.am:
+	* data/nwam-manager-properties.desktop.in:
+	* data/nwam-manager.desktop.in.in:
+	* data/nwam-network.desktop.in:
+	* data/nwam-network.desktop.in.in:
+	Fixed remove 'Network Locations'
+
 2010-03-23  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* configure.in: bump to 1.0.1

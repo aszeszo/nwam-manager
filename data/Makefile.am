@@ -2,24 +2,24 @@ NULL=
 
 SUBDIRS = 
 
+%.in: %.in.in
+	LC_ALL=C sed -e "s|\@LIBEXECDIR\@|$(libexecdir)|;s|\@BINDIR\@|$(bindir)|" $< > $@
+
 @INTLTOOL_DESKTOP_RULE@
-desktopdir=$(datadir)/applications
-desktop_in_files = nwam-manager-properties.desktop.in	\
-	nwam-network.desktop.in
+desktopdir		= $(datadir)/applications
+desktop_in_in_files	= nwam-network.desktop.in.in
+desktop_in_files	= nwam-network.desktop.in
 desktop_DATA = $(desktop_in_files:.desktop.in=.desktop)
 
-%.in: %.in.in
-	LC_ALL=C sed -e "s|\@LIBEXECDIR\@|$(libexecdir)|;s|\@PROGRAM\@|nwam-manager|" $< > $@
-
-autosessiondir      = $(sysconfdir)/xdg/autostart
-autosession_in_in_files = nwam-manager.desktop.in.in
-autosession_in_files = nwam-manager.desktop.in
-autosession_DATA    = $(autosession_in_files:.desktop.in=.desktop)
+autosessiondir		= $(sysconfdir)/xdg/autostart
+autosession_in_in_files	= nwam-manager.desktop.in.in
+autosession_in_files	= nwam-manager.desktop.in
+autosession_DATA	= $(autosession_in_files:.desktop.in=.desktop)
 
 @INTLTOOL_SCHEMAS_RULE@
-schemasdir       = $(GCONF_SCHEMA_FILE_DIR)
-schemas_in_files = nwam-manager.schemas.in
-schemas_DATA     = $(schemas_in_files:.schemas.in=.schemas)
+schemasdir		= $(GCONF_SCHEMA_FILE_DIR)
+schemas_in_files	= nwam-manager.schemas.in
+schemas_DATA		= $(schemas_in_files:.schemas.in=.schemas)
 
 dist_bin_SCRIPTS = nwam-manager-properties
 
@@ -46,7 +46,7 @@ dist-hook:
 
 EXTRA_DIST = \
 	$(schemas_in_files)	\
-	$(desktop_in_files)	\
+	$(desktop_in_in_files)	\
 	$(autosession_in_in_files)	\
 	$(NULL)
 
