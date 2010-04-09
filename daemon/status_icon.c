@@ -836,10 +836,10 @@ connect_nwam_object_signals(GObject *obj, GObject *self)
         g_signal_connect(ncp, "deactivate_ncu",
           G_CALLBACK(ncp_deactivate_ncu), (gpointer)self);
 
-        g_signal_connect(ncp, "add_ncu",
+        g_signal_connect(ncp, "add",
           G_CALLBACK(ncp_add_ncu), (gpointer) self);
 
-        g_signal_connect(ncp, "remove_ncu",
+        g_signal_connect(ncp, "remove",
           G_CALLBACK(ncp_remove_ncu), (gpointer) self);
 
         g_signal_connect(ncp, "notify::wireless-link-num",

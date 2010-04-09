@@ -355,10 +355,10 @@ net_conf_set_property ( GObject         *object,
             if (prv->selected_ncp) {
                 g_object_ref(prv->selected_ncp);
 
-                g_signal_connect(prv->selected_ncp, "add_ncu",
+                g_signal_connect(prv->selected_ncp, "add",
                   G_CALLBACK(ncp_add_ncu), (gpointer) self);
 
-                g_signal_connect(prv->selected_ncp, "remove_ncu",
+                g_signal_connect(prv->selected_ncp, "remove",
                   G_CALLBACK(ncp_remove_ncu), (gpointer) self);
 
                 /* Update edit ncp combo */

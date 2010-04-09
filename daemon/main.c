@@ -39,6 +39,8 @@
 #include "status_icon.h"
 #include "notify.h"
 
+#define DETECT_ICON_EMBEDDING_INTERVAL 2 /* In seconds */
+
 /* Command-line options */
 static gboolean debug = FALSE;
 static gboolean notify_reuse = FALSE;
@@ -64,9 +66,8 @@ init_wait_for_embedding_idle(gpointer data)
 {
     GtkStatusIcon* status_icon = GTK_STATUS_ICON(data);
 
-    if ( gtk_status_icon_is_embedded( status_icon ) ) {
+    if (gtk_status_icon_is_embedded(status_icon)) {
         nwam_status_icon_run(NWAM_STATUS_ICON(status_icon));
-
         return FALSE;
     }
     return TRUE;
@@ -75,24 +76,15 @@ init_wait_for_embedding_idle(gpointer data)
 static gboolean
 init_wait_for_embedding(gpointer data)
 {
-#if 0
-    GtkStatusIcon* status_icon = GTK_STATUS_ICON(data);
-
-    /* Wait for the Notification Area to be ready */
-    while ( !notification_area_ready( status_icon  ) ) {
-        sleep(2);
+    /* Run it first because we may avoid the first interval. */
+    if (init_wait_for_embedding_idle(data)) {
+        g_timeout_add_seconds_full(G_PRIORITY_DEFAULT,
+          DETECT_ICON_EMBEDDING_INTERVAL,
+          init_wait_for_embedding_idle,
+          g_object_ref(data),
+          g_object_unref);
     }
-    /* We make sure icon is available, then we get everything work */
-    nwam_status_icon_run(NWAM_STATUS_ICON(status_icon));
-
     return( TRUE );
-#else
-    g_idle_add_full(G_PRIORITY_DEFAULT_IDLE,
-      init_wait_for_embedding_idle,
-      g_object_ref(data),
-      g_object_unref);
-    return( TRUE );
-#endif
 }
 
 int

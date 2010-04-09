@@ -14,7 +14,7 @@
 </authorgroup>
 <pubsnumber>820-7604-10</pubsnumber>
 <releaseinfo></releaseinfo>
-<pubdate>March 2010</pubdate>
+<pubdate>April 2010</pubdate>
 <publisher role="maintainer"><publishername>Oracle Corporation</publishername>
 </publisher>
 <revhistory>
@@ -36,12 +36,12 @@
 </copyright>
 <abstract><para>This online help provides detailed instructions for using the NWAM GUI to monitor network connectivity and to configure wired and wireless network connections.</para>
 </abstract>
-<legalnotice><para>This software and related documentation are provided under a license agreement containing restrictions on use and disclosure and are protected by intellectual property laws. Except as expressly permitted in your license agreement or allowed by law, you may not use, copy, reproduce, translate, broadcast, modify, license, transmit, distribute, exhibit, perform, publish, or display any part, in any form, or by any means. Reverse engineering, disassembly, or decompilation of this software, unless required by law for interoperability, is prohibited.</para>
+<legalnotice remap="20100330"><para>This software and related documentation are provided under a license agreement containing restrictions on use and disclosure and are protected by intellectual property laws. Except as expressly permitted in your license agreement or allowed by law, you may not use, copy, reproduce, translate, broadcast, modify, license, transmit, distribute, exhibit, perform, publish, or display any part, in any form, or by any means. Reverse engineering, disassembly, or decompilation of this software, unless required by law for interoperability, is prohibited.</para>
 <para>The information contained herein is subject to change without notice and is not warranted to be error-free. If you find any errors, please report them to us in writing.</para>
 <para>If this is software or related software documentation that is delivered to the U.S. Government or anyone licensing it on behalf of the U.S. Government, the following notice is applicable:</para>
 <para>U.S. GOVERNMENT RIGHTS Programs, software, databases, and related documentation and technical data delivered to U.S. Government customers are &#8220;commercial computer software&#8221; or &#8220;commercial technical data&#8221; pursuant to the applicable Federal Acquisition Regulation and agency-specific supplemental regulations. As such, the use, duplication, disclosure, modification, and adaptation shall be subject to the restrictions and license terms set forth in the applicable Government contract, and, to the extent applicable by the terms of the Government contract, the additional rights set forth in FAR 52.227-19, Commercial Computer Software License (December 2007). Oracle USA, Inc., 500 Oracle Parkway, Redwood City, CA 94065.</para>
 <para>This software or hardware is developed for general use in a variety of information management applications. It is not developed or intended for use in any inherently dangerous applications, including applications which may create a risk of personal injury. If you use this software or hardware in dangerous applications, then you shall be responsible to take all appropriate fail-safe, backup, redundancy, and other measures to ensure the safe use. Oracle Corporation and its affiliates disclaim any liability for any damages caused by use of this software or hardware in dangerous applications.</para>
-<para>Oracle is a registered trademark of Oracle Corporation and/or its affiliates. Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.</para>
+<para>Oracle and Java are registered trademarks of Oracle and/or its affiliates. Other names may be trademarks of their respective owners.</para>
 <para>AMD, Opteron, the AMD logo, and the AMD Opteron logo are trademarks or registered trademarks of Advanced Micro Devices. Intel and Intel Xeon are trademarks or registered trademarks of Intel Corporation. All SPARC trademarks are used under license and are trademarks or registered trademarks of SPARC International, Inc. UNIX is a registered trademark licensed through X/Open Company, Ltd.</para>
 <para>This software or hardware and documentation may provide access to or information on content, products, and services from third parties. Oracle Corporation and its affiliates are not responsible for and expressly disclaim all warranties of any kind with respect to third- party content, products, and services. Oracle Corporation and its affiliates will not be responsible for any loss, costs, or damages incurred due to your access to or use of third- party content, products, or services.</para>
 </legalnotice>
@@ -49,7 +49,7 @@
 <chapter id="intro"><title>Introduction</title>
 <para>Use this online help to find out more about configuring your automatic network connection by using the Network Auto-Magic (NWAM) graphical user interface (GUI). Links within the application take you to pages that provide more detailed information. You can also navigate through this help by using links that appear within the text or by clicking the various topics in the side pane.</para>
 <sect1 id="nwam-components"><title>About the Network Auto-Magic Process</title>
-<para>The NWAM service simplifies basic network configuration by automatically configuring and managing your wired and wireless networks. The NWAM service addresses basic Ethernet and wireless configurations and enables you to perform various networking tasks, such as connecting to your wired or wireless network at startup and configuring new wired or wireless networks. The NWAM service also simplifies more complex network configurations, such as system-wide network configuration. In addition, this feature displays informational messages about the current status of your network connection and the overall health of your network.</para>
+<para>The NWAM process simplifies basic network configuration by automatically configuring and managing your wired and wireless networks. The NWAM service addresses basic Ethernet and wireless configurations and enables you to perform various networking tasks, such as connecting to your wired or wireless network at startup and configuring new wired or wireless networks. The NWAM service also simplifies more complex network configurations, such as system-wide network configuration. In addition, this feature displays informational messages about the current status of your network connection and the overall health of your network.</para>
 <para>Other feature capabilities include:</para>
 <itemizedlist><listitem><para>Multiple concurrent network connections</para>
 </listitem>
@@ -67,7 +67,7 @@
 </sect1>
 </chapter>
 <chapter id="nwstatus-icon"><title>About the Network Status Notification Icon</title>
-<para>The <literal>Network Status</literal> notification icon is displayed in the desktop panel's notification area at all times. The icon is the primary method for viewing the status of your network and for interacting with automatic network configuration processes. The <literal>Network Status</literal> notification icon is also where informational messages appear. The icon menu enables quick access to essential network functionality.</para>
+<para>The <literal>Network Status</literal> notification icon is displayed in the desktop panel's notification area at all times. The icon is the primary method for viewing the status of your network and for interacting with automatic network configuration processes. The <literal>Network Status</literal> notification icon is also where informational messages about your network are displayed. The icon menu enables quick access to essential network functionality.</para>
 <para>The icon's appearance indicates the overall condition of your network.</para>
 <para>The following table illustrates the individual icon elements that are displayed on the desktop, along with a description.</para>
 <informaltable frame="all"><tgroup cols="3" colsep="1" rowsep="1"><colspec colwidth="41.05*"/>
@@ -441,11 +441,11 @@
 <chapter id="nwprefs-dialog"><title>About the Network Preferences Dialog</title>
 <para>The <literal>Network Preferences</literal> dialog is where you can configure individual network connections and view the current state of each network connection. The window provides access to various views that you can switch to by using the drop-down list that is located at the top of the dialog.</para>
 <para>You can open the dialog three ways:</para>
-<itemizedlist><listitem><para>By selecting System > Administration > Network from the Main Menubar on the desktop panel</para>
+<itemizedlist><listitem><para>By choosing System -&gt; Administration -&gt; Network from the Main Menubar on the desktop panel.</para>
 </listitem>
 <listitem><para>By clicking the <literal>Network Status</literal> notification icon</para>
 </listitem>
-<listitem><para>By selecting the <guimenuitem>Network Preferences</guimenuitem> menu item from the <literal>Network Status</literal> notification's icon menu</para>
+<listitem><para>By choosing the <guimenuitem>Network Preferences</guimenuitem> menu item from the <literal>Network Status</literal> notification's icon menu</para>
 </listitem>
 </itemizedlist>
 <note><para>The <literal>Network Preferences</literal> dialog is only available to user accounts that have been assigned the <literal>Network Autoconf Admin</literal> rights profile by a system administrator.</para>
@@ -814,7 +814,7 @@
 <para>The <literal>Network Locations</literal> dialog enables you to switch locations, edit location properties, create new locations, and remove locations.</para>
 <mediaobject><imageobject><imagedata fileref="graphics/locationprefs-dialog.png" /></imageobject>
 </mediaobject>
-<para>To open the dialog, choose <literal>Network Locations</literal> from the <literal>Network Status</literal> notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System -&gt; Administration -&gt; Network Locations.</para>
+<para>To open the dialog, choose <literal>Network Locations</literal> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
 <note><para>The <literal>Network Locations</literal> dialog is only available to user accounts that have been assigned the <literal>Network Autoconf Admin</literal> rights profile by a system administrator.</para>
 </note>
 <para>The Locations list is similar to the list on the <literal>Network Status</literal> notification's icon menu. Each available location, with an icon that represents its activation type, is listed. </para>
@@ -860,7 +860,7 @@
 <para>The activation type of the selected location is also displayed in the <literal>Selected location</literal> drop-down list. The active location is represented by a selected radio button that is displayed in the first column of the list.</para>
 </sect1>
 <sect1 id="activationmode-chg"><title>To Change a Location's Activation Mode</title>
-<orderedlist><listitem><para>Choose <literal>Network Locations</literal> from the desktop notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System > Administration > Network Locations.</para>
+<orderedlist><listitem><para>Choose <literal>Network Locations</literal> from the desktop notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
 </listitem>
 <listitem><para>To change the activation mode of a location, select the location in the list, then select the new activation mode the <guilabel>Selected location</guilabel> drop-down list.</para>
 <para>Note that when a system location is selected, the drop-down list shows <guilabel>Activated by system</guilabel>, and both the drop-down list and the <guibutton>Edit Rules</guibutton> button are disabled.</para>
@@ -882,7 +882,7 @@
 <listitem><para>If the <guilabel>Switch Locations Manually</guilabel> option is selected on the <guisubmenu>Location</guisubmenu> submenu, you can activate any available location, regardless of its activation type. That location remains active indefinitely.</para>
 </listitem>
 </itemizedlist>
-<para>Alternately, you can open the <literal>Network Locations</literal> dialog from the desktop panel applet's right-click menu. Or, from the Main Menubar on the desktop panel, choose System -&gt; Administration -&gt; Network Locations. To switch to a different location, select the radio button of that location, then click <guibutton>OK</guibutton>. </para>
+<para>Alternately, you can open the <literal>Network Locations</literal> dialog from the desktop panel applet's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button. To switch to a different location, select the radio button of that location, then click <guibutton>OK</guibutton>. </para>
 <itemizedlist><listitem><para>If the <guibutton>Switch Locations Automatically</guibutton> radio button is selected in the <literal>Network Locations</literal> dialog, you cannot manually choose a location to activate. The most appropriate System or Conditional location will be activated automatically at any given time, according to changes in the network environment.</para>
 </listitem>
 <listitem><para>If the <guibutton>Switch Locations Manually</guibutton> radio button is selected in the <literal>Network Locations</literal> dialog, you can activate any available location, regardless of its activation type. That location remains active indefinitely.</para>
@@ -911,7 +911,7 @@
 </sect1>
 <sect1 id="location-confignew"><title>To Add a Location</title>
 <para>New locations are added in the <literal>Network Locations</literal> dialog.</para>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System -&gt; Administration -&gt; Network Locations.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
 </listitem>
 <listitem><para>To add a new location with default settings, click the <guibutton>Add </guibutton> button.</para>
 <para>A new location that has the Manual activation type, is created with a temporary name. The name is selected so that you can type a new name immediately.</para>
@@ -924,7 +924,7 @@
 </sect1>
 <sect1 id="location-remove"><title>To Remove a Location</title>
 <para>Locations are removed in the <literal>Network Locations</literal> dialog.</para>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the Network Status notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System -&gt; Administration -&gt; Network Locations.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the Network Status notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
 </listitem>
 <listitem><para>Select the location to remove, then click the <guibutton>Remove</guibutton> button.</para>
 <para>The <guibutton>Remove</guibutton> button is disabled when a system location (Automatic or No Network) is selected. These locations cannot be deleted.</para>
@@ -937,7 +937,7 @@
 <para>Locations are renamed in the <literal>Network Locations</literal> dialog.</para>
 <note><para>You can only rename a location immediately after you have added it. After you click the OK button to confirm the addition of the location and close the <literal>Network Locations</literal> dialog, the location name is fixed and cannot be edited.</para>
 </note>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System -&gt; Administration -&gt; Network Locations.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
 </listitem>
 <listitem><para>Select the location to rename, then click the <guibutton>Rename</guibutton> button.</para>
 <para>The location name is replaced by an <emphasis>in-place</emphasis> editable text field in the list.</para>
@@ -949,7 +949,7 @@
 </sect1>
 <sect1 id="location-duplicate"><title>To Duplicate a Location </title>
 <para>Locations are duplicated in the <literal>Network Locations</literal> dialog.</para>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, from the Main Menubar on the desktop panel, choose System -&gt; Administration -&gt; Network Locations.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
 </listitem>
 <listitem><para>Select the location, then click the <guibutton>Duplicate</guibutton> button.</para>
 <para>A new location is created with a temporary name.</para>

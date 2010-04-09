@@ -88,10 +88,18 @@ static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void show_changed_cb( GtkWidget* widget, gpointer data );
 
+/* Daemon */
+static void daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data);
+
 /* Utility Functions */
 static void foreach_ncp_add_to_combo(gpointer data, gpointer user_data);
 static void show_combo_add (GtkComboBox* combo, GObject*  obj);
 static void show_combo_remove (GtkComboBox* combo, GObject*  obj);
+static gboolean combo_find_proper_pos(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data);
+
 
 G_DEFINE_TYPE_EXTENDED (NwamCappletDialog,
                         nwam_capplet_dialog,
@@ -128,7 +136,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
 {
     NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(self);
     GtkButton      *btn = NULL;
-    NwamuiDaemon   *daemon = NULL;
+    NwamuiDaemon   *daemon = nwamui_daemon_get_instance();
 
     self->prv = prv;
     
@@ -138,14 +146,10 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     prv->main_nb = GTK_NOTEBOOK(nwamui_util_glade_get_widget(CAPPLET_DIALOG_MAIN_NOTEBOOK));
         
     /* Get NCPs and Current NCP */
-    daemon = nwamui_daemon_get_instance();
     prv->active_ncp = nwamui_daemon_get_active_ncp( daemon );
 
     prv->selected_ncu = NULL;
     prv->prev_selected_ncu = NULL;
-
-    g_object_unref( daemon );
-    daemon = NULL;
 
     /* Set title to include hostname */
     nwamui_util_window_title_append_hostname( prv->capplet_dialog );
@@ -165,8 +169,20 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
       (gpointer)self,
       NULL);
 
+    /* gtk_tree_sortable_set_sort_func(GTK_TREE_SORTABLE(gtk_combo_box_get_model(GTK_COMBO_BOX(prv->show_combo))), */
+    /*   0, */
+    /*   nwam_ncp_ncu_compare_cb, */
+    /*   NULL, */
+    /*   NULL); */
+
+    /* gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(gtk_combo_box_get_model(GTK_COMBO_BOX(prv->show_combo))), */
+    /*   0, */
+    /*   GTK_SORT_ASCENDING); */
+
     show_combo_add (prv->show_combo, G_OBJECT(prv->panel[PANEL_CONN_STATUS]));
     show_combo_add (prv->show_combo, G_OBJECT(prv->panel[PANEL_PROF_PREF]));
+
+    g_signal_connect(daemon, "daemon_info", G_CALLBACK(daemon_info), (gpointer)self);
 
     g_signal_connect(self, "notify", (GCallback)object_notify_cb, NULL);
     g_signal_connect(GTK_DIALOG(prv->capplet_dialog), "response", (GCallback)response_cb, (gpointer)self);
@@ -179,6 +195,9 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
 
     /* Initial */
     refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
+
+    g_object_unref( daemon );
+    daemon = NULL;
 }
 
 
@@ -552,6 +571,70 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 	g_debug("NwamCappletDialog: notify %s changed", arg1->name);
 }
 
+static void
+daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data)
+{
+    NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(user_data);
+
+    if (NWAMUI_IS_NCP(obj)) {
+        switch (type) {
+        case NWAMUI_DAEMON_INFO_OBJECT_ADDED:
+            show_combo_add(prv->show_combo, obj);
+            break;
+        case NWAMUI_DAEMON_INFO_OBJECT_REMOVED:
+            show_combo_remove(prv->show_combo, obj);
+            break;
+        default:
+            break;
+        }
+    }
+}
+
+static void
+ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
+{
+	GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(data));
+    GtkTreeIter iter;
+    GtkTreeIter iter_sep;
+    CappletForeachData d;
+
+    d.user_data = ncu;
+    d.user_data1 = NULL;
+    d.ret_data = &iter_sep;
+
+    if (capplet_model_foreach(model, combo_find_proper_pos, &d, &iter)) {
+        GtkTreeIter new_iter;
+        gtk_tree_store_insert_before(GTK_TREE_STORE(model), &new_iter, NULL, &iter);
+        iter = new_iter;
+    } else if (d.user_data1) {
+        gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
+    }
+    gtk_tree_store_set(GTK_TREE_STORE(model), &iter, 0, ncu, -1);
+}
+
+static void
+ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
+{
+	GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(data));
+    GtkTreeIter iter;
+
+    /* Find ncu directly */
+    if (capplet_model_find_object(model, G_OBJECT(ncu), &iter)) {
+        /* Delete NCU. */
+        gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
+    }
+}
+
+static void
+nwamui_util_foreach_nwam_object_add_to_tree_store(gpointer object, gpointer user_data)
+{
+    CappletForeachData *d = (CappletForeachData *)user_data;
+	NwamuiObject *ncp = d->user_data;
+    NwamuiObject* obj = NWAMUI_OBJECT(object);
+
+    ncp_add_ncu(NWAMUI_NCP(ncp), NWAMUI_NCU(obj), d->user_data1);
+}
+
 /*
  * Utility functions.
  */
@@ -560,15 +643,46 @@ show_combo_add(GtkComboBox* combo, GObject*  obj)
 {
 	GtkTreeIter iter;
 	GtkTreeModel *model = gtk_combo_box_get_model(combo);
+    CappletForeachData d;
 
-    gtk_tree_store_append (GTK_TREE_STORE(model), &iter, NULL);
+    /* Make the previous line become a separator. */
+    /* gtk_tree_store_append (GTK_TREE_STORE(model), &iter, NULL); */
 
     if (NWAMUI_IS_NCP(obj)) {
-        /* Make the previous line become a separator. */
-        gtk_tree_store_append (GTK_TREE_STORE(model), &iter, NULL);
-        gtk_tree_store_set (GTK_TREE_STORE(model), &iter, 0, obj, -1);
-        nwamui_ncp_foreach_ncu(NWAMUI_NCP(obj), nwamui_util_foreach_nwam_object_add_to_tree_store, (gpointer)model);
+        GtkTreeIter iter_sep;
+
+        g_signal_connect(obj, "add",
+          G_CALLBACK(ncp_add_ncu), (gpointer)combo);
+
+        g_signal_connect(obj, "remove",
+          G_CALLBACK(ncp_remove_ncu), (gpointer)combo);
+
+        d.user_data = obj;
+        d.user_data1 = NULL;
+        d.ret_data = &iter_sep;
+
+        /* Added the separator. */
+        if (capplet_model_foreach(model, combo_find_proper_pos, &d, &iter)) {
+            gtk_tree_store_insert_before(GTK_TREE_STORE(model), &iter, NULL, &iter_sep);
+        } else {
+            gtk_tree_store_append(GTK_TREE_STORE(model), &iter, NULL);
+        }
+
+        /* Added the NCP. */
+        {
+            GtkTreeIter new_iter;
+            gtk_tree_store_insert_after(GTK_TREE_STORE(model), &new_iter, NULL, &iter);
+            iter = new_iter;
+            gtk_tree_store_set (GTK_TREE_STORE(model), &iter, 0, obj, -1);
+        }
+
+        /* Added the NCUs. */
+        d.user_data = obj;
+        d.user_data1 = combo;
+        d.ret_data = NULL;
+        nwamui_ncp_foreach_ncu(NWAMUI_NCP(obj), nwamui_util_foreach_nwam_object_add_to_tree_store, &d);
     } else {
+        gtk_tree_store_append (GTK_TREE_STORE(model), &iter, NULL);
         gtk_tree_store_set (GTK_TREE_STORE(model), &iter, 0, obj, -1);
     }
 }
@@ -584,6 +698,9 @@ show_combo_remove(GtkComboBox* combo, GObject*  obj)
         if (NWAMUI_IS_NCP(obj)) {
             GtkTreeIter iter;
             GtkTreePath *path;
+
+            g_signal_handlers_disconnect_by_func(obj, (gpointer)ncp_add_ncu, (gpointer)combo);
+            g_signal_handlers_disconnect_by_func(obj, (gpointer)ncp_remove_ncu, (gpointer)combo);
 
             /* Delete the separator. */
             path = gtk_tree_model_get_path(model, &parent);
@@ -659,3 +776,61 @@ foreach_ncp_add_to_combo(gpointer data, gpointer user_data)
     show_combo_remove(prv->show_combo, G_OBJECT(data));
     show_combo_add(prv->show_combo, G_OBJECT(data));
 }
+
+static gboolean
+combo_find_proper_pos(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data)
+{
+    CappletForeachData *d = (CappletForeachData *)user_data;
+    NwamuiObject *oa;
+    NwamuiObject *ob = d->user_data;
+    gboolean stop = FALSE;
+    /* A section is <ncp ncu* NULL> */
+    gtk_tree_model_get(model, iter, 0, &oa, -1);
+    if (oa) {
+        if (NWAMUI_IS_NCU(ob)) {
+            /* We must find the parent NCP first before find a proper pos for a
+             * NCU.
+             */
+            if (d->user_data1 == NULL && NWAMUI_IS_NCP(oa)) {
+                NwamuiObject *obp;
+                g_object_get(ob, "ncp", &obp, NULL);
+
+                if (obp == oa) {
+                    d->user_data1 = (gpointer)1;
+                }
+                g_object_unref(obp);
+            }
+            /* We now in the correct ncp section. */
+            if (d->user_data1 && NWAMUI_IS_NCU(oa)) {
+                if (nwamui_object_sort(oa, ob, NWAMUI_OBJECT_SORT_BY_GROUP) > 0) {
+                    stop = TRUE;
+                }
+            }
+        } else if (NWAMUI_IS_NCP(ob)) {
+            /* For ncp pos, we find the pos has left value, to avoid ncu* and
+             * NULL.
+             */
+            if (NWAMUI_IS_NCP(oa)) {
+                if (nwamui_object_sort_by_name(oa, ob) > 0) {
+                    stop = TRUE;
+                }
+            }
+        } else {
+            g_assert_not_reached();
+        }
+
+        g_object_unref(oa);
+    } else {
+        /* Alway remember the last seporator. */
+        *(GtkTreeIter *)d->ret_data = *iter;
+        /* We have in a NCP */
+        if (d->user_data1) {
+            stop = TRUE;
+        }
+    }
+    return stop;
+}
+

@@ -158,8 +158,8 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
 
     klass->activate_ncu = default_activate_ncu_signal_handler;
     klass->deactivate_ncu = default_deactivate_ncu_signal_handler;
-    klass->add_ncu = default_add_ncu_signal_handler;
-    klass->remove_ncu = default_remove_ncu_signal_handler;
+    klass->add = default_add_ncu_signal_handler;
+    klass->remove = default_remove_ncu_signal_handler;
 
     nwamuiobject_class->open = nwamui_object_real_open;
     nwamuiobject_class->set_handle = nwamui_object_real_set_handle;
@@ -239,10 +239,10 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
         G_TYPE_OBJECT);                  /* Types of Args */
     
     nwamui_ncp_signals[ADD_NCU] =   
-      g_signal_new ("add_ncu",
+      g_signal_new ("add",
         G_TYPE_FROM_CLASS (klass),
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-        G_STRUCT_OFFSET (NwamuiNcpClass, add_ncu),
+        G_STRUCT_OFFSET (NwamuiNcpClass, add),
         NULL, NULL,
         g_cclosure_marshal_VOID__OBJECT,
         G_TYPE_NONE,                  /* Return Type */
@@ -250,10 +250,10 @@ nwamui_ncp_class_init (NwamuiNcpClass *klass)
         G_TYPE_OBJECT);               /* Types of Args */
     
     nwamui_ncp_signals[REMOVE_NCU] =   
-      g_signal_new ("remove_ncu",
+      g_signal_new ("remove",
         G_TYPE_FROM_CLASS (klass),
         G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-        G_STRUCT_OFFSET (NwamuiNcpClass, remove_ncu),
+        G_STRUCT_OFFSET (NwamuiNcpClass, remove),
         NULL, NULL,
         g_cclosure_marshal_VOID__OBJECT,
         G_TYPE_NONE,                  /* Return Type */

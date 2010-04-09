@@ -1347,70 +1347,6 @@ nwamui_util_encode_menu_label( gchar **modified_label )
     return( *modified_label );
 }
 
-#define MAX_NOTIFICATION_FAILURES   (20)
-
-extern gboolean
-notification_area_ready ( GtkStatusIcon* status_icon )
-{
-    static gint count_attempts = 0;
-
-    GdkAtom selection_atom;
-    GdkDisplay *display;
-    Display* xdisplay;
-    Window manager_window;
-    gboolean retval = FALSE;
-    int i, screen_count;
-    char buffer[256];
-    display = gdk_display_get_default();
-    xdisplay = GDK_DISPLAY_XDISPLAY( display );
-
-    /* Only allow this to fail a max number of times otherwise we will never
-     * show messages */
-    if ( (count_attempts++) > MAX_NOTIFICATION_FAILURES ) {
-        g_debug("notification_area_ready() returning TRUE (max failues reached)");
-        return TRUE;
-    }
-
-    screen_count = gdk_display_get_n_screens (display);
-
-    gdk_x11_grab_server();
-
-    for (i=0; i<screen_count; i++) {
-        g_snprintf (buffer, sizeof (buffer),
-                    "_NET_SYSTEM_TRAY_S%d", i);
-                    
-        selection_atom = gdk_atom_intern(buffer, FALSE);
-  
-        manager_window = XGetSelectionOwner( xdisplay, gdk_x11_atom_to_xatom(selection_atom) );
-
-        if ( manager_window != NULL ) {
-            break;
-        }
-  
-    }
-
-    gdk_x11_ungrab_server();
-
-    gdk_flush();
-
-    if (manager_window != NULL ) {
-        /* We need to process all events to get status of embedding
-         * correctly, otherwise is always FALSE */
-        while (gtk_events_pending ())
-          gtk_main_iteration ();
-
-        if ( status_icon != NULL && gtk_status_icon_is_embedded( status_icon ) ) {
-            retval = TRUE;
-            /* Make it always return TRUE from now on */
-            count_attempts = MAX_NOTIFICATION_FAILURES + 1;
-        }
-    }
-
-    g_debug("notification_area_ready() returning %s (attempts = %d)", retval?"TRUE":"FALSE", count_attempts);
-    
-    return retval;
-}
-
 /* VOID:INT,POINTER */
 void
 marshal_VOID__INT_POINTER (GClosure     *closure,
@@ -2480,15 +2416,5 @@ nwamui_util_foreach_nwam_object_add_to_list_store(gpointer object, gpointer list
     
     gtk_list_store_append(GTK_LIST_STORE(list_store), &iter);
     gtk_list_store_set(GTK_LIST_STORE(list_store), &iter, 0, obj, -1);
-}
-
-extern void
-nwamui_util_foreach_nwam_object_add_to_tree_store(gpointer object, gpointer list_store)
-{
-    GtkTreeIter   iter;
-    NwamuiObject* obj = NWAMUI_OBJECT(object);
-    
-    gtk_tree_store_append(GTK_TREE_STORE(list_store), &iter, NULL);
-    gtk_tree_store_set(GTK_TREE_STORE(list_store), &iter, 0, obj, -1);
 }
 

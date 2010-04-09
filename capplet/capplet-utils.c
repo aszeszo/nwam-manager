@@ -31,12 +31,22 @@
 
 #include "capplet-utils.h"
 
-typedef struct _CappletForeachData {
-	GtkTreeModelForeachFunc foreach_func;
-	gpointer user_data;
-	gpointer user_data1;
-	gpointer ret_data;
-} CappletForeachData;
+static gboolean
+capplet_tree_model_foreach(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data)
+{
+	CappletForeachData *data = (CappletForeachData *)user_data;
+
+    if (data->foreach_func(model, path, iter, data->user_data)) {
+        *(GtkTreeIter *)data->user_data1 = *iter;
+        /* flag */
+        data->ret_data = data->user_data1;
+        return TRUE;
+    }
+	return FALSE;
+}
 
 static gboolean
 capplet_model_foreach_find_object(GtkTreeModel *model,
@@ -163,6 +173,23 @@ capplet_model_find_object_with_parent(GtkTreeModel *model, GtkTreeIter *parent, 
             return TRUE;
     }
     return FALSE;
+}
+
+gboolean
+capplet_model_foreach(GtkTreeModel *model, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter)
+{
+	CappletForeachData data;
+
+    g_return_val_if_fail(iter, FALSE);
+
+    data.foreach_func = func;
+	data.user_data = user_data;
+	data.user_data1 = (gpointer)iter;
+	data.ret_data = NULL;
+
+	gtk_tree_model_foreach(model, capplet_tree_model_foreach, (gpointer)&data);
+
+	return data.ret_data != NULL;
 }
 
 gboolean
@@ -838,3 +865,4 @@ nwam_ncu_compare_cb(GtkTreeModel *model,
 
     return retval;
 }
+

@@ -1,3 +1,28 @@
+2010-04-09  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c (capplet_tree_model_foreach),
+	(capplet_model_foreach):
+	* capplet/capplet-utils.h: Add a new tree model foreach func.
+	* capplet/nwam_pref_dialog.c (nwam_capplet_dialog_init),
+	(daemon_info), (ncp_add_ncu), (ncp_remove_ncu),
+	(nwamui_util_foreach_nwam_object_add_to_tree_store),
+	(show_combo_add), (show_combo_remove), (combo_find_proper_pos):
+	* capplet/nwam_profile_dialog.c (net_conf_set_property): Fixed
+	15314 [NWAM] Force refresh after editing network profile?
+	* common/libnwamui.c:
+	* common/libnwamui.h: Remomve unused code.
+	* common/nwamui_ncp.c (nwamui_ncp_class_init):
+	* common/nwamui_ncp.h: Clean code. Change some signal slightly,
+	for adding a container object lately.
+	* common/nwamui_ncu.c: Clean code.
+	* daemon/main.c (init_wait_for_embedding_idle),
+	(init_wait_for_embedding): Fixed 15524 nwam-manager shouldn't run
+	gtk_status_icon_is_embedded in idle
+	* daemon/status_icon.c (connect_nwam_object_signals): Signals
+	changed.
+	* help/C/nwam-manager.xml: Updated OLH due to 15136 Remove
+	'Network Locations' menu-item
+
 2010-03-25  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* data/Makefile.am:

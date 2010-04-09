@@ -378,7 +378,6 @@ extern void                     nwamui_util_foreach_nwam_object_dup_and_append_t
 extern gint                     nwamui_util_find_nwamui_object_by_name(gconstpointer obj, gconstpointer name);
 extern gint                     nwamui_util_find_active_nwamui_object(gconstpointer data, gconstpointer user_data);
 extern void                     nwamui_util_foreach_nwam_object_add_to_list_store(gpointer object, gpointer list_store);
-extern void                     nwamui_util_foreach_nwam_object_add_to_tree_store(gpointer object, gpointer list_store);
 
 
 G_END_DECLS

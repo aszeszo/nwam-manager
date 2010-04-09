@@ -175,8 +175,6 @@ static gboolean     set_nwam_ncu_uint64_array_prop( nwam_ncu_handle_t ncu, const
 
 static gboolean     get_kstat_uint64 (const gchar *device, const gchar* stat_name, uint64_t *rval );
 
-static gboolean     interface_has_addresses(const char *ifname, sa_family_t family);
-
 static gchar*       get_interface_address_str( NwamuiNcu *ncu, sa_family_t family);
 
 static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
@@ -4104,76 +4102,6 @@ nwamui_ncu_has_dhcp_configured( NwamuiNcu *ncu, gboolean *ipv4_has_dhcp, gboolea
         }
     }
     g_free(ip_version);
-}
-
-static guint64
-get_ifflags(const char *name, sa_family_t family)
-{
-	icfg_if_t intf;
-	icfg_handle_t h;
-	uint64_t flags = 0;
-
-	(void) strlcpy(intf.if_name, name, sizeof (intf.if_name));
-	intf.if_protocol = family;
-
-	if (icfg_open(&h, &intf) != ICFG_SUCCESS)
-		return (0);
-
-	if (icfg_get_flags(h, &flags) != ICFG_SUCCESS) {
-		/*
-		 * Interfaces can be ripped out from underneath us (for example
-		 * by DHCP).  We don't want to spam the console for those.
-		 */
-		if (errno == ENOENT)
-			g_debug("get_ifflags: icfg_get_flags failed for '%s'", name);
-		else
-			g_debug("get_ifflags: icfg_get_flags %s af %d: %s", name, family, strerror( errno ));
-
-		flags = 0;
-	}
-	icfg_close(h);
-
-	return (flags);
-}
-
-static gboolean
-interface_has_addresses(const char *ifname, sa_family_t family)
-{
-	char                msg[128];
-	icfg_if_t           intf;
-	icfg_handle_t       h;
-	struct sockaddr    *sin_p;
-	struct sockaddr_in  _sin;
-	struct sockaddr_in6 _sin6;
-	socklen_t           sin_len = sizeof (struct sockaddr_in);
-	socklen_t           sin6_len = sizeof (struct sockaddr_in6);
-	socklen_t           addrlen;
-	int prefixlen = 0;
-
-    if ( family == AF_INET6 ) {
-        sin_p = (struct sockaddr *)&_sin6;
-        addrlen = sin6_len;
-    }
-    else if ( family == AF_INET ) {
-        sin_p = (struct sockaddr *)&_sin;
-        addrlen = sin_len;
-    }
-
-	(void) strlcpy(intf.if_name, ifname, sizeof (intf.if_name));
-	intf.if_protocol = family;
-	if (icfg_open(&h, &intf) != ICFG_SUCCESS) {
-		g_debug( "icfg_open failed on interface %s", ifname);
-		return( FALSE );
-	}
-	if (icfg_get_addr(h, sin_p, &addrlen, &prefixlen,
-	    B_TRUE) != ICFG_SUCCESS) {
-		g_debug( "icfg_get_addr failed on interface %s for family %s", ifname, (family == AF_INET6)?"v6":"v4");
-		icfg_close(h);
-		return( FALSE );
-	}
-	icfg_close(h);
-
-    return( TRUE );
 }
 
 static gchar*
