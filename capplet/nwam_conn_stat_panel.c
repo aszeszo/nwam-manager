@@ -650,15 +650,16 @@ repair_clicked_cb( GtkButton *button, gpointer data )
 static void
 env_clicked_cb( GtkButton *button, gpointer data )
 {
-	NwamConnStatusPanel* self = NWAM_CONN_STATUS_PANEL(data);
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
     gint                 response;
 
-    if ( self->prv->location_dialog == NULL ) {
-        self->prv->location_dialog = nwam_location_dialog_new();
+    if ( prv->location_dialog == NULL ) {
+        prv->location_dialog = nwam_location_dialog_new();
     }
-    if ( self->prv->location_dialog != NULL ) {
-        nwam_pref_refresh(NWAM_PREF_IFACE(self->prv->location_dialog), NULL, TRUE);
-        response = nwam_pref_dialog_run(NWAM_PREF_IFACE(self->prv->location_dialog), GTK_WIDGET(button) );
+
+    if ( prv->location_dialog != NULL ) {
+        nwam_pref_refresh(NWAM_PREF_IFACE(prv->location_dialog), NULL, TRUE);
+        response = nwam_pref_dialog_run(NWAM_PREF_IFACE(prv->location_dialog), GTK_WIDGET(button) );
         
         g_debug("location_dialog returned %d", response );
     }
@@ -667,16 +668,19 @@ env_clicked_cb( GtkButton *button, gpointer data )
 static void
 vpn_clicked_cb( GtkButton *button, gpointer data )
 {
-	NwamConnStatusPanel* self = NWAM_CONN_STATUS_PANEL(data);
+	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
 	gint response;
 
-	if ( self->prv->vpn_dialog == NULL ) {
-            self->prv->vpn_dialog = nwam_vpn_pref_dialog_new();
+	if ( prv->vpn_dialog == NULL ) {
+            prv->vpn_dialog = nwam_vpn_pref_dialog_new();
     }
 
-	response = nwam_pref_dialog_run(NWAM_PREF_IFACE(self->prv->vpn_dialog), GTK_WIDGET(button));
+	if (prv->vpn_dialog) {
+        nwam_pref_refresh(NWAM_PREF_IFACE(prv->vpn_dialog), NULL, TRUE);
+        response = nwam_pref_dialog_run(NWAM_PREF_IFACE(prv->vpn_dialog), GTK_WIDGET(button));
 	
-	g_debug("ENM dialog returned %d", response);
+        g_debug("ENM dialog returned %d", response);
+    }
 }
 
 static void

@@ -285,15 +285,10 @@ capplet_tree_model_row_changed_func(GtkTreeModel *tree_model,
 {
     NwamVPNPrefDialogPrivate *prv       = GET_PRIVATE(user_data);
     GtkTreeSelection         *selection = gtk_tree_view_get_selection(prv->view);
-    GtkTreeSelectionFunc      func      = gtk_tree_selection_get_select_function(selection);
-    gpointer                  data      = gtk_tree_selection_get_user_data(selection);
 
     if (gtk_tree_selection_path_is_selected(selection, path)) {
         /* Re-select the row to update the panel. */
         nwam_vpn_selection_changed(selection, user_data);
-        /* if (func) { */
-        /*     func(selection, tree_model, path, TRUE, data); */
-        /* } */
     }
 }
 
@@ -561,6 +556,9 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     g_object_unref(daemon);
 
     if (force) {
+        /* Unselect the selected object to refresh all widget. */
+        /* prv->cur_obj == NULL; */
+        /* gtk_tree_selection_unselect_all(gtk_tree_view_get_selection(prv->view)); */
     }
 }
 
@@ -785,7 +783,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(data);
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
 	GtkTreeSelection *selection = NULL;
-	GtkTreeModel *model = NULL;
+    GtkTreeModel *model = NULL;
 	NwamuiEnm *obj;
 	GtkTreeIter iter;
 
@@ -793,7 +791,14 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
         gchar *name;
         NwamuiObject *object;
 
-        name = capplet_get_increasable_name(gtk_tree_view_get_model(prv->view), _("Unnamed Modifier"), G_OBJECT(self));
+		model = gtk_tree_view_get_model (prv->view);
+
+        /* Fixed 14258 [132] nwam error when adding second VPN */
+        if (!nwam_update_obj(self, prv->cur_obj)) {
+            return;
+        }
+
+        name = capplet_get_increasable_name(model, _("Unnamed Modifier"), G_OBJECT(self));
 
         g_assert(name);
 
@@ -1033,6 +1038,7 @@ nwam_vpn_pre_selection_validate(   GtkTreeSelection *selection,
                 nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
                                           GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
                 g_free(prop_name);
+                g_free(message);
                 retval = FALSE;
             }
 
@@ -1104,7 +1110,8 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
              * selection
              */
 
-            if (prv->cur_obj != obj) {
+            /* if (prv->cur_obj != obj) */
+            {
                 gboolean    start_value = FALSE;
                 gboolean    stop_value = FALSE;
                 gboolean    fmri_value = FALSE;

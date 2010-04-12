@@ -1,3 +1,14 @@
+2010-04-12  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_stat_panel.c (env_clicked_cb),
+	(vpn_clicked_cb):
+	* capplet/nwam_vpn_pref_dialog.c
+	(capplet_tree_model_row_changed_func), (refresh),
+	(vpn_pref_clicked_cb), (nwam_vpn_pre_selection_validate),
+	(nwam_vpn_selection_changed): Fixed 14850 [nwam-133] settings in
+	network modifiers are not restored until nwam-manager-properties
+	is relaunched. Fixed 14258 [132] nwam error when adding second VPN
+
 2010-04-09  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c (capplet_tree_model_foreach),
