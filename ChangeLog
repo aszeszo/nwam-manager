@@ -1,5 +1,9 @@
 2010-04-12  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* configure.in: version 1.138.0
+
+2010-04-12  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/nwam_conn_stat_panel.c (env_clicked_cb),
 	(vpn_clicked_cb):
 	* capplet/nwam_vpn_pref_dialog.c
