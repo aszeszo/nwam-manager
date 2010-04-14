@@ -1,3 +1,15 @@
+2010-04-14  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* Makefile.am:
+	* common/libnwamui.c (plen2mask), (mask2plen),
+	(nwamui_util_get_interface_address),
+	(nwamui_util_window_title_append_hostname):
+	* common/nwamui_ncu.c:
+	* nwam_core/copy_onnv_headers.sh:
+	* nwam_core/usr/include/inetcfg.h: Remove inetcfg related code,
+	use getifsaddrs instead. Copy mask2plen and plen2mask from
+	libinetutil.
+
 2010-04-12  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* configure.in: version 1.138.0

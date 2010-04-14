@@ -21,7 +21,6 @@
 SUBDIRS = common tests capplet daemon po pixmaps ui data help
 
 NWAM_CORE_INCS = \
-		nwam_core/usr/include/inetcfg.h \
 		nwam_core/usr/include/libdlwlan_impl.h \
 		nwam_core/usr/include/libdladm_impl.h \
 		nwam_core/usr/include/libdlvnic.h \

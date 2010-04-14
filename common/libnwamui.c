@@ -41,8 +41,10 @@
 #include <arpa/inet.h>
 #include <inet/ip.h>
 #include <sys/ethernet.h>
-#include <inetcfg.h>
 #include <libscf.h>
+     #include <sys/types.h>
+     #include <sys/socket.h>
+     #include <ifaddrs.h>
 
 #define NWAM_ENVIRONMENT_RENAME     "nwam_environment_rename"
 #define RENAME_ENVIRONMENT_ENTRY    "rename_environment_entry"
@@ -1519,6 +1521,41 @@ marshal_VOID__OBJECT_POINTER (GClosure     *closure,
 }
 
 /*
+ * Stores the netmask in `mask' for the given prefixlen `plen' and also sets
+ * `ss_family' in `mask'.
+ */
+int
+plen2mask(uint_t prefixlen, sa_family_t af, struct sockaddr_storage *mask)
+{
+	uint8_t	*addr;
+
+	bzero(mask, sizeof (*mask));
+	mask->ss_family = af;
+	if (af == AF_INET) {
+		if (prefixlen > IP_ABITS)
+			return (EINVAL);
+		addr = (uint8_t *)&((struct sockaddr_in *)mask)->
+		    sin_addr.s_addr;
+	} else {
+		if (prefixlen > IPV6_ABITS)
+			return (EINVAL);
+		addr = (uint8_t *)&((struct sockaddr_in6 *)mask)->
+		    sin6_addr.s6_addr;
+	}
+
+	while (prefixlen > 0) {
+		if (prefixlen >= 8) {
+			*addr++ = 0xFF;
+			prefixlen -= 8;
+			continue;
+		}
+		*addr |= 1 << (8 - prefixlen);
+		prefixlen--;
+	}
+	return (0);
+}
+
+/*
  * Convert a prefix length to a netmask string.
  */
 extern gchar*
@@ -1586,6 +1623,44 @@ nwamui_util_convert_prefixlen_to_netmask_str( sa_family_t family, guint prefixle
     }
 
     return( netmask_str );
+}
+
+/*
+ * Convert a mask to a prefix length.
+ * Returns prefix length on success, -1 otherwise.
+ */
+int
+mask2plen(const struct sockaddr_storage *mask)
+{
+	int rc = 0;
+	uint8_t last;
+	uint8_t *addr;
+	int limit;
+
+	if (mask->ss_family == AF_INET) {
+		limit = IP_ABITS;
+		addr = (uint8_t *)&((struct sockaddr_in *)mask)->
+		    sin_addr.s_addr;
+	} else {
+		limit = IPV6_ABITS;
+		addr = (uint8_t *)&((struct sockaddr_in6 *)mask)->
+		    sin6_addr.s6_addr;
+	}
+
+	while (*addr == 0xff) {
+		rc += 8;
+		if (rc == limit)
+			return (limit);
+		addr++;
+	}
+
+	last = *addr;
+	while (last != 0) {
+		rc++;
+		last = (last << 1) & 0xff;
+	}
+
+	return (rc);
 }
 
 /*
@@ -1666,75 +1741,54 @@ nwamui_util_convert_netmask_str_to_prefixlen( sa_family_t family, const gchar* n
 
 extern gboolean
 nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
-                                  gchar**address_p, gint *prefixlen_p, gboolean *is_dhcp_p )
+  gchar**address_p, gint *prefixlen_p, gboolean *is_dhcp_p)
 {
-	icfg_if_t           intf;
-	icfg_handle_t       h;
-	struct sockaddr    *sin_p;
-	struct sockaddr_in  _sin;
-	struct sockaddr_in6 _sin6;
-	socklen_t           sin_len = sizeof (struct sockaddr_in);
-	socklen_t           sin6_len = sizeof (struct sockaddr_in6);
-	socklen_t           addrlen;
-	int                 prefixlen = 0;
-	uint64_t            flags = 0;
+    struct ifaddrs *ifap;
+    struct ifaddrs *idx;
 
-    if ( family == AF_INET6 ) {
-        sin_p = (struct sockaddr *)&_sin6;
-        addrlen = sin6_len;
-    }
-    else if ( family == AF_INET ) {
-        sin_p = (struct sockaddr *)&_sin;
-        addrlen = sin_len;
-    }
+    if (getifaddrs(&ifap) == 0) {
 
-	(void) strlcpy(intf.if_name, ifname, sizeof (intf.if_name));
-	intf.if_protocol = family;
-	if (icfg_open(&h, &intf) != ICFG_SUCCESS) {
-		g_debug( "icfg_open failed on interface %s", ifname);
-		return( FALSE );
-	}
-	if (icfg_get_addr(h, sin_p, &addrlen, &prefixlen,
-	    B_TRUE) != ICFG_SUCCESS) {
-		g_debug( "icfg_get_addr failed on interface %s for family %s", ifname, (family == AF_INET6)?"v6":"v4");
-		icfg_close(h);
-		return( FALSE );
-	}
+        for (idx = ifap; idx; idx = idx->ifa_next) {
+            if (g_strcmp0(ifname, idx->ifa_name) == 0
+              && idx->ifa_addr->ss_family == family) {
+                char        addr_str[INET6_ADDRSTRLEN];
+                const char *addr_p;
 
-	if (icfg_get_flags(h, &flags) != ICFG_SUCCESS) {
-		flags = 0;
-	}
+                /* Found it. */
+                if (idx->ifa_addr->ss_family == AF_INET6) {
+                    addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
+                      &((struct sockaddr_in6 *)idx->ifa_addr)->sin6_addr,
+                      addr_str, INET6_ADDRSTRLEN);
+                } else {
+                    addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
+                      &((struct sockaddr_in *)idx->ifa_addr)->sin_addr,
+                      addr_str, INET6_ADDRSTRLEN);
+                }
 
-    if ( is_dhcp_p != NULL ) {
-        if ( flags & IFF_DHCPRUNNING ) {
-            *is_dhcp_p = TRUE;
-        }
-        else {
-            *is_dhcp_p = FALSE;
-        }
-    }
+                if (address_p) {
+                    *address_p =  g_strdup(addr_p?addr_p:"");
+                }
+                if (prefixlen_p) {
+                    *prefixlen_p = mask2plen(idx->ifa_netmask);
+                }
+                if (is_dhcp_p != NULL) {
+                    if (idx->ifa_flags & IFF_DHCPRUNNING) {
+                        *is_dhcp_p = TRUE;
+                    } else {
+                        *is_dhcp_p = FALSE;
+                    }
+                }
 
-    if ( address_p != NULL ) {
-        char        addr_str[INET6_ADDRSTRLEN];
-        const char *addr_p;
-
-        if ( family == AF_INET6 ) {
-            addr_p = inet_ntop(family, (const void*)&_sin6.sin6_addr, addr_str, INET6_ADDRSTRLEN);
-        }
-        else {
-            addr_p = inet_ntop(family, (const void*)&_sin.sin_addr, addr_str, INET6_ADDRSTRLEN);
+                break;
+            }
         }
 
-        *address_p =  g_strdup(addr_p?addr_p:"");
+        freeifaddrs(ifap);
+        return TRUE;
+    } else {
+        g_debug("getifaddrs failed:", g_strerror(errno));
     }
-
-    if ( prefixlen_p != NULL ) {
-        *prefixlen_p =  prefixlen;
-    }
-
-	icfg_close(h);
-
-    return( TRUE );
+    return FALSE;
 }
 
 static void
@@ -2229,7 +2283,7 @@ nwamui_util_window_title_append_hostname( GtkDialog* dialog )
 
     current_title = gtk_window_get_title( GTK_WINDOW(dialog) );
 
-    new_title = g_strdup_printf(_("%s (%s )"), current_title?current_title:"", hostname);
+    new_title = g_strdup_printf(_("%s (%s)"), current_title?current_title:" ", hostname);
 
     gtk_window_set_title( GTK_WINDOW(dialog), new_title );
 

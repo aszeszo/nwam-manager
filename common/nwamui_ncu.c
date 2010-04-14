@@ -39,7 +39,6 @@
 #include "nwamui_ncu.h"
 
 #include <errno.h>
-#include <inetcfg.h>
 #include <limits.h>
 #include <sys/types.h>
 #include <sys/dlpi.h>
