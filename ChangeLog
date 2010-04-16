@@ -1,3 +1,36 @@
+2010-04-16  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* Makefile.am: Removed unused headers.
+	* common/libnwamui.c
+	(nwamui_util_convert_prefixlen_to_netmask_str),
+	(nwamui_util_convert_netmask_str_to_prefixlen),
+	(nwamui_util_get_interface_address): Rework mask2plen and
+	plen2mask related functions.
+	* common/nwamui_daemon.c (nwamd_event_handler):
+	* common/nwamui_ncp.c (nwamui_ncp_get_ncu_by_device_name):
+	* common/nwamui_ncu.c (nwamui_ncu_set_property),
+	(nwamui_ncu_get_property):
+	* common/nwamui_ncu.h: Add some code for refresh address on
+	getting nwamd events, not finished.
+	* nwam_core/copy_onnv_headers.sh:
+	* nwam_core/libnwam.h:
+	* nwam_core/usr/include/libdladm.h:
+	* nwam_core/usr/include/libdladm_impl.h:
+	* nwam_core/usr/include/libdlaggr.h:
+	* nwam_core/usr/include/libdlether.h:
+	* nwam_core/usr/include/libdlflow.h:
+	* nwam_core/usr/include/libdlflow_impl.h:
+	* nwam_core/usr/include/libdllink.h:
+	* nwam_core/usr/include/libdlmgmt.h:
+	* nwam_core/usr/include/libdlstat.h:
+	* nwam_core/usr/include/libdlvlan.h:
+	* nwam_core/usr/include/libdlvnic.h:
+	* nwam_core/usr/include/libdlwlan_impl.h:
+	* nwam_core/usr/include/sys/dld.h:
+	* nwam_core/usr/include/sys/dls_mgmt.h:
+	* nwam_core/usr/include/sys/mac.h:
+	* nwam_core/usr/include/sys/mac_flow.h: Removed unused headers.
+
 2010-04-14  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* Makefile.am:

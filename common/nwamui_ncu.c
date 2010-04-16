@@ -526,6 +526,12 @@ nwamui_ncu_set_property ( GObject         *object,
                 set_modified_flag( self, NWAM_NCU_CLASS_PHYS, TRUE );
             }
             break;
+    case PROP_IPV4_ADDRESS:
+        nwamui_ncu_set_ipv4_address(self, g_value_get_string(value));
+        break;
+    case PROP_IPV4_SUBNET:
+        nwamui_ncu_set_ipv4_subnet(self, g_value_get_string(value));
+        break;
         case PROP_IPV4_ACTIVE: {
                 gboolean active = g_value_get_boolean( value );
                 if ( active != self->prv->ipv4_active ) {
@@ -683,34 +689,22 @@ nwamui_ncu_get_property (GObject         *object,
                 g_value_set_boolean(value, self->prv->ipv4_has_dhcp );
             }
             break;
-        case PROP_IPV4_ADDRESS: {
-                gchar *address = NULL;
-                if ( self->prv->ipv4_dhcp_ip != NULL ) {
-                    address = nwamui_ip_get_address(self->prv->ipv4_dhcp_ip);
-                }
-                else if ( self->prv->ipv4_primary_static_ip != NULL ) {
-                    address = nwamui_ip_get_address(self->prv->ipv4_primary_static_ip);
-                }
-                g_value_set_string(value, address);
-                if ( address != NULL ) {
-                    g_free(address);
-                }
-            }
-            break;
-        case PROP_IPV4_SUBNET: {
-                gchar *subnet = NULL;
-                if ( self->prv->ipv4_dhcp_ip != NULL ) {
-                    subnet = nwamui_ip_get_subnet_prefix(self->prv->ipv4_dhcp_ip);
-                }
-                else if ( self->prv->ipv4_primary_static_ip != NULL ) {
-                    subnet = nwamui_ip_get_subnet_prefix(self->prv->ipv4_primary_static_ip);
-                }
-                g_value_set_string(value, subnet);
-                if ( subnet != NULL ) {
-                    g_free(subnet);
-                }
-            }
-            break;
+    case PROP_IPV4_ADDRESS: {
+        gchar *address = nwamui_ncu_get_ipv4_address(self);
+        g_value_set_string(value, address);
+        if ( address != NULL ) {
+            g_free(address);
+        }
+    }
+        break;
+    case PROP_IPV4_SUBNET: {
+        gchar *subnet = nwamui_ncu_get_ipv4_subnet(self);
+        g_value_set_string(value, subnet);
+        if ( subnet != NULL ) {
+            g_free(subnet);
+        }
+    }
+        break;
         case PROP_IPV4_DEFAULT_ROUTE: {
                 gchar *default_route = NULL;
 
@@ -2438,6 +2432,15 @@ nwamui_ncu_get_ipv4_has_static (NwamuiNcu *self)
     return( num_static > 0 );
 }
 
+extern void
+nwamui_ncu_set_ipv4_address(NwamuiNcu *self, const gchar *address)
+{
+    g_return_if_fail(NWAMUI_IS_NCU(self));
+    g_return_if_fail(self->prv->ipv4_dhcp_ip);
+
+    nwamui_ip_set_address(self->prv->ipv4_dhcp_ip, address);
+}
+
 /**
  * nwamui_ncu_get_ipv4_address:
  * @nwamui_ncu: a #NwamuiNcu.
@@ -2447,15 +2450,18 @@ nwamui_ncu_get_ipv4_has_static (NwamuiNcu *self)
 extern gchar*
 nwamui_ncu_get_ipv4_address (NwamuiNcu *self)
 {
-    gchar*  ipv4_address = NULL; 
+    gchar *address = NULL;
 
-    g_return_val_if_fail (NWAMUI_IS_NCU (self), ipv4_address);
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), address);
 
-    g_object_get (G_OBJECT (self),
-                  "ipv4_address", &ipv4_address,
-                  NULL);
+    if ( self->prv->ipv4_dhcp_ip != NULL ) {
+        address = nwamui_ip_get_address(self->prv->ipv4_dhcp_ip);
+    }
+    else if ( self->prv->ipv4_primary_static_ip != NULL ) {
+        address = nwamui_ip_get_address(self->prv->ipv4_primary_static_ip);
+    }
 
-    return( ipv4_address );
+    return address;
 }
 
 /** 
@@ -2465,17 +2471,12 @@ nwamui_ncu_get_ipv4_address (NwamuiNcu *self)
  * 
  **/ 
 extern void
-nwamui_ncu_set_ipv4_subnet (   NwamuiNcu *self,
-                              const gchar*  ipv4_subnet )
+nwamui_ncu_set_ipv4_subnet(NwamuiNcu *self, const gchar* ipv4_subnet)
 {
-    g_return_if_fail (NWAMUI_IS_NCU (self));
-    g_assert (ipv4_subnet != NULL );
+    g_return_if_fail(NWAMUI_IS_NCU(self));
+    g_return_if_fail(self->prv->ipv4_dhcp_ip);
 
-    if ( ipv4_subnet != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "ipv4_subnet", ipv4_subnet,
-                      NULL);
-    }
+    nwamui_ip_set_subnet_prefix(self->prv->ipv4_dhcp_ip, ipv4_subnet);
 }
 
 /**
@@ -2487,15 +2488,17 @@ nwamui_ncu_set_ipv4_subnet (   NwamuiNcu *self,
 extern gchar*
 nwamui_ncu_get_ipv4_subnet (NwamuiNcu *self)
 {
-    gchar*  ipv4_subnet = NULL; 
+    gchar *subnet = NULL;
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), subnet);
 
-    g_return_val_if_fail (NWAMUI_IS_NCU (self), ipv4_subnet);
+    if ( self->prv->ipv4_dhcp_ip != NULL ) {
+        subnet = nwamui_ip_get_subnet_prefix(self->prv->ipv4_dhcp_ip);
+    }
+    else if ( self->prv->ipv4_primary_static_ip != NULL ) {
+        subnet = nwamui_ip_get_subnet_prefix(self->prv->ipv4_primary_static_ip);
+    }
 
-    g_object_get (G_OBJECT (self),
-                  "ipv4_subnet", &ipv4_subnet,
-                  NULL);
-
-    return( ipv4_subnet );
+    return subnet;
 }
 
 /**

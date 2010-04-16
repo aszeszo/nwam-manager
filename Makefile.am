@@ -21,23 +21,7 @@
 SUBDIRS = common tests capplet daemon po pixmaps ui data help
 
 NWAM_CORE_INCS = \
-		nwam_core/usr/include/libdlwlan_impl.h \
-		nwam_core/usr/include/libdladm_impl.h \
-		nwam_core/usr/include/libdlvnic.h \
-		nwam_core/usr/include/libdlvlan.h \
-		nwam_core/usr/include/libdladm.h \
-		nwam_core/usr/include/sys/mac_flow.h \
-		nwam_core/usr/include/sys/dls_mgmt.h \
-		nwam_core/usr/include/sys/mac.h \
-		nwam_core/usr/include/sys/dld.h \
-		nwam_core/usr/include/libdlmgmt.h \
-		nwam_core/usr/include/libdlether.h \
-		nwam_core/usr/include/libdlstat.h \
-		nwam_core/usr/include/libdlaggr.h \
-		nwam_core/usr/include/libdlwlan.h \
-		nwam_core/usr/include/libdlflow_impl.h \
-		nwam_core/usr/include/libdlflow.h \
-		nwam_core/usr/include/libdllink.h
+		nwam_core/usr/include/libdlwlan.h
 
 EXTRA_DIST =			\
 		${NWAM_CORE_INCS} \

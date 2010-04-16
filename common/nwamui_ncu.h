@@ -129,8 +129,11 @@ extern gboolean             nwamui_ncu_get_ipv4_has_dhcp ( NwamuiNcu *self );
 extern gboolean             nwamui_ncu_get_ipv4_has_static (NwamuiNcu *self);
 
 extern gchar*               nwamui_ncu_get_ipv4_address ( NwamuiNcu *self );
+extern void                 nwamui_ncu_set_ipv4_address(NwamuiNcu *self, const gchar *address);
+
 
 extern gchar*               nwamui_ncu_get_ipv4_subnet ( NwamuiNcu *self );
+extern void                 nwamui_ncu_set_ipv4_subnet(NwamuiNcu *self, const gchar* ipv4_subnet);
 
 extern void                 nwamui_ncu_set_ipv4_default_route ( NwamuiNcu *self,
                                                                 const gchar*  ipv4_default_route );

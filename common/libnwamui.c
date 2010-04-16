@@ -42,9 +42,9 @@
 #include <inet/ip.h>
 #include <sys/ethernet.h>
 #include <libscf.h>
-     #include <sys/types.h>
-     #include <sys/socket.h>
-     #include <ifaddrs.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <ifaddrs.h>
 
 #define NWAM_ENVIRONMENT_RENAME     "nwam_environment_rename"
 #define RENAME_ENVIRONMENT_ENTRY    "rename_environment_entry"
@@ -1524,7 +1524,7 @@ marshal_VOID__OBJECT_POINTER (GClosure     *closure,
  * Stores the netmask in `mask' for the given prefixlen `plen' and also sets
  * `ss_family' in `mask'.
  */
-int
+static int
 plen2mask(uint_t prefixlen, sa_family_t af, struct sockaddr_storage *mask)
 {
 	uint8_t	*addr;
@@ -1559,77 +1559,34 @@ plen2mask(uint_t prefixlen, sa_family_t af, struct sockaddr_storage *mask)
  * Convert a prefix length to a netmask string.
  */
 extern gchar*
-nwamui_util_convert_prefixlen_to_netmask_str( sa_family_t family, guint prefixlen ) 
+nwamui_util_convert_prefixlen_to_netmask_str(sa_family_t family, guint prefixlen) 
 {
-    gchar*              netmask_str = NULL;
-    guint               maxlen = 0;
-	struct lifreq       lifr;
-    struct sockaddr_in *sin = (struct sockaddr_in *)&lifr.lifr_addr;
-    struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&lifr.lifr_addr;
-    uchar_t            *mask;
+    struct sockaddr_storage ss;
+    char addr_str[INET6_ADDRSTRLEN];
+    const char *addr_p;
 
-	memset(&lifr.lifr_addr, 0, sizeof (lifr.lifr_addr));
+    memset(&ss, 0, sizeof(ss));
 
-	lifr.lifr_addr.ss_family = family;
-
-    switch( family ) {
-        case AF_INET:
-            maxlen = IP_ABITS;
-            break;
-        case AF_INET6:
-            maxlen = IPV6_ABITS;
-            netmask_str = g_strdup_printf("%d", prefixlen);
-            return( netmask_str );
-        default:
-            break;
+    if (plen2mask(prefixlen, family, &ss) == 0) {
+        if (family == AF_INET) {
+            addr_p = inet_ntop(family,
+              &((struct sockaddr_in *)&ss)->sin_addr,
+              addr_str, INET_ADDRSTRLEN);
+        } else {
+            addr_p = inet_ntop(family,
+              &((struct sockaddr_in6 *)&ss)->sin6_addr,
+              addr_str, INET6_ADDRSTRLEN);
+        }
     }
 
-    /* If v6, we will have returned already, but have some code here just
-     * incase we need it again... */
-	if ((prefixlen < 0) || (prefixlen > maxlen)) {
-        return( netmask_str );
-	}
-
-    switch( family ) {
-        case AF_INET:
-            mask = (uchar_t *)&(sin->sin_addr);
-            break;
-        case AF_INET6:
-            mask = (uchar_t *)&(sin6->sin6_addr);
-            break;
-        default:
-            break;
-    }
-
-	while (prefixlen > 0) {
-		if (prefixlen >= 8) {
-			*mask++ = 0xFF;
-			prefixlen -= 8;
-			continue;
-		}
-		*mask |= 1 << (8 - prefixlen);
-		prefixlen--;
-	}
-
-    switch( family ) {
-        case AF_INET:
-            netmask_str = g_strdup( (char*)inet_ntoa( sin->sin_addr ));
-            break;
-        case AF_INET6:
-            netmask_str = g_strdup_printf("%d", prefixlen);
-            break;
-        default:
-            break;
-    }
-
-    return( netmask_str );
+    return g_strdup(addr_p);
 }
 
 /*
  * Convert a mask to a prefix length.
  * Returns prefix length on success, -1 otherwise.
  */
-int
+static int
 mask2plen(const struct sockaddr_storage *mask)
 {
 	int rc = 0;
@@ -1667,76 +1624,24 @@ mask2plen(const struct sockaddr_storage *mask)
  * Convert a netmask string to prefix length
  */
 extern guint
-nwamui_util_convert_netmask_str_to_prefixlen( sa_family_t family, const gchar* netmask_str ) 
+nwamui_util_convert_netmask_str_to_prefixlen(sa_family_t family, const gchar* netmask_str)
 {
-   uint32_t               prefixlen = 0;
-   uint32_t               maxlen = 0;
-   struct lifreq        lifr;
-   struct sockaddr_in  *sin = (struct sockaddr_in *)&lifr.lifr_addr;
-   struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)&lifr.lifr_addr;
-   uchar_t             *mask = NULL;
+    struct sockaddr_storage ss;
+	uint8_t *addr;
 
-   memset(&lifr.lifr_addr, 0, sizeof (lifr.lifr_addr));
+    memset(&ss, 0, sizeof(ss));
 
-    switch( family ) {
-        case AF_INET:
-            maxlen = IP_ABITS;
-            break;
-        case AF_INET6:
-            maxlen = IPV6_ABITS;
-            prefixlen = (uint32_t)atoi( netmask_str );
-            return( prefixlen );
-        default:
-            break;
+    if (family == AF_INET) {
+		addr = (uint8_t *)&((struct sockaddr_in *)&ss)->sin_addr.s_addr;
+    } else {
+		addr = (uint8_t *)&((struct sockaddr_in6 *)&ss)->sin6_addr.s6_addr;
     }
-
-    /* If v6, we will have returned already, but have some code here just
-     * incase we need it again... */
-	if ((prefixlen < 0) || (prefixlen > maxlen)) {
-        return( prefixlen );
-	}
-
-    switch( family ) {
-        case AF_INET:
-            if ( inet_pton ( family, netmask_str, (void*)(&sin->sin_addr) ) ) {
-                mask = (uchar_t *)&(sin->sin_addr);
-            }
-            break;
-        case AF_INET6:
-            if ( inet_pton ( family, netmask_str, (void*)(&sin6->sin6_addr) ) ) {
-                mask = (uchar_t *)&(sin6->sin6_addr);
-            }
-            break;
-        default:
-            break;
+    
+    if (inet_pton(family, netmask_str, addr) == 1) {
+        ss.ss_family = family;
+        return mask2plen(&ss);
     }
-
-    if ( mask == NULL ) {
-        return( 0 );
-    }
-
-    for ( int i = 0; i < maxlen / 8; i++ ) {
-        if ( *mask == 0xFF ) {
-            prefixlen += 8;
-        }
-        else if ( *mask == 0 ) {
-            break;
-        }
-        else {
-            for ( int j = 1; j <= 8; j++ ) {
-                if ( *mask & (1 << (8 - j))) {
-                    prefixlen++;
-                }
-                else {
-                    /* If we hit a 0, then break out, we're done */
-                    break;
-                }
-            }
-        }
-        mask++;
-    }
-
-    return(prefixlen);
+    return -1;
 }
 
 extern gboolean
@@ -1755,13 +1660,13 @@ nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
                 const char *addr_p;
 
                 /* Found it. */
-                if (idx->ifa_addr->ss_family == AF_INET6) {
-                    addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
-                      &((struct sockaddr_in6 *)idx->ifa_addr)->sin6_addr,
-                      addr_str, INET6_ADDRSTRLEN);
-                } else {
+                if (idx->ifa_addr->ss_family == AF_INET) {
                     addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
                       &((struct sockaddr_in *)idx->ifa_addr)->sin_addr,
+                      addr_str, INET_ADDRSTRLEN);
+                } else {
+                    addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
+                      &((struct sockaddr_in6 *)idx->ifa_addr)->sin6_addr,
                       addr_str, INET6_ADDRSTRLEN);
                 }
 

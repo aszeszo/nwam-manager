@@ -2046,7 +2046,7 @@ nwamd_event_handler(gpointer data)
             break;
         case NWAM_EVENT_TYPE_IF_STATE:
             if (!nwamevent->nwe_data.nwe_if_state.nwe_addr_valid) {
-                g_debug("%s  %s flag(%u) index(%u) valid(%u) added(%u)",
+                g_debug("%s  %s flag(%8X) index(%-2u) valid(%u) added(%u)",
                   nwam_event_type_to_string(nwamevent->nwe_type),
                   nwamevent->nwe_data.nwe_if_state.nwe_name,
                   nwamevent->nwe_data.nwe_if_state.nwe_flags,
@@ -2055,15 +2055,29 @@ nwamd_event_handler(gpointer data)
                   nwamevent->nwe_data.nwe_if_state.nwe_addr_added);
 
             } else {
-                NwamuiNcu          *ncu;
-                const gchar        *address = NULL;
-                struct sockaddr_in *sin;
+                NwamuiObject    *ncu;
+                char             addr_str[INET6_ADDRSTRLEN];
+                const gchar     *address = NULL;
+                struct sockaddr *sa;
 
-                sin = (struct sockaddr_in *)
-                  &(nwamevent->nwe_data.nwe_if_state.nwe_addr);
-                address = inet_ntoa(sin->sin_addr);
+                ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->active_ncp), nwamevent->nwe_data.nwe_if_state.nwe_name);
 
-                g_debug("%s  %s flag(%u) index(%u) valid(%u) added(%u) address %s",
+                sa = (struct sockaddr *)&(nwamevent->nwe_data.nwe_if_state.nwe_addr);
+                if (sa->sa_family == AF_INET6) {
+                    address = inet_ntop(sa->sa_family,
+                      &((struct sockaddr_in6 *)sa)->sin6_addr,
+                      addr_str, INET6_ADDRSTRLEN);
+
+                    /* nwamui_ncu_set_ipv6_address(NWAMUI_NCU(ncu), address); */
+                } else {
+                    address = inet_ntop(sa->sa_family,
+                      &((struct sockaddr_in *)sa)->sin_addr,
+                      addr_str, INET6_ADDRSTRLEN);
+
+                    /* nwamui_ncu_set_ipv4_address(NWAMUI_NCU(ncu), address); */
+                }
+
+                g_debug("%s  %s flag(%8X) index(%-2u) valid(%u) added(%u) address %s",
                   nwam_event_type_to_string(nwamevent->nwe_type),
                   nwamevent->nwe_data.nwe_if_state.nwe_name,
                   nwamevent->nwe_data.nwe_if_state.nwe_flags,
@@ -2071,6 +2085,8 @@ nwamd_event_handler(gpointer data)
                   nwamevent->nwe_data.nwe_if_state.nwe_addr_valid,
                   nwamevent->nwe_data.nwe_if_state.nwe_addr_added,
                   address);
+
+                g_object_unref(ncu);
             }
             break;
 

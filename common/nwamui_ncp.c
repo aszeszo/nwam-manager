@@ -1091,7 +1091,7 @@ nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *self, const gchar* device_name )
 
     if (found_list) {
         ret_ncu = NWAMUI_OBJECT(g_object_ref(found_list->data));
-        nwamui_debug("NCP %s found NCU %s (0x%p) OK", prv->name, device_name, found_list->data);
+        /* nwamui_debug("NCP %s found NCU %s (0x%p) OK", prv->name, device_name, found_list->data); */
     } else {
         nwamui_debug("NCP %s found NCU %s FAILED", prv->name, device_name);
     }
