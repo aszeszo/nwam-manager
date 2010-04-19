@@ -20,10 +20,10 @@
 <revhistory>
   <revision>
     <revnumber>OpenSolaris Network Auto-Magic Configuration Manual V1.0</revnumber>
-      <date>September 2009</date>
+      <date>April 2010</date>
 	<revdescription>
-          <para role="author">Sun Documentation Team </para>
-          <para role="publisher">Sun Microsystems, Inc.</para>
+          <para role="author">Oracle Documentation Team</para>
+          <para role="publisher">Oracle Corporation</para>
 	</revdescription>
   </revision>
 </revhistory>
@@ -1027,7 +1027,7 @@
 <para>The <guilabel>Start/Stop according to rules</guilabel> check box is checked if the selected network modifier has a Conditional activation type, and unchecked if the activation type is Manual. To change the activation type, toggle the check box.</para>
 </sect1>
 <sect1 id="vpnapp-clicontrolled"><title>To Add a Command-Line Network Modifier</title>
-<orderedlist><listitem><para>Open the <literal>VPN Applications</literal> dialog by using one of the following methods:</para>
+<orderedlist><listitem><para>Open the <literal>Network Modifiers</literal> dialog by using one of the following methods:</para>
 <itemizedlist><listitem><para>Click the <guibutton>Modifiers</guibutton> button in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog.</para>
 </listitem>
 <listitem><para>Right-click the <literal>Network Status</literal> notification icon, then select the <guimenuitem>Network Modifier Preferences</guimenuitem> menu item.</para>
