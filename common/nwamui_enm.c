@@ -268,25 +268,6 @@ nwamui_enm_get_property (   GObject         *object,
     }
 }
 
-/**
- * nwamui_enm_new:
- * @returns: a new #NwamuiEnm.
- *
- **/
-extern  NwamuiObject*          
-nwamui_enm_new (const gchar *name)
-{
-    NwamuiObject *self = NWAMUI_OBJECT(g_object_new (NWAMUI_TYPE_ENM, NULL));
-
-    nwamui_object_set_name(NWAMUI_OBJECT(self), name);
-
-    if (nwamui_object_real_open(self, NWAMUI_OBJECT_OPEN) != 0) {
-        nwamui_object_real_open(self, NWAMUI_OBJECT_CREATE);
-    }
-    return NWAMUI_OBJECT( self );
-}
-
-
 static gboolean
 get_nwam_enm_boolean_prop( nwam_enm_handle_t enm, const char* prop_name )
 {
@@ -611,6 +592,24 @@ set_nwam_enm_uint64_prop( nwam_enm_handle_t enm, const char* prop_name, guint64 
 }
 
 /**
+ * nwamui_enm_new:
+ * @returns: a new #NwamuiEnm.
+ *
+ **/
+extern  NwamuiObject*          
+nwamui_enm_new (const gchar *name)
+{
+    NwamuiObject *self = NWAMUI_OBJECT(g_object_new (NWAMUI_TYPE_ENM, NULL));
+
+    nwamui_object_set_name(NWAMUI_OBJECT(self), name);
+
+    if (nwamui_object_real_open(self, NWAMUI_OBJECT_OPEN) != 0) {
+        nwamui_object_real_open(self, NWAMUI_OBJECT_CREATE);
+    }
+    return NWAMUI_OBJECT( self );
+}
+
+/**
  * nwamui_enm_new_with_handle:
  * @returns: a new #NwamuiEnm.
  *
@@ -696,7 +695,9 @@ nwamui_object_real_open(NwamuiObject *object, gint flag)
     if (flag == NWAMUI_OBJECT_CREATE) {
         g_assert(prv->name);
         nerr = nwam_enm_create(prv->name, NULL, &prv->nwam_enm);
-        if (nerr != NWAM_SUCCESS) {
+        if (nerr == NWAM_SUCCESS) {
+            prv->nwam_enm_modified = TRUE;
+        } else {
             g_warning("nwamui_enm_create error creating nwam_enm_handle %s", prv->name);
             prv->nwam_enm == NULL;
         }
@@ -1264,20 +1265,23 @@ nwamui_enm_validate( NwamuiEnm* self, gchar **prop_name_ret )
 static gboolean
 nwamui_object_real_commit( NwamuiObject *object )
 {
+    NwamuiEnmPrivate  *prv  = NWAMUI_ENM_GET_PRIVATE(object);
     NwamuiEnm *self = NWAMUI_ENM(object);
     nwam_error_t    nerr;
 
     g_return_val_if_fail( NWAMUI_IS_ENM(self), FALSE );
 
-    if ( self->prv->nwam_enm_modified && self->prv->nwam_enm != NULL ) {
-        if ( (nerr = nwam_enm_commit( self->prv->nwam_enm, 0 ) ) != NWAM_SUCCESS ) {
-            g_warning("Failed when committing ENM for %s, %s", self->prv->name, nwam_strerror( nerr ));
-            return( FALSE );
+    if (prv->nwam_enm) {
+        if (prv->nwam_enm_modified) {
+            if ((nerr = nwam_enm_commit(prv->nwam_enm, 0)) != NWAM_SUCCESS) {
+                g_warning("Failed when committing ENM for %s, %s", prv->name, nwam_strerror( nerr ));
+                return FALSE;
+            }
+            prv->nwam_enm_modified = FALSE;
         }
-        self->prv->nwam_enm_modified = FALSE;
+        return TRUE;
     }
-
-    return( TRUE );
+    return FALSE;
 }
 
 static void

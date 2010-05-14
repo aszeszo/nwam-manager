@@ -1,3 +1,44 @@
+2010-05-12  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_vpn_pref_dialog.c (nwam_vpn_pref_dialog_init),
+	(nwam_update_obj), (dialog_run), (refresh), (cancel), (apply),
+	(response_cb), (command_entry_changed), (vpn_pref_clicked_cb),
+	(nwam_vpn_pre_selection_validate), (nwam_vpn_selection_changed),
+	(conditional_toggled_cb), (on_radio_button_toggled): Found many
+	problems when fixing 15855 [NWAM] could not add network
+	modifier. Since prv->cur_obj always point to the new/editting
+	object, so it's forced to finish the modifications of cur_obj
+	before click either apply or cancel button to avoid problems. I
+	also added editing a start/stop/fmri command and verify the
+	content in realtime, then set sensitive of start/stop buttons.
+	* common/libnwamui.c (nwamui_util_ncp_init_acquired_ip):
+	* common/libnwamui.h: Added a new function to get initial IP
+	address only for active NCUs of active NCP on starting up
+	NWAMUI. I do that because I think for any other NCU changes can
+	get the proper info from nwamd IF_STATE event.
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_init), (nwamui_object_real_reload),
+	(nwamd_event_handler), (nwamui_daemon_handle_object_state_event),
+	(nwam_loc_walker_cb), (nwam_enm_walker_cb), (nwam_ncp_walker_cb):
+	Rename nwamui_daemon_init_lists to nwamui_object_real_reload for
+	compatible. Clean code and use nwamui_util_ncp_init_acquired_ip on
+	populating NCP info.
+	* common/nwamui_enm.c (nwamui_enm_new), (nwamui_object_real_open),
+	(nwamui_object_real_commit): Fixes which I think should be
+	correct.
+	* common/nwamui_env.c (nwamui_object_real_open): ditto.
+	* common/nwamui_ip.c (nwamui_ip_class_init),
+	(nwamui_ip_set_property), (nwamui_ip_get_property),
+	(nwamui_object_real_sort), (nwamui_ip_set_subnet_prefix),
+	(nwamui_ip_get_display_name):
+	* common/nwamui_ip.h:
+	* common/nwamui_ncp.c (nwamui_object_real_open),
+	(nwamui_object_real_get_active): Clean code.
+	* common/nwamui_ncu.c (nwamui_ncu_get_property):
+	* common/nwamui_ncu.h: Fixing 15544 NWAM GUI only shows the 0th
+	address. Still has problems.
+	* help/C/nwam-manager.xml: Merge Nita's final fix.
+
 2010-04-22  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/Makefile.am:

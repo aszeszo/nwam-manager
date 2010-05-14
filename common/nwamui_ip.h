@@ -97,6 +97,7 @@ extern gchar*               nwamui_ip_get_address ( NwamuiIp *self );
 extern void                 nwamui_ip_set_subnet_prefix ( NwamuiIp *self, const gchar* subnet_prefix );
 extern gchar*               nwamui_ip_get_subnet_prefix ( NwamuiIp *self );
 
+extern gchar*         nwamui_ip_get_display_name(NwamuiObject *obj);
 
 G_END_DECLS
         

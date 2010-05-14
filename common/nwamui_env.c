@@ -1722,7 +1722,9 @@ nwamui_object_real_open(NwamuiObject *object, gint flag)
     if (flag == NWAMUI_OBJECT_CREATE) {
         g_assert(prv->name);
         nerr = nwam_loc_create(prv->name, &prv->nwam_loc);
-        if (nerr != NWAM_SUCCESS) {
+        if (nerr == NWAM_SUCCESS) {
+            prv->nwam_loc_modified = TRUE;
+        } else {
             g_warning("nwamui_loc_create error creating nwam_loc_handle %s", prv->name);
             prv->nwam_loc == NULL;
         }

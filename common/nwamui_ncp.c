@@ -581,7 +581,9 @@ nwamui_object_real_open(NwamuiObject *object, gint flag)
     if (flag == NWAMUI_OBJECT_CREATE) {
         g_assert(prv->name);
         nerr = nwam_ncp_create(prv->name, NULL, &prv->nwam_ncp);
-        if (nerr != NWAM_SUCCESS) {
+        if (nerr == NWAM_SUCCESS) {
+            prv->nwam_ncp_modified = TRUE;
+        } else {
             g_warning("nwamui_ncp_create error creating nwam_ncp_handle %s", prv->name);
             prv->nwam_ncp == NULL;
         }
@@ -718,24 +720,19 @@ nwamui_object_real_set_name( NwamuiObject *object, const gchar* name )
  *
  **/
 extern gboolean
-nwamui_object_real_get_active( NwamuiObject *object )
+nwamui_object_real_get_active(NwamuiObject *object)
 {
-    NwamuiNcp    *self       = NWAMUI_NCP(object);
-    gboolean active = FALSE;
-    g_return_val_if_fail( NWAMUI_IS_NCP(self), active );
+    NwamuiNcpPrivate *prv       = NWAMUI_NCP_GET_PRIVATE(object);
+    nwam_state_t      state     = NWAM_STATE_OFFLINE;
+    nwam_aux_state_t  aux_state = NWAM_AUX_STATE_UNINITIALIZED;
 
-    if ( self->prv->nwam_ncp ) {
-        nwam_state_t        state = NWAM_STATE_OFFLINE;
-        nwam_aux_state_t    aux_state = NWAM_AUX_STATE_UNINITIALIZED;
+    g_return_val_if_fail(NWAMUI_IS_NCP(object), FALSE);
 
+    if (prv->nwam_ncp) {
         state = nwamui_object_get_nwam_state(object, &aux_state, NULL);
-
-        if ( state == NWAM_STATE_ONLINE ) {
-            active = TRUE;
-        }
     }
 
-    return( active );
+    return (state == NWAM_STATE_ONLINE);
 }
 
 /** 

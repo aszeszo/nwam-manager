@@ -131,7 +131,6 @@ extern gboolean             nwamui_ncu_get_ipv4_has_static (NwamuiNcu *self);
 extern gchar*               nwamui_ncu_get_ipv4_address ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_ipv4_address(NwamuiNcu *self, const gchar *address);
 
-
 extern gchar*               nwamui_ncu_get_ipv4_subnet ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_ipv4_subnet(NwamuiNcu *self, const gchar* ipv4_subnet);
 
@@ -226,6 +225,11 @@ extern nwam_state_t         nwamui_ncu_get_interface_nwam_state(NwamuiObject *ob
 
 extern nwam_state_t         nwamui_ncu_get_link_nwam_state(NwamuiNcu *self, nwam_aux_state_t* aux_state, const gchar**aux_state_string);
 extern void                 nwamui_ncu_set_link_nwam_state(NwamuiNcu *self, nwam_state_t state, nwam_aux_state_t aux_state);
+
+extern void                 nwamui_ncu_add_acquired(NwamuiNcu *self, const gchar *address, const gchar *netmask, uint32_t flags);
+
+extern void                 nwamui_ncu_clean_acquired(NwamuiNcu *self);
+
 
 G_END_DECLS
 

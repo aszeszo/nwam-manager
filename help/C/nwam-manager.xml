@@ -4,12 +4,12 @@
    <!ENTITY appversion "1.0"> 
    <!ENTITY manrevision "1.0"> 
    <!ENTITY date "September 2009"> 
-   <!ENTITY app "<application>OpenSolaris Network Auto-Magic Online Help</application>"> 
+   <!ENTITY app "<application>Network Auto-Magic Online Help</application>"> 
    <!ENTITY appname "nwam-manager"> 
 ]>
-<book id="osnetautomagoh" label="fcs" lang="en"><title>OpenSolaris Network Auto-Magic Online Help</title>
-<bookinfo><authorgroup><author><firstname>Oracle Solaris</firstname>
-<surname>Publications</surname>
+<book id="osnetautomagoh" label="fcs" lang="en"><title>Network Auto-Magic Online Help</title>
+<bookinfo><authorgroup><author><firstname>Juanita</firstname>
+<surname>Heieck</surname>
 </author>
 </authorgroup>
 <pubsnumber>820-7604-10</pubsnumber>
@@ -907,7 +907,6 @@
 <para><emphasis role="strong">Related Information</emphasis></para>
 <para><xref linkend="editlocations-namesvc"/>.</para>
 <para><xref linkend="editlocations-security"/>.</para>
-<para><xref linkend="editlocations-smfsvc"/>.</para>
 </sect1>
 <sect1 id="location-confignew"><title>To Add a Location</title>
 <para>New locations are added in the <literal>Network Locations</literal> dialog.</para>

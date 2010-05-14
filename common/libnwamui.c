@@ -1524,7 +1524,7 @@ marshal_VOID__OBJECT_POINTER (GClosure     *closure,
  * Stores the netmask in `mask' for the given prefixlen `plen' and also sets
  * `ss_family' in `mask'.
  */
-static int
+extern int
 plen2mask(uint_t prefixlen, sa_family_t af, struct sockaddr_storage *mask)
 {
 	uint8_t	*addr;
@@ -1586,7 +1586,7 @@ nwamui_util_convert_prefixlen_to_netmask_str(sa_family_t family, guint prefixlen
  * Convert a mask to a prefix length.
  * Returns prefix length on success, -1 otherwise.
  */
-static int
+extern int
 mask2plen(const struct sockaddr_storage *mask)
 {
 	int rc = 0;
@@ -1623,7 +1623,7 @@ mask2plen(const struct sockaddr_storage *mask)
 /*
  * Convert a netmask string to prefix length
  */
-extern guint
+extern gint
 nwamui_util_convert_netmask_str_to_prefixlen(sa_family_t family, const gchar* netmask_str)
 {
     struct sockaddr_storage ss;
@@ -1642,6 +1642,52 @@ nwamui_util_convert_netmask_str_to_prefixlen(sa_family_t family, const gchar* ne
         return mask2plen(&ss);
     }
     return -1;
+}
+
+extern void
+nwamui_util_ncp_init_acquired_ip(NwamuiNcp *ncp)
+{
+    struct ifaddrs *ifap;
+    struct ifaddrs *idx;
+    NwamuiObject *ncu;
+
+    nwamui_ncp_foreach_ncu(ncp, (GFunc)nwamui_ncu_clean_acquired, NULL);
+
+    if (getifaddrs(&ifap) == 0) {
+
+        for (idx = ifap; idx; idx = idx->ifa_next) {
+            ncu = nwamui_ncp_get_ncu_by_device_name(ncp, idx->ifa_name);
+
+            if (ncu) {
+                char        addr_str[INET6_ADDRSTRLEN];
+                char        mask_str[INET6_ADDRSTRLEN];
+                const char *addr_p;
+                const char *mask_p;
+
+                /* Found it. */
+                if (idx->ifa_addr->ss_family == AF_INET) {
+                    addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
+                      &((struct sockaddr_in *)idx->ifa_addr)->sin_addr,
+                      addr_str, INET_ADDRSTRLEN);
+                    mask_p = inet_ntop((int)idx->ifa_netmask->ss_family,
+                      &((struct sockaddr_in *)idx->ifa_netmask)->sin_addr,
+                      mask_str, INET_ADDRSTRLEN);
+                } else {
+                    addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
+                      &((struct sockaddr_in6 *)idx->ifa_addr)->sin6_addr,
+                      addr_str, INET6_ADDRSTRLEN);
+                    mask_p = inet_ntop((int)idx->ifa_netmask->ss_family,
+                      &((struct sockaddr_in6 *)idx->ifa_netmask)->sin6_addr,
+                      mask_str, INET6_ADDRSTRLEN);
+                }
+                nwamui_ncu_add_acquired(NWAMUI_NCU(ncu), addr_p, mask_p, idx->ifa_flags);
+
+                g_object_unref(ncu);
+            }
+        }
+
+        freeifaddrs(ifap);
+    }
 }
 
 extern gboolean
@@ -2315,7 +2361,7 @@ nwamui_util_join_address_prefix( gboolean v6, const gchar *address, const gchar 
     }
     if ( prefix != NULL ) {
         retstr = g_strdup_printf("%s/%d", address, 
-                        nwamui_util_convert_netmask_str_to_prefixlen(v6?AF_INET6:AF_INET, prefix) );
+          nwamui_util_convert_netmask_str_to_prefixlen(v6?AF_INET6:AF_INET, prefix) );
     }
     else {
         retstr = g_strdup(address);

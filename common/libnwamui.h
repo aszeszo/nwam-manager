@@ -326,9 +326,15 @@ extern char**                   nwamui_util_glist_to_strv( GList *list );
 
 extern gchar*                   nwamui_util_encode_menu_label( gchar **modified_label );
 
+extern int                      plen2mask(uint_t prefixlen, sa_family_t af, struct sockaddr_storage *mask);
+
 extern gchar*                   nwamui_util_convert_prefixlen_to_netmask_str( sa_family_t family, guint prefixlen );
 
-extern guint                    nwamui_util_convert_netmask_str_to_prefixlen( sa_family_t family, const gchar* netmask_str );
+extern int                      mask2plen(const struct sockaddr_storage *mask);
+
+extern gint                     nwamui_util_convert_netmask_str_to_prefixlen( sa_family_t family, const gchar* netmask_str );
+
+extern void                     nwamui_util_ncp_init_acquired_ip(NwamuiNcp *ncp);
 
 extern gboolean                 nwamui_util_get_interface_address(  const char  *ifname, 
                                                                     sa_family_t  family, 

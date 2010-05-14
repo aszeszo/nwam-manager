@@ -211,13 +211,15 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
 	prv->desc_lbl = GTK_LABEL(nwamui_util_glade_get_widget(VPN_PREF_DESC_LBL));
 
     nwamui_util_set_entry_smf_fmri_completion( GTK_ENTRY(prv->process_entry) );
+    g_signal_connect(G_OBJECT(prv->start_cmd_entry), "changed", 
+      (GCallback)command_entry_changed, (gpointer)self);
+    g_signal_connect(G_OBJECT(prv->stop_cmd_entry), "changed", 
+      (GCallback)command_entry_changed, (gpointer)self);
+    g_signal_connect(G_OBJECT(prv->process_entry), "changed", 
+      (GCallback)command_entry_changed, (gpointer)self);
 
     /* Set title to include hostname */
     nwamui_util_window_title_append_hostname( prv->vpn_pref_dialog );
-
-/* 	g_signal_connect(prv->start_cmd_entry, "changed", (GCallback)command_entry_changed, (gpointer)self); */
-/* 	g_signal_connect(prv->stop_cmd_entry, "changed", (GCallback)command_entry_changed, (gpointer)self); */
-/* 	g_signal_connect(prv->process_entry, "changed", (GCallback)command_entry_changed, (gpointer)self); */
 
 	g_signal_connect(prv->add_btn,
       "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
@@ -409,7 +411,6 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
 
     /* Stop update GUI when commit changes one by one. */
     g_object_freeze_notify(obj);
-
     cli_value = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->vpn_cli_rb));
     if (cli_value) {
         prev_txt = nwamui_enm_get_start_command(NWAMUI_ENM(obj));
@@ -470,8 +471,7 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
             nwamui_object_set_activation_mode( NWAMUI_OBJECT(obj), NWAMUI_COND_ACTIVATION_MODE_MANUAL );
             nwamui_object_set_conditions( NWAMUI_OBJECT(obj), NULL ); /* To delete conditions */
         }
-    }
-    else {
+    } else {
         /* Check that some conditions exist */
         if ( conditions_list == NULL ) {
             nwamui_util_show_message (GTK_WINDOW(GTK_WINDOW(self->prv->vpn_pref_dialog)), GTK_MESSAGE_ERROR, _("Validation Error"),
@@ -525,8 +525,6 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
 	if ( self->prv->vpn_pref_dialog != NULL ) {
         nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
 		response =  gtk_dialog_run(GTK_DIALOG(self->prv->vpn_pref_dialog));
-
-		gtk_widget_hide( GTK_WIDGET(self->prv->vpn_pref_dialog) );
 	}
 	return(response);
 }
@@ -546,14 +544,11 @@ dialog_get_window(NwamPrefIFace *iface)
 static gboolean
 refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
-	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
 
-    NwamuiDaemon *daemon = nwamui_daemon_get_instance();
     gtk_widget_hide(GTK_WIDGET(prv->view));
-    capplet_update_model_from_daemon(gtk_tree_view_get_model(prv->view), daemon, NWAMUI_TYPE_ENM);
+    capplet_update_model_from_daemon(gtk_tree_view_get_model(prv->view), prv->daemon, NWAMUI_TYPE_ENM);
     gtk_widget_show(GTK_WIDGET(prv->view));
-    g_object_unref(daemon);
 
     if (force) {
         /* Unselect the selected object to refresh all widget. */
@@ -573,17 +568,21 @@ cancel(NwamPrefIFace *iface, gpointer user_data)
     GObject *obj;
     gboolean retval = TRUE;
 
-    model = gtk_tree_view_get_model (prv->view);
-    selection = gtk_tree_view_get_selection (prv->view);
-    if (gtk_tree_selection_get_selected(selection,
-        NULL, &iter)) {
-
-        gtk_tree_model_get (model, &iter, 0, &obj, -1);
-        /* Revert the current one before close */
-        if (prv->cur_obj && prv->cur_obj == obj) {
-            nwamui_object_reload(NWAMUI_OBJECT(obj));
-        }
+    /* How to handle the new/selected one?
+     */
+    if (prv->cur_obj && !nwam_update_obj(self, prv->cur_obj)) {
+        return FALSE;
     }
+
+    /* model = gtk_tree_view_get_model (prv->view); */
+    /* selection = gtk_tree_view_get_selection (prv->view); */
+    /* if (gtk_tree_selection_get_selected(selection, */
+    /*     NULL, &iter)) { */
+
+    /*     gtk_tree_model_get (model, &iter, 0, &obj, -1); */
+    /*     /\* Revert all before close *\/ */
+    /*     nwamui_object_reload(NWAMUI_OBJECT(obj)); */
+    /* } */
 
     return( TRUE );
 }
@@ -594,23 +593,18 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
 	GtkTreeSelection *selection = NULL;
-	GtkTreeIter iter;
-    GtkTreePath *path = NULL;
     GtkTreeModel *model;
+	GtkTreeIter iter;
     GObject *obj;
     gboolean retval = TRUE;
 
     model = gtk_tree_view_get_model (prv->view);
     selection = gtk_tree_view_get_selection (prv->view);
-    if (gtk_tree_selection_get_selected(selection,
-        NULL, &iter)) {
 
-        gtk_tree_model_get (model, &iter, 0, &obj, -1);
-        /* update the new one before close */
-        if (prv->cur_obj && prv->cur_obj == obj) {
-            if ( ! nwam_update_obj (self, obj) ) {
-                retval = FALSE;
-            }
+    /* update the new one before close */
+    if (prv->cur_obj) {
+        if (!nwam_update_obj(self, prv->cur_obj)) {
+            retval = FALSE;
         }
     }
 
@@ -621,12 +615,11 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         gchar* prop_name = NULL;
         do {
             gtk_tree_model_get (model, &iter, 0, &obj, -1);
+
             if (nwamui_enm_validate (NWAMUI_ENM (obj), &prop_name)) {
                 if (!nwamui_object_commit (NWAMUI_OBJECT (obj))) {
                     /* Start highlight relevant ENM */
-                    path = gtk_tree_model_get_path (model, &iter);
-                    gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
-                    gtk_tree_path_free (path);
+                    gtk_tree_selection_select_iter(selection, &iter);
 
                     gchar *msg = g_strdup_printf (_("Committing %s failed..."), nwamui_object_get_name (NWAMUI_OBJECT(obj)));
                     nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
@@ -635,16 +628,14 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                       msg, TRUE);
                     g_free (msg);
                     retval = FALSE;
+                    g_object_unref(obj);
                     break;
                 }
-            }
-            else {
+            } else {
                 gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), nwamui_object_get_name (NWAMUI_OBJECT (obj)), prop_name);
 
                 /* Start highligh relevant ENM */
-                path = gtk_tree_model_get_path (model, &iter);
-                gtk_tree_view_set_cursor(prv->view, path, NULL, TRUE);
-                gtk_tree_path_free (path);
+                gtk_tree_selection_select_iter(selection, &iter);
 
                 nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
                   GTK_MESSAGE_ERROR,
@@ -652,8 +643,12 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                   msg, TRUE);
                 g_free (msg);
                 retval = FALSE;
+                g_object_unref(obj);
                 break;
             }
+
+            g_object_unref(obj);
+
         } while (gtk_tree_model_iter_next (model, &iter));
     }
 
@@ -730,9 +725,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 			break;
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
-			gtk_widget_hide (GTK_WIDGET(prv->vpn_pref_dialog));
-            nwam_pref_refresh(NWAM_PREF_IFACE(data), NULL, TRUE );
-            stop_emission = FALSE;
+            stop_emission = !nwam_pref_cancel(NWAM_PREF_IFACE(data), NULL);
 			break;
 		case GTK_RESPONSE_HELP:
             nwam_pref_help (NWAM_PREF_IFACE(data), NULL);
@@ -741,40 +734,74 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 	}
     if ( stop_emission ) {
         g_signal_stop_emission_by_name(widget, "response" );
+    } else {
+        gtk_widget_hide (GTK_WIDGET(prv->vpn_pref_dialog));
     }
 }
 
 static void
 command_entry_changed(GtkEditable *editable, gpointer data)
 {
-	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(data);
-	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(self);
-    gboolean    start_visible = TRUE;
-    gboolean    stop_visible = TRUE;
-    gboolean    fmri_visible = TRUE;
+	NwamVPNPrefDialogPrivate *prv       = GET_PRIVATE(data);
+    const gchar              *text      = NULL;
+    gboolean                  visible   = FALSE;
+    gboolean                  active    = FALSE;
+    gboolean                  has_cond  = FALSE;
+    /* guint16                   len; */
+    gchar*                    prop_name = NULL;
+    GtkWidget                *w         = NULL;
+    GtkTreeModel             *model     = gtk_tree_view_get_model(prv->view);
+
+    g_assert(prv->cur_obj);
+
+
+    /* len = gtk_entry_get_text_length(GTK_ENTRY(editable)); */
+    /* g_signal_handlers_block_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)), */
+    /*   (gpointer)nwam_vpn_selection_changed, data); */
+    g_signal_handlers_disconnect_by_func(G_OBJECT(prv->cur_obj), (gpointer)capplet_util_object_notify_cb, (gpointer)model);
+
+    has_cond = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->vpn_conditional_cb));
+    active = nwamui_object_get_active(NWAMUI_OBJECT(prv->cur_obj));
+    text = gtk_entry_get_text(GTK_ENTRY(editable));
 
     if ( editable == GTK_EDITABLE(prv->start_cmd_entry ) ) {
-        if ( gtk_entry_get_text_length( GTK_ENTRY( prv->start_cmd_entry ) ) > 0 ) {
-            fmri_visible = FALSE;
+        active = !active;
+        w = GTK_WIDGET(prv->start_btn);
+        if (nwamui_enm_set_start_command(NWAMUI_ENM(prv->cur_obj), text)) {
+            visible = TRUE;
+        } else {
+            visible = FALSE;
+        }
+    } else if ( editable == GTK_EDITABLE(prv->stop_cmd_entry ) ) {
+        w = GTK_WIDGET(prv->stop_btn);
+        if (nwamui_enm_set_stop_command(NWAMUI_ENM(prv->cur_obj), text)) {
+            visible = TRUE;
+        } else {
+            visible = FALSE;
+        }
+    } else {
+        if (nwamui_enm_set_smf_fmri(NWAMUI_ENM(prv->cur_obj), text)) {
+            visible = TRUE;
+        } else {
+            visible = FALSE;
         }
     }
-    else if ( editable == GTK_EDITABLE(prv->stop_cmd_entry ) ) {
-        if ( gtk_entry_get_text_length( GTK_ENTRY( prv->stop_cmd_entry ) ) > 0 ) {
-            fmri_visible = FALSE;
-        }
-    }
-    else {
-        if ( gtk_entry_get_text_length( GTK_ENTRY( prv->process_entry ) ) > 0 ) {
-            start_visible = FALSE;
-            stop_visible = FALSE;
-        }
-    }
+    /* Condition is not enabled. */
+    visible = !has_cond && visible;
 
-    gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), start_visible);
-	gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), start_visible);
-    gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_cmd_entry), stop_visible);
-	gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), stop_visible);
-    gtk_widget_set_sensitive (GTK_WIDGET(prv->process_entry), fmri_visible);
+    /* if (nwamui_enm_validate(NWAMUI_ENM(prv->cur_obj), NULL)) { */
+    /*     visible = TRUE; */
+    /* } */
+    g_signal_connect(G_OBJECT(prv->cur_obj), "notify", (GCallback)capplet_util_object_notify_cb, (gpointer)model);
+    /* g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)), */
+    /*   (gpointer)nwam_vpn_selection_changed, data); */
+
+    if (w) {
+        gtk_widget_set_sensitive(w, (active && visible));
+    } else {
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->start_btn), visible && !active);
+        gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), visible && active);
+    }
 }
 
 static void
@@ -794,7 +821,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 		model = gtk_tree_view_get_model (prv->view);
 
         /* Fixed 14258 [132] nwam error when adding second VPN */
-        if (!nwam_update_obj(self, prv->cur_obj)) {
+        if (prv->cur_obj && !nwam_update_obj(self, prv->cur_obj)) {
             return;
         }
 
@@ -802,7 +829,8 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 
         g_assert(name);
 
-        object = NWAMUI_OBJECT(nwamui_enm_new(name) );
+        object = NWAMUI_OBJECT(nwamui_enm_new(name));
+
         CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->view))), object);
         nwamui_daemon_append_object(prv->daemon, NWAMUI_OBJECT(object));
         g_free(name);
@@ -837,11 +865,12 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 				gtk_tree_model_get (model, &iter, 0, &obj, -1);
 				gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
 				if (obj) {
+                    if (prv->cur_obj == (gpointer)obj) {
+                        prv->cur_obj = NULL;
+                    }
                     nwamui_object_destroy(NWAMUI_OBJECT(obj));
                     g_object_unref(obj);
                 }
-			} else {
-				g_assert_not_reached ();
 			}
 			gtk_tree_path_free ((GtkTreePath *)idx->data);
 		}
@@ -999,63 +1028,83 @@ nwam_vpn_cell_comp_cb (GtkTreeModel *model,
 }
 
 static gboolean
-nwam_vpn_pre_selection_validate(   GtkTreeSelection *selection,
-                                   GtkTreeModel *model,
-                                   GtkTreePath *path,
-                                   gboolean path_currently_selected,
-                                   gpointer data)
+nwam_vpn_pre_selection_validate(GtkTreeSelection *selection,
+  GtkTreeModel *model,
+  GtkTreePath *path,
+  gboolean path_currently_selected,
+  gpointer data)
 {
 	NwamVPNPrefDialogPrivate *prv    = GET_PRIVATE(data);
 	NwamVPNPrefDialog        *self   = NWAM_VPN_PREF_DIALOG(data);
 	GtkTreeIter               iter;
     gboolean                  retval = TRUE;
 
-    if ( path_currently_selected ) {
-        g_debug( "Same ENM selected, do nothing" );
-        return( TRUE );
-    }
-
-	if (gtk_tree_selection_get_selected(selection, NULL, &iter)) {
-		GtkTreeModel *model = gtk_tree_view_get_model (prv->view);
-		GObject *obj;
-		gchar *txt = NULL;
-
-		gtk_tree_model_get (model, &iter, 0, &obj, -1);
-
-		/* Validate the the old selection first, should assert the correct data */
-		if (prv->cur_obj && prv->cur_obj == obj) {
+    /* cur_obj always poits to the old selection. */
+    if (prv->cur_obj && path_currently_selected) {
+        /* This is the old selection. We need to verify and commit it before we
+         * unselected it.
+         */
+        /* if (!nwamui_object_has_modifications(NWAMUI_OBJECT(prv->cur_obj))) { */
+        /*     retval = TRUE; */
+        /* } else { */
             gchar* prop_name;
-
-            g_signal_handlers_block_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
-              (gpointer)nwam_vpn_selection_changed, (gpointer)self);
-
-            if ( !nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), prv->cur_obj) ) {
+            if (!nwam_update_obj(NWAM_VPN_PREF_DIALOG(data), prv->cur_obj)) {
                 /* Don't change selection */
                 retval = FALSE;
-            }
-            else if ( !nwamui_enm_validate( NWAMUI_ENM(obj), &prop_name ) ) {
+            } else if (!nwamui_enm_validate(NWAMUI_ENM(prv->cur_obj), &prop_name)) {
                 gchar* message = g_strdup_printf(_("An error occurred validating the network modifier configuration.\nThe property '%s' caused this failure"), prop_name );
                 nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
-                                          GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
+                  GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
                 g_free(prop_name);
                 g_free(message);
                 retval = FALSE;
             }
-
-            g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
-              (gpointer)nwam_vpn_selection_changed, (gpointer)self);
-
-
-        }
-        g_object_unref( obj );
+        /* } */
+        return retval;
+    } else {
+        retval = TRUE;
     }
 
-    return( retval );
+	/* if (gtk_tree_selection_get_selected(selection, NULL, &iter)) { */
+	/* 	GtkTreeModel *model = gtk_tree_view_get_model (prv->view); */
+	/* 	GObject *obj; */
+
+	/* 	gtk_tree_model_get (model, &iter, 0, &obj, -1); */
+
+		/* Validate the the old selection first, should assert the correct data */
+		/* if (prv->cur_obj && prv->cur_obj == obj) { */
+		/* if (prv->cur_obj) { */
+        /*     gchar* prop_name; */
+
+        /*     g_signal_handlers_block_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)), */
+        /*       (gpointer)nwam_vpn_selection_changed, (gpointer)self); */
+
+        /*     if ( !nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), prv->cur_obj) ) { */
+        /*         /\* Don't change selection *\/ */
+        /*         retval = FALSE; */
+        /*     } */
+        /*     else if ( !nwamui_enm_validate( NWAMUI_ENM(obj), &prop_name ) ) { */
+        /*         gchar* message = g_strdup_printf(_("An error occurred validating the network modifier configuration.\nThe property '%s' caused this failure"), prop_name ); */
+        /*         nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog), */
+        /*                                   GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE ); */
+        /*         g_free(prop_name); */
+        /*         g_free(message); */
+        /*         retval = FALSE; */
+        /*     } */
+
+        /*     g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)), */
+        /*       (gpointer)nwam_vpn_selection_changed, (gpointer)self); */
+
+
+        /* } */
+    /*     g_object_unref( obj ); */
+    /* } */
+
+    return retval;
 }
 
 static void
-nwam_vpn_selection_changed(GtkTreeSelection *selection,
-	gpointer          data)
+nwam_vpn_selection_changed(GtkTreeSelection *selection, gpointer data)
 {
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
 
@@ -1120,29 +1169,53 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
 
                 prv->cur_obj = obj;
 
+                g_signal_handlers_block_by_func(prv->start_cmd_entry,
+                  (gpointer)command_entry_changed, data);
+                g_signal_handlers_block_by_func(prv->stop_cmd_entry,
+                  (gpointer)command_entry_changed, data);
+                g_signal_handlers_block_by_func(prv->process_entry,
+                  (gpointer)command_entry_changed, data);
+
                 txt = nwamui_enm_get_start_command (NWAMUI_ENM(obj));
-                gtk_entry_set_text (prv->start_cmd_entry, txt?txt:"");
+
+                gtk_entry_set_text(prv->start_cmd_entry, txt?txt:"");
+
                 if ( txt != NULL && strlen(txt) > 0 ) {
                     start_value = TRUE;
                     cli_value = TRUE;
                 }
                 g_free (txt);
                 txt = nwamui_enm_get_stop_command (NWAMUI_ENM(obj));
+
                 gtk_entry_set_text (prv->stop_cmd_entry, txt?txt:"");
+
                 if ( txt != NULL && strlen(txt) > 0 ) {
                     stop_value = TRUE;
                     cli_value = TRUE;
                 }
                 g_free (txt);
                 txt = nwamui_enm_get_smf_fmri (NWAMUI_ENM(obj));
+
                 gtk_entry_set_text (prv->process_entry, txt?txt:"");
+
                 if ( txt != NULL && strlen(txt) > 0 ) {
                     fmri_value = TRUE;
                 }
                 g_free (txt);
 
+                g_signal_handlers_unblock_by_func(prv->start_cmd_entry,
+                  (gpointer)command_entry_changed, data);
+                g_signal_handlers_unblock_by_func(prv->stop_cmd_entry,
+                  (gpointer)command_entry_changed, data);
+                g_signal_handlers_unblock_by_func(prv->process_entry,
+                  (gpointer)command_entry_changed, data);
+
                 if (!(start_value || stop_value || fmri_value)) {
                     init_editting = TRUE;
+                    /* Fixed the new added obj which is inactive make start btn
+                     * sensitive in the above code.
+                     */
+                    gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
                 }
 
                 gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_cli_rb), TRUE);
@@ -1165,16 +1238,27 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection,
             return;
 		}
     }
+
+    g_signal_handlers_block_by_func(prv->start_cmd_entry,
+      (gpointer)command_entry_changed, data);
+    g_signal_handlers_block_by_func(prv->stop_cmd_entry,
+      (gpointer)command_entry_changed, data);
+    g_signal_handlers_block_by_func(prv->process_entry,
+      (gpointer)command_entry_changed, data);
     gtk_entry_set_text (prv->start_cmd_entry, "");
     gtk_entry_set_text (prv->stop_cmd_entry, "");
     gtk_entry_set_text (prv->process_entry, "");
+    g_signal_handlers_unblock_by_func(prv->start_cmd_entry,
+      (gpointer)command_entry_changed, data);
+    g_signal_handlers_unblock_by_func(prv->stop_cmd_entry,
+      (gpointer)command_entry_changed, data);
+    g_signal_handlers_unblock_by_func(prv->process_entry,
+      (gpointer)command_entry_changed, data);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->rename_btn), FALSE);
-    gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
-    gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), FALSE);
@@ -1224,6 +1308,19 @@ conditional_toggled_cb(GtkToggleButton *button, gpointer user_data)
     toggled = gtk_toggle_button_get_active(button);
 
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), toggled);
+    /* Re-evaluate the status of start/stop buttons. */
+    if (toggled) {
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->start_btn), !toggled);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->stop_btn), !toggled);
+    } else {
+        if (nwamui_object_get_active(NWAMUI_OBJECT(prv->cur_obj))) {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->start_btn), FALSE);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->stop_btn), TRUE);
+        } else {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->start_btn), TRUE);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->stop_btn), FALSE);
+        }
+    }
 
     /* if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->view), &model, &iter ) ) { */
     /*     NwamuiObject                  *obj; */
@@ -1259,5 +1356,4 @@ on_radio_button_toggled(GtkToggleButton *button, gpointer user_data)
     gtk_widget_set_sensitive (GTK_WIDGET(prv->process_entry), !toggled);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->process_lbl), !toggled);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->desc_lbl), !toggled);
-
 }

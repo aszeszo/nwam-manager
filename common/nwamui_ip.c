@@ -63,6 +63,7 @@ static void nwamui_ip_get_property (    GObject         *object,
 
 static void nwamui_ip_finalize (        NwamuiIp *self);
 
+static gint         nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by);
 
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
@@ -78,19 +79,19 @@ enum {
 
 G_DEFINE_TYPE (NwamuiIp, nwamui_ip, NWAMUI_TYPE_OBJECT)
 
-
-#define IS_DHCP(self) (((self)->prv->addr_src & ADDRSRC_DHCP)?TRUE:FALSE)
-
 static void
 nwamui_ip_class_init (NwamuiIpClass *klass)
 {
     /* Pointer to GObject Part of Class */
     GObjectClass *gobject_class = (GObjectClass*) klass;
+    NwamuiObjectClass *nwamuiobject_class = NWAMUI_OBJECT_CLASS(klass);
         
     /* Override Some Function Pointers */
     gobject_class->set_property = nwamui_ip_set_property;
     gobject_class->get_property = nwamui_ip_get_property;
     gobject_class->finalize = (void (*)(GObject*)) nwamui_ip_finalize;
+
+    nwamuiobject_class->sort = nwamui_object_real_sort;
 
 	g_type_class_add_private(klass, sizeof(NwamuiIpPrivate));
 
@@ -168,68 +169,57 @@ nwamui_ip_set_property (    GObject         *object,
                             const GValue    *value,
                             GParamSpec      *pspec)
 {
-    NwamuiIp          *self = NWAMUI_IP(object);
-    NwamuiIpPrivate   *prv;
-
-    g_return_if_fail( self != NULL );
-    
-    prv = self->prv;
-    g_assert( prv != NULL );
+    NwamuiIp        *self = NWAMUI_IP(object);
+    NwamuiIpPrivate *prv  = NWAMUI_IP_GET_PRIVATE(object);
     
     switch (prop_id) {
         case PROP_IS_V6: {
-                self->prv->is_v6 = g_value_get_boolean( value );
+                prv->is_v6 = g_value_get_boolean( value );
             }
             break;
 
         case PROP_ADDRESS: {
-                /* If IP is DHCP, don't store values */
-                if ( !IS_DHCP(self) ) {
-                    if ( self->prv->address != NULL ) {
-                            g_free( self->prv->address );
-                    }
-                    self->prv->address = g_strdup( g_value_get_string( value ) );
-                }
+            if ( prv->address != NULL ) {
+                g_free( prv->address );
             }
+            prv->address = g_strdup( g_value_get_string( value ) );
+        }
             break;
 
         case PROP_SUBNET_PREFIX: {
-                /* If IP is DHCP, don't store values */
-                if ( !IS_DHCP(self) ) {
-                    if ( self->prv->subnet_prefix != NULL ) {
-                            g_free( self->prv->subnet_prefix );
-                    }
-                    self->prv->subnet_prefix = g_strdup( g_value_get_string( value ) );
-                }
+            if ( prv->subnet_prefix != NULL ) {
+                g_free( prv->subnet_prefix );
             }
+            prv->subnet_prefix = g_strdup( g_value_get_string( value ) );
+        }
             break;
 
         case PROP_IS_DHCP: {
                 if ( g_value_get_boolean( value ) ) {
-                    self->prv->addr_src = ADDRSRC_DHCP; 
+                    prv->addr_src = ADDRSRC_DHCP; 
                 }
                 else {
-                    self->prv->addr_src = ADDRSRC_STATIC; 
+                    prv->addr_src = ADDRSRC_STATIC; 
                 }
             }
             break;
 
         case PROP_IS_AUTOCONF: {
                 if ( g_value_get_boolean( value ) ) {
-                    self->prv->addr_src = ADDRSRC_AUTOCONF; 
+                    prv->addr_src = ADDRSRC_AUTOCONF; 
                 }
                 else {
-                    self->prv->addr_src &= ~ADDRSRC_AUTOCONF; 
+                    prv->addr_src &= ~ADDRSRC_AUTOCONF; 
                 }
             }
             break;
 
         case PROP_IS_STATIC: {
                 if ( g_value_get_boolean( value ) ) {
-                    self->prv->addr_src = ADDRSRC_STATIC; 
+                    prv->addr_src = ADDRSRC_STATIC; 
                 }
                 else {
-                    self->prv->addr_src = ADDRSRC_DHCP; 
+                    prv->addr_src = ADDRSRC_DHCP; 
                 }
             }
             break;
@@ -246,70 +236,34 @@ nwamui_ip_get_property (GObject         *object,
                                   GValue          *value,
                                   GParamSpec      *pspec)
 {
-    NwamuiIp *self = NWAMUI_IP(object);
-    NwamuiIpPrivate   *prv;
-
-    g_return_if_fail( self != NULL );
-    
-    prv = self->prv;
-    g_assert( prv != NULL );
+    NwamuiIp        *self = NWAMUI_IP(object);
+    NwamuiIpPrivate *prv  = NWAMUI_IP_GET_PRIVATE(object);
 
     switch (prop_id) {
         case PROP_IS_V6: {
-                g_value_set_boolean( value, self->prv->is_v6 );
+                g_value_set_boolean( value, prv->is_v6 );
             }
             break;
 
-        case PROP_ADDRESS: {
-                /* If IP is DHCP, we don't store values, get from system */
-                if ( IS_DHCP( self ) ) {
-                    gchar *address = NULL;
-
-                    nwamui_util_get_interface_address(  self->prv->ncu_device, 
-                                                        self->prv->is_v6?AF_INET6:AF_INET, 
-                                                        &address, NULL, NULL );
-
-                    g_value_set_string( value, address );
-                    g_free(address);
-                }
-                else {
-                    g_value_set_string( value, self->prv->address );
-                }
-            }
+        case PROP_ADDRESS:
+            g_value_set_string( value, prv->address );
             break;
 
-        case PROP_SUBNET_PREFIX: {
-                /* If IP is DHCP, we don't store values, get from system */
-                if ( IS_DHCP( self ) ) {
-                    gint prefixlen = 0;
-                    gchar*  subnet_prefix = NULL;
-
-                    nwamui_util_get_interface_address(  self->prv->ncu_device, 
-                                                        self->prv->is_v6?AF_INET6:AF_INET, 
-                                                        NULL, &prefixlen, NULL );
-
-                    subnet_prefix = nwamui_util_convert_prefixlen_to_netmask_str( 
-                                            self->prv->is_v6?AF_INET6:AF_INET, prefixlen);
-
-                    g_value_set_string( value, subnet_prefix );
-                }
-                else {
-                    g_value_set_string( value, self->prv->subnet_prefix );
-                }
-            }
+        case PROP_SUBNET_PREFIX:
+            g_value_set_string( value, prv->subnet_prefix );
             break;
         case PROP_IS_DHCP: {
-                g_value_set_boolean( value, (self->prv->addr_src & ADDRSRC_DHCP)?TRUE:FALSE );
+                g_value_set_boolean( value, (prv->addr_src & ADDRSRC_DHCP)?TRUE:FALSE );
             }
             break;
 
         case PROP_IS_AUTOCONF: {
-                g_value_set_boolean( value, (self->prv->addr_src & ADDRSRC_AUTOCONF)?TRUE:FALSE );
+                g_value_set_boolean( value, (prv->addr_src & ADDRSRC_AUTOCONF)?TRUE:FALSE );
             }
             break;
 
         case PROP_IS_STATIC: {
-                g_value_set_boolean( value, (self->prv->addr_src & ADDRSRC_STATIC)?TRUE:FALSE );
+                g_value_set_boolean( value, (prv->addr_src & ADDRSRC_STATIC)?TRUE:FALSE );
             }
             break;
 
@@ -338,6 +292,17 @@ nwamui_ip_finalize (NwamuiIp *self)
     self->prv = NULL;
 
 	G_OBJECT_CLASS(nwamui_ip_parent_class)->finalize(G_OBJECT(self));
+}
+
+static gint
+nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by)
+{
+    NwamuiIpPrivate   *prv[2] = {
+        NWAMUI_IP_GET_PRIVATE(object),
+        NWAMUI_IP_GET_PRIVATE(other)
+    };
+
+    return g_strcmp0(prv[0]->address, prv[1]->address);
 }
 
 /* Exported Functions */
@@ -558,8 +523,7 @@ nwamui_ip_get_address (NwamuiIp *self)
  * 
  **/ 
 extern void
-nwamui_ip_set_subnet_prefix (   NwamuiIp *self,
-                              const gchar*  subnet_prefix )
+nwamui_ip_set_subnet_prefix(NwamuiIp *self, const gchar*  subnet_prefix)
 {
     g_return_if_fail (NWAMUI_IS_IP (self));
     g_assert (subnet_prefix != NULL );
@@ -589,6 +553,52 @@ nwamui_ip_get_subnet_prefix (NwamuiIp *self)
                   NULL);
 
     return( subnet_prefix );
+}
+
+extern gchar*               
+nwamui_ip_get_display_name(NwamuiObject *obj)
+{
+    NwamuiIp        *ip        = NWAMUI_IP(obj);
+    NwamuiIpPrivate *prv       = NWAMUI_IP_GET_PRIVATE(obj);
+    const gchar     *addr_prefix;
+    gchar*           dhcp_str;
+	gchar           *string    = NULL;
+	gchar           *address   = NULL;
+	gchar           *netmask   = NULL;
+	int              prefixlen = 0;
+
+    if (prv->is_v6) {
+        addr_prefix = _("Address(v6)");
+    } else {
+        addr_prefix = _("Address");
+    }
+
+    address = nwamui_ip_get_address(ip);
+    netmask = nwamui_ip_get_subnet_prefix(ip);
+    prefixlen = nwamui_util_convert_netmask_str_to_prefixlen(prv->is_v6?AF_INET6:AF_INET, netmask);
+    g_free(netmask);
+
+    /* It is possible for the DHCPRUNNING flag to be true, yet DHCP is not
+     * the source of the address.
+     *
+     * This is because NWAM can use DHCP to gather information like the
+     * nameservice to use using DHCP, thus setting the flag.
+     *
+     * So we double check using the stored nwam configuration, so get that
+     * info now.
+     */
+
+    if (nwamui_ip_is_dhcp(ip)) {
+        dhcp_str = _(" (DHCP)");
+    } else {
+        dhcp_str = "";
+    }
+
+    string = g_strdup_printf(_("%s: %s/%d%s"), addr_prefix, address, prefixlen, dhcp_str);
+
+    g_free( address );
+
+    return string;
 }
 
 /* Callbacks */
