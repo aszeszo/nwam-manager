@@ -2319,24 +2319,18 @@ nwamui_util_split_address_prefix( gboolean v6, const gchar* address_prefix, gcha
         /* Format is x.x.x.x/N for subnet prefix */
         *delim = '\0'; /* Split string */
         delim++;
-        prefix_num = atoi( delim );
-        prefix_str = nwamui_util_convert_prefixlen_to_netmask_str( (v6?AF_INET6:AF_INET), prefix_num );
+
+        if ( prefix != NULL ) {
+            prefix_num = atoi( delim );
+            *prefix = nwamui_util_convert_prefixlen_to_netmask_str( (v6?AF_INET6:AF_INET), prefix_num );
+        }
     }
 
     if ( address != NULL ) {
-        *address = g_strdup( tmpstr );
+        *address = tmpstr;
+    } else {
+        g_free(tmpstr);
     }
-
-    if ( prefix != NULL ) {
-        if ( prefix_str == NULL ) {
-            *prefix = NULL;
-        }
-        else {
-            *prefix = g_strdup( prefix_str );
-        }
-    }
-
-    g_free(tmpstr);
 
     return( TRUE );
 }

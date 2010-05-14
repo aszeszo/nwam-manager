@@ -1902,9 +1902,6 @@ nwamui_object_real_get_active (NwamuiObject *object)
         }
     }
 
-    /* Get current state of enabled */
-    /* g_value_set_boolean( value, get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED ) ); */
-
     return( active );
 }
 

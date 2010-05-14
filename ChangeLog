@@ -1,3 +1,29 @@
+2010-05-13  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_conn_conf_ip_panel.c (multi_line_add_cb):
+	* common/libnwamui.c (nwamui_util_split_address_prefix): Fixed mem
+	leak.
+	* common/nwamui_daemon.c (nwamui_daemon_set_property),
+	(nwamui_daemon_get_property), (nwamd_event_handler),
+	(nwamui_daemon_handle_object_action_event), (nwam_ncp_walker_cb):
+	Fixed a potential deref NULL. Clean code.
+	* common/nwamui_env.c (nwamui_object_real_get_active):
+	* common/nwamui_ip.c (nwamui_ip_class_init),
+	(nwamui_ip_set_property), (nwamui_ip_get_property),
+	(nwamui_ip_new): Remove code for dup flags DHCP/STATIC.
+	* common/nwamui_ip.h:
+	* common/nwamui_ncu.c (nwamui_ncu_init), (nwamui_ncu_set_property),
+	(populate_ip_ncu_data):
+	* common/nwamui_ncu.h: Clean code. Fixing 15544 NWAM GUI only
+	shows the 0th address. Fixed can't show the only DHCP address in
+	tooltip and capplet. Fixed some mem leaks.
+	* common/nwamui_prof.c (user_has_autoconf_auth): Fixed a mem leak.
+	* daemon/nwam-env-item.c (nwam_env_item_init),
+	(nwam_env_item_finalize):
+	* daemon/status_icon.c (daemon_switch_loc_manually_changed),
+	(connect_nwam_object_signals), (location_model_menuitems):
+	Reworked auto/manually activate loc since it was broken.
+
 2010-05-12  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_vpn_pref_dialog.c (nwam_vpn_pref_dialog_init),

@@ -65,7 +65,6 @@ static void sync_env(NwamEnvItem *self, NwamuiEnv *env, gpointer user_data);
 static void nwam_menu_item_real_reset(NwamMenuItem *menu_item);
 static void on_nwam_env_toggled (GtkCheckMenuItem *item, gpointer data);
 static void on_nwam_env_notify( GObject *gobject, GParamSpec *arg1, gpointer data);
-static void switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 
 G_DEFINE_TYPE(NwamEnvItem, nwam_env_item, NWAM_TYPE_MENU_ITEM)
 
@@ -97,9 +96,6 @@ nwam_env_item_init (NwamEnvItem *self)
 
     /* nwamui ncp signals */
     prv->daemon = nwamui_daemon_get_instance ();
-
-    g_signal_connect(prv->daemon, "notify::env-selection-mode",
-      G_CALLBACK(switch_loc_manually_changed), (gpointer)self);
 
     /* Set initial sensitivity based on whether it's manual selection or
      * not.
@@ -133,10 +129,6 @@ static void
 nwam_env_item_finalize (NwamEnvItem *self)
 {
     NwamEnvItemPrivate *prv = GET_PRIVATE(self);
-    int i;
-
-    g_signal_handlers_disconnect_by_func(prv->daemon, 
-      (gpointer)switch_loc_manually_changed, (gpointer)self);
 
     g_object_unref(prv->daemon);
 
@@ -284,17 +276,5 @@ nwam_env_item_set_env (NwamEnvItem *self, NwamuiEnv *env)
     g_return_if_fail(NWAMUI_IS_ENV(env));
 
     g_object_set(self, "proxy-object", env, NULL);
-}
-
-static void
-switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
-{
-	NwamEnvItem *self = NWAM_ENV_ITEM (data);
-    NwamEnvItemPrivate *prv = GET_PRIVATE(self);
-    gboolean flag;
-
-    flag = nwamui_daemon_env_selection_is_manual( NWAMUI_DAEMON(gobject) );
-
-    gtk_widget_set_sensitive(GTK_WIDGET(self), flag);
 }
 

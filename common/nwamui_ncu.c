@@ -82,15 +82,14 @@ struct _NwamuiNcuPrivate {
 
         gboolean                        ipv4_active;
         gboolean                        ipv4_has_dhcp;
-        NwamuiIp*                       ipv4_dhcp_ip;
-        NwamuiIp*                       ipv4_primary_static_ip;
+        NwamuiIp*                       ipv4_zero_ip;
         GtkListStore*                   v4addresses;
     GList *ipv4_acquired;       /* For the addresses of logical links */
 
         gboolean                        ipv6_active;
         gboolean                        ipv6_has_dhcp; 
         gboolean                        ipv6_has_auto_conf; 
-        NwamuiIp*                       ipv6_primary_static_ip;
+        NwamuiIp*                       ipv6_zero_ip;
         GtkListStore*                   v6addresses;
     GList *ipv6_acquired;       /* For the addresses of logical links */
 
@@ -202,6 +201,10 @@ static void ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath
 static void ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
 
 static void wireless_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer user_data);
+
+/* Disabled */
+static void                 nwamui_ncu_set_ipv4_address(NwamuiNcu *self, const gchar *address);
+static void                 nwamui_ncu_set_ipv4_subnet(NwamuiNcu *self, const gchar* ipv4_subnet);
 
 G_DEFINE_TYPE (NwamuiNcu, nwamui_ncu, NWAMUI_TYPE_OBJECT)
 
@@ -457,6 +460,14 @@ nwamui_ncu_init(NwamuiNcu *self)
 
     prv->state = NWAMUI_STATE_UNKNOWN;
 
+    prv->ipv4_zero_ip = nwamui_ip_new(self, "", "", FALSE, 
+      TRUE,    /* DHCP */
+      FALSE);   /* Autoconf */
+
+    prv->ipv6_zero_ip = nwamui_ip_new(self, "", "", TRUE, 
+      TRUE,    /* DHCP */
+      FALSE);   /* Autoconf */
+
     /* Create WifiNet cache */
     prv->wifi_hash_table = g_hash_table_new_full(  g_str_hash, g_str_equal,
       (GDestroyNotify)g_free,
@@ -546,13 +557,6 @@ nwamui_ncu_set_property ( GObject         *object,
                 gboolean dhcp = g_value_get_boolean( value );
 
                 if ( dhcp != self->prv->ipv4_has_dhcp ) {
-                    if ( dhcp ) {
-                        if ( self->prv->ipv4_dhcp_ip == NULL ) {
-                            NwamuiIp*   ip = nwamui_ip_new( self, "", "", FALSE,
-                                                            TRUE, FALSE, FALSE );
-                            self->prv->ipv4_dhcp_ip = ip;
-                        }
-                    }
                     self->prv->ipv4_has_dhcp = dhcp;
                     set_modified_flag( self, NWAM_NCU_CLASS_IP, TRUE );
                 }
@@ -899,43 +903,35 @@ populate_iptun_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 static void
 populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
 {
-    guint64            *ip_version = NULL;
-    guint               ip_version_num = NULL;
-    guint64            *ipv4_addrsrc = NULL;
-    guint               ipv4_addrsrc_num = 0;
-    gchar**             ipv4_addr = NULL;
-    guint               ipv4_addr_num = 0;
-    guint               ipv6_addr_num = 0;
-    guint64            *ipv6_addrsrc =  NULL;
-    guint               ipv6_addrsrc_num = 0;
-    gchar**             ipv6_addr = NULL;
+    NwamuiNcuPrivate *prv              = NWAMUI_NCU_GET_PRIVATE(ncu);
+    guint64          *ip_version       = NULL;
+    guint             ip_version_num   = NULL;
+    guint64          *ipv4_addrsrc     = NULL;
+    guint             ipv4_addrsrc_num = 0;
+    gchar**           ipv4_addr        = NULL;
+    guint             ipv4_addr_num    = 0;
+    guint             ipv6_addr_num    = 0;
+    guint64          *ipv6_addrsrc     = NULL;
+    guint             ipv6_addrsrc_num = 0;
+    gchar**           ipv6_addr        = NULL;
     
     ip_version = get_nwam_ncu_uint64_array_prop( nwam_ncu, 
                                                  NWAM_NCU_PROP_IP_VERSION, 
                                                  &ip_version_num );
 
-    g_object_freeze_notify(G_OBJECT(ncu->prv->v4addresses));
-    g_object_freeze_notify(G_OBJECT(ncu->prv->v6addresses));
+    g_object_freeze_notify(G_OBJECT(prv->v4addresses));
+    g_object_freeze_notify(G_OBJECT(prv->v6addresses));
 
-    ncu->prv->ipv4_active = FALSE;
-    if ( ncu->prv->ipv4_primary_static_ip != NULL ) {
-        g_object_unref(G_OBJECT( ncu->prv->ipv4_primary_static_ip ));
-    }
-    ncu->prv->ipv4_primary_static_ip = NULL;
-    gtk_list_store_clear(ncu->prv->v4addresses);
+    prv->ipv4_active = FALSE;
+    gtk_list_store_clear(prv->v4addresses);
 
-    ncu->prv->ipv6_active = FALSE;
-    if ( ncu->prv->ipv6_primary_static_ip != NULL ) {
-        g_object_unref(G_OBJECT( ncu->prv->ipv6_primary_static_ip ));
-    }
-    ncu->prv->ipv6_primary_static_ip = NULL;
-    gtk_list_store_clear(ncu->prv->v6addresses);
+    prv->ipv6_active = FALSE;
+    gtk_list_store_clear(prv->v6addresses);
 
     for ( int ip_n = 0; ip_n < ip_version_num; ip_n++ ) {
         if (ip_version[ip_n] == IPV4_VERSION) {
-            char**      ptr;
-            gboolean    has_static = FALSE;
-            gint        i;
+            char **ptr;
+            gint   i;
 
             ipv4_addrsrc = get_nwam_ncu_uint64_array_prop( nwam_ncu, 
                                                            NWAM_NCU_PROP_IPV4_ADDRSRC, 
@@ -950,73 +946,58 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
             for( i = 0; i < ipv4_addrsrc_num; i++ ) {
                 /* Handle IPv4 DHCP as spearate entity.
                  */
-                if ( ipv4_addrsrc[i] == NWAM_ADDRSRC_DHCP ) {
-                    ncu->prv->ipv4_has_dhcp = TRUE;
-                    ncu->prv->ipv4_dhcp_ip = nwamui_ip_new( ncu, "", "", FALSE, 
-                                                TRUE,    /* DHCP */
-                                                FALSE,   /* Autoconf */
-                                                FALSE ); /* Static */
-                    continue; /* Do no more here */
-                }
+                switch (ipv4_addrsrc[i]) {
+                case NWAM_ADDRSRC_DHCP:
+                    prv->ipv4_has_dhcp = TRUE;
+                    break;
+                case NWAM_ADDRSRC_STATIC: {
+                    for(ptr = ipv4_addr; ptr && *ptr; ptr++) {
+                        gchar*  address = NULL;
+                        gchar*  subnet = NULL;
 
-                has_static = TRUE;
-            }
-            g_free(ipv4_addrsrc);
+                        nwamui_util_split_address_prefix(FALSE, *ptr, &address, &subnet);
 
-            if ( has_static ) {
-                for( i = 0; i < ipv4_addr_num; i++ ) {
-                    gchar*  address = NULL;
-                    gchar*  subnet = NULL;
+                        NwamuiIp *ip = nwamui_ip_new(ncu,
+                          (address?address:""),
+                          (subnet?subnet:""),
+                          FALSE, 
+                          FALSE,  /* DHCP */
+                          FALSE);  /* Autoconf */
 
-                    if ( ptr != NULL && *ptr != NULL ) {
-                         nwamui_util_split_address_prefix( FALSE, *ptr, &address, &subnet );
-                    }
-
-                    NwamuiIp*   ip = nwamui_ip_new( ncu, 
-                                                    (address?address:""),
-                                                    (subnet?subnet:""),
-                                                    FALSE, 
-                                                    FALSE,  /* DHCP */
-                                                    FALSE,  /* Autoconf */
-                                                    TRUE ); /* Static */
-
-                    if ( subnet != NULL ) {
+                        g_free(address);
                         g_free(subnet);
-                    }
 
-                    GtkTreeIter iter;
+                        GtkTreeIter iter;
 
-                    g_signal_handlers_block_by_func(G_OBJECT(ncu->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
-                    gtk_list_store_insert(ncu->prv->v4addresses, &iter, 0 );
-                    gtk_list_store_set(ncu->prv->v4addresses, &iter, 0, ip, -1 );
-                    g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
+                        g_signal_handlers_block_by_func(G_OBJECT(prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
+                        gtk_list_store_insert(prv->v4addresses, &iter, 0 );
+                        gtk_list_store_set(prv->v4addresses, &iter, 0, ip, -1 );
+                        g_signal_handlers_unblock_by_func(G_OBJECT(prv->v4addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
 
-                    if ( ncu->prv->ipv4_primary_static_ip == NULL ) {
-                        ncu->prv->ipv4_primary_static_ip = NWAMUI_IP(g_object_ref(ip));
-                    }
-                    if ( ptr != NULL && *ptr != NULL ) {
+                        g_object_unref(ip);
+
                         /* Free up memory as we go */
                         g_free(*ptr);
                     }
-                    if ( ptr != NULL ) {
-                        ptr++;
-                    }
+                }
+                    break;
+                default:
+                    break;
                 }
             }
+            g_free(ipv4_addrsrc);
+
             if ( ipv4_addr != NULL ) {
                 g_free(ipv4_addr);
             }
 
             if ( ipv4_addrsrc_num > 0 ) {
-                ncu->prv->ipv4_active = TRUE;
+                prv->ipv4_active = TRUE;
             }
         }
         else if (ip_version[ip_n] == IPV6_VERSION) {
-            char          ** ptr;
-            const char     *prefix = NULL;
-            char           *delim;
-            gboolean        has_static = FALSE;
-            gint            i;
+            char **ptr;
+            gint   i;
 
             ipv6_addrsrc = get_nwam_ncu_uint64_array_prop(  nwam_ncu, 
                                                             NWAM_NCU_PROP_IPV6_ADDRSRC, 
@@ -1029,9 +1010,6 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
             ptr = ipv6_addr;
 
             for( i = 0; i < ipv6_addrsrc_num; i++ ) {
-                gchar*  address = NULL;
-                gchar*  prefix = NULL;
-
                 /* Handle IPv6 DHCP and Autoconf differently.
                  *
                  * At the moment, it is always on, but it may be turned off,
@@ -1043,58 +1021,51 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
                  * will not show it anywhere in the GUI other than the 
                  * config summary string.
                  */
-                if ( ipv6_addrsrc[i] == NWAM_ADDRSRC_DHCP ) {
-                    ncu->prv->ipv6_has_dhcp = TRUE;
-                    continue; /* Do no more here */
-                }
+                switch (ipv6_addrsrc[i]) {
+                case NWAM_ADDRSRC_DHCP:
+                    prv->ipv6_has_dhcp = TRUE;
+                    break;
+                case NWAM_ADDRSRC_AUTOCONF:
+                    prv->ipv6_has_auto_conf = TRUE;
+                    break;
+                case NWAM_ADDRSRC_STATIC: {
+                    for(ptr = ipv6_addr; ptr && *ptr; ptr++) {
+                        gchar*  address = NULL;
+                        gchar*  prefix = NULL;
 
-                if ( ipv6_addrsrc[i] == NWAM_ADDRSRC_AUTOCONF ) {
-                    ncu->prv->ipv6_has_auto_conf = TRUE;
-                    continue; /* Do no more here */
-                }
+                        nwamui_util_split_address_prefix(TRUE, *ptr, &address, &prefix);
 
-                has_static = TRUE;
+                        NwamuiIp *ip = nwamui_ip_new(ncu,
+                          (address?address:""),
+                          (prefix?prefix:""), 
+                          TRUE, 
+                          FALSE,  /* DHCP */
+                          FALSE);  /* Autoconf */
+
+                        g_free(address);
+                        g_free(prefix);
+
+                        GtkTreeIter iter;
+
+                        g_signal_handlers_block_by_func(G_OBJECT(prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
+                        gtk_list_store_insert(prv->v6addresses, &iter, 0 );
+                        gtk_list_store_set(prv->v6addresses, &iter, 0, ip, -1 );
+                        g_signal_handlers_unblock_by_func(G_OBJECT(prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
+
+                        g_object_unref(ip);
+
+                        /* Free up memory as we go */
+                        g_free(*ptr);
+                    }
+                }
+                    break;
+                default:
+                    break;
+                }
             }
             g_free(ipv6_addrsrc);
-
-            for( i = 0; i < ipv6_addr_num; i++ ) {
-                gchar*  address = NULL;
-                gchar*  prefix = NULL;
-
-
-                if ( ptr != NULL && *ptr != NULL ) {
-                     nwamui_util_split_address_prefix( TRUE, *ptr, &address, &prefix );
-                }
-
-                NwamuiIp*   ip = nwamui_ip_new( ncu, 
-                                                (address?address:""),
-                                                (prefix?prefix:""), 
-                                                TRUE, 
-                                                FALSE,  /* DHCP */
-                                                FALSE,  /* Autoconf */
-                                                TRUE ); /* Static */
-
-                GtkTreeIter iter;
-
-                g_signal_handlers_block_by_func(G_OBJECT(ncu->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
-                gtk_list_store_insert(ncu->prv->v6addresses, &iter, 0 );
-                gtk_list_store_set(ncu->prv->v6addresses, &iter, 0, ip, -1 );
-                g_signal_handlers_unblock_by_func(G_OBJECT(ncu->prv->v6addresses), (gpointer)ip_row_inserted_or_changed_cb, (gpointer)ncu);
-
-                if ( ncu->prv->ipv6_primary_static_ip == NULL ) {
-                    ncu->prv->ipv6_primary_static_ip = NWAMUI_IP(g_object_ref(ip));
-                }
-                if ( ptr != NULL && *ptr != NULL ) {
-                    /* Free up memory as we go */
-                    g_free(*ptr);
-                }
-                if ( ptr != NULL ) {
-                    ptr++;
-                }
-            }
-
             if ( ipv6_addrsrc_num > 0 ) {
-                ncu->prv->ipv6_active = TRUE;
+                prv->ipv6_active = TRUE;
             }
 
             if ( ipv6_addr != NULL ) {
@@ -1104,8 +1075,8 @@ populate_ip_ncu_data( NwamuiNcu *ncu, nwam_ncu_handle_t nwam_ncu )
     }
     g_free(ip_version);
 
-    g_object_thaw_notify(G_OBJECT(ncu->prv->v4addresses));
-    g_object_thaw_notify(G_OBJECT(ncu->prv->v6addresses));
+    g_object_thaw_notify(G_OBJECT(prv->v4addresses));
+    g_object_thaw_notify(G_OBJECT(prv->v6addresses));
 
 }
 
@@ -2417,13 +2388,13 @@ nwamui_ncu_get_ipv4_has_static (NwamuiNcu *self)
     return( num_static > 0 );
 }
 
-extern void
+static void
 nwamui_ncu_set_ipv4_address(NwamuiNcu *self, const gchar *address)
 {
     g_return_if_fail(NWAMUI_IS_NCU(self));
-    g_return_if_fail(self->prv->ipv4_dhcp_ip);
+    g_return_if_fail(self->prv->ipv4_zero_ip);
 
-    nwamui_ip_set_address(self->prv->ipv4_dhcp_ip, address);
+    nwamui_ip_set_address(self->prv->ipv4_zero_ip, address);
 }
 
 /**
@@ -2435,15 +2406,15 @@ nwamui_ncu_set_ipv4_address(NwamuiNcu *self, const gchar *address)
 extern gchar*
 nwamui_ncu_get_ipv4_address (NwamuiNcu *self)
 {
-    gchar *address = NULL;
+    NwamuiNcuPrivate *prv     = NWAMUI_NCU_GET_PRIVATE(self);
+    gchar            *address = NULL;
 
     g_return_val_if_fail (NWAMUI_IS_NCU (self), address);
 
-    if ( self->prv->ipv4_dhcp_ip != NULL ) {
-        address = nwamui_ip_get_address(self->prv->ipv4_dhcp_ip);
-    }
-    else if ( self->prv->ipv4_primary_static_ip != NULL ) {
-        address = nwamui_ip_get_address(self->prv->ipv4_primary_static_ip);
+    if (prv->ipv4_acquired) {
+        address = nwamui_ip_get_address(prv->ipv4_acquired->data);
+    } else if ( prv->ipv4_zero_ip != NULL ) {
+        address = nwamui_ip_get_address(prv->ipv4_zero_ip);
     }
 
     return address;
@@ -2455,13 +2426,13 @@ nwamui_ncu_get_ipv4_address (NwamuiNcu *self)
  * @ipv4_subnet: Valiue to set ipv4_subnet to.
  * 
  **/ 
-extern void
+static void
 nwamui_ncu_set_ipv4_subnet(NwamuiNcu *self, const gchar* ipv4_subnet)
 {
     g_return_if_fail(NWAMUI_IS_NCU(self));
-    g_return_if_fail(self->prv->ipv4_dhcp_ip);
+    g_return_if_fail(self->prv->ipv4_zero_ip);
 
-    nwamui_ip_set_subnet_prefix(self->prv->ipv4_dhcp_ip, ipv4_subnet);
+    nwamui_ip_set_subnet_prefix(self->prv->ipv4_zero_ip, ipv4_subnet);
 }
 
 /**
@@ -2473,14 +2444,15 @@ nwamui_ncu_set_ipv4_subnet(NwamuiNcu *self, const gchar* ipv4_subnet)
 extern gchar*
 nwamui_ncu_get_ipv4_subnet (NwamuiNcu *self)
 {
-    gchar *subnet = NULL;
+    NwamuiNcuPrivate *prv    = NWAMUI_NCU_GET_PRIVATE(self);
+    gchar            *subnet = NULL;
+
     g_return_val_if_fail (NWAMUI_IS_NCU (self), subnet);
 
-    if ( self->prv->ipv4_dhcp_ip != NULL ) {
-        subnet = nwamui_ip_get_subnet_prefix(self->prv->ipv4_dhcp_ip);
-    }
-    else if ( self->prv->ipv4_primary_static_ip != NULL ) {
-        subnet = nwamui_ip_get_subnet_prefix(self->prv->ipv4_primary_static_ip);
+    if (prv->ipv4_acquired) {
+        subnet = nwamui_ip_get_subnet_prefix(prv->ipv4_acquired->data);
+    } else if ( self->prv->ipv4_zero_ip != NULL ) {
+        subnet = nwamui_ip_get_subnet_prefix(self->prv->ipv4_zero_ip);
     }
 
     return subnet;
@@ -2655,34 +2627,17 @@ nwamui_ncu_get_ipv6_has_static (NwamuiNcu *self)
 extern gchar*
 nwamui_ncu_get_ipv6_address (NwamuiNcu *self)
 {
-    gchar*  ipv6_address = NULL; 
+    NwamuiNcuPrivate *prv          = NWAMUI_NCU_GET_PRIVATE(self);
+    gchar*            ipv6_address = NULL; 
 
     g_return_val_if_fail (NWAMUI_IS_NCU (self), ipv6_address);
 
-    if ( self->prv->ipv6_primary_static_ip != NULL ) {
-        ipv6_address = nwamui_ip_get_address(self->prv->ipv6_primary_static_ip);
+    if (prv->ipv6_acquired) {
+        ipv6_address = nwamui_ip_get_address(prv->ipv6_acquired->data);
+    } else if ( prv->ipv6_zero_ip != NULL ) {
+        ipv6_address = nwamui_ip_get_address(prv->ipv6_zero_ip);
     }
     return( ipv6_address );
-}
-
-/** 
- * nwamui_ncu_set_ipv6_prefix:
- * @nwamui_ncu: a #NwamuiNcu.
- * @ipv6_prefix: Valiue to set ipv6_prefix to.
- * 
- **/ 
-extern void
-nwamui_ncu_set_ipv6_prefix (   NwamuiNcu *self,
-                              const gchar*  ipv6_prefix )
-{
-    g_return_if_fail (NWAMUI_IS_NCU (self));
-    g_assert (ipv6_prefix != NULL );
-
-    if ( ipv6_prefix != NULL ) {
-        g_object_set (G_OBJECT (self),
-                      "ipv6_prefix", ipv6_prefix,
-                      NULL);
-    }
 }
 
 /**
@@ -2694,12 +2649,15 @@ nwamui_ncu_set_ipv6_prefix (   NwamuiNcu *self,
 extern gchar*
 nwamui_ncu_get_ipv6_prefix (NwamuiNcu *self)
 {
-    gchar*  ipv6_prefix = NULL; 
+    NwamuiNcuPrivate *prv         = NWAMUI_NCU_GET_PRIVATE(self);
+    gchar*            ipv6_prefix = NULL; 
 
     g_return_val_if_fail (NWAMUI_IS_NCU (self), ipv6_prefix);
 
-    if ( self->prv->ipv6_primary_static_ip != NULL ) {
-        ipv6_prefix = nwamui_ip_get_subnet_prefix(self->prv->ipv6_primary_static_ip);
+    if (prv->ipv6_acquired) {
+        ipv6_prefix = nwamui_ip_get_subnet_prefix(prv->ipv6_acquired->data);
+    } else if ( prv->ipv6_zero_ip != NULL ) {
+        ipv6_prefix = nwamui_ip_get_subnet_prefix(prv->ipv6_zero_ip);
     }
 
     return( ipv6_prefix );
@@ -3294,25 +3252,34 @@ nwamui_ncu_get_priority_group_mode (NwamuiNcu *self)
 static void
 nwamui_ncu_finalize (NwamuiNcu *self)
 {
-    if (self->prv->v4addresses != NULL ) {
-        g_object_unref( G_OBJECT(self->prv->v4addresses) );
+    NwamuiNcuPrivate *prv  = NWAMUI_NCU_GET_PRIVATE(self);
+
+    if (prv->v4addresses != NULL ) {
+        g_object_unref( G_OBJECT(prv->v4addresses) );
     }
 
-    if (self->prv->v6addresses != NULL ) {
-        g_object_unref( G_OBJECT(self->prv->v6addresses) );
+    if (prv->v6addresses != NULL ) {
+        g_object_unref( G_OBJECT(prv->v6addresses) );
     }
 
-    if ( self->prv->wifi_hash_table != NULL ) {
-        g_hash_table_destroy(self->prv->wifi_hash_table);
+    if ( prv->wifi_hash_table != NULL ) {
+        g_hash_table_destroy(prv->wifi_hash_table);
     }
-    if (self->prv->vanity_name) {
-        g_free(self->prv->vanity_name);
+    if (prv->vanity_name) {
+        g_free(prv->vanity_name);
     }
-    if (self->prv->display_name) {
-        g_free(self->prv->display_name);
+    if (prv->display_name) {
+        g_free(prv->display_name);
     }
-    if (self->prv->device_name) {
-        g_free(self->prv->device_name);
+    if (prv->device_name) {
+        g_free(prv->device_name);
+    }
+
+    if (prv->ipv4_zero_ip) {
+        g_object_unref(prv->ipv4_zero_ip);
+    }
+    if (prv->ipv6_zero_ip) {
+        g_object_unref(prv->ipv6_zero_ip);
     }
 
     self->prv = NULL;
@@ -3458,9 +3425,9 @@ nwamui_ncu_add_acquired(NwamuiNcu *self,
     NwamuiIp*          ip    = NULL;
 
     ip = nwamui_ip_new(self, address, netmask,
-      (flags & IFF_IPV6) != NULL,
-      (flags & IFF_DHCPRUNNING) != NULL,
-      FALSE, FALSE);
+      (flags & IFF_IPV6) != 0,
+      (flags & IFF_DHCPRUNNING) != 0,
+      FALSE);
 
     if (flags & IFF_IPV4) {
         l = &prv->ipv4_acquired;

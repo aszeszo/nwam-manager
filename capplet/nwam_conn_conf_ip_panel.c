@@ -1154,24 +1154,21 @@ multi_line_add_cb( GtkButton *button, gpointer data )
     NwamuiIp*           ip = NULL;
     gboolean            is_v6 = FALSE;
     gboolean            is_dhcp = FALSE;
-    gboolean            is_static = FALSE;
     gboolean            is_autoconf = FALSE;
 	
 	if (button == self->prv->ipv4_multi_add_btn) {
 		view = self->prv->ipv4_tv;
         is_dhcp = FALSE;
-        is_static = TRUE;
         is_autoconf = FALSE;
 	} else {
 		view = self->prv->ipv6_tv;
         is_v6 = TRUE;
         is_dhcp = FALSE;
-        is_static = TRUE;
         is_autoconf = FALSE;
 	}
     g_signal_handlers_block_by_func(G_OBJECT(self->prv->ncu), (gpointer)ncu_changed_notify_cb, (gpointer)self);
 
-    ip = nwamui_ip_new(self->prv->ncu, "", "", is_v6, is_dhcp, is_autoconf, is_static );
+    ip = nwamui_ip_new(self->prv->ncu, "", "", is_v6, is_dhcp, is_autoconf);
 
 	model = gtk_tree_view_get_model (view);
 	gtk_list_store_append(GTK_LIST_STORE(model), &iter );

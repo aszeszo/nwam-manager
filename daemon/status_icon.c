@@ -171,6 +171,7 @@ static void daemon_status_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpoint
 static void daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data);
 static void daemon_wifi_key_needed (NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer user_data);
 static void daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer user_data);
+static void daemon_switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void daemon_add_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
 static void daemon_remove_wifi_fav(NwamuiDaemon* daemon, NwamuiWifiNet* wifi, gpointer data);
 static void daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer user_data);
@@ -721,15 +722,13 @@ daemon_active_ncp_changed(NwamuiDaemon *daemon, GParamSpec *arg1, gpointer data)
 }
 
 static void
-switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
+daemon_switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamStatusIcon *self = NWAM_STATUS_ICON(data);
     NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
 
-    g_signal_handlers_block_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO])),
-      (gpointer)location_model_menuitems, self );
-    g_signal_handlers_block_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])),
-      (gpointer)location_model_menuitems, self );
+    g_signal_handlers_block_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO])), (gpointer)location_model_menuitems, self );
+    g_signal_handlers_block_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])), (gpointer)location_model_menuitems, self );
 
     if (nwamui_daemon_env_selection_is_manual(prv->daemon)) {
         gtk_menu_item_activate(GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]));
@@ -737,10 +736,8 @@ switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
         gtk_menu_item_activate(GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO]));
     }
 
-    g_signal_handlers_unblock_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO])),
-      (gpointer)location_model_menuitems, self );
-    g_signal_handlers_unblock_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])),
-      (gpointer)location_model_menuitems, self );
+    g_signal_handlers_unblock_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO])), (gpointer)location_model_menuitems, self );
+    g_signal_handlers_unblock_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY])), (gpointer)location_model_menuitems, self );
 }
 
 static void
@@ -812,7 +809,7 @@ connect_nwam_object_signals(GObject *obj, GObject *self)
           G_CALLBACK(daemon_wifi_selection_needed), (gpointer)self);
 
         g_signal_connect(daemon, "notify::env-selection-mode",
-          G_CALLBACK(switch_loc_manually_changed), (gpointer)self);
+          G_CALLBACK(daemon_switch_loc_manually_changed), (gpointer)self);
 
         g_signal_connect(daemon, "notify::online-enm-num",
           G_CALLBACK(daemon_online_enm_num_notify), (gpointer)self);
@@ -1341,17 +1338,28 @@ location_model_menuitems(GtkMenuItem *menuitem, gpointer user_data)
     gboolean               active      = gtk_check_menu_item_get_active( GTK_CHECK_MENU_ITEM(menuitem) );
     NwamuiEnv             *env         = NULL;
 
-    switch (menuitem_id) {
-    case MENUITEM_SWITCH_LOC_MANUALLY:
-        break;
-    case MENUITEM_SWITCH_LOC_AUTO:
-        /* Get the current active env, disactive and wait for nwamd. */
+    if (active) {
         env = nwamui_daemon_get_active_env(prv->daemon);
-        nwamui_object_set_active(NWAMUI_OBJECT(env), FALSE);
+
+        /* Get the current active env, change it and wait for nwamd. */
+        switch (menuitem_id) {
+        case MENUITEM_SWITCH_LOC_MANUALLY:
+            /* Set enabled = true, then notify env-selection-mode of daemon to
+             * emulate manually selected.
+             */
+            /* nwamui_object_set_enabled(NWAMUI_OBJECT(env), TRUE); */
+            /* g_object_notify(G_OBJECT(prv->daemon), "env-selection-mode"); */
+            nwam_menu_section_set_sensitive(NWAM_MENU(prv->menu), SECTION_LOC, TRUE);
+            break;
+        case MENUITEM_SWITCH_LOC_AUTO:
+            nwam_menu_section_set_sensitive(NWAM_MENU(prv->menu), SECTION_LOC, FALSE);
+            /* Set enabled = false means manually selected. */
+            nwamui_object_set_active(NWAMUI_OBJECT(env), FALSE);
+            break;
+        default:
+            g_assert_not_reached();
+        }
         g_object_unref(env);
-        break;
-    default:
-        g_assert_not_reached();
     }
 }
 

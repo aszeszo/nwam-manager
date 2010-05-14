@@ -514,7 +514,6 @@ nwamui_daemon_set_property ( GObject         *object,
              * This should be a private function instead of a public prop.
              */
             self->prv->active_env = env;
-            g_object_notify(G_OBJECT(self), "active_env");
             /* Comment out this line because when a loc is enabled, we will get
              * an event first, when handling the event, we will notify this
              * signal.
@@ -572,13 +571,8 @@ nwamui_daemon_get_property (GObject         *object,
         case PROP_ONLINE_ENM_NUM:
             g_value_set_int(value, nwamui_daemon_get_online_enm_num(self));
             break;
-        case PROP_ENV_SELECTION_MODE: {
-                gboolean is_manual;
-
-                is_manual = nwamui_daemon_env_selection_is_manual( self );
-
-                g_value_set_boolean(value, is_manual );
-            }
+        case PROP_ENV_SELECTION_MODE:
+            g_value_set_boolean(value, nwamui_daemon_env_selection_is_manual(self));
             break;
         default:
             G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1105,27 +1099,6 @@ nwamui_daemon_env_selection_is_manual(NwamuiDaemon *self)
     }
 
     return FALSE;
-}
-
-static void
-set_env_disabled( gpointer obj, gpointer user_data )
-{
-    NwamuiObject           *nobj = NWAMUI_OBJECT(obj);
-    nwam_state_t            state = NWAM_STATE_UNINITIALIZED;
-    nwam_aux_state_t        aux_state = NWAM_AUX_STATE_UNINITIALIZED;
-
-    /* Only disable an env if it's not marked as offline or disabled already,
-     * best to make sure we pick the correct one here.
-     */
-    /* state = nwamui_object_get_nwam_state(nobj, &aux_state, NULL); */
-    /* if ( state != NWAM_STATE_OFFLINE && state != NWAM_STATE_DISABLED ) { */
-    /*     nwamui_object_set_active(nobj, FALSE); */
-    /* } */
-
-    /* We only check the enabled flag, and commit immediately. */
-    if (nwamui_object_get_enabled(nobj)) {
-        nwamui_object_set_active(nobj, FALSE);
-    }
 }
 
 /**
@@ -2059,8 +2032,6 @@ nwamd_event_handler(gpointer data)
                 uint32_t         flags;
                 int              plen;
 
-                ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->active_ncp), nwamevent->nwe_data.nwe_if_state.nwe_name);
-
                 sa_addr = (struct sockaddr *)&(nwamevent->nwe_data.nwe_if_state.nwe_addr);
                 sa_mask = (struct sockaddr *)&(nwamevent->nwe_data.nwe_if_state.nwe_netmask);
                 plen = mask2plen(&(nwamevent->nwe_data.nwe_if_state.nwe_netmask));
@@ -2090,8 +2061,16 @@ nwamd_event_handler(gpointer data)
 
                 }
 
-                if (address && netmask) {
-                    nwamui_ncu_add_acquired(NWAMUI_NCU(ncu), address, netmask, flags);
+                ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->active_ncp), nwamevent->nwe_data.nwe_if_state.nwe_name);
+
+                if (ncu) {
+                    if (address && netmask) {
+                        nwamui_ncu_add_acquired(NWAMUI_NCU(ncu), address, netmask, flags);
+                    }
+
+                    g_object_unref(ncu);
+                } else {
+                    nwamui_warning("NCP %s found NCU %s FAILED", nwamui_object_get_name(prv->active_ncp), nwamevent->nwe_data.nwe_if_state.nwe_name);
                 }
 
                 g_debug("%s  %s flag(%8X) valid(%u) added(%u) address %s",
@@ -2102,7 +2081,6 @@ nwamd_event_handler(gpointer data)
                   nwamevent->nwe_data.nwe_if_state.nwe_addr_added,
                   address);
 
-                g_object_unref(ncu);
             }
             break;
 
@@ -2725,10 +2703,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         case NWAM_ACTION_ENABLE:
             if (env) {
                 /* Ensure that correct active env pointer */
-                if ( prv->active_env != env ) {
-                    /* New active ENV */
-                    nwamui_daemon_set_active_env( daemon, env );
-                }
+                nwamui_daemon_set_active_env( daemon, env );
 
                 nwamui_object_set_enabled(env, TRUE);
                 g_object_notify(G_OBJECT(daemon), "env_selection_mode");
@@ -3402,7 +3377,10 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
          */
         if ( nwamui_object_get_active(NWAMUI_OBJECT(new_ncp)) ) {
 
-            prv->active_ncp = NWAMUI_OBJECT(g_object_ref( new_ncp ));
+            if (prv->active_ncp) {
+                g_object_unref(prv->active_ncp);
+            }
+            prv->active_ncp = NWAMUI_OBJECT(g_object_ref(new_ncp));
             
             nwamui_util_ncp_init_acquired_ip(NWAMUI_NCP(prv->active_ncp));
         }

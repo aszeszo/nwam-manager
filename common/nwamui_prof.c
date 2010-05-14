@@ -701,6 +701,8 @@ user_has_autoconf_auth(NwamuiProf *self)
             }
         }
 
+        endpwent();
+
         /* At least has read auth. */
         if (prv->ui_auth && UI_AUTH_AUTOCONF_READ_AUTH) {
             g_object_notify(G_OBJECT(self), "ui_auth");
