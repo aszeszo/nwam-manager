@@ -2046,11 +2046,10 @@ nwamd_event_handler(gpointer data)
             break;
         case NWAM_EVENT_TYPE_IF_STATE:
             if (!nwamevent->nwe_data.nwe_if_state.nwe_addr_valid) {
-                g_debug("%s  %s flag(%8X) index(%-2u) valid(%u) added(%u)",
+                g_debug("%s  %s flag(%8X) valid(%u) added(%u)",
                   nwam_event_type_to_string(nwamevent->nwe_type),
                   nwamevent->nwe_data.nwe_if_state.nwe_name,
                   nwamevent->nwe_data.nwe_if_state.nwe_flags,
-                  nwamevent->nwe_data.nwe_if_state.nwe_index,
                   nwamevent->nwe_data.nwe_if_state.nwe_addr_valid,
                   nwamevent->nwe_data.nwe_if_state.nwe_addr_added);
 
@@ -2077,11 +2076,10 @@ nwamd_event_handler(gpointer data)
                     /* nwamui_ncu_set_ipv4_address(NWAMUI_NCU(ncu), address); */
                 }
 
-                g_debug("%s  %s flag(%8X) index(%-2u) valid(%u) added(%u) address %s",
+                g_debug("%s  %s flag(%8X) valid(%u) added(%u) address %s",
                   nwam_event_type_to_string(nwamevent->nwe_type),
                   nwamevent->nwe_data.nwe_if_state.nwe_name,
                   nwamevent->nwe_data.nwe_if_state.nwe_flags,
-                  nwamevent->nwe_data.nwe_if_state.nwe_index,
                   nwamevent->nwe_data.nwe_if_state.nwe_addr_valid,
                   nwamevent->nwe_data.nwe_if_state.nwe_addr_added,
                   address);

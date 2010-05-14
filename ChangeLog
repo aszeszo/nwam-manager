@@ -1,3 +1,11 @@
+2010-04-22  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/Makefile.am:
+	* common/nwamui_daemon.c (nwamd_event_handler):
+	* configure.in:
+	* daemon/Makefile.am:
+	* tests/Makefile.am: Removed libinetcfg from makefiles.
+
 2010-04-19  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* help/C/nwam-manager.xml: Merge Nita's fix.

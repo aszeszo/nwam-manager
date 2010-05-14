@@ -147,20 +147,6 @@ AC_CHECK_FILE(/lib/libdladm.so.1,
 AC_SUBST(DLADM_LIBS)
 
 dnl
-dnl INETCFG checks 
-dnl
-AC_CHECK_FILE(/lib/libinetcfg.so.1,
-	[INETCFG_LIBS="/lib/libinetcfg.so.1 -lsocket -lnsl"
-	AC_DEFINE(HAVE_INETCFG, 1, [Define to 1 if the libinetcfg library is present.])],
-        [AC_MSG_ERROR(
-***
-*** /lib/libinetcfg.so.1 was not found. 
-***
-	)])
-
-AC_SUBST(INETCFG_LIBS)
-
-dnl
 dnl SECDB checks 
 dnl
 AC_CHECK_LIB(secdb, chkauthattr,
