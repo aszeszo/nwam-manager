@@ -241,6 +241,13 @@ typedef enum {
 }
 nwamui_ui_file_index_t;
 
+typedef struct _CappletForeachData {
+	GtkTreeModelForeachFunc foreach_func;
+	gpointer user_data;
+	gpointer user_data1;
+	gpointer ret_data;
+} CappletForeachData;
+
 extern GtkWidget*               nwamui_util_ui_get_widget_from( nwamui_ui_file_index_t  index,  
                                                                 const gchar*            widget_name );
 
@@ -385,6 +392,13 @@ extern gint                     nwamui_util_find_nwamui_object_by_name(gconstpoi
 extern gint                     nwamui_util_find_active_nwamui_object(gconstpointer data, gconstpointer user_data);
 extern void                     nwamui_util_foreach_nwam_object_add_to_list_store(gpointer object, gpointer list_store);
 
+gboolean capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *iter);
+
+gboolean capplet_model_find_object_with_parent(GtkTreeModel *model, GtkTreeIter *parent, GObject *object, GtkTreeIter *iter);
+
+gboolean capplet_model_foreach(GtkTreeModel *model, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter);
+
+gboolean capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter);
 
 G_END_DECLS
 

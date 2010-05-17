@@ -34,13 +34,6 @@
 
 #include "nwam_tree_view.h"
 
-typedef struct _CappletForeachData {
-	GtkTreeModelForeachFunc foreach_func;
-	gpointer user_data;
-	gpointer user_data1;
-	gpointer ret_data;
-} CappletForeachData;
-
 /* Misc. */
 void capplet_remove_gtk_dialog_escape_binding(GtkDialogClass *dialog_class);
 gboolean capplet_dialog_raise(NwamPrefIFace *iface);
@@ -161,14 +154,6 @@ void capplet_tree_store_exclude_children(GtkTreeStore *model,
     GtkTreeIter *source,
     GtkTreeModelForeachFunc func,
     gpointer user_data);
-
-gboolean capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *iter);
-
-gboolean capplet_model_find_object_with_parent(GtkTreeModel *model, GtkTreeIter *parent, GObject *object, GtkTreeIter *iter);
-
-gboolean capplet_model_foreach(GtkTreeModel *model, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter);
-
-gboolean capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter);
 
 void capplet_list_foreach_merge_to_list_store(gpointer data, gpointer store);
 void capplet_list_foreach_merge_to_tree_store(gpointer data, gpointer store);

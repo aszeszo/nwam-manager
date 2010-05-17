@@ -1,3 +1,18 @@
+2010-05-17  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c:
+	* capplet/capplet-utils.h:
+	* common/libnwamui.c (capplet_tree_model_foreach),
+	(capplet_model_foreach_find_object), (capplet_model_find_object),
+	(capplet_model_find_object_with_parent), (capplet_model_foreach),
+	(capplet_model_1_level_foreach):
+	* common/libnwamui.h: Moved some functions to libnwamui because
+	common code will use them.
+	* common/nwamui_ip.c (nwamui_ip_get_display_name):
+	* common/nwamui_ncu.c (nwamui_ncu_init): Fixed inactive DHCP NCUs
+	can't show all zero address. DHCP/Static mixed configured NCUs
+	show static address on DHCP entry.
+
 2010-05-13  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_conn_conf_ip_panel.c (multi_line_add_cb):

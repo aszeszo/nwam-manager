@@ -2417,3 +2417,165 @@ nwamui_util_foreach_nwam_object_add_to_list_store(gpointer object, gpointer list
     gtk_list_store_set(GTK_LIST_STORE(list_store), &iter, 0, obj, -1);
 }
 
+static gboolean
+capplet_tree_model_foreach(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data)
+{
+	CappletForeachData *data = (CappletForeachData *)user_data;
+
+    if (data->foreach_func(model, path, iter, data->user_data)) {
+        *(GtkTreeIter *)data->user_data1 = *iter;
+        /* flag */
+        data->ret_data = data->user_data1;
+        return TRUE;
+    }
+	return FALSE;
+}
+
+static gboolean
+capplet_model_foreach_find_object(GtkTreeModel *model,
+    GtkTreePath *path,
+    GtkTreeIter *iter,
+    gpointer user_data)
+{
+	CappletForeachData *data = (CappletForeachData *)user_data;
+	GObject *object;
+
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
+
+    if (object == data->user_data) {
+        /* Fill in passed GtkTreeIter */
+        *(GtkTreeIter *)data->user_data1 = *iter;
+        /* return value now */
+        data->ret_data = data->user_data1;
+    }
+
+	if (object)
+		g_object_unref(object);
+
+	return data->ret_data != NULL;
+}
+
+/*
+ * capplet_model_find_object:
+ * @object: Could be null
+ * @iter: output var
+ * 
+ * Find the position of the @object, return its iterator.
+ */
+extern gboolean
+capplet_model_find_object(GtkTreeModel *model, GObject *object, GtkTreeIter *iter)
+{
+	CappletForeachData data;
+	GtkTreeIter temp_iter;
+
+	data.user_data = (gpointer)object;
+    if (iter != NULL) {
+        data.user_data1 = (gpointer)iter;
+    } else {
+        data.user_data1 = &temp_iter;
+    }
+	data.ret_data = NULL;
+
+	gtk_tree_model_foreach(model, capplet_model_foreach_find_object,
+      (gpointer)&data);
+
+	return data.ret_data != NULL;
+}
+
+/*
+ * capplet_model_find_object:
+ * @object: Could be null
+ * @iter: output var
+ * 
+ * Find the position of the @object, return its iterator.
+ */
+extern gboolean
+capplet_model_find_object_with_parent(GtkTreeModel *model, GtkTreeIter *parent, GObject *object, GtkTreeIter *iter)
+{
+	CappletForeachData data;
+	GtkTreeIter temp_iter;
+    GtkTreeIter i;
+    gboolean valid;
+
+	data.user_data = (gpointer)object;
+    if (iter != NULL) {
+        data.user_data1 = (gpointer)iter;
+    } else {
+        data.user_data1 = &temp_iter;
+    }
+	data.ret_data = NULL;
+
+    for (valid = gtk_tree_model_iter_children(model, &i, parent);
+         valid;
+         valid = gtk_tree_model_iter_next(model, &i)) {
+        if (capplet_model_foreach_find_object(model, NULL, &i, (gpointer)&data))
+            return TRUE;
+    }
+    return FALSE;
+}
+
+/*
+ * capplet_model_find_object:
+ * @object: Could be null
+ * @iter: output var
+ *
+ * Customize foreach function by @fun and @user_data, find the correct position,
+ * return its iterator.
+ */
+extern gboolean
+capplet_model_foreach(GtkTreeModel *model, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter)
+{
+	CappletForeachData data;
+	GtkTreeIter temp_iter;
+
+    data.foreach_func = func;
+	data.user_data = user_data;
+    if (iter != NULL) {
+        data.user_data1 = (gpointer)iter;
+    } else {
+        data.user_data1 = &temp_iter;
+    }
+	data.ret_data = NULL;
+
+	gtk_tree_model_foreach(model, capplet_tree_model_foreach, (gpointer)&data);
+
+	return data.ret_data != NULL;
+}
+
+/*
+ * capplet_model_find_object:
+ * @object: Could be null
+ * @iter: output var
+ *
+ * Customize foreach function by @fun and @user_data, find the correct position,
+ * return its iterator.
+ */
+extern gboolean
+capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter)
+{
+    gboolean valid;
+	GtkTreeIter temp_iter;
+	GtkTreePath *path = NULL;
+
+    if (parent) {
+        path = gtk_tree_model_get_path(model, parent);
+    } else {
+        path = gtk_tree_path_new_first();
+    }
+
+    if (iter == NULL)
+        iter = &temp_iter;
+
+    for (valid = gtk_tree_model_iter_children(model, iter, parent), gtk_tree_path_down(path);
+         valid;
+         valid = gtk_tree_model_iter_next(model, iter), gtk_tree_path_next(path)) {
+        if (func(model, path, iter, user_data))
+            break;
+    }
+    gtk_tree_path_free(path);
+    return valid;
+}
+

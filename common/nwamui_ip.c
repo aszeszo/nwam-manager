@@ -521,16 +521,6 @@ nwamui_ip_get_display_name(NwamuiObject *obj)
     prefixlen = nwamui_util_convert_netmask_str_to_prefixlen(prv->is_v6?AF_INET6:AF_INET, netmask);
     g_free(netmask);
 
-    /* It is possible for the DHCPRUNNING flag to be true, yet DHCP is not
-     * the source of the address.
-     *
-     * This is because NWAM can use DHCP to gather information like the
-     * nameservice to use using DHCP, thus setting the flag.
-     *
-     * So we double check using the stored nwam configuration, so get that
-     * info now.
-     */
-
     if (nwamui_ip_is_dhcp(ip)) {
         dhcp_str = _(" (DHCP)");
     } else {

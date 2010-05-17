@@ -196,6 +196,7 @@ static gboolean     nwamui_object_real_has_modifications(NwamuiObject* object);
 static void         nwamui_object_set_interface_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state);
 
 /* Callbacks */
+static gint find_first_dhcp_address(gconstpointer a, gconstpointer b);
 static void ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer user_data); 
 
 static void ip_row_deleted_cb (GtkTreeModel *tree_model, GtkTreePath *path, gpointer user_data);
@@ -460,13 +461,15 @@ nwamui_ncu_init(NwamuiNcu *self)
 
     prv->state = NWAMUI_STATE_UNKNOWN;
 
-    prv->ipv4_zero_ip = nwamui_ip_new(self, "", "", FALSE, 
-      TRUE,    /* DHCP */
-      FALSE);   /* Autoconf */
+    prv->ipv4_zero_ip = nwamui_ip_new(self, "0.0.0.0", "",
+      FALSE,                    /* Is IPv6 */
+      TRUE,                     /* DHCP */
+      FALSE);                   /* Autoconf */
 
-    prv->ipv6_zero_ip = nwamui_ip_new(self, "", "", TRUE, 
-      TRUE,    /* DHCP */
-      FALSE);   /* Autoconf */
+    prv->ipv6_zero_ip = nwamui_ip_new(self, "0:0:0:0:0:0:0:0", "",
+      TRUE,                     /* Is IPv6 */
+      TRUE,                     /* DHCP */
+      FALSE);                   /* Autoconf */
 
     /* Create WifiNet cache */
     prv->wifi_hash_table = g_hash_table_new_full(  g_str_hash, g_str_equal,
@@ -2400,7 +2403,7 @@ nwamui_ncu_set_ipv4_address(NwamuiNcu *self, const gchar *address)
 /**
  * nwamui_ncu_get_ipv4_address:
  * @nwamui_ncu: a #NwamuiNcu.
- * @returns: the ipv4_address.
+ * @returns: the DHCP ipv4_address.
  *
  **/
 extern gchar*
@@ -2412,8 +2415,13 @@ nwamui_ncu_get_ipv4_address (NwamuiNcu *self)
     g_return_val_if_fail (NWAMUI_IS_NCU (self), address);
 
     if (prv->ipv4_acquired) {
-        address = nwamui_ip_get_address(prv->ipv4_acquired->data);
-    } else if ( prv->ipv4_zero_ip != NULL ) {
+        GList *l = g_list_find_custom(prv->ipv4_acquired, NULL, find_first_dhcp_address);
+        if (l) {
+            address = nwamui_ip_get_address(l->data);
+        }
+    }
+
+    if (address == NULL) {
         address = nwamui_ip_get_address(prv->ipv4_zero_ip);
     }
 
@@ -2621,23 +2629,29 @@ nwamui_ncu_get_ipv6_has_static (NwamuiNcu *self)
 /**
  * nwamui_ncu_get_ipv6_address:
  * @nwamui_ncu: a #NwamuiNcu.
- * @returns: the ipv6_address.
+ * @returns: the DHCP ipv6_address.
  *
  **/
 extern gchar*
 nwamui_ncu_get_ipv6_address (NwamuiNcu *self)
 {
     NwamuiNcuPrivate *prv          = NWAMUI_NCU_GET_PRIVATE(self);
-    gchar*            ipv6_address = NULL; 
+    gchar*            address = NULL; 
 
-    g_return_val_if_fail (NWAMUI_IS_NCU (self), ipv6_address);
+    g_return_val_if_fail (NWAMUI_IS_NCU (self), address);
 
     if (prv->ipv6_acquired) {
-        ipv6_address = nwamui_ip_get_address(prv->ipv6_acquired->data);
-    } else if ( prv->ipv6_zero_ip != NULL ) {
-        ipv6_address = nwamui_ip_get_address(prv->ipv6_zero_ip);
+        GList *l = g_list_find_custom(prv->ipv6_acquired, NULL, find_first_dhcp_address);
+        if (l) {
+            address = nwamui_ip_get_address(l->data);
+        }
     }
-    return( ipv6_address );
+
+    if (address == NULL) {
+        address = nwamui_ip_get_address(prv->ipv6_zero_ip);
+    }
+
+    return address;
 }
 
 /**
@@ -3413,27 +3427,70 @@ nwamui_ncu_set_link_nwam_state(NwamuiNcu *self, nwam_state_t state, nwam_aux_sta
     g_object_thaw_notify(G_OBJECT(self));
 }
 
+static gboolean
+foreach_v4_tree_model_find_static_addr(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data)
+{
+    NwamuiObject *ip;
+    gchar *address = user_data;
+
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &ip, -1);
+
+    if (ip) {
+        if (g_strcmp0(nwamui_object_get_name(ip), address) == 0) {
+            g_object_unref(ip);
+            return TRUE;
+        }
+        g_object_unref(ip);
+    }
+	return FALSE;
+}
+
 extern void
 nwamui_ncu_add_acquired(NwamuiNcu *self,
   const gchar *address,
   const gchar *netmask,
   uint32_t flags)
 {
-    NwamuiNcuPrivate  *prv   = NWAMUI_NCU_GET_PRIVATE(self);
-    GList            **l     = NULL;
-    GList             *found = NULL;
-    NwamuiIp*          ip    = NULL;
+    NwamuiNcuPrivate  *prv       = NWAMUI_NCU_GET_PRIVATE(self);
+    GtkTreeModel      *m         = NULL;
+    GList            **l         = NULL;
+    GList             *found     = NULL;
+    gboolean           is_static = FALSE;
+    gboolean           is_ipv4   = FALSE;
+    NwamuiIp*          ip        = NULL;
 
-    ip = nwamui_ip_new(self, address, netmask,
-      (flags & IFF_IPV6) != 0,
-      (flags & IFF_DHCPRUNNING) != 0,
-      FALSE);
+    is_ipv4 = ((flags & IFF_IPV4) != 0);
 
-    if (flags & IFF_IPV4) {
+    if (is_ipv4) {
         l = &prv->ipv4_acquired;
+        m = GTK_TREE_MODEL(prv->v4addresses);
     } else {
         l = &prv->ipv6_acquired;
+        m = GTK_TREE_MODEL(prv->v6addresses);
     }
+
+    if (capplet_model_foreach(m, foreach_v4_tree_model_find_static_addr,
+        (gpointer)address, NULL)) {
+        /* This is static address, ignore flags. See Darren's comments:
+         */
+        /* It is possible for the DHCPRUNNING flag to be true, yet DHCP is not
+         * the source of the address.
+         *
+         * This is because NWAM can use DHCP to gather information like the
+         * nameservice to use using DHCP, thus setting the flag.
+         *
+         * So we double check using the stored nwam configuration, so get that
+         * info now.
+         */
+        is_static = TRUE;
+    } else {
+        is_static = ((flags & IFF_DHCPRUNNING) != 0);
+    }
+
+    ip = nwamui_ip_new(self, address, netmask, !is_ipv4, is_static, FALSE);
 
     found = g_list_find_custom(*l, ip, (GCompareFunc)nwamui_object_sort_by_name);
     if (found) {
@@ -4678,6 +4735,18 @@ nwamui_ncu_get_configuration_summary_string( NwamuiNcu* self )
 }
 
 /* Callbacks */
+
+static gint
+find_first_dhcp_address(gconstpointer a, gconstpointer b)
+{
+    NwamuiObject *obj = NWAMUI_OBJECT(a);
+
+    /* Only check if we've not already found that something's enabled */
+    if (nwamui_ip_is_dhcp(NWAMUI_IP(obj))) {
+        return 0;
+    }
+    return 1;
+}
 
 static void 
 ip_row_inserted_or_changed_cb (GtkTreeModel *tree_model, GtkTreePath *path, GtkTreeIter *iter, gpointer data)
