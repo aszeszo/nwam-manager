@@ -165,6 +165,7 @@ static gboolean     nwamui_object_real_get_active (NwamuiObject *object);
 static void         nwamui_object_real_set_active (NwamuiObject *object, gboolean active );
 static void         nwamui_object_real_set_enabled ( NwamuiObject *object, gboolean enabled );
 static gboolean     nwamui_object_real_get_enabled ( NwamuiObject *object );
+static gboolean     nwamui_object_real_validate(NwamuiObject *object, gchar **prop_name_ret);
 static gboolean     nwamui_object_real_commit( NwamuiObject* object );
 static gboolean     nwamui_object_real_destroy( NwamuiObject* object );
 static void         nwamui_object_real_reload(NwamuiObject* object);
@@ -219,6 +220,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     nwamuiobject_class->get_enabled = nwamui_object_real_get_enabled;
     nwamuiobject_class->set_enabled = nwamui_object_real_set_enabled;
     nwamuiobject_class->get_nwam_state = nwamui_object_real_get_nwam_state;
+    nwamuiobject_class->validate = nwamui_object_real_validate;
     nwamuiobject_class->commit = nwamui_object_real_commit;
     nwamuiobject_class->reload = nwamui_object_real_reload;
     nwamuiobject_class->destroy = nwamui_object_real_destroy;
@@ -1640,14 +1642,13 @@ nwamui_object_real_set_name (NwamuiObject *object, const gchar*  name )
                 g_debug ("nwam_loc_set_name %s error: %s", name, nwam_strerror (nerr));
                 return FALSE;
             }
-        }
-        else {
+        } else {
             g_warning("Unexpected null loc handle");
         }
         prv->nwam_loc_modified = TRUE;
+        g_free(prv->name);
     }
 
-    g_free(prv->name);
     prv->name = g_strdup(name);
     return TRUE;
 }
@@ -1663,7 +1664,6 @@ static NwamuiObject*
 nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
 {
     NwamuiEnv         *self   = NWAMUI_ENV(object);
-    NwamuiDaemon      *daemon = NWAMUI_DAEMON(parent);
     NwamuiObject      *new_env;
     nwam_error_t       nerr;
     nwam_loc_handle_t  new_env_h;
@@ -1671,7 +1671,6 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
 
         
     g_assert(NWAMUI_IS_ENV(object));
-    g_assert(NWAMUI_IS_DAEMON(parent));
     g_return_val_if_fail(name != NULL, NULL);
 
     nerr = nwam_loc_copy (self->prv->nwam_loc, name, &new_env_h);
@@ -1686,7 +1685,8 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
         NULL));
     new_prv = NWAMUI_ENV_GET_PRIVATE(new_env);
     new_prv->nwam_loc = new_env_h;
-    
+    new_prv->nwam_loc_modified = TRUE;
+
     g_object_set (G_OBJECT (new_env),
 #ifdef ENABLE_PROXY
             "proxy_type", self->prv->proxy_type,
@@ -1706,10 +1706,6 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
 #endif /* ENABLE_PROXY */
              NULL);
     
-    NWAMUI_ENV(new_env)->prv->nwam_loc_modified = TRUE; /* Only exists in-memory, need to commit later */
-
-    nwamui_daemon_append_object( daemon, new_env );
-
     return new_env;
 }
 
@@ -1726,7 +1722,7 @@ nwamui_object_real_open(NwamuiObject *object, gint flag)
             prv->nwam_loc_modified = TRUE;
         } else {
             g_warning("nwamui_loc_create error creating nwam_loc_handle %s", prv->name);
-            prv->nwam_loc == NULL;
+            prv->nwam_loc = NULL;
         }
     } else if (flag == NWAMUI_OBJECT_OPEN) {
         nwam_loc_handle_t  handle;
@@ -1739,17 +1735,15 @@ nwamui_object_real_open(NwamuiObject *object, gint flag)
                 nwam_loc_free(prv->nwam_loc);
             }
             prv->nwam_loc = handle;
+        } else if (nerr == NWAM_ENTITY_NOT_FOUND) {
+            /* Most likely only exists in memory right now, so we should use
+             * handle passed in as parameter. In clone mode, the new handle
+             * gets from nwam_env_copy can't be read again.
+             */
+            g_debug("Failed to read loc information for %s error: %s", prv->name, nwam_strerror(nerr));
         } else {
-            if (nerr == NWAM_ENTITY_NOT_FOUND) {
-                /* Most likely only exists in memory right now, so we should use
-                 * handle passed in as parameter. In clone mode, the new handle
-                 * gets from nwam_env_copy can't be read again.
-                 */
-                g_debug("Failed to read loc information for %s error: %s", prv->name, nwam_strerror(nerr));
-            } else {
-                g_warning("Failed to read loc information for %s error: %s", prv->name, nwam_strerror(nerr));
-            }
-            prv->nwam_loc == NULL;
+            g_warning("Failed to read loc information for %s error: %s", prv->name, nwam_strerror(nerr));
+            prv->nwam_loc = NULL;
         }
     } else {
         g_assert_not_reached();
@@ -3617,34 +3611,6 @@ nwamui_object_real_has_modifications(NwamuiObject* object)
 }
 
 /**
- * nwamui_env_validate:   validate in-memory configuration
- * @prop_name_ret:  If non-NULL, the name of the property that failed will be
- *                  returned, should be freed by caller.
- * @returns: TRUE if valid, FALSE if failed
- **/
-extern gboolean
-nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret )
-{
-    nwam_error_t    nerr;
-    const char*     prop_name = NULL;
-
-    g_return_val_if_fail( NWAMUI_IS_ENV(self), FALSE );
-
-    if ( self->prv->nwam_loc_modified && self->prv->nwam_loc != NULL ) {
-        if ( (nerr = nwam_loc_validate( self->prv->nwam_loc, &prop_name ) ) != NWAM_SUCCESS ) {
-            g_debug("Failed when validating LOC for %s : invalid value for %s", 
-                    self->prv->name, prop_name);
-            if ( prop_name_ret != NULL ) {
-                *prop_name_ret = g_strdup( prop_name );
-            }
-            return( FALSE );
-        }
-    }
-
-    return( TRUE );
-}
-
-/**
  * nwamui_env_destroy:   destroy in-memory configuration, to persistant storage
  * @returns: TRUE if succeeded, FALSE if failed
  **/
@@ -3663,6 +3629,35 @@ nwamui_object_real_destroy( NwamuiObject *object )
             return( FALSE );
         }
         self->prv->nwam_loc = NULL;
+    }
+
+    return( TRUE );
+}
+
+/**
+ * nwamui_env_validate:   validate in-memory configuration
+ * @prop_name_ret:  If non-NULL, the name of the property that failed will be
+ *                  returned, should be freed by caller.
+ * @returns: TRUE if valid, FALSE if failed
+ */
+static gboolean
+nwamui_object_real_validate(NwamuiObject *object, gchar **prop_name_ret)
+{
+    NwamuiEnvPrivate *prv = NWAMUI_ENV_GET_PRIVATE(object);
+    nwam_error_t    nerr;
+    const char*     prop_name = NULL;
+
+    g_return_val_if_fail( NWAMUI_IS_ENV(object), FALSE );
+
+    if ( prv->nwam_loc_modified && prv->nwam_loc != NULL ) {
+        if ( (nerr = nwam_loc_validate( prv->nwam_loc, &prop_name ) ) != NWAM_SUCCESS ) {
+            g_debug("Failed when validating LOC for %s : invalid value for %s", 
+                    prv->name, prop_name);
+            if ( prop_name_ret != NULL ) {
+                *prop_name_ret = g_strdup( prop_name );
+            }
+            return( FALSE );
+        }
     }
 
     return( TRUE );

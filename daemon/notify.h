@@ -62,7 +62,7 @@ void nwam_notification_show_nwam_unavailable( void );
  *
  * For a wireless ncu it will also show the ESSID.
  */
-void nwam_notification_show_ncu_connected( NwamuiNcu* ncu );
+gboolean nwam_notification_show_ncu_connected( NwamuiNcu* ncu );
 
 /* 
  * Show a message to tell the user that a connection has been broken.

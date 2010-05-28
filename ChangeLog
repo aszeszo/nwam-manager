@@ -1,3 +1,214 @@
+2010-05-28  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/capplet-utils.c
+	(capplet_tree_model_foreach_nwamui_object_reload),
+	(capplet_tree_model_foreach_nwamui_object_commit):
+	* capplet/capplet-utils.h: Common reload/commit useful for tree
+	view. Note current not all the nwamui object subclass implemented
+	_has_modifications, _validate, _reload and _commit.
+	* capplet/nwam_conn_conf_ip_panel.c (nwam_conf_ip_panel_init),
+	(apply), (daemon_add_object), (daemon_remove_object),
+	(wireless_tab_add_button_clicked_cb),
+	(wireless_tab_remove_button_clicked_cb),
+	(wireless_tab_edit_button_clicked_cb): Monitor daemon_add/remove
+	events, make sure an object is successfully committed also be
+	added in order to reuse the object and refect the info on the GUI.
+	* capplet/nwam_env_pref_dialog.c (apply): Use common object
+	_validate function.
+	* capplet/nwam_location_dialog.c (cancel), (apply),
+	(on_button_clicked): Clean code, use common tree view commit
+	function.
+	* capplet/nwam_pref_dialog.c (nwam_capplet_dialog_init), (apply),
+	(show_changed_cb), (daemon_add_object), (daemon_remove_object):
+	Monitor daemon_add/remove events instead of daemon_info event
+	which has been deleted.
+	* capplet/nwam_profile_dialog.c (apply), (foreach_set_group_mode),
+	(connections_edit_btn_clicked), (ncp_add_ncu), (ncp_remove_ncu),
+	(edit_profile_changed), (ncu_pri_treeview_add): Monitor
+	daemon_add/remove events, make sure an object is successfully
+	committed also be added in order to reuse the object and refect
+	the info on the GUI.
+	* capplet/nwam_profile_panel.c (nwam_compose_tree_view), (cancel),
+	(apply), (nwamui_ncp_name_cell_edited),
+	(nwam_treeview_update_widget_cb), (on_button_clicked): Make sure
+	an object is successfully committed also be added in order to
+	reuse the object and refect the info on the GUI. Always allow
+	rename NCP, even the NCP is created(which is already
+	committed). Rename the committed NCP is to first clone it with the
+	new name, then delete the old one, and replace the corresponding
+	row data to the new one.
+	* capplet/nwam_vpn_pref_dialog.c (cancel), (apply),
+	(vpn_pref_clicked_cb), (nwam_vpn_pre_selection_validate): Make
+	sure an object is successfully committed also be added in order to
+	reuse the object and refect the info on the GUI, e.g. start/stop a
+	new created ENM. And use the tree view common commit function.
+	* capplet/nwam_wireless_chooser.c (nwam_wireless_chooser_init),
+	(daemon_add_object), (daemon_remove_object): Monitor
+	daemon_add/remove events instead of daemon_info.
+	* capplet/nwam_wireless_dialog.c (nwam_wireless_dialog_init),
+	(nwam_wireless_dialog_set_property), (set_purpose),
+	(nwam_wireless_dialog_get_wifi_net),
+	(nwam_wireless_dialog_set_wifi_net), (apply), (cancel),
+	(dialog_run), (validate_information), (key_entry_focus_in_cb):
+	Clean code. Make the logic simple. Updated the code for the new
+	subclass NwamuiKnownWlan.
+	* common/Makefile.am: Added NwamuiKnownWlan source files.
+	* common/libnwamui.c (debug_g_type_name): For debug usage.
+	* common/libnwamui.h:
+	* common/nwamui_daemon.c (nwamui_daemon_class_init),
+	(nwamui_daemon_init), (nwamui_object_real_reload),
+	(nwamui_daemon_set_property), (nwamui_daemon_get_property),
+	(nwamui_daemon_finalize), (nwamui_daemon_get_ncp_by_name),
+	(nwamui_daemon_get_env_by_name), (nwamui_daemon_get_enm_by_name),
+	(nwamui_ncp_get_first_wireless_ncu_from_active_ncp),
+	(nwamui_object_real_event), (find_compare_wifi_net_by_prio),
+	(nwamui_object_real_add), (nwamui_object_real_remove),
+	(nwamui_daemon_find_fav_wifi_net_by_name),
+	(nwamui_object_real_validate), (nwamui_object_real_commit),
+	(foreach_wifi_in_ncu_emit),
+	(dispatch_scan_results_from_wlan_array),
+	(nwamui_daemon_populate_wifi_fav_list), (wep_key_timeout_handler),
+	(nwamui_daemon_setup_dhcp_or_wep_key_timeout),
+	(nwamd_event_handler), (nwamui_daemon_update_status),
+	(nwamui_daemon_handle_object_action_event), (nwam_loc_walker_cb),
+	(nwam_enm_walker_cb), (nwam_ncp_walker_cb),
+	(nwam_known_wlan_walker_cb), (nwamui_daemon_foreach_fav_wifi),
+	(nwamui_daemon_find_fav_wifi):
+	* common/nwamui_daemon.h: Clean code. Clean signals. Unify
+	add/remove objects. Unify _reload/_commit to reload/commit all
+	children. Make signals compatible like GtkContainer. Removed
+	useless properties. Rework and fix bug of wlan_connection_report
+	event, wlan need key event. Unify nwam object walker behavior.
+	* common/nwamui_enm.c (nwamui_enm_class_init),
+	(nwamui_object_real_set_name), (nwamui_object_real_open),
+	(nwamui_object_real_set_handle), (nwamui_object_real_clone),
+	(nwamui_object_real_validate):
+	* common/nwamui_enm.h: Fix bugs. Clone object don't automatically
+	add it to daemon. _validate becomes a virtual function.
+	* common/nwamui_env.c (nwamui_env_class_init),
+	(nwamui_object_real_set_name), (nwamui_object_real_clone),
+	(nwamui_object_real_open), (nwamui_object_real_destroy),
+	(nwamui_object_real_validate):
+	* common/nwamui_env.h: Fix bugs. Clone object don't automatically
+	add it to daemon. _validate becomes a virtual function. Fix
+	destroy handle doesn't clean handle pointer.
+	* common/nwamui_ip.c (nwamui_object_real_sort): Sort IP by
+	name(essid).
+	* common/nwamui_known_wlan.c (nwamui_known_wlan_class_init),
+	(nwamui_known_wlan_init), (nwamui_known_wlan_set_property),
+	(nwamui_known_wlan_get_property), (nwamui_object_real_reload),
+	(nwamui_known_wlan_finalize), (nwamui_known_wifi_new),
+	(nwamui_known_wlan_update_from_wlan_t),
+	(nwamui_known_wlan_new_with_handle), (nwamui_object_real_sort),
+	(nwamui_object_real_destroy), (nwamui_object_real_validate),
+	(nwamui_object_real_commit), (nwamui_object_real_can_rename),
+	(nwamui_object_real_set_name), (nwamui_object_real_open),
+	(nwamui_object_real_set_handle), (nwamui_known_wlan_get_essid),
+	(nwamui_known_wlan_real_set_bssid_list),
+	(nwamui_known_wlan_real_get_bssid_list),
+	(get_nwam_known_wlan_string_prop),
+	(set_nwam_known_wlan_string_prop),
+	(get_nwam_known_wlan_string_array_prop),
+	(set_nwam_known_wlan_string_array_prop),
+	(get_nwam_known_wlan_boolean_prop),
+	(get_nwam_known_wlan_uint64_prop),
+	(set_nwam_known_wlan_uint64_prop),
+	(get_nwam_known_wlan_uint64_array_prop),
+	(set_nwam_known_wlan_uint64_array_prop),
+	(nwamui_object_real_has_modifications):
+	* common/nwamui_known_wlan.h: New subclass from NwamuiWifiNet.
+	* common/nwamui_ncp.c (nwamui_ncp_class_init),
+	(nwamui_object_real_clone), (nwamui_object_real_reload),
+	(nwamui_object_real_open), (nwamui_object_real_set_name),
+	(nwamui_object_real_has_modifications), (check_ncu_online),
+	(nwamui_ncp_all_ncus_online), (nwamui_object_real_remove),
+	(nwamui_object_real_add), (nwamui_object_real_validate),
+	(nwamui_object_real_commit), (nwam_ncu_walker_cb):
+	* common/nwamui_ncp.h: Clean code. Clean signals. Unify add/remove
+	objects. Unify _reload/_commit to reload/commit all children, do
+	not maintain new added/removed list. Make signals compatible like
+	GtkContainer. Removed useless properties. Unify nwam object walker
+	behavior.
+	* common/nwamui_ncu.c (nwamui_ncu_class_init),
+	(nwamui_ncu_set_property), (nwamui_ncu_get_property),
+	(nwamui_ncu_sync_handle_with_ip_data),
+	(nwam_ncu_handle_clone_each_prop), (nwamui_object_real_clone),
+	(nwamui_object_real_event), (nwamui_object_real_is_modifiable),
+	(nwamui_object_real_reload),
+	(nwamui_object_real_has_modifications), (nwamui_object_real_sort),
+	(nwamui_object_real_validate), (nwamui_object_real_commit),
+	(nwamui_object_real_destroy), (nwamui_object_real_open),
+	(nwamui_object_real_set_handle), (nwamui_ncu_set_vanity_name),
+	(nwamui_object_real_set_active),
+	(nwamui_object_real_set_activation_mode),
+	(nwamui_object_real_get_activation_mode),
+	(nwamui_ncu_wifi_hash_lookup_by_essid),
+	(nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t),
+	(nwamui_ncu_finalize), (nwamui_ncu_get_interface_nwam_state),
+	(nwamui_ncu_get_link_nwam_state), (nwamui_ncu_add_acquired),
+	(nwamui_ncu_clean_acquired), (nwamui_ncu_acquired_all),
+	(set_modified_flag), (set_enabled_flag),
+	(nwamui_ncu_has_dhcp_configured),
+	(nwamui_ncu_get_connection_state_string):
+	* common/nwamui_ncu.h: Clean code. Clean signals. Unify
+	_reload/_commit. Unify _open/_set_handle functions like other
+	objects. Always use loop to loop all NWAM NCU classes/types if
+	possible. Removed useless properties.
+	* common/nwamui_object.c (default_nwamui_object_get_name),
+	(default_nwamui_object_can_rename),
+	(default_nwamui_object_set_name),
+	(default_nwamui_object_set_conditions),
+	(default_nwamui_object_get_conditions),
+	(default_nwamui_object_get_activation_mode),
+	(default_nwamui_object_set_activation_mode),
+	(default_nwamui_object_get_active),
+	(default_nwamui_object_set_active),
+	(default_nwamui_object_get_enabled),
+	(default_nwamui_object_set_enabled),
+	(default_nwamui_object_is_modifiable),
+	(default_nwamui_object_has_modifications),
+	(default_nwamui_object_event), (default_nwamui_object_add),
+	(default_nwamui_object_remove), (default_nwamui_object_modified),
+	(default_nwamui_object_validate), (default_nwamui_object_commit),
+	(default_nwamui_object_reload), (default_nwamui_object_destroy),
+	(nwamui_object_class_init), (nwamui_object_can_rename),
+	(nwamui_object_set_name), (nwamui_object_validate),
+	(nwamui_object_commit), (nwamui_object_event), (nwamui_object_add),
+	(nwamui_object_remove), (nwamui_object_modified):
+	* common/nwamui_object.h: New _add/_remove virtual
+	functions. Unify events, signals.
+	* common/nwamui_wifi_net.c (nwamui_wifi_net_class_init),
+	(nwamui_wifi_net_init), (nwamui_wifi_net_set_property),
+	(nwamui_wifi_net_get_property), (nwamui_wifi_net_finalize),
+	(nwamui_wifi_net_new), (nwamui_wifi_net_update_from_wlan_t),
+	(nwamui_wifi_net_new_from_wlan_t), (nwamui_object_real_sort),
+	(nwamui_wifi_net_store_key), (nwamui_wifi_net_connect),
+	(nwamui_object_real_can_rename), (nwamui_object_real_set_name),
+	(nwamui_wifi_net_real_set_bssid_list),
+	(nwamui_wifi_net_real_get_bssid_list),
+	(nwamui_wifi_net_set_bssid_list), (nwamui_wifi_net_get_bssid_list):
+	* common/nwamui_wifi_net.h: Divide NwamuiKnownWlan code from
+	this. Node some properties are overwriten by NwamuiKnownWlan, so
+	make sure for those properties use g_object_get to get the correct
+	info, esspecially for the function nwamui_wifi_net_store_key.
+	* daemon/notify.c (nwam_notification_msg_new),
+	(nwam_notification_show_ncu_connected):
+	* daemon/notify.h: Changes for 15544 NWAM GUI only shows the 0th
+	address. Need more work.
+	* daemon/nwam-menu.c (menu_section_get_children): Clean code,
+	correct comments.
+	* daemon/nwam-wifi-item.c (on_nwam_wifi_toggled),
+	(menu_wifi_item_compare): Clean code.
+	* daemon/status_icon.c (daemon_add_object), (daemon_remove_object),
+	(daemon_event), (ncu_notify_nwam_state), (ncu_notify_enabled),
+	(ncu_event), (ncp_remove_ncu), (daemon_active_ncp_changed),
+	(connect_nwam_object_signals), (initial_notify_nwam_object),
+	(nwam_menu_update_wifi_section), (nwam_status_icon_run),
+	(nwam_status_icon_move_menu_items_to_cache): Clean code, monitor
+	_add/_remove signals. Fixed bugs.
+	* tests/main.c (main), (process_ncp), (process_known_wlan),
+	(wlans_changed): Update code.
+
 2010-05-17  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c:

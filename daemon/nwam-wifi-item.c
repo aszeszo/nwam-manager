@@ -228,23 +228,7 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(item), is_wifi_active(wifi));
     g_signal_handlers_unblock_by_func(item, (gpointer)on_nwam_wifi_toggled, (gpointer)data);
 
-/*     g_debug("******** toggled %s ***** status %s ***** wifi 0x%p ****", */
-/*       gtk_action_get_name(item), */
-/*       gtk_toggle_action_get_active(GTK_TOGGLE_ACTION(action))?"on":"off", */
-/*       wifi); */
-
-    /* Always connect the wifi no matter if the action is active. */
-
-    /* If the active ncu is NULL, it means that the daemon hasn't yet
-     * selected anything, but that doesn't mean that it's not correct
-     * to allow the user to select the wifi net, this would result in
-     * the NCU selection by the daemon, but the wifi_net structure will
-     * contain a pointer to it's originating NCU, so use that.
-     *
-     * If it is non-NULL, then make sure the NCU is up to date w.r.t. the
-     * wifi_net.
-     */
-    ncu = nwamui_wifi_net_get_ncu ( wifi );
+    ncu = nwamui_wifi_net_get_ncu(wifi);
 
     g_return_if_fail(nwamui_ncu_get_ncu_type(ncu) == NWAMUI_NCU_TYPE_WIRELESS);
         
@@ -255,7 +239,6 @@ on_nwam_wifi_toggled (GtkCheckMenuItem *item, gpointer data)
       NULL);
 
     if (ncu != NULL) {
-        g_debug("Using wifi_net's own NCU 0x%X\n\tENABLE\tWlan 0x%p - %s", ncu, wifi, name);
         nwamui_wifi_net_connect(wifi, prof_ask_add_to_fav);
         g_object_unref(ncu);
     } else {
@@ -284,21 +267,26 @@ nwam_wifi_item_set_wifi (NwamWifiItem *self, NwamuiWifiNet *wifi)
 static gint
 menu_wifi_item_compare(NwamMenuItem *self, NwamMenuItem *other)
 {
+    NwamuiObject *object[2] = {
+        NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))),
+        NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other)))
+    };
+    gint sig[2] = { 0, 0 };
     gint ret;
-    gint signal_self;
-    gint signal_other;
 
-    signal_self = (gint)nwamui_wifi_net_get_signal_strength(
-            NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))));
-    signal_other = (gint)nwamui_wifi_net_get_signal_strength(
-            NWAMUI_WIFI_NET(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other))));
+    /* if (NWAMUI_WIFI_NET(object[0]) && NWAMUI_WIFI_NET(object[1])) { */
+        sig[0] = (gint)nwamui_wifi_net_get_signal_strength(NWAMUI_WIFI_NET(object[0]));
+        sig[1] = (gint)nwamui_wifi_net_get_signal_strength(NWAMUI_WIFI_NET(object[1]));
+    /* } else { */
+    /*     return -1; */
+    /* } */
 
     /* Reverse logic to sort descending, by signal strength. */
-    ret = signal_other - signal_self;
+    ret = sig[1] - sig[0];
 
-    if (ret == 0)
-        ret = nwamui_object_sort_by_name(NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(self))),
-          NWAMUI_OBJECT(nwam_obj_proxy_get_proxy(NWAM_OBJ_PROXY_IFACE(other))));
+    if (ret == 0) {
+        ret = nwamui_object_sort_by_name(object[0], object[1]);
+    }
 
     return ret;
 }

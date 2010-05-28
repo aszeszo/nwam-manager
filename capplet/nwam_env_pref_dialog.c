@@ -2223,7 +2223,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     }
 #endif /* ENABLE_NETSERVICES */
 
-    if (nwamui_env_validate (NWAMUI_ENV (prv->selected_env), &prop_name)) {
+    if (nwamui_object_validate(NWAMUI_OBJECT(prv->selected_env), &prop_name)) {
         if (!nwamui_object_commit (NWAMUI_OBJECT (prv->selected_env))) {
             gchar *msg = g_strdup_printf (_("Committing %s failed..."), nwamui_object_get_name (NWAMUI_OBJECT (prv->selected_env)));
             nwamui_util_show_message (GTK_WINDOW(prv->env_pref_dialog),

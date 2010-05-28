@@ -54,6 +54,7 @@ libnwamui_la_SOURCES =		\
 	nwamui_cond.c \
 	nwamui_prof.c \
 	nwam_pref_iface.c	\
+	nwamui_known_wlan.c \
 	$(NULL)
 
 libnwamui_la_CPPFLAGS = \
@@ -85,4 +86,5 @@ EXTRA_DIST = 		\
 	nwamui_svc.c \
 	nwamui_svc.h \
 	nwamui_wifi_net.h \
+	nwamui_known_wlan.h \
 	$(NULL)

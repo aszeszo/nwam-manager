@@ -570,19 +570,15 @@ cancel(NwamPrefIFace *iface, gpointer user_data)
 
     /* How to handle the new/selected one?
      */
-    if (prv->cur_obj && !nwam_update_obj(self, prv->cur_obj)) {
-        return FALSE;
-    }
-
-    /* model = gtk_tree_view_get_model (prv->view); */
-    /* selection = gtk_tree_view_get_selection (prv->view); */
-    /* if (gtk_tree_selection_get_selected(selection, */
-    /*     NULL, &iter)) { */
-
-    /*     gtk_tree_model_get (model, &iter, 0, &obj, -1); */
-    /*     /\* Revert all before close *\/ */
-    /*     nwamui_object_reload(NWAMUI_OBJECT(obj)); */
+    /* if (prv->cur_obj && !nwam_update_obj(self, prv->cur_obj)) { */
+    /*     return FALSE; */
     /* } */
+
+    model = gtk_tree_view_get_model(prv->view);
+    gtk_tree_model_foreach(model, capplet_tree_model_foreach_nwamui_object_reload, NULL);
+
+    /* Finanlly clean cur_obj */
+    prv->cur_obj = NULL;
 
     return( TRUE );
 }
@@ -592,17 +588,14 @@ apply(NwamPrefIFace *iface, gpointer user_data)
 {
 	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
-	GtkTreeSelection *selection = NULL;
-    GtkTreeModel *model;
-	GtkTreeIter iter;
-    GObject *obj;
+	GtkTreeSelection *selection = gtk_tree_view_get_selection (prv->view);
+    GtkTreeModel *model = gtk_tree_view_get_model (prv->view);
     gboolean retval = TRUE;
-
-    model = gtk_tree_view_get_model (prv->view);
-    selection = gtk_tree_view_get_selection (prv->view);
+    ForeachNwamuiObjectCommitData data;
 
     /* update the new one before close */
     if (prv->cur_obj) {
+        /* Update object before validate and commit it. */
         if (!nwam_update_obj(self, prv->cur_obj)) {
             retval = FALSE;
         }
@@ -611,82 +604,33 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     /* Call into separated panel/instance
      * apply all changes, if no errors, hide all
      */
-    if (retval && gtk_tree_model_get_iter_first (model, &iter)) {
-        gchar* prop_name = NULL;
-        do {
-            gtk_tree_model_get (model, &iter, 0, &obj, -1);
+    data.failone = NULL;
+    data.prop_name = NULL;
+    gtk_tree_model_foreach(model, capplet_tree_model_foreach_nwamui_object_commit, &data);
 
-            if (nwamui_enm_validate (NWAMUI_ENM (obj), &prop_name)) {
-                if (!nwamui_object_commit (NWAMUI_OBJECT (obj))) {
-                    /* Start highlight relevant ENM */
-                    gtk_tree_selection_select_iter(selection, &iter);
+    if (retval && data.failone) {
+        retval = FALSE;
+        if (data.prop_name) {
+            gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), nwamui_object_get_name(NWAMUI_OBJECT(data.failone)), data.prop_name);
 
-                    gchar *msg = g_strdup_printf (_("Committing %s failed..."), nwamui_object_get_name (NWAMUI_OBJECT(obj)));
-                    nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
-                      GTK_MESSAGE_ERROR,
-                      _("Commit ENM error"),
-                      msg, TRUE);
-                    g_free (msg);
-                    retval = FALSE;
-                    g_object_unref(obj);
-                    break;
-                }
-            } else {
-                gchar *msg = g_strdup_printf (_("Validation of %s failed with the property %s"), nwamui_object_get_name (NWAMUI_OBJECT (obj)), prop_name);
+            nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
+              GTK_MESSAGE_ERROR, _("Validation error"), msg, TRUE);
 
-                /* Start highligh relevant ENM */
-                gtk_tree_selection_select_iter(selection, &iter);
+            g_free(msg);
 
-                nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
-                  GTK_MESSAGE_ERROR,
-                  _("Validation error"),
-                  msg, TRUE);
-                g_free (msg);
-                retval = FALSE;
-                g_object_unref(obj);
-                break;
-            }
+            g_free(data.prop_name);
+        } else {
+            gchar *msg = g_strdup_printf (_("Committing %s failed..."), nwamui_object_get_name(NWAMUI_OBJECT(data.failone)));
 
-            g_object_unref(obj);
+            nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
+              GTK_MESSAGE_ERROR, _("Commit ENM error"), msg, TRUE);
 
-        } while (gtk_tree_model_iter_next (model, &iter));
-    }
-
-    if (retval) {
-        NwamuiDaemon *daemon = prv->daemon;
-        GList *nlist = capplet_model_to_list(model);
-        GList *olist = NULL;
-        GList *i;
-
-        nwamui_daemon_foreach_enm(prv->daemon,
-          (GFunc)nwamui_util_foreach_nwam_object_dup_and_append_to_list,
-          (gpointer)&olist);
-
-        /* Sync o and b */
-        if (nlist) {
-            /* We remove the element from olist if it existed in both list. So
-             * olist finally have all the private elements which should be
-             * deleted. */
-            for (i = nlist; i; i = i->next) {
-                GList *found;
-
-                if ((found = g_list_find(olist, i->data)) != NULL) {
-                    g_object_unref(found->data);
-                    olist = g_list_delete_link(olist, found);
-                } else {
-                    nwamui_daemon_append_object(daemon, NWAMUI_OBJECT(i->data));
-                }
-                g_object_unref(i->data);
-            }
-            g_list_free(nlist);
+            g_free(msg);
         }
+        /* Start highlight relevant object */
+        gtk_tree_selection_select_iter(selection, &data.iter);
 
-        for (i = olist; i; i = i->next) {
-            nwamui_daemon_remove_object(daemon, NWAMUI_OBJECT(i->data));
-            g_object_unref(i->data);
-        }
-
-        g_list_free(olist);
+        g_object_unref(data.failone);
     }
 
     return retval;
@@ -820,6 +764,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
 
 		model = gtk_tree_view_get_model (prv->view);
 
+        /* Ensure all objects are updated. */
         /* Fixed 14258 [132] nwam error when adding second VPN */
         if (prv->cur_obj && !nwam_update_obj(self, prv->cur_obj)) {
             return;
@@ -832,7 +777,7 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
         object = NWAMUI_OBJECT(nwamui_enm_new(name));
 
         CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->view))), object);
-        nwamui_daemon_append_object(prv->daemon, NWAMUI_OBJECT(object));
+
         g_free(name);
         g_object_unref(object);
 
@@ -965,26 +910,35 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
     g_signal_handlers_block_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
       (gpointer)nwam_vpn_selection_changed, (gpointer)self);
 
-    if (!nwam_update_obj (self, prv->cur_obj) ||
-      !nwamui_object_commit(NWAMUI_OBJECT(prv->cur_obj))) {
+    /* Update object before validate and commit it. */
+    if (nwam_update_obj(self, prv->cur_obj)) {
+        if (nwamui_object_commit(NWAMUI_OBJECT(prv->cur_obj))) {
+            /* We must add it first, UI daemon can reuse this object instead of
+             * creating a new one. Otherwise, we can't know the latest start/stop
+             * status of the object.
+             */
+            if (!nwamui_daemon_find_enm(prv->daemon, NULL, prv->cur_obj)) {
+                nwamui_object_add(NWAMUI_OBJECT(prv->daemon), NWAMUI_OBJECT(prv->cur_obj));
+            }
 
-        g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
-          (gpointer)nwam_vpn_selection_changed, (gpointer)self);
+            g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
+              (gpointer)nwam_vpn_selection_changed, (gpointer)self);
+            /* We should not set sensitive of start/stop buttons after
+             * trigger it, we should wait the sigal if there has.
+             */
+            if (button == prv->start_btn) {
+                nwamui_object_set_active(NWAMUI_OBJECT(obj), TRUE);
+            } else if (button == prv->stop_btn) {
+                nwamui_object_set_active(NWAMUI_OBJECT(obj), FALSE);
+            }
 
-        return;
+            return;
+        }
     }
 
     g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)),
       (gpointer)nwam_vpn_selection_changed, (gpointer)self);
 
-    /* We should not set sensitive of start/stop buttons after
-     * trigger it, we should wait the sigal if there has.
-     */
-    if (button == prv->start_btn) {
-        nwamui_object_set_active(NWAMUI_OBJECT(obj), TRUE);
-    } else if (button == prv->stop_btn) {
-        nwamui_object_set_active(NWAMUI_OBJECT(obj), FALSE);
-    }
 }
 
 static void
@@ -1041,64 +995,15 @@ nwam_vpn_pre_selection_validate(GtkTreeSelection *selection,
 
     /* cur_obj always poits to the old selection. */
     if (prv->cur_obj && path_currently_selected) {
-        /* This is the old selection. We need to verify and commit it before we
-         * unselected it.
+        /* This is the old selection. We need to update object before we
+         * unselected it. apply() will take care all objects are validated and
+         * committed.
          */
-        /* if (!nwamui_object_has_modifications(NWAMUI_OBJECT(prv->cur_obj))) { */
-        /*     retval = TRUE; */
-        /* } else { */
-            gchar* prop_name;
-            if (!nwam_update_obj(NWAM_VPN_PREF_DIALOG(data), prv->cur_obj)) {
-                /* Don't change selection */
-                retval = FALSE;
-            } else if (!nwamui_enm_validate(NWAMUI_ENM(prv->cur_obj), &prop_name)) {
-                gchar* message = g_strdup_printf(_("An error occurred validating the network modifier configuration.\nThe property '%s' caused this failure"), prop_name );
-                nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog),
-                  GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
-                g_free(prop_name);
-                g_free(message);
-                retval = FALSE;
-            }
-        /* } */
-        return retval;
-    } else {
-        retval = TRUE;
+        if (!nwam_update_obj(NWAM_VPN_PREF_DIALOG(data), prv->cur_obj)) {
+            /* Don't change selection */
+            retval = FALSE;
+        }
     }
-
-	/* if (gtk_tree_selection_get_selected(selection, NULL, &iter)) { */
-	/* 	GtkTreeModel *model = gtk_tree_view_get_model (prv->view); */
-	/* 	GObject *obj; */
-
-	/* 	gtk_tree_model_get (model, &iter, 0, &obj, -1); */
-
-		/* Validate the the old selection first, should assert the correct data */
-		/* if (prv->cur_obj && prv->cur_obj == obj) { */
-		/* if (prv->cur_obj) { */
-        /*     gchar* prop_name; */
-
-        /*     g_signal_handlers_block_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)), */
-        /*       (gpointer)nwam_vpn_selection_changed, (gpointer)self); */
-
-        /*     if ( !nwam_update_obj (NWAM_VPN_PREF_DIALOG(data), prv->cur_obj) ) { */
-        /*         /\* Don't change selection *\/ */
-        /*         retval = FALSE; */
-        /*     } */
-        /*     else if ( !nwamui_enm_validate( NWAMUI_ENM(obj), &prop_name ) ) { */
-        /*         gchar* message = g_strdup_printf(_("An error occurred validating the network modifier configuration.\nThe property '%s' caused this failure"), prop_name ); */
-        /*         nwamui_util_show_message (GTK_WINDOW(prv->vpn_pref_dialog), */
-        /*                                   GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE ); */
-        /*         g_free(prop_name); */
-        /*         g_free(message); */
-        /*         retval = FALSE; */
-        /*     } */
-
-        /*     g_signal_handlers_unblock_by_func(G_OBJECT(gtk_tree_view_get_selection(prv->view)), */
-        /*       (gpointer)nwam_vpn_selection_changed, (gpointer)self); */
-
-
-        /* } */
-    /*     g_object_unref( obj ); */
-    /* } */
 
     return retval;
 }

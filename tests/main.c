@@ -40,7 +40,7 @@ static void test_env_gobject( void );
 static void test_enm_gobject( void );
 static void test_known_wlan_gobject( void );
 
-static void wlans_changed(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data);
+static void wlans_changed(NwamuiDaemon *daemon, guint type, gpointer data, gpointer user_data);
 
 static void process_wlan(gpointer key, gpointer value, gpointer user_data);
 
@@ -95,7 +95,7 @@ main(int argc, char** argv)
 
     daemon = nwamui_daemon_get_instance();
 
-    g_signal_connect(daemon, "daemon_info",
+    g_signal_connect(daemon, "event",
       G_CALLBACK(wlans_changed), (gpointer)NULL);
 
     nwamui_daemon_wifi_start_scan(daemon);
@@ -356,8 +356,6 @@ process_ncp( gpointer data, gpointer user_data )
         indent +=4;
         nwamui_ncp_foreach_ncu(ncp, process_ncu, NULL );
         indent -=4;
-
-        g_object_unref(G_OBJECT(ncp));
     }
 
     g_object_unref(G_OBJECT(daemon));
@@ -595,7 +593,7 @@ process_known_wlan( gpointer data, gpointer user_data )
     
     if ( wifi != NULL ) {
         const gchar *essid          = nwamui_object_get_name(NWAMUI_OBJECT(wifi));
-        GList       *fav_bssid_list = nwamui_wifi_net_get_fav_bssid_list( wifi );
+        GList       *fav_bssid_list = nwamui_wifi_net_get_bssid_list( wifi );
         GList       *bssid_list     = nwamui_wifi_net_get_bssid_list( wifi );
 
         printf("%-*s=============================================================\n", indent, "");
@@ -646,7 +644,7 @@ process_wlan(gpointer key, gpointer value, gpointer user_data)
 }
 
 static void
-wlans_changed(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data)
+wlans_changed(NwamuiDaemon *daemon, guint type, gpointer data, gpointer user_data)
 {
     switch (type) {
     case NWAMUI_DAEMON_INFO_WLANS_CHANGED:

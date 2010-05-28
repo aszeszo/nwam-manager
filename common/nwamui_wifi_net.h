@@ -128,32 +128,19 @@ extern struct _NwamuiNcu; /* forwardref */
 
 extern  GType                       nwamui_wifi_net_get_type (void) G_GNUC_CONST;
 
-extern gboolean                     nwamui_wifi_net_is_favourite(NwamuiWifiNet* self);
+extern  NwamuiWifiNet*              nwamui_wifi_net_new(struct _NwamuiNcu *ncu, const gchar *essid);
 
-extern NwamuiWifiNet*               nwamui_wifi_net_take_favourite(NwamuiWifiNet* self);
+extern  NwamuiWifiNet*              nwamui_wifi_net_new_from_wlan_t(struct _NwamuiNcu *ncu,
+                                                                    nwam_wlan_t *wlan );
 
-extern  NwamuiWifiNet*              nwamui_wifi_net_new(    struct _NwamuiNcu               *ncu,
-                                                            const gchar                     *essid, 
-                                                            nwamui_wifi_security_t           security,
-                                                            GList                           *bssid_list,
-                                                            nwamui_wifi_bss_type_t           bss_type );
-
-extern  NwamuiWifiNet*              nwamui_wifi_net_new_with_handle(    struct _NwamuiNcu               *ncu,
-                                                                        nwam_known_wlan_handle_t         handle );
-
-extern  NwamuiWifiNet*              nwamui_wifi_net_new_from_wlan_t(    struct _NwamuiNcu                       *ncu,
-                                                                        nwam_wlan_t               *wlan );
-
-extern gboolean                     nwamui_wifi_net_update_from_wlan_t( NwamuiWifiNet*      self, 
-                                                                        nwam_wlan_t*  wlan );
+extern gboolean                     nwamui_wifi_net_update_from_wlan_t(NwamuiWifiNet* self, 
+                                                                       nwam_wlan_t* wlan);
 
 extern void                         nwamui_wifi_net_store_key ( NwamuiWifiNet *self );
 
 extern void                         nwamui_wifi_net_connect ( NwamuiWifiNet *self, gboolean add_to_favourites  );
 
 extern gboolean                     nwamui_wifi_net_create_favourite ( NwamuiWifiNet *self );
-
-extern gboolean                     nwamui_wifi_net_validate_favourite( NwamuiWifiNet *self, gchar**error_prop );
 
 extern void                         nwamui_wifi_net_set_ncu ( NwamuiWifiNet *self, struct _NwamuiNcu* ncu );
                                 
@@ -171,10 +158,6 @@ extern nwamui_wifi_security_t       nwamui_wifi_net_get_security ( NwamuiWifiNet
 
 extern void                         nwamui_wifi_net_set_speed ( NwamuiWifiNet *self, guint speed );
 extern guint                        nwamui_wifi_net_get_speed ( NwamuiWifiNet *self );
-
-
-extern void                         nwamui_wifi_net_set_mode ( NwamuiWifiNet *self, const gchar* mode );
-extern gchar*                       nwamui_wifi_net_get_mode ( NwamuiWifiNet *self );
 
 extern void                         nwamui_wifi_net_set_channel (   NwamuiWifiNet      *self,
                                                                     gint                channel );
@@ -198,9 +181,6 @@ extern nwamui_wifi_wpa_config_t     nwamui_wifi_net_get_wpa_config (    NwamuiWi
 
 extern void                         nwamui_wifi_net_set_wep_password (  NwamuiWifiNet *self, const gchar *wep_password );
                        
-/* This function shouldn't be used. */
-/* extern gchar*                       nwamui_wifi_net_get_wep_password (  NwamuiWifiNet *self ); */
-
 extern void                         nwamui_wifi_net_set_wep_key_index (  NwamuiWifiNet  *self, guint wep_key_index );
 
 extern guint                        nwamui_wifi_net_get_wep_key_index (NwamuiWifiNet *self );
@@ -219,10 +199,6 @@ extern gchar*                       nwamui_wifi_net_get_wpa_cert_file ( NwamuiWi
 
 extern void                         nwamui_wifi_net_set_bssid_list(NwamuiWifiNet *self, GList *bssid_list);
 extern GList*                       nwamui_wifi_net_get_bssid_list(NwamuiWifiNet *self);
-                          
-extern void                         nwamui_wifi_net_set_fav_bssid_list ( NwamuiWifiNet *self, const GList*   bssid_list );
-extern GList*                       nwamui_wifi_net_get_fav_bssid_list ( NwamuiWifiNet *self );
-                          
                           
 extern void                         nwamui_wifi_net_set_priority ( NwamuiWifiNet *self, guint64 priority );
 extern guint64                      nwamui_wifi_net_get_priority ( NwamuiWifiNet *self );

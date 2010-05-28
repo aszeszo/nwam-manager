@@ -249,8 +249,6 @@ extern void                 nwamui_env_svc_remove (NwamuiEnv *self, GtkTreeIter 
 extern void                 nwamui_env_svc_foreach (NwamuiEnv *self, GtkTreeModelForeachFunc func, gpointer data);
 #endif
 
-extern gboolean             nwamui_env_validate( NwamuiEnv* self, gchar **prop_name_ret );
-
 const gchar*                nwam_nameservices_enum_to_string(nwam_nameservices_t ns);
 const gchar*                nwamui_env_nameservices_enum_to_filename(nwamui_env_nameservices_t ns);
 

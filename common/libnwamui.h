@@ -64,6 +64,10 @@ G_BEGIN_DECLS
 #include "nwamui_wifi_net.h"
 #endif /* _NWAMUI_WIFI_NET_H */
 
+#ifndef _NWAMUI_KNOWN_WLAN_H
+#include "nwamui_known_wlan.h"
+#endif /* _NWAMUI_KNOWN_WLAN_H */
+
 #ifndef _NWAMUI_SVC_H
 #include "nwamui_svc.h"
 #endif /* _NWAMUI_SVC_H */
@@ -399,6 +403,8 @@ gboolean capplet_model_find_object_with_parent(GtkTreeModel *model, GtkTreeIter 
 gboolean capplet_model_foreach(GtkTreeModel *model, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter);
 
 gboolean capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, GtkTreeModelForeachFunc func, gpointer user_data, GtkTreeIter *iter);
+
+const gchar* debug_g_type_name(gpointer object);
 
 G_END_DECLS
 

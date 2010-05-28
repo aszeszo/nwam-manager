@@ -52,6 +52,8 @@ static gint gconf_exp_time;
 
 #define NOTIFY_ICON_SIZE    (32)
 
+#define NOTIFY_DELAY_SECONDS_FOR_NCU_CONNECTION	(5)
+
 typedef struct _msg
 {
     NotifyNotification *n;
@@ -126,7 +128,7 @@ nwam_notification_msg_new(NotifyNotification *n,
     m->free_func = free_func;
     m->timeout = (timeout == NOTIFY_EXPIRES_DEFAULT) ? NOTIFY_EXP_DEFAULT_FLAG : timeout;
 
-    nwamui_debug("NOTIFICATION_MESSAGE: Summary = '%s' ; Body = '%s' ; Action = '%s' ; Label = '%s'", 
+    nwamui_debug("NOTIFICATION_MESSAGE:\nSummary = '%s' ; Body = '%s' ; Action = '%s' ; Label = '%s'", 
                  summary?summary:"NULL",
                  body?body:"NULL",
                  action?action:"NULL",
@@ -541,24 +543,50 @@ nwam_notification_show_nwam_unavailable( void )
  *
  * For a wireless ncu it will also show the ESSID.
  */
-void
+gboolean
 nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
 {
-    NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
-    GdkPixbuf       *icon = NULL;
-    gchar           *summary_str = NULL;
-    gchar           *body_str = NULL;
-    gchar           *display_name = NULL;
-    guint            speed = 0;
-    gchar           *address_str = NULL;
+    NwamuiDaemon     *daemon       = nwamui_daemon_get_instance();
+    GdkPixbuf        *icon         = NULL;
+    gchar            *summary_str  = NULL;
+    gchar            *body_str     = NULL;
+    gchar            *display_name = NULL;
+    guint             speed        = 0;
+    gchar            *address_str  = NULL;
+    static guint      delay_id     = 0;
+    static NwamuiNcu *stored_ncu   = NULL;
     
 
-    g_return_if_fail( ncu != NULL );
+    g_return_val_if_fail( ncu != NULL, FALSE );
 
     if ( !nwamui_prof_get_notification_ncu_connected(nwamui_prof_get_instance_noref()) ) {
         nwamui_debug("returning early since gconf settings is FALSE", NULL);
-        return;
+        goto L_exit;
     }
+
+#if 0
+    if (stored_ncu != ncu) {
+        /* Another external call, so we check if we haven't shown the old
+         * ncu. Remember this ncu.
+         */
+        if (delay_id != 0) {
+            g_source_remove(delay_id);
+        }
+        /* Updated. */
+        stored_ncu = ncu;
+        delay_id = g_timeout_add_seconds_full(G_PRIORITY_DEFAULT,
+          NOTIFY_DELAY_SECONDS_FOR_NCU_CONNECTION,
+          (GSourceFunc)nwam_notification_show_ncu_connected,
+          g_object_ref(ncu),
+          (GDestroyNotify)g_object_unref);
+        return FALSE;
+    }
+
+    if (!nwamui_object_get_active(NWAMUI_OBJECT(ncu))) {
+        /* Ncu isn't active anymore, we don't need display this info now. */
+        goto L_exit;
+    }
+#endif
 
     if ( daemon ) {
         icon = nwamui_util_get_ncu_status_icon( ncu, NOTIFY_ICON_SIZE );
@@ -608,6 +636,11 @@ nwam_notification_show_ncu_connected( NwamuiNcu* ncu )
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
     }
+
+L_exit:
+    delay_id = 0;
+    stored_ncu = NULL;
+    return FALSE;
 }
 
 /* 

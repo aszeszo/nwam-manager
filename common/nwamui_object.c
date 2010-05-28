@@ -43,7 +43,10 @@ enum {
 };
 
 enum {
-	PLACEHOLDER,
+    EVENT,
+    ADD,
+    REMOVE,
+    MODIFIED,
 	LAST_SIGNAL
 };
 
@@ -85,74 +88,112 @@ G_DEFINE_TYPE(NwamuiObject, nwamui_object, G_TYPE_OBJECT)
 static const gchar*
 default_nwamui_object_get_name(NwamuiObject *object)
 {
-    return NULL;
+    /* g_warning("NwamuiObject::get_name not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object))); */
+    /* return NULL; */
+    return g_type_name(G_TYPE_FROM_INSTANCE(object));
 }
 
 static gboolean
 default_nwamui_object_can_rename (NwamuiObject *object)
 {
+    g_warning("NwamuiObject::can_rename not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
     return FALSE;
 }
 
 static gboolean
 default_nwamui_object_set_name(NwamuiObject *object, const gchar* name)
 {
+    g_warning("NwamuiObject::set_name not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
 }
 
 static void
 default_nwamui_object_set_conditions(NwamuiObject *object, const GList* conditions)
 {
+    g_warning("NwamuiObject::set_conditions not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
 }
 
 static GList*
 default_nwamui_object_get_conditions(NwamuiObject *object)
 {
+    g_warning("NwamuiObject::get_conditions not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
     return NULL;
 }
 
 static gint
 default_nwamui_object_get_activation_mode(NwamuiObject *object)
 {
+    /* g_warning("NwamuiObject::get_activation_mode not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object))); */
     return 0;
 }
 
 static void
 default_nwamui_object_set_activation_mode(NwamuiObject *object, gint activation_mode)
 {
+    g_warning("NwamuiObject::set_activation_mode not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
 }
 
 static gboolean
 default_nwamui_object_get_active(NwamuiObject *object)
 {
+    g_warning("NwamuiObject::get_active not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
     return FALSE;
 }
 
 static void
 default_nwamui_object_set_active(NwamuiObject *object, gboolean active)
 {
+    g_warning("NwamuiObject::set_active not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
 }
 
 static gboolean
 default_nwamui_object_get_enabled(NwamuiObject *object)
 {
+    g_warning("NwamuiObject::get_enabled not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
     return FALSE;
 }
 
 static void
 default_nwamui_object_set_enabled(NwamuiObject *object, gboolean enabled)
 {
+    g_warning("NwamuiObject::set_enabled not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
 }
 
 static gboolean
 default_nwamui_object_is_modifiable(NwamuiObject *object)
 {
+    /* g_warning("NwamuiObject::is_modifiable not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object))); */
     return TRUE;
 }
 
 static gboolean
 default_nwamui_object_has_modifications(NwamuiObject *object)
 {
+    g_warning("NwamuiObject::has_modifications not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
     return FALSE;
+}
+
+static void
+default_nwamui_object_event(NwamuiObject *object, guint event, gpointer data)
+{
+    g_warning("NwamuiObject::event not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
+}
+
+static void
+default_nwamui_object_add(NwamuiObject *object, NwamuiObject *child)
+{
+    g_warning("NwamuiObject::add not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
+}
+
+static void
+default_nwamui_object_remove(NwamuiObject *object, NwamuiObject *child)
+{
+    g_warning("NwamuiObject::remove not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
+}
+
+static void
+default_nwamui_object_modified(NwamuiObject *object, NwamuiObject *child)
+{
+    g_warning("NwamuiObject::modified not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
 }
 
 static nwam_state_t
@@ -210,19 +251,29 @@ default_nwamui_object_sort(NwamuiObject *object, NwamuiObject *other, guint sort
 }
 
 static gboolean
+default_nwamui_object_validate(NwamuiObject *object, gchar **prop_name_ret)
+{
+    g_warning("NwamuiObject::validate not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
+    return FALSE;
+}
+
+static gboolean
 default_nwamui_object_commit(NwamuiObject *object)
 {
+    g_warning("NwamuiObject::commit not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
     return FALSE;
 }
 
 static void
 default_nwamui_object_reload(NwamuiObject *object)
 {
+    g_warning("NwamuiObject::reload not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
 }
 
 static gboolean
 default_nwamui_object_destroy(NwamuiObject *object)
 {
+    g_warning("NwamuiObject::destroy not implemented for `%s'", g_type_name(G_TYPE_FROM_INSTANCE(object)));
     return FALSE;
 }
 
@@ -251,11 +302,18 @@ nwamui_object_class_init(NwamuiObjectClass *klass)
     klass->get_nwam_state = default_nwamui_object_get_nwam_state;
     klass->set_nwam_state = default_nwamui_object_set_nwam_state;
     klass->sort = default_nwamui_object_sort;
+    klass->validate = default_nwamui_object_validate;
     klass->commit = default_nwamui_object_commit;
     klass->reload = default_nwamui_object_reload;
     klass->destroy = default_nwamui_object_destroy;
     klass->is_modifiable = default_nwamui_object_is_modifiable;
     klass->has_modifications = default_nwamui_object_has_modifications;
+    /* For signals */
+    klass->event = default_nwamui_object_event;
+    klass->add = default_nwamui_object_add;
+    klass->remove = default_nwamui_object_remove;
+    klass->modified = default_nwamui_object_modified;
+
 
 	g_type_class_add_private(klass, sizeof (NwamuiObjectPrivate));
 
@@ -309,6 +367,52 @@ nwamui_object_class_init(NwamuiObjectClass *klass)
         G_MAXUINT,
         0,
         G_PARAM_READABLE));
+
+    /* Signals */
+    nwamui_object_signals[EVENT] =
+      g_signal_new ("event",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST,
+        G_STRUCT_OFFSET (NwamuiObjectClass, event),
+        NULL, NULL,
+        g_cclosure_marshal_VOID__UINT_POINTER,
+        G_TYPE_NONE,                  /* Return Type */
+        2,                            /* Number of Args */
+        G_TYPE_UINT,                  /* First arg */
+        G_TYPE_POINTER);                   /* Last arg */
+
+    nwamui_object_signals[ADD] =
+      g_signal_new ("add",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST,
+        G_STRUCT_OFFSET (NwamuiObjectClass, add),
+        NULL, NULL,
+        g_cclosure_marshal_VOID__OBJECT, 
+        G_TYPE_NONE,                  /* Return Type */
+        1,                            /* Number of Args */
+        NWAMUI_TYPE_OBJECT);               /* Types of Args */
+
+    nwamui_object_signals[REMOVE] =
+      g_signal_new ("remove",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST,
+        G_STRUCT_OFFSET (NwamuiObjectClass, remove),
+        NULL, NULL,
+        g_cclosure_marshal_VOID__OBJECT, 
+        G_TYPE_NONE,                  /* Return Type */
+        1,                            /* Number of Args */
+        NWAMUI_TYPE_OBJECT);               /* Types of Args */
+
+    nwamui_object_signals[MODIFIED] =
+      g_signal_new ("modified",
+        G_TYPE_FROM_CLASS (klass),
+        G_SIGNAL_RUN_FIRST,
+        G_STRUCT_OFFSET (NwamuiObjectClass, modified),
+        NULL, NULL,
+        g_cclosure_marshal_VOID__OBJECT, 
+        G_TYPE_NONE,                  /* Return Type */
+        1,                            /* Number of Args */
+        NWAMUI_TYPE_OBJECT);               /* Types of Args */
 }
 
 static void
@@ -413,44 +517,6 @@ nwamui_object_finalize(NwamuiObject *self)
 	G_OBJECT_CLASS(nwamui_object_parent_class)->finalize(G_OBJECT (self));
 }
 
-/**
- * nwamui_object_can_rename:
- * @nwamui_object: a #NwamuiObject.
- * @returns: TRUE if the name.can be changed.
- *
- **/
-extern gboolean
-nwamui_object_can_rename (NwamuiObject *object)
-{
-    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
-
-    return NWAMUI_OBJECT_GET_CLASS (object)->can_rename(object);
-}
-
-/** 
- * nwamui_object_set_name:
- * @nwamui_object: a #NwamuiObject.
- * @name: Value to set name to.
- * 
- **/ 
-extern gboolean
-nwamui_object_set_name(NwamuiObject *object, const gchar* name )
-{
-    NwamuiObjectPrivate *prv = NWAMUI_OBJECT_GET_PRIVATE(object);
-
-    g_return_val_if_fail(NWAMUI_IS_OBJECT(object), FALSE);
-
-    if (prv->name == NULL || g_strcmp0(prv->name, name) != 0) {
-        if (NWAMUI_OBJECT_GET_CLASS (object)->set_name(object, name)) {
-            /* Must cache the return value of name */
-            prv->name = NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);
-            g_object_notify(G_OBJECT(object), "name");
-            return TRUE;
-        }
-    }
-    return FALSE;
-}
-
 extern gint
 nwamui_object_open(NwamuiObject *object, gint flag)
 {
@@ -495,12 +561,50 @@ nwamui_object_get_name (NwamuiObject *object)
     return prv->name;
 }
 
+/**
+ * nwamui_object_can_rename:
+ * @nwamui_object: a #NwamuiObject.
+ * @returns: TRUE if the name.can be changed.
+ *
+ **/
+extern gboolean
+nwamui_object_can_rename (NwamuiObject *object)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
+
+    return NWAMUI_OBJECT_GET_CLASS (object)->can_rename(object);
+}
+
+/** 
+ * nwamui_object_set_name:
+ * @nwamui_object: a #NwamuiObject.
+ * @name: Value to set name to.
+ * 
+ **/ 
+extern gboolean
+nwamui_object_set_name(NwamuiObject *object, const gchar* name )
+{
+    NwamuiObjectPrivate *prv = NWAMUI_OBJECT_GET_PRIVATE(object);
+
+    g_return_val_if_fail(NWAMUI_IS_OBJECT(object), FALSE);
+
+    if (prv->name == NULL || g_strcmp0(prv->name, name) != 0) {
+        if (NWAMUI_OBJECT_GET_CLASS (object)->set_name(object, name)) {
+            /* Must cache the return value of name */
+            prv->name = NWAMUI_OBJECT_GET_CLASS (object)->get_name(object);
+            g_object_notify(G_OBJECT(object), "name");
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
 /** 
  * nwamui_object_set_conditions:
  * @nwamui_object: a #NwamuiObject.
  * @conditions: Value to set conditions to.
  * 
- **/ 
+ */ 
 extern void
 nwamui_object_set_conditions (   NwamuiObject *object,
                              const GList* conditions )
@@ -512,10 +616,10 @@ nwamui_object_set_conditions (   NwamuiObject *object,
 
 /**
  * nwamui_object_get_conditions:
- * @nwamui_object: a #NwamuiObject.
+ * @object: a #NwamuiObject.
  * @returns: the conditions.
  *
- **/
+ */
 extern GList*
 nwamui_object_get_conditions (NwamuiObject *object)
 {
@@ -607,13 +711,45 @@ nwamui_object_sort_by_name(NwamuiObject *object, NwamuiObject *other)
 }
 
 extern gboolean
+nwamui_object_validate(NwamuiObject *object, gchar **prop_name_ret)
+{
+    g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
+
+    g_debug("Validate %s '%s(0x%p)'", g_type_name(G_TYPE_FROM_INSTANCE(object)), nwamui_object_get_name(object), object);
+
+    return NWAMUI_OBJECT_GET_CLASS (object)->validate(object, prop_name_ret);
+}
+
+/**
+ * nwamui_object_commit:
+ * @object: a #NwamuiObject.
+ * 
+ * A user commits a @object will cause nwamd to emit an ADD ACTION and then
+ * cause UI daemon to call nwamui_object_add().
+ *
+ * TODO, We need use nwamui_object_add() to add it after it is successfully
+ * committed, so UI daemon can reuse this object instead of creating a new one.
+ */
+extern gboolean
 nwamui_object_commit(NwamuiObject *object)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT (object), FALSE);
 
+    g_debug("Commit %s '%s(0x%p)'", g_type_name(G_TYPE_FROM_INSTANCE(object)), nwamui_object_get_name(object), object);
+
     return NWAMUI_OBJECT_GET_CLASS (object)->commit(object);
 }
 
+/**
+ * nwamui_object_destroy:
+ * @object: a #NwamuiObject.
+ * 
+ * A user destroys a @object will cause nwamd to emit a REMOVE ACTION and then
+ * cause UI daemon to call nwamui_object_remove().
+ *
+ * TODO, We need use nwamui_object_remove() to remove it after it is destroyed, so
+ * UI daemon don't need remove this object double times.
+ */
 extern gboolean
 nwamui_object_destroy(NwamuiObject *object)
 {
@@ -696,8 +832,10 @@ nwamui_object_is_modifiable(NwamuiObject *object)
 }
 
 /**
- * nwamui_object_has_modifications:   test if there are un-saved changes
+ * nwamui_object_has_modifications:
  * @returns: TRUE if unsaved changes exist.
+ *
+ * test if there are un-saved changes.
  **/
 extern gboolean
 nwamui_object_has_modifications(NwamuiObject *object)
@@ -707,12 +845,82 @@ nwamui_object_has_modifications(NwamuiObject *object)
     return NWAMUI_OBJECT_GET_CLASS(object)->has_modifications(object);
 }
 
+/**
+ * nwamui_object_clone:
+ * @object: a #NwamuiObject.
+ * @parent: a parent #NwamuiObject or a template #NwamuiObject.
+ * @name: The expected name of the returned new #NwamuiObject.
+ * @return: the new #NwamuiObject.
+ * 
+ * Only exists in-memory, need to commit later. So must set has_modifications
+ * flag and the user need call nwamui_object_commit() manually. The class
+ * implemetations should not call nwamui_object_add(), because
+ * nwamui_object_commit() will cause that happens.
+ */
 extern NwamuiObject*
 nwamui_object_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent)
 {
     g_return_val_if_fail (NWAMUI_IS_OBJECT(object), NULL);
 
     return NWAMUI_OBJECT_GET_CLASS (object)->clone(object, name, parent);
+}
+
+/* Signals */
+void
+nwamui_object_event(NwamuiObject *object, guint event, gpointer data)
+{
+    g_signal_emit(object,
+      nwamui_object_signals[EVENT],
+      0, /* details */
+      event,
+      data,
+      NULL);
+}
+
+/**
+ * nwamui_object_add:
+ * @object: a #NwamuiObject.
+ * @child: a child #NwamuiObject.
+ * 
+ * nwamui_object_add() do not call nwamui_object_commit() automatically, users
+ * should do it mannually.
+ */
+void
+nwamui_object_add(NwamuiObject *object, NwamuiObject *child)
+{
+    g_signal_emit(object,
+      nwamui_object_signals[ADD],
+      0, /* details */
+      child,
+      NULL);
+}
+
+/**
+ * nwamui_object_remove:
+ * @object: a #NwamuiObject.
+ * @child: a child #NwamuiObject.
+ * 
+ * nwamui_object_remove() do not call nwamui_object_destroy() automatically, users
+ * should do it mannually.
+ */
+void
+nwamui_object_remove(NwamuiObject *object, NwamuiObject *child)
+{
+    g_signal_emit(object,
+      nwamui_object_signals[REMOVE],
+      0, /* details */
+      child,
+      NULL);
+}
+
+void
+nwamui_object_modified(NwamuiObject *object, NwamuiObject *child)
+{
+    g_signal_emit(object,
+      nwamui_object_signals[MODIFIED],
+      0, /* details */
+      child,
+      NULL);
 }
 
 /* Callbacks */

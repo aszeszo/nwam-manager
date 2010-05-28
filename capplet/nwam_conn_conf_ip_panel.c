@@ -202,8 +202,8 @@ static void nwam_conf_ip_panel_finalize(NwamConnConfIPPanel *self);
 /* Callbacks */
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
-static void daemon_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
-
+static void daemon_add_object(NwamuiDaemon *daemon, NwamuiObject* object, gpointer user_data);
+static void daemon_remove_object(NwamuiDaemon *daemon, NwamuiObject* object, gpointer user_data);
 static void ncu_changed_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
 static void nwam_conn_multi_ip_cell_cb (GtkTreeViewColumn *col,
@@ -630,7 +630,11 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
 
-	g_signal_connect(G_OBJECT(self->prv->daemon), "notify", (GCallback)daemon_notify_cb, self );
+    g_signal_connect(self->prv->daemon, "add",
+      G_CALLBACK(daemon_add_object), (gpointer)self);
+
+    g_signal_connect(self->prv->daemon, "remove",
+      G_CALLBACK(daemon_remove_object), (gpointer)self);
 }
 
 static void
@@ -922,7 +926,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         model = GTK_TREE_MODEL( gtk_tree_view_get_model(GTK_TREE_VIEW(prv->wifi_fav_tv)));
         fav_list = capplet_model_to_list(model);
         g_list_foreach( fav_list, wifi_fav_set_prio_next, &prio );
-        nwamui_daemon_set_fav_wifi_networks( NWAMUI_DAEMON(prv->daemon),  fav_list);
+        /* Commit daemon will commit fav wlan list on pref_dialog. */
         if (fav_list) {
             nwamui_util_free_obj_list(fav_list);
         }
@@ -1060,7 +1064,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                 break;
             }
         }
-        if ( rval && !nwamui_ncu_validate( NWAMUI_NCU(prv->ncu), &failed_prop ) ) {
+        if ( rval && !nwamui_object_validate( NWAMUI_OBJECT(prv->ncu), &failed_prop ) ) {
             gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe property '%s' caused this failure"), failed_prop );
             nwamui_util_show_message (NULL, GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
             g_free(failed_prop);
@@ -1220,14 +1224,21 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 }
 
 static void
-daemon_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
+daemon_add_object(NwamuiDaemon *daemon, NwamuiObject* object, gpointer user_data)
 {
-    NwamConnConfIPPanel*self = NWAM_CONN_CONF_IP_PANEL(data);
+    NwamConnConfIPPanel*self = NWAM_CONN_CONF_IP_PANEL(user_data);
 
-	g_debug("NwamConnConfIPPanel: daemon notify %s changed", arg1->name);
+    if (NWAMUI_IS_KNOWN_WLAN(object)) {
+        populate_wifi_fav( self, TRUE );
+    }
+}
 
+static void
+daemon_remove_object(NwamuiDaemon *daemon, NwamuiObject* object, gpointer user_data)
+{
+    NwamConnConfIPPanel*self = NWAM_CONN_CONF_IP_PANEL(user_data);
 
-    if (arg1 && g_ascii_strcasecmp(arg1->name, "wifi_fav") == 0) {
+    if (NWAMUI_IS_KNOWN_WLAN(object)) {
         populate_wifi_fav( self, TRUE );
     }
 }
@@ -1762,7 +1773,13 @@ wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
                 if ( new_wifi != NULL ) {
                     /* Add to start of list, set prio to lowest (0). */
                     nwamui_wifi_net_set_priority(new_wifi, 0 );
-                    nwamui_daemon_add_wifi_fav(self->prv->daemon, new_wifi);
+
+                    g_assert(NWAMUI_IS_KNOWN_WLAN(new_wifi));
+
+                    if (nwamui_object_commit(NWAMUI_OBJECT(new_wifi))) {
+                        nwamui_object_add(NWAMUI_OBJECT(self->prv->daemon), NWAMUI_OBJECT(new_wifi));
+                    }
+                    g_object_unref(new_wifi);
                 }
                 nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, NULL ); 
                 nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
@@ -1802,7 +1819,8 @@ wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data )
                 if (nwamui_util_confirm_removal( GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))), _("Remove Wireless Favourite?"), message )) {
                     g_debug("Removing wifi favourite: '%s'", nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)));
 
-                    nwamui_daemon_remove_wifi_fav(self->prv->daemon, wifi_net );
+                    nwamui_object_destroy(NWAMUI_OBJECT(wifi_net));
+                    /* nwamui_object_remove(NWAMUI_OBJECT(self->prv->daemon), NWAMUI_OBJECT(wifi_net)); */
 
                     nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
                 }
@@ -1850,7 +1868,11 @@ wireless_tab_edit_button_clicked_cb( GtkButton *button, gpointer data )
 
                 switch (nwam_pref_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
                     case GTK_RESPONSE_OK:
-                        /* wifi_net object will be already updated, so only need to refresh row. */
+
+                        if (nwamui_object_has_modifications(NWAMUI_OBJECT(wifi_net))) {
+                            nwamui_object_commit(NWAMUI_OBJECT(wifi_net));
+                        }
+                        /* Refresh the row */
                         gtk_tree_model_row_changed(GTK_TREE_MODEL(model), (GtkTreePath *)idx->data, &iter);
                         break;
                     default:

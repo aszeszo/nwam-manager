@@ -278,7 +278,13 @@ nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by
         NWAMUI_IP_GET_PRIVATE(other)
     };
 
-    return g_strcmp0(prv[0]->address, prv[1]->address);
+    switch (sort_by) {
+    case NWAMUI_OBJECT_SORT_BY_NAME:
+        return g_strcmp0(prv[0]->address, prv[1]->address);
+    default:
+        g_warning("NwamuiObject::real_sort id '%d' not implemented for `%s'", sort_by, g_type_name(G_TYPE_FROM_INSTANCE(object)));
+        break;
+    }
 }
 
 /* Exported Functions */

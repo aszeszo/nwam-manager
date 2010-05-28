@@ -63,15 +63,11 @@ typedef enum {
     NWAMUI_DAEMON_INFO_ACTIVE,
     NWAMUI_DAEMON_INFO_RAW,
     NWAMUI_DAEMON_INFO_WLANS_CHANGED,
-    NWAMUI_DAEMON_INFO_OBJECT_ADDED,
-    NWAMUI_DAEMON_INFO_OBJECT_REMOVED,
-    NWAMUI_DAEMON_INFO_OBJECT_UPDATED,
-    NWAMUI_DAEMON_INFO_WLAN_ADDED,
-    NWAMUI_DAEMON_INFO_WLAN_REMOVED,
-    NWAMUI_DAEMON_INFO_WLAN_UPDATED,
     NWAMUI_DAEMON_INFO_WLAN_CONNECTED,
     NWAMUI_DAEMON_INFO_WLAN_DISCONNECTED, /* unused */
     NWAMUI_DAEMON_INFO_WLAN_CONNECT_FAILED,
+    NWAMUI_DAEMON_INFO_WIFI_SELECTION_NEEDED,
+    NWAMUI_DAEMON_INFO_WIFI_KEY_NEEDED,
     NWAMUI_DAEMON_INFO_GENERIC,
 } nwamui_daemon_info_t;
 
@@ -136,9 +132,7 @@ extern gchar*                       nwamui_daemon_get_active_ncp_name(NwamuiDaem
 
 extern gboolean                     nwamui_daemon_is_active_ncp(NwamuiDaemon *self, NwamuiObject* ncp ) ;
 
-extern void                         nwamui_daemon_append_object(NwamuiDaemon *self, NwamuiObject* object);
-
-extern gboolean                     nwamui_daemon_remove_object(NwamuiDaemon *self, NwamuiObject* object);
+extern NwamuiNcu*                   nwamui_ncp_get_first_wireless_ncu_from_active_ncp(NwamuiDaemon *self);
 
 extern gboolean                     nwamui_daemon_env_selection_is_manual(NwamuiDaemon *self);
 
@@ -158,15 +152,7 @@ extern void                         nwamui_daemon_dispatch_wifi_scan_events_from
 
 extern gint                         nwamui_daemon_get_num_scanned_wifi(NwamuiDaemon* self );
 
-extern gboolean                     nwamui_daemon_set_fav_wifi_networks(NwamuiDaemon *self, GList *new_list );
-
-extern NwamuiWifiNet*               nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name );
-
-extern void                         nwamui_daemon_add_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* new_wifi );
-
-extern void                         nwamui_daemon_remove_wifi_fav(NwamuiDaemon *self, NwamuiWifiNet* wifi );
-
-extern void                         nwamui_daemon_emit_info_message( NwamuiDaemon* self, const gchar* message );
+extern NwamuiObject*                nwamui_daemon_find_fav_wifi_net_by_name(NwamuiDaemon *self, const gchar* name );
 
 extern nwamui_daemon_status_t       nwamui_daemon_get_status_icon_type( NwamuiDaemon *daemon );
 

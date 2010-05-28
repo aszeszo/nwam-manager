@@ -89,7 +89,8 @@ static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void show_changed_cb( GtkWidget* widget, gpointer data );
 
 /* Daemon */
-static void daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data);
+static void daemon_add_object(NwamuiDaemon *daemon, NwamuiObject* object, gpointer user_data);
+static void daemon_remove_object(NwamuiDaemon *daemon, NwamuiObject* object, gpointer user_data);
 
 /* Utility Functions */
 static void foreach_ncp_add_to_combo(gpointer data, gpointer user_data);
@@ -182,7 +183,9 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     show_combo_add (prv->show_combo, G_OBJECT(prv->panel[PANEL_CONN_STATUS]));
     show_combo_add (prv->show_combo, G_OBJECT(prv->panel[PANEL_PROF_PREF]));
 
-    g_signal_connect(daemon, "daemon_info", G_CALLBACK(daemon_info), (gpointer)self);
+    g_signal_connect(daemon, "add", G_CALLBACK(daemon_add_object), (gpointer)self);
+    g_signal_connect(daemon, "remove", G_CALLBACK(daemon_remove_object), (gpointer)self);
+
 
     g_signal_connect(self, "notify", (GCallback)object_notify_cb, NULL);
     g_signal_connect(GTK_DIALOG(prv->capplet_dialog), "response", (GCallback)response_cb, (gpointer)self);
@@ -340,7 +343,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         gchar      *prop_name = NULL;
 
         /* Validate NCU */
-        if ( !nwamui_ncu_validate( NWAMUI_NCU(self->prv->selected_ncu), &prop_name ) ) {
+        if ( !nwamui_object_validate( NWAMUI_OBJECT(self->prv->selected_ncu), &prop_name ) ) {
             gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe property '%s' caused this failure"), prop_name );
             nwamui_util_show_message (GTK_WINDOW(self->prv->capplet_dialog), 
                                       GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
@@ -474,7 +477,7 @@ show_changed_cb( GtkWidget* widget, gpointer data )
         }
 
         /* Validate NCU */
-        if ( valid && !nwamui_ncu_validate( NWAMUI_NCU(self->prv->prev_selected_ncu), &prop_name ) ) {
+        if ( valid && !nwamui_object_validate( NWAMUI_OBJECT(self->prv->prev_selected_ncu), &prop_name ) ) {
             gchar* message = g_strdup_printf(_("An error occurred validating the current NCU.\nThe property '%s' caused this failure"), prop_name );
             nwamui_util_show_message (GTK_WINDOW(self->prv->capplet_dialog), 
                                       GTK_MESSAGE_ERROR, _("Validation Error"), message, TRUE );
@@ -572,21 +575,22 @@ object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 }
 
 static void
-daemon_info(NwamuiDaemon *daemon, gint type, GObject *obj, gpointer data, gpointer user_data)
+daemon_add_object(NwamuiDaemon *daemon, NwamuiObject* object, gpointer user_data)
 {
     NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(user_data);
 
-    if (NWAMUI_IS_NCP(obj)) {
-        switch (type) {
-        case NWAMUI_DAEMON_INFO_OBJECT_ADDED:
-            show_combo_add(prv->show_combo, obj);
-            break;
-        case NWAMUI_DAEMON_INFO_OBJECT_REMOVED:
-            show_combo_remove(prv->show_combo, obj);
-            break;
-        default:
-            break;
-        }
+    if (NWAMUI_IS_NCP(object)) {
+        show_combo_add(prv->show_combo, G_OBJECT(object));
+    }
+}
+
+static void
+daemon_remove_object(NwamuiDaemon *self, NwamuiObject* object, gpointer user_data)
+{
+    NwamCappletDialogPrivate *prv = NWAM_CAPPLET_DIALOG_GET_PRIVATE(user_data);
+
+    if (NWAMUI_IS_NCP(object)) {
+        show_combo_remove(prv->show_combo, G_OBJECT(object));
     }
 }
 

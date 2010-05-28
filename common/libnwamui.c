@@ -2579,3 +2579,9 @@ capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent, GtkTreeM
     return valid;
 }
 
+const gchar*
+debug_g_type_name(gpointer object)
+{
+    return g_type_name(G_TYPE_FROM_INSTANCE(object));
+}
+

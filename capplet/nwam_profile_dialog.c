@@ -723,6 +723,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         if (GTK_WIDGET_IS_SENSITIVE(prv->profile_name_entry)) {
             nwamui_object_set_name(prv->selected_ncp, gtk_entry_get_text(GTK_ENTRY(prv->profile_name_entry)));
         }
+        /* This will commit all NCU children. */
         nwamui_object_commit(prv->selected_ncp);
     }
 
@@ -1679,7 +1680,6 @@ foreach_set_group_mode(GtkTreeModel *model, GtkTreePath *path, GtkTreeIter *iter
                     nwamui_ncu_set_priority_group_mode(NWAMUI_NCU(obj), mode);
                     break;
                 }
-                nwamui_object_commit(obj);
             }
             g_object_unref(obj);
         }
@@ -2003,13 +2003,19 @@ connections_edit_btn_clicked(GtkButton *button, gpointer user_data )
         for (GList *elem = g_list_first(prv->ncu_rm_list);
              elem != NULL;
              elem = g_list_delete_link(elem, elem)) {
-            gchar      *dev_name = NULL;
+            NwamuiObject *ncu      = NULL;
+            gchar        *dev_name = NULL;
 
             dev_name = nwamui_ncu_get_device_name(NWAMUI_NCU(elem->data));
-            /* Need to remove, since it's not in the selected list */
-            nwamui_ncp_remove_ncu_by_device_name(NWAMUI_NCP(prv->selected_ncp), dev_name);
+            /* Find the real NCU. */
+            ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(prv->selected_ncp), dev_name);
+            /* Manually remove it. */
+            /* Needn't remove, since we have monitor ::add/remove signals. */
+            nwamui_object_destroy(ncu);
+            /* nwamui_object_remove(prv->selected_ncp, ncu); */
             /* Need unref. */
             g_object_unref(elem->data);
+            g_object_unref(ncu);
             g_free(dev_name);
         }
         prv->ncu_rm_list = NULL;
@@ -2023,11 +2029,15 @@ connections_edit_btn_clicked(GtkButton *button, gpointer user_data )
                 nwamui_util_find_nwamui_object_by_name,
                 nwamui_object_get_name(NWAMUI_OBJECT(selected->data))) == NULL) {
 
-                NwamuiNcu *new_ncu;
+                NwamuiObject *new_ncu;
                 /* Should fire events to get it added to UI */
-                new_ncu = NWAMUI_NCU(nwamui_object_clone(NWAMUI_OBJECT(selected->data), NULL, prv->selected_ncp));
-                if ( new_ncu != NULL ) {
-                    nwamui_ncp_add_ncu(NWAMUI_NCP(prv->selected_ncp), new_ncu);
+                new_ncu = nwamui_object_clone(NWAMUI_OBJECT(selected->data), NULL, prv->selected_ncp);
+                if (new_ncu != NULL) {
+                    /* Needn't add, since we have monitor ::add/remove signals. */
+                    if (nwamui_object_commit(new_ncu)) {
+                        /* nwamui_object_add(prv->selected_ncp, new_ncu); */
+                    }
+                    g_object_unref(new_ncu);
                 } else {
                     nwamui_warning("Clone NCP %s NCU %s failed",
                       nwamui_object_get_name(prv->selected_ncp),
@@ -2431,6 +2441,7 @@ ncp_add_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
     NwamProfileDialogPrivate*    prv = GET_PRIVATE(data);
 
     ncu_pri_treeview_add(NWAMUI_OBJECT(ncu), prv->net_conf_treeview);
+    gtk_tree_view_expand_all(prv->net_conf_treeview);
 }
 
 static void
@@ -2438,8 +2449,8 @@ ncp_remove_ncu(NwamuiNcp *ncp, NwamuiNcu* ncu, gpointer data)
 {
     NwamProfileDialogPrivate*    prv = GET_PRIVATE(data);
 
-    ncu_pri_treeview_remove(prv->net_conf_treeview,
-      NWAMUI_OBJECT(ncu));
+    ncu_pri_treeview_remove(prv->net_conf_treeview, NWAMUI_OBJECT(ncu));
+    gtk_tree_view_expand_all(prv->net_conf_treeview);
 }
 
 static void
@@ -2453,6 +2464,10 @@ edit_profile_changed(NwamProfileDialog *self, NwamuiObject *ncp)
     /* Update priority tree view */
     model = gtk_tree_view_get_model(prv->net_conf_treeview);
 
+    gtk_widget_hide(GTK_WIDGET(prv->net_conf_treeview));
+
+    gtk_tree_store_clear(GTK_TREE_STORE(model));
+
     gtk_tree_sortable_set_sort_func(GTK_TREE_SORTABLE(model),
       0,
       nwam_ncu_compare_cb,
@@ -2462,10 +2477,6 @@ edit_profile_changed(NwamProfileDialog *self, NwamuiObject *ncp)
     gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(model),
       0,
       GTK_SORT_ASCENDING);
-
-    gtk_widget_hide(GTK_WIDGET(prv->net_conf_treeview));
-
-    gtk_tree_store_clear(GTK_TREE_STORE(model));
 
     nwamui_ncp_foreach_ncu(NWAMUI_NCP(prv->selected_ncp), (GFunc)ncu_pri_treeview_add, (gpointer)prv->net_conf_treeview);
 
@@ -2718,7 +2729,16 @@ ncu_pri_treeview_add(NwamuiObject *object, GtkTreeView *treeview)
             g_assert(!gtk_tree_model_iter_has_child(model, &parent));
         }
         CAPPLET_TREE_STORE_ADD(model, &parent, object, &iter);
-
+        /* If add an always on/off NCU, make sure the related fake node is
+         * removed.
+         */
+        if (nwamui_ncu_get_priority_group_for_view(NWAMUI_NCU(object)) == ALWAYS_ON_GROUP_ID) {
+            path = NCU_PRI_GROUP_GET_PATH(model, ALWAYS_ON_GROUP_ID);
+            static_group_handle_fake_node(model, path, FALSE);
+        } else if (nwamui_ncu_get_priority_group_for_view(NWAMUI_NCU(object)) == ALWAYS_OFF_GROUP_ID) {
+            path = NCU_PRI_GROUP_GET_PATH(model, ALWAYS_OFF_GROUP_ID);
+            static_group_handle_fake_node(model, path, FALSE);
+        }
         path = gtk_tree_model_get_path(model, &parent);
         gtk_tree_view_expand_row(treeview, path, TRUE);
         gtk_tree_path_free(path);

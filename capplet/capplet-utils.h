@@ -201,6 +201,22 @@ void capplet_tree_store_move_object(GtkTreeModel *model,
     GtkTreeIter *target,
     GtkTreeIter *source);
 
+typedef struct _ForeachNwamuiObjectCommitData {
+    NwamuiObject *failone;      /* Ref'ed */
+    gchar        *prop_name;
+    GtkTreeIter   iter;
+} ForeachNwamuiObjectCommitData;
+
+gboolean capplet_tree_model_foreach_nwamui_object_reload(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data);
+
+gboolean capplet_tree_model_foreach_nwamui_object_commit(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data);
+
 /* Increasable name. */
 gchar* capplet_get_increasable_name(GtkTreeModel *model, const gchar *prefix, GObject *object);
 

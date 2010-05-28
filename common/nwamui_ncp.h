@@ -59,10 +59,6 @@ struct _NwamuiNcp
 struct _NwamuiNcpClass
 {
 	NwamuiObjectClass parent_class;
-    void (*activate_ncu) (NwamuiNcp *self, NwamuiNcu *ncu, gpointer user_data);
-    void (*deactivate_ncu) (NwamuiNcp *self, NwamuiNcu *ncu, gpointer user_data);
-	void (*add) (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data);
-	void (*remove) (NwamuiNcp* ncp, NwamuiNcu* ncu, gpointer user_data);
 };
 
 
@@ -90,12 +86,6 @@ extern  NwamuiObject*           nwamui_ncp_get_ncu_by_device_name( NwamuiNcp *se
 extern void                     nwamui_ncp_foreach_ncu(NwamuiNcp *self, GFunc func, gpointer user_data);
 
 extern void                     nwamui_ncp_foreach_ncu_foreach_wifi_info(NwamuiNcp *self, GHFunc func, gpointer user_data);
-
-extern void                     nwamui_ncp_add_ncu( NwamuiNcp* self, NwamuiNcu* new_ncu );
-
-extern void                     nwamui_ncp_remove_ncu_by_device_name( NwamuiNcp* self, const gchar* device_name );
-
-extern void                     nwamui_ncp_remove_ncu( NwamuiNcp* self, NwamuiNcu* ncu );
 
 extern GList*                   nwamui_ncp_get_wireless_ncus( NwamuiNcp* self );
 

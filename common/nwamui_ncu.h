@@ -97,11 +97,14 @@ typedef enum {
     NWAMUI_STATE_LAST   /* Not be used directly */
 } nwamui_connection_state_t;
 
+typedef enum {
+    NWAMUI_NCU_EVENT_MORE_IP = 0,
+    NWAMUI_NCU_EVENT_LAST   /* Not be used directly */
+} nwamui_ncu_event_t;
+
 extern struct _NwamuiNcp;
 
 extern NwamuiObject*        nwamui_ncu_new_with_handle( struct _NwamuiNcp* ncp, nwam_ncu_handle_t ncu );
-
-extern gboolean             nwamui_ncu_validate( NwamuiNcu* self, gchar **prop_name_ret );
 
 extern gchar*               nwamui_ncu_get_device_name ( NwamuiNcu *self );
 extern void                 nwamui_ncu_set_device_name ( NwamuiNcu *self, const gchar* name );
@@ -192,9 +195,6 @@ extern void                 nwamui_ncu_wifi_hash_insert_wifi_net( NwamuiNcu     
 extern NwamuiWifiNet*       nwamui_ncu_wifi_hash_insert_or_update_from_wlan_t( NwamuiNcu    *self, 
                                                                                nwam_wlan_t  *wlan );
 
-extern NwamuiWifiNet*       nwamui_ncu_wifi_hash_insert_or_update_from_handle( NwamuiNcu                 *self, 
-                                                                               nwam_known_wlan_handle_t   wlan_h );
-
 extern gboolean             nwamui_ncu_wifi_hash_remove_by_essid( NwamuiNcu     *self, 
                                                                   const gchar   *essid );
 
@@ -227,6 +227,7 @@ extern void                 nwamui_ncu_set_link_nwam_state(NwamuiNcu *self, nwam
 extern void                 nwamui_ncu_add_acquired(NwamuiNcu *self, const gchar *address, const gchar *netmask, uint32_t flags);
 
 extern void                 nwamui_ncu_clean_acquired(NwamuiNcu *self);
+extern gboolean             nwamui_ncu_acquired_all(NwamuiNcu *self);
 
 
 G_END_DECLS

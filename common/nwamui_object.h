@@ -63,6 +63,7 @@ struct _NwamuiObjectClass
     gint (*open)(NwamuiObject *object, gint flag);
     /* Set name based on the passed handle, then open handle from the name. */
     void (*set_handle)(NwamuiObject *object, const gpointer handle);
+
     const gchar* (*get_name)(NwamuiObject *object);
     gboolean (*can_rename)(NwamuiObject *object);
     /* Set name only on init. If change name, need call nwam_*_set_name. */
@@ -78,12 +79,20 @@ struct _NwamuiObjectClass
     nwam_state_t (*get_nwam_state)(NwamuiObject *object, nwam_aux_state_t* aux_state, const gchar**aux_state_string);
     void (*set_nwam_state)(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state);
     gint (*sort)(NwamuiObject *object, NwamuiObject *other, guint sort_by);
+    gboolean (*validate)(NwamuiObject *object, gchar **prop_name_ret);
     gboolean (*commit)(NwamuiObject *object);
     void (*reload)(NwamuiObject *object);
     gboolean (*destroy)(NwamuiObject *object);
     gboolean (*is_modifiable)(NwamuiObject *object);
     gboolean (*has_modifications)(NwamuiObject *object);
     NwamuiObject *(*clone)(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
+
+    /* Signals */
+	void (*event)(NwamuiObject *object, guint event, gpointer data);
+    /* These signals should be moved to a class named NwamuiObjectContainer */
+	void (*add)(NwamuiObject *object, NwamuiObject *child);
+	void (*remove)(NwamuiObject *object, NwamuiObject *child);
+	void (*modified)(NwamuiObject *object, NwamuiObject *child);
 };
 
 enum {
@@ -93,6 +102,7 @@ enum {
 
 enum {
     NWAMUI_OBJECT_SORT_BY_NAME = 0,
+    NWAMUI_OBJECT_SORT_BY_PRIO,
     NWAMUI_OBJECT_SORT_BY_GROUP,
 };
 
@@ -115,12 +125,19 @@ extern nwam_state_t  nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux
 extern void          nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, nwam_aux_state_t aux_state);
 extern gint          nwamui_object_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by);
 extern gint          nwamui_object_sort_by_name(NwamuiObject *object, NwamuiObject *other);
+extern gboolean      nwamui_object_validate(NwamuiObject *object, gchar **prop_name_ret);
 extern gboolean      nwamui_object_commit(NwamuiObject *object);
 extern void          nwamui_object_reload(NwamuiObject *object);
 extern gboolean      nwamui_object_destroy(NwamuiObject *object);
 extern gboolean      nwamui_object_is_modifiable(NwamuiObject *object);
 extern gboolean      nwamui_object_has_modifications(NwamuiObject *object);
 extern NwamuiObject* nwamui_object_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
+
+/* Signals */
+void nwamui_object_event(NwamuiObject *object, guint event, gpointer data);
+void nwamui_object_add(NwamuiObject *object, NwamuiObject *child);
+void nwamui_object_remove(NwamuiObject *object, NwamuiObject *child);
+void nwamui_object_modified(NwamuiObject *object, NwamuiObject *child);
 
 G_END_DECLS
 

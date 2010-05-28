@@ -109,7 +109,7 @@ GType            nwam_menu_get_type          (void) G_GNUC_CONST;
         if (has_sep) {                                                  \
             MENU_CREATE_ITEM_BASE(nwam_menu, GTK_TYPE_SEPARATOR_MENU_ITEM, \
               NULL, NULL, NULL);                                        \
-            ADD_MENU_ITEM(nwam_menu, GTK_WIDGET(ITEM_VARNAME));              \
+            ADD_MENU_ITEM(nwam_menu, GTK_WIDGET(ITEM_VARNAME));         \
             sec_widget = GTK_WIDGET(ITEM_VARNAME);                      \
         } else {                                                        \
             sec_widget = GTK_WIDGET(nwam_menu);                         \
@@ -124,7 +124,7 @@ GType            nwam_menu_get_type          (void) G_GNUC_CONST;
         if (has_sep) {                                                  \
             MENU_CREATE_ITEM_BASE(nwam_menu, GTK_TYPE_SEPARATOR_MENU_ITEM, \
               NULL, NULL, NULL);                                        \
-            ADD_MENU_ITEM(nwam_menu, GTK_WIDGET(ITEM_VARNAME));              \
+            ADD_MENU_ITEM(nwam_menu, GTK_WIDGET(ITEM_VARNAME));         \
             sec_widget = GTK_WIDGET(ITEM_VARNAME);                      \
         } else {                                                        \
             sec_widget = NULL;                                          \

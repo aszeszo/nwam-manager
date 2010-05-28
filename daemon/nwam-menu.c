@@ -472,6 +472,11 @@ menu_section_has_child(MenuSection *sec, GtkWidget *child)
     return (found && !failed);
 }
 
+/**
+ * menu_section_get_children:
+ *
+ * Return children without the left/right separators if they are existed.
+ */
 static void
 menu_section_get_children(MenuSection *sec, GList **ret_children, gint *ret_start_pos)
 {
@@ -509,18 +514,15 @@ menu_section_get_children(MenuSection *sec, GList **ret_children, gint *ret_star
         } else {
             for (i = children; i && !GTK_IS_SEPARATOR_MENU_ITEM(i->data); i = g_list_next(i)) {}
         }
-        /* Delete right part, i point to the right one. */
+        /* Delete right part, i point to the right separator or NULL. */
         if (i) {
             if (i == children) {
                 children = NULL;
-/*                 g_debug("No sortable elements."); */
             } else {
                 g_list_previous(i)->next = NULL;
             }
             g_list_free(i);
         }
-    } else {
-        g_debug("Sort menu out of range.");
     }
 
     /* Return found children, or NULL. */

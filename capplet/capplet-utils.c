@@ -430,6 +430,59 @@ capplet_tree_store_move_object(GtkTreeModel *model,
 }
 
 /**
+ * capplet_tree_model_foreach_nwamui_object_reload:
+ *
+ * All objects in tree model are revert.
+ */
+gboolean
+capplet_tree_model_foreach_nwamui_object_reload(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data)
+{
+	NwamuiObject *object;
+
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
+    if (object) {
+        nwamui_object_reload(object);
+        g_object_unref(object);
+    }
+    return FALSE;
+}
+
+/**
+ * capplet_tree_model_foreach_nwamui_object_commit:
+ *
+ * Ensure all objects in tree model are updated before call this functions.
+ */
+gboolean
+capplet_tree_model_foreach_nwamui_object_commit(GtkTreeModel *model,
+  GtkTreePath *path,
+  GtkTreeIter *iter,
+  gpointer user_data)
+{
+    ForeachNwamuiObjectCommitData *data      = user_data;
+	NwamuiObject                  *object    = NULL;
+
+    g_assert(data);
+
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
+    if (object) {
+        if (nwamui_object_has_modifications(object)) {
+            if (!nwamui_object_validate(NWAMUI_OBJECT(object), &data->prop_name) ||
+              !nwamui_object_commit(object)) {
+                /* Keep ref. */
+                data->failone = object;
+                data->iter = *iter;
+                return TRUE;
+            }
+        }
+        g_object_unref(object);
+    }
+    return FALSE;
+}
+
+/**
  * capplet_tree_store_merge_children:
  * @func is used to iterate the moved item, its return code is ignored.
  * Move source children to the target.
