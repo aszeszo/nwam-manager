@@ -3324,12 +3324,9 @@ nwamui_ncu_add_acquired(NwamuiNcu *self,
      * addresses, 2) if we are dhcp configured, we have gotten the dhcp info.
      */
     /* Only emit for addresses come after NCU is online. */
-    if (emit && nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), NULL, NULL) == NWAM_STATE_ONLINE) {
-        g_object_notify(G_OBJECT(self), "nwam_state");
-        /* if (prv->need_ipv4_dhcp == FALSE && prv->need_ipv6_dhcp == FALSE) { */
-        /*     nwamui_object_event(NWAMUI_OBJECT(self), NWAMUI_NCU_EVENT_MORE_IP, ip); */
-        /* } */
-    }
+    /* if (emit && nwamui_object_get_nwam_state(NWAMUI_OBJECT(self), NULL, NULL) == NWAM_STATE_ONLINE) { */
+    /*     g_object_notify(G_OBJECT(self), "nwam_state"); */
+    /* } */
 }
 
 extern void

@@ -97,11 +97,6 @@ typedef enum {
     NWAMUI_STATE_LAST   /* Not be used directly */
 } nwamui_connection_state_t;
 
-typedef enum {
-    NWAMUI_NCU_EVENT_MORE_IP = 0,
-    NWAMUI_NCU_EVENT_LAST   /* Not be used directly */
-} nwamui_ncu_event_t;
-
 extern struct _NwamuiNcp;
 
 extern NwamuiObject*        nwamui_ncu_new_with_handle( struct _NwamuiNcp* ncp, nwam_ncu_handle_t ncu );

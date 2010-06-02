@@ -123,11 +123,6 @@ struct _NwamuiDaemonPrivate {
 
 #define NWAMUI_DAEMON_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE((o), NWAMUI_TYPE_DAEMON, NwamuiDaemonPrivate))
 
-typedef struct _fav_wlan_walker_data {
-    NwamuiNcu    *wireless_ncu;
-    NwamuiDaemon *daemon;
-} fav_wlan_walker_data_t;
-
 typedef struct _NwamuiEvent {
     nwamui_daemon_info_t e;     /* ui daemon event type */
     nwam_event_t         nwamevent; /* daemon data */
@@ -154,8 +149,6 @@ static void nwamui_daemon_get_property ( GObject         *object,
 static void nwamui_daemon_set_num_scanned_wifi(NwamuiDaemon* self,  gint num_scanned_wifi);
 
 static void nwamui_daemon_finalize (     NwamuiDaemon *self);
-
-static void nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self);
 
 static void check_nwamui_object_online( gpointer obj, gpointer user_data );
 static void nwamui_daemon_update_online_enm_num(NwamuiDaemon *self);
@@ -359,8 +352,23 @@ nwamui_object_real_reload(NwamuiObject* object)
 
     nwamui_daemon_update_online_enm_num(self);
 
-    /* Populate Wifi Favourites List */
-    nwamui_daemon_populate_wifi_fav_list(self);
+    /* KnownWlans */
+    prv->temp_list = g_list_copy(prv->managed_list[MANAGED_KNOWN_WLAN]);
+    g_debug ("### nwam_walk_know_wlans start ###");
+    nerr = nwam_walk_known_wlans(nwam_known_wlan_walker_cb, (void *)self,
+      NWAM_FLAG_KNOWN_WLAN_WALK_PRIORITY_ORDER, &cbret);
+    if (nerr == NWAM_SUCCESS) {
+        for(;
+            prv->temp_list != NULL;
+            prv->temp_list = g_list_delete_link(prv->temp_list, prv->temp_list) ) {
+            nwamui_object_remove(NWAMUI_OBJECT(self), NWAMUI_OBJECT(prv->temp_list->data));
+        }
+    } else {
+        g_warning("nwam_walk_known_wlans %s", nwam_strerror(nerr));
+        g_list_free(prv->temp_list);
+        prv->temp_list = NULL;
+    }
+    g_debug ("### nwam_walk_know_wlans  end ###");
 }
 
 static void
@@ -1336,49 +1344,6 @@ nwamui_daemon_set_num_scanned_wifi(NwamuiDaemon* self,  gint num_scanned_wifi)
     g_object_set (G_OBJECT (self),
                   "num_scanned_wifi", num_scanned_wifi,
                   NULL); 
-}
-
-static void
-nwamui_daemon_populate_wifi_fav_list(NwamuiDaemon *self )
-{
-    NwamuiDaemonPrivate    *prv          = NWAMUI_DAEMON_GET_PRIVATE(self);
-    NwamuiNcu              *wireless_ncu = NULL;
-    NwamuiWifiNet          *wifi         = NULL;
-    nwam_error_t            nerr;
-    int                     cbret;
-    fav_wlan_walker_data_t  walker_data;
-
-    if (self->prv->auto_ncp == NULL) {
-        /* Nothing to do */
-        return;
-    }
-
-    wireless_ncu = nwamui_ncp_get_first_wireless_ncu(self->prv->auto_ncp);
-
-    if (wireless_ncu == NULL) {
-        return;
-    }
-
-    walker_data.wireless_ncu = wireless_ncu;
-    walker_data.daemon = self;
-
-    prv->temp_list = g_list_copy( prv->managed_list[MANAGED_KNOWN_WLAN] );
-
-    g_debug ("### nwam_walk_know_wlans start ###");
-    nerr = nwam_walk_known_wlans(nwam_known_wlan_walker_cb, &walker_data,
-                          NWAM_FLAG_KNOWN_WLAN_WALK_PRIORITY_ORDER, &cbret);
-    if (nerr == NWAM_SUCCESS) {
-        for(;
-            prv->temp_list != NULL;
-            prv->temp_list = g_list_delete_link(prv->temp_list, prv->temp_list) ) {
-            nwamui_object_remove(NWAMUI_OBJECT(self), NWAMUI_OBJECT(prv->temp_list->data));
-        }
-    } else {
-        g_warning("nwam_walk_known_wlans %s", nwam_strerror(nerr));
-        g_list_free(prv->temp_list);
-        prv->temp_list = NULL;
-    }
-    g_debug ("### nwam_walk_know_wlans  end ###");
 }
 
 /* Handle case where using WEP, and open auth, trigger an event to request a
@@ -2796,9 +2761,8 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
 static int
 nwam_known_wlan_walker_cb (nwam_known_wlan_handle_t wlan_h, void *data)
 {
-    fav_wlan_walker_data_t *walker_data = (fav_wlan_walker_data_t*)data;;
-    NwamuiDaemonPrivate    *prv         = NWAMUI_DAEMON_GET_PRIVATE(walker_data->daemon);
-    NwamuiDaemon           *self        = walker_data->daemon;
+    NwamuiDaemonPrivate    *prv         = NWAMUI_DAEMON_GET_PRIVATE(data);
+    NwamuiDaemon           *self        = NWAMUI_DAEMON(data);
     nwam_error_t            nerr;
     NwamuiObject*           wifi        = NULL;
     gchar                  *name;

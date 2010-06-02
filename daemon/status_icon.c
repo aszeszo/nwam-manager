@@ -188,7 +188,6 @@ static void on_ncp_notify_many_wireless( GObject *gobject, GParamSpec *arg1, gpo
 /* nwamui ncu signals */
 static void ncu_notify_nwam_state(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void ncu_notify_enabld(GObject *gobject, GParamSpec *arg1, gpointer data);
-static void ncu_event(NwamuiObject *ncu, guint event, gpointer data, gpointer user_data);
 
 /* GtkStatusIcon callbacks */
 static void status_icon_popup(GtkStatusIcon *status_icon,
@@ -516,32 +515,35 @@ daemon_wifi_selection_needed (NwamuiDaemon* daemon, NwamuiNcu* ncu, gpointer use
 static void
 ncu_notify_nwam_state(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
-    NwamStatusIcon *self       = NWAM_STATUS_ICON(data);
-    NwamStatusIconPrivate *prv = NWAM_STATUS_ICON_GET_PRIVATE(self);
-    NwamuiNcu      *ncu        = NWAMUI_NCU(gobject);
-    gboolean        active_ncu = FALSE;
+    NwamStatusIcon        *self       = NWAM_STATUS_ICON(data);
+    NwamStatusIconPrivate *prv        = NWAM_STATUS_ICON_GET_PRIVATE(self);
+    NwamuiNcu             *ncu        = NWAMUI_NCU(gobject);
+    gboolean               active_ncu = FALSE;
+    nwam_state_t           state      = NWAM_STATE_OFFLINE;
+    nwam_state_t           link_state = NWAM_STATE_OFFLINE;
+
+    state = nwamui_object_get_nwam_state(NWAMUI_OBJECT(ncu), NULL, NULL);
+    link_state = nwamui_ncu_get_link_nwam_state(ncu, NULL, NULL);
 
 	if (ncu && ncu_is_higher_priority_than_active_ncu( ncu, &active_ncu )) {
         if ( active_ncu ) {
             nwam_status_icon_set_status(self, ncu);
         }
     }
+
+    if (state == NWAM_STATE_ONLINE && link_state == NWAM_STATE_ONLINE) {
+        nwam_notification_show_ncu_connected(ncu);
+        /* if (nwamui_ncu_acquired_all(ncu)) { */
+        /*     nwam_notification_show_ncu_connected(ncu); */
+        /* } */
+    }
+
     /* Ncu state filter. */
-    switch(nwamui_ncu_get_connection_state(ncu)) {
+    switch (nwamui_ncu_get_connection_state(ncu)) {
     case NWAMUI_STATE_CONNECTED_ESSID:
     case NWAMUI_STATE_CONNECTED:
         prv->needs_wifi_selection_seen = FALSE;
         prv->needs_wifi_key = NULL;
-        /* For a NCU which has DHCP configured, DHCP info may be later than
-         * IF_UP, so we don't show connected info here, we show it in
-         * ncu_event().
-         */
-        /* if (nwamui_object_get_active(NWAMUI_OBJECT(ncu))) { */
-        /*     nwam_notification_show_ncu_connected(ncu); */
-        /* } */
-        if (nwamui_ncu_acquired_all(ncu)) {
-            nwam_notification_show_ncu_connected(ncu);
-        }
         break;
     case NWAMUI_STATE_NOT_CONNECTED:
     case NWAMUI_STATE_CABLE_UNPLUGGED: 
@@ -572,22 +574,6 @@ ncu_notify_enabled(GObject *gobject, GParamSpec *arg1, gpointer data)
      * enabled wireless link number in a NCP.
      */
     nwam_menu_update_wifi_section(NWAM_STATUS_ICON(data));
-}
-
-static void
-ncu_event(NwamuiObject *ncu, guint event, gpointer data, gpointer user_data)
-{
-    switch(event) {
-    case NWAMUI_NCU_EVENT_MORE_IP: {
-        NwamuiIp *ip = data;
-        if (nwamui_ncu_acquired_all(NWAMUI_NCU(ncu))) {
-            nwam_notification_show_ncu_connected(NWAMUI_NCU(ncu));
-        }
-    }
-        break;
-    default:
-        break;
-    }
 }
 
 static void
@@ -847,9 +833,6 @@ connect_nwam_object_signals(GObject *obj, GObject *self)
 
         g_signal_connect(ncu, "notify::enabled",
           G_CALLBACK(ncu_notify_enabled), (gpointer)self);
-
-        g_signal_connect(ncu, "event",
-          G_CALLBACK(ncu_event), (gpointer)self);
 
 /* 	} else if (type == NWAMUI_TYPE_ENV) { */
 /* 	} else if (type == NWAMUI_TYPE_ENM) { */

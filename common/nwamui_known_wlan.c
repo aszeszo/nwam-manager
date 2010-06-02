@@ -553,26 +553,18 @@ static gboolean
 nwamui_object_real_commit( NwamuiObject *object )
 {
     NwamuiKnownWlan *self = NWAMUI_KNOWN_WLAN(object);
-    nwam_error_t                nerr;
-    nwam_known_wlan_handle_t    wlan_h;
-    gchar**                     bssid_strs = NULL;
+    nwam_error_t     nerr;
 
     g_return_val_if_fail( self != NULL, FALSE );
 
     if ((nerr = nwam_known_wlan_commit(self->prv->known_wlan_h, 
           NWAM_FLAG_KNOWN_WLAN_NO_COLLISION_CHECK) ) != NWAM_SUCCESS ) {
-		if (nerr == NWAM_ENTITY_MISSING_MEMBER) {
-            const char* errprop = NULL;
-			nwam_known_wlan_validate(self->prv->known_wlan_h, &errprop);
-            g_warning("Couldn't commit wlan due to a validation error with prop %s\n", errprop?errprop:"NULL");
-            return( FALSE );
-        }
+        g_warning("Failed when committing KnownWlan for %s", self->prv->essid);
+        return FALSE;
     }
 
-    /* Not modified by user */
     self->prv->modified = FALSE;
-
-    return( TRUE );
+    return TRUE;
 }
 
 /**

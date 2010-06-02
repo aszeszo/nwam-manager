@@ -664,8 +664,17 @@ nwamui_ncp_name_cell_edited(GtkCellRendererText *cell,
                        * be unref one more time.
                        */
                       g_object_ref(object);
+                      /* Reload ncp. */
+                      nwamui_object_reload(new_ncp);
+                      /* Replace the old one. */
                       gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, G_OBJECT(new_ncp), -1);
+
                       g_signal_connect(G_OBJECT(new_ncp), "notify", (GCallback)capplet_util_object_notify_cb, (gpointer)model);
+
+                      /* Update row and related widgets. */
+                      gtk_tree_model_row_changed(model, path, &iter);
+                      nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(treeview), data);
+
                       /* Add the new NCP, and destroy the old one. */
                       nwamui_object_add(NWAMUI_OBJECT(prv->daemon), new_ncp);
                       nwamui_object_destroy(object);
@@ -834,6 +843,9 @@ on_button_clicked(GtkButton *button, gpointer user_data)
                     nwamui_object_add(NWAMUI_OBJECT(prv->daemon), object);
                 }
             }
+            /* Reload before edit it. */
+            nwamui_object_reload(object);
+
             nwam_pref_set_purpose(NWAM_PREF_IFACE(profile_dialog), NWAMUI_DIALOG_PURPOSE_EDIT);
             nwam_pref_refresh(NWAM_PREF_IFACE(profile_dialog), object, TRUE);
             nwam_pref_dialog_run(NWAM_PREF_IFACE(profile_dialog), GTK_WIDGET(button));

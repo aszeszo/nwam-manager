@@ -1687,25 +1687,6 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
     new_prv->nwam_loc = new_env_h;
     new_prv->nwam_loc_modified = TRUE;
 
-    g_object_set (G_OBJECT (new_env),
-#ifdef ENABLE_PROXY
-            "proxy_type", self->prv->proxy_type,
-            "use_http_proxy_for_all", self->prv->use_http_proxy_for_all,
-            "proxy_pac_file", self->prv->proxy_pac_file,
-            "proxy_http_server", self->prv->proxy_http_server,
-            "proxy_https_server", self->prv->proxy_https_server,
-            "proxy_ftp_server", self->prv->proxy_ftp_server,
-            "proxy_gopher_server", self->prv->proxy_gopher_server,
-            "proxy_socks_server", self->prv->proxy_socks_server,
-            "proxy_bypass_list", self->prv->proxy_bypass_list,
-            "proxy_http_port", self->prv->proxy_http_port,
-            "proxy_https_port", self->prv->proxy_https_port,
-            "proxy_ftp_port", self->prv->proxy_ftp_port,
-            "proxy_gopher_port", self->prv->proxy_gopher_port,
-            "proxy_socks_port", self->prv->proxy_socks_port,
-#endif /* ENABLE_PROXY */
-             NULL);
-    
     return new_env;
 }
 
@@ -1789,8 +1770,6 @@ nwamui_object_real_reload(NwamuiObject* object)
 
     nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
 
-    nwamui_debug ("loaded nwam_loc_handle : %s", prv->name);
-
     /* nwamui_object_set_handle will cause re-read from configuration */
     g_object_freeze_notify(G_OBJECT(object));
 
@@ -1799,7 +1778,7 @@ nwamui_object_real_reload(NwamuiObject* object)
 
     /* Initialise enabled to be the original value */
     enabled = get_nwam_loc_boolean_prop( prv->nwam_loc, NWAM_LOC_PROP_ENABLED );
-    nwamui_debug("**** LOCATION: %s : enabled = %s", prv->name, enabled?"TRUE":"FALSE");
+
     if ( prv->enabled != enabled ) {
         g_object_notify(G_OBJECT(object), "enabled" );
     }

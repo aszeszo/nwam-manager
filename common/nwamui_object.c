@@ -56,8 +56,6 @@ struct _NwamuiObjectPrivate {
     /* Cache */
     const gchar      *name;
     gint              activation_mode;
-    /* State caching, store up to NWAM_NCU_TYPE_ANY values to allow for NCU
-     * classes to have extra state per NCU class type */
     nwam_state_t      nwam_state;
     nwam_aux_state_t  nwam_aux_state;
 };
@@ -220,27 +218,31 @@ default_nwamui_object_set_nwam_state(NwamuiObject *object, nwam_state_t state, n
 
     g_return_if_fail (NWAMUI_IS_OBJECT (object));
 
+    /* g_object_freeze_notify(G_OBJECT(object)); */
+
     /* For NCU object state, we will see dup events for link and interface. But
      * we actually only (or should) care interface events to avoid dup events and
      * dup GUI notifications.
      * We will map cache_index = 0 to type_interface. Then We should monitor 
      * cache_index is 0 
      */
-    if ( prv->nwam_state != state ||
-         prv->nwam_aux_state != aux_state ) {
+    if (prv->nwam_state != state || prv->nwam_aux_state != aux_state) {
         state_changed = TRUE;
     }
 
     prv->nwam_state = state;
     prv->nwam_aux_state = aux_state;
-    if ( state_changed ) {
-/*         g_debug("Set: %-10s - %s", nwam_state_to_string(state), nwam_aux_state_to_string(aux_state)); */
+
+    if (state_changed) {
+        /* g_debug("Set: %-10s - %s", nwam_state_to_string(state), nwam_aux_state_to_string(aux_state)); */
         g_object_notify(G_OBJECT(object), "nwam_state" );
         /* Active property is likely to have changed too, but first check if there
          * is a get_active function, if so the active property should exist. */
         /* For NCUs, only care cache_index == 0. Compatible to ENV, ENM, etc. */
         g_object_notify(G_OBJECT(object), "active" );
     }
+
+    /* g_object_thaw_notify(G_OBJECT(object)); */
 }
 
 static gint
@@ -765,8 +767,6 @@ nwamui_object_reload(NwamuiObject *object)
 
     NWAMUI_OBJECT_GET_CLASS (object)->reload(object);
 }
-
-static time_t   _nwamui_state_timeout = 60; /* Seconds */
 
 extern nwam_state_t         
 nwamui_object_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p)

@@ -1,3 +1,20 @@
+2010-06-02  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_profile_panel.c (nwamui_ncp_name_cell_edited),
+	(on_button_clicked): Fixed can't update widgets in cloning NCP.
+	* common/nwamui_daemon.c (nwamui_object_real_reload),
+	(nwam_known_wlan_walker_cb): Clean code.
+	* common/nwamui_env.c (nwamui_object_real_clone),
+	(nwamui_object_real_reload): Clean code.
+	* common/nwamui_known_wlan.c (nwamui_object_real_commit):
+	* common/nwamui_ncu.c (nwamui_ncu_add_acquired):
+	* common/nwamui_ncu.h:
+	* common/nwamui_object.c (default_nwamui_object_set_nwam_state):
+	Clean code.
+	* daemon/status_icon.c (ncu_notify_nwam_state),
+	(connect_nwam_object_signals): Fixed show NCU connected
+	notification on disconnecting.
+
 2010-05-28  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/capplet-utils.c
