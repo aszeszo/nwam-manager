@@ -956,7 +956,7 @@ nwam_wireless_dialog_get_key (NwamWirelessDialog *self )
 
 void
 nwam_wireless_dialog_set_key_index (NwamWirelessDialog  *self,
-  guint key_index )
+  guint64 key_index )
 {
     g_return_if_fail (NWAM_IS_WIRELESS_DIALOG (self));
     g_return_if_fail (key_index >= 1 && key_index <= 4);
@@ -967,17 +967,17 @@ nwam_wireless_dialog_set_key_index (NwamWirelessDialog  *self,
 
 }
 
-guint
+guint64
 nwam_wireless_dialog_get_key_index (NwamWirelessDialog *self )
 {
-    gint  key = 1;
+    guint64  key = 1;
     
     g_return_val_if_fail (NWAM_IS_WIRELESS_DIALOG (self), key);
 
     g_object_get (G_OBJECT (self),
                   "key_index", &key,
                   NULL);
-    return( key );
+    return key;
 }
 
 void                    

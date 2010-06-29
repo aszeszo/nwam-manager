@@ -97,9 +97,9 @@ extern  void                    nwam_wireless_dialog_set_key (NwamWirelessDialog
 extern  gchar*                  nwam_wireless_dialog_get_key (NwamWirelessDialog *wireless_dialog );
 
 extern  void                    nwam_wireless_dialog_set_key_index (NwamWirelessDialog  *wireless_dialog,
-                                                              guint key_index );
+                                                              guint64 key_index );
 
-extern  guint                   nwam_wireless_dialog_get_key_index (NwamWirelessDialog *wireless_dialog );
+extern  guint64                   nwam_wireless_dialog_get_key_index (NwamWirelessDialog *wireless_dialog );
 
 extern  void                    nwam_wireless_dialog_set_bssid_list (NwamWirelessDialog  *wireless_dialog,
                                                                      GList               *bssid_list );

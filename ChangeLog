@@ -1,3 +1,12 @@
+2010-06-29  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/nwam_wireless_dialog.c
+	(nwam_wireless_dialog_set_key_index),
+	(nwam_wireless_dialog_get_key_index):
+	* capplet/nwam_wireless_dialog.h: Fixed 16390 [osol_142]
+	nwam-manager cores when joining a unlisted wireless network with
+	WEP security
+
 2010-06-04  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* configure.in: Bump to 1.142.0
