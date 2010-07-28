@@ -175,8 +175,7 @@ static gboolean     get_kstat_uint64 (const gchar *device, const gchar* stat_nam
 
 static gchar*       get_interface_address_str( NwamuiNcu *ncu, sa_family_t family); /* unused */
 
-static gint         nwamui_object_real_open(NwamuiObject *object, gint flag);
-static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
+static gint         nwamui_object_real_open(NwamuiObject *object, const gchar *name, gint flag);
 static const gchar* nwamui_ncu_get_vanity_name ( NwamuiObject *object );
 static gboolean     nwamui_ncu_set_vanity_name ( NwamuiObject *object, const gchar* name );
 static gint         nwamui_object_real_sort(NwamuiObject *object, NwamuiObject *other, guint sort_by);
@@ -223,7 +222,6 @@ nwamui_ncu_class_init(NwamuiNcuClass *klass)
     gobject_class->finalize = (void (*)(GObject*)) nwamui_ncu_finalize;
 
     /* object get/set name in NCU are VANITY NAME */
-    nwamuiobject_class->set_handle = nwamui_object_real_set_handle;
     nwamuiobject_class->get_name = nwamui_ncu_get_vanity_name;
     nwamuiobject_class->set_name = nwamui_ncu_set_vanity_name;
     nwamuiobject_class->get_activation_mode = nwamui_object_real_get_activation_mode;
@@ -1339,18 +1337,32 @@ get_nwam_ncu_handle( NwamuiNcu* self, nwam_ncu_type_t ncu_type )
 extern  NwamuiObject*
 nwamui_ncu_new_with_handle( NwamuiNcp* ncp, nwam_ncu_handle_t ncu )
 {
-    NwamuiNcu*          self = NULL;
-    nwam_ncu_class_t    ncu_class;
+    nwam_error_t  nerr;
+    char         *name   = NULL;
+    NwamuiObject *object = NULL;
     
-    self = NWAMUI_NCU(g_object_new (NWAMUI_TYPE_NCU,
-                                    "ncp", ncp,
-                                    NULL));
+    if ((nerr = nwam_ncu_get_name(ncu, &name)) != NWAM_SUCCESS) {
+        g_debug("Failed to get name for ncu, error: %s", nwam_strerror(nerr));
+        return NULL;
+    }
 
-    nwamui_object_real_set_handle(NWAMUI_OBJECT(self), ncu);
+    object = g_object_new(NWAMUI_TYPE_NCU, "ncp", ncp, NULL);
+    g_assert(NWAMUI_IS_NCU(object));
 
-    self->prv->initialisation = FALSE;
+    NwamuiNcuPrivate *prv = NWAMUI_NCU_GET_PRIVATE(object);
 
-    return NWAMUI_OBJECT( self );
+    /* Will update handle. */
+    nwamui_object_set_name(object, name);
+
+    nwamui_object_real_open(object, name, NWAMUI_OBJECT_OPEN);
+
+    nwamui_object_real_reload(object);
+
+    free (name);
+
+    prv->initialisation = FALSE;
+
+    return object;
 }
 
 static int
@@ -1490,7 +1502,7 @@ nwamui_object_real_reload(NwamuiObject* object)
     NwamuiNcuPrivate  *prv  = NWAMUI_NCU_GET_PRIVATE(object);
     NwamuiNcu         *self = NWAMUI_NCU(object);
 
-    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
+    nwamui_object_real_open(object, prv->device_name, NWAMUI_OBJECT_OPEN);
 
     g_return_if_fail( NWAMUI_IS_NCU(self) );
 
@@ -1688,36 +1700,34 @@ nwamui_object_real_destroy( NwamuiObject *object )
 }
 
 static gint
-nwamui_object_real_open(NwamuiObject *object, gint flag)
+nwamui_object_real_open(NwamuiObject *object, const gchar *name, gint flag)
 {
     NwamuiNcuPrivate *prv = NWAMUI_NCU_GET_PRIVATE(object);
     nwam_ncp_handle_t ncp_handle;
     nwam_error_t      nerr;
 
+    g_assert(name);
+
     ncp_handle = nwamui_ncp_get_nwam_handle(prv->ncp);
 
     if (flag == NWAMUI_OBJECT_CREATE) {
 
-        g_assert(prv->device_name);
-
         for (nwam_ncu_class_t i = 0; i < NWAM_NCU_CLASS_ANY; i++) {
-            nerr = nwam_ncu_create(ncp_handle, prv->device_name,
+            nerr = nwam_ncu_create(ncp_handle, name,
               nwam_ncu_class_to_type(i), i, &prv->ncu_handles[i]);
 
             if (nerr == NWAM_SUCCESS) {
                 prv->ncu_modified[i] = TRUE;
             } else {
-                g_warning("nwamui_ncu_create error creating nwam_ncu_handle %s", prv->device_name);
+                g_warning("nwamui_ncu_create error creating nwam_ncu_handle %s", name);
                 prv->ncu_handles[i] = NULL;
             }
         }
     } else if (flag == NWAMUI_OBJECT_OPEN) {
         nwam_ncu_handle_t  handle;
 
-        g_assert(prv->device_name);
-
         for (nwam_ncu_class_t i = 0; i < NWAM_NCU_CLASS_ANY; i++) {
-            nerr = nwam_ncu_read(ncp_handle, prv->device_name,
+            nerr = nwam_ncu_read(ncp_handle, name,
               nwam_ncu_class_to_type(i), 0, &handle);
 
             if (nerr == NWAM_SUCCESS) {
@@ -1730,9 +1740,9 @@ nwamui_object_real_open(NwamuiObject *object, gint flag)
                  * handle passed in as parameter. In clone mode, the new handle
                  * gets from nwam_ncu_copy can't be read again.
                  */
-                g_debug("Failed to read ncu information for %s error: %s", prv->device_name, nwam_strerror(nerr));
+                g_debug("Failed to read ncu information for %s error: %s", name, nwam_strerror(nerr));
             } else {
-                g_warning("Failed to read ncu information for %s error: %s", prv->device_name, nwam_strerror(nerr));
+                g_warning("Failed to read ncu information for %s error: %s", name, nwam_strerror(nerr));
                 prv->ncu_handles[i] = NULL;
             }
         }
@@ -1740,35 +1750,6 @@ nwamui_object_real_open(NwamuiObject *object, gint flag)
         g_assert_not_reached();
     }
     return nerr;
-}
-
-/**
- * nwamui_object_real_set_handle:
- * This function will be called two time by NCP for link/interface object.
- */
-static void
-nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
-{
-    NwamuiNcuPrivate        *prv  = NWAMUI_NCU_GET_PRIVATE(object);
-    NwamuiNcu               *self = NWAMUI_NCU(object);
-    const nwam_ncu_handle_t  ncu  = handle;
-    char                    *name;
-    nwam_error_t             nerr;
-    
-    g_return_if_fail(NWAMUI_IS_NCU(object));
-
-    if ((nerr = nwam_ncu_get_name(ncu, &name)) != NWAM_SUCCESS) {
-        g_debug ("Failed to get name for ncu, error: %s", nwam_strerror (nerr));
-    }
-
-    /* Will update handle. */
-    nwamui_object_set_name(object, name);
-
-    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
-
-    nwamui_object_real_reload(object);
-
-    free (name);
 }
 
 /**

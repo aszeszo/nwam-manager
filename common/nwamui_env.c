@@ -151,8 +151,7 @@ static guint64*     get_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const
 static gboolean     set_nwam_loc_uint64_array_prop( nwam_loc_handle_t loc, const char* prop_name , 
                                                     const guint64* value, guint len );
 
-static gint         nwamui_object_real_open(NwamuiObject *object, gint flag);
-static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
+static gint         nwamui_object_real_open(NwamuiObject *object, const gchar *name, gint flag);
 static nwam_state_t nwamui_object_real_get_nwam_state(NwamuiObject *object, nwam_aux_state_t* aux_state_p, const gchar**aux_state_string_p);
 static gboolean     nwamui_object_real_can_rename (NwamuiObject *object);
 static gboolean     nwamui_object_real_set_name ( NwamuiObject *object, const gchar* name );
@@ -207,7 +206,6 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     gobject_class->finalize = (void (*)(GObject*)) nwamui_env_finalize;
 
     nwamuiobject_class->open = nwamui_object_real_open;
-    nwamuiobject_class->set_handle = nwamui_object_real_set_handle;
     nwamuiobject_class->get_name = nwamui_object_real_get_name;
     nwamuiobject_class->can_rename = nwamui_object_real_can_rename;
     nwamuiobject_class->set_name = nwamui_object_real_set_name;
@@ -1050,12 +1048,12 @@ nwamui_env_get_property (GObject         *object,
 NwamuiObject*
 nwamui_env_new ( const gchar* name )
 {
-    NwamuiObject *self = NWAMUI_OBJECT(g_object_new(NWAMUI_TYPE_ENV,
-        "name", name,
-        NULL));
+    NwamuiObject *self = NWAMUI_OBJECT(g_object_new(NWAMUI_TYPE_ENV, NULL));
     
-    if (nwamui_object_real_open(self, NWAMUI_OBJECT_OPEN) != 0) {
-        nwamui_object_real_open(self, NWAMUI_OBJECT_CREATE);
+    nwamui_object_set_name(NWAMUI_OBJECT(self), name);
+
+    if (nwamui_object_real_open(self, name, NWAMUI_OBJECT_OPEN) != 0) {
+        nwamui_object_real_open(self, name, NWAMUI_OBJECT_CREATE);
     }
 
     return self;
@@ -1070,17 +1068,26 @@ nwamui_env_new ( const gchar* name )
 NwamuiObject*
 nwamui_env_new_with_handle (nwam_loc_handle_t envh)
 {
-    NwamuiEnv          *env = NWAMUI_ENV(g_object_new (NWAMUI_TYPE_ENV,
-                                    NULL));
-    char               *name;
-    NwamuiEnvPrivate   *prv = env->prv;
+    nwam_error_t  nerr;
+    char         *name   = NULL;
+    NwamuiObject *object = NULL;
 
-    nwamui_object_real_set_handle(NWAMUI_OBJECT(env), envh);
-
-    if (env->prv->nwam_loc == NULL) {
-        g_object_unref(env);
-        env = NULL;
+    if ((nerr = nwam_loc_get_name(envh, &name)) != NWAM_SUCCESS) {
+        g_warning ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
+        return NULL;
     }
+
+    object = g_object_new(NWAMUI_TYPE_ENV, NULL);
+    g_assert(NWAMUI_IS_ENV(object));
+
+    /* Will update handle. */
+    nwamui_object_set_name(object, name);
+
+    nwamui_object_real_open(object, name, NWAMUI_OBJECT_OPEN);
+
+    nwamui_object_real_reload(object);
+
+    free (name);
 
 #if 0
 /* These are not needed right now since we don't support property templates,
@@ -1092,7 +1099,7 @@ nwamui_env_new_with_handle (nwam_loc_handle_t envh)
     }
 #endif /* 0 */
     
-    return NWAMUI_OBJECT( env );
+    return object;
 }
 
 static gchar*
@@ -1691,26 +1698,26 @@ nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *
 }
 
 static gint
-nwamui_object_real_open(NwamuiObject *object, gint flag)
+nwamui_object_real_open(NwamuiObject *object, const gchar *name, gint flag)
 {
     NwamuiEnvPrivate *prv = NWAMUI_ENV_GET_PRIVATE(object);
     nwam_error_t      nerr;
 
+    g_assert(name);
+
     if (flag == NWAMUI_OBJECT_CREATE) {
-        g_assert(prv->name);
-        nerr = nwam_loc_create(prv->name, &prv->nwam_loc);
+        nerr = nwam_loc_create(name, &prv->nwam_loc);
+
         if (nerr == NWAM_SUCCESS) {
             prv->nwam_loc_modified = TRUE;
         } else {
-            g_warning("nwamui_loc_create error creating nwam_loc_handle %s", prv->name);
+            g_warning("nwamui_loc_create error creating nwam_loc_handle %s", name);
             prv->nwam_loc = NULL;
         }
     } else if (flag == NWAMUI_OBJECT_OPEN) {
         nwam_loc_handle_t  handle;
 
-        g_assert(prv->name);
-
-        nerr = nwam_loc_read(prv->name, 0, &handle);
+        nerr = nwam_loc_read(name, 0, &handle);
         if (nerr == NWAM_SUCCESS) {
             if (prv->nwam_loc) {
                 nwam_loc_free(prv->nwam_loc);
@@ -1721,40 +1728,15 @@ nwamui_object_real_open(NwamuiObject *object, gint flag)
              * handle passed in as parameter. In clone mode, the new handle
              * gets from nwam_env_copy can't be read again.
              */
-            g_debug("Failed to read loc information for %s error: %s", prv->name, nwam_strerror(nerr));
+            g_debug("Failed to read loc information for %s error: %s", name, nwam_strerror(nerr));
         } else {
-            g_warning("Failed to read loc information for %s error: %s", prv->name, nwam_strerror(nerr));
+            g_warning("Failed to read loc information for %s error: %s", name, nwam_strerror(nerr));
             prv->nwam_loc = NULL;
         }
     } else {
         g_assert_not_reached();
     }
     return nerr;
-}
-
-static void
-nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle)
-{
-    NwamuiEnvPrivate        *prv  = NWAMUI_ENV_GET_PRIVATE(object);
-    const nwam_loc_handle_t  envh = handle;
-    char                    *name;
-    nwam_error_t             nerr;
-
-    g_return_if_fail(NWAMUI_IS_ENV(object));
-    
-    nerr = nwam_loc_get_name (envh, (char **)&name);
-    if (nerr != NWAM_SUCCESS) {
-        g_warning ("Failed to get name for enm, error: %s", nwam_strerror (nerr));
-    }
-
-    /* Will update handle. */
-    nwamui_object_set_name(object, name);
-
-    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
-
-    nwamui_object_real_reload(object);
-
-    free (name);
 }
 
 /**
@@ -1768,7 +1750,7 @@ nwamui_object_real_reload(NwamuiObject* object)
 
     g_return_if_fail(NWAMUI_IS_ENV(object));
 
-    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
+    nwamui_object_real_open(object, prv->name, NWAMUI_OBJECT_OPEN);
 
     /* nwamui_object_set_handle will cause re-read from configuration */
     g_object_freeze_notify(G_OBJECT(object));

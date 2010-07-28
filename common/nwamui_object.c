@@ -520,29 +520,11 @@ nwamui_object_finalize(NwamuiObject *self)
 }
 
 extern gint
-nwamui_object_open(NwamuiObject *object, gint flag)
+nwamui_object_open(NwamuiObject *object, const gchar *name, gint flag)
 {
     g_return_val_if_fail(NWAMUI_IS_OBJECT(object), -1);
 
-    return NWAMUI_OBJECT_GET_CLASS(object)->open(object, flag);
-}
-
-/**
- * nwamui_object_set_handle:
- * Generally be invoked in nwam object walker function, input a constant @handle
- * only used by get the name of the nwam object, so we can get the real handle
- * by the name. We shouldn't remain the @handle.
- *
- * A nwam_*_handle_t is actually a set of nvpairs we need to get our
- * own handle (i.e. snapshot) since the handle we are passed may be freed by
- * the owner of it (e.g. walkprop does this).
- */
-extern void
-nwamui_object_set_handle(NwamuiObject *object, const gpointer handle)
-{
-    g_return_if_fail (NWAMUI_IS_OBJECT(object));
-
-    NWAMUI_OBJECT_GET_CLASS(object)->set_handle(object, handle);
+    return NWAMUI_OBJECT_GET_CLASS(object)->open(object, name, flag);
 }
 
 /**
@@ -869,6 +851,8 @@ nwamui_object_clone(NwamuiObject *object, const gchar *name, NwamuiObject *paren
 void
 nwamui_object_event(NwamuiObject *object, guint event, gpointer data)
 {
+    g_return_if_fail(NWAMUI_IS_OBJECT(object));
+
     g_signal_emit(object,
       nwamui_object_signals[EVENT],
       0, /* details */
@@ -888,6 +872,9 @@ nwamui_object_event(NwamuiObject *object, guint event, gpointer data)
 void
 nwamui_object_add(NwamuiObject *object, NwamuiObject *child)
 {
+    g_return_if_fail(NWAMUI_IS_OBJECT(object));
+    g_return_if_fail(child);
+
     g_signal_emit(object,
       nwamui_object_signals[ADD],
       0, /* details */
@@ -906,6 +893,9 @@ nwamui_object_add(NwamuiObject *object, NwamuiObject *child)
 void
 nwamui_object_remove(NwamuiObject *object, NwamuiObject *child)
 {
+    g_return_if_fail(NWAMUI_IS_OBJECT(object));
+    g_return_if_fail(child);
+
     g_signal_emit(object,
       nwamui_object_signals[REMOVE],
       0, /* details */

@@ -1,3 +1,29 @@
+2010-07-21  Lin Ma  <Lin.Ma@Sun.COM>
+
+	* capplet/main.c:
+	* common/nwamui_daemon.c (nwam_loc_walker_cb),
+	(nwam_enm_walker_cb), (nwam_ncp_walker_cb),
+	(nwam_known_wlan_walker_cb):
+	* common/nwamui_enm.c (nwamui_enm_class_init), (nwamui_enm_new),
+	(nwamui_enm_new_with_handle), (nwamui_object_real_open),
+	(nwamui_object_real_reload):
+	* common/nwamui_env.c (nwamui_env_class_init), (nwamui_env_new),
+	(nwamui_env_new_with_handle), (nwamui_object_real_open),
+	(nwamui_object_real_reload):
+	* common/nwamui_known_wlan.c (nwamui_known_wlan_class_init),
+	(nwamui_object_real_reload), (nwamui_known_wifi_new),
+	(nwamui_known_wlan_new_with_handle), (nwamui_object_real_open):
+	* common/nwamui_ncp.c (nwamui_ncp_class_init), (nwamui_ncp_new),
+	(nwamui_ncp_new_with_handle), (nwamui_object_real_reload),
+	(nwamui_object_real_open):
+	* common/nwamui_ncu.c (nwamui_ncu_class_init),
+	(nwamui_ncu_new_with_handle), (nwamui_object_real_reload),
+	(nwamui_object_real_open):
+	* common/nwamui_object.c (nwamui_object_open),
+	(nwamui_object_event), (nwamui_object_add), (nwamui_object_remove):
+	* common/nwamui_object.h: Clean some code. Probably fixed 6968008
+	core.i86pc.nwam-manager excessive core file generation on snv_142
+
 2010-06-29  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* capplet/nwam_wireless_dialog.c

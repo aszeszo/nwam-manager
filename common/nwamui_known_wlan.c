@@ -91,8 +91,7 @@ static gboolean     set_nwam_known_wlan_uint64_array_prop( nwam_known_wlan_handl
 
 static void   nwamui_known_wlan_real_set_bssid_list(NwamuiKnownWlan *self, GList *bssid_list);
 static GList* nwamui_known_wlan_real_get_bssid_list(NwamuiKnownWlan *self);
-static gint         nwamui_object_real_open(NwamuiObject *object, gint flag);
-static void         nwamui_object_real_set_handle(NwamuiObject *object, const gpointer handle);
+static gint         nwamui_object_real_open(NwamuiObject *object, const gchar *name, gint flag);
 static const gchar* nwamui_known_wlan_get_essid (NwamuiObject *object );
 static gboolean     nwamui_object_real_set_name ( NwamuiObject  *object, const gchar    *essid ); /*   Actually set ESSID */
 static gboolean     nwamui_object_real_can_rename (NwamuiObject *object);
@@ -125,7 +124,6 @@ nwamui_known_wlan_class_init (NwamuiKnownWlanClass *klass)
     gobject_class->finalize = (void (*)(GObject*)) nwamui_known_wlan_finalize;
 
     nwamuiobject_class->open = nwamui_object_real_open;
-    nwamuiobject_class->set_handle = nwamui_object_real_set_handle;
     nwamuiobject_class->get_name = nwamui_known_wlan_get_essid;
     nwamuiobject_class->can_rename = nwamui_object_real_can_rename;
     nwamuiobject_class->set_name = nwamui_object_real_set_name;
@@ -296,7 +294,7 @@ nwamui_object_real_reload(NwamuiObject* object)
 
     g_return_if_fail(NWAMUI_IS_KNOWN_WLAN(object));
 
-    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
+    nwamui_object_real_open(object, prv->essid, NWAMUI_OBJECT_OPEN);
 
     g_object_freeze_notify(G_OBJECT(object));
 
@@ -354,8 +352,8 @@ nwamui_known_wifi_new(const gchar *name)
 
     nwamui_object_set_name(NWAMUI_OBJECT(self), name);
 
-    if (nwamui_object_real_open(self, NWAMUI_OBJECT_OPEN) != 0) {
-        nwamui_object_real_open(self, NWAMUI_OBJECT_CREATE);
+    if (nwamui_object_real_open(self, name, NWAMUI_OBJECT_OPEN) != 0) {
+        nwamui_object_real_open(self, name, NWAMUI_OBJECT_CREATE);
     }
 
     g_assert(prv->known_wlan_h);
@@ -414,16 +412,28 @@ nwamui_known_wlan_update_from_wlan_t(NwamuiKnownWlan* self, nwam_wlan_t *wlan)
 extern  NwamuiObject*          
 nwamui_known_wlan_new_with_handle(nwam_known_wlan_handle_t known_wlan)
 {
-    NwamuiKnownWlan *self = NWAMUI_KNOWN_WLAN(g_object_new(NWAMUI_TYPE_KNOWN_WLAN, NULL));
-    
-    nwamui_object_real_set_handle(NWAMUI_OBJECT(self), known_wlan);
+    nwam_error_t  nerr;
+    char         *name   = NULL;
+    NwamuiObject *object = NULL;
 
-    if (self->prv->known_wlan_h == NULL) {
-        g_object_unref(self);
-        self = NULL;
+    /* Accept NULL to allow for simple re-read from system */
+    if ((nerr = nwam_known_wlan_get_name(known_wlan, &name)) != NWAM_SUCCESS) {
+        g_warning("Error getting name of known wlan: %s", nwam_strerror(nerr));
+        return NULL;
     }
 
-    return NWAMUI_OBJECT( self );
+    object = g_object_new(NWAMUI_TYPE_KNOWN_WLAN, NULL);
+    g_assert(NWAMUI_IS_KNOWN_WLAN(object));
+
+    nwamui_object_set_name(object, name);
+
+    nwamui_object_real_open(object, name, NWAMUI_OBJECT_OPEN);
+
+    nwamui_object_real_reload(object);
+
+    free(name);
+
+    return object;
 }
 
 /** 
@@ -624,25 +634,25 @@ nwamui_object_real_set_name(NwamuiObject *object, const gchar *essid)
 }
                                 
 static gint
-nwamui_object_real_open(NwamuiObject *object, gint flag)
+nwamui_object_real_open(NwamuiObject *object, const gchar *name, gint flag)
 {
     NwamuiKnownWlanPrivate *prv = NWAMUI_KNOWN_WLAN_GET_PRIVATE(object);
     nwam_error_t      nerr;
 
+    g_assert(name);
+
     if (flag == NWAMUI_OBJECT_CREATE) {
-        g_assert(prv->essid);
-        nerr = nwam_known_wlan_create(prv->essid, &prv->known_wlan_h);
+
+        nerr = nwam_known_wlan_create(name, &prv->known_wlan_h);
         if (nerr == NWAM_SUCCESS) {
         } else {
-            g_warning("nwamui_known_wlan_create error creating nwam_know_wlan_handle %s", prv->essid);
+            g_warning("nwamui_known_wlan_create error creating nwam_know_wlan_handle %s", name);
             prv->known_wlan_h = NULL;
         }
     } else if (flag == NWAMUI_OBJECT_OPEN) {
         nwam_known_wlan_handle_t handle;
 
-        g_assert(prv->essid);
-
-        nerr = nwam_known_wlan_read(prv->essid, 0, &handle);
+        nerr = nwam_known_wlan_read(name, 0, &handle);
         if (nerr == NWAM_SUCCESS) {
             if (prv->known_wlan_h) {
                 nwam_known_wlan_free(prv->known_wlan_h);
@@ -653,41 +663,15 @@ nwamui_object_real_open(NwamuiObject *object, gint flag)
              * handle passed in as parameter. In clone mode, the new handle
              * gets from nwam_enm_copy can't be read again.
              */
-            g_debug("Failed to read enm information for %s error: %s", prv->essid, nwam_strerror(nerr));
+            g_debug("Failed to read enm information for %s error: %s", name, nwam_strerror(nerr));
         } else {
-            g_warning("Failed to read enm information for %s error: %s", prv->essid, nwam_strerror(nerr));
+            g_warning("Failed to read enm information for %s error: %s", name, nwam_strerror(nerr));
             prv->known_wlan_h = NULL;
         }
     } else {
         g_assert_not_reached();
     }
     return nerr;
-}
-
-static void
-nwamui_object_real_set_handle(NwamuiObject *object, const gpointer new_handle)
-{
-    NwamuiKnownWlanPrivate   *prv        = NWAMUI_KNOWN_WLAN_GET_PRIVATE(object);
-    nwam_known_wlan_handle_t  handle     = new_handle;
-    gchar*                    name       = NULL;
-    gchar**                   bssid_strv = NULL;
-    nwam_error_t              nerr;
-
-    g_assert(NWAMUI_IS_KNOWN_WLAN(object));
-
-    /* Accept NULL to allow for simple re-read from system */
-    if ((nerr = nwam_known_wlan_get_name(handle, &name)) != NWAM_SUCCESS) {
-        g_warning("Error getting name of known wlan: %s", nwam_strerror(nerr));
-        return;
-    }
-
-    nwamui_object_set_name(object, name);
-
-    nwamui_object_real_open(object, NWAMUI_OBJECT_OPEN);
-
-    nwamui_object_real_reload(object);
-
-    g_free(name);
 }
 
 static const gchar*

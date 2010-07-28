@@ -2635,11 +2635,11 @@ nwam_events_thread ( gpointer data )
 static int
 nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
 {
-    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON_GET_PRIVATE(data);
+    NwamuiDaemonPrivate *prv  = NWAMUI_DAEMON_GET_PRIVATE(data);
     NwamuiDaemon        *self = NWAMUI_DAEMON(data);
-    char *name;
-    nwam_error_t nerr;
-    NwamuiObject* new_env;
+    char                *name;
+    nwam_error_t         nerr;
+    NwamuiObject*        new_env;
 
     if ( (nerr = nwam_loc_get_name (env, &name)) != NWAM_SUCCESS ) {
         g_warning("Failed to get name for loc, error: %s", nwam_strerror (nerr));
@@ -2654,7 +2654,9 @@ nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
             self->prv->temp_list = g_list_remove( self->prv->temp_list, new_env );
         } else {
             new_env = nwamui_env_new_with_handle (env);
-            nwamui_object_add(NWAMUI_OBJECT(self), NWAMUI_OBJECT(new_env));
+            if (new_env) {
+                nwamui_object_add(NWAMUI_OBJECT(self), NWAMUI_OBJECT(new_env));
+            }
         }
         free(name);
     }
@@ -2672,11 +2674,11 @@ nwam_loc_walker_cb (nwam_loc_handle_t env, void *data)
 static int
 nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data)
 {
-    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON_GET_PRIVATE(data);
+    NwamuiDaemonPrivate *prv  = NWAMUI_DAEMON_GET_PRIVATE(data);
     NwamuiDaemon        *self = NWAMUI_DAEMON(data);
-    char *name;
-    nwam_error_t nerr;
-    NwamuiObject* new_enm;
+    char                *name;
+    nwam_error_t         nerr;
+    NwamuiObject*        new_enm;
 
     if ( (nerr = nwam_enm_get_name (enm, &name)) != NWAM_SUCCESS ) {
         g_warning("Failed to get name for enm, error: %s", nwam_strerror (nerr));
@@ -2691,7 +2693,9 @@ nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data)
             self->prv->temp_list = g_list_remove( self->prv->temp_list, new_enm );
         } else {
             new_enm = nwamui_enm_new_with_handle (enm);
-            nwamui_object_add(NWAMUI_OBJECT(self), NWAMUI_OBJECT(new_enm));
+            if (new_enm) {
+                nwamui_object_add(NWAMUI_OBJECT(self), NWAMUI_OBJECT(new_enm));
+            }
         }
         free(name);
 
@@ -2704,11 +2708,11 @@ nwam_enm_walker_cb (nwam_enm_handle_t enm, void *data)
 static int
 nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
 {
-    NwamuiDaemonPrivate *prv = NWAMUI_DAEMON_GET_PRIVATE(data);
+    NwamuiDaemonPrivate *prv  = NWAMUI_DAEMON_GET_PRIVATE(data);
     NwamuiDaemon        *self = NWAMUI_DAEMON(data);
-    gchar               *name;
+    char                *name;
     nwam_error_t         nerr;
-    NwamuiObject         *new_ncp;
+    NwamuiObject        *new_ncp;
 
     if ( (nerr = nwam_ncp_get_name (ncp, &name)) != NWAM_SUCCESS ) {
         g_warning("Failed to get name for ncp, error: %s", nwam_strerror (nerr));
@@ -2723,7 +2727,9 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
             self->prv->temp_list = g_list_remove( self->prv->temp_list, new_ncp );
         } else {
             new_ncp = nwamui_ncp_new_with_handle (ncp);
-            nwamui_object_add(NWAMUI_OBJECT(self), NWAMUI_OBJECT(new_ncp));
+            if (new_ncp) {
+                nwamui_object_add(NWAMUI_OBJECT(self), NWAMUI_OBJECT(new_ncp));
+            }
         }
         free(name);
     }
@@ -2761,11 +2767,11 @@ nwam_ncp_walker_cb (nwam_ncp_handle_t ncp, void *data)
 static int
 nwam_known_wlan_walker_cb (nwam_known_wlan_handle_t wlan_h, void *data)
 {
-    NwamuiDaemonPrivate    *prv         = NWAMUI_DAEMON_GET_PRIVATE(data);
-    NwamuiDaemon           *self        = NWAMUI_DAEMON(data);
-    nwam_error_t            nerr;
-    NwamuiObject*           wifi        = NULL;
-    gchar                  *name;
+    NwamuiDaemonPrivate *prv  = NWAMUI_DAEMON_GET_PRIVATE(data);
+    NwamuiDaemon        *self = NWAMUI_DAEMON(data);
+    nwam_error_t         nerr;
+    NwamuiObject        *wifi = NULL;
+    char                *name;
 
     if ((nerr = nwam_known_wlan_get_name(wlan_h, &name)) != NWAM_SUCCESS) {
         g_warning("Error getting name of known wlan: %s", nwam_strerror(nerr));
@@ -2781,7 +2787,9 @@ nwam_known_wlan_walker_cb (nwam_known_wlan_handle_t wlan_h, void *data)
             prv->temp_list = g_list_remove( prv->temp_list, wifi);
         } else {
             wifi = nwamui_known_wlan_new_with_handle(wlan_h);
-            nwamui_object_add(NWAMUI_OBJECT(self), wifi);
+            if (wifi) {
+                nwamui_object_add(NWAMUI_OBJECT(self), wifi);
+            }
         }
         free(name);
     }

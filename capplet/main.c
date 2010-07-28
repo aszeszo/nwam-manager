@@ -50,6 +50,7 @@ static gboolean     net_pref_dialog = TRUE;
 static gboolean     net_pref_view = FALSE;
 static gboolean     location_dialog = FALSE;
 static gboolean     wireless_chooser = FALSE;
+static gchar       *configure_interface = NULL;
 
 #ifdef DEBUG_OPTS
 static gchar       *add_wireless_dialog = NULL;
@@ -61,18 +62,19 @@ static void debug_response_id( gint responseid );
 
 
 GOptionEntry application_options[] = {
-        {"debug", 'D', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
-        { "net-pref-dialog", NWAMUI_CAPPLET_OPT_NET_PREF_DIALOG, 0, G_OPTION_ARG_NONE, &net_pref_dialog, N_("Show 'Network Preferences' Dialog"), NULL  },
-        { "net-conf-view", NWAMUI_CAPPLET_OPT_NET_PREF_CONFIG, 0, G_OPTION_ARG_NONE, &net_pref_view, N_("Show 'Network Configuration' Dialog"), NULL  },
-        { "nm-pref-dialog", NWAMUI_CAPPLET_OPT_VPN_PREF_DIALOG, 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, N_("Show 'Network Modifier Preferences' Dialog"), NULL  },
-        { "wireless-chooser", NWAMUI_CAPPLET_OPT_WIFI_CHOOSER_DIALOG, 0, G_OPTION_ARG_NONE, &wireless_chooser, N_("Show 'Wireless Network Chooser' Dialog"), NULL },
-        { "location-dialog", NWAMUI_CAPPLET_OPT_LOCATION_DIALOG, 0, G_OPTION_ARG_NONE, &location_dialog, N_("Show 'Location' Dialog"), NULL  },
+    {"debug", 'D', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
+    { "net-pref-dialog", NWAMUI_CAPPLET_OPT_NET_PREF_DIALOG, 0, G_OPTION_ARG_NONE, &net_pref_dialog, N_("Show 'Network Preferences' Dialog"), NULL  },
+    { "net-conf-view", NWAMUI_CAPPLET_OPT_NET_PREF_CONFIG, 0, G_OPTION_ARG_NONE, &net_pref_view, N_("Show 'Network Configuration' Dialog"), NULL  },
+    { "nm-pref-dialog", NWAMUI_CAPPLET_OPT_VPN_PREF_DIALOG, 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, N_("Show 'Network Modifier Preferences' Dialog"), NULL  },
+    { "wireless-chooser", NWAMUI_CAPPLET_OPT_WIFI_CHOOSER_DIALOG, 0, G_OPTION_ARG_NONE, &wireless_chooser, N_("Show 'Wireless Network Chooser' Dialog"), NULL },
+    { "location-dialog", NWAMUI_CAPPLET_OPT_LOCATION_DIALOG, 0, G_OPTION_ARG_NONE, &location_dialog, N_("Show 'Location' Dialog"), NULL  },
+    { "configure", 0, 0, G_OPTION_ARG_STRING, &configure_interface, N_("Configure a network interface"), NULL },
 #ifdef DEBUG_OPTS
-        { "add-wireless-dialog", 'w', 0, G_OPTION_ARG_STRING, &add_wireless_dialog, "Show 'Add Wireless' Dialog", "ESSID"},
-        { "loc-pref-dialog", 'L', 0, G_OPTION_ARG_NONE, &loc_pref_dialog, "Show 'Location Preferences' Dialog", NULL  },
-        { "show-all", 'a', 0, G_OPTION_ARG_NONE, &show_all_widgets, "Show all widgets", NULL  },
+    { "add-wireless-dialog", 'w', 0, G_OPTION_ARG_STRING, &add_wireless_dialog, "Show 'Add Wireless' Dialog", "ESSID"},
+    { "loc-pref-dialog", 'L', 0, G_OPTION_ARG_NONE, &loc_pref_dialog, "Show 'Location Preferences' Dialog", NULL  },
+    { "show-all", 'a', 0, G_OPTION_ARG_NONE, &show_all_widgets, "Show all widgets", NULL  },
 #endif /* DEBUG_OPTS */
-        { NULL }
+    { NULL }
 };
 
 static GtkWidget*
