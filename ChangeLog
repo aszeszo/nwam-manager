@@ -1,5 +1,11 @@
 2010-07-21  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* common/nwamui_ncu.c (nwamui_object_real_commit),
+	(nwamui_object_real_set_enabled): I think disable a NCU should set
+	'enabled' prop to false for every NCU subobject.
+
+2010-07-21  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* capplet/main.c:
 	* common/nwamui_daemon.c (nwam_loc_walker_cb),
 	(nwam_enm_walker_cb), (nwam_ncp_walker_cb),
