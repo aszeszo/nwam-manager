@@ -1,5 +1,10 @@
 2010-07-21  Lin Ma  <Lin.Ma@Sun.COM>
 
+	* capplet/nwam_profile_dialog.c (nwam_connection_cell_func): Fixed
+	16600 [NWAM] Show Wired/Wireless in Edit Connections dialog
+
+2010-07-21  Lin Ma  <Lin.Ma@Sun.COM>
+
 	* common/nwamui_ncu.c (nwamui_object_real_commit),
 	(nwamui_object_real_set_enabled): I think disable a NCU should set
 	'enabled' prop to false for every NCU subobject.

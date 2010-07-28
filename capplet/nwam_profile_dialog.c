@@ -1022,13 +1022,14 @@ nwam_connection_cell_func (GtkTreeViewColumn *col,
             g_object_set(renderer, "active", is_in_ncp, NULL);
             g_object_set( G_OBJECT(renderer), "activatable", !is_active, NULL );
         } else {
-            gchar   *disp_text;
+            gchar       *disp_text;
+            const gchar *disp_name = nwamui_ncu_get_display_name(NWAMUI_NCU(obj));
 
             if ( is_active ) {
-                disp_text = g_strdup_printf( _("%s  (active)"), name );
+                disp_text = g_strdup_printf(_("%s  (active)"), disp_name);
             }
             else {
-                disp_text = g_strdup( name );
+                disp_text = g_strdup(disp_name);
             }
 
             g_object_set(renderer, "text", disp_text, NULL);
