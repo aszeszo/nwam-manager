@@ -1665,18 +1665,18 @@ nwamui_util_ncp_init_acquired_ip(NwamuiNcp *ncp)
                 const char *mask_p;
 
                 /* Found it. */
-                if (idx->ifa_addr->ss_family == AF_INET) {
-                    addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
+                if (idx->ifa_addr->sa_family == AF_INET) {
+                    addr_p = inet_ntop((int)idx->ifa_addr->sa_family,
                       &((struct sockaddr_in *)idx->ifa_addr)->sin_addr,
                       addr_str, INET_ADDRSTRLEN);
-                    mask_p = inet_ntop((int)idx->ifa_netmask->ss_family,
+                    mask_p = inet_ntop((int)idx->ifa_netmask->sa_family,
                       &((struct sockaddr_in *)idx->ifa_netmask)->sin_addr,
                       mask_str, INET_ADDRSTRLEN);
                 } else {
-                    addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
+                    addr_p = inet_ntop((int)idx->ifa_addr->sa_family,
                       &((struct sockaddr_in6 *)idx->ifa_addr)->sin6_addr,
                       addr_str, INET6_ADDRSTRLEN);
-                    mask_p = inet_ntop((int)idx->ifa_netmask->ss_family,
+                    mask_p = inet_ntop((int)idx->ifa_netmask->sa_family,
                       &((struct sockaddr_in6 *)idx->ifa_netmask)->sin6_addr,
                       mask_str, INET6_ADDRSTRLEN);
                 }
@@ -1701,17 +1701,17 @@ nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
 
         for (idx = ifap; idx; idx = idx->ifa_next) {
             if (g_strcmp0(ifname, idx->ifa_name) == 0
-              && idx->ifa_addr->ss_family == family) {
+              && idx->ifa_addr->sa_family == family) {
                 char        addr_str[INET6_ADDRSTRLEN];
                 const char *addr_p;
 
                 /* Found it. */
-                if (idx->ifa_addr->ss_family == AF_INET) {
-                    addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
+                if (idx->ifa_addr->sa_family == AF_INET) {
+                    addr_p = inet_ntop((int)idx->ifa_addr->sa_family,
                       &((struct sockaddr_in *)idx->ifa_addr)->sin_addr,
                       addr_str, INET_ADDRSTRLEN);
                 } else {
-                    addr_p = inet_ntop((int)idx->ifa_addr->ss_family,
+                    addr_p = inet_ntop((int)idx->ifa_addr->sa_family,
                       &((struct sockaddr_in6 *)idx->ifa_addr)->sin6_addr,
                       addr_str, INET6_ADDRSTRLEN);
                 }
@@ -1720,7 +1720,7 @@ nwamui_util_get_interface_address(const char *ifname, sa_family_t family,
                     *address_p =  g_strdup(addr_p?addr_p:"");
                 }
                 if (prefixlen_p) {
-                    *prefixlen_p = mask2plen(idx->ifa_netmask);
+                    *prefixlen_p = mask2plen((struct sockaddr_storage *)idx->ifa_netmask);
                 }
                 if (is_dhcp_p != NULL) {
                     if (idx->ifa_flags & IFF_DHCPRUNNING) {

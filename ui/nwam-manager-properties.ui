@@ -791,7 +791,7 @@
                               <object class="GtkLabel" id="priority_groups_lbl">
                                 <property name="visible">True</property>
                                 <property name="xalign">0</property>
-                                <property name="label" translatable="yes">0</property>
+                                <property name="label">0</property>
                               </object>
                               <packing>
                                 <property name="left_attach">1</property>
@@ -831,7 +831,7 @@
                 <child type="tab">
                   <object class="GtkLabel" id="interface_tab">
                     <property name="visible">True</property>
-                    <property name="label" translatable="yes">hme0</property>
+                    <property name="label">hme0</property>
                   </object>
                   <packing>
                     <property name="position">1</property>
@@ -1215,7 +1215,7 @@
                                           <object class="GtkLabel" id="ipv6_prefix_lbl">
                                             <property name="visible">True</property>
                                             <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">16</property>
+                                            <property name="label">16</property>
                                           </object>
                                           <packing>
                                             <property name="left_attach">1</property>
@@ -1229,7 +1229,7 @@
                                           <object class="GtkLabel" id="ipv6_address_lbl">
                                             <property name="visible">True</property>
                                             <property name="xalign">0</property>
-                                            <property name="label" translatable="yes">2001:0db8:3c4d:0015:0000:0000:abcd:ef12</property>
+                                            <property name="label">2001:0db8:3c4d:0015:0000:0000:abcd:ef12</property>
                                           </object>
                                           <packing>
                                             <property name="left_attach">1</property>
@@ -1368,7 +1368,7 @@
                                             <property name="can_focus">True</property>
                                             <property name="max_length">39</property>
                                             <property name="invisible_char">&#x25CF;</property>
-                                            <property name="text" translatable="yes">2001:0db8:3c4d:0015:0000:0000:abcd:ef12</property>
+                                            <property name="text">2001:0db8:3c4d:0015:0000:0000:abcd:ef12</property>
                                           </object>
                                           <packing>
                                             <property name="left_attach">1</property>
@@ -1514,7 +1514,7 @@
                                   <object class="GtkLabel" id="dhcp_subnet_lbl">
                                     <property name="visible">True</property>
                                     <property name="xalign">0</property>
-                                    <property name="label" translatable="yes">255.255.255.0</property>
+                                    <property name="label">255.255.255.0</property>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
@@ -1528,7 +1528,7 @@
                                   <object class="GtkLabel" id="dhcp_address_lbl">
                                     <property name="visible">True</property>
                                     <property name="xalign">0</property>
-                                    <property name="label" translatable="yes">192.168.1.2</property>
+                                    <property name="label">192.168.1.2</property>
                                   </object>
                                   <packing>
                                     <property name="left_attach">1</property>
