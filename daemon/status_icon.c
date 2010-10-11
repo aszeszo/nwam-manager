@@ -726,8 +726,10 @@ daemon_switch_loc_manually_changed(GObject *gobject, GParamSpec *arg1, gpointer 
 
     if (nwamui_daemon_env_selection_is_manual(prv->daemon)) {
         gtk_menu_item_activate(GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_MANUALLY]));
+        nwam_menu_section_set_sensitive(NWAM_MENU(prv->menu), SECTION_LOC, TRUE);
     } else {
         gtk_menu_item_activate(GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO]));
+        nwam_menu_section_set_sensitive(NWAM_MENU(prv->menu), SECTION_LOC, FALSE);
     }
 
     g_signal_handlers_unblock_by_func( (GTK_MENU_ITEM(prv->static_menuitems[MENUITEM_SWITCH_LOC_AUTO])), (gpointer)location_model_menuitems, self );
