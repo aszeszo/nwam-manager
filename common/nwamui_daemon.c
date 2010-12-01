@@ -900,6 +900,7 @@ nwamui_object_real_remove(NwamuiObject *object, NwamuiObject *child)
     }
 
     if (nwamui_object_is_modifiable(child)) {
+        g_assert(g_list_find(prv->managed_list[idx], child));
         prv->managed_list[idx] = g_list_remove(prv->managed_list[idx], (gpointer)child);
         g_debug("Remove '%s(0x%p)' from '%s'", nwamui_object_get_name(child), child, nwamui_object_get_name(object));
         g_object_unref(child);

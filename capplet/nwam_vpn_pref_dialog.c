@@ -34,8 +34,6 @@
 #include "capplet-utils.h"
 #include "nwam_tree_view.h"
 
-#define VPN_APP_VIEW_COL_ID	"nwam_vpn_app_column_id"
-
 /* Names of Widgets in Glade file */
 #define	VPN_PREF_DIALOG_NAME	"vpn_config"
 #define	VPN_PREF_TREE_VIEW	"vpn_apps_list"
@@ -57,12 +55,6 @@
 #define VPN_PREF_DESC_LBL	"desc_lbl"
 #define VPN_CLI_RB "vpn_cli_rb"
 #define VPN_SMF_RB "vpn_smf_rb"
-
-enum {
-    APP_MODE=0,
-	APP_NAME,
-	APP_STATE,
-};
 
 #define GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), \
 	NWAM_TYPE_VPN_PREF_DIALOG, NwamVPNPrefDialogPrivate))
@@ -97,6 +89,7 @@ struct _NwamVPNPrefDialogPrivate {
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static void nwam_object_ctrl_init(gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
@@ -106,6 +99,7 @@ static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_vpn_pref_dialog_finalize(NwamVPNPrefDialog *self);
 static void nwam_compose_tree_view (NwamVPNPrefDialog *self);
+static gboolean nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj);
 static void set_property (GObject         *object,
                           guint            prop_id,
                           const GValue    *value,
@@ -142,11 +136,12 @@ static void on_rules_button_clicked(GtkButton *button, gpointer user_data);
 static void on_radio_button_toggled(GtkToggleButton *button, gpointer user_data);
 static void conditional_toggled_cb(GtkToggleButton *button, gpointer user_data);
 
-G_DEFINE_TYPE_EXTENDED (NwamVPNPrefDialog,
-                        nwam_vpn_pref_dialog,
-                        G_TYPE_OBJECT,
-                        0,
-                        G_IMPLEMENT_INTERFACE (NWAM_TYPE_PREF_IFACE, nwam_pref_init))
+G_DEFINE_TYPE_EXTENDED(NwamVPNPrefDialog,
+  nwam_vpn_pref_dialog,
+  G_TYPE_OBJECT,
+  0,
+  G_IMPLEMENT_INTERFACE(NWAM_TYPE_PREF_IFACE, nwam_pref_init)
+  G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJECT_CTRL_IFACE, nwam_object_ctrl_init))
 
 static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
@@ -158,6 +153,79 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
     iface->help = help;
     iface->dialog_run = dialog_run;
     iface->dialog_get_window = dialog_get_window;
+}
+
+static GObject*
+create_object(NwamObjectCtrlIFace *iface)
+{
+	NwamVPNPrefDialog *self = NWAM_VPN_PREF_DIALOG(iface);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
+    GtkTreeModel *model = NULL;
+    gchar *name;
+    NwamuiObject *object;
+
+    /* Ensure all objects are updated. */
+    /* Fixed 14258 [132] nwam error when adding second VPN */
+    if (prv->cur_obj && !nwam_update_obj(self, prv->cur_obj)) {
+        return NULL;
+    }
+
+    model = gtk_tree_view_get_model (prv->view);
+    name = capplet_get_increasable_name(model, _("Unnamed Modifier"), G_OBJECT(self));
+
+    g_assert(name);
+
+    object = NWAMUI_OBJECT(nwamui_enm_new(name));
+
+    g_free(name);
+    return G_OBJECT(object);
+}
+
+static gboolean
+remove_object(NwamObjectCtrlIFace *iface, GObject *obj)
+{
+	NwamVPNPrefDialog*self = NWAM_VPN_PREF_DIALOG(iface);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
+
+    if (obj) {
+        if (prv->cur_obj == (gpointer)obj) {
+            prv->cur_obj = NULL;
+        }
+        nwamui_object_destroy(NWAMUI_OBJECT(obj));
+        return TRUE;
+    }
+    return FALSE;
+}
+
+
+static gboolean
+rename_object(NwamObjectCtrlIFace *iface, GObject *obj)
+{
+	NwamVPNPrefDialog*self = NWAM_VPN_PREF_DIALOG(iface);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
+
+    if (nwamui_object_can_rename(NWAMUI_OBJECT(obj))) {
+        return TRUE;
+    } else {
+        gchar *summary = g_strdup_printf(_("Cannot rename '%s'"), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
+        nwamui_util_show_message(GTK_WINDOW(prv->vpn_pref_dialog),
+          GTK_MESSAGE_ERROR,
+          summary,
+          _("Network modifiers can only be renamed immediately after\nthey have been created."),
+          FALSE);
+        g_free(summary);
+        return FALSE;
+    }
+}
+
+static void
+nwam_object_ctrl_init(gpointer g_iface, gpointer iface_data)
+{
+    NwamObjectCtrlInterface *self = (NwamObjectCtrlInterface *)g_iface;
+
+	self->create = create_object;
+	self->remove = remove_object;
+	self->rename = rename_object;
 }
 
 static void
@@ -221,12 +289,6 @@ nwam_vpn_pref_dialog_init(NwamVPNPrefDialog *self)
     /* Set title to include hostname */
     nwamui_util_window_title_append_hostname( prv->vpn_pref_dialog );
 
-	g_signal_connect(prv->add_btn,
-      "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
-	g_signal_connect(prv->remove_btn,
-      "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
-	g_signal_connect(prv->rename_btn,
-      "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
 	g_signal_connect(prv->start_btn,
       "clicked", (GCallback)vpn_pref_clicked_cb, (gpointer)self);
 	g_signal_connect(prv->stop_btn,
@@ -297,25 +359,24 @@ capplet_tree_model_row_changed_func(GtkTreeModel *tree_model,
 static void
 nwam_compose_tree_view (NwamVPNPrefDialog *self)
 {
-	GtkTreeViewColumn *col;
-	GtkCellRenderer *renderer;
-	GtkTreeView *view = self->prv->view;
+    NwamVPNPrefDialogPrivate *prv  = GET_PRIVATE(self);
+	GtkTreeViewColumn        *col;
+	GtkCellRenderer          *renderer;
+	GtkTreeView              *view = prv->view;
 
     g_object_set(view,
+      "nwam_object_ctrl", self,
       "headers-clickable", FALSE,
       "headers-visible", TRUE,
       "rules-hint", TRUE,
       "reorderable", FALSE,
       "enable-search", TRUE,
       "show-expanders", TRUE,
-      "button-add", self->prv->add_btn,
       NULL);
 
-    nwam_tree_view_set_object_func(NWAM_TREE_VIEW(view),
-      NULL,
-      NULL,
-      capplet_tree_view_commit_object,
-      (gpointer)self);
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(prv->view), NTV_ADD_BTN, GTK_WIDGET(prv->add_btn));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(prv->view), NTV_REMOVE_BTN, GTK_WIDGET(prv->remove_btn));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(prv->view), NTV_RENAME_BTN, GTK_WIDGET(prv->rename_btn));
 
 	gtk_tree_selection_set_mode(gtk_tree_view_get_selection(view),
       GTK_SELECTION_SINGLE);
@@ -350,18 +411,6 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       G_CALLBACK(nwamui_object_name_cell_edited), (gpointer)view);
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
 
-#if 0
-	gtk_tree_view_column_set_sort_column_id (col, APP_NAME);
-	gtk_tree_sortable_set_sort_func	(GTK_TREE_SORTABLE(model),
-      APP_NAME,
-      (GtkTreeIterCompareFunc) nwam_vpn_cell_comp_cb,
-      GINT_TO_POINTER(APP_NAME),
-      NULL);
-	gtk_tree_sortable_set_sort_column_id (GTK_TREE_SORTABLE(model),
-      APP_NAME,
-      GTK_SORT_ASCENDING);
-#endif
-
 	/* column APP_STATE */
 	col = gtk_tree_view_column_new();
 	gtk_tree_view_append_column (view, col);
@@ -373,10 +422,6 @@ nwam_compose_tree_view (NwamVPNPrefDialog *self)
       "sort-indicator", FALSE,
       "reorderable", FALSE,
       NULL);
-
-#if 0
-	gtk_tree_view_column_set_sort_column_id (col, APP_STATE);
-#endif
 
     /* First cell */
 	renderer = gtk_cell_renderer_text_new();
@@ -547,7 +592,8 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
 
     gtk_widget_hide(GTK_WIDGET(prv->view));
-    capplet_update_model_from_daemon(gtk_tree_view_get_model(prv->view), prv->daemon, NWAMUI_TYPE_ENM);
+	gtk_list_store_clear(GTK_LIST_STORE(gtk_tree_view_get_model(prv->view)));
+    nwamui_daemon_foreach_enm(prv->daemon, capplet_list_foreach_merge_to_list_store, (gpointer)gtk_tree_view_get_model(prv->view));
     gtk_widget_show(GTK_WIDGET(prv->view));
 
     if (force) {
@@ -757,112 +803,6 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
     GtkTreeModel *model = NULL;
 	NwamuiEnm *obj;
 	GtkTreeIter iter;
-
-    if (button == (gpointer)prv->add_btn) {
-        gchar *name;
-        NwamuiObject *object;
-
-		model = gtk_tree_view_get_model (prv->view);
-
-        /* Ensure all objects are updated. */
-        /* Fixed 14258 [132] nwam error when adding second VPN */
-        if (prv->cur_obj && !nwam_update_obj(self, prv->cur_obj)) {
-            return;
-        }
-
-        name = capplet_get_increasable_name(model, _("Unnamed Modifier"), G_OBJECT(self));
-
-        g_assert(name);
-
-        object = NWAMUI_OBJECT(nwamui_enm_new(name));
-
-        CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->view))), object);
-
-        g_free(name);
-        g_object_unref(object);
-
-        /* Select and scroll to this new object. */
-        gtk_tree_view_scroll_to_cell(prv->view,
-          nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->view)),
-          NULL, FALSE, 0.0, 0.0);
-        gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->view),
-          nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->view)));
-#ifndef USE_DIALOG_FOR_NAME
-        /* Trigger rename on the new object as spec defines. */
-        gtk_button_clicked(prv->rename_btn);
-#endif /* ! USE_DIALOG_FOR_NAME */
-        return;
-    }
-
-    if (button == prv->remove_btn) {
-		GtkTreeSelection *selection;
-		GList *list, *idx;
-		GtkTreeModel *model;
-
-		model = gtk_tree_view_get_model (prv->view);
-		selection = gtk_tree_view_get_selection (prv->view);
-		list = gtk_tree_selection_get_selected_rows (selection, NULL);
-
-		for (idx=list; idx; idx = g_list_next(idx)) {
-			GtkTreeIter  iter;
-			g_assert (idx->data);
-			if (gtk_tree_model_get_iter(model, &iter, (GtkTreePath *)idx->data)) {
-				gtk_tree_model_get (model, &iter, 0, &obj, -1);
-				gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
-				if (obj) {
-                    if (prv->cur_obj == (gpointer)obj) {
-                        prv->cur_obj = NULL;
-                    }
-                    nwamui_object_destroy(NWAMUI_OBJECT(obj));
-                    g_object_unref(obj);
-                }
-			}
-			gtk_tree_path_free ((GtkTreePath *)idx->data);
-		}
-		g_list_free (list);
-		return;
-	}
-
-    if (button == prv->rename_btn) {
-		GtkTreeSelection *selection;
-		GtkTreeModel *model;
-
-		model = gtk_tree_view_get_model (prv->view);
-		selection = gtk_tree_view_get_selection (prv->view);
-        if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
-            NwamuiObject *object;
-
-            gtk_tree_model_get (model, &iter, 0, &obj, -1);
-
-            if (nwamui_object_can_rename(NWAMUI_OBJECT(obj))) {
-                GtkCellRendererText*        txt;
-                GtkTreeViewColumn*          info_col = gtk_tree_view_get_column( GTK_TREE_VIEW(prv->view), APP_NAME );
-                GList*                      renderers = gtk_tree_view_column_get_cell_renderers( info_col );
-
-                /* Should be only one renderer */
-                g_assert( g_list_next( renderers ) == NULL );
-
-                if ((txt = GTK_CELL_RENDERER_TEXT(g_list_first( renderers )->data)) != NULL) {
-                    GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
-                    g_object_set (txt, "editable", TRUE, NULL);
-
-                    gtk_tree_view_set_cursor (GTK_TREE_VIEW(prv->view), tpath, info_col, TRUE);
-
-                    gtk_tree_path_free(tpath);
-                }
-            } else {
-                gchar *summary = g_strdup_printf(_("Cannot rename '%s'"), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
-                nwamui_util_show_message(GTK_WINDOW(prv->vpn_pref_dialog),
-                  GTK_MESSAGE_ERROR,
-                  summary,
-                  _("Network modifiers can only be renamed immediately after\nthey have been created."),
-                  FALSE);
-                g_free(summary);
-            }
-            g_object_unref(obj);
-        }
-		return;
-	}
 
 	selection = gtk_tree_view_get_selection (prv->view);
 	model = gtk_tree_view_get_model (prv->view);

@@ -60,11 +60,10 @@ gboolean capplet_dialog_raise(NwamPrefIFace *iface);
             g_object_unref(model);                                      \
         }                                                               \
     }
-#define CAPPLET_LIST_STORE_ADD(model, object)                           \
+#define CAPPLET_LIST_STORE_ADD(model, object, iter)                     \
     {                                                                   \
-        GtkTreeIter iter;                                               \
-        gtk_list_store_append(GTK_LIST_STORE(model), &iter);            \
-        gtk_list_store_set(GTK_LIST_STORE(model), &iter, 0, G_OBJECT(object), -1); \
+        gtk_list_store_append(GTK_LIST_STORE(model), iter);            \
+        gtk_list_store_set(GTK_LIST_STORE(model), iter, 0, G_OBJECT(object), -1); \
         g_signal_connect(G_OBJECT(object), "notify", (GCallback)capplet_util_object_notify_cb, (gpointer)model); \
     }
 #define CAPPLET_TREE_STORE_ADD(model, parent, object, iter)             \
@@ -143,8 +142,6 @@ gboolean capplet_combo_set_active_object(GtkComboBox *combo, GObject *object);
 gboolean capplet_tree_view_commit_object(NwamTreeView *self, NwamuiObject *object, gpointer user_data);
 
 /* Tree model */
-void capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon, GType type);
-
 void capplet_tree_store_merge_children(GtkTreeStore *model,
     GtkTreeIter *target,
     GtkTreeIter *source,
@@ -196,6 +193,55 @@ void nwamui_object_active_mode_pixbuf_cell (GtkTreeViewColumn *col,
     GtkTreeModel      *model,
     GtkTreeIter       *iter,
     gpointer           data);
+
+void nwam_ip_address_cell(GtkTreeViewColumn *col,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data);
+
+void nwam_ip_subnet_cell(GtkTreeViewColumn *col,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data);
+
+void nwam_ipv4_address_cell_edited(GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             data);
+
+void nwam_ipv4_subnet_cell_edited(GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             data);
+
+void nwam_ipv6_address_cell_edited(GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             data);
+
+void nwam_ipv6_subnet_cell_edited(GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             data);
+
+void nwam_reset_entry_validation_on_cell_editing_started(GtkCellRenderer *cell,
+  GtkCellEditable *editable,
+  const gchar     *path,
+  gpointer         data);
+
+void nwam_disable_ok_on_cell_editing_started(GtkCellRenderer *cell,
+  GtkCellEditable *editable,
+  const gchar     *path,
+  gpointer         data);
+
+void nwam_enable_ok_on_cell_edited(GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             data);
+
+void nwam_enable_ok_on_cell_canceled(GtkCellRenderer *cell, gpointer data);
 
 void capplet_tree_store_move_object(GtkTreeModel *model,
     GtkTreeIter *target,

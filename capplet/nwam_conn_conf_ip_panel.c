@@ -163,12 +163,6 @@ struct _NwamConnConfIPPanelPrivate {
 };
 
 enum {
-	/* IP_VIEW_HOSTNAME=0, */
-	IP_VIEW_ADDR = 0,
-	IP_VIEW_MASK,
-};
-
-enum {
 	WIFI_FAV_ESSID=0,
 	WIFI_FAV_SECURITY,
 	WIFI_FAV_SPEED,
@@ -192,6 +186,7 @@ static const gchar  *nwamui_ipv4_combo_strings[IPV4_COMBO_LAST] = {
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static void nwam_object_ctrl_init(gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
@@ -206,34 +201,17 @@ static void daemon_add_object(NwamuiDaemon *daemon, NwamuiObject* object, gpoint
 static void daemon_remove_object(NwamuiDaemon *daemon, NwamuiObject* object, gpointer user_data);
 static void ncu_changed_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
 
-static void nwam_conn_multi_ip_cell_cb (GtkTreeViewColumn *col,
-					     GtkCellRenderer   *renderer,
-					     GtkTreeModel      *model,
-					     GtkTreeIter       *iter,
-					     gpointer           data);
 static void nwam_conn_wifi_fav_cell_cb (GtkTreeViewColumn *col,
 					     GtkCellRenderer   *renderer,
 					     GtkTreeModel      *model,
 					     GtkTreeIter       *iter,
 					     gpointer           data);
-static void nwam_conn_multi_cell_editing_started_cb(GtkCellRenderer *cell,
-                                        GtkCellEditable *editable,
-                                        const gchar     *path,
-                                        gpointer         data);
 static void nwam_conn_common_multi_cell_editing_started_cb(GtkCellRenderer *cell,
                                         GtkCellEditable *editable,
                                         const gchar     *path,
                                         gpointer         data);
 static void nwam_conn_common_multi_cell_editing_canceled_cb(GtkCellRenderer *cell,
   gpointer         data);
-static void nwam_conn_multi_ipv4_cell_edited_cb (GtkCellRendererText *renderer,
-  gchar               *path,
-  gchar               *new_text,
-  gpointer             user_data);
-static void nwam_conn_multi_ipv6_cell_edited_cb (GtkCellRendererText *renderer,
-  gchar               *path,
-  gchar               *new_text,
-  gpointer             user_data);
 
 static gint nwam_conn_multi_ip_comp_cb (GtkTreeModel *model,
 			      GtkTreeIter *a,
@@ -251,20 +229,16 @@ static void multi_line_add_cb( GtkButton *button, gpointer data );
 static void multi_line_del_cb( GtkButton *button, gpointer data );
 static void show_changed_cb( GtkComboBox *combo, gpointer data );
 /* static void renew_cb( GtkButton *button, gpointer data ); */
-static void wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data );
-static void wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data );
-static void wireless_tab_edit_button_clicked_cb( GtkButton *button, gpointer data );
-static void wireless_tab_up_button_clicked_cb( GtkButton *button, gpointer data );
-static void wireless_tab_down_button_clicked_cb( GtkButton *button, gpointer data );
 static void refresh_clicked_cb( GtkButton *button, gpointer data );
 static void ipv6_manual_addresses_cb_toggled(GtkToggleButton *togglebutton, gpointer user_data);
 static void selection_changed(GtkTreeSelection *selection, gpointer user_data);
 
 G_DEFINE_TYPE_EXTENDED (NwamConnConfIPPanel,
-                        nwam_conf_ip_panel,
-                        G_TYPE_OBJECT,
-                        0,
-                        G_IMPLEMENT_INTERFACE (NWAM_TYPE_PREF_IFACE, nwam_pref_init))
+  nwam_conf_ip_panel,
+  G_TYPE_OBJECT,
+  0,
+  G_IMPLEMENT_INTERFACE(NWAM_TYPE_PREF_IFACE, nwam_pref_init)
+  G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJECT_CTRL_IFACE, nwam_object_ctrl_init))
 
 static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
@@ -275,6 +249,106 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->cancel = cancel;
     iface->help = help;
     iface->dialog_run = NULL;
+}
+
+static GObject*
+create_object(NwamObjectCtrlIFace *iface)
+{
+    NwamConnConfIPPanel        *self     = NWAM_CONN_CONF_IP_PANEL(iface);
+    NwamConnConfIPPanelPrivate *prv      = GET_PRIVATE(self);
+    NwamuiWifiNet              *new_wifi = NULL;
+    
+    nwam_wireless_dialog_set_ncu(prv->wifi_dialog, prv->ncu);
+    nwam_wireless_dialog_set_wifi_net(prv->wifi_dialog, NULL );
+    nwam_pref_set_purpose(NWAM_PREF_IFACE(prv->wifi_dialog), NWAMUI_DIALOG_PURPOSE_ADD);
+
+    switch (nwam_pref_dialog_run(NWAM_PREF_IFACE(prv->wifi_dialog), GTK_WIDGET(prv->wifi_fav_tv))) {
+    case GTK_RESPONSE_OK:
+        new_wifi = nwam_wireless_dialog_get_wifi_net( prv->wifi_dialog );
+        if ( new_wifi != NULL ) {
+            /* Add to start of list, set prio to lowest (0). */
+            nwamui_wifi_net_set_priority(new_wifi, 0 );
+
+            g_assert(NWAMUI_IS_KNOWN_WLAN(new_wifi));
+
+            if (nwamui_object_commit(NWAMUI_OBJECT(new_wifi))) {
+                nwamui_object_add(NWAMUI_OBJECT(prv->daemon), NWAMUI_OBJECT(new_wifi));
+            }
+            g_object_unref(new_wifi);
+        }
+        nwam_wireless_dialog_set_wifi_net( prv->wifi_dialog, NULL );
+        /* nwam_pref_refresh(NWAM_PREF_IFACE(self), prv->ncu, TRUE); */
+        break;
+    default:
+        break;
+    }
+    
+    return G_OBJECT(new_wifi);
+}
+
+static gboolean
+remove_object(NwamObjectCtrlIFace *iface, GObject *obj)
+{
+    NwamConnConfIPPanel        *self    = NWAM_CONN_CONF_IP_PANEL(iface);
+    NwamConnConfIPPanelPrivate *prv     = GET_PRIVATE(self);
+    gboolean                    ret     = FALSE;
+    GtkTreeModel               *model;
+    GtkTreeIter                 iter;
+    gchar                      *message = NULL;
+
+    message = g_strdup_printf(_("Remove favourite with ESSID '%s'?"), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
+    if (nwamui_util_confirm_removal(GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(prv->wifi_dialog))), _("Remove Wireless Favourite?"), message )) {
+        g_debug("Removing wifi favourite: '%s'", nwamui_object_get_name(NWAMUI_OBJECT(obj)));
+
+        nwamui_object_destroy(NWAMUI_OBJECT(obj));
+        nwamui_object_remove(NWAMUI_OBJECT(self->prv->daemon), NWAMUI_OBJECT(obj));
+
+        /* nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); */
+        ret = TRUE;
+    }
+        
+    g_free(message);
+
+    return ret;
+
+    /* Update the state of buttons */
+    /* selection_changed(gtk_tree_view_get_selection(prv->wifi_fav_tv), (gpointer)self); */
+}
+
+static void
+edit_object(NwamObjectCtrlIFace *iface, GObject *obj)
+{
+    NwamConnConfIPPanel        *self    = NWAM_CONN_CONF_IP_PANEL(iface);
+    NwamConnConfIPPanelPrivate *prv     = GET_PRIVATE(self);
+
+    nwam_wireless_dialog_set_wifi_net( prv->wifi_dialog, NWAMUI_WIFI_NET(obj));
+    nwam_pref_set_purpose(NWAM_PREF_IFACE(prv->wifi_dialog), NWAMUI_DIALOG_PURPOSE_EDIT);
+    nwam_wireless_dialog_set_do_connect( prv->wifi_dialog, FALSE );
+
+    switch (nwam_pref_dialog_run(NWAM_PREF_IFACE(prv->wifi_dialog), GTK_WIDGET(prv->wifi_dialog))) {
+    case GTK_RESPONSE_OK:
+
+        if (nwamui_object_has_modifications(NWAMUI_OBJECT(obj))) {
+            nwamui_object_commit(NWAMUI_OBJECT(obj));
+        }
+        break;
+    default:
+        break;
+    }
+
+    /* Unset wifi_net to ensure that it's not accidently changed! */
+    nwam_wireless_dialog_set_wifi_net(prv->wifi_dialog, NWAMUI_WIFI_NET(obj));
+}
+
+static void
+nwam_object_ctrl_init(gpointer g_iface, gpointer iface_data)
+{
+    NwamObjectCtrlInterface *self = (NwamObjectCtrlInterface *)g_iface;
+
+    /* Only for wireless view */
+	self->create = create_object;
+	self->remove = remove_object;
+	self->edit = edit_object;
 }
 
 static void
@@ -295,14 +369,16 @@ nwam_conf_ip_panel_class_init(NwamConnConfIPPanelClass *klass)
 static void
 nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 {
+    NwamConnConfIPPanelPrivate *prv     = GET_PRIVATE(self);
     GtkTreeViewColumn *col;
     GtkCellRenderer *renderer;
     GtkTreeModel *model;
 
     model = GTK_TREE_MODEL(gtk_list_store_new (1, NWAMUI_TYPE_WIFI_NET));
-    gtk_tree_view_set_model (view, model);
+    gtk_tree_view_set_model(view, model);
 
     g_object_set (G_OBJECT(view),
+      "nwam_object_ctrl", self,
       "headers-visible", TRUE,
       "headers-clickable", TRUE,
       "reorderable", FALSE,
@@ -310,6 +386,12 @@ nwam_compose_wifi_fav_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       "enable-search", FALSE,
       "show-expanders", TRUE,
       NULL);
+
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(view), NTV_ADD_BTN, GTK_WIDGET(prv->wireless_tab_add_button));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(view), NTV_REMOVE_BTN, GTK_WIDGET(prv->wireless_tab_remove_button));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(view), NTV_EDIT_BTN, GTK_WIDGET(prv->wireless_tab_edit_button));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(view), NTV_UP_BTN, GTK_WIDGET(prv->wireless_tab_up_button));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(view), NTV_DOWN_BTN, GTK_WIDGET(prv->wireless_tab_down_button));
 
     g_signal_connect(gtk_tree_view_get_selection(view),
       "changed",
@@ -396,31 +478,6 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 		      "headers-clickable", FALSE,
 		      NULL);
 	
-	// column IP_VIEW_HOSTNAME
-/*
-	col = gtk_tree_view_column_new_with_attributes();
-	renderer = gtk_cell_renderer_text_new();
-	gtk_tree_view_column_set_title(col, _("Hostname"));
-	g_object_set (G_OBJECT(col),
-                      "expand", TRUE,
-		      "resizable", TRUE,
-		      "clickable", TRUE,
-		      "sort-indicator", TRUE,
-		      "reorderable", TRUE,
-		      NULL);
-	gtk_tree_view_append_column (view, col);
-	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_HOSTNAME);
-	gtk_tree_view_column_pack_start(col, renderer, TRUE);
-	gtk_tree_view_column_set_cell_data_func (col,
-						 renderer,
-						 nwam_conn_multi_ip_cell_cb,
-						 (gpointer) view,
-						 NULL);
-	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
-	g_signal_connect(G_OBJECT(renderer), "edited",
-		(GCallback) nwam_conn_multi_ip_cell_edited_cb, (gpointer) view);
-	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_HOSTNAME));
-*/
 	// column IP_VIEW_ADDR
     col = capplet_column_new(view,
       "title", _("Address"),
@@ -430,28 +487,28 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
       NULL);
 	renderer = capplet_column_append_cell(col,
       gtk_cell_renderer_text_new(), TRUE,
-      (GtkTreeCellDataFunc)nwam_conn_multi_ip_cell_cb, (gpointer)view, NULL);
+      (GtkTreeCellDataFunc)nwam_ip_address_cell, (gpointer)view, NULL);
 
-	gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_ADDR);	
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
 	if (view == self->prv->ipv4_tv) {
         g_signal_connect(G_OBJECT(renderer), "edited",
-          (GCallback) nwam_conn_multi_ipv4_cell_edited_cb, (gpointer)self);
+          (GCallback)nwam_ipv4_address_cell_edited, (gpointer)view);
         g_signal_connect(G_OBJECT(renderer), "editing-started",
-          (GCallback) nwam_conn_multi_cell_editing_started_cb, 
-          (gpointer) (NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX | NWAMUI_ENTRY_VALIDATION_IS_V4));
+          (GCallback)nwam_reset_entry_validation_on_cell_editing_started, 
+          (gpointer)(NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX | NWAMUI_ENTRY_VALIDATION_IS_V4));
     } else {
         g_signal_connect(G_OBJECT(renderer), "edited",
-          (GCallback) nwam_conn_multi_ipv6_cell_edited_cb, (gpointer)self);
+          (GCallback)nwam_ipv6_address_cell_edited, (gpointer)view);
         g_signal_connect(G_OBJECT(renderer), "editing-started",
-          (GCallback) nwam_conn_multi_cell_editing_started_cb, 
-          (gpointer) (NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX | NWAMUI_ENTRY_VALIDATION_IS_V6));
+          (GCallback)nwam_reset_entry_validation_on_cell_editing_started, 
+          (gpointer)(NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX | NWAMUI_ENTRY_VALIDATION_IS_V6));
     }
     g_signal_connect(G_OBJECT(renderer), "editing-started",
-      (GCallback) nwam_conn_common_multi_cell_editing_started_cb, (gpointer)self);
+      (GCallback)nwam_disable_ok_on_cell_editing_started, (gpointer)view);
+    g_signal_connect(G_OBJECT(renderer), "edited",
+      (GCallback)nwam_enable_ok_on_cell_edited, (gpointer)view);
     g_signal_connect(G_OBJECT(renderer), "editing-canceled",
-      (GCallback) nwam_conn_common_multi_cell_editing_canceled_cb, (gpointer)self);
-	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_ADDR));
+      (GCallback)nwam_enable_ok_on_cell_canceled, (gpointer)view);
 
 	// column IP_VIEW_MASK
 	if (view == self->prv->ipv4_tv) {
@@ -469,28 +526,29 @@ nwam_compose_multi_ip_tree_view (NwamConnConfIPPanel *self, GtkTreeView *view)
 
 	renderer = capplet_column_append_cell(col,
       gtk_cell_renderer_text_new(), FALSE,
-      (GtkTreeCellDataFunc)nwam_conn_multi_ip_cell_cb, (gpointer)view, NULL);
+      (GtkTreeCellDataFunc)nwam_ip_subnet_cell, (gpointer)view, NULL);
 
 	if (view == self->prv->ipv4_tv) {
         g_signal_connect(G_OBJECT(renderer), "edited",
-          (GCallback) nwam_conn_multi_ipv4_cell_edited_cb, (gpointer)self);
+          (GCallback)nwam_ipv4_subnet_cell_edited, (gpointer)view);
         g_signal_connect(G_OBJECT(renderer), "editing-started",
-          (GCallback) nwam_conn_multi_cell_editing_started_cb, 
-          (gpointer) (NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY | NWAMUI_ENTRY_VALIDATION_IS_V4));
+          (GCallback)nwam_reset_entry_validation_on_cell_editing_started, 
+          (gpointer)(NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX | NWAMUI_ENTRY_VALIDATION_IS_V4));
 	} else {
         g_signal_connect(G_OBJECT(renderer), "edited",
-          (GCallback) nwam_conn_multi_ipv6_cell_edited_cb, (gpointer)self);
+          (GCallback)nwam_ipv6_subnet_cell_edited, (gpointer)view);
         g_signal_connect(G_OBJECT(renderer), "editing-started",
-          (GCallback) nwam_conn_multi_cell_editing_started_cb, 
-          (gpointer) (NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY | NWAMUI_ENTRY_VALIDATION_IS_V6));
+          (GCallback)nwam_reset_entry_validation_on_cell_editing_started, 
+          (gpointer)(NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY | NWAMUI_ENTRY_VALIDATION_IS_V6));
 	}
     g_signal_connect(G_OBJECT(renderer), "editing-started",
-      (GCallback) nwam_conn_common_multi_cell_editing_started_cb, (gpointer)self);
+      (GCallback)nwam_disable_ok_on_cell_editing_started, (gpointer)view);
+    g_signal_connect(G_OBJECT(renderer), "edited",
+      (GCallback)nwam_enable_ok_on_cell_edited, (gpointer)view);
     g_signal_connect(G_OBJECT(renderer), "editing-canceled",
-      (GCallback) nwam_conn_common_multi_cell_editing_canceled_cb, (gpointer)self);
+      (GCallback)nwam_enable_ok_on_cell_canceled, (gpointer)view);
 
 	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
-	g_object_set_data(G_OBJECT(renderer), "nwam_multi_ip_column_id", GUINT_TO_POINTER(IP_VIEW_MASK));
 }
 
 static void
@@ -512,19 +570,13 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
     self->prv->wireless_tab = GTK_WIDGET(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB));
     self->prv->wifi_fav_tv  = GTK_TREE_VIEW(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TABLE));
     
-    nwam_compose_wifi_fav_view( self, self->prv->wifi_fav_tv );
-
     self->prv->wireless_tab_add_button = GTK_BUTTON(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_ADD_BUTTON));
     self->prv->wireless_tab_remove_button = GTK_BUTTON(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_REMOVE_BUTTON));
     self->prv->wireless_tab_edit_button = GTK_BUTTON(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_EDIT_BUTTON));
     self->prv->wireless_tab_up_button = GTK_BUTTON(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_UP_BUTTON));
     self->prv->wireless_tab_down_button = GTK_BUTTON(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_DOWN_BUTTON));
 
-    g_signal_connect(G_OBJECT(self->prv->wireless_tab_add_button ), "clicked", (GCallback)wireless_tab_add_button_clicked_cb, (gpointer)self);
-    g_signal_connect(G_OBJECT(self->prv->wireless_tab_remove_button), "clicked", (GCallback)wireless_tab_remove_button_clicked_cb, (gpointer)self);
-    g_signal_connect(G_OBJECT(self->prv->wireless_tab_edit_button), "clicked", (GCallback)wireless_tab_edit_button_clicked_cb, (gpointer)self);
-    g_signal_connect(G_OBJECT(self->prv->wireless_tab_up_button), "clicked", (GCallback)wireless_tab_up_button_clicked_cb, (gpointer)self);
-    g_signal_connect(G_OBJECT(self->prv->wireless_tab_down_button), "clicked", (GCallback)wireless_tab_down_button_clicked_cb, (gpointer)self);
+    nwam_compose_wifi_fav_view( self, self->prv->wifi_fav_tv );
 
 	self->prv->no_preferred_networks_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_PREF_NET_COMBO));
     self->prv->join_open_cbox = GTK_CHECK_BUTTON(nwamui_util_glade_get_widget(IP_PANEL_WIRELESS_TAB_JOIN_OPEN_CBOX));
@@ -630,11 +682,14 @@ nwam_conf_ip_panel_init(NwamConnConfIPPanel *self)
 
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
 
+    /* Do we really need know how known wlans change? */
+#if 0
     g_signal_connect(self->prv->daemon, "add",
       G_CALLBACK(daemon_add_object), (gpointer)self);
 
     g_signal_connect(self->prv->daemon, "remove",
       G_CALLBACK(daemon_remove_object), (gpointer)self);
+#endif
 }
 
 static void
@@ -1494,74 +1549,6 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
     }
 }
 
-
-static void
-nwam_conn_multi_ip_cell_cb (    GtkTreeViewColumn *col,
-                                GtkCellRenderer   *renderer,
-                                GtkTreeModel      *model,
-                                GtkTreeIter       *iter,
-                                gpointer           data)
-{
-    GtkTreeView        *view = GTK_TREE_VIEW(data);
-    gchar*              hostname;
-    gchar*              addr;
-    gchar*              subnet;
-    NwamuiIp*           ip = NULL;
-    gpointer            col_id = NULL;
-
-    gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &ip, -1);
-    hostname = g_strdup(""); /* TODO - Remove hostname from IP address table */
-    addr = nwamui_ip_get_address( ip );
-    subnet = nwamui_ip_get_subnet_prefix( ip );
-
-    col_id = g_object_get_data(G_OBJECT(renderer), "nwam_multi_ip_column_id" );
-
-    switch ((gint)col_id) {
-/*
-    case IP_VIEW_HOSTNAME:
-        if ( hostname != NULL ) {
-            g_object_set (G_OBJECT(renderer),
-                    "text", hostname,
-                    NULL);
-        }
-        break;
-*/
-    case IP_VIEW_ADDR:
-        if ( addr != NULL ) {
-            g_object_set (G_OBJECT(renderer),
-                    "text", addr,
-                    NULL);
-        }
-        break;
-    case IP_VIEW_MASK:
-        if ( subnet != NULL ) {
-            g_object_set (G_OBJECT(renderer),
-                    "text", subnet,
-                    NULL);
-        }
-        break;
-    default:
-        g_assert_not_reached ();
-    }
-    g_free (hostname);
-    g_free (addr);
-    g_free (subnet);
-}
-
-static void
-nwam_conn_multi_cell_editing_started_cb(GtkCellRenderer *cell,
-                                        GtkCellEditable *editable,
-                                        const gchar     *path,
-                                        gpointer         data)
-{
-    if (GTK_IS_ENTRY (editable)) {
-        GtkEntry *entry = GTK_ENTRY (editable);
-        nwamui_entry_validation_flags_t flags = (nwamui_entry_validation_flags_t)data;
-
-        nwamui_util_set_entry_validation(entry, flags, FALSE);
-    }
-}
-
 static void
 nwam_conn_common_multi_cell_editing_started_cb(GtkCellRenderer *cell,
                                         GtkCellEditable *editable,
@@ -1578,364 +1565,6 @@ nwam_conn_common_multi_cell_editing_canceled_cb(GtkCellRenderer *cell,
 {
     NwamConnConfIPPanelPrivate* prv = GET_PRIVATE(data);
     nwam_capplet_dialog_set_ok_sensitive_by_voting(prv->pref_dialog, TRUE);
-}
-
-static void
-nwam_conn_multi_ipv4_cell_edited_cb (   GtkCellRendererText *renderer,
-                                        gchar               *path,
-                                        gchar               *new_text,
-                                        gpointer             data)
-{
-    NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(data);
-    GtkTreeView        *view = prv->ipv4_tv;
-	guint               col_id = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(renderer), "nwam_multi_ip_column_id"));
-	GtkTreeModel*       model = GTK_TREE_MODEL (gtk_tree_view_get_model(view));
-    NwamuiIp*           ip = NULL;
-	GtkTreeIter         iter;
-	
-	gtk_tree_model_get_iter_from_string (model, &iter, path);
-	gtk_tree_model_get(model, &iter, 0, &ip, -1);
-
-    g_signal_handlers_block_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data);
-
-    /* Validate data in editing */
-    if ( col_id == IP_VIEW_ADDR &&
-        !nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
-                                          NWAMUI_ENTRY_VALIDATION_IS_V4 | NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX,
-                                          TRUE, TRUE ) ) {
-        /* Invalid */
-        GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
-        GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
-
-        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), FALSE);
-
-        gtk_tree_path_free(tpath);
-        goto L_exit;
-    }
-
-    if ( col_id == IP_VIEW_MASK &&
-        !nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
-                                          NWAMUI_ENTRY_VALIDATION_IS_V4 | NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY,
-                                          TRUE, TRUE ) ) {
-        /* Invalid */
-        GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
-        GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
-
-        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), FALSE);
-
-        gtk_tree_path_free(tpath);
-        goto L_exit;
-    }
-
-	switch (col_id) {
-/*
-	case IP_VIEW_HOSTNAME:
-		break;
-*/
-	case IP_VIEW_ADDR: {
-            gchar  *address = NULL;
-            gchar  *prefix = NULL;
-
-            nwamui_util_split_address_prefix(  FALSE, new_text, &address, &prefix );
-            if ( address != NULL ) {
-                nwamui_ip_set_address(ip, address );
-            }
-            if ( prefix != NULL ) {
-                nwamui_ip_set_subnet_prefix(ip, prefix );
-            }
-            g_free( address );
-            g_free( prefix );
-        }
-		break;
-	case IP_VIEW_MASK: {
-            gchar  *address = NULL;
-            gchar  *prefix = NULL;
-
-            nwamui_util_split_address_prefix(  FALSE, new_text, &address, &prefix );
-            if ( address != NULL ) {
-                nwamui_ip_set_subnet_prefix(ip, address );
-            }
-            g_free( address );
-            g_free( prefix );
-        }
-		break;
-	default:
-		g_assert_not_reached ();
-	}
-L_exit:
-    nwam_capplet_dialog_set_ok_sensitive_by_voting(prv->pref_dialog, TRUE);
-    g_signal_handlers_unblock_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data);
-}
-
-static void
-nwam_conn_multi_ipv6_cell_edited_cb ( GtkCellRendererText *renderer,
-                                    gchar               *path,
-                                    gchar               *new_text,
-                                    gpointer             data)
-{
-    NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(data);
-    GtkTreeView        *view = prv->ipv6_tv;
-	guint               col_id = GPOINTER_TO_UINT(g_object_get_data(G_OBJECT(renderer), "nwam_multi_ip_column_id"));
-	GtkTreeModel*       model = GTK_TREE_MODEL (gtk_tree_view_get_model(view));
-    NwamuiIp*           ip = NULL;
-	GtkTreeIter         iter;
-	
-	gtk_tree_model_get_iter_from_string (model, &iter, path);
-	gtk_tree_model_get(model, &iter, 0, &ip, -1);
-
-    g_signal_handlers_block_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data);
-
-    /* Validate data in editing */
-    if ( col_id == IP_VIEW_ADDR &&
-         !nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
-                                           NWAMUI_ENTRY_VALIDATION_IS_V6 | NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX,
-                                           TRUE, TRUE ) ) {
-        /* Invalid */
-        GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
-        GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
-
-        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), FALSE);
-
-        gtk_tree_path_free(tpath);
-        goto L_exit;
-    }
-
-    if ( col_id == IP_VIEW_MASK &&
-         !nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
-                                           NWAMUI_ENTRY_VALIDATION_IS_V6 | NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY,
-                                           TRUE, TRUE ) ) {
-        /* Invalid */
-        GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
-        GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id );
-
-        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, col, GTK_CELL_RENDERER(renderer), FALSE);
-
-        gtk_tree_path_free(tpath);
-        goto L_exit;
-    }
-
-	switch (col_id) {
-/*
-	case IP_VIEW_HOSTNAME:
-		break;
-*/
-	case IP_VIEW_ADDR: {
-            gchar  *address = NULL;
-            gchar  *prefix = NULL;
-
-            nwamui_util_split_address_prefix(  TRUE, new_text, &address, &prefix );
-            if ( address != NULL ) {
-                nwamui_ip_set_address(ip, address );
-            }
-            if ( prefix != NULL ) {
-                nwamui_ip_set_subnet_prefix(ip, prefix );
-            }
-            g_free( address );
-            g_free( prefix );
-        }
-		break;
-	case IP_VIEW_MASK: {
-            gint64 prefix = g_ascii_strtoll( new_text, NULL, 10 );
-
-            if ( prefix != 0 ) {
-                gchar  *prefix_str;
-
-                prefix_str = g_strdup_printf("%lld", prefix );
-                nwamui_ip_set_subnet_prefix(ip, prefix_str );
-                g_free(prefix_str);
-            }
-
-        }
-		break;
-	default:
-		g_assert_not_reached ();
-	}
-L_exit:
-    nwam_capplet_dialog_set_ok_sensitive_by_voting(prv->pref_dialog, TRUE);
-    g_signal_handlers_unblock_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data);
-}
-
-static void 
-wireless_tab_add_button_clicked_cb( GtkButton *button, gpointer data )
-{
-    NwamConnConfIPPanel*self = NWAM_CONN_CONF_IP_PANEL(data);
-    NwamuiWifiNet*  new_wifi = NULL;
-    
-    g_debug("wireless_tab_add_button clicked");
-
-    nwam_wireless_dialog_set_ncu(self->prv->wifi_dialog, self->prv->ncu);
-    nwam_wireless_dialog_set_wifi_net(self->prv->wifi_dialog, NULL );
-    nwam_pref_set_purpose(NWAM_PREF_IFACE(self->prv->wifi_dialog), NWAMUI_DIALOG_PURPOSE_ADD);
-
-    switch (nwam_pref_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
-        case GTK_RESPONSE_OK:
-                new_wifi = nwam_wireless_dialog_get_wifi_net( self->prv->wifi_dialog );
-                if ( new_wifi != NULL ) {
-                    /* Add to start of list, set prio to lowest (0). */
-                    nwamui_wifi_net_set_priority(new_wifi, 0 );
-
-                    g_assert(NWAMUI_IS_KNOWN_WLAN(new_wifi));
-
-                    if (nwamui_object_commit(NWAMUI_OBJECT(new_wifi))) {
-                        nwamui_object_add(NWAMUI_OBJECT(self->prv->daemon), NWAMUI_OBJECT(new_wifi));
-                    }
-                    g_object_unref(new_wifi);
-                }
-                nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, NULL ); 
-                nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
-            break;
-        default:
-            break;
-    }
-    
-}
-
-static void 
-wireless_tab_remove_button_clicked_cb( GtkButton *button, gpointer data )
-{
-    NwamConnConfIPPanelPrivate *prv = GET_PRIVATE(data);
-    NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(data);
-    GtkTreeSelection    *selection;
-    GList *list,        *idx;
-    GtkTreeModel        *model;
-    NwamuiWifiNet       *wifi_net;
-	
-    g_debug("wireless_tab_remove_button clicked");
-
-    selection = gtk_tree_view_get_selection (self->prv->wifi_fav_tv);
-    model = gtk_tree_view_get_model (self->prv->wifi_fav_tv);
-
-    list = gtk_tree_selection_get_selected_rows (selection, NULL);
-
-    for (idx=list; idx; idx = g_list_next(idx)) {
-            GtkTreeIter  iter;
-            g_assert (idx->data);
-            if (gtk_tree_model_get_iter(model, &iter, (GtkTreePath *)idx->data)) {
-                gchar*  message;
-
-                gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, 0, &wifi_net, -1 );
-                
-                message = g_strdup_printf(_("Remove favourite with ESSID '%s'?"), nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)));
-                if (nwamui_util_confirm_removal( GTK_WINDOW(gtk_widget_get_toplevel(GTK_WIDGET(button))), _("Remove Wireless Favourite?"), message )) {
-                    g_debug("Removing wifi favourite: '%s'", nwamui_object_get_name(NWAMUI_OBJECT(wifi_net)));
-
-                    nwamui_object_destroy(NWAMUI_OBJECT(wifi_net));
-                    /* nwamui_object_remove(NWAMUI_OBJECT(self->prv->daemon), NWAMUI_OBJECT(wifi_net)); */
-
-                    nwam_pref_refresh(NWAM_PREF_IFACE(self), self->prv->ncu, TRUE); /* Refresh IP Data */
-                }
-                g_free(message);
-            } else {
-                g_assert_not_reached ();
-            }
-            gtk_tree_path_free ((GtkTreePath *)idx->data);
-    }
-    g_list_free (list);
-
-    /* Update the state of buttons */
-    selection_changed(gtk_tree_view_get_selection(prv->wifi_fav_tv), (gpointer)self);
-}
-
-static void 
-wireless_tab_edit_button_clicked_cb( GtkButton *button, gpointer data )
-{
-    NwamConnConfIPPanel *self = NWAM_CONN_CONF_IP_PANEL(data);
-    GtkTreeSelection    *selection;
-    GList *list,        *idx;
-    GtkTreeModel        *model;
-    NwamuiWifiNet       *wifi_net;
-	
-    g_debug("wireless_tab_edit_button clicked");
-
-    selection = gtk_tree_view_get_selection (self->prv->wifi_fav_tv);
-    model = gtk_tree_view_get_model (self->prv->wifi_fav_tv);
-
-    list = gtk_tree_selection_get_selected_rows (selection, NULL);
-
-    for (idx=list; idx; idx = g_list_next(idx)) {
-            GtkTreeIter  iter;
-            g_assert (idx->data);
-            if (gtk_tree_model_get_iter(model, &iter, (GtkTreePath *)idx->data)) {
-                gchar*          name;
-                gchar*          message;
-                NwamuiWifiNet*  new_wifi;
-
-                gtk_tree_model_get( GTK_TREE_MODEL( model ), &iter, 0, &wifi_net, -1 );
-
-                nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, wifi_net );
-                nwam_pref_set_purpose(NWAM_PREF_IFACE(self->prv->wifi_dialog), NWAMUI_DIALOG_PURPOSE_EDIT);
-                nwam_wireless_dialog_set_do_connect( self->prv->wifi_dialog, FALSE );
-
-                switch (nwam_pref_dialog_run(NWAM_PREF_IFACE( self->prv->wifi_dialog ), GTK_WIDGET(button))) {
-                    case GTK_RESPONSE_OK:
-
-                        if (nwamui_object_has_modifications(NWAMUI_OBJECT(wifi_net))) {
-                            nwamui_object_commit(NWAMUI_OBJECT(wifi_net));
-                        }
-                        /* Refresh the row */
-                        gtk_tree_model_row_changed(GTK_TREE_MODEL(model), (GtkTreePath *)idx->data, &iter);
-                        break;
-                    default:
-                        break;
-                }
-
-                /* Unset wifi_net to ensure that it's not accidently changed! */
-                nwam_wireless_dialog_set_wifi_net( self->prv->wifi_dialog, wifi_net );
-
-            } else {
-                g_assert_not_reached ();
-            }
-            gtk_tree_path_free ((GtkTreePath *)idx->data);
-    }
-    g_list_free (list);
-}
-
-static void 
-wireless_tab_up_button_clicked_cb( GtkButton *button, gpointer data )
-{
-    NwamConnConfIPPanel         *self = NWAM_CONN_CONF_IP_PANEL(data);
-    NwamConnConfIPPanelPrivate* prv = GET_PRIVATE(self);
-    GtkTreeModel*               model;
-    GtkTreeIter                 iter;
-    GtkTreeSelection*           selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(prv->wifi_fav_tv));
-
-    if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
-        GtkTreePath*    path = gtk_tree_model_get_path(model, &iter);
-        
-        if ( gtk_tree_path_prev(path) ) { /* See if we have somewhere to move up to... */
-            GtkTreeIter prev_iter;
-            if ( gtk_tree_model_get_iter(model, &prev_iter, path) ) {
-                gtk_list_store_move_before(GTK_LIST_STORE(model), &iter, &prev_iter );
-            }
-        }
-        gtk_tree_path_free(path);
-    }
-
-    /* Update the state of buttons */
-    selection_changed(gtk_tree_view_get_selection(prv->wifi_fav_tv), (gpointer)self);
-}
-
-static void 
-wireless_tab_down_button_clicked_cb( GtkButton *button, gpointer data )
-{
-    NwamConnConfIPPanel        *self = NWAM_CONN_CONF_IP_PANEL(data);
-    NwamConnConfIPPanelPrivate* prv = GET_PRIVATE(self);
-    GtkTreeModel*               model;
-    GtkTreeIter                 iter;
-    GtkTreeSelection*           selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(prv->wifi_fav_tv));
-
-    if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
-        GtkTreeIter *next_iter = gtk_tree_iter_copy(&iter);
-        
-        if ( gtk_tree_model_iter_next(GTK_TREE_MODEL(model), next_iter) ) { /* See if we have somewhere to move down to... */
-            gtk_list_store_move_after(GTK_LIST_STORE(model), &iter, next_iter );
-        }
-        
-        gtk_tree_iter_free(next_iter);
-    }
-
-    /* Update the state of buttons */
-    selection_changed(gtk_tree_view_get_selection(prv->wifi_fav_tv), (gpointer)self);
 }
 
 static void

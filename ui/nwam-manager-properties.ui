@@ -857,6 +857,7 @@
                             <child>
                               <object class="GtkAlignment" id="ipv4_alignment1">
                                 <property name="visible">True</property>
+                                <property name="top_padding">6</property>
                                 <property name="left_padding">12</property>
                                 <child>
                                   <object class="GtkTable" id="multiple_table">
@@ -1728,7 +1729,7 @@ connection will be attempted:</property>
                                 <property name="vscrollbar_policy">automatic</property>
                                 <property name="shadow_type">in</property>
                                 <child>
-                                  <object class="GtkTreeView" id="wireless_treeview">
+                                  <object class="NwamTreeView" id="wireless_treeview">
                                     <property name="visible">True</property>
                                     <property name="can_focus">True</property>
                                     <property name="rules_hint">True</property>
@@ -2678,83 +2679,6 @@ connection will be attempted:</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="dns_domain_entry_label">
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">D_omain:</property>
-                                <property name="use_underline">True</property>
-                                <accessibility>
-                                  <relation type="label-for" target="dns_domain_entry"/>
-                                </accessibility>
-                              </object>
-                              <packing>
-                                <property name="left_attach">3</property>
-                                <property name="right_attach">4</property>
-                                <property name="x_options">GTK_FILL</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="dns_servers_entry_label">
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Ser_vers:</property>
-                                <property name="use_underline">True</property>
-                                <accessibility>
-                                  <relation type="label-for" target="dns_servers_entry"/>
-                                </accessibility>
-                              </object>
-                              <packing>
-                                <property name="left_attach">3</property>
-                                <property name="right_attach">4</property>
-                                <property name="top_attach">1</property>
-                                <property name="bottom_attach">2</property>
-                                <property name="x_options">GTK_FILL</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="dns_search_entry_label">
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Sear_ch:</property>
-                                <property name="use_underline">True</property>
-                                <accessibility>
-                                  <relation type="label-for" target="dns_search_entry"/>
-                                </accessibility>
-                              </object>
-                              <packing>
-                                <property name="left_attach">3</property>
-                                <property name="right_attach">4</property>
-                                <property name="top_attach">2</property>
-                                <property name="bottom_attach">3</property>
-                                <property name="x_options">GTK_FILL</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="nis_domain_label_label">
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Domain:</property>
-                                <accessibility>
-                                  <relation type="label-for" target="nis_domain_label"/>
-                                </accessibility>
-                              </object>
-                              <packing>
-                                <property name="left_attach">3</property>
-                                <property name="right_attach">4</property>
-                                <property name="top_attach">3</property>
-                                <property name="bottom_attach">4</property>
-                                <property name="x_options">GTK_FILL</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
-                            </child>
-                            <child>
                               <object class="GtkLabel" id="nis_domain_label">
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
@@ -2766,45 +2690,6 @@ connection will be attempted:</property>
                                 <property name="right_attach">5</property>
                                 <property name="top_attach">3</property>
                                 <property name="bottom_attach">4</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="nis_servers_entry_label">
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">S_ervers:</property>
-                                <property name="use_underline">True</property>
-                                <accessibility>
-                                  <relation type="label-for" target="nis_servers_entry"/>
-                                </accessibility>
-                              </object>
-                              <packing>
-                                <property name="left_attach">3</property>
-                                <property name="right_attach">4</property>
-                                <property name="top_attach">4</property>
-                                <property name="bottom_attach">5</property>
-                                <property name="x_options">GTK_FILL</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="ldap_domain_label_label">
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">Domain:</property>
-                                <accessibility>
-                                  <relation type="label-for" target="ldap_domain_label"/>
-                                </accessibility>
-                              </object>
-                              <packing>
-                                <property name="left_attach">3</property>
-                                <property name="right_attach">4</property>
-                                <property name="top_attach">5</property>
-                                <property name="bottom_attach">6</property>
-                                <property name="x_options">GTK_FILL</property>
                                 <property name="y_options">GTK_FILL</property>
                               </packing>
                             </child>
@@ -2936,26 +2821,6 @@ connection will be attempted:</property>
                               </packing>
                             </child>
                             <child>
-                              <object class="GtkLabel" id="ldap_servers_entry_label">
-                                <property name="visible">True</property>
-                                <property name="sensitive">False</property>
-                                <property name="xalign">0</property>
-                                <property name="label" translatable="yes">S_ervers:</property>
-                                <property name="use_underline">True</property>
-                                <accessibility>
-                                  <relation type="label-for" target="ldap_servers_entry"/>
-                                </accessibility>
-                              </object>
-                              <packing>
-                                <property name="left_attach">3</property>
-                                <property name="right_attach">4</property>
-                                <property name="top_attach">6</property>
-                                <property name="bottom_attach">7</property>
-                                <property name="x_options">GTK_FILL</property>
-                                <property name="y_options">GTK_FILL</property>
-                              </packing>
-                            </child>
-                            <child>
                               <object class="GtkEntry" id="ldap_servers_entry">
                                 <property name="visible">True</property>
                                 <property name="sensitive">False</property>
@@ -2967,6 +2832,184 @@ connection will be attempted:</property>
                                 <property name="right_attach">5</property>
                                 <property name="top_attach">6</property>
                                 <property name="bottom_attach">7</property>
+                                <property name="y_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkAlignment" id="dns_domain_align">
+                                <property name="visible">True</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <object class="GtkLabel" id="dns_domain_entry_label">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">D_omain:</property>
+                                    <property name="use_underline">True</property>
+                                    <accessibility>
+                                      <relation type="label-for" target="dns_domain_entry"/>
+                                    </accessibility>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">3</property>
+                                <property name="right_attach">4</property>
+                                <property name="x_options">GTK_FILL</property>
+                                <property name="y_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkAlignment" id="dns_server_align">
+                                <property name="visible">True</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <object class="GtkLabel" id="dns_servers_entry_label">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">Ser_vers:</property>
+                                    <property name="use_underline">True</property>
+                                    <accessibility>
+                                      <relation type="label-for" target="dns_servers_entry"/>
+                                    </accessibility>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">3</property>
+                                <property name="right_attach">4</property>
+                                <property name="top_attach">1</property>
+                                <property name="bottom_attach">2</property>
+                                <property name="x_options">GTK_FILL</property>
+                                <property name="y_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkAlignment" id="dns_search_align">
+                                <property name="visible">True</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <object class="GtkLabel" id="dns_search_entry_label">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">Sear_ch:</property>
+                                    <property name="use_underline">True</property>
+                                    <accessibility>
+                                      <relation type="label-for" target="dns_search_entry"/>
+                                    </accessibility>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">3</property>
+                                <property name="right_attach">4</property>
+                                <property name="top_attach">2</property>
+                                <property name="bottom_attach">3</property>
+                                <property name="x_options">GTK_FILL</property>
+                                <property name="y_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkAlignment" id="nis_domain_align">
+                                <property name="visible">True</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <object class="GtkLabel" id="nis_domain_label_label">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">Domain:</property>
+                                    <accessibility>
+                                      <relation type="label-for" target="nis_domain_label"/>
+                                    </accessibility>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">3</property>
+                                <property name="right_attach">4</property>
+                                <property name="top_attach">3</property>
+                                <property name="bottom_attach">4</property>
+                                <property name="x_options">GTK_FILL</property>
+                                <property name="y_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkAlignment" id="nis_servers_align">
+                                <property name="visible">True</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <object class="GtkLabel" id="nis_servers_entry_label">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">S_ervers:</property>
+                                    <property name="use_underline">True</property>
+                                    <accessibility>
+                                      <relation type="label-for" target="nis_servers_entry"/>
+                                    </accessibility>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">3</property>
+                                <property name="right_attach">4</property>
+                                <property name="top_attach">4</property>
+                                <property name="bottom_attach">5</property>
+                                <property name="x_options">GTK_FILL</property>
+                                <property name="y_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkAlignment" id="ldap_domain_align">
+                                <property name="visible">True</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <object class="GtkLabel" id="ldap_domain_label_label">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">Domain:</property>
+                                    <accessibility>
+                                      <relation type="label-for" target="ldap_domain_label"/>
+                                    </accessibility>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">3</property>
+                                <property name="right_attach">4</property>
+                                <property name="top_attach">5</property>
+                                <property name="bottom_attach">6</property>
+                                <property name="x_options">GTK_FILL</property>
+                                <property name="y_options">GTK_FILL</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkAlignment" id="ldap_servers_align">
+                                <property name="visible">True</property>
+                                <property name="left_padding">12</property>
+                                <child>
+                                  <object class="GtkLabel" id="ldap_servers_entry_label">
+                                    <property name="visible">True</property>
+                                    <property name="sensitive">False</property>
+                                    <property name="xalign">0</property>
+                                    <property name="label" translatable="yes">S_ervers:</property>
+                                    <property name="use_underline">True</property>
+                                    <accessibility>
+                                      <relation type="label-for" target="ldap_servers_entry"/>
+                                    </accessibility>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="left_attach">3</property>
+                                <property name="right_attach">4</property>
+                                <property name="top_attach">6</property>
+                                <property name="bottom_attach">7</property>
+                                <property name="x_options">GTK_FILL</property>
                                 <property name="y_options">GTK_FILL</property>
                               </packing>
                             </child>
@@ -3021,7 +3064,7 @@ connection will be attempted:</property>
                         <child>
                           <object class="GtkTable" id="table8">
                             <property name="visible">True</property>
-                            <property name="n_rows">6</property>
+                            <property name="n_rows">8</property>
                             <property name="n_columns">3</property>
                             <property name="column_spacing">6</property>
                             <property name="row_spacing">6</property>
@@ -3036,8 +3079,8 @@ connection will be attempted:</property>
                                 </accessibility>
                               </object>
                               <packing>
-                                <property name="top_attach">4</property>
-                                <property name="bottom_attach">5</property>
+                                <property name="top_attach">6</property>
+                                <property name="bottom_attach">7</property>
                                 <property name="x_options">GTK_FILL</property>
                                 <property name="y_options">GTK_FILL</property>
                               </packing>
@@ -3051,8 +3094,8 @@ connection will be attempted:</property>
                               <packing>
                                 <property name="left_attach">1</property>
                                 <property name="right_attach">2</property>
-                                <property name="top_attach">4</property>
-                                <property name="bottom_attach">5</property>
+                                <property name="top_attach">6</property>
+                                <property name="bottom_attach">7</property>
                                 <property name="y_options">GTK_FILL</property>
                               </packing>
                             </child>
@@ -3067,8 +3110,8 @@ connection will be attempted:</property>
                               <packing>
                                 <property name="left_attach">2</property>
                                 <property name="right_attach">3</property>
-                                <property name="top_attach">4</property>
-                                <property name="bottom_attach">5</property>
+                                <property name="top_attach">6</property>
+                                <property name="bottom_attach">7</property>
                                 <property name="x_options">GTK_FILL</property>
                                 <property name="y_options">GTK_FILL</property>
                               </packing>
@@ -3138,8 +3181,8 @@ connection will be attempted:</property>
                               </object>
                               <packing>
                                 <property name="right_attach">3</property>
-                                <property name="top_attach">5</property>
-                                <property name="bottom_attach">6</property>
+                                <property name="top_attach">7</property>
+                                <property name="bottom_attach">8</property>
                               </packing>
                             </child>
                             <child>
@@ -3158,6 +3201,198 @@ connection will be attempted:</property>
                               </object>
                               <packing>
                                 <property name="right_attach">3</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkLabel" id="profile_panel_label1">
+                                <property name="visible">True</property>
+                              </object>
+                              <packing>
+                                <property name="right_attach">3</property>
+                                <property name="top_attach">5</property>
+                                <property name="bottom_attach">6</property>
+                              </packing>
+                            </child>
+                            <child>
+                              <object class="GtkExpander" id="expander1">
+                                <property name="visible">True</property>
+                                <property name="can_focus">True</property>
+                                <child>
+                                  <object class="GtkFrame" id="dns_advanced_frame">
+                                    <property name="visible">True</property>
+                                    <property name="label_xalign">0</property>
+                                    <property name="shadow_type">none</property>
+                                    <child>
+                                      <object class="GtkAlignment" id="sortlist_alignment">
+                                        <property name="visible">True</property>
+                                        <property name="left_padding">12</property>
+                                        <child>
+                                          <object class="GtkVBox" id="dns_adv_vbox">
+                                            <property name="visible">True</property>
+                                            <property name="orientation">vertical</property>
+                                            <property name="spacing">12</property>
+                                            <child>
+                                              <object class="GtkTable" id="sortlist_tbl">
+                                                <property name="visible">True</property>
+                                                <property name="n_rows">3</property>
+                                                <property name="n_columns">3</property>
+                                                <property name="column_spacing">6</property>
+                                                <property name="row_spacing">3</property>
+                                                <child>
+                                                  <object class="GtkButton" id="sortlist_add_btn">
+                                                    <property name="label">gtk-add</property>
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">True</property>
+                                                    <property name="receives_default">True</property>
+                                                    <property name="use_stock">True</property>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="left_attach">1</property>
+                                                    <property name="right_attach">2</property>
+                                                    <property name="top_attach">2</property>
+                                                    <property name="bottom_attach">3</property>
+                                                    <property name="x_options">GTK_FILL</property>
+                                                    <property name="y_options"></property>
+                                                  </packing>
+                                                </child>
+                                                <child>
+                                                  <object class="GtkButton" id="sortlist_delete_btn">
+                                                    <property name="label">gtk-remove</property>
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">True</property>
+                                                    <property name="receives_default">True</property>
+                                                    <property name="use_stock">True</property>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="left_attach">2</property>
+                                                    <property name="right_attach">3</property>
+                                                    <property name="top_attach">2</property>
+                                                    <property name="bottom_attach">3</property>
+                                                    <property name="x_options">GTK_FILL</property>
+                                                    <property name="y_options"></property>
+                                                  </packing>
+                                                </child>
+                                                <child>
+                                                  <object class="GtkScrolledWindow" id="sortlist_scrolledwindow">
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">True</property>
+                                                    <property name="hscrollbar_policy">automatic</property>
+                                                    <property name="vscrollbar_policy">automatic</property>
+                                                    <property name="shadow_type">in</property>
+                                                    <child>
+                                                      <object class="NwamTreeView" id="sortlist_table">
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="model">ipv4_static_table_model</property>
+                                                        <property name="rules_hint">True</property>
+                                                        <property name="enable_search">False</property>
+                                                        <property name="search_column">0</property>
+                                                      </object>
+                                                    </child>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="right_attach">3</property>
+                                                    <property name="top_attach">1</property>
+                                                    <property name="bottom_attach">2</property>
+                                                  </packing>
+                                                </child>
+                                                <child>
+                                                  <object class="GtkLabel" id="sortlist_dblclick_lbl">
+                                                    <property name="visible">True</property>
+                                                    <property name="xalign">0</property>
+                                                    <property name="label" translatable="yes">&lt;i&gt;&lt;small&gt;Double-click table cells to edit&lt;/small&gt;&lt;/i&gt;</property>
+                                                    <property name="use_markup">True</property>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="top_attach">2</property>
+                                                    <property name="bottom_attach">3</property>
+                                                    <property name="y_options"></property>
+                                                  </packing>
+                                                </child>
+                                                <child>
+                                                  <object class="GtkLabel" id="sortlist_label">
+                                                    <property name="visible">True</property>
+                                                    <property name="xalign">0</property>
+                                                    <property name="label" translatable="yes">_Sort _List:</property>
+                                                    <property name="use_markup">True</property>
+                                                    <property name="use_underline">True</property>
+                                                    <accessibility>
+                                                      <relation type="label-for" target="address_table"/>
+                                                    </accessibility>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="right_attach">3</property>
+                                                  </packing>
+                                                </child>
+                                              </object>
+                                              <packing>
+                                                <property name="position">0</property>
+                                              </packing>
+                                            </child>
+                                            <child>
+                                              <object class="GtkTable" id="dns_options_tbl">
+                                                <property name="visible">True</property>
+                                                <property name="n_rows">2</property>
+                                                <property name="n_columns">2</property>
+                                                <child>
+                                                  <object class="GtkLabel" id="dns_options_lbl">
+                                                    <property name="visible">True</property>
+                                                    <property name="xalign">0</property>
+                                                    <property name="label" translatable="yes">Options: </property>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="x_options">GTK_FILL</property>
+                                                  </packing>
+                                                </child>
+                                                <child>
+                                                  <object class="GtkEntry" id="dns_options_entry">
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">True</property>
+                                                    <property name="invisible_char">&#x25CF;</property>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="left_attach">1</property>
+                                                    <property name="right_attach">2</property>
+                                                  </packing>
+                                                </child>
+                                                <child>
+                                                  <object class="GtkLabel" id="dns_options_example_lbl">
+                                                    <property name="visible">True</property>
+                                                    <property name="xalign">1</property>
+                                                    <property name="label" translatable="yes">&lt;small&gt;&lt;i&gt;&lt;b&gt;Example:&lt;/b&gt; attempts:3 ndots:2 debug&lt;/i&gt;&lt;/small&gt;</property>
+                                                    <property name="use_markup">True</property>
+                                                  </object>
+                                                  <packing>
+                                                    <property name="right_attach">2</property>
+                                                    <property name="top_attach">1</property>
+                                                    <property name="bottom_attach">2</property>
+                                                  </packing>
+                                                </child>
+                                              </object>
+                                              <packing>
+                                                <property name="position">1</property>
+                                              </packing>
+                                            </child>
+                                          </object>
+                                        </child>
+                                      </object>
+                                    </child>
+                                    <child type="label_item">
+                                      <placeholder/>
+                                    </child>
+                                  </object>
+                                </child>
+                                <child type="label">
+                                  <object class="GtkLabel" id="dns_advanced_lbl">
+                                    <property name="visible">True</property>
+                                    <property name="label" translatable="yes">Advanced resolver settings</property>
+                                  </object>
+                                </child>
+                              </object>
+                              <packing>
+                                <property name="right_attach">3</property>
+                                <property name="top_attach">4</property>
+                                <property name="bottom_attach">5</property>
                               </packing>
                             </child>
                           </object>

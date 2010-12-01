@@ -716,16 +716,19 @@ table_models_refresh( void )
     GtkTreeModel   *model;
 
     /* NCP */
-    model = table_get_condition_ncp_list_model ();
-    capplet_update_model_from_daemon(model, daemon, NWAMUI_TYPE_NCP);
+    model = table_get_condition_ncp_list_model();
+	gtk_list_store_clear(GTK_LIST_STORE(model));
+    nwamui_daemon_foreach_ncp(daemon, capplet_list_foreach_merge_to_list_store, (gpointer)model);
 
     /* LOC */
-    model = table_get_condition_loc_list_model ();
-    capplet_update_model_from_daemon(model, daemon, NWAMUI_TYPE_ENV);
+    model = table_get_condition_loc_list_model();
+	gtk_list_store_clear(GTK_LIST_STORE(model));
+    nwamui_daemon_foreach_loc(daemon, capplet_list_foreach_merge_to_list_store, (gpointer)model);
 
     /* ENM */
-    model = table_get_condition_enm_list_model ();
-    capplet_update_model_from_daemon(model, daemon, NWAMUI_TYPE_ENM);
+    model = table_get_condition_enm_list_model();
+	gtk_list_store_clear(GTK_LIST_STORE(model));
+    nwamui_daemon_foreach_enm(daemon, capplet_list_foreach_merge_to_list_store, (gpointer)model);
 }
 
 static void

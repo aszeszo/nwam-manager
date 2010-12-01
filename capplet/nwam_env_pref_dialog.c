@@ -81,6 +81,13 @@
 #define     NSSWITCH_DEFAULT_BTN                        "nsswitch_default_btn"
 #define     DEFAULT_FILE_LBL                        "default_file_lbl"
 
+#define     EXPANDER1           "expander1"
+#define     SORTLIST_TABLE      "sortlist_table"
+#define     SORTLIST_ADD_BTN    "sortlist_add_btn"
+#define     SORTLIST_DELETE_BTN "sortlist_delete_btn"
+#define     DNS_OPTIONS_ENTRY   "dns_options_entry"
+
+
 #ifdef ENABLE_PROXY
 #define     PROXY_CONFIG_COMBO             "proxy_config_combo"
 #define     PROXY_NOTEBOOK                 "proxy_notebook"
@@ -213,6 +220,12 @@ struct _NwamEnvPrefDialogPrivate {
     GtkButton*                  nsswitch_default_btn;
     GtkWidget                   *default_file_lbl;
 
+    GtkExpander *expander1;
+    GtkTreeView *sortlist_table;
+    GtkButton *sortlist_add_btn;
+    GtkButton *sortlist_delete_btn;
+    GtkEntry *dns_options_entry;
+
 #ifdef ENABLE_NETSERVICES
     GtkTreeView*                enabled_netservices_list;
     GtkTreeView*                disabled_netservices_list;
@@ -246,6 +259,7 @@ struct _NwamEnvPrefDialogPrivate {
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static void nwam_object_ctrl_init(gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
@@ -262,6 +276,8 @@ static void         select_proxy_panel( NwamEnvPrefDialog* self, nwamui_env_prox
 #ifdef ENABLE_NETSERVICES
 static void nwam_compose_tree_view (NwamEnvPrefDialog *self);
 #endif /* ENABLE_NETSERVICES */
+
+static void nwam_compose_sortlist_view(NwamEnvPrefDialog *self);
 
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 
@@ -333,11 +349,12 @@ static void svc_list_merge_to_model(gpointer data, gpointer user_data);
 
 static void on_activate_static_menuitems (GtkAction *action, gpointer data);
 
-G_DEFINE_TYPE_EXTENDED (NwamEnvPrefDialog,
+G_DEFINE_TYPE_EXTENDED(NwamEnvPrefDialog,
   nwam_env_pref_dialog,
   G_TYPE_OBJECT,
   0,
-  G_IMPLEMENT_INTERFACE (NWAM_TYPE_PREF_IFACE, nwam_pref_init))
+  G_IMPLEMENT_INTERFACE(NWAM_TYPE_PREF_IFACE, nwam_pref_init)
+  G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJECT_CTRL_IFACE, nwam_object_ctrl_init))
 
 static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
@@ -349,6 +366,27 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
     iface->help = help;
     iface->dialog_run = dialog_run;
     iface->dialog_get_window = dialog_get_window;
+}
+
+static GObject*
+create_object(NwamObjectCtrlIFace *iface)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
+    return G_OBJECT(nwamui_ip_new(NULL, "", "", FALSE, FALSE, FALSE));
+}
+
+static gboolean
+remove_object(NwamObjectCtrlIFace *iface, GObject *obj)
+{
+}
+
+static void
+nwam_object_ctrl_init(gpointer g_iface, gpointer iface_data)
+{
+    NwamObjectCtrlInterface *self = (NwamObjectCtrlInterface *)g_iface;
+
+	self->create = create_object;
+	self->remove = remove_object;
 }
 
 static void
@@ -437,6 +475,12 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
                                                           
     prv->default_domain_entry = GTK_ENTRY(nwamui_util_glade_get_widget(NAMMESERVICE_DEFAULT_DOMAIN));
     prv->default_domain_entry_label = GTK_LABEL(nwamui_util_glade_get_widget(NAMMESERVICE_DEFAULT_DOMAIN_LABEL));
+
+    prv->expander1 = GTK_EXPANDER(nwamui_util_glade_get_widget(EXPANDER1));
+	prv->sortlist_table = GTK_TREE_VIEW(nwamui_util_glade_get_widget(SORTLIST_TABLE));
+	prv->sortlist_add_btn = GTK_BUTTON(nwamui_util_glade_get_widget(SORTLIST_ADD_BTN));
+	prv->sortlist_delete_btn = GTK_BUTTON(nwamui_util_glade_get_widget(SORTLIST_DELETE_BTN));
+	prv->dns_options_entry = GTK_ENTRY(nwamui_util_glade_get_widget(DNS_OPTIONS_ENTRY));
 
     prv->nsswitch_file_btn = GTK_FILE_CHOOSER_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_FILE_BTN));
     prv->nsswitch_default_btn = GTK_BUTTON(nwamui_util_glade_get_widget(NSSWITCH_DEFAULT_BTN));
@@ -574,6 +618,8 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
       "toggled", (GCallback)on_button_toggled, (gpointer)self);
     g_signal_connect(prv->ipsec_policy_cb,
       "toggled", (GCallback)on_button_toggled, (gpointer)self);
+
+    nwam_compose_sortlist_view(self);
 
 #ifdef ENABLE_NETSERVICES
     {
@@ -793,6 +839,78 @@ nwam_compose_tree_view (NwamEnvPrefDialog *self)
 
 }
 #endif /* ENABLE_NETSERVICES */
+
+static void
+nwam_compose_sortlist_view(NwamEnvPrefDialog *self)
+{
+	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(self);
+    GtkTreeView *view = prv->sortlist_table;
+    GtkTreeModel *model;
+	GtkTreeViewColumn *col;
+	GtkCellRenderer *renderer;
+
+    model = GTK_TREE_MODEL(gtk_list_store_new (1, NWAMUI_TYPE_IP));
+    gtk_tree_view_set_model(view, model);
+
+	g_object_set (G_OBJECT(view),
+      "nwam_object_ctrl", self,
+      "headers-clickable", FALSE,
+      NULL);
+	
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(prv->sortlist_table), NTV_ADD_BTN, GTK_WIDGET(prv->sortlist_add_btn));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(prv->sortlist_table), NTV_REMOVE_BTN, GTK_WIDGET(prv->sortlist_delete_btn));
+
+	// column 
+    col = capplet_column_new(view,
+      "title", _("Address"),
+      "resizable", TRUE,
+      "clickable", TRUE,
+      "min-width", 150,
+      NULL);
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), TRUE,
+      (GtkTreeCellDataFunc)nwam_ip_address_cell, (gpointer)view, NULL);
+
+	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
+    g_signal_connect(G_OBJECT(renderer), "edited",
+      (GCallback)nwam_ipv4_address_cell_edited, (gpointer)view);
+    g_signal_connect(G_OBJECT(renderer), "editing-started",
+      (GCallback)nwam_reset_entry_validation_on_cell_editing_started, 
+      (gpointer)(NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX | NWAMUI_ENTRY_VALIDATION_IS_V4));
+    g_signal_connect(G_OBJECT(renderer), "editing-started",
+      (GCallback)nwam_disable_ok_on_cell_editing_started, (gpointer)view);
+    g_signal_connect(G_OBJECT(renderer), "edited",
+      (GCallback)nwam_enable_ok_on_cell_edited, (gpointer)view);
+    g_signal_connect(G_OBJECT(renderer), "editing-canceled",
+      (GCallback)nwam_enable_ok_on_cell_canceled, (gpointer)view);
+
+	// column IP_VIEW_MASK
+    col = capplet_column_new(view,
+      "title", _("Subnet Mask"),
+      "resizable", TRUE,
+      "clickable", TRUE,
+      NULL);
+
+	/* gtk_tree_view_column_set_sort_column_id (col, IP_VIEW_MASK);	 */
+
+	renderer = capplet_column_append_cell(col,
+      gtk_cell_renderer_text_new(), FALSE,
+      (GtkTreeCellDataFunc)nwam_ip_subnet_cell, (gpointer)view, NULL);
+
+    g_signal_connect(G_OBJECT(renderer), "edited",
+      (GCallback)nwam_ipv4_subnet_cell_edited, (gpointer)view);
+    g_signal_connect(G_OBJECT(renderer), "editing-started",
+      (GCallback)nwam_reset_entry_validation_on_cell_editing_started, 
+      (gpointer)(NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY | NWAMUI_ENTRY_VALIDATION_IS_V4));
+    g_signal_connect(G_OBJECT(renderer), "editing-started",
+      (GCallback)nwam_disable_ok_on_cell_editing_started, (gpointer)view);
+    g_signal_connect(G_OBJECT(renderer), "edited",
+      (GCallback)nwam_enable_ok_on_cell_edited, (gpointer)view);
+    g_signal_connect(G_OBJECT(renderer), "editing-canceled",
+      (GCallback)nwam_enable_ok_on_cell_canceled, (gpointer)view);
+
+	g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
+}
 
 static void
 populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
@@ -1110,6 +1228,23 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry_label), nis || ldap );
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry), nis || ldap );
     
+    {
+        gchar *options  = nwamui_env_get_dns_nameservice_options(current_env);
+        GList *sortlist = nwamui_env_get_dns_nameservice_sortlist(current_env);
+
+        if (options || sortlist) {
+            gtk_expander_set_expanded(prv->expander1, TRUE);
+            /* If user has open it, we don't care it. */
+        }
+
+        gtk_entry_set_text(prv->dns_options_entry, options ? options : "");
+        g_free(options);
+
+		gtk_list_store_clear(GTK_LIST_STORE(gtk_tree_view_get_model(prv->sortlist_table)));
+        g_list_foreach(sortlist, capplet_list_foreach_merge_to_list_store, (gpointer)gtk_tree_view_get_model(prv->sortlist_table));
+        g_list_free(sortlist);
+    }
+
     block_nameservices_signals( self, FALSE );
 
     /*
@@ -2068,8 +2203,9 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         gboolean    check_default_domain = FALSE;
 
         /* DNS Servers */
-        for ( GList* elem =  nwamui_env_get_nameservices( current_env );
-                elem != NULL; elem = g_list_next(elem) ) {
+        for (GList* elem = nwamui_env_get_nameservices(current_env);
+             elem != NULL;
+             elem = g_list_next(elem)) {
             switch ( (nwamui_env_nameservices_t)elem->data ) {
                 case NWAMUI_ENV_NAMESERVICES_DNS:
                     /* Required */
@@ -2140,6 +2276,17 @@ apply(NwamPrefIFace *iface, gpointer user_data)
                     _("A nameservice switch file should be specified\nif more than one name service is selected."),
                     TRUE);
             return( FALSE );
+        }
+
+        {
+            const gchar *dns_options = gtk_entry_get_text(prv->dns_options_entry);
+            nwamui_env_set_dns_nameservice_options(current_env, dns_options ? dns_options : "");
+        }
+
+        {
+            GList *sortlist = capplet_model_to_list(gtk_tree_view_get_model(prv->sortlist_table));
+            nwamui_env_set_dns_nameservice_sortlist(current_env, sortlist);
+            g_list_free(sortlist);
         }
     }
 

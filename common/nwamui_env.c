@@ -79,6 +79,8 @@ enum {
     PROP_DNS_NAMESERVICE_DOMAIN,
     PROP_DNS_NAMESERVICE_SERVERS,
     PROP_DNS_NAMESERVICE_SEARCH,
+    PROP_DNS_NAMESERVICE_OPTIONS,
+    PROP_DNS_NAMESERVICE_SORTLIST,
     PROP_NIS_NAMESERVICE_CONFIG_SOURCE,
     PROP_NIS_NAMESERVICE_SERVERS,
     PROP_LDAP_NAMESERVICE_CONFIG_SOURCE,
@@ -282,6 +284,21 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
                                                           _("dns_nameservice_search"),
                                                           _("dns_nameservice_search"),
                                                           G_PARAM_READWRITE));
+
+    g_object_class_install_property(gobject_class,
+      PROP_DNS_NAMESERVICE_OPTIONS,
+      g_param_spec_string("dns_nameservice_options",
+        _("dns_nameservice_options"),
+        _("dns_nameservice_options"),
+        "",
+        G_PARAM_READWRITE));
+
+    g_object_class_install_property(gobject_class,
+      PROP_DNS_NAMESERVICE_SORTLIST,
+      g_param_spec_pointer("dns_nameservice_sortlist",
+        _("dns_nameservice_sortlist"),
+        _("dns_nameservice_sortlist"),
+        G_PARAM_READWRITE));
 
     g_object_class_install_property (gobject_class,
                                      PROP_NIS_NAMESERVICE_CONFIG_SOURCE,
@@ -616,6 +633,14 @@ nwamui_env_set_property (   GObject         *object,
         nwamui_env_set_dns_nameservice_search(self, (GList *)g_value_get_pointer(value));
         break;
 
+    case PROP_DNS_NAMESERVICE_OPTIONS:
+        nwamui_env_set_dns_nameservice_options(self, g_value_get_string(value));
+        break;
+
+    case PROP_DNS_NAMESERVICE_SORTLIST:
+        nwamui_env_set_dns_nameservice_sortlist(self, (GList *)g_value_get_pointer(value));
+        break;
+
     case PROP_NIS_NAMESERVICE_CONFIG_SOURCE:
         nwamui_env_set_nis_nameservice_config_source(self, g_value_get_int(value));
         break;
@@ -852,6 +877,14 @@ nwamui_env_get_property (GObject         *object,
     case PROP_DNS_NAMESERVICE_SEARCH:
         /* We may need to/from convert to , separated string?? */
         g_value_set_pointer( value, nwamui_env_get_dns_nameservice_search(self));
+        break;
+
+    case PROP_DNS_NAMESERVICE_OPTIONS:
+        g_value_set_string(value, nwamui_env_get_dns_nameservice_options(self));
+        break;
+
+    case PROP_DNS_NAMESERVICE_SORTLIST:
+        g_value_set_pointer( value, nwamui_env_get_dns_nameservice_sortlist(self));
         break;
 
     case PROP_NIS_NAMESERVICE_CONFIG_SOURCE:
@@ -1271,15 +1304,23 @@ set_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name, ch
         len = i;
     }
 
-    if ( (nerr = nwam_value_create_string_array (strs, len, &nwam_data )) != NWAM_SUCCESS ) {
-        g_debug("Error creating a value for string array 0x%08X", strs);
-        return retval;
-    }
+    if (len > 0) {
 
-    if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-        g_debug("Unable to set value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
-    }
-    else {
+        if ( (nerr = nwam_value_create_string_array (strs, len, &nwam_data )) != NWAM_SUCCESS ) {
+            g_debug("Error creating a value for string array 0x%08X", strs);
+            return retval;
+        }
+
+        if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+            g_debug("Unable to set value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
+        }
+        else {
+            retval = TRUE;
+        }
+    } else {
+        if ( (nerr = nwam_loc_delete_prop (loc, prop_name)) != NWAM_SUCCESS ) {
+            g_debug("Unable to delete loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
+        }
         retval = TRUE;
     }
 
@@ -2178,6 +2219,97 @@ nwamui_env_get_dns_nameservice_search (NwamuiEnv *self)
     g_strfreev( strv );
 
     return( dns_nameservice_search );
+}
+
+extern void
+nwamui_env_set_dns_nameservice_options(NwamuiEnv *self, const gchar* dns_nameservice_options)
+{
+    NwamuiEnvPrivate *prv = NWAMUI_ENV_GET_PRIVATE(self);
+
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+
+    set_nwam_loc_string_prop(prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_OPTIONS, dns_nameservice_options);
+
+    prv->nwam_loc_modified = TRUE;
+	g_object_notify(G_OBJECT(self), "dns_nameservice_options");
+
+}
+
+extern gchar*
+nwamui_env_get_dns_nameservice_options(NwamuiEnv *self)
+{
+    NwamuiEnvPrivate *prv     = NWAMUI_ENV_GET_PRIVATE(self);
+    gchar            *dns_nameservice_options = NULL; 
+
+    g_return_val_if_fail(NWAMUI_IS_ENV (self), dns_nameservice_options);
+
+    dns_nameservice_options = get_nwam_loc_string_prop(prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_OPTIONS);
+
+    return dns_nameservice_options;
+}
+
+/** 
+ * nwamui_env_set_dns_nameservice_sortlist:
+ * @nwamui_env: a #NwamuiEnv.
+ * @dns_nameservice_sortlist: Value to set dns_nameservice_sortlist to.
+ * 
+ **/ 
+extern void
+nwamui_env_set_dns_nameservice_sortlist(NwamuiEnv *self, const GList*  dns_nameservice_sortlist )
+{
+    g_return_if_fail (NWAMUI_IS_ENV (self));
+    NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(self);
+    gint len = g_list_length((GList*)dns_nameservice_sortlist) + 1;
+    gchar** ns_server_strs = g_malloc0(len * sizeof(gchar*));
+
+    ns_server_strs[len] = NULL;
+
+    for (gint i = 0;
+         dns_nameservice_sortlist;
+         dns_nameservice_sortlist = g_list_next(dns_nameservice_sortlist), i++) {
+        gchar *addr;
+        gchar *subnet;
+        NwamuiIp *ip = NWAMUI_IP(dns_nameservice_sortlist->data);
+        addr = nwamui_ip_get_address(ip);
+        subnet = nwamui_ip_get_subnet_prefix(ip);
+        ns_server_strs[i] = g_strdup_printf("%s/%s", addr, subnet);
+        g_free(addr);
+        g_free(subnet);
+    }
+
+    set_nwam_loc_string_array_prop(prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SORTLIST, ns_server_strs, 0);
+    g_strfreev(ns_server_strs);
+
+    prv->nwam_loc_modified = TRUE;
+	g_object_notify(G_OBJECT(self), "dns_nameservice_sortlist");
+}
+
+/**
+ * nwamui_env_get_dns_nameservice_sortlist:
+ * @nwamui_env: a #NwamuiEnv.
+ * @returns: the dns_nameservice_sortlist list.
+ *
+ **/
+extern GList*
+nwamui_env_get_dns_nameservice_sortlist(NwamuiEnv *self)
+{
+    GList*  dns_nameservice_sortlist = NULL; 
+
+    g_return_val_if_fail (NWAMUI_IS_ENV (self), dns_nameservice_sortlist);
+    NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(self);
+
+    gchar **strv = get_nwam_loc_string_array_prop(prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SORTLIST);
+    for (gchar **str = strv; str && *str; str++) {
+        gchar **inf = g_strsplit(*str, "/", 2);
+
+        dns_nameservice_sortlist = g_list_append(dns_nameservice_sortlist,
+          nwamui_ip_new(NULL, (inf[0]?inf[0]:""), (inf[1]?inf[1]:""), FALSE, FALSE, FALSE));
+
+        g_strfreev(inf);
+    }
+    g_strfreev(strv);
+
+    return dns_nameservice_sortlist;
 }
 
 /** 

@@ -34,7 +34,8 @@
 void
 capplet_list_foreach_merge_to_list_store(gpointer data, gpointer user_data)
 {
-    CAPPLET_LIST_STORE_ADD(user_data, data);
+    GtkTreeIter iter;
+    CAPPLET_LIST_STORE_ADD(user_data, data, &iter);
 }
 
 void
@@ -100,23 +101,6 @@ capplet_model_remove_object(GtkTreeModel *model, GObject *object)
 			gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
 		else
 			gtk_tree_store_remove(GTK_TREE_STORE(model), &iter);
-	}
-}
-
-void
-capplet_update_model_from_daemon(GtkTreeModel *model, NwamuiDaemon *daemon, GType type)
-{
-	gtk_list_store_clear(GTK_LIST_STORE(model));
-
-	if (type == NWAMUI_TYPE_NCP) {
-        nwamui_daemon_foreach_ncp(daemon, capplet_list_foreach_merge_to_list_store, (gpointer)model);
-	/* } else if (type == NWAMUI_TYPE_NCU) { */
-	} else if (type == NWAMUI_TYPE_ENV) {
-        nwamui_daemon_foreach_loc(daemon, capplet_list_foreach_merge_to_list_store, (gpointer)model);
-	} else if (type == NWAMUI_TYPE_ENM) {
-        nwamui_daemon_foreach_enm(daemon, capplet_list_foreach_merge_to_list_store, (gpointer)model);
-	} else {
-		g_error("unknow supported get nwamui obj list");
 	}
 }
 
@@ -362,6 +346,292 @@ nwamui_object_active_mode_pixbuf_cell (GtkTreeViewColumn *col,
     }
 
     return;
+}
+
+void
+nwam_ip_address_cell(GtkTreeViewColumn *col,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data)
+{
+    NwamuiIp*           ip = NULL;
+    gchar*              addr;
+
+    gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &ip, -1);
+    addr = nwamui_ip_get_address(ip);
+
+    if (addr != NULL) {
+        g_object_set (G_OBJECT(renderer),
+          "text", addr,
+          NULL);
+        g_free (addr);
+    }
+}
+
+void
+nwam_ip_subnet_cell(GtkTreeViewColumn *col,
+  GtkCellRenderer   *renderer,
+  GtkTreeModel      *model,
+  GtkTreeIter       *iter,
+  gpointer           data)
+{
+    NwamuiIp*           ip = NULL;
+    gchar*              subnet;
+
+    gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &ip, -1);
+    subnet = nwamui_ip_get_subnet_prefix(ip);
+    if (subnet != NULL) {
+        g_object_set (G_OBJECT(renderer),
+          "text", subnet,
+          NULL);
+        g_free (subnet);
+    }
+}
+
+void
+nwam_ipv4_address_cell_edited(GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             data)
+{
+    GtkTreeView  *view  = GTK_TREE_VIEW(data);
+	GtkTreeModel *model = GTK_TREE_MODEL(gtk_tree_view_get_model(view));
+	GtkTreeIter   iter;
+	
+	gtk_tree_model_get_iter_from_string (model, &iter, path);
+
+    /* g_signal_handlers_block_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data); */
+
+    /* Validate data in editing */
+    if (nwamui_util_validate_text_entry(GTK_WIDGET(view), new_text, 
+        NWAMUI_ENTRY_VALIDATION_IS_V4 | NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX,
+        TRUE, TRUE)) {
+        NwamuiIp *ip      = NULL;
+        gchar    *address = NULL;
+        gchar    *prefix  = NULL;
+
+        gtk_tree_model_get(model, &iter, 0, &ip, -1);
+        nwamui_util_split_address_prefix(FALSE, new_text, &address, &prefix);
+        if (address != NULL) {
+            nwamui_ip_set_address(ip, address);
+        }
+        if (prefix != NULL) {
+            nwamui_ip_set_subnet_prefix(ip, prefix);
+        }
+        g_free(address);
+        g_free(prefix);
+        g_object_unref(ip);
+    } else {
+        /* Invalid */
+        /* GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter); */
+        /* GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id ); */
+
+        /* gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, NULL/\* col *\/, GTK_CELL_RENDERER(renderer), FALSE); */
+
+        /* gtk_tree_path_free(tpath); */
+
+    }
+    /* g_signal_handlers_unblock_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data); */
+}
+
+void
+nwam_ipv4_subnet_cell_edited(GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             data)
+{
+    GtkTreeView  *view  = GTK_TREE_VIEW(data);
+	GtkTreeModel *model = GTK_TREE_MODEL(gtk_tree_view_get_model(view));
+	GtkTreeIter   iter;
+	
+	gtk_tree_model_get_iter_from_string (model, &iter, path);
+
+    /* g_signal_handlers_block_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data); */
+
+    /* Validate data in editing */
+    if (nwamui_util_validate_text_entry(GTK_WIDGET(view), new_text, 
+        NWAMUI_ENTRY_VALIDATION_IS_V4 | NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY,
+        TRUE, TRUE)) {
+        NwamuiIp *ip      = NULL;
+        gchar    *address = NULL;
+        gchar    *prefix  = NULL;
+
+        gtk_tree_model_get(model, &iter, 0, &ip, -1);
+        nwamui_util_split_address_prefix(FALSE, new_text, &address, &prefix);
+        if (address != NULL) {
+            nwamui_ip_set_subnet_prefix(ip, address);
+        }
+        g_free(address);
+        g_free(prefix);
+        g_object_unref(ip);
+    } else {
+        /* Invalid */
+        GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+        /* GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id ); */
+
+        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, NULL/* col */, GTK_CELL_RENDERER(renderer), FALSE);
+
+        gtk_tree_path_free(tpath);
+    }
+    /* g_signal_handlers_unblock_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data); */
+}
+
+void
+nwam_ipv6_address_cell_edited(GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             data)
+{
+    GtkTreeView  *view  = GTK_TREE_VIEW(data);
+	GtkTreeModel *model = GTK_TREE_MODEL(gtk_tree_view_get_model(view));
+	GtkTreeIter   iter;
+	
+	gtk_tree_model_get_iter_from_string (model, &iter, path);
+
+    /* g_signal_handlers_block_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data); */
+
+    /* Validate data in editing */
+    if (nwamui_util_validate_text_entry(GTK_WIDGET(view), new_text, 
+        NWAMUI_ENTRY_VALIDATION_IS_V6 | NWAMUI_ENTRY_VALIDATION_ALLOW_PREFIX,
+        TRUE, TRUE)) {
+        NwamuiIp *ip      = NULL;
+        gchar    *address = NULL;
+        gchar    *prefix  = NULL;
+
+        gtk_tree_model_get(model, &iter, 0, &ip, -1);
+        nwamui_util_split_address_prefix(TRUE, new_text, &address, &prefix);
+        if (address != NULL) {
+            nwamui_ip_set_address(ip, address);
+        }
+        if (prefix != NULL) {
+            nwamui_ip_set_subnet_prefix(ip, prefix);
+        }
+        g_free(address);
+        g_free(prefix);
+        g_object_unref(ip);
+    } else {
+        /* Invalid */
+        /* GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter); */
+        /* GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id ); */
+
+        /* gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, NULL/\* col *\/, GTK_CELL_RENDERER(renderer), FALSE); */
+
+        /* gtk_tree_path_free(tpath); */
+
+    }
+    /* g_signal_handlers_unblock_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data); */
+}
+
+void
+nwam_ipv6_subnet_cell_edited(GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             data)
+{
+    GtkTreeView  *view  = GTK_TREE_VIEW(data);
+	GtkTreeModel *model = GTK_TREE_MODEL(gtk_tree_view_get_model(view));
+	GtkTreeIter   iter;
+	
+	gtk_tree_model_get_iter_from_string (model, &iter, path);
+
+    /* g_signal_handlers_block_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data); */
+
+    /* Validate data in editing */
+    if (nwamui_util_validate_text_entry( GTK_WIDGET(view), new_text, 
+        NWAMUI_ENTRY_VALIDATION_IS_V6 | NWAMUI_ENTRY_VALIDATION_IS_PREFIX_ONLY,
+        TRUE, TRUE)) {
+        NwamuiIp *ip      = NULL;
+        gchar    *address = NULL;
+        gchar    *prefix  = NULL;
+
+        gtk_tree_model_get(model, &iter, 0, &ip, -1);
+        nwamui_util_split_address_prefix(TRUE, new_text, &address, &prefix);
+        if (address != NULL) {
+            nwamui_ip_set_subnet_prefix(ip, address);
+        }
+        g_free(address);
+        g_free(prefix);
+        g_object_unref(ip);
+    } else {
+        /* Invalid */
+        GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
+        /* GtkTreeViewColumn* col = gtk_tree_view_get_column(view, col_id ); */
+
+        gtk_tree_view_set_cursor_on_cell(GTK_TREE_VIEW(view), tpath, NULL/* col */, GTK_CELL_RENDERER(renderer), FALSE);
+
+        gtk_tree_path_free(tpath);
+    }
+    /* g_signal_handlers_unblock_by_func(G_OBJECT(prv->ncu), (gpointer)ncu_changed_notify_cb, data); */
+}
+
+void
+nwam_reset_entry_validation_on_cell_editing_started(GtkCellRenderer *cell,
+  GtkCellEditable *editable,
+  const gchar     *path,
+  gpointer         data)
+{
+    if (GTK_IS_ENTRY (editable)) {
+        GtkEntry *entry = GTK_ENTRY (editable);
+        nwamui_entry_validation_flags_t flags = (nwamui_entry_validation_flags_t)data;
+
+        nwamui_util_set_entry_validation(entry, flags, FALSE);
+    }
+}
+
+void
+nwam_disable_ok_on_cell_editing_started(GtkCellRenderer *cell,
+  GtkCellEditable *editable,
+  const gchar     *path,
+  gpointer         data)
+{
+    GtkWidget *w = GTK_WIDGET(data);
+    GtkWidget *toplevel = NULL;
+
+	if (w) {
+		toplevel = gtk_widget_get_toplevel(w);
+
+		if (gtk_widget_is_toplevel(toplevel)) {
+            gtk_dialog_set_response_sensitive(GTK_DIALOG(toplevel), GTK_RESPONSE_OK, FALSE);
+		}
+	}
+
+    /* nwam_capplet_dialog_set_ok_sensitive_by_voting(prv->pref_dialog, FALSE); */
+}
+
+void
+nwam_enable_ok_on_cell_edited(GtkCellRendererText *renderer,
+  gchar               *path,
+  gchar               *new_text,
+  gpointer             data)
+{
+    GtkWidget *w = GTK_WIDGET(data);
+    GtkWidget *toplevel = NULL;
+
+	if (w) {
+		toplevel = gtk_widget_get_toplevel(w);
+
+		if (GTK_WIDGET_TOPLEVEL(toplevel)) {
+            gtk_dialog_set_response_sensitive(GTK_DIALOG(toplevel), GTK_RESPONSE_OK, TRUE);
+		}
+	}
+}
+
+void
+nwam_enable_ok_on_cell_canceled(GtkCellRenderer *cell, gpointer data)
+{
+    GtkWidget *w = GTK_WIDGET(data);
+    GtkWidget *toplevel = NULL;
+
+	if (w) {
+		toplevel = gtk_widget_get_toplevel(w);
+
+		if (GTK_WIDGET_TOPLEVEL(toplevel)) {
+            gtk_dialog_set_response_sensitive(GTK_DIALOG(toplevel), GTK_RESPONSE_OK, TRUE);
+		}
+	}
+
+    /* nwam_capplet_dialog_set_ok_sensitive_by_voting(prv->pref_dialog, TRUE); */
 }
 
 GtkTreeViewColumn *
@@ -616,7 +886,7 @@ capplet_model_foreach_add_to_list(GtkTreeModel *model,
 	GList *list = (GList*)data->ret_data;
 	GObject *object;
 
-        gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
+    gtk_tree_model_get( GTK_TREE_MODEL(model), iter, 0, &object, -1);
 	list = g_list_append(list, object);
 	data->ret_data = (gpointer)list;
 
@@ -632,8 +902,8 @@ capplet_model_to_list(GtkTreeModel *model)
 	data.ret_data = NULL;
 
 	gtk_tree_model_foreach(model,
-	    capplet_model_foreach_add_to_list,
-	    (gpointer)&data);
+      capplet_model_foreach_add_to_list,
+      (gpointer)&data);
 
 	return data.ret_data;
 }

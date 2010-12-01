@@ -313,9 +313,7 @@ nwamui_ip_new(  NwamuiNcu*      ncu_parent,
 {
     NwamuiIp*  self = NULL;
     
-    g_assert( NWAMUI_IS_NCU( ncu_parent ) );
-
-    self = NWAMUI_IP(g_object_new (NWAMUI_TYPE_IP, NULL));
+    self = g_object_new(NWAMUI_TYPE_IP, NULL);
 
     g_object_set (G_OBJECT (self),
                     "address", addr,
@@ -325,9 +323,13 @@ nwamui_ip_new(  NwamuiNcu*      ncu_parent,
                     "is_autoconf", is_autoconf,
                     NULL);
     
-    self->prv->ncu_parent = ncu_parent;
 
-    self->prv->ncu_device = nwamui_ncu_get_device_name( self->prv->ncu_parent );
+    if (ncu_parent) {
+        g_assert(NWAMUI_IS_NCU(ncu_parent));
+
+        self->prv->ncu_parent = ncu_parent;
+        self->prv->ncu_device = nwamui_ncu_get_device_name( self->prv->ncu_parent );
+    }
     
     return( self );
 }

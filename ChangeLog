@@ -1,3 +1,95 @@
+2010-12-01  Lin Ma  <lin.ma@oracle.com>
+
+	* capplet/nwam_object_ctrl_iface.c
+	(nwam_object_ctrl_iface_base_init),
+	(nwam_object_ctrl_iface_class_init),
+	(nwam_object_ctrl_iface_get_type), (nwam_object_ctrl_create),
+	(nwam_object_ctrl_remove), (nwam_object_ctrl_rename),
+	(nwam_object_ctrl_edit), (nwam_object_ctrl_dup):
+	* capplet/nwam_object_ctrl_iface.h: New interface for control object
+	in nwam tree view.
+
+2010-12-01  Lin Ma  <lin.ma@oracle.com>
+
+	* capplet/Makefile.am:
+	* capplet/capplet-utils.c
+	(capplet_list_foreach_merge_to_list_store), (nwam_ip_address_cell),
+	(nwam_ip_subnet_cell), (nwam_ipv4_address_cell_edited),
+	(nwam_ipv4_subnet_cell_edited), (nwam_ipv6_address_cell_edited),
+	(nwam_ipv6_subnet_cell_edited),
+	(nwam_reset_entry_validation_on_cell_editing_started),
+	(nwam_disable_ok_on_cell_editing_started),
+	(nwam_enable_ok_on_cell_edited), (nwam_enable_ok_on_cell_canceled):
+	* capplet/capplet-utils.h: Add more tool functions for display
+	general object information in tree view.
+	* capplet/main.c (customwidgethandler), (main): Make all list tree
+	views are created from nwam_tree_view.
+	* capplet/nwam_condition_vbox.c (table_models_refresh): Updated
+	due to capplet tool interfaces change.
+	* capplet/nwam_conn_conf_ip_panel.c (create_object),
+	(remove_object), (edit_object), (nwam_object_ctrl_init),
+	(nwam_compose_wifi_fav_view), (nwam_compose_multi_ip_tree_view),
+	(nwam_conf_ip_panel_init):
+	* capplet/nwam_env_pref_dialog.c (create_object), (remove_object),
+	(nwam_object_ctrl_init), (nwam_env_pref_dialog_init),
+	(nwam_compose_sortlist_view), (populate_panels_from_env), (apply):
+	* capplet/nwam_location_dialog.c (create_object), (remove_object),
+	(rename_object), (edit_object), (dup_object),
+	(nwam_object_ctrl_init), (nwam_compose_tree_view),
+	(nwam_location_dialog_init), (refresh), (on_button_clicked):
+	* capplet/nwam_profile_panel.c (create_object), (remove_object),
+	(rename_object), (edit_object), (dup_object),
+	(nwam_object_ctrl_init), (nwam_compose_tree_view),
+	(nwam_profile_panel_init), (refresh),
+	(nwam_profile_panel_finalize), (nwamui_ncp_name_cell_edited):
+	Rework above panels to use nwam_tree_view to show general nwam
+	object informations.
+	* capplet/nwam_tree_view.c (nwam_tree_view_property_name),
+	(nwam_tree_view_class_init), (nwam_tree_view_finalize),
+	(nwam_tree_view_set_property), (nwam_tree_view_get_property),
+	(nwam_tree_view_register_widget),
+	(nwam_tree_view_unregister_widget),
+	(nwam_tree_view_get_item_by_proxy), (on_add_btn_clicked),
+	(on_remove_btn_clicked), (on_rename_btn_clicked),
+	(on_edit_btn_clicked), (on_dup_btn_clicked), (on_up_btn_clicked),
+	(on_down_btn_clicked), (nwam_tree_view_key_press),
+	(nwam_tree_view_key_release), (nwam_tree_view_row_activated_cb),
+	(nwam_tree_view_row_selected_cb),
+	(nwam_tree_view_update_widget_cb), (object_tree_model_notify),
+	(nwam_tree_view_row_inserted), (nwam_tree_view_row_changed),
+	(update_buttons_status):
+	* capplet/nwam_tree_view.h: General list view for manage general
+	nwam objects. Current support add, delete, edit, rename, up and
+	down.
+	* capplet/nwam_vpn_pref_dialog.c (create_object), (remove_object),
+	(rename_object), (nwam_object_ctrl_init),
+	(nwam_vpn_pref_dialog_init), (nwam_compose_tree_view), (refresh),
+	(vpn_pref_clicked_cb):
+	* common/libnwamui.c (nwamui_util_ncp_init_acquired_ip),
+	(nwamui_util_get_interface_address): Port from trunk.
+	* common/nwam_pref_iface.c (nwam_pref_dialog_run): Remove useless
+	code.
+	* common/nwamui_daemon.c (nwamui_object_real_remove): Assert the
+	removing object can be found in the managed list.
+	* common/nwamui_env.c (nwamui_env_class_init),
+	(nwamui_env_set_property), (nwamui_env_get_property),
+	(set_nwam_loc_string_array_prop),
+	(nwamui_env_set_dns_nameservice_options),
+	(nwamui_env_get_dns_nameservice_options),
+	(nwamui_env_set_dns_nameservice_sortlist),
+	(nwamui_env_get_dns_nameservice_sortlist):
+	* common/nwamui_env.h: Fixed doo 17363 [NWAM] support options of
+	/etc/resolv.conf on GUI
+	* common/nwamui_ip.c (nwamui_ip_new): IP object support to create
+	without NCU.
+	* ui/nwam-manager-properties.ui: Updated for nwam tree view.
+
+2010-08-20  Calum Benson  <calum.benson@oracle.com>
+
+	* ui/nwam-manager-properties.ui:
+
+	Update with additional options required to fix CR 6944603.
+
 2010-10-09  Lin Ma  <Lin.Ma@Sun.COM>
 
 	* configure.in: Bump to 1.151.0

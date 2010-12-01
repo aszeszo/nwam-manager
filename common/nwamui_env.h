@@ -116,6 +116,11 @@ extern GList*               nwamui_env_get_dns_nameservice_servers ( NwamuiEnv *
 extern void                 nwamui_env_set_dns_nameservice_search ( NwamuiEnv *self, const GList* dns_nameservice_search );
 extern GList*               nwamui_env_get_dns_nameservice_search ( NwamuiEnv *self );
 
+extern void                 nwamui_env_set_dns_nameservice_options(NwamuiEnv *self, const gchar* options);
+extern gchar*               nwamui_env_get_dns_nameservice_options(NwamuiEnv *self);
+
+extern void                 nwamui_env_set_dns_nameservice_sortlist(NwamuiEnv *self, const GList* dns_nameservice_sortlist);
+extern GList*               nwamui_env_get_dns_nameservice_sortlist(NwamuiEnv *self);
 
 extern void                 nwamui_env_set_nis_nameservice_config_source (  NwamuiEnv *self,
                                                                             nwamui_env_config_source_t nis_nameservice_config_source );
@@ -133,7 +138,6 @@ extern nwamui_env_config_source_t
 
 extern void                 nwamui_env_set_ldap_nameservice_servers ( NwamuiEnv *self, const GList*   ldap_nameservice_servers );
 extern GList*               nwamui_env_get_ldap_nameservice_servers ( NwamuiEnv *self );
-
 
 #ifndef _DISABLE_HOSTS_FILE
 extern void                 nwamui_env_set_hosts_file ( NwamuiEnv *self, const gchar* hosts_file );

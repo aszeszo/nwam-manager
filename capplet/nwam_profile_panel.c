@@ -93,6 +93,7 @@ enum {
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
+static void nwam_object_ctrl_init(gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
@@ -147,7 +148,6 @@ static void nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer
 static void nwam_object_activate_toggled_cb(GtkCellRendererToggle *cell_renderer,
   gchar                 *path,
   gpointer               user_data);
-static void on_button_clicked(GtkButton *button, gpointer user_data);
 
 /* NCP functions */
 
@@ -158,7 +158,8 @@ G_DEFINE_TYPE_EXTENDED (NwamProfilePanel,
   nwam_profile_panel,
   G_TYPE_OBJECT,
   0,
-  G_IMPLEMENT_INTERFACE (NWAM_TYPE_PREF_IFACE, nwam_pref_init))
+  G_IMPLEMENT_INTERFACE(NWAM_TYPE_PREF_IFACE, nwam_pref_init)
+  G_IMPLEMENT_INTERFACE(NWAM_TYPE_OBJECT_CTRL_IFACE, nwam_object_ctrl_init))
 
 static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
@@ -169,6 +170,146 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->cancel = cancel;
 	iface->help = help;
     /* iface->dialog_run = dialog_run; */
+}
+
+static GObject*
+create_object(NwamObjectCtrlIFace *iface)
+{
+    NwamProfilePanel        *self = NWAM_PROFILE_PANEL(iface);
+	NwamProfilePanelPrivate *prv  = GET_PRIVATE(self);
+    gchar *name;
+    NwamuiObject *object;
+
+    name = capplet_get_increasable_name(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->object_view)), _("User"), G_OBJECT(self));
+
+    g_assert(name);
+
+    object = nwamui_ncp_new(name);
+
+    if (nwamui_object_commit(object)) {
+        nwamui_object_add(NWAMUI_OBJECT(prv->daemon), object);
+    }
+
+    g_free(name);
+
+    return G_OBJECT(object);
+}
+
+static gboolean
+remove_object(NwamObjectCtrlIFace *iface, GObject *obj)
+{
+    NwamProfilePanel        *self = NWAM_PROFILE_PANEL(iface);
+	NwamProfilePanelPrivate *prv  = GET_PRIVATE(self);
+    gboolean                 ret  = FALSE;
+    GtkTreeModel            *model;
+    GtkTreeIter              iter;
+    gchar*  message = g_strdup_printf(_("Remove network profile: '%s'?"), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
+
+    gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->object_view), &model, &iter);
+
+    if (nwamui_util_confirm_removal(nwam_pref_dialog_get_window(NWAM_PREF_IFACE(prv->pref_dialog)), _("Remove network profile?"), message )) {
+        GtkTreePath *selected_path = gtk_tree_model_get_path(model, &iter);
+
+        if (nwam_profile_panel_is_toggled_row(self, selected_path)) {
+            /* Clear toggled-env, otherwise the toggled flag will be lost. */
+            /* g_object_set(self, "toggled_object", NULL, NULL); */
+            nwam_profile_panel_set_toggled_row(self, NULL);
+        }
+        gtk_tree_path_free(selected_path);
+
+        nwamui_object_destroy(NWAMUI_OBJECT(obj));
+        /* Must remove it, because it currectly may haven't been
+         * created. So destroy will not trigger nwamui_object_remove.
+         */
+        nwamui_object_remove(NWAMUI_OBJECT(prv->daemon), NWAMUI_OBJECT(obj));
+        ret = TRUE;
+    }
+        
+    g_free(message);
+
+    return ret;
+}
+
+static gboolean
+rename_object(NwamObjectCtrlIFace *iface, GObject *obj)
+{
+    NwamProfilePanel        *self = NWAM_PROFILE_PANEL(iface);
+	NwamProfilePanelPrivate *prv  = GET_PRIVATE(self);
+
+    /* We enable rename even NCP can't be renamed. The solution is if
+     * the NCP can't be renamed, we can dup it with the new name after
+     * user finish editing its name, destroy the old NCP, and commit
+     * the dup NCP, and replace the tree row with the new NCP.
+     */
+    return TRUE;
+}
+
+static void
+edit_object(NwamObjectCtrlIFace *iface, GObject *obj)
+{
+    NwamProfilePanel        *self = NWAM_PROFILE_PANEL(iface);
+	NwamProfilePanelPrivate *prv  = GET_PRIVATE(self);
+    static NwamProfileDialog *profile_dialog = NULL;
+
+    if (profile_dialog == NULL)
+        profile_dialog = nwam_profile_dialog_new(prv->pref_dialog);
+
+    if (nwamui_object_can_rename(NWAMUI_OBJECT(obj))) {
+        /* NCP is not created yet. Commit(which is actually created)
+         * and add to UI daemon to reuse it.
+         */
+        if (nwamui_object_commit(NWAMUI_OBJECT(obj))) {
+            nwamui_object_add(NWAMUI_OBJECT(prv->daemon), NWAMUI_OBJECT(obj));
+        }
+    }
+    /* Reload before edit it. */
+    nwamui_object_reload(NWAMUI_OBJECT(obj));
+
+    nwam_pref_set_purpose(NWAM_PREF_IFACE(profile_dialog), NWAMUI_DIALOG_PURPOSE_EDIT);
+    nwam_pref_refresh(NWAM_PREF_IFACE(profile_dialog), obj, TRUE);
+    nwam_pref_dialog_run(NWAM_PREF_IFACE(profile_dialog), GTK_WIDGET(prv->object_view));
+    /* Update info widgets. */
+    nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(prv->object_view), (gpointer)self);
+}
+
+static GObject*
+dup_object(NwamObjectCtrlIFace *iface, GObject *obj)
+{
+    NwamProfilePanel        *self = NWAM_PROFILE_PANEL(iface);
+	NwamProfilePanelPrivate *prv  = GET_PRIVATE(self);
+    const gchar *sname = nwamui_object_get_name(NWAMUI_OBJECT(obj));
+    gchar *prefix;
+    gchar *name;
+    NwamuiObject *new_ncp;
+
+    prefix = capplet_get_original_name(_("Copy of"), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
+
+    name = capplet_get_increasable_name(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->object_view)), prefix, G_OBJECT(obj));
+
+    g_assert(name);
+
+    new_ncp = nwamui_object_clone(NWAMUI_OBJECT(obj), name, NULL);
+
+    if (nwamui_object_commit(new_ncp)) {
+        nwamui_object_add(NWAMUI_OBJECT(prv->daemon), new_ncp);
+    }
+
+    g_free(name);
+    g_free(prefix);
+
+    return G_OBJECT(new_ncp);
+}
+
+static void
+nwam_object_ctrl_init(gpointer g_iface, gpointer iface_data)
+{
+    NwamObjectCtrlInterface *self = (NwamObjectCtrlInterface *)g_iface;
+
+	self->create = create_object;
+	self->remove = remove_object;
+	self->rename = rename_object;
+	self->edit = edit_object;
+	self->dup = dup_object;
 }
 
 static void
@@ -271,25 +412,26 @@ nwam_profile_panel_set_toggled_row(NwamProfilePanel *self, GtkTreePath *path)
 static void
 nwam_compose_tree_view (NwamProfilePanel *self)
 {
+    NwamProfilePanelPrivate *prv      = GET_PRIVATE(self);
 	GtkTreeViewColumn *col;
 	GtkCellRenderer *cell;
-	GtkTreeView *view = self->prv->object_view;
+	GtkTreeView *view = prv->object_view;
         
 	g_object_set (G_OBJECT(view),
+      "nwam_object_ctrl", self,
       "headers-clickable", TRUE,
       "headers-visible", TRUE,
       "rules-hint", TRUE,
       "reorderable", FALSE,
       "enable-search", TRUE,
       "show-expanders", FALSE,
-      "button-add", self->prv->profile_add_btn,
       NULL);
 
-    nwam_tree_view_set_object_func(NWAM_TREE_VIEW(view),
-      NULL,
-      NULL,
-      capplet_tree_view_commit_object,
-      (gpointer)self);
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(view), NTV_ADD_BTN, GTK_WIDGET(prv->profile_add_btn));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(view), NTV_REMOVE_BTN, GTK_WIDGET(prv->profile_remove_btn));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(view), NTV_RENAME_BTN, GTK_WIDGET(prv->profile_rename_btn));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(view), NTV_EDIT_BTN, GTK_WIDGET(prv->profile_edit_btn));
+    nwam_tree_view_register_widget(NWAM_TREE_VIEW(view), NTV_DUP_BTN, GTK_WIDGET(prv->profile_dup_btn));
 
     g_signal_connect(gtk_tree_view_get_selection(view),
       "changed",
@@ -344,17 +486,6 @@ nwam_profile_panel_init(NwamProfilePanel *self)
     prv->always_disabled_lbl = nwamui_util_glade_get_widget(ALWAYS_DISABLED_LBL);
     prv->object_view = GTK_TREE_VIEW(nwamui_util_glade_get_widget(CONNECTION_PROFILE_VIEW));
 
-    g_signal_connect(prv->profile_add_btn,
-      "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
-    g_signal_connect(prv->profile_remove_btn,
-      "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
-    g_signal_connect(prv->profile_rename_btn,
-      "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
-    g_signal_connect(prv->profile_edit_btn,
-      "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
-    g_signal_connect(prv->profile_dup_btn,
-      "clicked", G_CALLBACK(on_button_clicked), (gpointer)self);
-
     nwam_compose_tree_view(self);
     
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
@@ -402,7 +533,8 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         nwam_profile_panel_set_toggled_row(self, NULL);
 
         gtk_widget_hide(GTK_WIDGET(self->prv->object_view));
-        capplet_update_model_from_daemon(model, prv->daemon, NWAMUI_TYPE_NCP);
+		gtk_list_store_clear(GTK_LIST_STORE(model));
+        nwamui_daemon_foreach_ncp(prv->daemon, capplet_list_foreach_merge_to_list_store, (gpointer)model);
         gtk_widget_show(GTK_WIDGET(self->prv->object_view));
     }
 
@@ -505,9 +637,6 @@ static void
 nwam_profile_panel_finalize(NwamProfilePanel *self)
 {
 	NwamProfilePanelPrivate *prv       = GET_PRIVATE(self);
-    g_object_unref(G_OBJECT(self->prv->profile_add_btn));
-    g_object_unref(G_OBJECT(self->prv->profile_remove_btn));
-    g_object_unref(G_OBJECT(self->prv->profile_rename_btn));
 
     if (prv->toggled_object)
         g_object_unref(prv->toggled_object);
@@ -694,6 +823,7 @@ nwamui_ncp_name_cell_edited(GtkCellRendererText *cell,
                   /* NCP is not created yet. Commit(which is actually created)
                    * and add to UI daemon to reuse it.
                    */
+                  nwamui_object_set_name(object, new_text);
                   if (nwamui_object_commit(object)) {
                       nwamui_object_add(NWAMUI_OBJECT(prv->daemon), object);
                   }
@@ -780,165 +910,6 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         gtk_label_set_text(GTK_LABEL(prv->always_enabled_lbl), "");
         gtk_label_set_text(GTK_LABEL(prv->always_disabled_lbl), "");
         gtk_label_set_text(GTK_LABEL(prv->priority_groups_lbl), "");
-    }
-}
-
-static void
-on_button_clicked(GtkButton *button, gpointer user_data)
-{
-    NwamProfilePanel         *self           = NWAM_PROFILE_PANEL(user_data);
-    NwamProfilePanelPrivate  *prv            = GET_PRIVATE(self);
-    GtkTreeModel*             model;
-    GtkTreeIter               iter;
-    static NwamProfileDialog *profile_dialog = NULL;
-
-    if (profile_dialog == NULL)
-        profile_dialog = nwam_profile_dialog_new(prv->pref_dialog);
-    
-    if (button == (gpointer)prv->profile_add_btn) {
-        gchar *name;
-        NwamuiObject *object;
-
-        name = capplet_get_increasable_name(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->object_view)),
-          _("User"), G_OBJECT(self));
-
-        g_assert(name);
-
-        object = nwamui_ncp_new(name);
-
-        if (object) {
-            /* We must add it to view first instead of relying on deamon
-             * property changes, because we have to select the new added
-             * row immediately and trigger a renaming mode.
-             */
-            CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->object_view))), object);
-            /* Select and scroll to this new object. */
-            gtk_tree_view_scroll_to_cell(prv->object_view,
-              nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->object_view)),
-              NULL, FALSE, 0.0, 0.0);
-            gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->object_view),
-              nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->object_view)));
-
-            /* Trigger rename on the new object as spec defines. */
-            gtk_button_clicked(prv->profile_rename_btn);
-
-            g_object_unref(object);
-        }
-
-        g_free(name);
-        return;
-    }
-
-    if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->object_view), &model, &iter ) ) {
-        NwamuiObject *object;
-
-        gtk_tree_model_get(model, &iter, 0, &object, -1);
-
-        if (button == (gpointer)prv->profile_edit_btn) {
-            if (nwamui_object_can_rename(object)) {
-                /* NCP is not created yet. Commit(which is actually created)
-                 * and add to UI daemon to reuse it.
-                 */
-                if (nwamui_object_commit(object)) {
-                    nwamui_object_add(NWAMUI_OBJECT(prv->daemon), object);
-                }
-            }
-            /* Reload before edit it. */
-            nwamui_object_reload(object);
-
-            nwam_pref_set_purpose(NWAM_PREF_IFACE(profile_dialog), NWAMUI_DIALOG_PURPOSE_EDIT);
-            nwam_pref_refresh(NWAM_PREF_IFACE(profile_dialog), object, TRUE);
-            nwam_pref_dialog_run(NWAM_PREF_IFACE(profile_dialog), GTK_WIDGET(button));
-            /* Update info widgets. */
-            nwam_treeview_update_widget_cb(gtk_tree_view_get_selection(prv->object_view), (gpointer)self);
-
-        } else if (button == (gpointer)prv->profile_remove_btn) {
-            gchar*  message = g_strdup_printf(_("Remove network profile: '%s'?"), nwamui_object_get_name(object));
-            if (nwamui_util_confirm_removal(nwam_pref_dialog_get_window(NWAM_PREF_IFACE(prv->pref_dialog)), _("Remove network profile?"), message )) {
-                GtkTreePath *selected_path = gtk_tree_model_get_path(model, &iter);
-
-                if (nwam_profile_panel_is_toggled_row(self, selected_path)) {
-                    /* Clear toggled-env, otherwise the toggled flag will be lost. */
-                    /* g_object_set(self, "toggled_object", NULL, NULL); */
-                    nwam_profile_panel_set_toggled_row(self, NULL);
-                }
-                gtk_tree_path_free(selected_path);
-
-                gtk_list_store_remove(GTK_LIST_STORE(model), &iter);
-
-                nwamui_object_destroy(object);
-                /* Must remove it, because it currectly may haven't been
-                 * created. So destroy will not trigger nwamui_object_remove.
-                 */
-                nwamui_object_remove(NWAMUI_OBJECT(prv->daemon), NWAMUI_OBJECT(object));
-            }
-        
-            g_free(message);
-
-        } else if (button == (gpointer)prv->profile_dup_btn) {
-            gchar *prefix;
-            gchar *name;
-            NwamuiObject *dup_object;
-            NwamuiObject *new_ncp;
-
-            prefix = capplet_get_original_name(_("Copy of"), nwamui_object_get_name(NWAMUI_OBJECT(object)));
-
-            name = capplet_get_increasable_name(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->object_view)), prefix, G_OBJECT(object));
-
-            g_assert(name);
-
-            new_ncp = nwamui_object_clone(object, name, NULL);
-
-            /* We must add it to view first instead of relying on deamon
-             * property changes, because we have to select the new added
-             * row immediately and trigger a renaming mode.
-             */
-            CAPPLET_LIST_STORE_ADD(GTK_LIST_STORE(gtk_tree_view_get_model(GTK_TREE_VIEW(prv->object_view))), new_ncp);
-            /* Must append it, because it currectly hasn't been created, if
-             * user click refresh, this object will be removed.
-             */
-            /* Select and scroll to this new object. */
-            gtk_tree_view_scroll_to_cell(prv->object_view,
-              nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->object_view)),
-              NULL, FALSE, 0.0, 0.0);
-            gtk_tree_selection_select_path(gtk_tree_view_get_selection(prv->object_view),
-              nwam_tree_view_get_cached_object_path(NWAM_TREE_VIEW(prv->object_view)));
-
-            /* Trigger rename on the new object as spec defines. */
-            gtk_button_clicked(prv->profile_rename_btn);
-
-            g_object_unref(new_ncp);
-
-            g_free(name);
-            g_free(prefix);
-
-        } else if (button == (gpointer)prv->profile_rename_btn) {
-            /* We enable rename even NCP can't be renamed. The solution is if
-             * the NCP can't be renamed, we can dup it with the new name after
-             * user finish editing its name, destroy the old NCP, and commit
-             * the dup NCP, and replace the tree row with the new NCP.
-             */
-            GtkCellRendererText*        txt;
-            GtkTreeViewColumn*  info_col = gtk_tree_view_get_column( GTK_TREE_VIEW(prv->object_view), LOCVIEW_NAME );
-            GList*              renderers = gtk_tree_view_column_get_cell_renderers( info_col );
-
-            /* Should be only one renderer */
-            g_assert( g_list_next( renderers ) == NULL );
-
-            if ((txt = GTK_CELL_RENDERER_TEXT(g_list_first( renderers )->data)) != NULL) {
-                GtkTreePath*    tpath = gtk_tree_model_get_path(model, &iter);
-                g_object_set (txt, "editable", TRUE, NULL);
-
-                gtk_tree_view_set_cursor (GTK_TREE_VIEW(prv->object_view), tpath, info_col, TRUE);
-
-                gtk_tree_path_free(tpath);
-            }
-        } else {
-            g_assert_not_reached();
-        }
-        if (object) {
-            g_object_unref(object);
-        }
     }
 }
 

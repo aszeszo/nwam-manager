@@ -60,6 +60,7 @@ nwam_manager_properties_SOURCES =	\
 	nwam_wireless_chooser.c	\
 	nwam_condition_vbox.c	\
 	nwam_tree_view.c	\
+	nwam_object_ctrl_iface.c\
 	nwam_location_dialog.c	\
 	nwam_rules_dialog.c	\
 	capplet-utils.c	\
@@ -81,6 +82,7 @@ libnwamuicapplet_la_SOURCES =		\
 	nwam_wireless_chooser.c	\
 	nwam_wireless_dialog.c	\
 	capplet-utils.c \
+	nwam_object_ctrl_iface.c\
 	nwam_tree_view.c \
 	$(NULL)
 
@@ -110,6 +112,7 @@ EXTRA_DIST = 		\
 	nwam_proxy_password_dialog.h	\
 	nwam_rules_dialog.h	\
 	nwam_tree_view.h	\
+	nwam_object_ctrl_iface.h\
 	nwam_vpn_pref_dialog.h	\
 	nwam_wireless_chooser.h	\
 	nwam_wireless_dialog.h	\

@@ -89,8 +89,10 @@ customwidgethandler(GladeXML *xml,
 {
     if (g_ascii_strcasecmp(name, "address_table") == 0 ||
       g_ascii_strcasecmp(name, "connection_status_table") == 0 ||
+      g_ascii_strcasecmp(name, "wireless_treeview") == 0 ||
       g_ascii_strcasecmp(name, "location_tree") == 0 ||
       g_ascii_strcasecmp(name, "vpn_apps_list") == 0 ||
+      g_ascii_strcasecmp(name, "sortlist_table") == 0 ||
       g_ascii_strcasecmp(name, "network_profile_table") == 0) {
         g_debug("CUSTOMIZED WIDGET %s", name);
         return nwam_tree_view_new();
@@ -98,6 +100,7 @@ customwidgethandler(GladeXML *xml,
 
     return NULL;
 }
+
 static UniqueResponse
 nwamui_unique_message_handler(  UniqueApp         *app,
                                 gint               command,
@@ -199,23 +202,6 @@ main(int argc, char** argv)
 
     gtk_icon_theme_append_search_path (gtk_icon_theme_get_default (),
                            NWAM_MANAGER_DATADIR G_DIR_SEPARATOR_S "icons");
-
-#if 0
-    /*
-     * We probably don't need this any more if we are using
-     * gnome_program_init.
-     */
-    if (gtk_init_with_args(&argc, &argv, _("NWAM Configuration Capplet"), application_options, NULL, &err) == FALSE ) {
-        if ( err != NULL && err->message != NULL ) {
-            g_printerr(err->message);
-            g_printerr("\n");
-        }
-        else {
-            g_warning(_("Error initialising application\n"));
-        }
-        exit(1);
-    }
-#endif
 
     glade_set_custom_handler(customwidgethandler, NULL);
 

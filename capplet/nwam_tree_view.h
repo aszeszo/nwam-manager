@@ -28,6 +28,7 @@
 #define NWAM_TREE_VIEW_H
 
 #include <gtk/gtk.h>
+#include "nwam_object_ctrl_iface.h"
 
 G_BEGIN_DECLS
 
@@ -44,6 +45,17 @@ typedef void (*NwamTreeViewAddObjectFunc)(NwamTreeView *self, NwamuiObject **obj
 typedef void (*NwamTreeViewRemoveObjectFunc)(NwamTreeView *self, NwamuiObject *object, gpointer user_data);
 typedef gboolean (*NwamTreeViewCommitObjectFunc)(NwamTreeView *self, NwamuiObject *object, gpointer user_data);
 
+typedef enum _NwamTreeViewSupportWidgets {
+    NTV_ADD_BTN = 0,
+    NTV_REMOVE_BTN,
+    NTV_RENAME_BTN,
+    NTV_EDIT_BTN,
+    NTV_DUP_BTN,
+    NTV_UP_BTN,
+    NTV_DOWN_BTN,
+    NTV_N_BTNS,
+} NwamTreeViewSupportWidgets;
+
 struct _NwamTreeView {
 	GtkTreeView parent;
 };
@@ -51,20 +63,8 @@ struct _NwamTreeView {
 struct _NwamTreeViewClass {
 	GtkTreeViewClass parent_class;
 
-    void (*set_object_func)(NwamTreeView *self,
-      NwamTreeViewAddObjectFunc add_object_func,
-      NwamTreeViewRemoveObjectFunc remove_object_func,
-      NwamTreeViewCommitObjectFunc commit_object_func,
-      gpointer user_data);
-
     void (*activate_widget)(NwamTreeView *self, GtkWidget *widget, gpointer user_data);
 
-/*     void (*add)(NwamTreeView *self); */
-/*     void (*remove)(NwamTreeView *self); */
-/*     void (*up)(NwamTreeView *self, GObject *item, gboolean top); */
-/*     void (*down)(NwamTreeView *self, GObject *item); */
-/*     void (*rename)(NwamTreeView *self, GObject *item); */
-/*     GObject *(*edit)(NwamTreeView *self, const gchar *name); */
 /*     GObject *(*get_item_by_proxy)(NwamTreeView *self, GObject *proxy); */
 /*     void (*foreach)(NwamTreeView *self, GtkCallback callback, gpointer user_data); */
 };
@@ -72,21 +72,9 @@ struct _NwamTreeViewClass {
 GType nwam_tree_view_get_type(void) G_GNUC_CONST;
 
 GtkWidget* nwam_tree_view_new();
-void nwam_tree_view_add_widget(NwamTreeView *self, GtkWidget *w);
-void nwam_tree_view_remove_widget(NwamTreeView *self, GtkWidget *w);
-void nwam_tree_view_set_object_func(NwamTreeView *self,
-  NwamTreeViewAddObjectFunc add_object_func, /* unused */
-  NwamTreeViewRemoveObjectFunc remove_object_func, /* unused */
-  NwamTreeViewCommitObjectFunc commit_object_func,
-  gpointer user_data);
+void nwam_tree_view_register_widget(NwamTreeView *self, NwamTreeViewSupportWidgets id, GtkWidget *w);
+void nwam_tree_view_unregister_widget(NwamTreeView *self, NwamTreeViewSupportWidgets id, GtkWidget *w);
 
-void nwam_tree_view_add(NwamTreeView *self);
-void nwam_tree_view_remove(NwamTreeView *self,
-  GtkTreeSelectionForeachFunc func,
-  gpointer user_data);
-void nwam_tree_view_up(NwamTreeView *self, GObject *item, gboolean top);
-void nwam_tree_view_down(NwamTreeView *self, GObject *item);
-GObject* nwam_tree_view_edit(NwamTreeView *self, const gchar *name);
 GObject* nwam_tree_view_get_item_by_proxy(NwamTreeView *self, GObject *proxy);
 
 NwamuiObject* nwam_tree_view_get_cached_object(NwamTreeView *self);

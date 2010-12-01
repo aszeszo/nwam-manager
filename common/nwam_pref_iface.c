@@ -174,20 +174,19 @@ extern gint
 nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWidget *w)
 {
 	NwamPrefInterface *interface = NWAM_GET_PREF_INTERFACE (iface);
-	GtkWindow         *parent    = NULL;
+	GtkWidget         *parent    = NULL;
 
     g_return_val_if_fail(interface != NULL, FALSE);
     g_return_val_if_fail(interface->dialog_run, FALSE);
 
 	if (w) {
-		w = gtk_widget_get_toplevel(w);
+		parent = gtk_widget_get_toplevel(w);
 
-		if (GTK_WIDGET_TOPLEVEL (w)) {
-			parent = GTK_WINDOW(w);
-		}
+		/* if (gtk_widget_is_toplevel(parent)) { */
+		/* } */
 	}
 
-    return interface->dialog_run(iface, parent);
+    return interface->dialog_run(iface, GTK_WINDOW(parent));
 }
 
 extern GtkWindow*
