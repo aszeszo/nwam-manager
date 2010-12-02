@@ -1949,18 +1949,15 @@ nwamui_object_real_set_active (NwamuiObject *object, gboolean active )
  * 
  **/ 
 extern void
-nwamui_env_set_nameservices (   NwamuiEnv *self,
-                                const GList*    nameservices )
+nwamui_env_set_nameservices(NwamuiEnv *self, const GList* nameservices)
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
-    NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(self);
+    NwamuiEnvPrivate *prv      = NWAMUI_ENV_GET_PRIVATE(self);
+    guint64          *ns_array = NULL;
+    guint             count    = 0;
 
-    guint64*                ns_array = NULL;
-    guint                   count = 0;
-
-    ns_array = convert_name_services_glist_to_unint64_array((GList*)nameservices, &count );
-    set_nwam_loc_uint64_array_prop( prv->nwam_loc, NWAM_LOC_PROP_NAMESERVICES, 
-      ns_array, count );
+    ns_array = convert_name_services_glist_to_unint64_array((GList*)nameservices, &count);
+    set_nwam_loc_uint64_array_prop(prv->nwam_loc, NWAM_LOC_PROP_NAMESERVICES, ns_array, count);
 
     prv->nwam_loc_modified = TRUE;
 	g_object_notify(G_OBJECT(self), "nameservices");
@@ -1976,12 +1973,11 @@ extern GList*
 nwamui_env_get_nameservices (NwamuiEnv *self)
 {
     g_return_val_if_fail (NWAMUI_IS_ENV (self), NULL);
-    NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(self);
-
-    guint       num_nameservices = 0;
-    guint64*    ns_64 = (guint64*)get_nwam_loc_uint64_array_prop(
+    NwamuiEnvPrivate *prv              = NWAMUI_ENV_GET_PRIVATE(self);
+    guint             num_nameservices = 0;
+    guint64 *ns_64                     = (guint64*)get_nwam_loc_uint64_array_prop(
         prv->nwam_loc, NWAM_LOC_PROP_NAMESERVICES, &num_nameservices );
-    GList*      ns_list = convert_name_services_uint64_array_to_glist( ns_64, num_nameservices );
+    GList            *ns_list          = convert_name_services_uint64_array_to_glist( ns_64, num_nameservices );
     return ns_list;
 }
 

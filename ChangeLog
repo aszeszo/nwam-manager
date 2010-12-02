@@ -1,3 +1,14 @@
+2010-12-02  Lin Ma  <lin.ma@oracle.com>
+
+	* capplet/capplet-utils.c
+	(nwam_disable_ok_on_cell_editing_started),
+	(nwam_enable_ok_on_cell_canceled):
+	* capplet/nwam_conn_conf_ip_panel.c: Clean unused code.
+	* capplet/nwam_env_pref_dialog.c (populate_panels_from_env),
+	(on_ns_selection_clicked), (on_ns_text_changed): Fixed typing in
+	default domain does not update nis/ldap domain parallelly. Fixed
+	enable ldap causes nis manual rb is changed to dhcp rb.
+
 2010-12-01  Lin Ma  <lin.ma@oracle.com>
 
 	* capplet/nwam_object_ctrl_iface.c

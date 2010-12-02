@@ -71,15 +71,15 @@
 #define     NAMESERVICE_NIS_MANUAL_RB                   "nis_manual_rb"
 #define     NAMESERVICE_NIS_DHCP_RB                     "nis_dhcp_rb"
 #define     NAMESERVICE_LDAP_CHECK_BUTTON               "ldap_service_cb"
-#define     NAMESERVICE_LDAP_DOMAIN_LABEL                "ldap_domain_label"
-#define     NAMESERVICE_LDAP_DOMAIN_LABEL_LABEL          "ldap_domain_label_label"
+#define     NAMESERVICE_LDAP_DOMAIN_LABEL               "ldap_domain_label"
+#define     NAMESERVICE_LDAP_DOMAIN_LABEL_LABEL         "ldap_domain_label_label"
 #define     NAMESERVICE_LDAP_SERVERS_ENTRY              "ldap_servers_entry"
 #define     NAMESERVICE_LDAP_SERVERS_ENTRY_LABEL        "ldap_servers_entry_label"
 #define     NAMMESERVICE_DEFAULT_DOMAIN                 "default_domain_entry"
 #define     NAMMESERVICE_DEFAULT_DOMAIN_LABEL           "default_domain_entry_label"
 #define     NSSWITCH_FILE_BTN                           "nsswitch_file_btn"
 #define     NSSWITCH_DEFAULT_BTN                        "nsswitch_default_btn"
-#define     DEFAULT_FILE_LBL                        "default_file_lbl"
+#define     DEFAULT_FILE_LBL                            "default_file_lbl"
 
 #define     EXPANDER1           "expander1"
 #define     SORTLIST_TABLE      "sortlist_table"
@@ -314,16 +314,6 @@ static void         svc_button_clicked(GtkButton *button, gpointer  user_data);
 static void         nsswitch_default_clicked_cb(GtkButton *button, gpointer  user_data);
 static void         nsswitch_default_file_selection_changed(GtkFileChooserButton *button, gpointer  user_data);
 static void         update_nsswitch_file_widgets(NwamEnvPrefDialog* self);
-
-static void vanity_name_edited ( GtkCellRendererText *cell,
-  const gchar         *path_string,
-  const gchar         *new_text,
-  gpointer             data);
-
-static void vanity_name_editing_started (GtkCellRenderer *cell,
-  GtkCellEditable *editable,
-  const gchar     *path,
-  gpointer         data);
 
 static void menu_pos_func(GtkMenu *menu,
   gint *x,
@@ -599,7 +589,7 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 
 	g_signal_connect(prv->default_domain_entry,
       "changed", (GCallback)on_ns_text_changed, (gpointer)self);
-    
+
     g_signal_connect(prv->nsswitch_default_btn,
       "clicked", (GCallback)nsswitch_default_clicked_cb, (gpointer)self );
     g_signal_connect(prv->nsswitch_file_btn,
@@ -1214,7 +1204,12 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 
     if ( default_domain ) {
 	    gtk_entry_set_text(prv->default_domain_entry, default_domain );
+        gtk_label_set_text(prv->nis_domain_label, default_domain);
+        gtk_label_set_text(prv->ldap_domain_label, default_domain);
         g_free( default_domain );
+    } else {
+        gtk_label_set_text(prv->nis_domain_label, _("enter below"));
+        gtk_label_set_text(prv->ldap_domain_label, _("enter below"));
     }
 
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_manual_rb), dns );
@@ -1657,28 +1652,26 @@ on_ns_selection_clicked(GtkButton *button, gpointer user_data)
         num_nameservices++;
 
         switch( service ) {
-            case NWAMUI_ENV_NAMESERVICES_DNS:
-                if ( dns && !active ) {
-                    remove_element = TRUE;
-                }
-                break;
-            case NWAMUI_ENV_NAMESERVICES_FILES:
-                if ( files && !active ) {
-                    remove_element = TRUE;
-                }
-                files = TRUE;
-                break;
-            case NWAMUI_ENV_NAMESERVICES_NIS:
-                if ( nis && !active ) {
-                    remove_element = TRUE;
-                }
-                nis = TRUE;
-                break;
-            case NWAMUI_ENV_NAMESERVICES_LDAP:
-                if ( ldap && !active ) {
-                    remove_element = TRUE;
-                }
-                break;
+        case NWAMUI_ENV_NAMESERVICES_DNS:
+            if ( dns && !active ) {
+                remove_element = TRUE;
+            }
+            break;
+        case NWAMUI_ENV_NAMESERVICES_FILES:
+            if ( files && !active ) {
+                remove_element = TRUE;
+            }
+            break;
+        case NWAMUI_ENV_NAMESERVICES_NIS:
+            if ( nis && !active ) {
+                remove_element = TRUE;
+            }
+            break;
+        case NWAMUI_ENV_NAMESERVICES_LDAP:
+            if ( ldap && !active ) {
+                remove_element = TRUE;
+            }
+            break;
         }
 
         if ( active && service == new_service ) {
@@ -1786,9 +1779,10 @@ on_ns_selection_clicked(GtkButton *button, gpointer user_data)
 static void
 on_ns_text_changed(GtkEntry *entry, gpointer  user_data)
 {
-    NwamEnvPrefDialog          *self = NWAM_ENV_PREF_DIALOG(user_data);
-	NwamEnvPrefDialogPrivate   *prv = GET_PRIVATE(user_data);
-    const gchar                *text = gtk_entry_get_text(entry);
+    NwamEnvPrefDialog        *self = NWAM_ENV_PREF_DIALOG(user_data);
+	NwamEnvPrefDialogPrivate *prv  = GET_PRIVATE(user_data);
+    const gchar              *text = gtk_entry_get_text(entry);
+    guint16                   len  = gtk_entry_get_text_length(entry);
     
     if ( entry == prv->dns_servers_entry ) {
         GList *servers = nwamui_util_parse_string_to_glist( text );
@@ -1819,6 +1813,13 @@ on_ns_text_changed(GtkEntry *entry, gpointer  user_data)
     }
     else if ( entry == prv->default_domain_entry ) {
         nwamui_env_set_default_domainname( prv->selected_env, text );
+        if (len > 0) {
+            gtk_label_set_text(prv->nis_domain_label, text);
+            gtk_label_set_text(prv->ldap_domain_label, text);
+        } else {
+            gtk_label_set_text(prv->nis_domain_label, _("enter below"));
+            gtk_label_set_text(prv->ldap_domain_label, _("enter below"));
+        }
     }
 }
 
@@ -2663,80 +2664,6 @@ on_activate_static_menuitems (GtkAction *action, gpointer data)
     default:;
     }
 }
-
-static void
-vanity_name_edited ( GtkCellRendererText *cell,
-  const gchar         *path_string,
-  const gchar         *new_text,
-  gpointer             data)
-{
-}
-
-#if 0
-static void
-vanity_name_editing_started (GtkCellRenderer *cell,
-  GtkCellEditable *editable,
-  const gchar     *path_string,
-  gpointer         data)
-{
-	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(data);
-    NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(data);
-    GtkTreeModel *model;
-    GtkTreePath *path = gtk_tree_path_new_from_string (path_string);
-    GtkTreeIter iter;
-
-	model = gtk_tree_view_get_model(prv->nameservices_table);
-    if ( gtk_tree_model_get_iter (model, &iter, path))
-        switch (GPOINTER_TO_INT (g_object_get_data (G_OBJECT (cell), TREEVIEW_COLUMN_NUM))) {
-        case NAMESERVICES_NAME:      {
-            
-            if (GTK_IS_ENTRY(editable)) {
-                GtkWidget *menu;
-                GtkTreeViewColumn *column;
-                GtkAllocation a;
-                GdkRectangle rect;
-
-                menu = nwam_menu_group_get_menu(prv->menugroup);
-
-                gtk_tree_view_get_cursor(prv->nameservices_table,
-                  NULL,
-                  &column);
-
-                if (column && menu) {
-                    gint ns;
-
-                    gtk_tree_model_get(model, &iter, 0, &ns, -1);
-
-                    gtk_tree_view_get_cell_area(prv->nameservices_table,
-                      path,
-                      column,
-                      &rect);
-
-                    gdk_window_get_origin(gtk_tree_view_get_bin_window(prv->nameservices_table),
-                      &a.x,
-                      &a.y);
-                    a.x += rect.x;
-                    a.y += rect.y;
-
-                    /* Enable current menu */
-                    action_menu_group_set_visible(prv->menugroup,
-                      nwam_nameservices_enum_to_string(ns),
-                      TRUE);
-
-                    gtk_menu_popup(menu, NULL, NULL, menu_pos_func, &a, 0,
-                      gtk_get_current_event_time());
-
-                }
-            }
-        }
-            break;
-        default:
-            g_assert_not_reached();
-        }
-
-    gtk_tree_path_free (path);
-}
-#endif /* 0 */
 
 static void
 menu_pos_func(GtkMenu *menu,

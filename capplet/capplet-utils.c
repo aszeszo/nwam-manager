@@ -595,8 +595,6 @@ nwam_disable_ok_on_cell_editing_started(GtkCellRenderer *cell,
             gtk_dialog_set_response_sensitive(GTK_DIALOG(toplevel), GTK_RESPONSE_OK, FALSE);
 		}
 	}
-
-    /* nwam_capplet_dialog_set_ok_sensitive_by_voting(prv->pref_dialog, FALSE); */
 }
 
 void
@@ -630,8 +628,6 @@ nwam_enable_ok_on_cell_canceled(GtkCellRenderer *cell, gpointer data)
             gtk_dialog_set_response_sensitive(GTK_DIALOG(toplevel), GTK_RESPONSE_OK, TRUE);
 		}
 	}
-
-    /* nwam_capplet_dialog_set_ok_sensitive_by_voting(prv->pref_dialog, TRUE); */
 }
 
 GtkTreeViewColumn *

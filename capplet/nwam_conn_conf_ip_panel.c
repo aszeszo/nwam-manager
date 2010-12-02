@@ -206,13 +206,6 @@ static void nwam_conn_wifi_fav_cell_cb (GtkTreeViewColumn *col,
 					     GtkTreeModel      *model,
 					     GtkTreeIter       *iter,
 					     gpointer           data);
-static void nwam_conn_common_multi_cell_editing_started_cb(GtkCellRenderer *cell,
-                                        GtkCellEditable *editable,
-                                        const gchar     *path,
-                                        gpointer         data);
-static void nwam_conn_common_multi_cell_editing_canceled_cb(GtkCellRenderer *cell,
-  gpointer         data);
-
 static gint nwam_conn_multi_ip_comp_cb (GtkTreeModel *model,
 			      GtkTreeIter *a,
 			      GtkTreeIter *b,
@@ -221,15 +214,10 @@ static gint nwam_conn_wifi_fav_comp_cb (GtkTreeModel *model,
 			      GtkTreeIter *a,
 			      GtkTreeIter *b,
 			      gpointer user_data);
-static void conn_view_row_activated_cb (GtkTreeView *tree_view,
-					GtkTreePath *path,
-					GtkTreeViewColumn *column,
-					gpointer data);
 static void multi_line_add_cb( GtkButton *button, gpointer data );
 static void multi_line_del_cb( GtkButton *button, gpointer data );
 static void show_changed_cb( GtkComboBox *combo, gpointer data );
 /* static void renew_cb( GtkButton *button, gpointer data ); */
-static void refresh_clicked_cb( GtkButton *button, gpointer data );
 static void ipv6_manual_addresses_cb_toggled(GtkToggleButton *togglebutton, gpointer user_data);
 static void selection_changed(GtkTreeSelection *selection, gpointer user_data);
 
@@ -1547,24 +1535,6 @@ nwam_conn_wifi_fav_cell_cb (    GtkTreeViewColumn *col,
     default:
         g_assert_not_reached ();
     }
-}
-
-static void
-nwam_conn_common_multi_cell_editing_started_cb(GtkCellRenderer *cell,
-                                        GtkCellEditable *editable,
-                                        const gchar     *path,
-                                        gpointer         data)
-{
-    NwamConnConfIPPanelPrivate* prv = GET_PRIVATE(data);
-    nwam_capplet_dialog_set_ok_sensitive_by_voting(prv->pref_dialog, FALSE);
-}
-
-static void
-nwam_conn_common_multi_cell_editing_canceled_cb(GtkCellRenderer *cell,
-  gpointer         data)
-{
-    NwamConnConfIPPanelPrivate* prv = GET_PRIVATE(data);
-    nwam_capplet_dialog_set_ok_sensitive_by_voting(prv->pref_dialog, TRUE);
 }
 
 static void
