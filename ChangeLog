@@ -1,5 +1,9 @@
 2010-12-02  Lin Ma  <lin.ma@oracle.com>
 
+	* configure.in: bump to 1.155.0
+
+2010-12-02  Lin Ma  <lin.ma@oracle.com>
+
 	* capplet/capplet-utils.c
 	(nwam_disable_ok_on_cell_editing_started),
 	(nwam_enable_ok_on_cell_canceled):
