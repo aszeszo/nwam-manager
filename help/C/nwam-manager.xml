@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" 
-    "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd" [
+<!DOCTYPE book PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.0/docbookx.dtd" [
    <!ENTITY appversion "1.0"> 
    <!ENTITY manrevision "1.0"> 
    <!ENTITY date "September 2009"> 
@@ -8,13 +7,13 @@
    <!ENTITY appname "nwam-manager"> 
 ]>
 <book id="osnetautomagoh" label="fcs" lang="en"><title>Network Auto-Magic Online Help</title>
-<bookinfo><authorgroup><author><firstname>Juanita</firstname>
-<surname>Heieck</surname>
+<bookinfo><authorgroup><author><firstname>Shubha</firstname>
+<surname>Girish</surname>
 </author>
 </authorgroup>
 <pubsnumber>820-7604-10</pubsnumber>
 <releaseinfo></releaseinfo>
-<pubdate>April 2010</pubdate>
+<pubdate>January 2011</pubdate>
 <publisher role="maintainer"><publishername>Oracle Corporation</publishername>
 </publisher>
 <revhistory>
@@ -32,7 +31,7 @@
          Online help manual for OpenSolaris Network Auto-Magic Configuration.
        </para>
 </abstract>
-<copyright><year>2010</year>
+<copyright><year>2010, 2011</year>
 </copyright>
 <abstract><para>This online help provides detailed instructions for using the NWAM GUI to monitor network connectivity and to configure wired and wireless network connections.</para>
 </abstract>
@@ -48,8 +47,8 @@
 </bookinfo>
 <chapter id="intro"><title>Introduction</title>
 <para>Use this online help to find out more about configuring your automatic network connection by using the Network Auto-Magic (NWAM) graphical user interface (GUI). Links within the application take you to pages that provide more detailed information. You can also navigate through this help by using links that appear within the text or by clicking the various topics in the side pane.</para>
-<sect1 id="nwam-components"><title>About the Network Auto-Magic Process</title>
-<para>The NWAM process simplifies basic network configuration by automatically configuring and managing your wired and wireless networks. The NWAM service addresses basic Ethernet and wireless configurations and enables you to perform various networking tasks, such as connecting to your wired or wireless network at startup and configuring new wired or wireless networks. The NWAM service also simplifies more complex network configurations, such as system-wide network configuration. In addition, this feature displays informational messages about the current status of your network connection and the overall health of your network.</para>
+<sect1 id="nwam-components"><title>About the Network Auto-Magic Feature</title>
+<para>The NWAM feature simplifies basic network configuration by automatically configuring and managing your wired and wireless networks. NWAM addresses basic Ethernet and wireless configurations and enables you to perform various networking tasks, such as connecting to your wired or wireless network at startup and configuring new wired or wireless networks. The NWAM feature also simplifies more complex network configurations, such as system-wide network configuration. In addition, this feature displays informational messages about the current status of your network connection and the overall health of your network.</para>
 <para>Other feature capabilities include:</para>
 <itemizedlist><listitem><para>Multiple concurrent network connections</para>
 </listitem>
@@ -58,7 +57,7 @@
 <listitem><para>Network modifiers support, for example, virtual private network (VPN) client applications.</para>
 </listitem>
 </itemizedlist>
-<para>Network configuration is managed by storing desired property values in the form of profiles. The service determines which profile should be active at a given time, depending on the current network conditions, then activates that profile.</para>
+<para>Network configuration is managed by storing desired property values in the form of profiles. NWAM determines which profile should be active at a given time, depending on the current network conditions, then activates that profile.</para>
 <para>There are two primary profile types: the <emphasis>Network Profile</emphasis>, which specifies the configuration of individual network interfaces, and <emphasis>Locations</emphasis>, which specify system-wide network configuration. The individual components that make up the network profile are referred to as <emphasis>network connections</emphasis>. You can use this application to configure and manage both types of profiles.</para>
 <para><emphasis role="strong">Related Information</emphasis></para>
 <para><xref linkend="configure-network"/>.</para>
@@ -121,14 +120,14 @@
 </entry>
 <entry><para>Offline (Wired)</para>
 </entry>
-<entry><para>Indicates the NWAM service is disabled or in maintenance mode.</para>
+<entry><para>Indicates the NWAM feature is disabled or in maintenance mode.</para>
 </entry>
 </row>
 </tbody>
 </tgroup>
 </informaltable>
 <para>If one wireless network connection is enabled, its current wireless signal strength is displayed. If multiple wireless network connections are enabled, their average signal strength is displayed.</para>
-<itemizedlist><listitem><para>To display a summary of the current network status in a tooltip, hover your mouse over the icon.</para>
+<itemizedlist><listitem><para>To display a summary of the current network status in a tool tip, hover your mouse over the icon.</para>
 </listitem>
 <listitem><para>To configure network preferences, click the icon to open the <literal>Network Preferences</literal> dialog. This function is only enabled for user accounts that have been assigned the <literal>Network Autoconf Admin</literal> rights profile by a system administrator.</para>
 </listitem>
@@ -274,7 +273,7 @@
 <chapter id="viewstatus-info"><title>Obtaining Information About Your Network's Status</title>
 <para>There are several ways that you can check the status of your network connection. The quickest way to obtain essential information about your network is to look at the <literal>Network Status</literal> notification icon that is displayed in the desktop panel's notification area at all times. The icon's appearance indicates the overall status of enabled network connections.</para>
 <para>Other ways that you can obtain information about the status of your network include the following:</para>
-<itemizedlist><listitem><para>Hovering your mouse over the <literal>Network Status</literal> notification icon to display a tooltip that provides information about the status of all enabled connections.</para>
+<itemizedlist><listitem><para>Hovering your mouse over the <literal>Network Status</literal> notification icon to display a tool tip that provides information about the status of all enabled connections.</para>
 </listitem>
 <listitem><para>Viewing informational messages that are displayed in the desktop panel's notification area.</para>
 </listitem>
@@ -291,7 +290,7 @@
 <sect1 id="obtainstatus-current"><title>To Show Details of Enabled Network Connections</title>
 <para>Open the <literal>Network Preferences</literal> dialog, and select <guimenuitem>Connection Status</guimenuitem> from the drop-down list, if required. This method provides the most information about enabled network connections. </para>
 <para>To open the <literal>Network Preferences</literal> dialog, do one of the following:</para>
-<itemizedlist><listitem><para>Choose System -&gt; Administration -&gt; Network from the Main Menubar on the desktop panel.</para>
+<itemizedlist><listitem><para>Choose System -&gt; Administration -&gt; Network from the Main Menu bar on the desktop panel.</para>
 </listitem>
 <listitem><para>Right click the <literal>Network Status</literal> notification icon to open its menu, then select the <guimenuitem>Network Preferences</guimenuitem> menu item.</para>
 </listitem>
@@ -441,7 +440,7 @@
 <chapter id="nwprefs-dialog"><title>About the Network Preferences Dialog</title>
 <para>The <literal>Network Preferences</literal> dialog is where you can configure individual network connections and view the current state of each network connection. The window provides access to various views that you can switch to by using the drop-down list that is located at the top of the dialog.</para>
 <para>You can open the dialog three ways:</para>
-<itemizedlist><listitem><para>By choosing System -&gt; Administration -&gt; Network from the Main Menubar on the desktop panel.</para>
+<itemizedlist><listitem><para>By choosing System -&gt; Administration -&gt; Network from the Main Menu bar on the desktop panel.</para>
 </listitem>
 <listitem><para>By clicking the <literal>Network Status</literal> notification icon</para>
 </listitem>
@@ -814,7 +813,7 @@
 <para>The <literal>Network Locations</literal> dialog enables you to switch locations, edit location properties, create new locations, and remove locations.</para>
 <mediaobject><imageobject><imagedata fileref="graphics/locationprefs-dialog.png" /></imageobject>
 </mediaobject>
-<para>To open the dialog, choose <literal>Network Locations</literal> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
+<para>To open the dialog, choose <literal>Network Locations</literal> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations</guibutton> button.</para>
 <note><para>The <literal>Network Locations</literal> dialog is only available to user accounts that have been assigned the <literal>Network Autoconf Admin</literal> rights profile by a system administrator.</para>
 </note>
 <para>The Locations list is similar to the list on the <literal>Network Status</literal> notification's icon menu. Each available location, with an icon that represents its activation type, is listed. </para>
@@ -860,7 +859,7 @@
 <para>The activation type of the selected location is also displayed in the <literal>Selected location</literal> drop-down list. The active location is represented by a selected radio button that is displayed in the first column of the list.</para>
 </sect1>
 <sect1 id="activationmode-chg"><title>To Change a Location's Activation Mode</title>
-<orderedlist><listitem><para>Choose <literal>Network Locations</literal> from the desktop notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
+<orderedlist><listitem><para>Choose <literal>Network Locations</literal> from the desktop notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations</guibutton> button.</para>
 </listitem>
 <listitem><para>To change the activation mode of a location, select the location in the list, then select the new activation mode the <guilabel>Selected location</guilabel> drop-down list.</para>
 <para>Note that when a system location is selected, the drop-down list shows <guilabel>Activated by system</guilabel>, and both the drop-down list and the <guibutton>Edit Rules</guibutton> button are disabled.</para>
@@ -882,7 +881,7 @@
 <listitem><para>If the <guilabel>Switch Locations Manually</guilabel> option is selected on the <guisubmenu>Location</guisubmenu> submenu, you can activate any available location, regardless of its activation type. That location remains active indefinitely.</para>
 </listitem>
 </itemizedlist>
-<para>Alternately, you can open the <literal>Network Locations</literal> dialog from the desktop panel applet's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button. To switch to a different location, select the radio button of that location, then click <guibutton>OK</guibutton>. </para>
+<para>Alternately, you can open the <literal>Network Locations</literal> dialog from the desktop panel applet's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations</guibutton> button. To switch to a different location, select the radio button of that location, then click <guibutton>OK</guibutton>. </para>
 <itemizedlist><listitem><para>If the <guibutton>Switch Locations Automatically</guibutton> radio button is selected in the <literal>Network Locations</literal> dialog, you cannot manually choose a location to activate. The most appropriate System or Conditional location will be activated automatically at any given time, according to changes in the network environment.</para>
 </listitem>
 <listitem><para>If the <guibutton>Switch Locations Manually</guibutton> radio button is selected in the <literal>Network Locations</literal> dialog, you can activate any available location, regardless of its activation type. That location remains active indefinitely.</para>
@@ -910,7 +909,7 @@
 </sect1>
 <sect1 id="location-confignew"><title>To Add a Location</title>
 <para>New locations are added in the <literal>Network Locations</literal> dialog.</para>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations.</guibutton> button.</para>
 </listitem>
 <listitem><para>To add a new location with default settings, click the <guibutton>Add </guibutton> button.</para>
 <para>A new location that has the Manual activation type, is created with a temporary name. The name is selected so that you can type a new name immediately.</para>
@@ -923,7 +922,7 @@
 </sect1>
 <sect1 id="location-remove"><title>To Remove a Location</title>
 <para>Locations are removed in the <literal>Network Locations</literal> dialog.</para>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the Network Status notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the Network Status notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations</guibutton> button.</para>
 </listitem>
 <listitem><para>Select the location to remove, then click the <guibutton>Remove</guibutton> button.</para>
 <para>The <guibutton>Remove</guibutton> button is disabled when a system location (Automatic or No Network) is selected. These locations cannot be deleted.</para>
@@ -936,7 +935,7 @@
 <para>Locations are renamed in the <literal>Network Locations</literal> dialog.</para>
 <note><para>You can only rename a location immediately after you have added it. After you click the OK button to confirm the addition of the location and close the <literal>Network Locations</literal> dialog, the location name is fixed and cannot be edited.</para>
 </note>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations</guibutton> button.</para>
 </listitem>
 <listitem><para>Select the location to rename, then click the <guibutton>Rename</guibutton> button.</para>
 <para>The location name is replaced by an <emphasis>in-place</emphasis> editable text field in the list.</para>
@@ -948,7 +947,7 @@
 </sect1>
 <sect1 id="location-duplicate"><title>To Duplicate a Location </title>
 <para>Locations are duplicated in the <literal>Network Locations</literal> dialog.</para>
-<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations...</guibutton> button.</para>
+<orderedlist><listitem><para>Open the dialog by choosing <guimenuitem>Network Locations</guimenuitem> from the <literal>Network Status</literal> notification icon's right-click menu. Or, in the <literal>Connection Status</literal> view of the <literal>Network Preferences</literal> dialog, click the <guibutton>Locations</guibutton> button.</para>
 </listitem>
 <listitem><para>Select the location, then click the <guibutton>Duplicate</guibutton> button.</para>
 <para>A new location is created with a temporary name.</para>
@@ -982,8 +981,14 @@
 <para>Where required, multiple servers or search domains can be separated by spaces or commas.</para>
 <note><para>Separate domain names cannot be specified for the NIS and LDAP protocols. Both protocols must use the same default domain name.</para>
 </note>
+<para>The <guilabel>Advanced resolver settings</guilabel> expandable section enables you to customize the behavior of the internal name resolver.</para>
+<para>The <guibutton>Sort List</guibutton> table enables the resolver to return ordered IP addresses. For each entry in the list, the <literal>Address</literal> column is mandatory, and the <literal>Subnet mask</literal> column is optional. See <xref linkend="editing-tables"/>.</para>
+<para>The <literal>Address</literal> field also accepts addresses and subnet masks in the Classless Inter-Domain Routing (CIDR) format. For example, the IP address, <literal>192.168.0.0/22</literal>, represents the 1024 IPv4 addresses ranging from <literal>192.168.0.0</literal> to <literal>192.168.3.255</literal>.</para>
+<para>The <literal>Options</literal> text field enables you to enter additional resolver configuration options separated by spaces. For example:</para>
+<para><literal>attempts:3 ndots:2 debug no-check-names</literal></para>
+<para>For more information about sort lists and available resolver configuration options, see the <literal>resolv.conf</literal>(4) man page.</para>
 <para>The <guibutton>Custom nsswitch file</guibutton> button enables you to choose the name service configuration file that is to be used for this location.</para>
-<para>When a single name service is selected for this location, you can either use the default name service configuration file, or specify a custom configuration file. To specify a custom configuration file, click the <guibutton>Custom nsswitch file</guibutton> button to open a file chooser dialog. To revert to the default name service configuration file, click the <guibutton>Use Default</guibutton> button. The full pathname of the default configuration file that is associated with the selected name service is displayed below the <guibutton>Use Default</guibutton> button.</para>
+<para>When a single name service is selected for this location, you can either use the default name service configuration file, or specify a custom configuration file. To specify a custom configuration file, click the <guibutton>Custom nsswitch file</guibutton> button to open a file chooser dialog. To revert to the default name service configuration file, click the <guibutton>Use Default</guibutton> button. The full path name of the default configuration file that is associated with the selected name service is displayed below the <guibutton>Use Default</guibutton> button.</para>
 <para>When multiple name services are selected for this location, you must always choose a custom configuration file by clicking the <guibutton>Custom nsswitch file</guibutton> button, as there is no default configuration file that can be used.</para>
 <note><para>Editing the values in this dialog does not result in any changes being written to the <filename>nsswitch</filename> configuration file. Therefore, you might need to manually edit the selected file to achieve the desired behavior.</para>
 </note>
@@ -993,7 +998,7 @@
 <para>The behavior of the check boxes and file chooser buttons are as follows:</para>
 <itemizedlist><listitem><para><emphasis role="strong">When you check a box</emphasis> &#8211; The corresponding file chooser button is enabled. If no file name is currently associated with the feature, a file selection dialog immediately opens. Here, you can choose a configuration file. Otherwise, the file name that was previously shown is used until you click the file chooser button.</para>
 </listitem>
-<listitem><para><emphasis role="strong">When you uncheck a box</emphasis> &#8211; The corresponding file chooser button is disabled. The file name that is shown iis no longer associated with that feature when the location is active. The last-used file name remains visible in the disabled control and is remembered between sessions.</para>
+<listitem><para><emphasis role="strong">When you uncheck a box</emphasis> &#8211; The corresponding file chooser button is disabled. The file name that is shown is no longer associated with that feature when the location is active. The last-used file name remains visible in the disabled control and is remembered between sessions.</para>
 </listitem>
 </itemizedlist>
 </sect1>
@@ -1206,7 +1211,7 @@
 <colspec colwidth="66.83*"/>
 <thead><row><entry><para>Condition Type</para>
 </entry>
-<entry><para>Condition is true if...</para>
+<entry><para>Condition is true if</para>
 </entry>
 </row>
 </thead>
