@@ -1,3 +1,22 @@
+2011-02-16  Lin Ma  <lin.ma@oracle.com>
+
+	* capplet/nwam_object_ctrl_iface.c (nwam_object_ctrl_edit): Fixed
+	7011269
+	* capplet/nwam_conn_conf_ip_panel.c (edit_object): Fixed 7011269
+	* capplet/nwam_location_dialog.c (apply), (response_cb):
+	* capplet/nwam_pref_dialog.c (response_cb):
+	* capplet/nwam_profile_dialog.c (apply), (response_cb):
+	* capplet/nwam_proxy_password_dialog.c (response_cb):
+	* capplet/nwam_rules_dialog.c (response_cb):
+	* capplet/nwam_vpn_pref_dialog.c (response_cb):
+	* capplet/nwam_wireless_chooser.c (response_cb):
+	* capplet/nwam_wireless_dialog.c: Handle GTK_RESPONSE_DELETE_EVENT
+	properly (click [X] button). Fixed 7011546.
+	* common/nwamui_env.c (nwamui_env_set_dns_nameservice_sortlist):
+	Fixed remove nameserver sort list error.
+	* help/C/nwam-manager.xml: Change docbook/xml version to 4.2,
+	since 4.0 isn't shipped by solaris, building will check it online.
+
 2011-01-28  Lin Ma  <lin.ma@oracle.com>
 
 	* configure.in:

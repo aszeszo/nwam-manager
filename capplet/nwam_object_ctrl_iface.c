@@ -130,7 +130,7 @@ nwam_object_ctrl_edit(NwamObjectCtrlIFace *iface, GObject *obj)
 	NwamObjectCtrlInterface *interface = NWAM_GET_OBJECT_CTRL_INTERFACE(iface);
 
     g_return_if_fail(interface != NULL);
-    g_return_if_fail(interface->rename);
+    g_return_if_fail(interface->edit);
 
     interface->edit(iface, obj);
 }

@@ -525,9 +525,6 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 		case GTK_RESPONSE_NONE:
 			g_debug("GTK_RESPONSE_NONE");
 			break;
-		case GTK_RESPONSE_DELETE_EVENT:
-			g_debug("GTK_RESPONSE_DELETE_EVENT");
-			break;
 		case GTK_RESPONSE_APPLY: /* Join Unlisted Network */
 			g_debug("GTK_RESPONSE_APPLY");
             join_wireless( NULL, TRUE );
@@ -537,6 +534,9 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 			g_debug("GTK_RESPONSE_OK");
             stop_emission = !nwam_pref_apply(NWAM_PREF_IFACE(data), NULL);
 			break;
+		case GTK_RESPONSE_DELETE_EVENT:
+			g_debug("GTK_RESPONSE_DELETE_EVENT");
+            /* Fall through */
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
             gtk_widget_hide( GTK_WIDGET(prv->wireless_chooser) );

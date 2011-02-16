@@ -317,12 +317,12 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
         case GTK_RESPONSE_NONE:
             g_debug("GTK_RESPONSE_NONE");
             break;
-        case GTK_RESPONSE_DELETE_EVENT:
-            g_debug("GTK_RESPONSE_DELETE_EVENT");
-            break;
         case GTK_RESPONSE_OK:
             g_debug("GTK_RESPONSE_OK");
             break;
+		case GTK_RESPONSE_DELETE_EVENT:
+			g_debug("GTK_RESPONSE_DELETE_EVENT");
+            /* Fall through */
         case GTK_RESPONSE_CANCEL:
             g_debug("GTK_RESPONSE_CANCEL");
             gtk_widget_hide(GTK_WIDGET(self->prv->proxy_password_dialog));

@@ -383,9 +383,6 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
 			g_debug("GTK_RESPONSE_NONE");
             stop_emission = TRUE;
 			break;
-		case GTK_RESPONSE_DELETE_EVENT:
-			g_debug("GTK_RESPONSE_DELETE_EVENT");
-			break;
 		case GTK_RESPONSE_OK:
 			g_debug("GTK_RESPONSE_OK");
             if (nwam_pref_apply (NWAM_PREF_IFACE(self), NULL)) {
@@ -401,6 +398,9 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
             refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
             stop_emission = TRUE;
 			break;
+		case GTK_RESPONSE_DELETE_EVENT:
+			g_debug("GTK_RESPONSE_DELETE_EVENT");
+            /* Fall through */
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
             if (nwam_pref_cancel (NWAM_PREF_IFACE(self), NULL)) {

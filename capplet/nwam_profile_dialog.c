@@ -727,6 +727,8 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         nwamui_object_commit(prv->selected_ncp);
     }
 
+    g_object_set(self, "selected_ncp", NULL, NULL);
+
     return(TRUE);
 }
 
@@ -2854,7 +2856,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 		case GTK_RESPONSE_OK:
 			g_debug("GTK_RESPONSE_OK");
             if (nwam_pref_apply(NWAM_PREF_IFACE(self), NULL)) {
-                gtk_widget_hide(GTK_WIDGET(prv->edit_network_profile_dlg));
+                gtk_widget_hide(widget);
             } else {
                 /* TODO - report error to user */
                 stop_emission = TRUE;
@@ -2865,10 +2867,13 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
             nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
             stop_emission = TRUE;
 			break;
+		case GTK_RESPONSE_DELETE_EVENT:
+			g_debug("GTK_RESPONSE_DELETE_EVENT");
+            /* Fall through */
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
             if (nwam_pref_cancel (NWAM_PREF_IFACE(self), NULL)) {
-                gtk_widget_hide(GTK_WIDGET(prv->edit_network_profile_dlg));
+                gtk_widget_hide(widget);
             } else {
                 stop_emission = TRUE;
             }

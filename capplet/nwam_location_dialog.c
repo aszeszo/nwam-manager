@@ -674,18 +674,21 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         g_object_unref(data.failone);
     }
 
-    if (prv->switch_loc_manually_flag) {
-		nwamui_object_set_active(NWAMUI_OBJECT(prv->toggled_env), TRUE);
-    } else {
-        /* Get the current active env, disactive and wait for nwamd. */
-        NwamuiEnv *env = nwamui_daemon_get_active_env(prv->daemon);
-        nwamui_object_set_active(NWAMUI_OBJECT(env), FALSE);
-        g_object_unref(env);
+    /* If a different loc is being activated. */
+    if (prv->toggled_env) {
+        if (prv->switch_loc_manually_flag) {
+            nwamui_object_set_active(NWAMUI_OBJECT(prv->toggled_env), TRUE);
+        } else {
+            /* Get the current active env, disactive and wait for nwamd. */
+            NwamuiEnv *env = nwamui_daemon_get_active_env(prv->daemon);
+            nwamui_object_set_active(NWAMUI_OBJECT(env), FALSE);
+            g_object_unref(env);
+        }
+        /* Clean toggled_env after use it, because the next time show this dialog
+         * may not show the correct active env.
+         */
+        g_object_set(self, "toggled_env", NULL, NULL);
     }
-    /* Clean toggled_env after use it, because the next time show this dialog
-     * may not show the correct active env.
-     */
-    g_object_set(self, "toggled_env", NULL, NULL);
 
     return retval;
 }
@@ -1030,9 +1033,6 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 		case GTK_RESPONSE_NONE:
 			g_debug("GTK_RESPONSE_NONE");
 			break;
-		case GTK_RESPONSE_DELETE_EVENT:
-			g_debug("GTK_RESPONSE_DELETE_EVENT");
-			break;
 		case GTK_RESPONSE_OK:
 			g_debug("GTK_RESPONSE_OK");
             stop_emission = !nwam_pref_apply(NWAM_PREF_IFACE(data), NULL);
@@ -1040,6 +1040,9 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
                 gtk_widget_hide (GTK_WIDGET(prv->location_dialog));
             }
 			break;
+		case GTK_RESPONSE_DELETE_EVENT:
+			g_debug("GTK_RESPONSE_DELETE_EVENT");
+            /* Fall through */
 		case GTK_RESPONSE_CANCEL:
 			g_debug("GTK_RESPONSE_CANCEL");
             nwam_pref_cancel(NWAM_PREF_IFACE(data), NULL);

@@ -2255,27 +2255,31 @@ nwamui_env_set_dns_nameservice_sortlist(NwamuiEnv *self, const GList*  dns_names
 {
     g_return_if_fail (NWAMUI_IS_ENV (self));
     NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(self);
-    gint len = g_list_length((GList*)dns_nameservice_sortlist) + 1;
-    gchar** ns_server_strs = g_malloc0(len * sizeof(gchar*));
+    gint len = g_list_length((GList*)dns_nameservice_sortlist);
+    gchar** ns_server_strs = NULL;
 
-    ns_server_strs[len] = NULL;
+    if (len > 0) {
+        ns_server_strs = g_malloc0(len * sizeof(gchar*));
+        ns_server_strs[len] = NULL;
 
-    for (gint i = 0;
-         dns_nameservice_sortlist;
-         dns_nameservice_sortlist = g_list_next(dns_nameservice_sortlist), i++) {
-        gchar *addr;
-        gchar *subnet;
-        NwamuiIp *ip = NWAMUI_IP(dns_nameservice_sortlist->data);
-        addr = nwamui_ip_get_address(ip);
-        subnet = nwamui_ip_get_subnet_prefix(ip);
-        ns_server_strs[i] = g_strdup_printf("%s/%s", addr, subnet);
-        g_free(addr);
-        g_free(subnet);
+        for (gint i = 0;
+             dns_nameservice_sortlist;
+             dns_nameservice_sortlist = g_list_next(dns_nameservice_sortlist), i++) {
+            gchar *addr;
+            gchar *subnet;
+            NwamuiIp *ip = NWAMUI_IP(dns_nameservice_sortlist->data);
+            addr = nwamui_ip_get_address(ip);
+            subnet = nwamui_ip_get_subnet_prefix(ip);
+            ns_server_strs[i] = g_strdup_printf("%s/%s", addr, subnet);
+            g_free(addr);
+            g_free(subnet);
+        }
+
+        set_nwam_loc_string_array_prop(prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SORTLIST, ns_server_strs, 0);
+        g_strfreev(ns_server_strs);
+    } else {
+        set_nwam_loc_string_array_prop(prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SORTLIST, NULL, 0);
     }
-
-    set_nwam_loc_string_array_prop(prv->nwam_loc, NWAM_LOC_PROP_DNS_NAMESERVICE_SORTLIST, ns_server_strs, 0);
-    g_strfreev(ns_server_strs);
-
     prv->nwam_loc_modified = TRUE;
 	g_object_notify(G_OBJECT(self), "dns_nameservice_sortlist");
 }

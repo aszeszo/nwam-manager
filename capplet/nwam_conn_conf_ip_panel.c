@@ -313,7 +313,7 @@ edit_object(NwamObjectCtrlIFace *iface, GObject *obj)
     nwam_pref_set_purpose(NWAM_PREF_IFACE(prv->wifi_dialog), NWAMUI_DIALOG_PURPOSE_EDIT);
     nwam_wireless_dialog_set_do_connect( prv->wifi_dialog, FALSE );
 
-    switch (nwam_pref_dialog_run(NWAM_PREF_IFACE(prv->wifi_dialog), GTK_WIDGET(prv->wifi_dialog))) {
+    switch (nwam_pref_dialog_run(NWAM_PREF_IFACE(prv->wifi_dialog), GTK_WIDGET(prv->wifi_fav_tv))) {
     case GTK_RESPONSE_OK:
 
         if (nwamui_object_has_modifications(NWAMUI_OBJECT(obj))) {
