@@ -1,3 +1,9 @@
+2011-02-26  Lin Ma  <lin.ma@oracle.com>
+
+	* ui/Makefile.am: do not use install-data-local.
+	* ui/nwam-manager-properties.ui: nsswitch_file_btn only accept
+	local file.
+
 2011-02-16  Lin Ma  <lin.ma@oracle.com>
 
 	* capplet/nwam_object_ctrl_iface.c (nwam_object_ctrl_edit): Fixed
