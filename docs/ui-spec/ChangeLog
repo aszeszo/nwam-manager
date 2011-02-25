@@ -1,5 +1,11 @@
 2011-02-25  Calum Benson  <calum.benson@oracle.com>
 
+	* nwam-ui-spec.pages
+	* nwam-ui-spec.pdf
+	A couple of small behaviour clarifications.
+
+2011-02-25  Calum Benson  <calum.benson@oracle.com>
+
 Update Connection Status View and Network Profile View screenshots to match
 spec, and do a little screenshot housekeeping.
 
