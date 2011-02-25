@@ -20,8 +20,6 @@
 
 NULL =
 
-install-data-local:
-
 uidir   = $(pkgdatadir)
 ui_DATA = nwam-manager-properties.ui \
 			 nwam-manager-wireless.ui
@@ -32,6 +30,10 @@ EXTRA_DIST = 		\
 
 DISTCLEANFILES =	\
         $(NULL)
+
+install-data-hook:
+	@$(MKDIR_P) $(DESTDIR)$(uidir)
+	for f in $(ui_DATA); do $(INSTALL_DATA) $$f $(DESTDIR)$(uidir)/$$f; done
 
 dist-hook:
 	cd $(distdir) ; rm -f $(DISTCLEANFILES)
