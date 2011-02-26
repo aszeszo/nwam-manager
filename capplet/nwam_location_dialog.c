@@ -73,7 +73,6 @@ struct _NwamLocationDialogPrivate {
     NwamuiObject*       toggled_env;
 
 	/* Other Data */
-    NwamEnvPrefDialog*  env_pref_dialog;
     NwamuiDaemon       *daemon;
 };
 
@@ -109,7 +108,6 @@ static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
-static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_location_dialog_finalize(NwamLocationDialog *self);
@@ -181,7 +179,6 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->apply = apply;
 	iface->cancel = cancel;
 	iface->help = help;
-    iface->dialog_run = dialog_run;
     iface->dialog_get_window = dialog_get_window;
 }
 
@@ -532,33 +529,6 @@ nwam_location_dialog_new(void)
 	NwamLocationDialog *self =  NWAM_LOCATION_DIALOG(g_object_new(NWAM_TYPE_LOCATION_DIALOG, NULL));
 
     return( self );
-}
-
-static gint
-dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
-{
-    NwamLocationDialog*    self = NWAM_LOCATION_DIALOG( iface );
-    gint response = GTK_RESPONSE_NONE;
-    
-    g_assert(NWAM_IS_LOCATION_DIALOG (self));
-    
-    if ( self->prv->location_dialog != NULL ) {
-        if (parent) {
-            gtk_window_set_transient_for (GTK_WINDOW(self->prv->location_dialog), parent);
-            gtk_window_set_modal (GTK_WINDOW(self->prv->location_dialog), TRUE);
-        } else {
-            gtk_window_set_transient_for (GTK_WINDOW(self->prv->location_dialog), NULL);
-            gtk_window_set_modal (GTK_WINDOW(self->prv->location_dialog), FALSE);		
-        }
-        nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, FALSE);
-        
-        /* Ensure is OK is sensitive */
-        gtk_widget_set_sensitive( GTK_WIDGET(self->prv->location_ok_btn), TRUE);
-
-        response =  gtk_dialog_run(GTK_DIALOG(self->prv->location_dialog));
-
-    }
-    return(response);
 }
 
 static GtkWindow* 
@@ -1030,27 +1000,20 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
     gboolean                    stop_emission = FALSE;
 
 	switch (responseid) {
-		case GTK_RESPONSE_NONE:
-			g_debug("GTK_RESPONSE_NONE");
-			break;
 		case GTK_RESPONSE_OK:
-			g_debug("GTK_RESPONSE_OK");
-            stop_emission = !nwam_pref_apply(NWAM_PREF_IFACE(data), NULL);
-            if (!stop_emission) {
+            if (nwam_pref_apply(NWAM_PREF_IFACE(data), NULL)) {
                 gtk_widget_hide (GTK_WIDGET(prv->location_dialog));
             }
+            stop_emission = TRUE;
 			break;
 		case GTK_RESPONSE_DELETE_EVENT:
-			g_debug("GTK_RESPONSE_DELETE_EVENT");
             /* Fall through */
 		case GTK_RESPONSE_CANCEL:
-			g_debug("GTK_RESPONSE_CANCEL");
             nwam_pref_cancel(NWAM_PREF_IFACE(data), NULL);
 			gtk_widget_hide (GTK_WIDGET(prv->location_dialog));
-            stop_emission = FALSE;
+            stop_emission = TRUE;
 			break;
 		case GTK_RESPONSE_HELP:
-			g_debug("GTK_RESPONSE_HELP");
             nwam_pref_help (NWAM_PREF_IFACE(data), NULL);
             stop_emission = TRUE;
 			break;

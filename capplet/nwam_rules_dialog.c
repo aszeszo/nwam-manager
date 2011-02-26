@@ -141,7 +141,7 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     }
 
 
-	return nwam_pref_apply(NWAM_PREF_IFACE(prv->rules_vbox), user_data);
+	return nwam_pref_apply(NWAM_PREF_IFACE(prv->rules_vbox), prv->selected_object);
 }
 
 static gboolean
@@ -159,7 +159,6 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->apply = apply;
 	iface->cancel = cancel;
 	iface->help = NULL;
-    iface->dialog_run = nwam_rules_dialog_run;
 }
 
 static void
@@ -283,7 +282,7 @@ response_cb(GtkWidget* widget, gint responseid, gpointer user_data)
 		break;
 	case GTK_RESPONSE_OK:
 		g_debug("GTK_RESPONSE_OK");
-		if (!nwam_pref_apply(NWAM_PREF_IFACE(self), self->prv->selected_object)) {
+		if (!nwam_pref_apply(NWAM_PREF_IFACE(self), NULL)) {
 			/* TODO - report error to user */
             g_debug("GTK_RESPONSE failed to apply, emission stopped");
 			stop_emission = TRUE;

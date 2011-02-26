@@ -50,7 +50,6 @@ nwam_pref_iface_class_init (gpointer g_class, gpointer g_class_data)
 	self->refresh = NULL;
 	self->apply = NULL;
     self->help = NULL;
-    self->dialog_run = NULL;
     self->dialog_get_window = NULL;
 }
 
@@ -175,18 +174,27 @@ nwam_pref_dialog_run(NwamPrefIFace *iface, GtkWidget *w)
 {
 	NwamPrefInterface *interface = NWAM_GET_PREF_INTERFACE (iface);
 	GtkWidget         *parent    = NULL;
+    GtkWindow         *window    = nwam_pref_dialog_get_window(iface);
+    gint               response  = GTK_RESPONSE_NONE;
 
     g_return_val_if_fail(interface != NULL, FALSE);
-    g_return_val_if_fail(interface->dialog_run, FALSE);
+    g_return_val_if_fail(window != NULL, FALSE);
 
 	if (w) {
 		parent = gtk_widget_get_toplevel(w);
 
-		/* if (gtk_widget_is_toplevel(parent)) { */
-		/* } */
+		if (gtk_widget_is_toplevel(parent)) {
+            gtk_window_set_transient_for(window, GTK_WINDOW(parent));
+		}
 	}
 
-    return interface->dialog_run(iface, GTK_WINDOW(parent));
+    gtk_window_set_modal(window, parent != NULL);
+
+    response = gtk_dialog_run(GTK_DIALOG(window));
+
+    debug_response_id(response);
+
+    return response;
 }
 
 extern GtkWindow*

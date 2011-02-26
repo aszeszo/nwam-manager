@@ -50,7 +50,6 @@ nwam_object_ctrl_iface_class_init (gpointer g_class, gpointer g_class_data)
 	self->create = NULL;
 	self->remove = NULL;
     /* self->help = NULL; */
-    /* self->dialog_run = NULL; */
     /* self->dialog_get_window = NULL; */
 }
 

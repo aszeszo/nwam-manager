@@ -256,6 +256,8 @@ struct _NwamEnvPrefDialogPrivate {
     /* Other Data */
     NwamuiDaemon*               daemon;
     NwamuiEnv*                  selected_env;
+    /*  */
+    gchar                      *selected_nsswitch_file;
 };
 
 static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
@@ -264,7 +266,6 @@ static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
-static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void         nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self);
@@ -312,7 +313,7 @@ static void         on_ns_text_changed(GtkEntry *entry, gpointer  user_data);
 static void         svc_button_clicked(GtkButton *button, gpointer  user_data);
 
 static void         nsswitch_default_clicked_cb(GtkButton *button, gpointer  user_data);
-static void         nsswitch_default_file_selection_changed(GtkFileChooserButton *button, gpointer  user_data);
+static void         nsswitch_default_file_set(GtkFileChooserButton *button, gpointer  user_data);
 static void         update_nsswitch_file_widgets(NwamEnvPrefDialog* self);
 
 static void menu_pos_func(GtkMenu *menu,
@@ -354,7 +355,6 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->apply = apply;
 	iface->cancel = cancel;
     iface->help = help;
-    iface->dialog_run = dialog_run;
     iface->dialog_get_window = dialog_get_window;
 }
 
@@ -592,8 +592,6 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 
     g_signal_connect(prv->nsswitch_default_btn,
       "clicked", (GCallback)nsswitch_default_clicked_cb, (gpointer)self );
-    g_signal_connect(prv->nsswitch_file_btn,
-      "selection-changed", (GCallback)nsswitch_default_file_selection_changed, (gpointer)self);
 
     /* Security Page Callbacks */
 	g_signal_connect(prv->ippool_config_cb,
@@ -642,13 +640,14 @@ nwam_env_pref_dialog_init (NwamEnvPrefDialog *self)
 static void
 nwam_env_pref_dialog_finalize (NwamEnvPrefDialog *self)
 {
+    g_message("nwam_env_pref_dialog_finalize");
 #ifdef ENABLE_PROXY
     if ( self->prv->proxy_password_dialog != NULL ) {
         g_object_unref(G_OBJECT(self->prv->proxy_password_dialog));
     }
 #endif /* ENABLE_PROXY */
 
-    g_object_unref(G_OBJECT(self->prv->env_pref_dialog ));
+    g_free(self->prv->selected_nsswitch_file);
 
     g_object_unref(G_OBJECT(self->prv->daemon));
 
@@ -667,40 +666,6 @@ nwam_env_pref_dialog_new (void)
     return NWAM_ENV_PREF_DIALOG(g_object_new (NWAM_TYPE_ENV_PREF_DIALOG, NULL));
 }
 
-
-/**
- * nwam_env_pref_dialog_run:
- * @nnwam_env_pref_dialog: a #NwamEnvPrefDialog.
- * @returns: a GTK_DIALOG Response ID
- *
- * 
- * Blocks in a recursive main loop until the dialog either emits the response signal, or is destroyed.
- **/
-static gint
-dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
-{
-	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
-    NwamEnvPrefDialog*          self = NWAM_ENV_PREF_DIALOG(iface);
-    gint response = GTK_RESPONSE_NONE;
-    
-    g_assert(NWAM_IS_ENV_PREF_DIALOG (self));
-    
-    if ( self->prv->env_pref_dialog != NULL ) {
-        if (parent) {
-            gtk_window_set_transient_for (GTK_WINDOW(self->prv->env_pref_dialog), parent);
-            gtk_window_set_modal (GTK_WINDOW(self->prv->env_pref_dialog), TRUE);
-        } else {
-            gtk_window_set_transient_for (GTK_WINDOW(self->prv->env_pref_dialog), NULL);
-            gtk_window_set_modal (GTK_WINDOW(self->prv->env_pref_dialog), FALSE);		
-        }
-    
-        response =  gtk_dialog_run(GTK_DIALOG(self->prv->env_pref_dialog));
-
-    }
-    return(response);
-    
-    
-}
 
 static GtkWindow* 
 dialog_get_window(NwamPrefIFace *iface)
@@ -841,6 +806,7 @@ nwam_compose_sortlist_view(NwamEnvPrefDialog *self)
 
     model = GTK_TREE_MODEL(gtk_list_store_new (1, NWAMUI_TYPE_IP));
     gtk_tree_view_set_model(view, model);
+    g_object_unref(model);
 
 	g_object_set (G_OBJECT(view),
       "nwam_object_ctrl", self,
@@ -1832,18 +1798,23 @@ nsswitch_default_clicked_cb(GtkButton *button, gpointer  user_data)
 
     /* Default is to set to NULL to clear nsswitch file property. */
     gtk_file_chooser_unselect_all(GTK_FILE_CHOOSER(prv->nsswitch_file_btn));
+
+    g_free(prv->selected_nsswitch_file);
+    prv->selected_nsswitch_file = NULL;
 }
 
 static void
-nsswitch_default_file_selection_changed(GtkFileChooserButton *button, gpointer  user_data)
+nsswitch_default_file_set(GtkFileChooserButton *button, gpointer  user_data)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(user_data);
 
+    g_free(prv->selected_nsswitch_file);
+
+    prv->selected_nsswitch_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn));
+
     if (prv->num_nameservices == 1) {
-        gchar *filename = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn));
-        if (filename) {
+        if (prv->selected_nsswitch_file) {
             gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), TRUE);
-            g_free(filename);
         } else {
             gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), FALSE);
         }
@@ -1883,9 +1854,12 @@ update_nsswitch_file_widgets(NwamEnvPrefDialog* self)
         gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), FALSE);
         gtk_widget_hide(prv->default_file_lbl);
     }
+
+    g_free(prv->selected_nsswitch_file);
+    prv->selected_nsswitch_file = filename;
+
     if (filename) {
         gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn), filename);
-        g_free(filename);
     } else {
         gtk_file_chooser_unselect_all(GTK_FILE_CHOOSER(prv->nsswitch_file_btn));
     }
@@ -2094,32 +2068,28 @@ static void
 response_cb( GtkWidget* widget, gint responseid, gpointer data )
 {
     NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(data);
-    gboolean            stop_emission = FALSE;
-    
+    gboolean            stop_emission = TRUE;
+
     switch (responseid) {
-    case GTK_RESPONSE_NONE:
-        g_debug("GTK_RESPONSE_NONE");
-        break;
     case GTK_RESPONSE_APPLY:
     case GTK_RESPONSE_OK:
         if (nwam_pref_apply (NWAM_PREF_IFACE(data), NULL)) {
-
             if (responseid == GTK_RESPONSE_OK) {
                 gtk_widget_hide( GTK_WIDGET(self->prv->env_pref_dialog) );
             }
-            stop_emission = TRUE;
         }
         break;
+    case GTK_RESPONSE_DELETE_EVENT:
     case GTK_RESPONSE_CANCEL:
-        g_debug("GTK_RESPONSE_CANCEL");
         nwam_pref_cancel (NWAM_PREF_IFACE(data), NULL);
         gtk_widget_hide( GTK_WIDGET(self->prv->env_pref_dialog) );
-        stop_emission = TRUE;
         break;
     case GTK_RESPONSE_HELP:
-        g_debug("GTK_RESPONSE_HELP");
         nwam_pref_help (NWAM_PREF_IFACE(data), NULL);
-        stop_emission = TRUE;
+        break;
+    default:
+        /* Must have for the unhandled events. */
+        stop_emission = FALSE;
         break;
     }
     if ( stop_emission ) {
@@ -2132,6 +2102,30 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
     NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(iface);
+
+    /* Work around for 7006158 */
+    {
+        GtkWidget *table = nwamui_util_glade_get_widget("table8");
+        GtkWidget *fcdialog = NULL;
+
+        gtk_widget_destroy(GTK_WIDGET(prv->nsswitch_file_btn));
+
+        fcdialog = gtk_file_chooser_dialog_new(_("Select A File"),
+          nwam_pref_dialog_get_window(NWAM_PREF_IFACE(self)),
+          GTK_FILE_CHOOSER_ACTION_OPEN,
+          GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
+          GTK_STOCK_OK, GTK_RESPONSE_OK,
+          NULL);
+        prv->nsswitch_file_btn = GTK_FILE_CHOOSER_BUTTON(gtk_file_chooser_button_new_with_dialog(fcdialog));
+        g_signal_connect(prv->nsswitch_file_btn,
+          "file-set", (GCallback)nsswitch_default_file_set, (gpointer)self);
+
+        gtk_widget_show(GTK_WIDGET(prv->nsswitch_file_btn));
+
+        gtk_table_attach(GTK_TABLE(table),
+          GTK_WIDGET(prv->nsswitch_file_btn),
+          1, 2, 6, 7, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
+    }
 
 	if (prv->selected_env != user_data) {
 		if (prv->selected_env) {
@@ -2180,6 +2174,7 @@ cancel(NwamPrefIFace *iface, gpointer user_data)
 
     return TRUE;
 }
+
 static gboolean
 apply(NwamPrefIFace *iface, gpointer user_data)
 {
@@ -2208,40 +2203,40 @@ apply(NwamPrefIFace *iface, gpointer user_data)
              elem != NULL;
              elem = g_list_next(elem)) {
             switch ( (nwamui_env_nameservices_t)elem->data ) {
-                case NWAMUI_ENV_NAMESERVICES_DNS:
-                    /* Required */
-                    if ( !nwamui_util_validate_text_entry( GTK_WIDGET(prv->dns_servers_entry), gtk_entry_get_text(prv->dns_servers_entry),
-                        NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST,
-                        TRUE, TRUE ) ) {
-                        gtk_widget_grab_focus( GTK_WIDGET(prv->dns_servers_entry) );
+            case NWAMUI_ENV_NAMESERVICES_DNS:
+                /* Required */
+                if ( !nwamui_util_validate_text_entry( GTK_WIDGET(prv->dns_servers_entry), gtk_entry_get_text(prv->dns_servers_entry),
+                                                       NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST,
+                                                       TRUE, TRUE ) ) {
+                    gtk_widget_grab_focus( GTK_WIDGET(prv->dns_servers_entry) );
 
-                        return( FALSE );
-                    }
-                    break;
-                case NWAMUI_ENV_NAMESERVICES_NIS:
-                    /* Optional */
-                    if ( !nwamui_util_validate_text_entry( GTK_WIDGET(prv->nis_servers_entry), gtk_entry_get_text(prv->nis_servers_entry),
-                        NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST|NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY,
-                        TRUE, TRUE ) ) {
-                        gtk_widget_grab_focus( GTK_WIDGET(prv->nis_servers_entry) );
+                    return( FALSE );
+                }
+                break;
+            case NWAMUI_ENV_NAMESERVICES_NIS:
+                /* Optional */
+                if ( !nwamui_util_validate_text_entry( GTK_WIDGET(prv->nis_servers_entry), gtk_entry_get_text(prv->nis_servers_entry),
+                                                       NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST|NWAMUI_ENTRY_VALIDATION_ALLOW_EMPTY,
+                                                       TRUE, TRUE ) ) {
+                    gtk_widget_grab_focus( GTK_WIDGET(prv->nis_servers_entry) );
 
-                        return( FALSE );
-                    }
-                    check_default_domain = TRUE;
-                    break;
-                case NWAMUI_ENV_NAMESERVICES_LDAP:
-                    /* Required */
-                    if ( !nwamui_util_validate_text_entry( GTK_WIDGET(prv->ldap_servers_entry), gtk_entry_get_text(prv->ldap_servers_entry),
-                        NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST,
-                        TRUE, TRUE ) ) {
-                        gtk_widget_grab_focus( GTK_WIDGET(prv->ldap_servers_entry) );
+                    return( FALSE );
+                }
+                check_default_domain = TRUE;
+                break;
+            case NWAMUI_ENV_NAMESERVICES_LDAP:
+                /* Required */
+                if ( !nwamui_util_validate_text_entry( GTK_WIDGET(prv->ldap_servers_entry), gtk_entry_get_text(prv->ldap_servers_entry),
+                                                       NWAMUI_ENTRY_VALIDATION_IS_V4|NWAMUI_ENTRY_VALIDATION_IS_V6|NWAMUI_ENTRY_VALIDATION_ALLOW_LIST,
+                                                       TRUE, TRUE ) ) {
+                    gtk_widget_grab_focus( GTK_WIDGET(prv->ldap_servers_entry) );
 
-                        return( FALSE );
-                    }
-                    check_default_domain = TRUE;
-                    break;
-                case NWAMUI_ENV_NAMESERVICES_FILES:
-                    break;
+                    return( FALSE );
+                }
+                check_default_domain = TRUE;
+                break;
+            case NWAMUI_ENV_NAMESERVICES_FILES:
+                break;
             }
             num_services++;
         }
@@ -2267,16 +2262,14 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         }
 
         /* NSSWITCH configuration file */
-        config_file = gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn));
-        if (config_file || num_services == 1) {
-            nwamui_env_set_nameservices_config_file(current_env, config_file);
-            g_free(config_file);
-        } else if ( num_services > 1 ) {
+        if (prv->selected_nsswitch_file == NULL && num_services > 1) {
             nwamui_util_show_message(GTK_WINDOW(prv->env_pref_dialog),
                     GTK_MESSAGE_ERROR, _("Nameservice Switch File Required"),
                     _("A nameservice switch file should be specified\nif more than one name service is selected."),
                     TRUE);
             return( FALSE );
+        } else {
+            nwamui_env_set_nameservices_config_file(current_env, prv->selected_nsswitch_file);
         }
 
         {
@@ -2290,7 +2283,6 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             g_list_free(sortlist);
         }
     }
-
 
     /*
      * Security Tab

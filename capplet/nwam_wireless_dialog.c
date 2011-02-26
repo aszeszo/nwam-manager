@@ -119,7 +119,6 @@ static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
-static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 static void set_purpose(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose);
 
@@ -176,11 +175,10 @@ static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
 	NwamPrefInterface *iface = (NwamPrefInterface *)g_iface;
-/*     iface->refresh = refresh; */
+    iface->refresh = refresh;
     iface->apply = apply;
     iface->cancel = cancel;
     iface->help = help;
-    iface->dialog_run = dialog_run;
     iface->dialog_get_window = dialog_get_window;
     iface->set_purpose = set_purpose;
 }
@@ -411,6 +409,8 @@ nwam_wireless_dialog_init (NwamWirelessDialog *self)
         /* Fill in the essid list using a scan */
         populate_essid_combo(self, GTK_COMBO_BOX_ENTRY(self->prv->essid_combo));
     }
+
+    nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
 }
 
 static void
@@ -1268,19 +1268,10 @@ help(NwamPrefIFace *iface, gpointer user_data)
     nwamui_util_show_help(HELP_REF_JOIN_NETWORK);
 }
 
-/**
- * nwam_wireless_dialog_run:
- * @nwam_wireless_dialog: a #NwamWirelessDialog.
- * @returns: a GTK_DIALOG Response ID
- *
- * 
- * Blocks in a recursive main loop until the dialog either emits the response signal, or is destroyed.
- **/
-static gint
-dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
+static gboolean
+refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 {
     NwamWirelessDialog *self = NWAM_WIRELESS_DIALOG(iface);
-    gint            response = GTK_RESPONSE_NONE;
 
     g_assert(NWAM_IS_WIRELESS_DIALOG (self));
     
@@ -1315,13 +1306,9 @@ dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
         else {
             gtk_widget_hide(GTK_WIDGET(self->prv->persistant_cbutton) );
         }
-
-        response = gtk_dialog_run(GTK_DIALOG(self->prv->wireless_dialog));
-        
-        gtk_widget_hide( GTK_WIDGET(self->prv->wireless_dialog) );
     }
     
-    return( response );
+    return TRUE;
 }
 
 static GtkWindow* 
@@ -1760,22 +1747,17 @@ response_cb( GtkWidget* widget, gint responseid, gpointer data )
     
     switch (responseid) {
     case GTK_RESPONSE_NONE:
-        g_debug("GTK_RESPONSE_NONE");
         break;
     case GTK_RESPONSE_OK:
-        g_debug("GTK_RESPONSE_OK");
         stop_emission = !nwam_pref_apply(NWAM_PREF_IFACE(self), NULL);
         g_debug("Validation = %s", (!stop_emission)?"TRUE":"FALSE");
         break;
     case GTK_RESPONSE_DELETE_EVENT:
-        g_debug("GTK_RESPONSE_DELETE_EVENT");
         /* Fall through */
     case GTK_RESPONSE_CANCEL:
-        g_debug("GTK_RESPONSE_CANCEL");
         nwam_pref_cancel(NWAM_PREF_IFACE(self), NULL);
         break;
     case GTK_RESPONSE_HELP:
-        g_debug("GTK_RESPONSE_HELP");
         nwam_pref_help (NWAM_PREF_IFACE(data), NULL);
         stop_emission = TRUE;
         break;

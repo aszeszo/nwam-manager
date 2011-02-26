@@ -406,6 +406,8 @@ gboolean capplet_model_1_level_foreach(GtkTreeModel *model, GtkTreeIter *parent,
 
 const gchar* debug_g_type_name(gpointer object);
 
+extern void debug_response_id( gint responseid );
+
 G_END_DECLS
 
 #endif	/* _libnwamui_H */

@@ -3303,7 +3303,11 @@ nwamui_ncu_add_acquired(NwamuiNcu *self,
 
     *l = g_list_prepend(*l, ip);
     
-    g_debug("emit=%d, %s", emit, nwamui_ip_get_address(ip));
+    {
+        gchar *addr = nwamui_ip_get_address(ip);
+        g_debug("emit=%d, %s", emit, addr);
+        g_free(addr);
+    }
     g_debug("need_ipv4=%d need_ipv6=%d", prv->need_ipv4_dhcp, prv->need_ipv6_dhcp);
 
     /* DHCP info may delay, so we emit the signal on 1) we get all static

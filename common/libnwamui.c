@@ -2585,3 +2585,43 @@ debug_g_type_name(gpointer object)
     return g_type_name(G_TYPE_FROM_INSTANCE(object));
 }
 
+extern void
+debug_response_id( gint responseid ) 
+{
+    g_debug("Dialog returned response : %d ", responseid );
+    switch (responseid) {
+    case GTK_RESPONSE_NONE:
+        g_debug("GTK_RESPONSE_NONE");
+        break;
+    case GTK_RESPONSE_REJECT:
+        g_debug("GTK_RESPONSE_REJECT");
+        break;
+    case GTK_RESPONSE_ACCEPT:
+        g_debug("GTK_RESPONSE_ACCEPT");
+        break;
+    case GTK_RESPONSE_DELETE_EVENT:
+        g_debug("GTK_RESPONSE_DELETE_EVENT");
+        break;
+    case GTK_RESPONSE_OK:
+        g_debug("GTK_RESPONSE_OK");
+        break;
+    case GTK_RESPONSE_CANCEL:
+        g_debug("GTK_RESPONSE_CANCEL");
+        break;
+    case GTK_RESPONSE_CLOSE:
+        g_debug("GTK_RESPONSE_CLOSE");
+        break;
+    case GTK_RESPONSE_YES:
+        g_debug("GTK_RESPONSE_YES");
+        break;
+    case GTK_RESPONSE_NO:
+        g_debug("GTK_RESPONSE_NO");
+        break;
+    case GTK_RESPONSE_APPLY:
+        g_debug("GTK_RESPONSE_APPLY");
+        break;
+    case GTK_RESPONSE_HELP:
+        g_debug("GTK_RESPONSE_HELP");
+        break;
+    }
+}

@@ -58,7 +58,6 @@ struct _NwamPrefInterface {
 	gboolean (*apply) (NwamPrefIFace *iface, gpointer user_data);
 	gboolean (*cancel) (NwamPrefIFace *iface, gpointer user_data);
 	gboolean (*help) (NwamPrefIFace *iface, gpointer user_data);
-    gint (*dialog_run)(NwamPrefIFace *iface, GtkWindow *parent);
     GtkWindow *(*dialog_get_window)(NwamPrefIFace *iface);
     void (*set_purpose)(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose);
 };

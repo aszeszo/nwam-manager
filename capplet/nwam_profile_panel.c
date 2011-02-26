@@ -169,7 +169,6 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->apply = apply;
 	iface->cancel = cancel;
 	iface->help = help;
-    /* iface->dialog_run = dialog_run; */
 }
 
 static GObject*

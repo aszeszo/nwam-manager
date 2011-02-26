@@ -58,9 +58,6 @@ static gboolean     loc_pref_dialog = FALSE;
 static gboolean     show_all_widgets = FALSE;
 #endif /* DEBUG_OPTS */
 
-static void debug_response_id( gint responseid );
-
-
 GOptionEntry application_options[] = {
     {"debug", 'D', G_OPTION_FLAG_HIDDEN, G_OPTION_ARG_NONE, &debug, N_("Enable debugging messages"), NULL },
     { "net-pref-dialog", NWAMUI_CAPPLET_OPT_NET_PREF_DIALOG, 0, G_OPTION_ARG_NONE, &net_pref_dialog, N_("Show 'Network Preferences' Dialog"), NULL  },
@@ -211,8 +208,6 @@ main(int argc, char** argv)
         add_unique_message_handler( app, capplet_dialog );
 
         gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
-
-        debug_response_id( responseid );
     }
     else if( wireless_chooser ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_wireless_chooser_new());
@@ -220,8 +215,6 @@ main(int argc, char** argv)
         add_unique_message_handler( app, capplet_dialog );
 
         gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
-        
-        debug_response_id( responseid );
     }
     else if( location_dialog ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_location_dialog_new());
@@ -229,8 +222,6 @@ main(int argc, char** argv)
         add_unique_message_handler( app, capplet_dialog );
 
         gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
-        
-        debug_response_id( responseid );
     }
 #ifdef DEBUG_OPTS
     else if ( add_wireless_dialog ) {
@@ -243,8 +234,6 @@ main(int argc, char** argv)
         add_unique_message_handler( app, capplet_dialog );
 
         gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
-        
-        debug_response_id( responseid );
     }
     else if( loc_pref_dialog ) {
         capplet_dialog = NWAM_PREF_IFACE(nwam_env_pref_dialog_new());
@@ -252,8 +241,6 @@ main(int argc, char** argv)
         add_unique_message_handler( app, capplet_dialog );
 
         gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
-        
-        debug_response_id( responseid );
     }
     else else if ( show_all_widgets ) { /* Show All */
         gchar*  dialog_names[] = { 
@@ -288,8 +275,6 @@ main(int argc, char** argv)
         add_unique_message_handler( app, capplet_dialog );
 
         gint responseid = nwam_pref_dialog_run(capplet_dialog, NULL);
-        
-        debug_response_id( responseid );
     }
 
 /*
@@ -301,43 +286,4 @@ main(int argc, char** argv)
     return (EXIT_SUCCESS);
 }
 
-static void debug_response_id( gint responseid ) 
-{
-    g_debug("Dialog returned response : %d ", responseid );
-    switch (responseid) {
-        case GTK_RESPONSE_NONE:
-            g_debug("GTK_RESPONSE_NONE");
-            break;
-        case GTK_RESPONSE_REJECT:
-            g_debug("GTK_RESPONSE_REJECT");
-            break;
-        case GTK_RESPONSE_ACCEPT:
-            g_debug("GTK_RESPONSE_ACCEPT");
-            break;
-        case GTK_RESPONSE_DELETE_EVENT:
-            g_debug("GTK_RESPONSE_DELETE_EVENT");
-            break;
-        case GTK_RESPONSE_OK:
-            g_debug("GTK_RESPONSE_OK");
-            break;
-        case GTK_RESPONSE_CANCEL:
-            g_debug("GTK_RESPONSE_CANCEL");
-            break;
-        case GTK_RESPONSE_CLOSE:
-            g_debug("GTK_RESPONSE_CLOSE");
-            break;
-        case GTK_RESPONSE_YES:
-            g_debug("GTK_RESPONSE_YES");
-            break;
-        case GTK_RESPONSE_NO:
-            g_debug("GTK_RESPONSE_NO");
-            break;
-        case GTK_RESPONSE_APPLY:
-            g_debug("GTK_RESPONSE_APPLY");
-            break;
-        case GTK_RESPONSE_HELP:
-            g_debug("GTK_RESPONSE_HELP");
-            break;
-    }
-}
 

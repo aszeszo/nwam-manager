@@ -227,6 +227,10 @@ nwam_tree_view_finalize(NwamTreeView *self)
         }
     }
 
+    /* if (prv->ctrl_iface) { */
+    /*     g_object_unref(prv->ctrl_iface); */
+    /* } */
+
 	G_OBJECT_CLASS(nwam_tree_view_parent_class)->finalize(G_OBJECT(self));
 }
 
@@ -241,7 +245,12 @@ nwam_tree_view_set_property (GObject *object,
 
 	switch (prop_id) {
     case PROP_CTRL_IFACE:
-        prv->ctrl_iface = NWAM_OBJECT_CTRL_IFACE(g_value_dup_object(value));
+        /* if (prv->ctrl_iface) { */
+        /*     g_object_unref(prv->ctrl_iface); */
+        /*     prv->ctrl_iface = NULL; */
+        /* } */
+        /* prv->ctrl_iface = NWAM_OBJECT_CTRL_IFACE(g_value_dup_object(value)); */
+        prv->ctrl_iface = NWAM_OBJECT_CTRL_IFACE(g_value_get_object(value));
         break;
 	default:
 		G_OBJECT_WARN_INVALID_PROPERTY_ID(object, prop_id, pspec);
@@ -309,7 +318,10 @@ nwam_tree_view_register_widget(NwamTreeView *self, NwamTreeViewSupportWidgets id
 
     g_assert(id >= NTV_ADD_BTN && id < NTV_N_BTNS);
     g_assert(w);
-    g_assert(prv->widget_list[id] == NULL);
+    /* g_assert(prv->widget_list[id] == NULL); */
+    if (prv->widget_list[id]) {
+        nwam_tree_view_unregister_widget(self, id, prv->widget_list[id]);
+    }
 
     prv->widget_list[id] = g_object_ref(w);
     g_return_if_fail(g_list_find(prv->widgets, w) == NULL);
@@ -346,8 +358,8 @@ nwam_tree_view_unregister_widget(NwamTreeView *self, NwamTreeViewSupportWidgets 
     g_assert(w);
     g_assert(prv->widget_list[id]);
 
-    g_return_if_fail(prv->widget_list[id] != (gpointer)w);
-    g_return_if_fail(g_list_find(prv->widgets, w));
+    g_return_if_fail(prv->widget_list[id] == (gpointer)w);
+    g_return_if_fail(g_list_find(prv->widgets, w) != NULL);
 
     prv->widgets = g_list_remove(prv->widgets, w);
     g_object_unref(w);

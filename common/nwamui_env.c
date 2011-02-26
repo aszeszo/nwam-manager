@@ -1273,6 +1273,7 @@ set_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name, ch
     gboolean            retval = FALSE;
 
     g_return_val_if_fail( prop_name != NULL, retval );
+    g_return_val_if_fail(len >= 0, retval);
 
     if ( loc == NULL ) {
         return( retval );
@@ -1284,8 +1285,14 @@ set_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name, ch
         return retval;
     }
 
-    if ( strs == NULL ) {
-        if ( (nerr = nwam_loc_delete_prop (loc, prop_name)) != NWAM_SUCCESS ) {
+    /* Assume a strv, i.e. NULL terminated list, otherwise strs would be NULL */
+    if ( len == 0 && strs != NULL) {
+        len = g_strv_length(strs);
+    }
+
+    if (strs == NULL || len == 0) {
+        nerr = nwam_loc_delete_prop (loc, prop_name);
+        if ( nerr != NWAM_SUCCESS || nerr != NWAM_ENTITY_NOT_FOUND) {
             g_debug("Unable to delete loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
         }
         else {
@@ -1294,33 +1301,16 @@ set_nwam_loc_string_array_prop( nwam_loc_handle_t loc, const char* prop_name, ch
         return retval;
     }
 
-
-    if ( len == 0 ) { /* Assume a strv, i.e. NULL terminated list, otherwise strs would be NULL */
-        int i;
-
-        for( i = 0; strs != NULL && strs[i] != NULL; i++ ) {
-            /* Do Nothing, just count. */
-        }
-        len = i;
+    nerr = nwam_value_create_string_array (strs, len, &nwam_data );
+    if (nerr != NWAM_SUCCESS) {
+        g_debug("Error creating a value for string array 0x%08X", strs);
+        return retval;
     }
 
-    if (len > 0) {
-
-        if ( (nerr = nwam_value_create_string_array (strs, len, &nwam_data )) != NWAM_SUCCESS ) {
-            g_debug("Error creating a value for string array 0x%08X", strs);
-            return retval;
-        }
-
-        if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
-            g_debug("Unable to set value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
-        }
-        else {
-            retval = TRUE;
-        }
-    } else {
-        if ( (nerr = nwam_loc_delete_prop (loc, prop_name)) != NWAM_SUCCESS ) {
-            g_debug("Unable to delete loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
-        }
+    if ( (nerr = nwam_loc_set_prop_value (loc, prop_name, nwam_data)) != NWAM_SUCCESS ) {
+        g_debug("Unable to set value for loc property %s, error = %s", prop_name, nwam_strerror( nerr ) );
+    }
+    else {
         retval = TRUE;
     }
 
@@ -1978,6 +1968,7 @@ nwamui_env_get_nameservices (NwamuiEnv *self)
     guint64 *ns_64                     = (guint64*)get_nwam_loc_uint64_array_prop(
         prv->nwam_loc, NWAM_LOC_PROP_NAMESERVICES, &num_nameservices );
     GList            *ns_list          = convert_name_services_uint64_array_to_glist( ns_64, num_nameservices );
+    g_free(ns_64);
     return ns_list;
 }
 
@@ -2014,6 +2005,7 @@ nwamui_env_get_nameservices_config_file (NwamuiEnv *self)
     NwamuiEnvPrivate  *prv     = NWAMUI_ENV_GET_PRIVATE(self);
 
     gchar* str = get_nwam_loc_string_prop( prv->nwam_loc, NWAM_LOC_PROP_NAMESERVICES_CONFIG_FILE );
+
     return str;
 }
 

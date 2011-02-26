@@ -1,3 +1,44 @@
+2011-02-26  malin  <malin@solaris>
+
+	* capplet/main.c (main):
+	* capplet/nwam_condition_vbox.c (nwam_pref_init):
+	* capplet/nwam_conn_conf_ip_panel.c (nwam_pref_init):
+	* capplet/nwam_conn_stat_panel.c (nwam_pref_init):
+	* capplet/nwam_env_pref_dialog.c (nwam_pref_init),
+	(nwam_env_pref_dialog_init), (nwam_env_pref_dialog_finalize),
+	(nwam_compose_sortlist_view), (nsswitch_default_clicked_cb),
+	(nsswitch_default_file_set), (update_nsswitch_file_widgets),
+	(response_cb), (refresh), (apply):
+	Work around for 7006158.
+	* capplet/nwam_env_svc.c (nwam_pref_init):
+	* capplet/nwam_location_dialog.c (nwam_pref_init), (response_cb):
+	* capplet/nwam_object_ctrl_iface.c
+	(nwam_object_ctrl_iface_class_init):
+	* capplet/nwam_pref_dialog.c (nwam_pref_init), (response_cb):
+	* capplet/nwam_profile_dialog.c (nwam_pref_init), (response_cb):
+	* capplet/nwam_profile_panel.c (nwam_pref_init):
+	* capplet/nwam_rules_dialog.c (apply), (nwam_pref_init),
+	(response_cb):
+	* capplet/nwam_tree_view.c (nwam_tree_view_finalize),
+	(nwam_tree_view_set_property), (nwam_tree_view_register_widget),
+	(nwam_tree_view_unregister_widget):
+	* capplet/nwam_vpn_pref_dialog.c (nwam_pref_init), (response_cb):
+	* capplet/nwam_wireless_chooser.c (nwam_pref_init),
+	(join_wireless), (response_cb):
+	* capplet/nwam_wireless_dialog.c (nwam_pref_init),
+	(nwam_wireless_dialog_init), (refresh):
+	* common/libnwamui.c (debug_response_id):
+	* common/libnwamui.h:
+	* common/nwam_pref_iface.c (nwam_pref_iface_class_init),
+	(nwam_pref_dialog_run):
+	* common/nwam_pref_iface.h:
+	* common/nwamui_env.c (set_nwam_loc_string_array_prop),
+	(nwamui_env_get_nameservices),
+	(nwamui_env_get_nameservices_config_file):
+	* common/nwamui_ncu.c (nwamui_ncu_add_acquired):
+	* daemon/status_icon.c (join_wireless): Removed dialog_run from
+	nwam_pref_iface, and removed all implementations.
+
 2011-02-26  Lin Ma  <lin.ma@oracle.com>
 
 	* configure.in: bump to 1.161.0

@@ -71,7 +71,6 @@ static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
-static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_wireless_chooser_finalize(NwamWirelessChooser *self);
@@ -115,7 +114,6 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->apply = apply;
 	iface->cancel = cancel;
     iface->help = help;
-    iface->dialog_run = dialog_run;
     iface->dialog_get_window = dialog_get_window;
 }
 
@@ -324,30 +322,6 @@ nwam_wireless_chooser_new(void)
 	return NWAM_WIRELESS_CHOOSER(g_object_new(NWAM_TYPE_WIRELESS_CHOOSER, NULL));
 }
 
-static gint
-dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
-{
-    NwamWirelessChooser *self = NWAM_WIRELESS_CHOOSER(iface);
-    NwamWirelessChooserPrivate* prv = self->prv;
-	gint response = GTK_RESPONSE_NONE;
-	
-	g_assert(NWAM_IS_WIRELESS_CHOOSER(self));
-	if (parent) {
-		gtk_window_set_transient_for (GTK_WINDOW(self->prv->wireless_chooser), parent);
-		gtk_window_set_modal (GTK_WINDOW(self->prv->wireless_chooser), TRUE);
-	} else {
-		gtk_window_set_transient_for (GTK_WINDOW(self->prv->wireless_chooser), NULL);
-		gtk_window_set_modal (GTK_WINDOW(self->prv->wireless_chooser), FALSE);		
-	}
-	
-	if ( self->prv->wireless_chooser != NULL ) {
-		response =  gtk_dialog_run(GTK_DIALOG(self->prv->wireless_chooser));
-		
-		gtk_widget_hide( GTK_WIDGET(self->prv->wireless_chooser) );
-	}
-	return(response);
-}
-
 static GtkWindow* 
 dialog_get_window(NwamPrefIFace *iface)
 {
@@ -467,7 +441,8 @@ join_wireless(NwamuiWifiNet *wifi, gboolean do_connect )
     nwam_wireless_dialog_set_wifi_net(wifi_dialog, wifi);
     nwam_wireless_dialog_set_do_connect(wifi_dialog, do_connect);
 
-    (void)nwam_pref_dialog_run(NWAM_PREF_IFACE(wifi_dialog), NULL);
+    nwam_pref_refresh(NWAM_PREF_IFACE(wifi_dialog), NULL, TRUE);
+    nwam_pref_dialog_run(NWAM_PREF_IFACE(wifi_dialog), NULL);
 
     g_object_unref(ncu);
 }
@@ -523,22 +498,17 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 
 	switch (responseid) {
 		case GTK_RESPONSE_NONE:
-			g_debug("GTK_RESPONSE_NONE");
 			break;
 		case GTK_RESPONSE_APPLY: /* Join Unlisted Network */
-			g_debug("GTK_RESPONSE_APPLY");
             join_wireless( NULL, TRUE );
             stop_emission = TRUE;
 			break;
 		case GTK_RESPONSE_OK:  /* Join selected network, if any */
-			g_debug("GTK_RESPONSE_OK");
             stop_emission = !nwam_pref_apply(NWAM_PREF_IFACE(data), NULL);
 			break;
 		case GTK_RESPONSE_DELETE_EVENT:
-			g_debug("GTK_RESPONSE_DELETE_EVENT");
             /* Fall through */
 		case GTK_RESPONSE_CANCEL:
-			g_debug("GTK_RESPONSE_CANCEL");
             gtk_widget_hide( GTK_WIDGET(prv->wireless_chooser) );
             stop_emission = FALSE;
 			break;

@@ -94,7 +94,6 @@ static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
-extern gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent);
 static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_vpn_pref_dialog_finalize(NwamVPNPrefDialog *self);
@@ -151,7 +150,6 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
     iface->apply = apply;
 	iface->cancel = cancel;
     iface->help = help;
-    iface->dialog_run = dialog_run;
     iface->dialog_get_window = dialog_get_window;
 }
 
@@ -551,29 +549,6 @@ nwam_vpn_pref_dialog_new(void)
 	return NWAM_VPN_PREF_DIALOG(g_object_new(NWAM_TYPE_VPN_PREF_DIALOG, NULL));
 }
 
-extern gint
-dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
-{
-	NwamVPNPrefDialog* self = NWAM_VPN_PREF_DIALOG(iface);
-	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(iface);
-	gint response = GTK_RESPONSE_NONE;
-
-	g_assert(NWAM_IS_VPN_PREF_DIALOG(self));
-	if (parent) {
-		gtk_window_set_transient_for (GTK_WINDOW(self->prv->vpn_pref_dialog), parent);
-		gtk_window_set_modal (GTK_WINDOW(self->prv->vpn_pref_dialog), TRUE);
-	} else {
-		gtk_window_set_transient_for (GTK_WINDOW(self->prv->vpn_pref_dialog), NULL);
-		gtk_window_set_modal (GTK_WINDOW(self->prv->vpn_pref_dialog), FALSE);
-	}
-
-	if ( self->prv->vpn_pref_dialog != NULL ) {
-        nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
-		response =  gtk_dialog_run(GTK_DIALOG(self->prv->vpn_pref_dialog));
-	}
-	return(response);
-}
-
 static GtkWindow*
 dialog_get_window(NwamPrefIFace *iface)
 {
@@ -704,17 +679,13 @@ response_cb(GtkWidget* widget, gint responseid, gpointer data)
 
 	switch (responseid) {
 		case GTK_RESPONSE_NONE:
-			g_debug("GTK_RESPONSE_NONE");
 			break;
 		case GTK_RESPONSE_OK:
-			g_debug("GTK_RESPONSE_OK");
             stop_emission = !nwam_pref_apply(NWAM_PREF_IFACE(data), NULL);
 			break;
 		case GTK_RESPONSE_DELETE_EVENT:
-			g_debug("GTK_RESPONSE_DELETE_EVENT");
             /* Fall through */
 		case GTK_RESPONSE_CANCEL:
-			g_debug("GTK_RESPONSE_CANCEL");
             stop_emission = !nwam_pref_cancel(NWAM_PREF_IFACE(data), NULL);
 			break;
 		case GTK_RESPONSE_HELP:
