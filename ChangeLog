@@ -1,3 +1,13 @@
+2011-02-28  Lin Ma  <lin.ma@oracle.com>
+
+	* capplet/nwam_env_pref_dialog.c (populate_panels_from_env),
+	(on_ns_source_clicked), (on_ns_selection_clicked),
+	(on_ns_text_changed), (update_nsswitch_related_widgets), (refresh):
+	Rework 7006158, which applies only reload all/cancel an nwam
+	location. Fixed 7006036.
+	* common/nwamui_env.c (nwamui_object_real_validate):
+	Fixed 7006036.
+
 2011-02-26  malin  <malin@solaris>
 
 	* capplet/main.c (main):

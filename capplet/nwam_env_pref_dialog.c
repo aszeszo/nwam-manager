@@ -87,7 +87,6 @@
 #define     SORTLIST_DELETE_BTN "sortlist_delete_btn"
 #define     DNS_OPTIONS_ENTRY   "dns_options_entry"
 
-
 #ifdef ENABLE_PROXY
 #define     PROXY_CONFIG_COMBO             "proxy_config_combo"
 #define     PROXY_NOTEBOOK                 "proxy_notebook"
@@ -314,7 +313,7 @@ static void         svc_button_clicked(GtkButton *button, gpointer  user_data);
 
 static void         nsswitch_default_clicked_cb(GtkButton *button, gpointer  user_data);
 static void         nsswitch_default_file_set(GtkFileChooserButton *button, gpointer  user_data);
-static void         update_nsswitch_file_widgets(NwamEnvPrefDialog* self);
+static void         update_nsswitch_related_widgets(NwamEnvPrefDialog* self);
 
 static void menu_pos_func(GtkMenu *menu,
   gint *x,
@@ -1004,80 +1003,38 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         }
 
         prv->num_nameservices = num_nameservices;
-
-        /* nsswitch default button is active only if exactly 1 NS selected */
-        update_nsswitch_file_widgets(self);
     }
 
     /* Update all other toggle buttons, labels and entries. */
+    /* Force change button state */
+	/* gtk_button_clicked(GTK_BUTTON(prv->files_service_cb)); */
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->files_service_cb), files );
 
     /* If active, then set senstivity based on the number of services,
      * otherwise it's always sensitive.
      */
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->files_service_cb), 
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->files_service_cb),
                             ((files)?(num_nameservices > 1):TRUE) );
 
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), FALSE);
     /* Force change button state */
-	gtk_button_clicked(GTK_BUTTON(prv->dns_service_cb));
+	/* gtk_button_clicked(GTK_BUTTON(prv->dns_service_cb)); */
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->dns_service_cb), dns );
     /* If active, then set senstivity based on the number of services,
      * otherwise it's always sensitive.
      */
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_service_cb), 
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_service_cb),
                             ((dns)?(num_nameservices > 1):TRUE) );
-
-    /* Pre-fill entries, and select text */
-    gtk_entry_set_text(prv->dns_search_entry, _("(optional)") );
-    gtk_entry_select_region(prv->dns_search_entry, 0, -1 );
-
-    gtk_entry_set_text(prv->dns_servers_entry, _("(required)") );
-    gtk_entry_select_region(prv->dns_servers_entry, 0, -1 );
-
-    gtk_entry_set_text(prv->nis_servers_entry, _("(optional)") );
-    gtk_entry_select_region(prv->nis_servers_entry, 0, -1 );
-
-    gtk_entry_set_text(prv->ldap_servers_entry, _("(required)") );
-    gtk_entry_select_region(prv->ldap_servers_entry, 0, -1 );
 
     if ( dns ) {
         gchar*                      dns_domain = NULL;
         GList*                      dns_servers = NULL;
         GList*                      dns_search = NULL;
         nwamui_env_config_source_t  dns_configsrc;
-        gboolean                    sensitive;
 
         dns_configsrc = nwamui_env_get_dns_nameservice_config_source( current_env );
         dns_domain = nwamui_env_get_dns_nameservice_domain( current_env );
         dns_servers = nwamui_env_get_dns_nameservice_servers( current_env );
         dns_search = nwamui_env_get_dns_nameservice_search( current_env );
-
-        if ( dns_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL ) {
-            gtk_button_clicked(GTK_BUTTON(prv->dns_config_manual_rb));
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), sensitive );
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), sensitive );
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), sensitive );
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), sensitive );
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), sensitive );
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), sensitive );
-            sensitive = TRUE;
-        }
-        else {
-            gtk_button_clicked(GTK_BUTTON(prv->dns_config_dhcp_rb));
-            sensitive = FALSE;
-        }
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), sensitive );
 
         if ( dns_servers != NULL ) {
             gchar* str = nwamui_util_glist_to_comma_string( dns_servers );
@@ -1093,6 +1050,13 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
 
         gtk_entry_set_text(prv->dns_domain_entry, dns_domain?dns_domain:"" );
 
+        if ( dns_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL ) {
+            gtk_button_clicked(GTK_BUTTON(prv->dns_config_manual_rb));
+        }
+        else {
+            gtk_button_clicked(GTK_BUTTON(prv->dns_config_dhcp_rb));
+        }
+
         g_free(dns_domain);
         g_list_foreach( dns_servers, (GFunc)g_free, NULL );
         g_list_free(dns_servers);
@@ -1100,12 +1064,8 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         g_list_free(dns_search);
     }
 
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), FALSE);
     /* Force change button state */
-	gtk_button_clicked(GTK_BUTTON(prv->nis_service_cb));
+	/* gtk_button_clicked(GTK_BUTTON(prv->nis_service_cb)); */
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->nis_service_cb), nis );
     /* If active, then set senstivity based on the number of services,
      * otherwise it's always sensitive.
@@ -1116,23 +1076,16 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
     if ( nis ) {
         GList*                      nis_servers = NULL;
         nwamui_env_config_source_t  nis_configsrc;
-        gboolean                    sensitive;
 
         nis_configsrc = nwamui_env_get_nis_nameservice_config_source( current_env );
         nis_servers = nwamui_env_get_nis_nameservice_servers( current_env );
 
         if ( nis_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL ) {
             gtk_button_clicked(GTK_BUTTON(prv->nis_config_manual_rb));
-            sensitive = TRUE;
         }
         else {
             gtk_button_clicked(GTK_BUTTON(prv->nis_config_dhcp_rb));
-            sensitive = FALSE;
         }
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), sensitive );
 
         if ( nis_servers != NULL ) {
             gchar* str = nwamui_util_glist_to_comma_string( nis_servers );
@@ -1144,6 +1097,8 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         g_list_free(nis_servers);
     }
 
+    /* Force change button state */
+	/* gtk_button_clicked(GTK_BUTTON(prv->ldap_service_cb)); */
 	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(prv->ldap_service_cb), ldap );
     /* If active, then set senstivity based on the number of services,
      * otherwise it's always sensitive.
@@ -1178,16 +1133,10 @@ populate_panels_from_env( NwamEnvPrefDialog* self, NwamuiEnv* current_env)
         gtk_label_set_text(prv->ldap_domain_label, _("enter below"));
     }
 
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_manual_rb), dns );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_dhcp_rb), dns );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_manual_rb), nis );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_dhcp_rb), nis );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry), ldap );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry_label), ldap );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label), ldap );
-	gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label_label), ldap );
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry_label), nis || ldap );
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry), nis || ldap );
+
+    update_nsswitch_related_widgets(self);
     
     {
         gchar *options  = nwamui_env_get_dns_nameservice_options(current_env);
@@ -1518,7 +1467,6 @@ on_ns_source_clicked(GtkButton *button, gpointer user_data)
     NwamEnvPrefDialog          *self = NWAM_ENV_PREF_DIALOG(user_data);
 	NwamEnvPrefDialogPrivate   *prv = GET_PRIVATE(user_data);
     gboolean                    active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(button));
-    gboolean                    sensitive = FALSE;
     nwamui_env_config_source_t  config_source;
 
 	if ( button == (GtkButton*)prv->dns_config_manual_rb ||
@@ -1533,14 +1481,6 @@ on_ns_source_clicked(GtkButton *button, gpointer user_data)
             }
             nwamui_env_set_dns_nameservice_config_source (  prv->selected_env, config_source );
         }
-        sensitive = (active && config_source == NWAMUI_ENV_CONFIG_SOURCE_MANUAL);
-
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), sensitive );
     }
     else if ( button == (GtkButton*)prv->nis_config_manual_rb ||
 	          button == (GtkButton*)prv->nis_config_dhcp_rb ) {
@@ -1554,14 +1494,9 @@ on_ns_source_clicked(GtkButton *button, gpointer user_data)
             }
             nwamui_env_set_nis_nameservice_config_source (  prv->selected_env, config_source );
         }
-        sensitive = (active && config_source == NWAMUI_ENV_CONFIG_SOURCE_MANUAL);
-
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), sensitive );
     }
 
+    update_nsswitch_related_widgets(self);
 }
 
 static void
@@ -1579,7 +1514,6 @@ on_ns_selection_clicked(GtkButton *button, gpointer user_data)
     gboolean                    dns_active = FALSE;
     gboolean                    nis_active = FALSE;
     gboolean                    ldap_active = FALSE;
-    gboolean                    entry_sensitive = FALSE;
     guint                       num_nameservices = 0;
     nwamui_env_nameservices_t   new_service = NWAMUI_ENV_NAMESERVICES_LAST;
     nwamui_env_config_source_t  dns_configsrc;
@@ -1685,7 +1619,7 @@ on_ns_selection_clicked(GtkButton *button, gpointer user_data)
      * otherwise it's always sensitive.
      */
     files_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->files_service_cb));
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->files_service_cb), 
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->files_service_cb),
                             (files_active?(num_nameservices > 1):TRUE) );
     dns_active = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->dns_service_cb));
     gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_service_cb), 
@@ -1704,42 +1638,10 @@ on_ns_selection_clicked(GtkButton *button, gpointer user_data)
 
     prv->num_nameservices = num_nameservices;
 
-    /* DNS */
-    entry_sensitive = (dns_active && dns_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_manual_rb), dns_active );
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_dhcp_rb), dns_active );
-    if (!dns_active) {
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), entry_sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), entry_sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), entry_sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), entry_sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), entry_sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), entry_sensitive );
-    }
-
-    /*NIS */
-    entry_sensitive = (nis_active && nis_configsrc == NWAMUI_ENV_CONFIG_SOURCE_MANUAL);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_manual_rb), nis_active );
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_dhcp_rb), nis_active );
-    if (!nis_active) {
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), entry_sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), entry_sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), entry_sensitive );
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), entry_sensitive );
-    }
-
-    /* LDAP */
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry), ldap_active );
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry_label), ldap_active );
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label), ldap_active );
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label_label), ldap_active );
-
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry_label), (nis_active || ldap_active) );
 	gtk_widget_set_sensitive(GTK_WIDGET(prv->default_domain_entry), (nis_active || ldap_active) );
 
-    /* nsswitch default button is active only if exactly 1 NS selected */
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), prv->num_nameservices == 1);
-    update_nsswitch_file_widgets(self);
+    update_nsswitch_related_widgets(self);
 }
 
 static void
@@ -1761,9 +1663,21 @@ on_ns_text_changed(GtkEntry *entry, gpointer  user_data)
         nwamui_env_set_dns_nameservice_search( prv->selected_env, domains );
         g_list_foreach( domains, (GFunc)g_free, NULL );
         g_list_free( domains );
+        /* 7006036 */
+        if (len > 0 /* && gtk_entry_get_text_length(prv->dns_domain_entry) == 0 */) {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), FALSE);
+        } else {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), TRUE);
+        }
     }
     else if ( entry == prv->dns_domain_entry ) {
-        nwamui_env_set_dns_nameservice_domain( prv->selected_env, text );
+        nwamui_env_set_dns_nameservice_domain(prv->selected_env, text);
+        /* 7006036 */
+        if (len > 0 /* && gtk_entry_get_text_length(prv->dns_search_entry) == 0 */) {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), FALSE);
+        } else {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), TRUE);
+        }
     }
     else if ( entry == prv->nis_servers_entry ) {
         GList *servers = nwamui_util_parse_string_to_glist( text );
@@ -1825,25 +1739,167 @@ nsswitch_default_file_set(GtkFileChooserButton *button, gpointer  user_data)
  * Must call nwamui_env_set_nameservices before use this function.
  */
 static void
-update_nsswitch_file_widgets(NwamEnvPrefDialog* self)
+update_nsswitch_related_widgets(NwamEnvPrefDialog* self)
 {
 	NwamEnvPrefDialogPrivate *prv      = GET_PRIVATE(self);
-    gchar                    *filename = nwamui_env_get_nameservices_config_file(prv->selected_env);
+
+    /* Update dns service block. */
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_dhcp_rb), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_manual_rb), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), FALSE);
+
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->dns_service_cb))) {
+
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_dhcp_rb), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_config_manual_rb), TRUE);
+
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->dns_config_manual_rb))) {
+
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry_label), TRUE);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry_label), TRUE);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry_label), TRUE);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_servers_entry), TRUE);
+
+            /* 7006036 */
+            const gchar *domain_txt = gtk_entry_get_text(prv->dns_domain_entry);
+            const gchar *search_txt = gtk_entry_get_text(prv->dns_search_entry);
+            const gchar *servers_txt = gtk_entry_get_text(prv->dns_servers_entry);
+            guint domain_len = gtk_entry_get_text_length(prv->dns_domain_entry);
+            guint search_len = gtk_entry_get_text_length(prv->dns_search_entry);
+            guint servers_len = gtk_entry_get_text_length(prv->dns_servers_entry);
+
+            if (domain_len > 0) {
+                if (g_strcmp0(domain_txt, _("(optional)")) == 0) {
+                    domain_len = 0;
+                }
+            } else {
+                /* Pre-fill entries, and select text */
+                /* gtk_entry_set_text(prv->dns_domain_entry, _("(optional)")); */
+                /* gtk_editable_select_region(GTK_EDITABLE(prv->dns_domain_entry), 0, -1); */
+            }
+
+            if (search_len > 0) {
+                if (g_strcmp0(search_txt, _("(optional)")) == 0) {
+                    search_len = 0;
+                }
+            } else {
+                /* Pre-fill entries, and select text */
+                /* gtk_entry_set_text(prv->dns_search_entry, _("(optional)")); */
+                /* gtk_editable_select_region(GTK_EDITABLE(prv->dns_search_entry), 0, -1); */
+            }
+
+            if (servers_len > 0) {
+                if (g_strcmp0(servers_txt, _("(required)")) == 0) {
+                    servers_len = 0;
+                }
+            } else {
+                /* Pre-fill entries, and select text */
+                /* gtk_entry_set_text(prv->dns_servers_entry, _("(required)")); */
+                /* gtk_editable_select_region(GTK_EDITABLE(prv->dns_servers_entry), 0, -1); */
+            }
+
+            if (domain_len + search_len > 0) {
+                if (search_len > 0) {
+                    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), TRUE);
+                } else {
+                    gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), TRUE);
+                }
+            } else {
+                gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_search_entry), TRUE);
+                gtk_widget_set_sensitive(GTK_WIDGET(prv->dns_domain_entry), TRUE);
+            }
+        }
+    }
+
+    /* Update nis service block. */
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_dhcp_rb), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_manual_rb), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), FALSE);
+
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->nis_service_cb))) {
+
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_dhcp_rb), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_config_manual_rb), TRUE);
+
+        if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->nis_config_manual_rb))) {
+
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label_label), TRUE);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_domain_label), TRUE);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry_label), TRUE);
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->nis_servers_entry), TRUE);
+
+            const gchar *servers_txt = gtk_entry_get_text(prv->nis_servers_entry);
+            guint servers_len = gtk_entry_get_text_length(prv->nis_servers_entry);
+
+            if (servers_len > 0) {
+                if (g_strcmp0(servers_txt, _("(optional)")) == 0) {
+                    servers_len = 0;
+                }
+            } else {
+                /* Pre-fill entries, and select text */
+                /* gtk_entry_set_text(prv->nis_servers_entry, _("(optional)")); */
+                /* gtk_editable_select_region(GTK_EDITABLE(prv->nis_servers_entry), 0, -1); */
+            }
+        }
+    }
+
+    /* Update ldap service block. */
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label_label), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry), FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry_label), FALSE);
+
+	if (gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->ldap_service_cb))) {
+
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label_label), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_domain_label), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry_label), TRUE);
+        gtk_widget_set_sensitive(GTK_WIDGET(prv->ldap_servers_entry), TRUE);
+
+        const gchar *servers_txt = gtk_entry_get_text(prv->ldap_servers_entry);
+        guint servers_len = gtk_entry_get_text_length(prv->ldap_servers_entry);
+
+        if (servers_len > 0) {
+            if (g_strcmp0(servers_txt, _("(optional)")) == 0) {
+                servers_len = 0;
+            }
+        } else {
+            /* Pre-fill entries, and select text */
+            /* gtk_entry_set_text(prv->ldap_servers_entry, _("(optional)")); */
+            /* gtk_editable_select_region(GTK_EDITABLE(prv->ldap_servers_entry), 0, -1); */
+        }
+    }
+
+    /* Update files service block. */
+    /* Empty */
+
+    /* Update default nsswitch filename related widgets. */
+    g_free(prv->selected_nsswitch_file);
+    prv->selected_nsswitch_file = nwamui_env_get_nameservices_config_file(prv->selected_env);
 
     if (prv->num_nameservices == 1) {
         GList       *nameservices = nwamui_env_get_nameservices(prv->selected_env);
         gchar       *msg;
         const gchar *default_file = nwamui_env_nameservices_enum_to_filename((nwamui_env_nameservices_t)nameservices->data);
 
+        /* nsswitch default button is active only if exactly 1 NS selected */
         gtk_widget_set_sensitive(GTK_WIDGET(prv->nsswitch_default_btn), TRUE);
 
         gtk_widget_show(prv->default_file_lbl);
         /* Service is valid iff num_nameservices == 1 */
-        if (g_strcmp0(filename, default_file) == 0) {
+        if (g_strcmp0(prv->selected_nsswitch_file, default_file) == 0) {
             msg = g_strdup_printf(_("<small><i><b>Default nsswitch file (in use):</b> %s</i></small>"), default_file);
-            g_free(filename);
+            g_free(prv->selected_nsswitch_file);
             /* Flag to set file chooser */
-            filename = NULL;
+            prv->selected_nsswitch_file = NULL;
         } else {
             msg = g_strdup_printf(_("<small><i><b>Default nsswitch file (not in use):</b> %s</i></small>"), default_file);
         }
@@ -1855,11 +1911,8 @@ update_nsswitch_file_widgets(NwamEnvPrefDialog* self)
         gtk_widget_hide(prv->default_file_lbl);
     }
 
-    g_free(prv->selected_nsswitch_file);
-    prv->selected_nsswitch_file = filename;
-
-    if (filename) {
-        gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn), filename);
+    if (prv->selected_nsswitch_file) {
+        gtk_file_chooser_set_filename(GTK_FILE_CHOOSER(prv->nsswitch_file_btn), prv->selected_nsswitch_file);
     } else {
         gtk_file_chooser_unselect_all(GTK_FILE_CHOOSER(prv->nsswitch_file_btn));
     }
@@ -2103,8 +2156,19 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
 	NwamEnvPrefDialogPrivate *prv = GET_PRIVATE(iface);
     NwamEnvPrefDialog* self = NWAM_ENV_PREF_DIALOG(iface);
 
-    /* Work around for 7006158 */
-    {
+	if (prv->selected_env != user_data) {
+		if (prv->selected_env) {
+			g_object_unref(prv->selected_env);
+		}
+		if ((prv->selected_env = user_data) != NULL) {
+			g_object_ref(prv->selected_env);
+		}
+		force = TRUE;
+	}
+
+	if (force) {
+        /* Work around for 7006158, should only active in forcing reload/reload
+         * all. */
         GtkWidget *table = nwamui_util_glade_get_widget("table8");
         GtkWidget *fcdialog = NULL;
 
@@ -2125,19 +2189,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         gtk_table_attach(GTK_TABLE(table),
           GTK_WIDGET(prv->nsswitch_file_btn),
           1, 2, 6, 7, GTK_FILL | GTK_EXPAND, GTK_FILL, 0, 0);
-    }
 
-	if (prv->selected_env != user_data) {
-		if (prv->selected_env) {
-			g_object_unref(prv->selected_env);
-		}
-		if ((prv->selected_env = user_data) != NULL) {
-			g_object_ref(prv->selected_env);
-		}
-		force = TRUE;
-	}
-
-	if (force) {
 		if (prv->selected_env) {
 			gchar *title;
 

@@ -3735,7 +3735,16 @@ nwamui_object_real_validate(NwamuiObject *object, gchar **prop_name_ret)
     g_return_val_if_fail( NWAMUI_IS_ENV(object), FALSE );
 
     if ( prv->nwam_loc_modified && prv->nwam_loc != NULL ) {
-        if ( (nerr = nwam_loc_validate( prv->nwam_loc, &prop_name ) ) != NWAM_SUCCESS ) {
+        nerr = nwam_loc_validate( prv->nwam_loc, &prop_name );
+        if (nerr == NWAM_ENTITY_MULTIPLE_VALUES) {
+            /* 7006036 */
+            if ( prop_name_ret != NULL ) {
+                *prop_name_ret = g_strdup_printf(_("%s and %s (mutally-exclusive)"),
+                  NWAM_LOC_PROP_DNS_NAMESERVICE_DOMAIN,
+                  NWAM_LOC_PROP_DNS_NAMESERVICE_SEARCH);
+            }
+            return( FALSE );
+        } else if ( nerr != NWAM_SUCCESS ) {
             g_debug("Failed when validating LOC for %s : invalid value for %s", 
                     prv->name, prop_name);
             if ( prop_name_ret != NULL ) {
