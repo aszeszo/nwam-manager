@@ -1,3 +1,7 @@
+2011-03-11  Lin Ma  <lin.ma@oracle.com>
+
+	* configure.in: Bump to 1.162.0
+
 2011-02-28  Lin Ma  <lin.ma@oracle.com>
 
 	* capplet/nwam_env_pref_dialog.c (populate_panels_from_env),
