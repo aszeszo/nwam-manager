@@ -148,6 +148,7 @@ static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
+static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 static void set_purpose(NwamPrefIFace *iface, nwamui_dialog_purpose_t purpose);
 
 static void nwam_profile_dialog_finalize(NwamProfileDialog *self);
@@ -287,6 +288,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->apply = apply;
 	iface->cancel = cancel;
 	iface->help = help;
+    iface->dialog_get_window = dialog_get_window;
     iface->set_purpose = set_purpose;
 }
 
@@ -772,6 +774,14 @@ help(NwamPrefIFace *iface, gpointer user_data)
 {
     g_debug("NwamProfileDialog: Help");
     nwamui_util_show_help (HELP_REF_PROFILES_EDITING);
+}
+
+static GtkWindow*
+dialog_get_window(NwamPrefIFace *iface)
+{
+    NwamProfileDialogPrivate* prv         = GET_PRIVATE(iface);
+
+    return GTK_WINDOW(prv->edit_network_profile_dlg);
 }
 
 static void

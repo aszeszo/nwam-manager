@@ -1,3 +1,9 @@
+2011-04-01  Lin Ma  <lin.ma@oracle.com>
+
+	* capplet/nwam_profile_dialog.c (nwam_pref_init),
+	(dialog_get_window): Fixed 7029953 [gnome2.30][nwam] Cannot edit a
+	network profile
+
 2011-03-11  Lin Ma  <lin.ma@oracle.com>
 
 	* configure.in: Bump to 1.162.0

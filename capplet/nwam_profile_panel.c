@@ -98,7 +98,6 @@ static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
 static gboolean help(NwamPrefIFace *iface, gpointer user_data);
-/* static gint dialog_run(NwamPrefIFace *iface, GtkWindow *parent); */
 
 static void nwam_profile_panel_finalize(NwamProfilePanel *self);
 
