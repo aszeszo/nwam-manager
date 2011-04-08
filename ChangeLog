@@ -1,3 +1,7 @@
+2011-04-08  Lin Ma  <lin.ma@oracle.com>
+
+	* configure.in: Bump to 1.164.0
+
 2011-04-01  Lin Ma  <lin.ma@oracle.com>
 
 	* capplet/nwam_profile_dialog.c (nwam_pref_init),
