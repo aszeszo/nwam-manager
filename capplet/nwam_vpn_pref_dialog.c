@@ -1098,16 +1098,14 @@ on_rules_button_clicked(GtkButton *button, gpointer user_data)
     GtkTreeIter                 iter;
 
     if ( gtk_tree_selection_get_selected(gtk_tree_view_get_selection(prv->view), &model, &iter ) ) {
+        NwamPrefIFace *rules_dialog = NWAM_PREF_IFACE(nwam_rules_dialog_new());
         NwamuiEnm *enm;
 
         gtk_tree_model_get(model, &iter, 0, &enm, -1);
 
-        if (button == (gpointer)prv->vpn_rules_btn) {
-            NwamPrefIFace *rules_dialog = NWAM_PREF_IFACE(nwam_rules_dialog_new());
-            nwam_pref_refresh(NWAM_PREF_IFACE(rules_dialog), NWAMUI_OBJECT(enm), TRUE);
-            nwam_pref_dialog_run(rules_dialog, GTK_WIDGET(prv->vpn_pref_dialog));
-            g_object_unref(rules_dialog);
-        }
+        nwam_pref_refresh(NWAM_PREF_IFACE(rules_dialog), NWAMUI_OBJECT(enm), TRUE);
+        nwam_pref_dialog_run(rules_dialog, GTK_WIDGET(prv->vpn_pref_dialog));
+        g_object_unref(rules_dialog);
 
         g_object_unref(enm);
     }

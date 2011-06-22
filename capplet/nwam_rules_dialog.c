@@ -66,6 +66,7 @@ static void nwam_pref_init (gpointer g_iface, gpointer iface_data);
 static gboolean refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force);
 static gboolean apply(NwamPrefIFace *iface, gpointer user_data);
 static gboolean cancel(NwamPrefIFace *iface, gpointer user_data);
+static GtkWindow* dialog_get_window(NwamPrefIFace *iface);
 
 static void nwam_rules_dialog_finalize (NwamRulesDialog *self);
 static void response_cb(GtkWidget* widget, gint responseid, gpointer user_data);
@@ -151,6 +152,18 @@ cancel(NwamPrefIFace *iface, gpointer user_data)
 	return nwam_pref_cancel(NWAM_PREF_IFACE(prv->rules_vbox), user_data);
 }
 
+static GtkWindow*
+dialog_get_window(NwamPrefIFace *iface)
+{
+	NwamRulesDialogPrivate *prv = GET_PRIVATE(iface);
+
+    if (prv->rules_dialog) {
+        return GTK_WINDOW(prv->rules_dialog);
+    }
+
+    return NULL;
+}
+
 static void
 nwam_pref_init (gpointer g_iface, gpointer iface_data)
 {
@@ -159,6 +172,7 @@ nwam_pref_init (gpointer g_iface, gpointer iface_data)
 	iface->apply = apply;
 	iface->cancel = cancel;
 	iface->help = NULL;
+    iface->dialog_get_window = dialog_get_window;
 }
 
 static void
@@ -245,28 +259,6 @@ nwam_rules_dialog_new (void)
 {
     return NWAM_RULES_DIALOG(g_object_new(NWAM_TYPE_RULES_DIALOG,
 	    NULL));
-}
-
-gint
-nwam_rules_dialog_run(NwamPrefIFace *iface, GtkWindow *parent)
-{
-    NwamRulesDialog  *self = NWAM_RULES_DIALOG(iface);
-	gint response = GTK_RESPONSE_NONE;
-    
-	g_assert(NWAM_IS_RULES_DIALOG(self));
-
-	if ( self->prv->rules_dialog != NULL ) {
-		if (parent) {
-			gtk_window_set_transient_for (GTK_WINDOW(self->prv->rules_dialog), parent);
-			gtk_window_set_modal (GTK_WINDOW(self->prv->rules_dialog), TRUE);
-		} else {
-			gtk_window_set_transient_for (GTK_WINDOW(self->prv->rules_dialog), NULL);
-			gtk_window_set_modal (GTK_WINDOW(self->prv->rules_dialog), FALSE);		
-		}
-
-		response = gtk_dialog_run(GTK_DIALOG(self->prv->rules_dialog));
-	}
-	return response;
 }
 
 static void

@@ -1,3 +1,10 @@
+2011-06-22  Lin Ma  <lin.ma@oracle.com>
+
+	* capplet/nwam_rules_dialog.c (dialog_get_window),
+	(nwam_pref_init):
+	* capplet/nwam_vpn_pref_dialog.c (on_rules_button_clicked): Fixed
+	CR#7057684.
+
 2011-04-08  Lin Ma  <lin.ma@oracle.com>
 
 	* configure.in: Bump to 1.164.0
