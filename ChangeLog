@@ -1,3 +1,7 @@
+2011-06-22  Yong Sun <y.yong.sun@oracle.com>
+
+	* po/*.po: updated message translation.
+
 2011-06-22  Lin Ma  <lin.ma@oracle.com>
 
 	* capplet/nwam_rules_dialog.c (dialog_get_window),

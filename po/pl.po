@@ -1,4 +1,4 @@
-# Copyright (C) 2009 Sun Microsystems, Inc
+# Copyright (C) 2008 Sun Microsystems, Inc
 # This file is distributed under the same license as the nwam-manager package.
 #
 # Desktop Discuss <desktop-discuss@opensolaris.org>
@@ -8,9 +8,9 @@ msgstr ""
 "Project-Id-Version: nwam-manager HEAD\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2008-10-01 12:57+0900\n"
-"PO-Revision-Date: 2009-01-01 12:57+0900\n"
-"Last-Translator: desktop-discuss@opensolaris.org\n"
-"Language-Team: desktop-discuss@opensolaris.org\n"
+"PO-Revision-Date: 2009-11-20 12:57+0900\n"
+"Last-Translator: mr@tkb.pl\n"
+"Language-Team: Polish language team\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -40,8 +40,8 @@ msgid ""
 "LEAP\n"
 "PEAP/MSCHAPv2"
 msgstr ""
-"LEAP\n"
-"PEAP/MSCHAPv2"
+       "LEAP\n"
+       "PEAP/MSCHAPv2"
 
 #: ../capplet/nwam-manager-properties.glade.h:8
 msgid "Network Interface Priority"
@@ -55,11 +55,11 @@ msgid ""
 "WPA Personal (PSK)\n"
 "WPA Enterprise (Radius)"
 msgstr ""
-"Brak\n"
-"WEP Hex\n"
-"WEP ASCII\n"
-"WPA Personal (PSK)\n"
-"WPA Enterprise (Radius)"
+       "Brak\n"
+       "WEP Hex\n"
+       "WEP ASCII\n"
+       "WPA Personal (PSK)\n"
+       "WPA Enterprise (Radius)"
 
 #: ../capplet/nwam-manager-properties.glade.h:14 ../common/libnwamui.c:172
 #: ../common/libnwamui.c:173
@@ -198,7 +198,7 @@ msgstr "Ta sieć bezprzewodowa nie powinna być zapamiętana na stałe"
 msgid ""
 "The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
 msgstr ""
-"Nazwa sieci bezprzewodowej (ESSID) zawiera nieprawidłowe znaki (nie-ASCII)."
+       "Nazwa sieci bezprzewodowej (ESSID) zawiera nieprawidłowe znaki (nie-ASCII)."
 
 #: ../capplet/nwam_wireless_dialog.c:1082
 msgid "The Wireless network name (ESSID) should not be blank."
@@ -253,7 +253,7 @@ msgstr "Połączenie z każdą ulubioną siecią"
 msgid ""
 "The default timeout of notification in milliseconds, must greater than zero."
 msgstr ""
-"Domyślny timeout powiadomień w milisekundach musi być większy od zera."
+       "Domyślny timeout powiadomień w milisekundach musi być większy od zera."
 
 #: ../daemon/nwam-manager.schemas.in.h:5
 msgid "add_any_new_wifi_to_fav"
@@ -287,8 +287,8 @@ msgid ""
 "%s\n"
 "%s"
 msgstr ""
-"%s\n"
-"%s"
+       "%s\n"
+       "%s"
 
 #: ../daemon/status_icon.c:185 ../common/nwamui_wifi_net.c:768
 #, c-format
@@ -313,8 +313,8 @@ msgid ""
 "\n"
 "Wired (%s): %s"
 msgstr ""
-"\n"
-"Przewodowy (%s): %s"
+       "\n"
+       "Przewodowy (%s): %s"
 
 #: ../daemon/main.c:153
 #, c-format
@@ -322,8 +322,8 @@ msgid ""
 "\n"
 "Wireless (%s): %s"
 msgstr ""
-"\n"
-"Bezprzewodowy (%s): %s"
+       "\n"
+       "Bezprzewodowy (%s): %s"
 
 #: ../daemon/main.c:196
 #, c-format
@@ -349,8 +349,8 @@ msgid ""
 "For further information please run\n"
 "\"svcs -xv nwam\" in a terminal."
 msgstr ""
-"Dalsze informacje po wykonaniu w terminalu\n"
-" polecenia \"svcs -xv nwam\"."
+       "Dalsze informacje po wykonaniu w terminalu\n"
+       " polecenia \"svcs -xv nwam\"."
 
 #: ../daemon/main.c:319 ../daemon/main.c:523
 #, c-format
@@ -368,8 +368,8 @@ msgid ""
 "%s\n"
 "Click here to join another wireless network."
 msgstr ""
-"%s\n"
-"Kliknij tutaj by podłączyć do innej sieci bezprzewodowej."
+       "%s\n"
+       "Kliknij tutaj by podłączyć do innej sieci bezprzewodowej."
 
 #: ../daemon/main.c:380 ../daemon/main.c:405
 msgid "Automatic Network Configuration Daemon"
@@ -396,8 +396,8 @@ msgid ""
 "Right-click the icon to connect \n"
 "%s network interface to an available network."
 msgstr ""
-"Kliknij prawym klawiszem ikone by podłączyć \n"
-"interfejs sieciowy %s do dostępnej sieci."
+       "Kliknij prawym klawiszem ikone by podłączyć \n"
+       "interfejs sieciowy %s do dostępnej sieci."
 
 #: ../daemon/main.c:467
 msgid "Right-click to select wireless network"
@@ -419,8 +419,8 @@ msgid ""
 "\n"
 "%s: %s"
 msgstr ""
-"\n"
-"%s: %s"
+       "\n"
+       "%s: %s"
 
 #: ../daemon/main.c:510
 msgid "Network Address"
@@ -440,8 +440,8 @@ msgid ""
 "\n"
 "%s: %d"
 msgstr ""
-"\n"
-"%s: %d"
+       "\n"
+       "%s: %d"
 
 #: ../daemon/main.c:536
 msgid "Signal Strength"
@@ -469,10 +469,10 @@ msgid ""
 "\n"
 "Click here to re-enter the wireless key."
 msgstr ""
-"Serwer DHCP może nie odpowiadać lub\n"
-"wprowadzono błędny klucz.\n"
-"\n"
-"Kliknij tutaj i wprowadź klucz ponownie."
+       "Serwer DHCP może nie odpowiadać lub\n"
+       "wprowadzono błędny klucz.\n"
+       "\n"
+       "Kliknij tutaj i wprowadź klucz ponownie."
 
 #: ../daemon/main.c:844
 msgid "There are no wireless network interfaces"
@@ -533,8 +533,8 @@ msgid ""
 "Click here to view or edit your list of favorite\n"
 "wireless networks."
 msgstr ""
-"Kliknij tutaj by zobaczyć lub edytować listę\n"
-"sieci bezprzewodowych."
+       "Kliknij tutaj by zobaczyć lub edytować listę\n"
+       "sieci bezprzewodowych."
 
 #: ../daemon/nwam-menu.c:1052
 #, c-format
@@ -547,8 +547,8 @@ msgid ""
 "  %s\n"
 "    %s"
 msgstr ""
-"  %s\n"
-"    %s"
+       "  %s\n"
+       "    %s"
 
 #: ../daemon/notify.c:490
 #, c-format
@@ -871,8 +871,8 @@ msgid ""
 "%s network interface brought down\n"
 "Reason: %s"
 msgstr ""
-"%s interfejs sieciowy został wyłączony\n"
-"Powód: %s"
+       "%s interfejs sieciowy został wyłączony\n"
+       "Powód: %s"
 
 #: ../common/nwamui_daemon.c:1785
 #, c-format

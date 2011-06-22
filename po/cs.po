@@ -1,19 +1,19 @@
-# Copyright (C) 2009 Sun Microsystems, Inc
+# Copyright (C) 2008 Sun Microsystems, Inc
 # This file is distributed under the same license as the nwam-manager package.
 #
 # Desktop Discuss <desktop-discuss@opensolaris.org>
 #
 msgid ""
 msgstr ""
-       "Project-Id-Version: nwam-manager HEAD\n"
-       "Report-Msgid-Bugs-To: \n"
-       "POT-Creation-Date: 2008-10-01 12:57+0900\n"
-       "PO-Revision-Date: 2000-01-01 12:57+0900\n"
-       "Last-Translator: desktop-discuss@opensolaris.org\n"
-       "Language-Team: desktop-discuss@opensolaris.org\n"
-       "MIME-Version: 1.0\n"
-       "Content-Type: text/plain; charset=UTF-8\n"
-       "Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: nwam_manager HEAD\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-10-01 12:57+0900\n"
+"PO-Revision-Date: 2009-11-20 12:57+0900\n"
+"Last-Translator: kristynakitz (Kristyna Kitzbergerova)\n"
+"Language-Team: Czech language team\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 
 #: ../capplet/nwam-manager-properties.glade.h:1
 msgid "<small><i><b>Example:</b> 12:34:56:78:9A:BC</i></small>"
@@ -45,7 +45,7 @@ msgstr ""
 
 #: ../capplet/nwam-manager-properties.glade.h:8
 msgid "Network Interface Priority"
-msgstr "Network Interface Priority"
+msgstr "Priorita Síťového Rozhraní"
 
 #: ../capplet/nwam-manager-properties.glade.h:9
 msgid ""
@@ -116,11 +116,11 @@ msgstr "Místo připojení (BSSID)"
 
 #: ../capplet/nwam_wireless_dialog.c:150
 msgid "Wireless NCU"
-msgstr "Wireless NCU"
+msgstr "NCU Bezdrátové sítě"
 
 #: ../capplet/nwam_wireless_dialog.c:151
 msgid "The Wireless NCU that the dialog is to work with."
-msgstr "The Wireless NCU that the dialog is to work with."
+msgstr ""
 
 #: ../capplet/nwam_wireless_dialog.c:158
 msgid "Wireless ESSID"
@@ -274,12 +274,12 @@ msgstr "notification_default_timeout"
 #: ../daemon/nwam-menuitem.c:111 ../daemon/nwam-menuitem.c:112
 #: ../daemon/nwam-action.c:110 ../daemon/nwam-action.c:111
 msgid "Left widget, ref'd"
-msgstr "Left widget, ref'd"
+msgstr "Levá věcička, ref'd"
 
 #: ../daemon/nwam-menuitem.c:118 ../daemon/nwam-menuitem.c:119
 #: ../daemon/nwam-action.c:117 ../daemon/nwam-action.c:118
 msgid "Right widget, ref'd"
-msgstr "Right widget, ref'd"
+msgstr "Pravá vecička, ref'd"
 
 #: ../daemon/status_icon.c:182
 #, c-format
@@ -470,8 +470,9 @@ msgid ""
 "Click here to re-enter the wireless key."
 msgstr ""
        "DHCP server neodpovídá nebo \n"
-       "jste zadali špatný klíč bezdrátové sítě."
-       "Click here to re-enter the wireless key."
+       "jste zadali špatný klíč bezdrátové sítě.\n"
+       "\n"
+       "Klikněte zde a zadejte klíč znovu."
 
 #: ../daemon/main.c:844
 msgid "There are no wireless network interfaces"
@@ -556,19 +557,19 @@ msgstr "  %s"
 
 #: ../common/nwamui_ncu.c:149 ../common/nwamui_ncu.c:150
 msgid "vanity_name"
-msgstr "vanity_name"
+msgstr "jméno_vanity"
 
 #: ../common/nwamui_ncu.c:157 ../common/nwamui_ncu.c:158
 msgid "device_name"
-msgstr "device_name"
+msgstr "jméno_zařízení"
 
 #: ../common/nwamui_ncu.c:165 ../common/nwamui_ncu.c:166
 msgid "phy_address"
-msgstr "phy_address"
+msgstr "adresa_phy"
 
 #: ../common/nwamui_ncu.c:173 ../common/nwamui_ncu.c:174
 msgid "ncu_type"
-msgstr "ncu_type"
+msgstr "typ_ncu"
 
 #: ../common/nwamui_ncu.c:183 ../common/nwamui_ncu.c:184
 msgid "active"
@@ -581,35 +582,35 @@ msgstr "rychlost"
 
 #: ../common/nwamui_ncu.c:201 ../common/nwamui_ncu.c:202
 msgid "ipv4_auto_conf"
-msgstr "ipv4_auto_conf"
+msgstr "auto_conf_ipv4"
 
 #: ../common/nwamui_ncu.c:210 ../common/nwamui_ncu.c:211
 msgid "ipv4_address"
-msgstr "ipv4_address"
+msgstr "adresa_ipv4"
 
 #: ../common/nwamui_ncu.c:218 ../common/nwamui_ncu.c:219
 msgid "ipv4_subnet"
-msgstr "ipv4_subnet"
+msgstr "podsíť_ipv4"
 
 #: ../common/nwamui_ncu.c:226 ../common/nwamui_ncu.c:227
 msgid "ipv4_gateway"
-msgstr "ipv4_gateway"
+msgstr "brána_ipv4"
 
 #: ../common/nwamui_ncu.c:234 ../common/nwamui_ncu.c:235
 msgid "ipv6_active"
-msgstr "ipv6_active"
+msgstr "aktivní_ipv6"
 
 #: ../common/nwamui_ncu.c:242 ../common/nwamui_ncu.c:243
 msgid "ipv6_auto_conf"
-msgstr "ipv6_auto_conf"
+msgstr "auto_conf_ipv6"
 
 #: ../common/nwamui_ncu.c:251 ../common/nwamui_ncu.c:252
 msgid "ipv6_address"
-msgstr "ipv6_address"
+msgstr "adresa_ipv6"
 
 #: ../common/nwamui_ncu.c:259 ../common/nwamui_ncu.c:260
 msgid "ipv6_prefix"
-msgstr "ipv6_prefix"
+msgstr "prefix_ipv6"
 
 #: ../common/nwamui_ncu.c:267 ../common/nwamui_ncu.c:268
 msgid "v4addresses"
@@ -625,19 +626,19 @@ msgstr "Informace o konfiguraci Wi-Fi"
 
 #: ../common/nwamui_ncu.c:291 ../common/nwamui_ncu.c:292
 msgid "rules_enabled"
-msgstr "rules_enabled"
+msgstr "pravidla_povolena"
 
 #: ../common/nwamui_ncu.c:299 ../common/nwamui_ncu.c:300
 msgid "rules_ncus"
-msgstr "rules_ncus"
+msgstr "pravidla_ncu"
 
 #: ../common/nwamui_ncu.c:306 ../common/nwamui_ncu.c:307
 msgid "rules_ncu_state"
-msgstr "rules_ncu_state"
+msgstr "pravidla_ncu_stav"
 
 #: ../common/nwamui_ncu.c:316 ../common/nwamui_ncu.c:317
 msgid "rules_action"
-msgstr "rules_action"
+msgstr "pravidla_akce"
 
 #: ../common/nwamui_ncu.c:326 ../common/nwamui_ncu.c:327
 msgid "priority"
@@ -674,7 +675,7 @@ msgstr "WPA"
 
 #: ../common/libnwamui.c:176
 msgid "Open"
-msgstr "Open"
+msgstr "Otevřít"
 
 #: ../common/libnwamui.c:192
 msgid "LEAP"
@@ -708,7 +709,7 @@ msgstr "Aktivní rozhraní"
 
 #: ../common/nwamui_wifi_net.c:111 ../common/nwamui_wifi_net.c:112
 msgid "NCU that AP is seen on"
-msgstr "NCU that AP is seen on"
+msgstr "NCU jehož AP je vidět"
 
 #: ../common/nwamui_wifi_net.c:119 ../common/nwamui_wifi_net.c:120
 msgid "Wifi Network ESSID"
@@ -782,7 +783,7 @@ msgstr "stav"
 
 #: ../common/nwamui_daemon.c:171 ../common/nwamui_daemon.c:172
 msgid "event_cause"
-msgstr "event_cause"
+msgstr "událost_příčina"
 
 #: ../common/nwamui_daemon.c:1031 ../common/nwamui_daemon.c:1049
 msgid "unknown"
@@ -822,7 +823,7 @@ msgstr "Pravidelné skenování ukazuje velmi slabý signál bezdrátové sítě
 
 #: ../common/nwamui_daemon.c:1042
 msgid "All network interfaces but one going down"
-msgstr "All network interfaces but one going down"
+msgstr "Všechna síťová rozhraní, až na jedno, scházejí"
 
 #: ../common/nwamui_daemon.c:1043
 msgid "Another network interface is already active"
@@ -893,7 +894,7 @@ msgstr "adresa"
 
 #: ../common/nwamui_ip.c:105 ../common/nwamui_ip.c:106
 msgid "subnet_prefix"
-msgstr "subnet_prefix"
+msgstr "podsíť_prefix"
 
 #: ../common/nwamui_ncp.c:112 ../common/nwamui_ncp.c:113
 msgid "Name of the NCP"
@@ -909,8 +910,8 @@ msgstr "Aktivní NCU"
 
 #: ../common/nwamui_ncp.c:136 ../common/nwamui_ncp.c:137
 msgid "selection_mode"
-msgstr "selection_mode"
+msgstr "výběr_mód"
 
 #: ../common/nwamui_ncp.c:146 ../common/nwamui_ncp.c:147
 msgid "many_wireless"
-msgstr "many_wireless"
+msgstr "množství_bezdrátový"

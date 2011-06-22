@@ -1,39 +1,39 @@
-# Copyright (C) 2009 Sun Microsystems, Inc
+# Copyright (C) 2008 Sun Microsystems, Inc
 # This file is distributed under the same license as the nwam-manager package.
 #
 # Desktop Discuss <desktop-discuss@opensolaris.org>
 #
 msgid ""
 msgstr ""
-       "Project-Id-Version: nwam-manager HEAD\n"
-       "Report-Msgid-Bugs-To: \n"
-       "POT-Creation-Date: 2008-10-01 12:57+0900\n"
-       "PO-Revision-Date: 2009-04-06  12:57+0900\n"
-       "Last-Translator: Marlen K. Waaijer <marlen.k.waaijer@ieee.org>\n"
-       "Language-Team: Dutch OpenSolaris Group <nl@li.org>\n"
-       "MIME-Version: 1.0\n"
-       "Content-Type: text/plain; charset=UTF-8\n"
-       "Content-Transfer-Encoding: 8bit\n"
+"Project-Id-Version: nwam-manager HEAD\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-10-01 12:57+0900\n"
+"PO-Revision-Date: 2009-11-20 12:57+0900\n"
+"Last-Translator: Marlen K. Waaijer <marlen.k.waaijer@ieee.org>\n"
+"Language-Team: Dutch language team\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 
 #: ../capplet/nwam-manager-properties.glade.h:1
 msgid "<small><i><b>Example:</b> 12:34:56:78:9A:BC</i></small>"
-msgstr "<small><i><b>Example:</b> 12:34:56:78:9A:BC</i></small>"
+msgstr "<small><i><b>Voorbeeld:</b> 12:34:56:78:9A:BC</i></small>"
 
 #: ../capplet/nwam-manager-properties.glade.h:2
 msgid "Add Wireless Network"
-msgstr "Add Wireless Network"
+msgstr "Draadloos network toevoegen"
 
 #: ../capplet/nwam-manager-properties.glade.h:3
 msgid "Certificate _File:"
-msgstr "Certificate _File:"
+msgstr "Certi_ficaat Bestand:"
 
 #: ../capplet/nwam-manager-properties.glade.h:4
 msgid "Co_nfirm Password:"
-msgstr "Co_nfirm Password:"
+msgstr "Wachtwoord bevestige_n:"
 
 #: ../capplet/nwam-manager-properties.glade.h:5
 msgid "Favorite Wireless Networks"
-msgstr "Favorite Wireless Networks"
+msgstr "Favoriete draadloze netwerken"
 
 #: ../capplet/nwam-manager-properties.glade.h:6
 msgid ""
@@ -45,7 +45,7 @@ msgstr ""
 
 #: ../capplet/nwam-manager-properties.glade.h:8
 msgid "Network Interface Priority"
-msgstr "Network Interface Priority"
+msgstr "Network Interface Prioriteit"
 
 #: ../capplet/nwam-manager-properties.glade.h:9
 msgid ""
@@ -58,7 +58,7 @@ msgstr ""
        "None\n"
        "WEP Hex\n"
        "WEP ASCII\n"
-       "WPA Personal (PSK)\n"
+       "WPA Persoonlijk (PSK)\n"
        "WPA Enterprise (Radius)"
 
 #: ../capplet/nwam-manager-properties.glade.h:14 ../common/libnwamui.c:172
@@ -72,155 +72,155 @@ msgstr "WPA/2"
 
 #: ../capplet/nwam-manager-properties.glade.h:16
 msgid "_Add to list of favorite networks on successful connection"
-msgstr "_Add to list of favorite networks on successful connection"
+msgstr "N_a felukte verbinding aan de lijst van favoriete netwerken toevoegen."
 
 #: ../capplet/nwam-manager-properties.glade.h:17
 msgid "_BSSID (optional):"
-msgstr "_BSSID (optional):"
+msgstr "_BSSID (naar keuze):"
 
 #: ../capplet/nwam-manager-properties.glade.h:18
 msgid "_Configuration:"
-msgstr "_Configuration:"
+msgstr "_Configuratie:"
 
 #: ../capplet/nwam-manager-properties.glade.h:19
 msgid "_More Options"
-msgstr "_More Options"
+msgstr "_Meer opties"
 
 #: ../capplet/nwam-manager-properties.glade.h:20
 msgid "_Network name (ESSID):"
-msgstr "_Network name (ESSID):"
+msgstr "_Network naam (ESSID):"
 
 #: ../capplet/nwam-manager-properties.glade.h:21
 msgid "_Password:"
-msgstr "_Password:"
+msgstr "_Wachtwoord:"
 
 #: ../capplet/nwam-manager-properties.glade.h:22
 msgid "_Security type:"
-msgstr "_Security type:"
+msgstr "_Veiligheids voorbeeld:"
 
 #: ../capplet/nwam-manager-properties.glade.h:23
 msgid "_Show passwords while typing"
-msgstr "_Show passwords while typing"
+msgstr "_Vertoon wachtwoord tijdens het typen"
 
 #: ../capplet/nwam-manager-properties.glade.h:24
 msgid "_Username:"
-msgstr "_Username:"
+msgstr "_Gebruikersnaam:"
 
 #: ../capplet/nwam_fav_networks_dialog.c:159
 msgid "Network Name (ESSID)"
-msgstr "Network Name (ESSID)"
+msgstr "Networknaam (ESSID)"
 
 #: ../capplet/nwam_fav_networks_dialog.c:180
 msgid "Access Point (BSSID)"
-msgstr "Access Point (BSSID)"
+msgstr "Aanknooppunt (BSSID)"
 
 #: ../capplet/nwam_wireless_dialog.c:150
 msgid "Wireless NCU"
-msgstr "Wireless NCU"
+msgstr "Draadloos NCU"
 
 #: ../capplet/nwam_wireless_dialog.c:151
 msgid "The Wireless NCU that the dialog is to work with."
-msgstr "The Wireless NCU that the dialog is to work with."
+msgstr "De Wireless NCU waarmee het dialoogvenster moet werken."
 
 #: ../capplet/nwam_wireless_dialog.c:158
 msgid "Wireless ESSID"
-msgstr "Wireless ESSID"
+msgstr "Draadloze ESSID"
 
 #: ../capplet/nwam_wireless_dialog.c:159
 msgid "The Wireless ESSID to connect to."
-msgstr "The Wireless ESSID to connect to."
+msgstr "De draadloze ESSID om mee te verbinden."
 
 #: ../capplet/nwam_wireless_dialog.c:165
 msgid "Wireless Security Type"
-msgstr "Wireless Security Type"
+msgstr "Draadloze beveilingstype"
 
 #: ../capplet/nwam_wireless_dialog.c:166
 msgid "The Wireless security (None/WEP/WPA)."
-msgstr "The Wireless security (None/WEP/WPA)."
+msgstr "De draadloze beveiliging (Geen/WEP/WPA)."
 
 #: ../capplet/nwam_wireless_dialog.c:173
 msgid "Wireless Security Key"
-msgstr "Wireless Security Key"
+msgstr "Draadloze beveiligingssleutel"
 
 #: ../capplet/nwam_wireless_dialog.c:174
 msgid "The Wireless security key."
-msgstr "The Wireless security key."
+msgstr "De draadloze beveiligingssleutel."
 
 #: ../capplet/nwam_wireless_dialog.c:180
 msgid "WPA Username"
-msgstr "WPA Username"
+msgstr "WPA Gebruikersnaam"
 
 #: ../capplet/nwam_wireless_dialog.c:181
 msgid "The Username to use for a WPA connection."
-msgstr "The Username to use for a WPA connection."
+msgstr "De gebruikersnaam te gebruiken voor een WPA verbinding."
 
 #: ../capplet/nwam_wireless_dialog.c:187
 msgid "WPA Password"
-msgstr "WPA Password"
+msgstr "WPA wachtwoord"
 
 #: ../capplet/nwam_wireless_dialog.c:188
 msgid "The Password to use for a WPA connection."
-msgstr "The Password to use for a WPA connection."
+msgstr "Het wachtwoord te gebruiken voor een WPA verbinding."
 
 #: ../capplet/nwam_wireless_dialog.c:194
 msgid "WPA Config Type"
-msgstr "WPA Config Type"
+msgstr "WPA config voorbeeld"
 
 #: ../capplet/nwam_wireless_dialog.c:195
 msgid "The type of WPA Connection (Automatic or TTLS-PAP)"
-msgstr "The type of WPA Connection (Automatic or TTLS-PAP)"
+msgstr "De aard van de WPA Verbinding (Automatisch of TTLS-PAP)"
 
 #: ../capplet/nwam_wireless_dialog.c:203
 msgid "WPA Cert File"
-msgstr "WPA Cert File"
+msgstr "WPA Cert bestand"
 
 #: ../capplet/nwam_wireless_dialog.c:204
 msgid "The Certificate File to use for WPA."
-msgstr "The Certificate File to use for WPA."
+msgstr "Het certificaat bestand te gebruiken voor WPA."
 
 #: ../capplet/nwam_wireless_dialog.c:210
 msgid "Wireless BSSID"
-msgstr "Wireless BSSID"
+msgstr "Draadloos BSSID"
 
 #: ../capplet/nwam_wireless_dialog.c:211
 msgid "The Wireless AP BSSID to connect to."
-msgstr "The Wireless AP BSSID to connect to."
+msgstr "Het draadloos AP BSSID om mee te verbinden."
 
 #: ../capplet/nwam_wireless_dialog.c:217
 msgid "Wireless Network is Transient"
-msgstr "Wireless Network is Transient"
+msgstr "Draadloos netwerk is vergankelijk"
 
 #: ../capplet/nwam_wireless_dialog.c:218
 msgid "This Wireless Network shouldn't be remembered on permanently"
-msgstr "This Wireless Network shouldn't be remembered on permanently"
+msgstr "Dit draadlose netwerk moet niet permanent onthouden worden"
 
 #: ../capplet/nwam_wireless_dialog.c:1077
 msgid ""
 "The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
 msgstr ""
-       "The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
+       "De draadloze netwerk naam (ESSID) bevat ongeldige (non-ASCII) tekens."
 
 #: ../capplet/nwam_wireless_dialog.c:1082
 msgid "The Wireless network name (ESSID) should not be blank."
-msgstr "The Wireless network name (ESSID) should not be blank."
+msgstr "De draadloze netwerk naam (ESSID) mag niet leeg zijn."
 
 #: ../capplet/nwam_wireless_dialog.c:1093
 msgid "Wireless AP (BSSID) is not a valid address"
-msgstr "Wireless AP (BSSID) is not a valid address"
+msgstr "Draadloze AP (ESSID) is geen geldig adres"
 
 #. Different, so FALSE
 #: ../capplet/nwam_wireless_dialog.c:1114
 msgid "Keys entered are different"
-msgstr "Keys entered are different"
+msgstr "Getypte toetsen zijn verschillend"
 
 #. All other conditions, FALSE
 #: ../capplet/nwam_wireless_dialog.c:1136
 msgid "Invalid data entered"
-msgstr "Invalid data entered"
+msgstr "Ongeldige gegeven ingevoerd"
 
 #: ../capplet/nwam_wireless_dialog.c:1208
 msgid "Validation Failed."
-msgstr "Validation Failed."
+msgstr "Validatie mislukt."
 
 #: ../capplet/nwam_net_priority_dialog.c:157 ../daemon/main.c:508
 msgid "Network Interface"
@@ -228,32 +228,32 @@ msgstr "Network Interface"
 
 #: ../capplet/nwam_net_priority_dialog.c:371
 msgid "Enabled"
-msgstr "Enabled"
+msgstr "Ingeschakeld"
 
 #: ../capplet/nwam_net_priority_dialog.c:371
 msgid "Disabled"
-msgstr "Disabled"
+msgstr "Uitgeschakeld"
 
 #: ../daemon/nwam-manager.schemas.in.h:1 ../common/nwamui_prof.c:141
 #: ../common/nwamui_prof.c:142
 msgid "Adding any new network to your favorites list"
-msgstr "Adding any new network to your favorites list"
+msgstr "Ieder nieuw netwerk aan uw favorietenlijstje toevoegen"
 
 #: ../daemon/nwam-manager.schemas.in.h:2 ../common/nwamui_prof.c:125
 #: ../common/nwamui_prof.c:126
 msgid "Joining an open network that is not in your favorites list"
-msgstr "Joining an open network that is not in your favorites list"
+msgstr "Deelnemen aan een open netwerk dat nog niet in uw favorietenlijstje is"
 
 #: ../daemon/nwam-manager.schemas.in.h:3 ../common/nwamui_prof.c:133
 #: ../common/nwamui_prof.c:134
 msgid "Joining any favorite network"
-msgstr "Joining any favorite network"
+msgstr "Aan ieder favoriet netwerk deelnemen"
 
 #: ../daemon/nwam-manager.schemas.in.h:4
 msgid ""
 "The default timeout of notification in milliseconds, must greater than zero."
 msgstr ""
-       "The default timeout of notification in milliseconds, must greater than zero."
+       "De standaard time-out van kennisgeving in milliseconden, moet groter zijn dan nul."
 
 #: ../daemon/nwam-manager.schemas.in.h:5
 msgid "add_any_new_wifi_to_fav"
@@ -279,7 +279,7 @@ msgstr "Left widget, ref'd"
 #: ../daemon/nwam-menuitem.c:118 ../daemon/nwam-menuitem.c:119
 #: ../daemon/nwam-action.c:117 ../daemon/nwam-action.c:118
 msgid "Right widget, ref'd"
-msgstr "Right widget, ref'd"
+msgstr "Rechts widget, ref'd"
 
 #: ../daemon/status_icon.c:182
 #, c-format
@@ -297,15 +297,15 @@ msgstr "%s"
 
 #: ../daemon/nwam-action.c:103
 msgid "NwamuiWifiNet instance"
-msgstr "NwamuiWifiNet instance"
+msgstr "NwamuiWifiNet instantie"
 
 #: ../daemon/nwam-action.c:104
 msgid "Wireless AP"
-msgstr "Wireless AP"
+msgstr "Draadloos AP"
 
 #: ../daemon/main.c:58
 msgid "Enable debugging messages"
-msgstr "Enable debugging messages"
+msgstr "Debug berichten inschakelen"
 
 #: ../daemon/main.c:150
 #, c-format
@@ -323,44 +323,44 @@ msgid ""
 "Wireless (%s): %s"
 msgstr ""
        "\n"
-       "Wireless (%s): %s"
+       "Draadloos (%s): %s"
 
 #: ../daemon/main.c:196
 #, c-format
 msgid "Wireless (%s) network interface is active."
-msgstr "Wireless (%s) network interface is active."
+msgstr "Draadloos (%s) netwerk interface is actief."
 
 #: ../daemon/main.c:199
 #, c-format
 msgid "Wired (%s) network interface is active."
-msgstr "Wired (%s) network interface is active."
+msgstr "Bedraad (%s) netwerk interface is actief."
 
 #: ../daemon/main.c:205
 #, c-format
 msgid "No network interface is active."
-msgstr "No network interface is active."
+msgstr "Geen netwerk interface is actief."
 
 #: ../daemon/main.c:254 ../daemon/main.c:256
 msgid "Automatic network configuration daemon is unavailable."
-msgstr "Automatic network configuration daemon is unavailable."
+msgstr "Automatische netwerk configuratie is daemon is niet beschikbaar."
 
 #: ../daemon/main.c:257
 msgid ""
 "For further information please run\n"
 "\"svcs -xv nwam\" in a terminal."
 msgstr ""
-       "For further information please run\n"
-       "\"svcs -xv nwam\" in a terminal."
+       "Voor meer informatie voer\n"
+       "\"svcs -xv nwam\" uit in een commando venster."
 
 #: ../daemon/main.c:319 ../daemon/main.c:523
 #, c-format
 msgid "Connected to wireless network '%s'"
-msgstr "Connected to wireless network '%s'"
+msgstr "Verbonden met draadloos netwerk '%s'"
 
 #: ../daemon/main.c:344
 #, c-format
 msgid "Disconnected from Wireless Network '%s'"
-msgstr "Disconnected from Wireless Network '%s'"
+msgstr "Losgekoppeld van draadloos netwerk '%s'"
 
 #: ../daemon/main.c:345
 #, c-format
@@ -369,26 +369,26 @@ msgid ""
 "Click here to join another wireless network."
 msgstr ""
        "%s\n"
-       "Click here to join another wireless network."
+       "Klik hier om met een ander draadloos netwerk te verbinden."
 
 #: ../daemon/main.c:380 ../daemon/main.c:405
 msgid "Automatic Network Configuration Daemon"
-msgstr "Automatic Network Configuration Daemon"
+msgstr "Automatische netwerk configuratie demon"
 
 #: ../daemon/main.c:426
 #, c-format
 msgid "'%s' requires authentication"
-msgstr "'%s' requires authentication"
+msgstr "'%s' vereist bekrachtiging"
 
 #: ../daemon/main.c:428
 #, c-format
 msgid "Click here to enter the wireless network key."
-msgstr "Click here to enter the wireless network key."
+msgstr "Klik hier om een draadloos netwerk sleutel te typen."
 
 #: ../daemon/main.c:460
 #, c-format
 msgid "Wireless networks available"
-msgstr "Wireless networks available"
+msgstr "Draadloze netwerken beschikbaar"
 
 #: ../daemon/main.c:461
 #, c-format
@@ -396,17 +396,17 @@ msgid ""
 "Right-click the icon to connect \n"
 "%s network interface to an available network."
 msgstr ""
-       "Right-click the icon to connect \n"
-       "%s network interface to an available network."
+       "Klik met de rechtermuisknop op het pictogram om \n"
+       "%s netwerk interface aan op een beschikbare netwerk te verbinden."
 
 #: ../daemon/main.c:467
 msgid "Right-click to select wireless network"
-msgstr "Right-click to select wireless network"
+msgstr "Klik met de rechtermuisknop om draadloos netwerk te selecteren"
 
 #: ../daemon/main.c:507 ../daemon/main.c:528
 #, c-format
 msgid "%s network interface is connected."
-msgstr "%s network interface is connected."
+msgstr "%s netwerk interface is verbonden."
 
 #: ../daemon/main.c:508 ../daemon/main.c:531
 #, c-format
@@ -424,7 +424,7 @@ msgstr ""
 
 #: ../daemon/main.c:510
 msgid "Network Address"
-msgstr "Network Address"
+msgstr "Netwerk adres"
 
 #: ../daemon/main.c:531
 msgid "Interface"
@@ -450,17 +450,17 @@ msgstr "Sterkte van signaal"
 #: ../daemon/main.c:581 ../daemon/main.c:592
 #, c-format
 msgid "%s disconnected from network."
-msgstr "%s disconnected from network."
+msgstr "%s losgekoppeld van netwerk"
 
 #: ../daemon/main.c:628
 #, c-format
 msgid "Activating %s network interface..."
-msgstr "Activating %s network interface..."
+msgstr "Activatie %s netwerk interface..."
 
 #: ../daemon/main.c:663
 #, c-format
 msgid "Failed to connect to wireless network '%s'. %s"
-msgstr "Failed to connect to wireless network '%s'. %s"
+msgstr "Mislukte verbinding met draadloos netwerk '%s'. %s"
 
 #: ../daemon/main.c:665
 msgid ""
@@ -469,10 +469,10 @@ msgid ""
 "\n"
 "Click here to re-enter the wireless key."
 msgstr ""
-       "The DHCP server may not be responding, or\n"
-       "you may have entered the wrong wireless key.\n"
+       "Het is mogelijk dat de DHCP server geen antwoord geeft, of\n"
+       "het kan zijn dat je de verkeerde draadloze sleutel hebt ingevoerd.\n"
        "\n"
-       "Click here to re-enter the wireless key."
+       "Klik hier om de draadloze sleutel nogmaals in te voeren."
 
 #: ../daemon/main.c:844
 msgid "There are no wireless network interfaces"
@@ -484,15 +484,15 @@ msgstr "Geen draadloze netwerk interfaces beschikbaar"
 
 #: ../daemon/nwam-menu.c:188
 msgid "_Edit Network Interface Priorities..."
-msgstr "_Edit Network Interface Priorities..."
+msgstr "B_ewerk Network Interface Prioriteiten ..."
 
 #: ../daemon/nwam-menu.c:192
 msgid "_Join Unlisted Wireless Network..."
-msgstr "_Join Unlisted Wireless Network..."
+msgstr "Aansluiten bij een ongepubliceerd draadloos netwerk..."
 
 #: ../daemon/nwam-menu.c:196
 msgid "_Manage Favorite Wireless Networks..."
-msgstr "_Manage Favorite Wireless Networks..."
+msgstr "Favoriete draadloze netwerken beheren..."
 
 #: ../daemon/nwam-menu.c:273 ../daemon/nwam-menu.c:1047
 #: ../common/nwamui_ncp.c:583
@@ -507,12 +507,12 @@ msgstr "Bedraad"
 #: ../daemon/nwam-menu.c:278
 #, c-format
 msgid "_Automatic Network Interface Selection - Current: %s (%s)"
-msgstr "_Automatic Network Interface Selection - Current: %s (%s)"
+msgstr "_Automatische netwerk interface selectie - Huidige: %s (%s)"
 
 #: ../daemon/nwam-menu.c:282
 #, c-format
 msgid "_Automatic Network Interface Selection "
-msgstr "_Automatic Network Interface Selection "
+msgstr "_Automatisch netwerk interface selecteren "
 
 #: ../daemon/nwam-menu.c:665
 msgid "NWAM Manager"
@@ -525,7 +525,7 @@ msgstr "Over NWAM beheerder"
 #: ../daemon/nwam-menu.c:889
 #, c-format
 msgid "Wireless network '%s' added to favorites"
-msgstr "Wireless network '%s' added to favorites"
+msgstr "Draadloos netwerk '%s' bij je favorieten toegevoegd"
 
 #: ../daemon/nwam-menu.c:891
 #, c-format
@@ -533,13 +533,13 @@ msgid ""
 "Click here to view or edit your list of favorite\n"
 "wireless networks."
 msgstr ""
-       "Click here to view or edit your list of favorite\n"
-       "wireless networks."
+       "Klik hier om je lijst van favoriete \n"
+       "draadloze netwerken te zien of te bewerken."
 
 #: ../daemon/nwam-menu.c:1052
 #, c-format
 msgid "Always Use %s Network Interface (%s)"
-msgstr "Always Use %s Network Interface (%s)"
+msgstr "Altijd %s netwerk interface %s gebruiken"
 
 #: ../daemon/notify.c:487
 #, c-format
@@ -621,7 +621,7 @@ msgstr "v6addresses"
 
 #: ../common/nwamui_ncu.c:283 ../common/nwamui_ncu.c:284
 msgid "Wi-Fi configuration information."
-msgstr "Wi-Fi configuration information."
+msgstr "Wi-Fi configuratie informatie"
 
 #: ../common/nwamui_ncu.c:291 ../common/nwamui_ncu.c:292
 msgid "rules_enabled"
@@ -658,7 +658,7 @@ msgstr "WEP ASCII"
 
 #: ../common/libnwamui.c:155
 msgid "WPA Personal(PSK)"
-msgstr "WPA Personal(PSK)"
+msgstr "WPA persoonlijk(PSK)"
 
 #: ../common/libnwamui.c:156
 msgid "WPA Enterprise (Radius)"
@@ -695,20 +695,20 @@ msgstr "Kon geen hulp vertonen"
 
 #: ../common/libnwamui.c:551
 msgid "This operation cannot be undone."
-msgstr "This operation cannot be undone."
+msgstr "Deze actie kan niet ongedaan gemaakt worden."
 
 #: ../common/nwamui_prof.c:149 ../common/nwamui_prof.c:150
 msgid "The action if no favorite networks are available"
-msgstr "The action if no favorite networks are available"
+msgstr "De actie als er geen favoriete netwerken beschikbaar zijn"
 
 #: ../common/nwamui_prof.c:159 ../common/nwamui_prof.c:160
 #: ../common/nwamui_prof.c:167 ../common/nwamui_prof.c:168
 msgid "Active Interface"
-msgstr "Active Interface"
+msgstr "Actieve interface"
 
 #: ../common/nwamui_wifi_net.c:111 ../common/nwamui_wifi_net.c:112
 msgid "NCU that AP is seen on"
-msgstr "NCU that AP is seen on"
+msgstr "NCU waarop de AP gezien wordt"
 
 #: ../common/nwamui_wifi_net.c:119 ../common/nwamui_wifi_net.c:120
 msgid "Wifi Network ESSID"
@@ -720,15 +720,15 @@ msgstr "Wifi Netwerk BSSID"
 
 #: ../common/nwamui_wifi_net.c:135 ../common/nwamui_wifi_net.c:136
 msgid "Wifi Network Status"
-msgstr "Wifi Network Status"
+msgstr "Wifi Netwerk staat"
 
 #: ../common/nwamui_wifi_net.c:144 ../common/nwamui_wifi_net.c:145
 msgid "Wifi Network Security"
-msgstr "Wifi Network Security"
+msgstr "Wifi netwerk beveiliging"
 
 #: ../common/nwamui_wifi_net.c:153 ../common/nwamui_wifi_net.c:154
 msgid "Wifi Network Signal Strength"
-msgstr "Wifi Network Signal Strength"
+msgstr "WiFi-netwerk signaalsterkte"
 
 #: ../common/nwamui_wifi_net.c:163
 msgid "Wifi BSS Type"
@@ -740,31 +740,31 @@ msgstr "Wifi BSS Type (AP or AD-HOC)"
 
 #: ../common/nwamui_wifi_net.c:183 ../common/nwamui_wifi_net.c:184
 msgid "mode"
-msgstr "mode"
+msgstr "modus"
 
 #: ../common/nwamui_wifi_net.c:191 ../common/nwamui_wifi_net.c:192
 msgid "Wifi WPA Configuration Type"
-msgstr "Wifi WPA Configuration Type"
+msgstr "Wifi WPA Configuratie voorbeeld"
 
 #: ../common/nwamui_wifi_net.c:202 ../common/nwamui_wifi_net.c:203
 msgid "Wifi WEP Password"
-msgstr "Wifi WEP Password"
+msgstr "Wifi WEP wachtwoord"
 
 #: ../common/nwamui_wifi_net.c:210 ../common/nwamui_wifi_net.c:211
 msgid "Wifi WPA Username"
-msgstr "Wifi WPA Username"
+msgstr "Wifi WPA gebruikersnaam"
 
 #: ../common/nwamui_wifi_net.c:218 ../common/nwamui_wifi_net.c:219
 msgid "Wifi WPA Password"
-msgstr "Wifi WPA Password"
+msgstr "Wifi WPA wachtwoord"
 
 #: ../common/nwamui_wifi_net.c:226 ../common/nwamui_wifi_net.c:227
 msgid "Wifi WPA Certificate File Path"
-msgstr "Wifi WPA Certificate File Path"
+msgstr "Wifi WPA Certificaat bestand pad"
 
 #: ../common/nwamui_wifi_net.c:652
 msgid "Failed to initiate connection to wireless network."
-msgstr "Failed to initiate connection to wireless network."
+msgstr "Mislukte verbinding met draadloos netwerk."
 
 #: ../common/nwamui_wifi_net.c:763
 #, c-format
@@ -774,23 +774,23 @@ msgstr "[%s] "
 #: ../common/nwamui_wifi_net.c:771
 #, c-format
 msgid " (Computer-to-Computer)"
-msgstr " (Computer-to-Computer)"
+msgstr " (Computer-tot-Computer)"
 
 #: ../common/nwamui_daemon.c:161 ../common/nwamui_daemon.c:162
 msgid "status"
-msgstr "status"
+msgstr "staat"
 
 #: ../common/nwamui_daemon.c:171 ../common/nwamui_daemon.c:172
 msgid "event_cause"
-msgstr "event_cause"
+msgstr "Evenement-oorzaak"
 
 #: ../common/nwamui_daemon.c:1031 ../common/nwamui_daemon.c:1049
 msgid "unknown"
-msgstr "unknown"
+msgstr "Onbekend"
 
 #: ../common/nwamui_daemon.c:1034
 msgid "DHCP down"
-msgstr "DHCP down"
+msgstr "DHCP uit"
 
 #: ../common/nwamui_daemon.c:1035
 msgid "DHCP timed out"
@@ -798,19 +798,19 @@ msgstr "DHCP timed out"
 
 #: ../common/nwamui_daemon.c:1036
 msgid "Cable disconnected"
-msgstr "Cable disconnected"
+msgstr "Kabel losgekoppeld"
 
 #: ../common/nwamui_daemon.c:1037
 msgid "User changed priority"
-msgstr "User changed priority"
+msgstr "Prioriteit verandert bij gebruiker"
 
 #: ../common/nwamui_daemon.c:1038
 msgid "Higher priority, cable connected"
-msgstr "Higher priority, cable connected"
+msgstr "Hogere prioriteit, kabel verbonden"
 
 #: ../common/nwamui_daemon.c:1039
 msgid "Scan done on higher-priority wireless network interface"
-msgstr "Scan done on higher-priority wireless network interface"
+msgstr "Scan gedaan op een hogere prioriteit draadloze netwerk interface"
 
 #: ../common/nwamui_daemon.c:1040
 msgid "Periodic scan shows wireless network gone."
@@ -881,7 +881,7 @@ msgstr "%s"
 #: ../common/nwamui_daemon.c:1795
 #, c-format
 msgid "%s network interface failed to get response from DHCP request."
-msgstr "%s network interface failed to get response from DHCP request."
+msgstr "%s netwerk interface kreeg geen reactie van DHCP verzoek."
 
 #: ../common/nwamui_ip.c:89 ../common/nwamui_ip.c:90
 msgid "is_v6"
