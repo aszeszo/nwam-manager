@@ -65,7 +65,6 @@ struct _NwamProfilePanelPrivate {
     GtkWidget* always_enabled_lbl;
     GtkWidget* always_disabled_lbl;
 
-    NwamuiObject        *toggled_object;
     GtkTreeRowReference *toggled_row;
 
     /* NCUs info of a NCP */
@@ -344,10 +343,6 @@ nwam_profile_panel_set_property( GObject         *object,
 
     switch (prop_id) {
     case PROP_TOGGLED_OBJECT:
-        if (prv->toggled_object)
-            g_object_unref(prv->toggled_object);
-
-        prv->toggled_object = g_value_dup_object(value);
         break;
     default: 
         G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -597,11 +592,6 @@ apply(NwamPrefIFace *iface, gpointer user_data)
     }
 
     /* Activate the selected NCP. */
-#if 0
-    if (prv->toggled_object) {
-        nwamui_object_set_active(prv->toggled_object, TRUE);
-    }
-#else
     if (prv->toggled_row && gtk_tree_row_reference_valid(prv->toggled_row)) {
         GtkTreePath *path = gtk_tree_row_reference_get_path(prv->toggled_row);
         GtkTreeIter iter;
@@ -613,7 +603,6 @@ apply(NwamPrefIFace *iface, gpointer user_data)
             g_object_unref(toggled_ncp);
         }
     }
-#endif
 
     return retval;
 }
@@ -635,9 +624,6 @@ static void
 nwam_profile_panel_finalize(NwamProfilePanel *self)
 {
 	NwamProfilePanelPrivate *prv       = GET_PRIVATE(self);
-
-    if (prv->toggled_object)
-        g_object_unref(prv->toggled_object);
 
     g_object_unref(prv->pref_dialog);
 
@@ -678,24 +664,13 @@ nwam_object_activate_toggled_cb(GtkCellRendererToggle *cell_renderer,
 
 	model = gtk_tree_view_get_model(prv->object_view);
     tpath = gtk_tree_path_new_from_string(path);
-#if 0
-    if (gtk_tree_model_get_iter (model, &iter, tpath)) {
-        NwamuiObject*  object;
-
-        gtk_tree_model_get(model, &iter, 0, &object, -1);
-
-        g_object_set(self, "toggled_object", object, NULL);
-
-        g_object_unref(object);
-    }
-#else
     /* I have to hide/show the view since I found the last toggled row can't be
      * updated, even I emit row-changed event on that row.
      */
     gtk_widget_hide(GTK_WIDGET(prv->object_view));
     nwam_profile_panel_set_toggled_row(self, tpath);
     gtk_widget_show(GTK_WIDGET(prv->object_view));
-#endif
+
     gtk_tree_path_free(tpath);
 }
 
@@ -931,22 +906,6 @@ nwam_object_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
     gtk_tree_model_get(model, iter, 0, &object, -1);
     
     if (object) {
-#if 0
-        if (!prv->toggled_object) {
-            g_object_set(G_OBJECT(renderer),
-              "active", nwamui_object_get_active(NWAMUI_OBJECT(object)),
-              NULL);
-        } else if (object == prv->toggled_object) {
-            /* Show active, commit later. */
-            g_object_set(G_OBJECT(renderer),
-              "active", TRUE,
-              NULL);
-        } else {
-            g_object_set(G_OBJECT(renderer),
-              "active", FALSE,
-              NULL); 
-        }
-#else
         if (!prv->toggled_row) {
             g_object_set(G_OBJECT(renderer),
               "active", nwamui_object_get_active(NWAMUI_OBJECT(object)),
@@ -965,7 +924,6 @@ nwam_object_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
             }
             gtk_tree_path_free(cur);
         }
-#endif
         g_object_unref(G_OBJECT(object));
     } else {
         g_object_set(G_OBJECT(renderer),

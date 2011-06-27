@@ -7,8 +7,8 @@
    <!ENTITY appname "nwam-manager"> 
 ]>
 <book id="osnetautomagoh" label="fcs" lang="en"><title>Network Auto-Magic Online Help</title>
-<bookinfo><authorgroup><author><firstname>Shubha</firstname>
-<surname>Girish</surname>
+<bookinfo><authorgroup><author><firstname>Oracle Solaris</firstname>
+<surname>Desktop Documentation Team</surname>
 </author>
 </authorgroup>
 <pubsnumber>820-7604-10</pubsnumber>
