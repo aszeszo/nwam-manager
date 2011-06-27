@@ -960,6 +960,9 @@ nwam_notification_show_ncp_changed( NwamuiNcp* ncp )
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     GdkPixbuf       *icon = NULL;
     gchar           *summary_str = NULL;
+    gchar           *summary_str_fixed = NULL;
+    gboolean        fixed = FALSE;
+    
 
     g_return_if_fail( ncp != NULL );
 
@@ -972,6 +975,14 @@ nwam_notification_show_ncp_changed( NwamuiNcp* ncp )
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
 
+    if ( fixed ) {
+        summary_str_fixed = g_strdup_printf(_("Switched to profile '%s'\nThis is a Fixed network profile."),
+          nwamui_object_get_name(NWAMUI_OBJECT(ncp)));        
+    } else {
+        summary_str_fixed = g_strdup_printf(_("Switched to profile '%s'\nThis is a Reactive network profile."),
+          nwamui_object_get_name(NWAMUI_OBJECT(ncp)));          
+    }
+    
     summary_str = g_strdup_printf(_("Switched to network profile '%s'"),
       nwamui_object_get_name(NWAMUI_OBJECT(ncp)));
 
@@ -981,6 +992,7 @@ nwam_notification_show_ncp_changed( NwamuiNcp* ncp )
             NOTIFY_EXPIRES_DEFAULT);
 
     g_free(summary_str);
+    g_free(summary_str_fixed);
 
     if ( daemon != NULL ) {
         g_object_unref(G_OBJECT(daemon));
@@ -996,6 +1008,9 @@ nwam_notification_show_location_changed( NwamuiEnv* env )
     NwamuiDaemon    *daemon = nwamui_daemon_get_instance();
     GdkPixbuf       *icon = NULL;
     gchar           *summary_str = NULL;
+    gchar           *summary_str_type = NULL;
+    gchar           *loc_type = NULL;
+
 
     g_return_if_fail( env != NULL );
 
@@ -1008,6 +1023,11 @@ nwam_notification_show_location_changed( NwamuiEnv* env )
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
 
+    if ( FALSE ){
+        summary_str_type = g_strdup_printf(_("Switched to location '%s'\nThis is a '%s' location"), nwamui_object_get_name(NWAMUI_OBJECT(env)), loc_type);
+        g_free(summary_str_type);
+    }
+     
     summary_str = g_strdup_printf(_("Switched to location '%s'"), nwamui_object_get_name(NWAMUI_OBJECT(env)));
 
     nwam_notification_show_message(summary_str,

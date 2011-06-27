@@ -45,6 +45,7 @@
 #define CAPPLET_DIALOG_NAME           "nwam_capplet"
 #define CAPPLET_DIALOG_SHOW_COMBO     "show_combo"
 #define CAPPLET_DIALOG_MAIN_NOTEBOOK  "mainview_notebook"
+#define CAPPLET_DIALOG_HOWTO_EDIT     "howto_edit_fixed_profile"
 
 #define NWAM_CAPPLET_DIALOG_GET_PRIVATE(o)  (G_TYPE_INSTANCE_GET_PRIVATE ((o), NWAM_TYPE_CAPPLET_DIALOG, NwamCappletDialogPrivate))
 
@@ -53,6 +54,7 @@ struct _NwamCappletDialogPrivate {
 	GtkDialog*                  capplet_dialog;
 	GtkComboBox*                show_combo;
 	GtkNotebook*                main_nb;
+        GtkDialog*                  howto_edit;
 
     /* Panel Objects */
 	NwamPrefIFace* panel[N_PANELS];
@@ -143,6 +145,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     prv->capplet_dialog = GTK_DIALOG(nwamui_util_glade_get_widget(CAPPLET_DIALOG_NAME));
     prv->show_combo = GTK_COMBO_BOX(nwamui_util_glade_get_widget(CAPPLET_DIALOG_SHOW_COMBO));
     prv->main_nb = GTK_NOTEBOOK(nwamui_util_glade_get_widget(CAPPLET_DIALOG_MAIN_NOTEBOOK));
+    prv->howto_edit = GTK_DIALOG(nwamui_util_glade_get_widget(CAPPLET_DIALOG_HOWTO_EDIT));
         
     /* Get NCPs and Current NCP */
     prv->active_ncp = nwamui_daemon_get_active_ncp( daemon );
@@ -157,7 +160,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
     prv->panel[PANEL_CONN_STATUS] = NWAM_PREF_IFACE(nwam_conn_status_panel_new(self));
     prv->panel[PANEL_PROF_PREF] = NWAM_PREF_IFACE(nwam_profile_panel_new(self));
     prv->panel[PANEL_CONF_IP] = NWAM_PREF_IFACE(nwam_conf_ip_panel_new(self));
-
+    
     /* Change Model */
 	capplet_compose_combo(prv->show_combo,
       GTK_TYPE_TREE_STORE,
@@ -196,6 +199,7 @@ nwam_capplet_dialog_init(NwamCappletDialog *self)
 
     /* Initial */
     refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
+    // show_combo_add (prv->show_combo, G_OBJECT(prv->howto_edit));
 
     g_object_unref( daemon );
     daemon = NULL;
@@ -531,7 +535,13 @@ show_combo_cell_cb (GtkCellLayout *cell_layout,
           "text", text,
           "sensitive", TRUE,
           NULL);
-	} else {
+        } else if (FALSE) {//NWAM_IS_HOWTO_EDIT(row_data)) {
+                text = _("How to Edit Fixed Profiles...");
+                g_object_set(renderer,
+          "text", text,
+          "sensitive", TRUE,
+          NULL);                
+        } else {
 		g_assert_not_reached();
 	}
     g_object_unref(row_data);

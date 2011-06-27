@@ -43,6 +43,4 @@ if isRunningNWAM; then
     else
 	exec $GKSU "$NWAM_MANAGER_PROPERTIES $@"
     fi
-else
-    exec ${BASEDIR}/bin/network-admin ${1+"$@"}
 fi

@@ -49,6 +49,7 @@
 #define CONN_STATUS_VPN_LABEL            "current_vpn_lbl"
 #define CONN_STATUS_VPN_BUTTON           "vpn_btn"
 #define CONN_STATUS_REPAIR_BUTTON        "repair_connection_btn"
+#define CAPPLET_ENABLED_CON_LABEL        "enabled_connections_label"
 
 struct _NwamConnStatusPanelPrivate {
 	/* Widget Pointers */
@@ -58,6 +59,7 @@ struct _NwamConnStatusPanelPrivate {
 	GtkLabel*	current_env_lbl;
 	GtkButton*	vpn_btn;
 	GtkLabel*	current_vpn_lbl;
+        GtkLabel*       enabled_connections;
 
 	/* Other Data */
     NwamCappletDialog*  pref_dialog;
@@ -273,6 +275,8 @@ nwam_conn_status_panel_init(NwamConnStatusPanel *self)
 	prv->env_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_ENV_BUTTON));
 	prv->current_vpn_lbl = GTK_LABEL(nwamui_util_glade_get_widget(CONN_STATUS_VPN_LABEL));
 	prv->vpn_btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_VPN_BUTTON));
+        prv->enabled_connections = GTK_LABEL(nwamui_util_glade_get_widget(CAPPLET_ENABLED_CON_LABEL));
+        
     btn = GTK_BUTTON(nwamui_util_glade_get_widget(CONN_STATUS_REPAIR_BUTTON));
 
     prv->daemon = nwamui_daemon_get_instance();
@@ -693,13 +697,20 @@ daemon_active_ncp_notify_cb(GObject *gobject, GParamSpec *arg1, gpointer data)
 {
 	NwamConnStatusPanelPrivate *prv = GET_PRIVATE(data);
     gchar *text;
-
+    gboolean  is_fixed_location = FALSE;
+    
     text = nwamui_daemon_get_active_ncp_name(NWAMUI_DAEMON(gobject));
+    
     if (text) {
         gtk_label_set_text(prv->current_profile_lbl, text);
         g_free (text);
     } else {
         gtk_label_set_text(prv->current_profile_lbl, _("Unknown profile"));
+    }
+    if (is_fixed_location) {
+        gtk_label_set_text(prv->enabled_connections, _("Configured links:"));
+    } else {
+        gtk_label_set_text(prv->enabled_connections, _("Enabled connections:"));
     }
 }
 

@@ -1,3 +1,17 @@
+2011-06-27  Michal Pryc <Michal.Pryc@Oracle.Com>
+
+	* capplet/nwam_conn_stat_panel.c:
+	* capplet/nwam_pref_dialog.c:
+	* capplet/nwam_tree_view.c:
+	* capplet/nwam_vpn_pref_dialog.c:
+	* daemon/notify.c:
+	* data/nwam-manager-properties:
+	* ui/nwam-manager-properties.ui:
+	* configure.in:
+	  Updated strings and dialogs for the Highlander project,
+	  Bug fixes for CR:7042517 and CR 7026071
+	  Bump the version to 1.164.1
+
 2011-06-27  Lin Ma  <lin.ma@oracle.com>
 
 	* capplet/nwam_profile_panel.c: (nwam_profile_panel_set_property),

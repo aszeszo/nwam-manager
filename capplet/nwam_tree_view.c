@@ -902,10 +902,6 @@ update_buttons_status(NwamTreeView *self)
                 gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_DOWN_BTN]), FALSE);
             }
         }
-
-        if (prv->widget_list[NTV_REMOVE_BTN]) {
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_REMOVE_BTN]), TRUE);
-        }
         if (prv->widget_list[NTV_EDIT_BTN]) {
             gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_EDIT_BTN]), TRUE);
         }
@@ -913,9 +909,6 @@ update_buttons_status(NwamTreeView *self)
         if (prv->widget_list[NTV_UP_BTN] && prv->widget_list[NTV_DOWN_BTN]) {
             gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_UP_BTN]), FALSE);
             gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_DOWN_BTN]), FALSE);
-        }
-        if (prv->widget_list[NTV_REMOVE_BTN]) {
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_REMOVE_BTN]), FALSE);
         }
         if (prv->widget_list[NTV_EDIT_BTN]) {
             gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_EDIT_BTN]), FALSE);

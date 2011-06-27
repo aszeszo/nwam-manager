@@ -456,6 +456,15 @@ nwam_update_obj (NwamVPNPrefDialog *self, GObject *obj)
     g_object_freeze_notify(obj);
     cli_value = gtk_toggle_button_get_active(GTK_TOGGLE_BUTTON(prv->vpn_cli_rb));
     if (cli_value) {
+        if ( FALSE ) {
+                gchar *summary = g_strdup_printf(_("Cannot start '%s'"), nwamui_object_get_name(NWAMUI_OBJECT(obj)));
+                nwamui_util_show_message(GTK_WINDOW(self->prv->vpn_pref_dialog),
+                  GTK_MESSAGE_ERROR,
+                  summary,
+                  (_("The Fixed profile '%s' is currently active.\nNetwork modifiers can only be used with Reactive network profiles."), ""),
+                  FALSE);
+                g_free(summary);
+        }
         prev_txt = nwamui_enm_get_start_command(NWAMUI_ENM(obj));
         txt = gtk_entry_get_text(prv->start_cmd_entry);
         if ( (prev_txt == NULL || strlen( prev_txt ) == 0 )
