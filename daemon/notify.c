@@ -529,7 +529,7 @@ nwam_notification_show_nwam_unavailable( void )
         icon = nwamui_util_get_env_status_icon( NULL, nwamui_daemon_get_status_icon_type(daemon), NOTIFY_ICON_SIZE );
     }
     nwam_notification_show_message(_("Automatic network configuration daemon is unavailable."),
-            _("For further information please run\n\"svcs -xv nwam\" in a terminal."),
+            _("For further information please refer to netadm(1) manual."),
             icon,
             NOTIFY_EXPIRES_DEFAULT);
 

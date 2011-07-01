@@ -1,30 +1,29 @@
 /* -*- Mode: C; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
 /* vim:set expandtab ts=4 shiftwidth=4: */
+
 /* 
- * Copyright 2007-2009 Sun Microsystems, Inc.  All rights reserved.
- * Use is subject to license terms.
- *
  * CDDL HEADER START
- * 
+ *
  * The contents of this file are subject to the terms of the
  * Common Development and Distribution License (the "License").
  * You may not use this file except in compliance with the License.
- * 
+ *
  * You can obtain a copy of the license at usr/src/OPENSOLARIS.LICENSE
  * or http://www.opensolaris.org/os/licensing.
  * See the License for the specific language governing permissions
  * and limitations under the License.
- * 
+ *
  * When distributing Covered Code, include this CDDL HEADER in each
  * file and include the License file at usr/src/OPENSOLARIS.LICENSE.
  * If applicable, add the following below this CDDL HEADER, with the
  * fields enclosed by brackets "[]" replaced with your own identifying
  * information: Portions Copyright [yyyy] [name of copyright owner]
- * 
- * CDDL HEADER END
- * 
- * File:   nwamui_daemon.c
  *
+ * CDDL HEADER END
+ */
+
+/*
+ * Copyright (c) 2011, Oracle and/or its affiliates. All rights reserved.
  */
 
 #include <libnwam.h>
@@ -43,6 +42,7 @@
 
 
 #include "libnwamui.h"
+#include "nwam-scf.h"
 
 static NwamuiDaemon*    instance        = NULL;
 
@@ -52,10 +52,6 @@ static gboolean nwam_event_thread_terminate = FALSE; /* To tell event thread to 
 static gboolean nwam_init_done = FALSE; /* Whether to call nwam_events_fini() or not */
 /* End of mutex protected variables */
 
-
-#ifndef NWAM_FMRI
-#define	NWAM_FMRI	"svc:/network/physical:nwam"
-#endif /* NWAM_FMRI */
 
 #define WLAN_TIMEOUT_SCAN_RATE_SEC (60)
 #define WEP_TIMEOUT_SEC (20)
@@ -157,6 +153,8 @@ static void check_nwamui_object_online_num( gpointer obj, gpointer user_data );
 static void nwamui_daemon_update_status( NwamuiDaemon   *daemon );
 
 static gboolean nwamui_daemon_nwam_connect( gboolean block );
+static gboolean nwamui_is_nwam_enabled( void );
+
 static void     nwamui_daemon_nwam_disconnect( void );
 
 static void nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t nwamevent );
@@ -2477,21 +2475,46 @@ nwamui_deamon_status_to_string( nwamui_daemon_status_t status )
 }
 
 static gboolean
+nwamui_is_nwam_enabled ( void )
+{
+    gboolean            is_nwam_enabled = FALSE;
+    char                *smf_state;
+    char                activencp[NWAM_MAX_NAME_LEN];
+    scf_error_t         serr;    
+    
+    smf_state = smf_get_state(NP_DEFAULT_FMRI);
+    
+    if (strcmp(smf_state, SCF_STATE_STRING_ONLINE) != 0) {
+        g_debug("%s: NWAM service appears to be off-line", __func__);
+    } else {
+        if (get_active_ncp(activencp, sizeof (activencp), &serr) != 0) {
+                g_debug("Failed to retrieve active NCP from SMF: %s", 
+                        scf_strerror(serr));
+        } else {
+            is_nwam_enabled = !NWAM_NCP_DEFAULT_FIXED(activencp);
+        }
+    }
+
+    free(smf_state);
+    
+    return is_nwam_enabled;
+}
+
+static gboolean
 nwamui_daemon_nwam_connect( gboolean block )
 {
     gboolean      rval = FALSE;
     gboolean      not_done;
     nwam_error_t  nerr;
-    char        *smf_state;
 
     g_static_mutex_lock (&nwam_event_mutex);
     nwam_init_done = rval;
     g_static_mutex_unlock (&nwam_event_mutex);
 
     do {
-        smf_state = smf_get_state(NWAM_FMRI);
-        if (strcmp(smf_state, SCF_STATE_STRING_ONLINE) != 0) {
-            g_debug("%s: NWAM service appears to be off-line", __func__);
+
+        if ( ! nwamui_is_nwam_enabled() ) {
+            g_debug("NWAM not enabled" );
         }
         else if ( (nerr = nwam_events_init()) == NWAM_SUCCESS) {
             g_debug("%s: Connected to nwam daemon", __func__);
@@ -2501,7 +2524,7 @@ nwamui_daemon_nwam_connect( gboolean block )
             g_debug("%s: nwam_events_init() returned %d (%s)", 
                     __func__, nerr, nwam_strerror(nerr) );
         }
-        free(smf_state);
+
         not_done = (block && !rval );
         if ( not_done ) {
             g_debug("%s: sleeping...", __func__);

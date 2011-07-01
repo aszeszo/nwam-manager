@@ -26,14 +26,17 @@ for prof in `$PROFILES`; do
 done
 
 isRunningNWAM() {
-    state_nwam=`/usr/bin/svcs -H -o state svc:/network/physical:nwam 2>/dev/null`
+    state_nwam=`/usr/bin/svcs -H -o state svc:/network/physical:default 2>/dev/null`
 
     if [ "${state_nwam}" = "online" ]
     then
-        return 0
-    else
-        return 1
+        netadm list > /dev/null 2>&1
+        if (( $? == 0 )); then
+            return 0
+        fi
     fi
+
+    return 1
 }
 
 

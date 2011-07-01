@@ -1,3 +1,14 @@
+2011-07-01  Michal Pryc <Michal.Pryc@Oracle.Com>
+
+	* configure.in: Bump to 1.170.0
+	* common/nwam-scf.c:
+	* common/nwam-scf.h:
+	* common/nwamui_daemon.c:
+	* common/Makefile.am:
+	* daemon/notify.c:
+	* data/nwam-manager-properties:
+	  Updated to fit minilander project and fix CR 7029824.
+
 2011-06-27  Michal Pryc <Michal.Pryc@Oracle.Com>
 
 	* capplet/nwam_conn_stat_panel.c:
