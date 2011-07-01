@@ -2482,7 +2482,7 @@ nwamui_is_nwam_enabled ( void )
     char                activencp[NWAM_MAX_NAME_LEN];
     scf_error_t         serr;    
     
-    smf_state = smf_get_state(NP_DEFAULT_FMRI);
+    smf_state = smf_get_state(NWAM_FMRI);
     
     if (strcmp(smf_state, SCF_STATE_STRING_ONLINE) != 0) {
         g_debug("%s: NWAM service appears to be off-line", __func__);
@@ -2491,7 +2491,7 @@ nwamui_is_nwam_enabled ( void )
                 g_debug("Failed to retrieve active NCP from SMF: %s", 
                         scf_strerror(serr));
         } else {
-            is_nwam_enabled = !NWAM_NCP_DEFAULT_FIXED(activencp);
+            is_nwam_enabled = !NWAM_NCP_DEF_FIXED(activencp);
         }
     }
 

@@ -31,6 +31,19 @@
 #ifndef nwam_scf_H
 #define	nwam_scf_H
 
+// The below functions should be used directly from the
+// minilander "libnwam.h", but it's not yet available. 
+#ifndef NWAM_FMRI
+#define	NWAM_FMRI	"svc:/network/physical:default"
+#endif /* NWAM_FMRI */
+#define	NWAM_NETCFG_PG		"netcfg"
+#define	NWAM_NETCFG_ACTIVE_NCP_PROP	"active_ncp"
+#define	NWAM_NCP_NAME_DEF_FIXED	"DefaultFixed"
+#define	NWAM_NCP_DEF_FIXED(name)	\
+			(strcasecmp(name, NWAM_NCP_NAME_DEF_FIXED) == 0)
+
+
+
 typedef struct scf_resources {
 	scf_handle_t		*sr_handle;
 	scf_instance_t		*sr_inst;

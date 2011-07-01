@@ -1,5 +1,15 @@
 2011-07-01  Michal Pryc <Michal.Pryc@Oracle.Com>
 
+	* common/nwam-scf.c:
+	* common/nwam-scf.h:
+	* common/nwamui_daemon.c:
+	 Compability change to allow build those sources on the
+	 Source Juicer builds clients prior to 170.
+	 This can be reverted once minilander is integrated
+	 with Solaris.
+
+2011-07-01  Michal Pryc <Michal.Pryc@Oracle.Com>
+
 	* configure.in: Bump to 1.170.0
 	* common/nwam-scf.c:
 	* common/nwam-scf.h:

@@ -135,8 +135,8 @@ get_active_ncp(char *namestr, size_t namelen, scf_error_t *serr)
 	int		rtn = -1;
 	scf_resources_t	res;
 
-	if (get_property_value(NP_DEFAULT_FMRI, NETCFG_PG,
-	    NETCFG_ACTIVE_NCP_PROP, B_TRUE, &res, serr) != 0)
+	if (get_property_value(NWAM_FMRI, NWAM_NETCFG_PG,
+	    NWAM_NETCFG_ACTIVE_NCP_PROP, B_TRUE, &res, serr) != 0)
 		return (-1);
 
 	if (scf_value_get_astring(res.sr_val, namestr, namelen) == 0)
