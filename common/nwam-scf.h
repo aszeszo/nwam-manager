@@ -33,9 +33,7 @@
 
 // The below functions should be used directly from the
 // minilander "libnwam.h", but it's not yet available. 
-#ifndef NWAM_FMRI
-#define	NWAM_FMRI	"svc:/network/physical:default"
-#endif /* NWAM_FMRI */
+#define	NWAMUI_FMRI	"svc:/network/physical:default"
 #define	NWAM_NETCFG_PG		"netcfg"
 #define	NWAM_NETCFG_ACTIVE_NCP_PROP	"active_ncp"
 #define	NWAM_NCP_NAME_DEF_FIXED	"DefaultFixed"

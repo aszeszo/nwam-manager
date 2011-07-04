@@ -2482,7 +2482,7 @@ nwamui_is_nwam_enabled ( void )
     char                activencp[NWAM_MAX_NAME_LEN];
     scf_error_t         serr;    
     
-    smf_state = smf_get_state(NWAM_FMRI);
+    smf_state = smf_get_state(NWAMUI_FMRI);
     
     if (strcmp(smf_state, SCF_STATE_STRING_ONLINE) != 0) {
         g_debug("%s: NWAM service appears to be off-line", __func__);
