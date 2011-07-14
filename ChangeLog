@@ -1,5 +1,11 @@
 2011-07-14  Yong Sun <y.yong.sun@oracle.com>
 
+	* po/zh_TW.po:
+	* po/zh_HK.po:
+	updated the Traditional Chinese translations.
+
+2011-07-14  Yong Sun <y.yong.sun@oracle.com>
+
 	* po/*.po: updated UI message translation for drop 4.0.
 
 2011-07-04  Michal Pryc <Michal.Pryc@Oracle.Com>
