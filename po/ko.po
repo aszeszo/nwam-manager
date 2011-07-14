@@ -6,143 +6,1113 @@
 #: ../capplet/nwam_profile_dialog.c:516
 #, fuzzy
 msgid ""
-msgstr ""
-       "Project-Id-Version: PACKAGE VERSION\n"
-       "Report-Msgid-Bugs-To: \n"
-       "POT-Creation-Date: 2011-05-20 11:52+0800\n"
-       "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-       "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-       "Language-Team: LANGUAGE <LL@li.org>\n"
-       "MIME-Version: 1.0\n"
-       "Content-Type: text/plain; charset=UTF-8\n"
-       "Content-Transfer-Encoding: 8bit\n"
+msgstr "Project-Id-Version: PACKAGE VERSION\nReport-Msgid-Bugs-To: \nPOT-Creation-Date: 2011-06-29 10:43+0800\nPO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\nLast-Translator: FULL NAME <EMAIL@ADDRESS>\nLanguage-Team: LANGUAGE <LL@li.org>\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\n"
 
-#: ../common/nwamui_wifi_net.c:139 ../common/nwamui_wifi_net.c:140
-msgid "NCU that AP is seen on"
-msgstr "AP가 표시되는 NCU"
+#: ../capplet/capplet-utils.c:125
+msgid "No name"
+msgstr "이름 없음"
 
-#: ../common/nwamui_wifi_net.c:147 ../common/nwamui_wifi_net.c:148
-msgid "Wifi Network Status"
-msgstr "Wifi 네트워크 상태"
+#: ../capplet/capplet-utils.c:279
+msgid ""
+"\n"
+"\n"
+"The name of a committed object cannot be changed."
+msgstr "\n\n커밋된 객체의 이름을 변경할 수 없습니다."
 
-#: ../common/nwamui_wifi_net.c:156 ../common/nwamui_wifi_net.c:157
-#: ../common/nwamui_known_wlan.c:143 ../common/nwamui_known_wlan.c:144
-msgid "Wifi Network Security"
-msgstr "Wifi 네트워크 보안"
+#: ../capplet/capplet-utils.c:281
+msgid "Renaming Failed"
+msgstr "이름 바꾸기 실패"
 
-#: ../common/nwamui_wifi_net.c:165 ../common/nwamui_wifi_net.c:166
-msgid "Wifi Network Channel"
-msgstr "Wifi 네트워크 채널"
-
-#: ../common/nwamui_wifi_net.c:175 ../common/nwamui_wifi_net.c:176
-msgid "Wifi Network Signal Strength"
-msgstr "Wifi 네트워크 신호 감도"
-
-#: ../common/nwamui_wifi_net.c:185
-msgid "Wifi BSS Type"
-msgstr "Wifi BSS 유형"
-
-#: ../common/nwamui_wifi_net.c:186
-msgid "Wifi BSS Type (AP or AD-HOC)"
-msgstr "Wifi BSS 유형(AP 또는 임시)"
-
-#: ../common/nwamui_wifi_net.c:195 ../common/nwamui_wifi_net.c:196
-#: ../common/nwamui_ncu.c:292 ../common/nwamui_ncu.c:293
-msgid "speed"
-msgstr "속도"
-
-#: ../common/nwamui_wifi_net.c:205 ../common/nwamui_wifi_net.c:206
-msgid "Wifi WPA Configuration Type"
-msgstr "Wifi WPA 구성 유형"
-
-#: ../common/nwamui_wifi_net.c:216 ../common/nwamui_wifi_net.c:217
-msgid "Wifi WEP Password"
-msgstr "Wifi WEP 암호"
-
-#: ../common/nwamui_wifi_net.c:224 ../common/nwamui_wifi_net.c:225
-#: ../common/nwamui_known_wlan.c:153 ../common/nwamui_known_wlan.c:154
-msgid "Wep Key Index"
-msgstr "Wep 키 인덱스"
-
-#: ../common/nwamui_wifi_net.c:234 ../common/nwamui_wifi_net.c:235
-msgid "Wifi WPA Username"
-msgstr "Wifi WPA 사용자 이름"
-
-#: ../common/nwamui_wifi_net.c:242 ../common/nwamui_wifi_net.c:243
-msgid "Wifi WPA Password"
-msgstr "Wifi WPA 암호"
-
-#: ../common/nwamui_wifi_net.c:250 ../common/nwamui_wifi_net.c:251
-msgid "Wifi WPA Certificate File Path"
-msgstr "Wifi WPA 인증서 파일 경로"
-
-#: ../common/nwamui_wifi_net.c:258 ../common/nwamui_wifi_net.c:259
-#: ../common/nwamui_known_wlan.c:163 ../common/nwamui_known_wlan.c:164
-msgid "bssid_list"
-msgstr "bssid_list"
-
-#: ../common/nwamui_wifi_net.c:760
-msgid "Failed to store network key."
-msgstr "네트워크 키 저장을 실패했습니다."
-
-#: ../common/nwamui_wifi_net.c:827
-msgid "Failed to connect to wireless network, please try it later."
-msgstr "무선 네트워크에 대한 연결을 실패했습니다. 나중에 시도하십시오."
-
-#: ../common/nwamui_wifi_net.c:929
+#: ../capplet/capplet-utils.c:292 ../capplet/nwam_profile_panel.c:813
 #, c-format
-msgid "[%s] "
-msgstr "[%s] "
+msgid "The name '%s' is already in use"
+msgstr "'%s' 이름은 이미 사용되고 있습니다."
 
-#: ../common/nwamui_wifi_net.c:936 ../capplet/nwam_env_pref_dialog.c:2016
+#: ../capplet/capplet-utils.c:294 ../capplet/nwam_profile_panel.c:815
+msgid "Name Already In Use"
+msgstr "이름이 이미 사용되고 있음"
+
+#: ../capplet/capplet-utils.c:1006 ../common/nwamui_ncu.c:4359
+#: ../common/nwamui_ncu.c:4367
+#, c-format
+msgid "%s%s"
+msgstr "%s%s"
+
+#.
+#. { "show-all", 'a', 0, G_OPTION_ARG_NONE, &show_all_widgets, "Show all widgets", NULL  },
+#. { "add-wireless-dialog", 'w', 0, G_OPTION_ARG_STRING, &add_wireless_dialog, "Show 'Add Wireless' Dialog only", NULL  },
+#. { "env-pref-dialog", 'e', 0, G_OPTION_ARG_NONE, &env_pref_dialog, "Show 'Location Preferences' Dialog only", NULL  },
+#. { "nwam-pref-dialog", 'p', 0, G_OPTION_ARG_NONE, &nwam_pref_dialog, "Show 'Network Preferences' Dialog only", NULL  },
+#. { "vpn-pref-dialog", 'n', 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, "Show 'Network Modifier preferences' Dialog only", NULL  },
+#. { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, "Show 'Wireless Network Chooser' Dialog only", NULL  },
+#.
+#: ../capplet/main.c:62 ../daemon/main.c:51 ../tests/main.c:59
+msgid "Enable debugging messages"
+msgstr "디버깅 메시지 사용"
+
+#: ../capplet/main.c:63
+msgid "Show 'Network Preferences' Dialog"
+msgstr "'네트워크 기본 설정' 대화 상자 표시"
+
+#: ../capplet/main.c:64
+msgid "Show 'Network Configuration' Dialog"
+msgstr "'네트워크 구성' 대화 상자 표시"
+
+#: ../capplet/main.c:65
+msgid "Show 'Network Modifier Preferences' Dialog"
+msgstr "'네트워크 수정자 기본 설정' 대화 상자 표시"
+
+#: ../capplet/main.c:66
+msgid "Show 'Wireless Network Chooser' Dialog"
+msgstr "'무선 네트워크 선택기' 대화 상자 표시"
+
+#: ../capplet/main.c:67
+msgid "Show 'Location' Dialog"
+msgstr "'위치' 대화 상자 표시"
+
+#: ../capplet/main.c:68
+msgid "Configure a network interface"
+msgstr "네트워크 인터페이스 구성"
+
+#. Nothing selected - shouldn't happen but could if there was
+#. * nothing to select.
+#.
+#: ../capplet/nwam_condition_vbox.c:290
+#, c-format
+msgid ""
+"Invalid value specified for field :\n"
+"\n"
+"    %s"
+msgstr "필드에 대해 잘못된 값이 지정되었습니다.\n\n    %s"
+
+#: ../capplet/nwam_condition_vbox.c:327
+#, c-format
+msgid ""
+"Invalid empty value specified for field :\n"
+"\n"
+"    %s"
+msgstr "필드에 대해 잘못된 빈 값이 지정되었습니다.\n\n    %s"
+
+#: ../capplet/nwam_condition_vbox.c:362
+msgid "Got empty condition"
+msgstr "빈 조건을 가져왔습니다."
+
+#: ../capplet/nwam_condition_vbox.c:407
+#: ../capplet/nwam_conn_conf_ip_panel.c:1052
+#: ../capplet/nwam_conn_conf_ip_panel.c:1066
+#: ../capplet/nwam_conn_conf_ip_panel.c:1111 ../capplet/nwam_pref_dialog.c:323
+#: ../capplet/nwam_pref_dialog.c:452 ../capplet/nwam_vpn_pref_dialog.c:464
+#: ../capplet/nwam_vpn_pref_dialog.c:477 ../capplet/nwam_vpn_pref_dialog.c:492
+#: ../capplet/nwam_vpn_pref_dialog.c:520
+msgid "Validation Error"
+msgstr "검증 오류"
+
+#: ../capplet/nwam_condition_vbox.c:606
+msgid "< No conditions >"
+msgstr "<조건 없음>"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:182 ../common/nwamui_ncu.c:4067
+msgid "Disabled"
+msgstr "비활성화됨"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:183
+msgid "DHCP assigned"
+msgstr "DHCP가 지정됨"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:184
+msgid "Manually assigned"
+msgstr "수동으로 지정됨"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:185
+msgid "DHCP and Manually assigned"
+msgstr "DHCP가 지정되고 수동으로 지정됨"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:286
+#, c-format
+msgid "Remove favourite with ESSID '%s'?"
+msgstr "ESSID가 '%s'인 즐겨찾기를 제거하겠습니까?"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:287
+msgid "Remove Wireless Favourite?"
+msgstr "무선 즐겨찾기를 제거하겠습니까?"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:390
+#: ../capplet/nwam_wireless_chooser.c:147
+msgid "Name (ESSID)"
+msgstr "이름(ESSID)"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:408
+msgid "Channel"
+msgstr "채널"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:422
+msgid "Mb/s"
+msgstr "MB/초"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:436
+#: ../capplet/nwam_wireless_chooser.c:184
+msgid "Security"
+msgstr "보안"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:470
+#: ../capplet/nwam_env_pref_dialog.c:820 ../common/nwamui_ip.c:524
+msgid "Address"
+msgstr "주소"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:502
+#: ../capplet/nwam_env_pref_dialog.c:844
+msgid "Subnet Mask"
+msgstr "서브넷 마스크"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:504
+msgid "Prefix Length"
+msgstr "접두어 길이"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:798
+msgid "<i>No IP Address assigned</i>"
+msgstr "<i>지정된 IP 주소 없음</i>"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:1051
+#: ../capplet/nwam_conn_conf_ip_panel.c:1065
+#, c-format
+msgid ""
+"An error occurred validating the current NCU.\n"
+"The device is configured to use static IPv4 addresses, but none exist."
+msgstr "현재 NCU를 검증하는 중 오류가 발생했습니다.\n장치가 정적 IPv4 주소를 사용하도록 구성되어 있지만 정적 IPv4 주소가 존재하지 않습니다."
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:1110 ../capplet/nwam_pref_dialog.c:321
+#: ../capplet/nwam_pref_dialog.c:450
+#, c-format
+msgid ""
+"An error occurred validating the current NCU.\n"
+"The property '%s' caused this failure"
+msgstr "현재 NCU를 검증하는 중 오류가 발생했습니다.\n'%s' 등록 정보가 이 오류의 원인입니다."
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:1323
+msgid "Enabled"
+msgstr "활성화됨"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:1329
+#, c-format
+msgid "Configure IPv_6 (%s)"
+msgstr "IPv_6(%s) 구성"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:1331
+#, c-format
+msgid "Configure IPv_6"
+msgstr "IPv_6 구성"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:1501
+#, c-format
+msgid "%uMb"
+msgstr "%uMB"
+
+#: ../capplet/nwam_conn_conf_ip_panel.c:1504
+#: ../capplet/nwam_conn_conf_ip_panel.c:1523
+msgid "<i>Unknown</i>"
+msgstr "<i>알 수 없음</i>"
+
+#: ../capplet/nwam_conn_stat_panel.c:159 ../daemon/status_icon_tooltip.c:234
+msgid "Connection Icon"
+msgstr "연결 아이콘"
+
+#: ../capplet/nwam_conn_stat_panel.c:202
+msgid "Connection Information"
+msgstr "연결 정보"
+
+#: ../capplet/nwam_conn_stat_panel.c:235 ../capplet/nwam_pref_dialog.c:523
+msgid "Connection Status"
+msgstr "연결 상태"
+
+#: ../capplet/nwam_conn_stat_panel.c:517 ../capplet/nwam_profile_dialog.c:863
+#, c-format
+msgid ""
+"<b>%s</b>\n"
+"<small>%s</small>"
+msgstr "<b>%s</b>\n<small>%s</small>"
+
+#: ../capplet/nwam_conn_stat_panel.c:702
+msgid "Unknown profile"
+msgstr "알 수 없는 프로필"
+
+#: ../capplet/nwam_conn_stat_panel.c:717
+msgid "Unknown env"
+msgstr "알 수 없는 환경"
+
+#: ../capplet/nwam_conn_stat_panel.c:731 ../daemon/status_icon.c:649
+msgid "None Active"
+msgstr "활성 항목 없음"
+
+#: ../capplet/nwam_conn_stat_panel.c:733 ../daemon/status_icon.c:651
+#, c-format
+msgid "%d Active"
+msgstr "%d개 활성"
+
+#: ../capplet/nwam_conn_stat_panel.c:737 ../daemon/status_icon.c:655
+#, c-format
+msgid "%s Active"
+msgstr "%s 활성"
+
+#: ../capplet/nwam_env_pref_dialog.c:1132
+#: ../capplet/nwam_env_pref_dialog.c:1133
+#: ../capplet/nwam_env_pref_dialog.c:1700
+#: ../capplet/nwam_env_pref_dialog.c:1701
+msgid "enter below"
+msgstr "아래에 입력"
+
+#: ../capplet/nwam_env_pref_dialog.c:1777
+#: ../capplet/nwam_env_pref_dialog.c:1787
+#: ../capplet/nwam_env_pref_dialog.c:1843
+#: ../capplet/nwam_env_pref_dialog.c:1871
+msgid "(optional)"
+msgstr "(선택 사항)"
+
+#: ../capplet/nwam_env_pref_dialog.c:1797
+msgid "(required)"
+msgstr "(필수)"
+
+#: ../capplet/nwam_env_pref_dialog.c:1899
+#, c-format
+msgid "<small><i><b>Default nsswitch file (in use):</b> %s</i></small>"
+msgstr "<small><i><b>기본 nsswitch 파일(사용 중):</b> %s</i></small>"
+
+#: ../capplet/nwam_env_pref_dialog.c:1904
+#, c-format
+msgid "<small><i><b>Default nsswitch file (not in use):</b> %s</i></small>"
+msgstr "<small><i><b>기본 nsswitch 파일(사용 중 아님):</b> %s</i></small>"
+
+#: ../capplet/nwam_env_pref_dialog.c:2013
+#, c-format
+msgid ""
+"<b>%s</b>\n"
+"%s"
+msgstr "<b>%s</b>\n%s"
+
+#: ../capplet/nwam_env_pref_dialog.c:2016 ../common/nwamui_wifi_net.c:936
 #, c-format
 msgid "%s"
 msgstr "%s"
 
-#: ../common/nwamui_wifi_net.c:939
+#: ../capplet/nwam_env_pref_dialog.c:2177
+msgid "Select A File"
+msgstr "파일 선택"
+
+#: ../capplet/nwam_env_pref_dialog.c:2196
 #, c-format
-msgid " (Computer-to-Computer)"
-msgstr " (컴퓨터 대 컴퓨터)"
+msgid "Location Properties : %s"
+msgstr "위치 등록 정보: %s"
 
-#: ../common/nwamui_wifi_net.c:1060
-msgid "Very Weak"
-msgstr "매우 약함"
+#: ../capplet/nwam_env_pref_dialog.c:2307
+msgid "Default Domain Required"
+msgstr "기본 도메인 필요"
 
-#: ../common/nwamui_wifi_net.c:1063
-msgid "Weak"
-msgstr "약함"
+#: ../capplet/nwam_env_pref_dialog.c:2308
+msgid ""
+"With NIS or LDAP a default domain must be specified.\n"
+"Please provide one in the appropriate field."
+msgstr "NIS 또는 LDAP를 사용하려면 기본 도메인을 지정해야 합니다.\n해당 필드에 기본 도메인을 제공하십시오."
 
-#: ../common/nwamui_wifi_net.c:1066
-msgid "Good"
-msgstr "양호"
+#: ../capplet/nwam_env_pref_dialog.c:2319
+msgid "Nameservice Switch File Required"
+msgstr "이름 서비스 스위치 파일 필요"
 
-#: ../common/nwamui_wifi_net.c:1069
-msgid "Very Good"
-msgstr "강함"
+#: ../capplet/nwam_env_pref_dialog.c:2320
+msgid ""
+"A nameservice switch file should be specified\n"
+"if more than one name service is selected."
+msgstr "이름 서비스가 두 개 이상 선택된 경우 이름 서비스\n스위치 파일을 지정해야 합니다."
 
-#: ../common/nwamui_wifi_net.c:1072
-msgid "Excellent"
-msgstr "매우 강함"
+#: ../capplet/nwam_env_pref_dialog.c:2420
+#: ../capplet/nwam_location_dialog.c:634 ../capplet/nwam_profile_panel.c:586
+#: ../capplet/nwam_vpn_pref_dialog.c:644
+#, c-format
+msgid "Committing %s failed..."
+msgstr "%s 커밋 실패..."
 
-#: ../common/nwamui_wifi_net.c:1076
-msgid "No Signal"
-msgstr "신호 없음"
+#: ../capplet/nwam_env_pref_dialog.c:2423
+msgid "Commit Location Error"
+msgstr "커밋 위치 오류"
 
-#: ../common/nwamui_wifi_net.c:1581 ../common/nwamui_ncu.c:4076
-msgid "Connected"
-msgstr "연결됨"
+#: ../capplet/nwam_env_pref_dialog.c:2430
+#: ../capplet/nwam_location_dialog.c:625 ../capplet/nwam_profile_panel.c:577
+#: ../capplet/nwam_vpn_pref_dialog.c:635
+#, c-format
+msgid "Validation of %s failed with the property %s"
+msgstr "%2$s 등록 정보로 인해 %1$s 검증을 실패했습니다."
 
-#: ../common/nwamui_wifi_net.c:1585 ../common/nwamui_ncu.c:4068
-msgid "Not Connected"
-msgstr "연결되지 않음"
+#: ../capplet/nwam_env_pref_dialog.c:2434
+#: ../capplet/nwam_location_dialog.c:628 ../capplet/nwam_profile_panel.c:580
+#: ../capplet/nwam_vpn_pref_dialog.c:638
+msgid "Validation error"
+msgstr "검증 오류"
 
-#: ../common/nwamui_wifi_net.c:1592 ../common/libnwamui.c:289
+#: ../capplet/nwam_env_pref_dialog.c:2674
+msgid "Invalid Service FMRI"
+msgstr "잘못된 서비스 FMRI"
+
+#: ../capplet/nwam_env_pref_dialog.c:2675
+msgid ""
+"Either the service FMRI you entered was not in a valid\n"
+"format, or the service does not exist. Please try again"
+msgstr "입력한 서비스 FMRI가 유효한 형식이 아니거나\n서비스가 존재하지 않습니다. 다시 시도하십시오."
+
+#: ../capplet/nwam_location_dialog.c:100
+msgid "manual activation only"
+msgstr "수동 활성화만"
+
+#: ../capplet/nwam_location_dialog.c:101
+msgid "activated by rules"
+msgstr "규칙에 의해 활성화됨"
+
+#: ../capplet/nwam_location_dialog.c:102
+msgid "activated by system"
+msgstr "시스템에 의해 활성화됨"
+
+#: ../capplet/nwam_location_dialog.c:193
+msgid "Unnamed Location"
+msgstr "이름 없는 위치"
+
+#: ../capplet/nwam_location_dialog.c:201
+msgid "Location Name"
+msgstr "위치 이름"
+
+#: ../capplet/nwam_location_dialog.c:223
+#, c-format
+msgid "Remove location '%s'?"
+msgstr "'%s' 위치를 제거하겠습니까?"
+
+#: ../capplet/nwam_location_dialog.c:225
+msgid "Remove Location?"
+msgstr "위치를 제거하겠습니까?"
+
+#: ../capplet/nwam_location_dialog.c:281 ../capplet/nwam_profile_panel.c:283
+msgid "Copy of"
+msgstr "복사본_"
+
+#: ../capplet/nwam_location_dialog.c:319 ../capplet/nwam_location_dialog.c:320
+msgid "Toggled env"
+msgstr "토글된 환경"
+
+#: ../capplet/nwam_location_dialog.c:419 ../capplet/nwam_profile_panel.c:453
+msgid "Name"
+msgstr "이름"
+
+#: ../capplet/nwam_location_dialog.c:637 ../capplet/nwam_profile_panel.c:589
+#: ../capplet/nwam_vpn_pref_dialog.c:647
+msgid "Commit ENM error"
+msgstr "ENM 커밋 오류"
+
+#: ../capplet/nwam_pref_dialog.c:529
+msgid "Network Profile"
+msgstr "네트워크 프로필"
+
+#: ../capplet/nwam_profile_dialog.c:135
+msgid "Always active"
+msgstr "항상 활성"
+
+#: ../capplet/nwam_profile_dialog.c:136
+msgid "Activated by rules"
+msgstr "규칙에 의해 활성화됨"
+
+#: ../capplet/nwam_profile_dialog.c:137
+msgid "Never active"
+msgstr "활성화 안함"
+
+#: ../capplet/nwam_profile_dialog.c:138
+msgid "Exactly one connection is enabled"
+msgstr "정확히 하나의 연결이 사용으로 설정되어 있습니다."
+
+#: ../capplet/nwam_profile_dialog.c:139
+msgid "One or more connections may be enabled"
+msgstr "하나 이상의 연결이 사용으로 설정되었을 수 있습니다."
+
+#: ../capplet/nwam_profile_dialog.c:140
+msgid "All connections must be enabled"
+msgstr "모든 연결을 사용으로 설정해야 합니다."
+
+#: ../capplet/nwam_profile_dialog.c:312 ../capplet/nwam_profile_dialog.c:313
+msgid "selected_ncp"
+msgstr "선택된 NCP(_N)"
+
+#: ../capplet/nwam_profile_dialog.c:320 ../capplet/nwam_profile_dialog.c:321
+msgid "selected_ncu"
+msgstr "선택된 NCU(_N)"
+
+#: ../capplet/nwam_profile_dialog.c:486
+msgid "Details"
+msgstr "세부 정보"
+
+#: ../capplet/nwam_profile_dialog.c:755
+msgid "Add Network Profile dialog"
+msgstr "네트워크 프로필 추가 대화 상자"
+
+#: ../capplet/nwam_profile_dialog.c:758
+msgid "Edit Network Profile dialog"
+msgstr "네트워크 프로필 편집 대화 상자"
+
+#: ../capplet/nwam_profile_dialog.c:836
+msgid "<b><i>(None)</i></b>"
+msgstr "<b><i>(없음)</i></b>"
+
+#: ../capplet/nwam_profile_dialog.c:861
+#, c-format
+msgid ""
+"<b>%s</b>\n"
+"<small>%s, %s</small>"
+msgstr "<b>%s</b>\n<small>%s, %s</small>"
+
+#: ../capplet/nwam_profile_dialog.c:882
+msgid "Always enable these connections:"
+msgstr "항상 이 연결 사용:"
+
+#: ../capplet/nwam_profile_dialog.c:884
+msgid "Always disable these connections:"
+msgstr "항상 이 연결 사용 안함:"
+
+#: ../capplet/nwam_profile_dialog.c:907
+msgid "Then enable exactly one of these connections:"
+msgstr "충족될 경우 이 연결 중 정확히 하나만 사용:"
+
+#: ../capplet/nwam_profile_dialog.c:910
+msgid "Else enable exactly one of these connections:"
+msgstr "충족되지 않을 경우 이 연결 중 정확히 하나만 사용:"
+
+#: ../capplet/nwam_profile_dialog.c:915
+msgid "Then enable one or more of these connections:"
+msgstr "충족될 경우 이 연결 중 하나 이상 사용:"
+
+#: ../capplet/nwam_profile_dialog.c:918
+msgid "Else enable one or more of these connections:"
+msgstr "충족되지 않을 경우 이 연결 중 하나 이상 사용:"
+
+#: ../capplet/nwam_profile_dialog.c:923
+msgid "Then enable all of these connections:"
+msgstr "충족될 경우 이 연결 모두 사용:"
+
+#: ../capplet/nwam_profile_dialog.c:926
+msgid "Else enable all of these connections:"
+msgstr "충족되지 않을 경우 이 연결 모두 사용:"
+
+#: ../capplet/nwam_profile_dialog.c:1015
+#, c-format
+msgid "%s  (active)"
+msgstr "%s(활성)"
+
+#. Enable New Group
+#: ../capplet/nwam_profile_dialog.c:2195
+msgid "New _group"
+msgstr "새 그룹(_G)"
+
+#. Enable Remove Group
+#: ../capplet/nwam_profile_dialog.c:2200
+msgid "Remove _group"
+msgstr "그룹 제거(_G)"
+
+#: ../capplet/nwam_profile_dialog.c:2405
+#, c-format
+msgid "Then set status of '%s' to: "
+msgstr "충족될 경우 '%s'의 상태 설정: "
+
+#: ../capplet/nwam_profile_panel.c:181
+msgid "User"
+msgstr "사용자"
+
+#: ../capplet/nwam_profile_panel.c:204
+#, c-format
+msgid "Remove network profile: '%s'?"
+msgstr "네트워크 프로필 '%s'을(를) 제거하겠습니까?"
+
+#: ../capplet/nwam_profile_panel.c:208
+msgid "Remove network profile?"
+msgstr "네트워크 프로필을 제거하겠습니까?"
+
+#: ../capplet/nwam_profile_panel.c:326 ../capplet/nwam_profile_panel.c:327
+msgid "Toggled object"
+msgstr "토글된 객체"
+
+#: ../capplet/nwam_profile_panel.c:883 ../capplet/nwam_profile_panel.c:894
+#: ../common/libnwamui.c:263 ../common/nwamui_ncu.c:3930
+msgid "None"
+msgstr "없음"
+
+#: ../capplet/nwam_profile_panel.c:887 ../capplet/nwam_profile_panel.c:898
+#, c-format
+msgid "%s and %d more"
+msgstr "%s 및 %d 등"
+
+#: ../capplet/nwam_proxy_password_dialog.c:102
+msgid "Proxy Username"
+msgstr "프록시 사용자 이름"
+
+#: ../capplet/nwam_proxy_password_dialog.c:103
+msgid "The Proxy Username to use for authenticating proxies"
+msgstr "프록시 인증에 사용할 프록시 사용자 이름"
+
+#: ../capplet/nwam_proxy_password_dialog.c:110
+msgid "Proxy Password"
+msgstr "프록시 암호"
+
+#: ../capplet/nwam_proxy_password_dialog.c:111
+msgid "The Proxy Password to use for authenticating proxies"
+msgstr "프록시 인증에 사용할 프록시 암호"
+
+#: ../capplet/nwam_tree_view.c:176 ../capplet/nwam_tree_view.c:177
+msgid "NwamObject Contrl Interface"
+msgstr "NwamObject 제어 인터페이스"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:172
+msgid "Unnamed Modifier"
+msgstr "이름 없는 수정자"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:208 ../common/libnwamui.c:1112
+#, c-format
+msgid "Cannot rename '%s'"
+msgstr "'%s'의 이름을 바꿀 수 없음"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:212
+msgid ""
+"Network modifiers can only be renamed immediately after\n"
+"they have been created."
+msgstr "네트워크 수정자는 생성된 직후에만 이름을\n바꿀 수 있습니다."
+
+#: ../capplet/nwam_vpn_pref_dialog.c:398
+msgid "Modifier Name"
+msgstr "수정자 이름"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:417
+msgid "Status"
+msgstr "상태"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:465
+msgid "Invalid value specified for Start Command"
+msgstr "시작 명령에 대해 잘못된 값이 지정되었습니다."
+
+#: ../capplet/nwam_vpn_pref_dialog.c:478
+msgid "Invalid value specified for Stop Command"
+msgstr "중지 명령에 대해 잘못된 값이 지정되었습니다."
+
+#: ../capplet/nwam_vpn_pref_dialog.c:493
+msgid "Invalid value specified for SMF FMRI"
+msgstr "SMF FMRI에 대해 잘못된 값이 지정되었습니다."
+
+#: ../capplet/nwam_vpn_pref_dialog.c:521
+msgid ""
+"Activation mode is set to Conditional,\n"
+"but no rules have been configured."
+msgstr "활성화 모드가 조건부로 설정되어 있지만\n구성된 규칙이 없습니다."
+
+#: ../capplet/nwam_vpn_pref_dialog.c:795
+msgid "Select start command"
+msgstr "시작 명령 선택"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:798
+msgid "Select stop command"
+msgstr "중지 명령 선택"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:872
+msgid "Running"
+msgstr "실행 중"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:874
+msgid "Stopped"
+msgstr "중지됨"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:942
+#, c-format
+msgid "Start/stop '%s' according to rules"
+msgstr "규칙에 따라 '%s' 시작/중지"
+
+#: ../capplet/nwam_wireless_chooser.c:169
+msgid "Speed"
+msgstr "속도"
+
+#: ../capplet/nwam_wireless_dialog.c:65
+msgid "Password saved, click here to change"
+msgstr "암호가 저장되었습니다. 변경하려면 여기를 누르십시오."
+
+#: ../capplet/nwam_wireless_dialog.c:204
+msgid "Wireless NCU"
+msgstr "무선 NCU"
+
+#: ../capplet/nwam_wireless_dialog.c:205
+msgid "The Wireless NCU that the dialog is to work with."
+msgstr "대화 상자에서 사용할 무선 NCU입니다."
+
+#: ../capplet/nwam_wireless_dialog.c:212
+msgid "Wireless ESSID"
+msgstr "무선 ESSID"
+
+#: ../capplet/nwam_wireless_dialog.c:213
+msgid "The Wireless ESSID to connect to."
+msgstr "연결할 무선 ESSID입니다."
+
+#: ../capplet/nwam_wireless_dialog.c:219
+msgid "Wireless Security Type"
+msgstr "무선 보안 유형"
+
+#: ../capplet/nwam_wireless_dialog.c:220
+msgid "The Wireless security (None/WEP/WPA)."
+msgstr "무선 보안(없음/WEP/WPA)입니다."
+
+#: ../capplet/nwam_wireless_dialog.c:227
+msgid "Wireless Security Key"
+msgstr "무선 보안 키"
+
+#: ../capplet/nwam_wireless_dialog.c:228
+msgid "The Wireless security key."
+msgstr "무선 보안 키입니다."
+
+#: ../capplet/nwam_wireless_dialog.c:235
+msgid "Wireless Security Key Index"
+msgstr "무선 보안 키 인덱스"
+
+#: ../capplet/nwam_wireless_dialog.c:236
+msgid "The Wireless security key index."
+msgstr "무선 보안 키 인덱스입니다."
+
+#: ../capplet/nwam_wireless_dialog.c:244
+msgid "WPA Username"
+msgstr "WPA 사용자 이름"
+
+#: ../capplet/nwam_wireless_dialog.c:245
+msgid "The Username to use for a WPA connection."
+msgstr "WPA 연결에 사용할 사용자 이름입니다."
+
+#: ../capplet/nwam_wireless_dialog.c:251
+msgid "WPA Password"
+msgstr "WPA 암호"
+
+#: ../capplet/nwam_wireless_dialog.c:252
+msgid "The Password to use for a WPA connection."
+msgstr "WPA 연결에 사용할 암호입니다."
+
+#: ../capplet/nwam_wireless_dialog.c:258
+msgid "WPA Config Type"
+msgstr "WPA 구성 유형"
+
+#: ../capplet/nwam_wireless_dialog.c:259
+msgid "The type of WPA Connection (Automatic or TTLS-PAP)"
+msgstr "WPA 연결 유형(자동 또는 TTLS-PAP)"
+
+#: ../capplet/nwam_wireless_dialog.c:267
+msgid "WPA Cert File"
+msgstr "WPA 인증서 파일"
+
+#: ../capplet/nwam_wireless_dialog.c:268
+msgid "The Certificate File to use for WPA."
+msgstr "WPA에 사용할 인증서 파일입니다."
+
+#: ../capplet/nwam_wireless_dialog.c:274
+msgid "Wireless BSSID list"
+msgstr "무선 BSSID 목록"
+
+#: ../capplet/nwam_wireless_dialog.c:275
+msgid "The Wireless AP BSSIDs known."
+msgstr "확인된 무선 AP BSSID입니다."
+
+#: ../capplet/nwam_wireless_dialog.c:281
+msgid "Wireless Network is Persistant"
+msgstr "무선 네트워크가 영구적입니다."
+
+#: ../capplet/nwam_wireless_dialog.c:282
+msgid "This Wireless Network should be remembered, on successful connection"
+msgstr "연결 성공 시 이 무선 네트워크가 저장됩니다."
+
+#: ../capplet/nwam_wireless_dialog.c:289
+msgid "On success, connect to Wireless Network"
+msgstr "성공 시 무선 네트워크에 연결"
+
+#: ../capplet/nwam_wireless_dialog.c:290
+msgid "On success (RESPONSE_OK), connect to Wireless Network"
+msgstr "성공(RESPONSE_OK) 시 무선 네트워크에 연결"
+
+#: ../capplet/nwam_wireless_dialog.c:364
+msgid "BSSID"
+msgstr "BSSID"
+
+#. Use to create a known wlan
+#: ../capplet/nwam_wireless_dialog.c:707
+msgid "Add Wireless Network"
+msgstr "무선 네트워크 추가"
+
+#. Use to add a wlan
+#: ../capplet/nwam_wireless_dialog.c:711
+msgid "Join Wireless Network"
+msgstr "무선 네트워크 연결"
+
+#: ../capplet/nwam_wireless_dialog.c:718
+msgid "Edit Wireless Network"
+msgstr "무선 네트워크 편집"
+
+#: ../capplet/nwam_wireless_dialog.c:1220
+msgid "Validation Failed."
+msgstr "검증에 실패했습니다."
+
+#: ../capplet/nwam_wireless_dialog.c:1412
+msgid ""
+"The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
+msgstr "무선 네트워크 이름(ESSID)에 잘못된(비ASCII) 문자가 포함되어 있습니다."
+
+#: ../capplet/nwam_wireless_dialog.c:1417
+msgid "The Wireless network name (ESSID) should not be blank."
+msgstr "무선 네트워크 이름(ESSID)을 비워두면 안 됩니다."
+
+#: ../capplet/nwam_wireless_dialog.c:1437
+#, c-format
+msgid "Wireless AP (BSSID) - '%s' is not a valid address"
+msgstr "무선 AP(BSSID) - '%s'은(는) 유효한 주소가 아닙니다."
+
+#. Different, so FALSE
+#: ../capplet/nwam_wireless_dialog.c:1476
+msgid "Keys entered are different"
+msgstr "입력된 키가 서로 다릅니다."
+
+#: ../capplet/nwam_wireless_dialog.c:1494
+msgid "WEP keys of length 10 or 26 should be hexadecimal values only"
+msgstr "10 또는 26 길이의 WEP 키는 16진수 값이어야 합니다."
+
+#: ../capplet/nwam_wireless_dialog.c:1498
+msgid ""
+"WEP keys should be either 5 or 13 ASCII characters,\n"
+"or a hexadecimal value of length 10 or 26"
+msgstr "WEP 키는 5자 또는 13자 ASCII 문자이거나\n10 또는 26 길이의 16진수 값이어야 합니다."
+
+#: ../capplet/nwam_wireless_dialog.c:1503
+msgid "WPA keys should be between 8 and 63 characters in length"
+msgstr "WPA 키는 8자에서 63자 사이여야 합니다."
+
+#: ../capplet/nwam_wireless_dialog.c:1617
+#, c-format
+msgid ""
+"Failed to validate wireless network due to an error with the property : %s"
+msgstr "등록 정보와 관련된 오류로 인해 무선 네트워크 검증 실패: %s"
+
+#: ../common/libnwamui.c:253 ../common/libnwamui.c:279
+#: ../common/libnwamui.c:281 ../common/libnwamui.c:282
+msgid "WEP"
+msgstr "WEP"
+
+#: ../common/libnwamui.c:255
+msgid "WEP Hex"
+msgstr "WEP 16진수"
+
+#: ../common/libnwamui.c:256
+msgid "WEP ASCII"
+msgstr "WEP ASCII"
+
+#: ../common/libnwamui.c:258
+msgid "WPA Personal(PSK)"
+msgstr "WPA 개인(PSK)"
+
+#. ENTERPRISE currently not supported
+#: ../common/libnwamui.c:261
+msgid "WPA Enterprise (Radius)"
+msgstr "WPA 엔터프라이즈(Radius)"
+
+#. ENTERPRISE currently not supported
+#: ../common/libnwamui.c:284 ../common/libnwamui.c:287
+msgid "WPA"
+msgstr "WPA"
+
+#: ../common/libnwamui.c:289 ../common/nwamui_wifi_net.c:1592
 msgid "Open"
 msgstr "열기"
 
-#: ../common/nwamui_wifi_net.c:1595
-msgid "Secure"
-msgstr "보안"
+#: ../common/libnwamui.c:305
+msgid "LEAP"
+msgstr "LEAP"
+
+#: ../common/libnwamui.c:306
+msgid "PEAP/MSCHAPv2"
+msgstr "PEAP/MSCHAPv2"
+
+#. fall through
+#: ../common/libnwamui.c:308
+msgid "Automatic"
+msgstr "자동"
+
+#: ../common/libnwamui.c:880
+msgid "Could not display help"
+msgstr "도움말을 표시할 수 없습니다."
+
+#: ../common/libnwamui.c:978 ../common/libnwamui.c:1058
+msgid "This operation cannot be undone."
+msgstr "이 작업을 실행 취소할 수 없습니다."
+
+#: ../common/libnwamui.c:1103
+msgid "Locations"
+msgstr "위치"
+
+#: ../common/libnwamui.c:1104
+msgid "location"
+msgstr "위치"
+
+#: ../common/libnwamui.c:1106
+msgid "Profiles"
+msgstr "프로필"
+
+#: ../common/libnwamui.c:1107
+msgid "profile"
+msgstr "프로필"
+
+#: ../common/libnwamui.c:1120
+#, c-format
+msgid ""
+"%s can only be renamed immeditately\n"
+"after they have been created. However, you\n"
+"can duplicate this %s then immediately\n"
+"rename the duplicate."
+msgstr "%s은(는) 생성된 직후에만 이름을\n바꿀 수 있지만 이 %s을(를) 복제한 다음\n바로 복제한 항목의 이름을 바꿀 수\n있습니다."
+
+#: ../common/libnwamui.c:1131
+msgid "_Duplicate"
+msgstr "복제(_D)"
+
+#: ../common/libnwamui.c:1973
+msgid "Empty values are not permitted"
+msgstr "빈 값은 허용되지 않습니다."
+
+#: ../common/libnwamui.c:1990
+#, c-format
+msgid "The value '%s' is invalid."
+msgstr "'%s' 값이 잘못되었습니다."
+
+#: ../common/libnwamui.c:2012
+msgid "Specifying a network prefix value is not permitted in this context."
+msgstr "이 컨텍스트에서는 네트워크 접두어 값을 지정할 수 없습니다."
+
+#: ../common/libnwamui.c:2019
+#, c-format
+msgid "The value '%s' is not a valid IPv4 subnet."
+msgstr "'%s' 값은 유효한 IPv4 서브넷이 아닙니다."
+
+#: ../common/libnwamui.c:2027 ../common/libnwamui.c:2075
+#, c-format
+msgid "The value '%s' is not a valid IPv6 network prefix."
+msgstr "'%s' 값은 유효한 IPv6 네트워크 접두어가 아닙니다."
+
+#: ../common/libnwamui.c:2035
+#, c-format
+msgid "The value '%s' is not a valid ethernet address."
+msgstr "'%s' 값은 유효한 이더넷 주소가 아닙니다."
+
+#: ../common/libnwamui.c:2043
+#, c-format
+msgid "The value '%s' is not a valid IPv4 address."
+msgstr "'%s' 값은 유효한 IPv4 주소가 아닙니다."
+
+#: ../common/libnwamui.c:2049
+#, c-format
+msgid "The value '%s' is not a valid IPv4 network prefix."
+msgstr "'%s' 값은 유효한 IPv4 네트워크 접두어가 아닙니다."
+
+#: ../common/libnwamui.c:2061
+#, c-format
+msgid "The value '%s' is not a valid IPv4 or IPv6 address."
+msgstr "'%s' 값은 유효한 IPv4 또는 IPv6 주소가 아닙니다."
+
+#: ../common/libnwamui.c:2064
+#, c-format
+msgid "The value '%s' is not a valid IPv6 address."
+msgstr "'%s' 값은 유효한 IPv6 주소가 아닙니다."
+
+#: ../common/libnwamui.c:2099
+msgid ""
+"IPv6 prefix length must be a decimal value between 1 and 128\n"
+"\n"
+msgstr "IPv6 접두어 길이는 1에서 128 사이의 십진수 값이어야 합니다.\n\n"
+
+#: ../common/libnwamui.c:2102
+msgid ""
+"Subnets must be in the format:\n"
+"\n"
+"    w.x.y.z\n"
+"\n"
+msgstr "서브넷은 다음 형식이어야 합니다.\n\n    w.x.y.z\n\n"
+
+#: ../common/libnwamui.c:2106
+msgid ""
+"Valid ethernet addresses or BSSIDs must be in the format::\n"
+"\n"
+"    xx:xx:xx:xx:xx:xx:xx:xx\n"
+"\n"
+msgstr "유효한 이더넷 주소 또는 BSSID는 다음 형식이어야 합니다.\n\n    xx:xx:xx:xx:xx:xx:xx:xx\n\n"
+
+#: ../common/libnwamui.c:2110
+msgid ""
+"IPv4 addresses must be in the format:\n"
+"\n"
+"    w.x.y.z\n"
+"\n"
+msgstr "IPv4 주소는 다음 형식이어야 합니다.\n\n    w.x.y.z\n\n"
+
+#: ../common/libnwamui.c:2112
+msgid ""
+"If specifying a network prefix, you may append /N to the address:\n"
+"\n"
+"    w.x.y.z/N\n"
+"\n"
+"where N is between 1 and 32\n"
+"\n"
+msgstr "네트워크 접두어를 지정하는 경우 주소에 /N을 추가할 수 있습니다.\n\n    w.x.y.z/N\n\n여기서 N은 1에서 32 사이입니다.\n\n"
+
+#: ../common/libnwamui.c:2116
+msgid ""
+"IPv6 addresses must be in one of the formats :\n"
+"\n"
+"   x:x:x:x:x:x:x:x\n"
+"   x:x::x, etc.\n"
+"\n"
+msgstr "IPv6 주소는 다음 형식 중 하나여야 합니다.\n\n   x:x:x:x:x:x:x:x\n   x:x::x 등\n\n"
+
+#: ../common/libnwamui.c:2119
+msgid ""
+"If specifying a network prefix, you may append /N to the address:\n"
+"\n"
+"   x:x:x:x:x:x:x:x\n"
+"   x:x:x:x:x:x:x:x/N\n"
+"\n"
+"where N is between 1 and 128\n"
+"\n"
+msgstr "네트워크 접두어를 지정하는 경우 주소에 /N을 추가할 수 있습니다.\n\n   x:x:x:x:x:x:x:x\n   x:x:x:x:x:x:x:x/N\n\n여기서 N은 1에서 128 사이입니다.\n\n"
+
+#: ../common/libnwamui.c:2129
+msgid "Invalid Value"
+msgstr "잘못된 값"
+
+#: ../common/libnwamui.c:2237
+#, c-format
+msgid "%s (%s)"
+msgstr "%s(%s)"
+
+#: ../common/libnwamui.c:2246
+msgid ", \t\n"
+msgstr ", \t\n"
+
+#: ../common/libnwamui.c:2247
+msgid ","
+msgstr ","
+
+#: ../common/nwamui_cond.c:87 ../common/nwamui_cond.c:88
+msgid "field"
+msgstr "필드"
+
+#: ../common/nwamui_cond.c:97 ../common/nwamui_cond.c:98
+msgid "op"
+msgstr "op"
+
+#: ../common/nwamui_cond.c:107 ../common/nwamui_cond.c:108
+msgid "value"
+msgstr "값"
+
+#: ../common/nwamui_cond.c:115 ../common/nwamui_cond.c:116
+msgid "object"
+msgstr "객체"
+
+#: ../common/nwamui_cond.c:681
+msgid "Active network profile"
+msgstr "활성 네트워크 프로필"
+
+#: ../common/nwamui_cond.c:682
+msgid "Active connections"
+msgstr "활성 연결"
+
+#: ../common/nwamui_cond.c:683
+msgid "Running network modifiers"
+msgstr "실행 중인 네트워크 수정자"
+
+#: ../common/nwamui_cond.c:684
+msgid "Current location"
+msgstr "현재 위치"
+
+#: ../common/nwamui_cond.c:685
+msgid "Any IP address"
+msgstr "임의 IP 주소"
+
+#: ../common/nwamui_cond.c:686
+msgid "Any advertised domain name"
+msgstr "임의 보급 도메인 이름"
+
+#: ../common/nwamui_cond.c:687
+msgid "Any system domain name"
+msgstr "임의 시스템 도메인 이름"
+
+#: ../common/nwamui_cond.c:688
+msgid "Wireless network name"
+msgstr "무선 네트워크 이름"
+
+#: ../common/nwamui_cond.c:689
+msgid "Wireless network (BSSID)"
+msgstr "무선 네트워크(BSSID)"
+
+#: ../common/nwamui_cond.c:700
+msgid "is"
+msgstr "같음"
+
+#: ../common/nwamui_cond.c:701
+msgid "is not"
+msgstr "같지 않음"
+
+#: ../common/nwamui_cond.c:702
+msgid "include"
+msgstr "포함"
+
+#: ../common/nwamui_cond.c:703
+msgid "do not include"
+msgstr "포함하지 않음"
+
+#: ../common/nwamui_cond.c:704
+msgid "is in the range"
+msgstr "범위에 있음"
+
+#: ../common/nwamui_cond.c:705
+msgid "is not in the range"
+msgstr "범위에 없음"
+
+#: ../common/nwamui_cond.c:706
+msgid "contains"
+msgstr "포함"
+
+#: ../common/nwamui_cond.c:707
+msgid "does not contain"
+msgstr "포함하지 않음"
+
+#: ../common/nwamui_daemon.c:210 ../common/nwamui_daemon.c:211
+msgid "active_env"
+msgstr "active_env"
+
+#: ../common/nwamui_daemon.c:218 ../common/nwamui_daemon.c:219
+msgid "active_ncp"
+msgstr "active_ncp"
+
+#: ../common/nwamui_daemon.c:226 ../common/nwamui_daemon.c:227
+#: ../common/nwamui_svc.c:107 ../common/nwamui_svc.c:108
+msgid "status"
+msgstr "상태"
+
+#: ../common/nwamui_daemon.c:236 ../common/nwamui_daemon.c:237
+msgid "num_scanned_wifi"
+msgstr "num_scanned_wifi"
+
+#: ../common/nwamui_daemon.c:246 ../common/nwamui_daemon.c:247
+msgid "env_selection_mode"
+msgstr "env_selection_mode"
+
+#: ../common/nwamui_daemon.c:254 ../common/nwamui_daemon.c:255
+msgid "online_enm_num"
+msgstr "online_enm_num"
+
+#: ../common/nwamui_enm.c:141 ../common/nwamui_enm.c:142
+msgid "start_command"
+msgstr "start_command"
+
+#: ../common/nwamui_enm.c:149 ../common/nwamui_enm.c:150
+msgid "stop_command"
+msgstr "stop_command"
+
+#: ../common/nwamui_enm.c:157 ../common/nwamui_enm.c:158
+msgid "smf_fmri"
+msgstr "smf_fmri"
 
 #: ../common/nwamui_env.c:236 ../common/nwamui_env.c:237
 msgid "nameservices"
@@ -349,11 +1319,6 @@ msgstr "is_autoconf"
 msgid "Address(v6)"
 msgstr "주소(v6)"
 
-#: ../common/nwamui_ip.c:524 ../capplet/nwam_conn_conf_ip_panel.c:470
-#: ../capplet/nwam_env_pref_dialog.c:820
-msgid "Address"
-msgstr "주소"
-
 #: ../common/nwamui_ip.c:533
 msgid " (DHCP)"
 msgstr " (DHCP)"
@@ -363,126 +1328,40 @@ msgstr " (DHCP)"
 msgid "%s: %s/%d%s"
 msgstr "%s: %s/%d%s"
 
-#: ../common/nwamui_cond.c:87 ../common/nwamui_cond.c:88
-msgid "field"
-msgstr "필드"
+#: ../common/nwamui_known_wlan.c:143 ../common/nwamui_known_wlan.c:144
+#: ../common/nwamui_wifi_net.c:156 ../common/nwamui_wifi_net.c:157
+msgid "Wifi Network Security"
+msgstr "Wifi 네트워크 보안"
 
-#: ../common/nwamui_cond.c:97 ../common/nwamui_cond.c:98
-msgid "op"
-msgstr "op"
+#: ../common/nwamui_known_wlan.c:153 ../common/nwamui_known_wlan.c:154
+#: ../common/nwamui_wifi_net.c:224 ../common/nwamui_wifi_net.c:225
+msgid "Wep Key Index"
+msgstr "Wep 키 인덱스"
 
-#: ../common/nwamui_cond.c:107 ../common/nwamui_cond.c:108
-msgid "value"
-msgstr "값"
+#: ../common/nwamui_known_wlan.c:163 ../common/nwamui_known_wlan.c:164
+#: ../common/nwamui_wifi_net.c:258 ../common/nwamui_wifi_net.c:259
+msgid "bssid_list"
+msgstr "bssid_list"
 
-#: ../common/nwamui_cond.c:115 ../common/nwamui_cond.c:116
-msgid "object"
-msgstr "객체"
+#: ../common/nwamui_known_wlan.c:170 ../common/nwamui_known_wlan.c:171
+msgid "priority"
+msgstr "우선 순위"
 
-#: ../common/nwamui_cond.c:681
-msgid "Active network profile"
-msgstr "활성 네트워크 프로필"
+#: ../common/nwamui_ncp.c:168 ../common/nwamui_ncp.c:169
+msgid "priority group"
+msgstr "우선 순위 그룹"
 
-#: ../common/nwamui_cond.c:682
-msgid "Active connections"
-msgstr "활성 연결"
+#: ../common/nwamui_ncp.c:178 ../common/nwamui_ncp.c:179
+msgid "GList of NCUs in the NCP"
+msgstr "NCP에 있는 NCU의 GList"
 
-#: ../common/nwamui_cond.c:683
-msgid "Running network modifiers"
-msgstr "실행 중인 네트워크 수정자"
+#: ../common/nwamui_ncp.c:185 ../common/nwamui_ncp.c:186
+msgid "ListStore of NCUs in the NCP"
+msgstr "NCP에 있는 NCU의 ListStore"
 
-#: ../common/nwamui_cond.c:684
-msgid "Current location"
-msgstr "현재 위치"
-
-#: ../common/nwamui_cond.c:685
-msgid "Any IP address"
-msgstr "임의 IP 주소"
-
-#: ../common/nwamui_cond.c:686
-msgid "Any advertised domain name"
-msgstr "임의 보급 도메인 이름"
-
-#: ../common/nwamui_cond.c:687
-msgid "Any system domain name"
-msgstr "임의 시스템 도메인 이름"
-
-#: ../common/nwamui_cond.c:688
-msgid "Wireless network name"
-msgstr "무선 네트워크 이름"
-
-#: ../common/nwamui_cond.c:689
-msgid "Wireless network (BSSID)"
-msgstr "무선 네트워크(BSSID)"
-
-#: ../common/nwamui_cond.c:700
-msgid "is"
-msgstr "같음"
-
-#: ../common/nwamui_cond.c:701
-msgid "is not"
-msgstr "같지 않음"
-
-#: ../common/nwamui_cond.c:702
-msgid "include"
-msgstr "포함"
-
-#: ../common/nwamui_cond.c:703
-msgid "do not include"
-msgstr "포함하지 않음"
-
-#: ../common/nwamui_cond.c:704
-msgid "is in the range"
-msgstr "범위에 있음"
-
-#: ../common/nwamui_cond.c:705
-msgid "is not in the range"
-msgstr "범위에 없음"
-
-#: ../common/nwamui_cond.c:706
-msgid "contains"
-msgstr "포함"
-
-#: ../common/nwamui_cond.c:707
-msgid "does not contain"
-msgstr "포함하지 않음"
-
-#: ../common/nwamui_daemon.c:210 ../common/nwamui_daemon.c:211
-msgid "active_env"
-msgstr "active_env"
-
-#: ../common/nwamui_daemon.c:218 ../common/nwamui_daemon.c:219
-msgid "active_ncp"
-msgstr "active_ncp"
-
-#: ../common/nwamui_daemon.c:226 ../common/nwamui_daemon.c:227
-#: ../common/nwamui_svc.c:107 ../common/nwamui_svc.c:108
-msgid "status"
-msgstr "상태"
-
-#: ../common/nwamui_daemon.c:236 ../common/nwamui_daemon.c:237
-msgid "num_scanned_wifi"
-msgstr "num_scanned_wifi"
-
-#: ../common/nwamui_daemon.c:246 ../common/nwamui_daemon.c:247
-msgid "env_selection_mode"
-msgstr "env_selection_mode"
-
-#: ../common/nwamui_daemon.c:254 ../common/nwamui_daemon.c:255
-msgid "online_enm_num"
-msgstr "online_enm_num"
-
-#: ../common/nwamui_svc.c:91 ../common/nwamui_svc.c:92
-msgid "fmri"
-msgstr "fmri"
-
-#: ../common/nwamui_svc.c:99 ../common/nwamui_svc.c:100
-msgid "Description"
-msgstr "설명"
-
-#: ../common/nwamui_svc.c:115 ../common/nwamui_svc.c:116
-msgid "is-default"
-msgstr "is-default"
+#: ../common/nwamui_ncp.c:194 ../common/nwamui_ncp.c:195
+msgid "wireless_link_num"
+msgstr "wireless_link_num"
 
 #: ../common/nwamui_ncu.c:251 ../common/nwamui_ncu.c:252
 msgid "NCP that NCU child of"
@@ -503,6 +1382,11 @@ msgstr "autopush"
 #: ../common/nwamui_ncu.c:282 ../common/nwamui_ncu.c:283
 msgid "ncu_type"
 msgstr "ncu_type"
+
+#: ../common/nwamui_ncu.c:292 ../common/nwamui_ncu.c:293
+#: ../common/nwamui_wifi_net.c:195 ../common/nwamui_wifi_net.c:196
+msgid "speed"
+msgstr "속도"
 
 #: ../common/nwamui_ncu.c:302 ../common/nwamui_ncu.c:303
 msgid "mtu"
@@ -587,12 +1471,6 @@ msgstr "무선(%s)"
 msgid "Tunnel (%s)"
 msgstr "터널(%s)"
 
-#: ../common/nwamui_ncu.c:3930 ../common/libnwamui.c:263
-#: ../ui/nwam-manager-wireless.ui.h:10 ../capplet/nwam_profile_panel.c:883
-#: ../capplet/nwam_profile_panel.c:894
-msgid "None"
-msgstr "없음"
-
 #. It is possible for the DHCPRUNNING flag to be true, yet DHCP is not
 #. * the source of the address.
 #. *
@@ -620,10 +1498,9 @@ msgstr "%s\n"
 msgid "Unknown"
 msgstr "알 수 없음"
 
-#: ../common/nwamui_ncu.c:4067 ../capplet/nwam_conn_conf_ip_panel.c:182
-#: ../ui/nwam-manager-properties.ui.h:60
-msgid "Disabled"
-msgstr "비활성화됨"
+#: ../common/nwamui_ncu.c:4068 ../common/nwamui_wifi_net.c:1585
+msgid "Not Connected"
+msgstr "연결되지 않음"
 
 #: ../common/nwamui_ncu.c:4069
 msgid "Scanning for Networks"
@@ -655,6 +1532,10 @@ msgstr "중복 주소가 감지됨"
 msgid "Connecting"
 msgstr "연결 중"
 
+#: ../common/nwamui_ncu.c:4076 ../common/nwamui_wifi_net.c:1581
+msgid "Connected"
+msgstr "연결됨"
+
 #: ../common/nwamui_ncu.c:4077
 #, c-format
 msgid "Connecting to %s"
@@ -674,12 +1555,6 @@ msgstr "네트워크 사용 불가능"
 #: ../common/nwamui_ncu.c:4080
 msgid "Cable Unplugged"
 msgstr "케이블이 분리됨"
-
-#: ../common/nwamui_ncu.c:4359 ../common/nwamui_ncu.c:4367
-#: ../capplet/capplet-utils.c:1006
-#, c-format
-msgid "%s%s"
-msgstr "%s%s"
 
 #: ../common/nwamui_ncu.c:4372
 #, c-format
@@ -749,269 +1624,6 @@ msgstr "주소(v6): %s"
 msgid "No addresses configured"
 msgstr "구성된 주소 없음"
 
-#: ../common/nwamui_ncp.c:168 ../common/nwamui_ncp.c:169
-msgid "priority group"
-msgstr "우선 순위 그룹"
-
-#: ../common/nwamui_ncp.c:178 ../common/nwamui_ncp.c:179
-msgid "GList of NCUs in the NCP"
-msgstr "NCP에 있는 NCU의 GList"
-
-#: ../common/nwamui_ncp.c:185 ../common/nwamui_ncp.c:186
-msgid "ListStore of NCUs in the NCP"
-msgstr "NCP에 있는 NCU의 ListStore"
-
-#: ../common/nwamui_ncp.c:194 ../common/nwamui_ncp.c:195
-msgid "wireless_link_num"
-msgstr "wireless_link_num"
-
-#: ../common/libnwamui.c:253 ../common/libnwamui.c:279
-#: ../common/libnwamui.c:281 ../common/libnwamui.c:282
-#: ../ui/nwam-manager-wireless.ui.h:13
-#: ../capplet/nwam-manager-properties.glade.h:154
-msgid "WEP"
-msgstr "WEP"
-
-#: ../common/libnwamui.c:255 ../ui/nwam-manager-wireless.ui.h:15
-msgid "WEP Hex"
-msgstr "WEP 16진수"
-
-#: ../common/libnwamui.c:256 ../ui/nwam-manager-wireless.ui.h:14
-msgid "WEP ASCII"
-msgstr "WEP ASCII"
-
-#: ../common/libnwamui.c:258
-msgid "WPA Personal(PSK)"
-msgstr "WPA 개인(PSK)"
-
-#. ENTERPRISE currently not supported
-#: ../common/libnwamui.c:261 ../ui/nwam-manager-wireless.ui.h:16
-msgid "WPA Enterprise (Radius)"
-msgstr "WPA 엔터프라이즈(Radius)"
-
-#. ENTERPRISE currently not supported
-#: ../common/libnwamui.c:284 ../common/libnwamui.c:287
-msgid "WPA"
-msgstr "WPA"
-
-#: ../common/libnwamui.c:305 ../ui/nwam-manager-wireless.ui.h:9
-msgid "LEAP"
-msgstr "LEAP"
-
-#: ../common/libnwamui.c:306 ../ui/nwam-manager-wireless.ui.h:11
-msgid "PEAP/MSCHAPv2"
-msgstr "PEAP/MSCHAPv2"
-
-#. fall through
-#: ../common/libnwamui.c:308 ../ui/nwam-manager-properties.ui.h:37
-#: ../capplet/nwam-manager-properties.glade.h:36
-msgid "Automatic"
-msgstr "자동"
-
-#: ../common/libnwamui.c:880
-msgid "Could not display help"
-msgstr "도움말을 표시할 수 없습니다."
-
-#: ../common/libnwamui.c:978 ../common/libnwamui.c:1058
-msgid "This operation cannot be undone."
-msgstr "이 작업을 실행 취소할 수 없습니다."
-
-#: ../common/libnwamui.c:1103
-msgid "Locations"
-msgstr "위치"
-
-#: ../common/libnwamui.c:1104
-msgid "location"
-msgstr "위치"
-
-#: ../common/libnwamui.c:1106
-msgid "Profiles"
-msgstr "프로필"
-
-#: ../common/libnwamui.c:1107
-msgid "profile"
-msgstr "프로필"
-
-#: ../common/libnwamui.c:1112 ../capplet/nwam_vpn_pref_dialog.c:208
-#, c-format
-msgid "Cannot rename '%s'"
-msgstr "'%s'의 이름을 바꿀 수 없음"
-
-#: ../common/libnwamui.c:1120
-#, c-format
-msgid ""
-"%s can only be renamed immeditately\n"
-"after they have been created. However, you\n"
-"can duplicate this %s then immediately\n"
-"rename the duplicate."
-msgstr ""
-       "%s은(는) 생성된 직후에만 이름을\n"
-       "바꿀 수 있지만 이 %s을(를) 복제한 다음\n"
-       "바로 복제한 항목의 이름을 바꿀 수\n"
-       "있습니다."
-
-#: ../common/libnwamui.c:1131 ../ui/nwam-manager-properties.ui.h:157
-#: ../capplet/nwam-manager-properties.glade.h:165
-msgid "_Duplicate"
-msgstr "복제(_D)"
-
-#: ../common/libnwamui.c:1973
-msgid "Empty values are not permitted"
-msgstr "빈 값은 허용되지 않습니다."
-
-#: ../common/libnwamui.c:1990
-#, c-format
-msgid "The value '%s' is invalid."
-msgstr "'%s' 값이 잘못되었습니다."
-
-#: ../common/libnwamui.c:2012
-msgid "Specifying a network prefix value is not permitted in this context."
-msgstr "이 컨텍스트에서는 네트워크 접두어 값을 지정할 수 없습니다."
-
-#: ../common/libnwamui.c:2019
-#, c-format
-msgid "The value '%s' is not a valid IPv4 subnet."
-msgstr "'%s' 값은 유효한 IPv4 서브넷이 아닙니다."
-
-#: ../common/libnwamui.c:2027 ../common/libnwamui.c:2075
-#, c-format
-msgid "The value '%s' is not a valid IPv6 network prefix."
-msgstr "'%s' 값은 유효한 IPv6 네트워크 접두어가 아닙니다."
-
-#: ../common/libnwamui.c:2035
-#, c-format
-msgid "The value '%s' is not a valid ethernet address."
-msgstr "'%s' 값은 유효한 이더넷 주소가 아닙니다."
-
-#: ../common/libnwamui.c:2043
-#, c-format
-msgid "The value '%s' is not a valid IPv4 address."
-msgstr "'%s' 값은 유효한 IPv4 주소가 아닙니다."
-
-#: ../common/libnwamui.c:2049
-#, c-format
-msgid "The value '%s' is not a valid IPv4 network prefix."
-msgstr "'%s' 값은 유효한 IPv4 네트워크 접두어가 아닙니다."
-
-#: ../common/libnwamui.c:2061
-#, c-format
-msgid "The value '%s' is not a valid IPv4 or IPv6 address."
-msgstr "'%s' 값은 유효한 IPv4 또는 IPv6 주소가 아닙니다."
-
-#: ../common/libnwamui.c:2064
-#, c-format
-msgid "The value '%s' is not a valid IPv6 address."
-msgstr "'%s' 값은 유효한 IPv6 주소가 아닙니다."
-
-#: ../common/libnwamui.c:2099
-msgid ""
-"IPv6 prefix length must be a decimal value between 1 and 128\n"
-"\n"
-msgstr ""
-       "IPv6 접두어 길이는 1에서 128 사이의 십진수 값이어야 합니다.\n"
-       "\n"
-
-#: ../common/libnwamui.c:2102
-msgid ""
-"Subnets must be in the format:\n"
-"\n"
-"    w.x.y.z\n"
-"\n"
-msgstr ""
-       "서브넷은 다음 형식이어야 합니다.\n"
-       "\n"
-       "    w.x.y.z\n"
-       "\n"
-
-#: ../common/libnwamui.c:2106
-msgid ""
-"Valid ethernet addresses or BSSIDs must be in the format::\n"
-"\n"
-"    xx:xx:xx:xx:xx:xx:xx:xx\n"
-"\n"
-msgstr ""
-       "유효한 이더넷 주소 또는 BSSID는 다음 형식이어야 합니다.\n"
-       "\n"
-       "    xx:xx:xx:xx:xx:xx:xx:xx\n"
-       "\n"
-
-#: ../common/libnwamui.c:2110
-msgid ""
-"IPv4 addresses must be in the format:\n"
-"\n"
-"    w.x.y.z\n"
-"\n"
-msgstr ""
-       "IPv4 주소는 다음 형식이어야 합니다.\n"
-       "\n"
-       "    w.x.y.z\n"
-       "\n"
-
-#: ../common/libnwamui.c:2112
-msgid ""
-"If specifying a network prefix, you may append /N to the address:\n"
-"\n"
-"    w.x.y.z/N\n"
-"\n"
-"where N is between 1 and 32\n"
-"\n"
-msgstr ""
-       "네트워크 접두어를 지정하는 경우 주소에 /N을 추가할 수 있습니다.\n"
-       "\n"
-       "    w.x.y.z/N\n"
-       "\n"
-       "여기서 N은 1에서 32 사이입니다.\n"
-       "\n"
-
-#: ../common/libnwamui.c:2116
-msgid ""
-"IPv6 addresses must be in one of the formats :\n"
-"\n"
-"   x:x:x:x:x:x:x:x\n"
-"   x:x::x, etc.\n"
-"\n"
-msgstr ""
-       "IPv6 주소는 다음 형식 중 하나여야 합니다.\n"
-       "\n"
-       "   x:x:x:x:x:x:x:x\n"
-       "   x:x::x 등\n"
-       "\n"
-
-#: ../common/libnwamui.c:2119
-msgid ""
-"If specifying a network prefix, you may append /N to the address:\n"
-"\n"
-"   x:x:x:x:x:x:x:x\n"
-"   x:x:x:x:x:x:x:x/N\n"
-"\n"
-"where N is between 1 and 128\n"
-"\n"
-msgstr ""
-       "네트워크 접두어를 지정하는 경우 주소에 /N을 추가할 수 있습니다.\n"
-       "\n"
-       "   x:x:x:x:x:x:x:x\n"
-       "   x:x:x:x:x:x:x:x/N\n"
-       "\n"
-       "여기서 N은 1에서 128 사이입니다.\n"
-       "\n"
-
-#: ../common/libnwamui.c:2129
-msgid "Invalid Value"
-msgstr "잘못된 값"
-
-#: ../common/libnwamui.c:2237
-#, c-format
-msgid "%s (%s)"
-msgstr "%s(%s)"
-
-#: ../common/libnwamui.c:2246
-msgid ", \t\n"
-msgstr ", \t\n"
-
-#: ../common/libnwamui.c:2247
-msgid ","
-msgstr ","
-
 #: ../common/nwamui_object.c:325 ../common/nwamui_object.c:326
 msgid "Name of the object"
 msgstr "객체 이름"
@@ -1036,39 +1648,21 @@ msgstr "조건"
 msgid "nwam_state"
 msgstr "nwam_state"
 
-#: ../common/nwamui_enm.c:141 ../common/nwamui_enm.c:142
-msgid "start_command"
-msgstr "start_command"
-
-#: ../common/nwamui_enm.c:149 ../common/nwamui_enm.c:150
-msgid "stop_command"
-msgstr "stop_command"
-
-#: ../common/nwamui_enm.c:157 ../common/nwamui_enm.c:158
-msgid "smf_fmri"
-msgstr "smf_fmri"
-
 #: ../common/nwamui_prof.c:172 ../common/nwamui_prof.c:173
 msgid "ui_auth"
 msgstr "ui_auth"
 
 #: ../common/nwamui_prof.c:182 ../common/nwamui_prof.c:183
-#: ../ui/nwam-manager-properties.ui.h:86
-#: ../capplet/nwam-manager-properties.glade.h:94
 #: ../data/nwam-manager.schemas.in.h:3
 msgid "Joining an open network that is not in your favorites list"
 msgstr "즐겨찾기 목록에 없는 열려 있는 네트워크 연결"
 
 #: ../common/nwamui_prof.c:190 ../common/nwamui_prof.c:191
-#: ../ui/nwam-manager-properties.ui.h:87
-#: ../capplet/nwam-manager-properties.glade.h:95
 #: ../data/nwam-manager.schemas.in.h:4
 msgid "Joining any favorite network"
 msgstr "즐겨 찾는 네트워크 연결"
 
 #: ../common/nwamui_prof.c:198 ../common/nwamui_prof.c:199
-#: ../ui/nwam-manager-properties.ui.h:33
-#: ../capplet/nwam-manager-properties.glade.h:34
 #: ../data/nwam-manager.schemas.in.h:2
 msgid "Adding any new network to your favorites list"
 msgstr "즐겨찾기 목록에 새 네트워크 추가"
@@ -1117,192 +1711,115 @@ msgstr "위치가 변경되었음을 나타내는 알림 표시"
 msgid "Show notifications for nwam unavailable"
 msgstr "NWAM을 사용할 수 없음을 나타내는 알림 표시"
 
-#: ../common/nwamui_prof.c:822 ../ui/nwam-manager-properties.ui.h:61
+#: ../common/nwamui_prof.c:822
 msgid "Do not connect"
 msgstr "연결 안함"
 
-#: ../common/nwamui_prof.c:824 ../ui/nwam-manager-properties.ui.h:133
+#: ../common/nwamui_prof.c:824
 msgid "Show list of available networks"
 msgstr "사용 가능한 네트워크 목록 표시"
 
-#: ../daemon/nwam-ncu-item.c:52
-msgid "No network interfaces detected"
-msgstr "감지된 네트워크 인터페이스 없음"
+#: ../common/nwamui_svc.c:91 ../common/nwamui_svc.c:92
+msgid "fmri"
+msgstr "fmri"
 
-#: ../daemon/nwam-wifi-item.c:51
-msgid "No wireless connections enabled"
-msgstr "사용으로 설정된 무선 연결 없음"
+#: ../common/nwamui_svc.c:99 ../common/nwamui_svc.c:100
+msgid "Description"
+msgstr "설명"
 
-#: ../daemon/nwam-menu.c:151 ../daemon/nwam-menu.c:152
-msgid "nwam menu sections"
-msgstr "NWAM 메뉴 섹션"
+#: ../common/nwamui_svc.c:115 ../common/nwamui_svc.c:116
+msgid "is-default"
+msgstr "is-default"
 
-#: ../daemon/status_icon.c:649 ../capplet/nwam_conn_stat_panel.c:731
-msgid "None Active"
-msgstr "활성 항목 없음"
+#: ../common/nwamui_wifi_net.c:139 ../common/nwamui_wifi_net.c:140
+msgid "NCU that AP is seen on"
+msgstr "AP가 표시되는 NCU"
 
-#: ../daemon/status_icon.c:651 ../capplet/nwam_conn_stat_panel.c:733
+#: ../common/nwamui_wifi_net.c:147 ../common/nwamui_wifi_net.c:148
+msgid "Wifi Network Status"
+msgstr "Wifi 네트워크 상태"
+
+#: ../common/nwamui_wifi_net.c:165 ../common/nwamui_wifi_net.c:166
+msgid "Wifi Network Channel"
+msgstr "Wifi 네트워크 채널"
+
+#: ../common/nwamui_wifi_net.c:175 ../common/nwamui_wifi_net.c:176
+msgid "Wifi Network Signal Strength"
+msgstr "Wifi 네트워크 신호 감도"
+
+#: ../common/nwamui_wifi_net.c:185
+msgid "Wifi BSS Type"
+msgstr "Wifi BSS 유형"
+
+#: ../common/nwamui_wifi_net.c:186
+msgid "Wifi BSS Type (AP or AD-HOC)"
+msgstr "Wifi BSS 유형(AP 또는 임시)"
+
+#: ../common/nwamui_wifi_net.c:205 ../common/nwamui_wifi_net.c:206
+msgid "Wifi WPA Configuration Type"
+msgstr "Wifi WPA 구성 유형"
+
+#: ../common/nwamui_wifi_net.c:216 ../common/nwamui_wifi_net.c:217
+msgid "Wifi WEP Password"
+msgstr "Wifi WEP 암호"
+
+#: ../common/nwamui_wifi_net.c:234 ../common/nwamui_wifi_net.c:235
+msgid "Wifi WPA Username"
+msgstr "Wifi WPA 사용자 이름"
+
+#: ../common/nwamui_wifi_net.c:242 ../common/nwamui_wifi_net.c:243
+msgid "Wifi WPA Password"
+msgstr "Wifi WPA 암호"
+
+#: ../common/nwamui_wifi_net.c:250 ../common/nwamui_wifi_net.c:251
+msgid "Wifi WPA Certificate File Path"
+msgstr "Wifi WPA 인증서 파일 경로"
+
+#: ../common/nwamui_wifi_net.c:760
+msgid "Failed to store network key."
+msgstr "네트워크 키 저장을 실패했습니다."
+
+#: ../common/nwamui_wifi_net.c:827
+msgid "Failed to connect to wireless network, please try it later."
+msgstr "무선 네트워크에 대한 연결을 실패했습니다. 나중에 시도하십시오."
+
+#: ../common/nwamui_wifi_net.c:929
 #, c-format
-msgid "%d Active"
-msgstr "%d개 활성"
+msgid "[%s] "
+msgstr "[%s] "
 
-#: ../daemon/status_icon.c:655 ../capplet/nwam_conn_stat_panel.c:737
+#: ../common/nwamui_wifi_net.c:939
 #, c-format
-msgid "%s Active"
-msgstr "%s 활성"
+msgid " (Computer-to-Computer)"
+msgstr " (컴퓨터 대 컴퓨터)"
 
-#: ../daemon/status_icon.c:1305
-msgid "Service is not active."
-msgstr "서비스가 활성화되어 있지 않습니다."
+#: ../common/nwamui_wifi_net.c:1060
+msgid "Very Weak"
+msgstr "매우 약함"
 
-#. unique_app_add_command(app, "", 1);
-#. unique_app_send_message(app, 1, NULL);
-#: ../daemon/status_icon.c:1378 ../daemon/main.c:156
-msgid "NWAM Manager"
-msgstr "NWAM 관리자"
+#: ../common/nwamui_wifi_net.c:1063
+msgid "Weak"
+msgstr "약함"
 
-#: ../daemon/status_icon.c:1379
-msgid "About NWAM Manager"
-msgstr "NWAM 관리자 정보"
+#: ../common/nwamui_wifi_net.c:1066
+msgid "Good"
+msgstr "양호"
 
-#: ../daemon/status_icon.c:1380
-msgid ""
-"2009 Sun Microsystems, Inc  All rights reserved\n"
-"Use is subject to license terms."
-msgstr ""
-       "Copyright © 2010, Oracle and/or its affiliates.\n"
-       "All rights reserved."
+#: ../common/nwamui_wifi_net.c:1069
+msgid "Very Good"
+msgstr "강함"
 
-#: ../daemon/status_icon.c:1381
-msgid "http://www.sun.com/"
-msgstr "http://www.sun.com/"
+#: ../common/nwamui_wifi_net.c:1072
+msgid "Excellent"
+msgstr "매우 강함"
 
-#: ../daemon/status_icon.c:1660
-msgid "Switch Locations Au_tomatically"
-msgstr "자동으로 위치 전환(_T)"
+#: ../common/nwamui_wifi_net.c:1076
+msgid "No Signal"
+msgstr "신호 없음"
 
-#: ../daemon/status_icon.c:1667
-msgid "Switch Locations _Manually"
-msgstr "수동으로 위치 전환(_M)"
-
-#: ../daemon/status_icon.c:1676
-msgid "_Network Locations..."
-msgstr "네트워크 위치(_N)..."
-
-#: ../daemon/status_icon.c:1681
-msgid "_Location"
-msgstr "위치(_L)"
-
-#: ../daemon/status_icon.c:1690
-msgid "Network _Profile..."
-msgstr "네트워크 프로필(_P)..."
-
-#: ../daemon/status_icon.c:1695
-msgid "_Connections"
-msgstr "연결(_C)"
-
-#: ../daemon/status_icon.c:1702
-msgid "_Refresh Wireless Networks"
-msgstr "무선 네트워크 새로 고침(_R)"
-
-#: ../daemon/status_icon.c:1707
-msgid "_Join Unlisted Wireless Network..."
-msgstr "나열되지 않은 무선 네트워크 연결(_J)..."
-
-#: ../daemon/status_icon.c:1721
-msgid "_Network Modifier Preferences..."
-msgstr "네트워크 수정자 기본 설정(_N)..."
-
-#: ../daemon/status_icon.c:1725
-msgid "Network _Modifiers"
-msgstr "네트워크 수정자(_M)"
-
-#: ../daemon/status_icon.c:1730
-msgid "_Network Preferences..."
-msgstr "네트워크 기본 설정(_N)..."
-
-#: ../daemon/status_icon.c:1735
-msgid "_Help"
-msgstr "도움말(_H)"
-
-#: ../daemon/status_icon_tooltip.c:180 ../daemon/nwam-tooltip-widget.c:221
-#, c-format
-msgid "<b>Wireless (%s):</b> %s"
-msgstr "<b>무선(%s):</b> %s"
-
-#: ../daemon/status_icon_tooltip.c:185 ../daemon/nwam-tooltip-widget.c:231
-#, c-format
-msgid "<b>Wired (%s):</b> %s"
-msgstr "<b>유선(%s):</b> %s"
-
-#: ../daemon/status_icon_tooltip.c:197 ../daemon/nwam-tooltip-widget.c:247
-#, c-format
-msgid "<b>Location:</b> %s"
-msgstr "<b>위치:</b> %s"
-
-#: ../daemon/status_icon_tooltip.c:203 ../daemon/nwam-tooltip-widget.c:249
-#, c-format
-msgid "<b>Network Profile:</b> %s"
-msgstr "<b>네트워크 프로필:</b> %s"
-
-#: ../daemon/status_icon_tooltip.c:234 ../capplet/nwam_conn_stat_panel.c:159
-msgid "Connection Icon"
-msgstr "연결 아이콘"
-
-#: ../daemon/status_icon_tooltip.c:285
-#, c-format
-msgid "<b>Network Modifiers:</b> %s"
-msgstr "<b>네트워크 수정자:</b> %s"
-
-#: ../daemon/nwam-menuitem.c:156 ../daemon/nwam-menuitem.c:157
-msgid "proxy-object"
-msgstr "proxy-object"
-
-#: ../daemon/nwam-menuitem.c:164 ../daemon/nwam-menuitem.c:165
-msgid "Left widget, ref'd"
-msgstr "왼쪽 위젯, 참조됨"
-
-#: ../daemon/nwam-menuitem.c:172 ../daemon/nwam-menuitem.c:173
-msgid "Right widget, ref'd"
-msgstr "오른쪽 위젯, 참조됨"
-
-#: ../daemon/nwam-menuitem.c:180 ../daemon/nwam-menuitem.c:181
-msgid "Draw indicator"
-msgstr "그리기 표시기"
-
-#: ../daemon/nwam-menuitem.c:188 ../daemon/nwam-menuitem.c:189
-msgid "required_auth"
-msgstr "required_auth"
-
-#: ../daemon/nwam-tooltip-widget.c:223
-#, c-format
-msgid " (%s)"
-msgstr " (%s)"
-
-#: ../daemon/nwam-tooltip-widget.c:255
-#, c-format
-msgid "<b>Network Modifier %s:</b> %s"
-msgstr "<b>네트워크 수정자 %s:</b> %s"
-
-#: ../daemon/nwam-enm-item.c:231
-msgid "Stop "
-msgstr "중지 "
-
-#: ../daemon/nwam-enm-item.c:233
-msgid "Start "
-msgstr "시작 "
-
-#.
-#. { "show-all", 'a', 0, G_OPTION_ARG_NONE, &show_all_widgets, "Show all widgets", NULL  },
-#. { "add-wireless-dialog", 'w', 0, G_OPTION_ARG_STRING, &add_wireless_dialog, "Show 'Add Wireless' Dialog only", NULL  },
-#. { "env-pref-dialog", 'e', 0, G_OPTION_ARG_NONE, &env_pref_dialog, "Show 'Location Preferences' Dialog only", NULL  },
-#. { "nwam-pref-dialog", 'p', 0, G_OPTION_ARG_NONE, &nwam_pref_dialog, "Show 'Network Preferences' Dialog only", NULL  },
-#. { "vpn-pref-dialog", 'n', 0, G_OPTION_ARG_NONE, &vpn_pref_dialog, "Show 'Network Modifier preferences' Dialog only", NULL  },
-#. { "wireless-chooser", 'c', 0, G_OPTION_ARG_NONE, &wireless_chooser, "Show 'Wireless Network Chooser' Dialog only", NULL  },
-#.
-#: ../daemon/main.c:51 ../capplet/main.c:62 ../tests/main.c:59
-msgid "Enable debugging messages"
-msgstr "디버깅 메시지 사용"
+#: ../common/nwamui_wifi_net.c:1595
+msgid "Secure"
+msgstr "보안"
 
 #: ../daemon/main.c:52
 msgid "Always re-use notification message"
@@ -1316,19 +1833,20 @@ msgstr "알림 메시지를 재사용하지 않고 항상 만들기"
 msgid ""
 "Always create notification message, rather than re-use, and don't link to "
 "status icon"
-msgstr ""
-       "알림 메시지를 재사용하지 않고 항상 만들며 상태 아이콘에 "
-       "연결 안함"
+msgstr "알림 메시지를 재사용하지 않고 항상 만들며 상태 아이콘에 연결 안함"
+
+#. unique_app_add_command(app, "", 1);
+#. unique_app_send_message(app, 1, NULL);
+#: ../daemon/main.c:156 ../daemon/status_icon.c:1378
+msgid "NWAM Manager"
+msgstr "NWAM 관리자"
 
 #: ../daemon/main.c:157
 msgid ""
 "\n"
 "Another instance is running.\n"
 "This instance will exit now."
-msgstr ""
-       "\n"
-       "다른 인스턴스가 실행되고 있습니다.\n"
-       "이 인스턴스가 종료됩니다."
+msgstr "\n다른 인스턴스가 실행되고 있습니다.\n이 인스턴스가 종료됩니다."
 
 #: ../daemon/notify.c:531
 msgid "Automatic network configuration daemon is unavailable."
@@ -1336,11 +1854,8 @@ msgstr "자동 네트워크 구성 데몬을 사용할 수 없습니다."
 
 #: ../daemon/notify.c:532
 msgid ""
-"For further information please run\n"
-"\"svcs -xv nwam\" in a terminal."
-msgstr ""
-       "자세한 내용을 참조하려면 터미널에서\n"
-       "\"svcs -xv nwam\"을 실행하십시오."
+"For further information please refer to netadm(1) manual."
+msgstr "자세한 내용은 netadm(1) 매뉴얼을 참조하십시오."
 
 #: ../daemon/notify.c:609
 #, c-format
@@ -1407,1803 +1922,139 @@ msgstr "네트워크 프로필 '%s'(으)로 전환함"
 msgid "Switched to location '%s'"
 msgstr "'%s' 위치로 전환함"
 
-#: ../capplet/nwam_wireless_dialog.c:65
-msgid "Password saved, click here to change"
-msgstr "암호가 저장되었습니다. 변경하려면 여기를 누르십시오."
+#: ../daemon/nwam-enm-item.c:231
+msgid "Stop "
+msgstr "중지 "
 
-#: ../capplet/nwam_wireless_dialog.c:204
-msgid "Wireless NCU"
-msgstr "무선 NCU"
+#: ../daemon/nwam-enm-item.c:233
+msgid "Start "
+msgstr "시작 "
 
-#: ../capplet/nwam_wireless_dialog.c:205
-msgid "The Wireless NCU that the dialog is to work with."
-msgstr "대화 상자에서 사용할 무선 NCU입니다."
+#: ../daemon/nwam-menu.c:151 ../daemon/nwam-menu.c:152
+msgid "nwam menu sections"
+msgstr "NWAM 메뉴 섹션"
 
-#: ../capplet/nwam_wireless_dialog.c:212
-msgid "Wireless ESSID"
-msgstr "무선 ESSID"
+#: ../daemon/nwam-menuitem.c:156 ../daemon/nwam-menuitem.c:157
+msgid "proxy-object"
+msgstr "proxy-object"
 
-#: ../capplet/nwam_wireless_dialog.c:213
-msgid "The Wireless ESSID to connect to."
-msgstr "연결할 무선 ESSID입니다."
+#: ../daemon/nwam-menuitem.c:164 ../daemon/nwam-menuitem.c:165
+msgid "Left widget, ref'd"
+msgstr "왼쪽 위젯, 참조됨"
 
-#: ../capplet/nwam_wireless_dialog.c:219
-msgid "Wireless Security Type"
-msgstr "무선 보안 유형"
+#: ../daemon/nwam-menuitem.c:172 ../daemon/nwam-menuitem.c:173
+msgid "Right widget, ref'd"
+msgstr "오른쪽 위젯, 참조됨"
 
-#: ../capplet/nwam_wireless_dialog.c:220
-msgid "The Wireless security (None/WEP/WPA)."
-msgstr "무선 보안(없음/WEP/WPA)입니다."
+#: ../daemon/nwam-menuitem.c:180 ../daemon/nwam-menuitem.c:181
+msgid "Draw indicator"
+msgstr "그리기 표시기"
 
-#: ../capplet/nwam_wireless_dialog.c:227
-msgid "Wireless Security Key"
-msgstr "무선 보안 키"
+#: ../daemon/nwam-menuitem.c:188 ../daemon/nwam-menuitem.c:189
+msgid "required_auth"
+msgstr "required_auth"
 
-#: ../capplet/nwam_wireless_dialog.c:228
-msgid "The Wireless security key."
-msgstr "무선 보안 키입니다."
-
-#: ../capplet/nwam_wireless_dialog.c:235
-msgid "Wireless Security Key Index"
-msgstr "무선 보안 키 인덱스"
-
-#: ../capplet/nwam_wireless_dialog.c:236
-msgid "The Wireless security key index."
-msgstr "무선 보안 키 인덱스입니다."
-
-#: ../capplet/nwam_wireless_dialog.c:244
-msgid "WPA Username"
-msgstr "WPA 사용자 이름"
-
-#: ../capplet/nwam_wireless_dialog.c:245
-msgid "The Username to use for a WPA connection."
-msgstr "WPA 연결에 사용할 사용자 이름입니다."
-
-#: ../capplet/nwam_wireless_dialog.c:251
-msgid "WPA Password"
-msgstr "WPA 암호"
-
-#: ../capplet/nwam_wireless_dialog.c:252
-msgid "The Password to use for a WPA connection."
-msgstr "WPA 연결에 사용할 암호입니다."
-
-#: ../capplet/nwam_wireless_dialog.c:258
-msgid "WPA Config Type"
-msgstr "WPA 구성 유형"
-
-#: ../capplet/nwam_wireless_dialog.c:259
-msgid "The type of WPA Connection (Automatic or TTLS-PAP)"
-msgstr "WPA 연결 유형(자동 또는 TTLS-PAP)"
-
-#: ../capplet/nwam_wireless_dialog.c:267
-msgid "WPA Cert File"
-msgstr "WPA 인증서 파일"
-
-#: ../capplet/nwam_wireless_dialog.c:268
-msgid "The Certificate File to use for WPA."
-msgstr "WPA에 사용할 인증서 파일입니다."
-
-#: ../capplet/nwam_wireless_dialog.c:274
-msgid "Wireless BSSID list"
-msgstr "무선 BSSID 목록"
-
-#: ../capplet/nwam_wireless_dialog.c:275
-msgid "The Wireless AP BSSIDs known."
-msgstr "확인된 무선 AP BSSID입니다."
-
-#: ../capplet/nwam_wireless_dialog.c:281
-msgid "Wireless Network is Persistant"
-msgstr "무선 네트워크가 영구적입니다."
-
-#: ../capplet/nwam_wireless_dialog.c:282
-msgid "This Wireless Network should be remembered, on successful connection"
-msgstr "연결 성공 시 이 무선 네트워크가 저장됩니다."
-
-#: ../capplet/nwam_wireless_dialog.c:289
-msgid "On success, connect to Wireless Network"
-msgstr "성공 시 무선 네트워크에 연결"
-
-#: ../capplet/nwam_wireless_dialog.c:290
-msgid "On success (RESPONSE_OK), connect to Wireless Network"
-msgstr "성공(RESPONSE_OK) 시 무선 네트워크에 연결"
-
-#: ../capplet/nwam_wireless_dialog.c:364
-msgid "BSSID"
-msgstr "BSSID"
-
-#. Use to create a known wlan
-#: ../capplet/nwam_wireless_dialog.c:707 ../ui/nwam-manager-wireless.ui.h:3
-#: ../capplet/nwam-manager-properties.glade.h:33
-msgid "Add Wireless Network"
-msgstr "무선 네트워크 추가"
-
-#. Use to add a wlan
-#: ../capplet/nwam_wireless_dialog.c:711
-msgid "Join Wireless Network"
-msgstr "무선 네트워크 연결"
-
-#: ../capplet/nwam_wireless_dialog.c:718
-msgid "Edit Wireless Network"
-msgstr "무선 네트워크 편집"
-
-#: ../capplet/nwam_wireless_dialog.c:1220
-msgid "Validation Failed."
-msgstr "검증에 실패했습니다."
-
-#: ../capplet/nwam_wireless_dialog.c:1412
-msgid ""
-"The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
-msgstr "무선 네트워크 이름(ESSID)에 잘못된(비ASCII) 문자가 포함되어 있습니다."
-
-#: ../capplet/nwam_wireless_dialog.c:1417
-msgid "The Wireless network name (ESSID) should not be blank."
-msgstr "무선 네트워크 이름(ESSID)을 비워두면 안 됩니다."
-
-#: ../capplet/nwam_wireless_dialog.c:1437
+#: ../daemon/nwam-tooltip-widget.c:221 ../daemon/status_icon_tooltip.c:180
 #, c-format
-msgid "Wireless AP (BSSID) - '%s' is not a valid address"
-msgstr "무선 AP(BSSID) - '%s'은(는) 유효한 주소가 아닙니다."
+msgid "<b>Wireless (%s):</b> %s"
+msgstr "<b>무선(%s):</b> %s"
 
-#. Different, so FALSE
-#: ../capplet/nwam_wireless_dialog.c:1476
-msgid "Keys entered are different"
-msgstr "입력된 키가 서로 다릅니다."
-
-#: ../capplet/nwam_wireless_dialog.c:1494
-msgid "WEP keys of length 10 or 26 should be hexadecimal values only"
-msgstr "10 또는 26 길이의 WEP 키는 16진수 값이어야 합니다."
-
-#: ../capplet/nwam_wireless_dialog.c:1498
-msgid ""
-"WEP keys should be either 5 or 13 ASCII characters,\n"
-"or a hexadecimal value of length 10 or 26"
-msgstr ""
-       "WEP 키는 5자 또는 13자 ASCII 문자이거나\n"
-       "10 또는 26 길이의 16진수 값이어야 합니다."
-
-#: ../capplet/nwam_wireless_dialog.c:1503
-msgid "WPA keys should be between 8 and 63 characters in length"
-msgstr "WPA 키는 8자에서 63자 사이여야 합니다."
-
-#: ../capplet/nwam_wireless_dialog.c:1617
+#: ../daemon/nwam-tooltip-widget.c:223
 #, c-format
-msgid ""
-"Failed to validate wireless network due to an error with the property : %s"
-msgstr ""
-       "등록 정보와 관련된 오류로 인해 무선 네트워크 검증 실패: %s"
+msgid " (%s)"
+msgstr " (%s)"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:172
-msgid "Unnamed Modifier"
-msgstr "이름 없는 수정자"
-
-#: ../capplet/nwam_vpn_pref_dialog.c:212
-msgid ""
-"Network modifiers can only be renamed immediately after\n"
-"they have been created."
-msgstr ""
-       "네트워크 수정자는 생성된 직후에만 이름을\n"
-       "바꿀 수 있습니다."
-
-#: ../capplet/nwam_vpn_pref_dialog.c:398
-msgid "Modifier Name"
-msgstr "수정자 이름"
-
-#: ../capplet/nwam_vpn_pref_dialog.c:417
-msgid "Status"
-msgstr "상태"
-
-#: ../capplet/nwam_vpn_pref_dialog.c:464 ../capplet/nwam_vpn_pref_dialog.c:477
-#: ../capplet/nwam_vpn_pref_dialog.c:492 ../capplet/nwam_vpn_pref_dialog.c:520
-#: ../capplet/nwam_pref_dialog.c:323 ../capplet/nwam_pref_dialog.c:452
-#: ../capplet/nwam_conn_conf_ip_panel.c:1052
-#: ../capplet/nwam_conn_conf_ip_panel.c:1066
-#: ../capplet/nwam_conn_conf_ip_panel.c:1111
-#: ../capplet/nwam_condition_vbox.c:407
-msgid "Validation Error"
-msgstr "검증 오류"
-
-#: ../capplet/nwam_vpn_pref_dialog.c:465
-msgid "Invalid value specified for Start Command"
-msgstr "시작 명령에 대해 잘못된 값이 지정되었습니다."
-
-#: ../capplet/nwam_vpn_pref_dialog.c:478
-msgid "Invalid value specified for Stop Command"
-msgstr "중지 명령에 대해 잘못된 값이 지정되었습니다."
-
-#: ../capplet/nwam_vpn_pref_dialog.c:493
-msgid "Invalid value specified for SMF FMRI"
-msgstr "SMF FMRI에 대해 잘못된 값이 지정되었습니다."
-
-#: ../capplet/nwam_vpn_pref_dialog.c:521
-msgid ""
-"Activation mode is set to Conditional,\n"
-"but no rules have been configured."
-msgstr ""
-       "활성화 모드가 조건부로 설정되어 있지만\n"
-       "구성된 규칙이 없습니다."
-
-#: ../capplet/nwam_vpn_pref_dialog.c:635 ../capplet/nwam_location_dialog.c:625
-#: ../capplet/nwam_env_pref_dialog.c:2430 ../capplet/nwam_profile_panel.c:577
+#: ../daemon/nwam-tooltip-widget.c:231 ../daemon/status_icon_tooltip.c:185
 #, c-format
-msgid "Validation of %s failed with the property %s"
-msgstr "%2$s 등록 정보로 인해 %1$s 검증을 실패했습니다."
+msgid "<b>Wired (%s):</b> %s"
+msgstr "<b>유선(%s):</b> %s"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:638 ../capplet/nwam_location_dialog.c:628
-#: ../capplet/nwam_env_pref_dialog.c:2434 ../capplet/nwam_profile_panel.c:580
-msgid "Validation error"
-msgstr "검증 오류"
-
-#: ../capplet/nwam_vpn_pref_dialog.c:644 ../capplet/nwam_location_dialog.c:634
-#: ../capplet/nwam_env_pref_dialog.c:2420 ../capplet/nwam_profile_panel.c:586
+#: ../daemon/nwam-tooltip-widget.c:247 ../daemon/status_icon_tooltip.c:197
 #, c-format
-msgid "Committing %s failed..."
-msgstr "%s 커밋 실패..."
+msgid "<b>Location:</b> %s"
+msgstr "<b>위치:</b> %s"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:647 ../capplet/nwam_location_dialog.c:637
-#: ../capplet/nwam_profile_panel.c:589
-msgid "Commit ENM error"
-msgstr "ENM 커밋 오류"
-
-#: ../capplet/nwam_vpn_pref_dialog.c:795
-msgid "Select start command"
-msgstr "시작 명령 선택"
-
-#: ../capplet/nwam_vpn_pref_dialog.c:798
-msgid "Select stop command"
-msgstr "중지 명령 선택"
-
-#: ../capplet/nwam_vpn_pref_dialog.c:872
-msgid "Running"
-msgstr "실행 중"
-
-#: ../capplet/nwam_vpn_pref_dialog.c:874
-msgid "Stopped"
-msgstr "중지됨"
-
-#: ../capplet/nwam_vpn_pref_dialog.c:942
+#: ../daemon/nwam-tooltip-widget.c:249 ../daemon/status_icon_tooltip.c:203
 #, c-format
-msgid "Start/stop '%s' according to rules"
-msgstr "규칙에 따라 '%s' 시작/중지"
+msgid "<b>Network Profile:</b> %s"
+msgstr "<b>네트워크 프로필:</b> %s"
 
-#: ../capplet/nwam_location_dialog.c:100
-#: ../ui/nwam-manager-properties.ui.h:187
-msgid "manual activation only"
-msgstr "수동 활성화만"
-
-#: ../capplet/nwam_location_dialog.c:101
-#: ../ui/nwam-manager-properties.ui.h:185
-msgid "activated by rules"
-msgstr "규칙에 의해 활성화됨"
-
-#: ../capplet/nwam_location_dialog.c:102
-#: ../ui/nwam-manager-properties.ui.h:186
-msgid "activated by system"
-msgstr "시스템에 의해 활성화됨"
-
-#: ../capplet/nwam_location_dialog.c:193
-msgid "Unnamed Location"
-msgstr "이름 없는 위치"
-
-#: ../capplet/nwam_location_dialog.c:201
-msgid "Location Name"
-msgstr "위치 이름"
-
-#: ../capplet/nwam_location_dialog.c:223
+#: ../daemon/nwam-tooltip-widget.c:255
 #, c-format
-msgid "Remove location '%s'?"
-msgstr "'%s' 위치를 제거하겠습니까?"
+msgid "<b>Network Modifier %s:</b> %s"
+msgstr "<b>네트워크 수정자 %s:</b> %s"
 
-#: ../capplet/nwam_location_dialog.c:225
-msgid "Remove Location?"
-msgstr "위치를 제거하겠습니까?"
+#: ../daemon/status_icon.c:1305
+msgid "Service is not active."
+msgstr "서비스가 활성화되어 있지 않습니다."
 
-#: ../capplet/nwam_location_dialog.c:281 ../capplet/nwam_profile_panel.c:283
-msgid "Copy of"
-msgstr "복사본_"
+#: ../daemon/status_icon.c:1379
+msgid "About NWAM Manager"
+msgstr "NWAM 관리자 정보"
 
-#: ../capplet/nwam_location_dialog.c:319 ../capplet/nwam_location_dialog.c:320
-msgid "Toggled env"
-msgstr "토글된 환경"
-
-#: ../capplet/nwam_location_dialog.c:419 ../capplet/nwam_profile_panel.c:453
-msgid "Name"
-msgstr "이름"
-
-#: ../capplet/nwam_proxy_password_dialog.c:102
-msgid "Proxy Username"
-msgstr "프록시 사용자 이름"
-
-#: ../capplet/nwam_proxy_password_dialog.c:103
-msgid "The Proxy Username to use for authenticating proxies"
-msgstr "프록시 인증에 사용할 프록시 사용자 이름"
-
-#: ../capplet/nwam_proxy_password_dialog.c:110
-msgid "Proxy Password"
-msgstr "프록시 암호"
-
-#: ../capplet/nwam_proxy_password_dialog.c:111
-msgid "The Proxy Password to use for authenticating proxies"
-msgstr "프록시 인증에 사용할 프록시 암호"
-
-#: ../capplet/nwam_pref_dialog.c:321 ../capplet/nwam_pref_dialog.c:450
-#: ../capplet/nwam_conn_conf_ip_panel.c:1110
-#, c-format
+#: ../daemon/status_icon.c:1380
 msgid ""
-"An error occurred validating the current NCU.\n"
-"The property '%s' caused this failure"
-msgstr ""
-       "현재 NCU를 검증하는 중 오류가 발생했습니다.\n"
-       "'%s' 등록 정보가 이 오류의 원인입니다."
-
-#: ../capplet/nwam_pref_dialog.c:523 ../capplet/nwam_conn_stat_panel.c:235
-#: ../ui/nwam-manager-properties.ui.h:44
-#: ../capplet/nwam-manager-properties.glade.h:45
-msgid "Connection Status"
-msgstr "연결 상태"
-
-#: ../capplet/nwam_pref_dialog.c:529 ../ui/nwam-manager-properties.ui.h:103
-#: ../capplet/nwam-manager-properties.glade.h:112
-msgid "Network Profile"
-msgstr "네트워크 프로필"
-
-#: ../capplet/nwam_conn_stat_panel.c:202
-msgid "Connection Information"
-msgstr "연결 정보"
-
-#: ../capplet/nwam_conn_stat_panel.c:517 ../capplet/nwam_profile_dialog.c:863
-#, c-format
-msgid ""
-"<b>%s</b>\n"
-"<small>%s</small>"
-msgstr ""
-       "<b>%s</b>\n"
-       "<small>%s</small>"
-
-#: ../capplet/nwam_conn_stat_panel.c:702
-msgid "Unknown profile"
-msgstr "알 수 없는 프로필"
-
-#: ../capplet/nwam_conn_stat_panel.c:717
-msgid "Unknown env"
-msgstr "알 수 없는 환경"
-
-#: ../capplet/capplet-utils.c:125
-msgid "No name"
-msgstr "이름 없음"
-
-#: ../capplet/capplet-utils.c:279
-msgid ""
-"\n"
-"\n"
-"The name of a committed object cannot be changed."
-msgstr ""
-       "\n"
-       "\n"
-       "커밋된 객체의 이름을 변경할 수 없습니다."
-
-#: ../capplet/capplet-utils.c:281
-msgid "Renaming Failed"
-msgstr "이름 바꾸기 실패"
-
-#: ../capplet/capplet-utils.c:292 ../capplet/nwam_profile_panel.c:813
-#, c-format
-msgid "The name '%s' is already in use"
-msgstr "'%s' 이름은 이미 사용되고 있습니다."
-
-#: ../capplet/capplet-utils.c:294 ../capplet/nwam_profile_panel.c:815
-msgid "Name Already In Use"
-msgstr "이름이 이미 사용되고 있음"
-
-#: ../capplet/nwam_wireless_chooser.c:147
-#: ../capplet/nwam_conn_conf_ip_panel.c:390
-msgid "Name (ESSID)"
-msgstr "이름(ESSID)"
-
-#: ../capplet/nwam_wireless_chooser.c:169
-msgid "Speed"
-msgstr "속도"
-
-#: ../capplet/nwam_wireless_chooser.c:184
-#: ../capplet/nwam_conn_conf_ip_panel.c:436
-#: ../ui/nwam-manager-properties.ui.h:124
-#: ../capplet/nwam-manager-properties.glade.h:132
-msgid "Security"
-msgstr "보안"
-
-#: ../capplet/main.c:63
-msgid "Show 'Network Preferences' Dialog"
-msgstr "'네트워크 기본 설정' 대화 상자 표시"
-
-#: ../capplet/main.c:64
-msgid "Show 'Network Configuration' Dialog"
-msgstr "'네트워크 구성' 대화 상자 표시"
-
-#: ../capplet/main.c:65
-msgid "Show 'Network Modifier Preferences' Dialog"
-msgstr "'네트워크 수정자 기본 설정' 대화 상자 표시"
-
-#: ../capplet/main.c:66
-msgid "Show 'Wireless Network Chooser' Dialog"
-msgstr "'무선 네트워크 선택기' 대화 상자 표시"
-
-#: ../capplet/main.c:67
-msgid "Show 'Location' Dialog"
-msgstr "'위치' 대화 상자 표시"
-
-#: ../capplet/main.c:68
-msgid "Configure a network interface"
-msgstr "네트워크 인터페이스 구성"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:183
-#: ../ui/nwam-manager-properties.ui.h:51
-msgid "DHCP assigned"
-msgstr "DHCP가 지정됨"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:184
-#: ../ui/nwam-manager-properties.ui.h:95
-msgid "Manually assigned"
-msgstr "수동으로 지정됨"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:185
-#: ../ui/nwam-manager-properties.ui.h:50
-msgid "DHCP and Manually assigned"
-msgstr "DHCP가 지정되고 수동으로 지정됨"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:286
-#, c-format
-msgid "Remove favourite with ESSID '%s'?"
-msgstr "ESSID가 '%s'인 즐겨찾기를 제거하겠습니까?"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:287
-msgid "Remove Wireless Favourite?"
-msgstr "무선 즐겨찾기를 제거하겠습니까?"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:408
-msgid "Channel"
-msgstr "채널"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:422
-msgid "Mb/s"
-msgstr "MB/초"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:502
-#: ../capplet/nwam_env_pref_dialog.c:844
-msgid "Subnet Mask"
-msgstr "서브넷 마스크"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:504
-msgid "Prefix Length"
-msgstr "접두어 길이"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:798
-msgid "<i>No IP Address assigned</i>"
-msgstr "<i>지정된 IP 주소 없음</i>"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:1051
-#: ../capplet/nwam_conn_conf_ip_panel.c:1065
-#, c-format
-msgid ""
-"An error occurred validating the current NCU.\n"
-"The device is configured to use static IPv4 addresses, but none exist."
-msgstr ""
-       "현재 NCU를 검증하는 중 오류가 발생했습니다.\n"
-       "장치가 정적 IPv4 주소를 사용하도록 구성되어 있지만 정적 IPv4 주소가 존재하지 않습니다."
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:1323
-#: ../ui/nwam-manager-properties.ui.h:67
-msgid "Enabled"
-msgstr "활성화됨"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:1329
-#, c-format
-msgid "Configure IPv_6 (%s)"
-msgstr "IPv_6(%s) 구성"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:1331
-#, c-format
-msgid "Configure IPv_6"
-msgstr "IPv_6 구성"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:1501
-#, c-format
-msgid "%uMb"
-msgstr "%uMB"
-
-#: ../capplet/nwam_conn_conf_ip_panel.c:1504
-#: ../capplet/nwam_conn_conf_ip_panel.c:1523
-msgid "<i>Unknown</i>"
-msgstr "<i>알 수 없음</i>"
-
-#: ../capplet/nwam_env_pref_dialog.c:1132
-#: ../capplet/nwam_env_pref_dialog.c:1133
-#: ../capplet/nwam_env_pref_dialog.c:1700
-#: ../capplet/nwam_env_pref_dialog.c:1701
-msgid "enter below"
-msgstr "아래에 입력"
-
-#: ../capplet/nwam_env_pref_dialog.c:1777
-#: ../capplet/nwam_env_pref_dialog.c:1787
-#: ../capplet/nwam_env_pref_dialog.c:1843
-#: ../capplet/nwam_env_pref_dialog.c:1871 ../ui/nwam-manager-properties.ui.h:6
-#: ../capplet/nwam-manager-properties.glade.h:6
-msgid "(optional)"
-msgstr "(선택 사항)"
-
-#: ../capplet/nwam_env_pref_dialog.c:1797 ../ui/nwam-manager-properties.ui.h:7
-#: ../capplet/nwam-manager-properties.glade.h:7
-msgid "(required)"
-msgstr "(필수)"
-
-#: ../capplet/nwam_env_pref_dialog.c:1899
-#, c-format
-msgid "<small><i><b>Default nsswitch file (in use):</b> %s</i></small>"
-msgstr "<small><i><b>기본 nsswitch 파일(사용 중):</b> %s</i></small>"
-
-#: ../capplet/nwam_env_pref_dialog.c:1904
-#, c-format
-msgid "<small><i><b>Default nsswitch file (not in use):</b> %s</i></small>"
-msgstr "<small><i><b>기본 nsswitch 파일(사용 중 아님):</b> %s</i></small>"
-
-#: ../capplet/nwam_env_pref_dialog.c:2013
-#, c-format
-msgid ""
-"<b>%s</b>\n"
-"%s"
-msgstr ""
-       "<b>%s</b>\n"
-       "%s"
-
-#: ../capplet/nwam_env_pref_dialog.c:2177
-msgid "Select A File"
-msgstr "파일 선택"
-
-#: ../capplet/nwam_env_pref_dialog.c:2196
-#: ../ui/nwam-manager-properties.ui.h:89
-#: ../capplet/nwam-manager-properties.glade.h:100
-#, no-c-format
-msgid "Location Properties : %s"
-msgstr "위치 등록 정보: %s"
-
-#: ../capplet/nwam_env_pref_dialog.c:2307
-msgid "Default Domain Required"
-msgstr "기본 도메인 필요"
-
-#: ../capplet/nwam_env_pref_dialog.c:2308
-msgid ""
-"With NIS or LDAP a default domain must be specified.\n"
-"Please provide one in the appropriate field."
-msgstr ""
-       "NIS 또는 LDAP를 사용하려면 기본 도메인을 지정해야 합니다.\n"
-       "해당 필드에 기본 도메인을 제공하십시오."
-
-#: ../capplet/nwam_env_pref_dialog.c:2319
-msgid "Nameservice Switch File Required"
-msgstr "이름 서비스 스위치 파일 필요"
-
-#: ../capplet/nwam_env_pref_dialog.c:2320
-msgid ""
-"A nameservice switch file should be specified\n"
-"if more than one name service is selected."
-msgstr ""
-       "이름 서비스가 두 개 이상 선택된 경우 이름 서비스\n"
-       "스위치 파일을 지정해야 합니다."
-
-#: ../capplet/nwam_env_pref_dialog.c:2423
-msgid "Commit Location Error"
-msgstr "커밋 위치 오류"
-
-#: ../capplet/nwam_env_pref_dialog.c:2674
-msgid "Invalid Service FMRI"
-msgstr "잘못된 서비스 FMRI"
-
-#: ../capplet/nwam_env_pref_dialog.c:2675
-msgid ""
-"Either the service FMRI you entered was not in a valid\n"
-"format, or the service does not exist. Please try again"
-msgstr ""
-       "입력한 서비스 FMRI가 유효한 형식이 아니거나\n"
-       "서비스가 존재하지 않습니다. 다시 시도하십시오."
-
-#: ../capplet/nwam_tree_view.c:176 ../capplet/nwam_tree_view.c:177
-msgid "NwamObject Contrl Interface"
-msgstr "NwamObject 제어 인터페이스"
-
-#. Nothing selected - shouldn't happen but could if there was
-#. * nothing to select.
-#.
-#: ../capplet/nwam_condition_vbox.c:290
-#, c-format
-msgid ""
-"Invalid value specified for field :\n"
-"\n"
-"    %s"
-msgstr ""
-       "필드에 대해 잘못된 값이 지정되었습니다.\n"
-       "\n"
-       "    %s"
-
-#: ../capplet/nwam_condition_vbox.c:327
-#, c-format
-msgid ""
-"Invalid empty value specified for field :\n"
-"\n"
-"    %s"
-msgstr ""
-       "필드에 대해 잘못된 빈 값이 지정되었습니다.\n"
-       "\n"
-       "    %s"
-
-#: ../capplet/nwam_condition_vbox.c:362
-msgid "Got empty condition"
-msgstr "빈 조건을 가져왔습니다."
-
-#: ../capplet/nwam_condition_vbox.c:606
-msgid "< No conditions >"
-msgstr "<조건 없음>"
-
-#: ../ui/nwam-manager-properties.ui.h:1
-#: ../capplet/nwam-manager-properties.glade.h:1
-msgid ""
-"\n"
-"Choose which connections are enabled in this profile:"
-msgstr ""
-       "\n"
-       "이 프로필에서 사용으로 설정된 연결 선택:"
-
-#: ../ui/nwam-manager-properties.ui.h:3
-#: ../capplet/nwam-manager-properties.glade.h:3
-msgid ""
-"\n"
-"Disable these services when this location is active:"
-msgstr ""
-       "\n"
-       "이 위치가 활성화된 경우 해당 서비스 사용 안함:"
-
-#: ../ui/nwam-manager-properties.ui.h:5
-#: ../capplet/nwam-manager-properties.glade.h:5
-msgid "(enter below)"
-msgstr "(아래에 입력)"
-
-#: ../ui/nwam-manager-properties.ui.h:8
-msgid "---"
-msgstr "---"
-
-#: ../ui/nwam-manager-properties.ui.h:9
-msgid "<b>Always disabled:</b>"
-msgstr "<b>항상 사용 안함:</b>"
-
-#: ../ui/nwam-manager-properties.ui.h:10
-msgid "<b>Always enabled:</b>"
-msgstr "<b>항상 사용:</b>"
-
-#: ../ui/nwam-manager-properties.ui.h:11
-#: ../capplet/nwam-manager-properties.glade.h:12
-msgid "<b>IPfilter</b>"
-msgstr "<b>IPfilter</b>"
-
-#: ../ui/nwam-manager-properties.ui.h:12
-#: ../capplet/nwam-manager-properties.glade.h:13
-msgid "<b>IPsec</b>"
-msgstr "<b>IPsec</b>"
-
-#: ../ui/nwam-manager-properties.ui.h:13
-#: ../capplet/nwam-manager-properties.glade.h:14
-msgid "<b>Location:</b>"
-msgstr "<b>위치:</b>"
-
-#: ../ui/nwam-manager-properties.ui.h:14
-msgid "<b>Network Modifiers:</b>"
-msgstr "<b>네트워크 수정자:</b>"
-
-#: ../ui/nwam-manager-properties.ui.h:15
-#: ../capplet/nwam-manager-properties.glade.h:15
-msgid "<b>Network Profile:</b>"
-msgstr "<b>네트워크 프로필:</b>"
-
-#: ../ui/nwam-manager-properties.ui.h:16
-msgid "<b>Priority groups:</b>"
-msgstr "<b>우선 순위 그룹:</b>"
-
-#: ../ui/nwam-manager-properties.ui.h:17
-msgid "<b>Selected profile:</b>"
-msgstr "<b>선택된 프로필:</b>"
-
-#: ../ui/nwam-manager-properties.ui.h:18
-#: ../capplet/nwam-manager-properties.glade.h:17
-msgid ""
-"<big><b>Proxy Authentication</b></big>\n"
-"Enter username and password for http://$HOST:$PORT\n"
-msgstr ""
-       "<big><b>프록시 인증</b></big>\n"
-       "http://$HOST:$PORT에 대한 사용자 이름 및 암호 입력\n"
-
-#: ../ui/nwam-manager-properties.ui.h:21
-#: ../capplet/nwam-manager-properties.glade.h:20
-msgid "<i><small>Double-click table cells to edit</small></i>"
-msgstr "<i><small>편집할 테이블 셀을 두 번 누르십시오.</small></i>"
-
-#: ../ui/nwam-manager-properties.ui.h:22
-#: ../capplet/nwam-manager-properties.glade.h:21
-msgid "<i><small>Used by manual NIS and LDAP configurations</small></i>"
-msgstr "<i><small>수동 NIS 및 LDAP 구성에 사용됨</small></i>"
-
-#: ../ui/nwam-manager-properties.ui.h:23
-msgid ""
-"<small><i><b>Default nsswitch file (in use):</b> /etc/nsswitch.dns</i></"
-"small>"
-msgstr ""
-       "<small><i><b>기본 nsswitch 파일(사용 중):</b> /etc/nsswitch.dns</i></"
-       "small>"
-
-#: ../ui/nwam-manager-properties.ui.h:24
-#: ../capplet/nwam-manager-properties.glade.h:22
-msgid ""
-"<small><i><b>Example:</b> 192.168.1.1, my.local.net,  *.remote.net</i></"
-"small>"
-msgstr ""
-       "<small><i><b>예:</b> 192.168.1.1, my.local.net,  *.remote.net</i></"
-       "small>"
-
-#: ../ui/nwam-manager-properties.ui.h:25
-msgid "<small><i><b>Example:</b> attempts:3 ndots:2 debug</i></small>"
-msgstr "<small><i><b>예:</b> attempts:3 ndots:2 debug</i></small>"
-
-#: ../ui/nwam-manager-properties.ui.h:26
-#: ../capplet/nwam-manager-properties.glade.h:23
-msgid ""
-"<small><i><b>Examples:</b>\n"
-"svc://localhost/system/system-log:default\n"
-"svc:/system/system-log:default\n"
-"system/system-log:default\n"
-"</i></small>"
-msgstr ""
-       "<small><i><b>예:</b>\n"
-       "svc://localhost/system/system-log:default\n"
-       "svc:/system/system-log:default\n"
-       "system/system-log:default\n"
-       "</i></small>"
-
-#: ../ui/nwam-manager-properties.ui.h:31
-#: ../capplet/nwam-manager-properties.glade.h:29
-msgid "Accept _stateless addresses from router"
-msgstr "라우터의 Stateless 주소 수락(_S)"
-
-#: ../ui/nwam-manager-properties.ui.h:32
-#: ../capplet/nwam-manager-properties.glade.h:30
-msgid "Accept state_ful addresses from router"
-msgstr "라우터의 Stateful 주소 수락(_F)"
-
-#: ../ui/nwam-manager-properties.ui.h:34
-msgid "Advanced resolver settings"
-msgstr "고급 분석기 설정"
-
-#: ../ui/nwam-manager-properties.ui.h:35 ../capplet/nwam_profile_dialog.c:140
-msgid "All connections must be enabled"
-msgstr "모든 연결을 사용으로 설정해야 합니다."
-
-#: ../ui/nwam-manager-properties.ui.h:36
-#: ../capplet/nwam-manager-properties.glade.h:35
-msgid "Ask before..."
-msgstr "미리 확인..."
-
-#: ../ui/nwam-manager-properties.ui.h:38
-msgid "Automatic Profile"
-msgstr "자동 프로필"
-
-#: ../ui/nwam-manager-properties.ui.h:39
-msgid "Available network modifiers:"
-msgstr "사용 가능한 네트워크 수정자:"
-
-#: ../ui/nwam-manager-properties.ui.h:40
-#: ../capplet/nwam-manager-properties.glade.h:40
-msgid "Bro_wse..."
-msgstr "찾아보기(_W)..."
-
-#: ../ui/nwam-manager-properties.ui.h:41
-msgid "Check the connections that you wish to include in this profile:"
-msgstr "이 프로필에 포함시킬 연결 확인:"
-
-#: ../ui/nwam-manager-properties.ui.h:42
-#: ../capplet/nwam-manager-properties.glade.h:42
-msgid "CiscoVPN active"
-msgstr "CiscoVPN 활성"
-
-#: ../ui/nwam-manager-properties.ui.h:43
-#: ../capplet/nwam-manager-properties.glade.h:43
-msgid "Configuration _file:"
-msgstr "구성 파일(_F):"
-
-#: ../ui/nwam-manager-properties.ui.h:45
-#: ../capplet/nwam-manager-properties.glade.h:55
-msgid "Connections..."
-msgstr "연결..."
-
-#: ../ui/nwam-manager-properties.ui.h:46
-#: ../capplet/nwam-manager-properties.glade.h:57
-msgid "Current IPv_6 setting: enabled"
-msgstr "현재 IPv_6 설정: 사용"
-
-#: ../ui/nwam-manager-properties.ui.h:47
-msgid "Custom nsswitch file:"
-msgstr "사용자 정의 nsswitch 파일:"
-
-#: ../ui/nwam-manager-properties.ui.h:48
-#: ../capplet/nwam-manager-properties.glade.h:58
-msgid "DHCP"
-msgstr "DHCP"
-
-#: ../ui/nwam-manager-properties.ui.h:49
-msgid "DHCP _Address:"
-msgstr "DHCP 주소(_A):"
-
-#: ../ui/nwam-manager-properties.ui.h:52
-#: ../capplet/nwam-manager-properties.glade.h:59
-msgid "DHC_P"
-msgstr "DHCP(_P)"
-
-#: ../ui/nwam-manager-properties.ui.h:53
-#: ../capplet/nwam-manager-properties.glade.h:60
-msgid "D_HCP"
-msgstr "DHCP(_H)"
-
-#: ../ui/nwam-manager-properties.ui.h:54
-#: ../capplet/nwam-manager-properties.glade.h:61
-msgid "D_omain:"
-msgstr "도메인(_O):"
-
-#: ../ui/nwam-manager-properties.ui.h:55
-#: ../capplet/nwam-manager-properties.glade.h:62
-msgid "De_fault domain:"
-msgstr "기본 도메인(_F):"
-
-#: ../ui/nwam-manager-properties.ui.h:56
-msgid "Default  _Route:"
-msgstr "기본 경로(_R):"
-
-#: ../ui/nwam-manager-properties.ui.h:57
-msgid "Default Ro_ute:"
-msgstr "기본 경로(_U):"
-
-#: ../ui/nwam-manager-properties.ui.h:58
-#: ../capplet/nwam-manager-properties.glade.h:63
-msgid "Di_sable"
-msgstr "사용 안함(_S)"
-
-#: ../ui/nwam-manager-properties.ui.h:59
-msgid "Direct connection to internet"
-msgstr "인터넷에 직접 연결"
-
-#: ../ui/nwam-manager-properties.ui.h:62
-#: ../capplet/nwam-manager-properties.glade.h:73
-msgid "Domain:"
-msgstr "도메인:"
-
-#: ../ui/nwam-manager-properties.ui.h:63
-msgid "Edit Connections"
-msgstr "연결 편집"
-
-#: ../ui/nwam-manager-properties.ui.h:64
-msgid "Edit Network Profile"
-msgstr "네트워크 프로필 편집"
-
-#: ../ui/nwam-manager-properties.ui.h:65
-#: ../capplet/nwam-manager-properties.glade.h:74
-msgid "Edit _Rules..."
-msgstr "규칙 편집(_R)..."
-
-#: ../ui/nwam-manager-properties.ui.h:66
-#: ../capplet/nwam-manager-properties.glade.h:75
-msgid "Enable these services when this location is active:"
-msgstr "이 위치가 활성화된 경우 해당 서비스 사용:"
-
-#: ../ui/nwam-manager-properties.ui.h:68
-#: ../capplet/nwam-manager-properties.glade.h:76
-msgid "Enabled connections:"
-msgstr "사용으로 설정된 연결:"
-
-#: ../ui/nwam-manager-properties.ui.h:69
-#: ../capplet/nwam-manager-properties.glade.h:77
-msgid "Ethernet"
-msgstr "이더넷"
-
-#: ../ui/nwam-manager-properties.ui.h:70 ../capplet/nwam_profile_dialog.c:138
-msgid "Exactly one connection is enabled"
-msgstr "정확히 하나의 연결이 사용으로 설정되어 있습니다."
-
-#: ../ui/nwam-manager-properties.ui.h:71
-#: ../capplet/nwam-manager-properties.glade.h:81
-msgid ""
-"Favorite wireless networks, in the order that\n"
-"connection will be attempted:"
-msgstr ""
-       "즐겨찾기 무선 네트워크\n"
-       "(연결이 시도될 순서대로):"
-
-#: ../ui/nwam-manager-properties.ui.h:73
-msgid "From configuration (PAC) file"
-msgstr "구성(PAC) 파일 기반"
-
-#: ../ui/nwam-manager-properties.ui.h:74
-#: ../capplet/nwam-manager-properties.glade.h:83
-msgid "HTTP_S:"
-msgstr "HTTPS(_S):"
-
-#: ../ui/nwam-manager-properties.ui.h:75
-#: ../capplet/nwam-manager-properties.glade.h:84
-msgid "IP Address"
-msgstr "IP 주소"
-
-#: ../ui/nwam-manager-properties.ui.h:76
-#: ../capplet/nwam-manager-properties.glade.h:85
-msgid "IP_filter configuration:"
-msgstr "IPfilter 구성(_F):"
-
-#: ../ui/nwam-manager-properties.ui.h:77
-#: ../capplet/nwam-manager-properties.glade.h:86
-msgid "IP_pool configuration:"
-msgstr "IPpool 구성(_P):"
-
-#: ../ui/nwam-manager-properties.ui.h:78
-#: ../capplet/nwam-manager-properties.glade.h:87
-msgid "IPfilter v_6 configuration:"
-msgstr "IPfilter v6 구성(_6):"
-
-#: ../ui/nwam-manager-properties.ui.h:79
-#: ../capplet/nwam-manager-properties.glade.h:88
-msgid "IPsec p_olicy configuration"
-msgstr "IPsec 정책 구성(_O)"
-
-#: ../ui/nwam-manager-properties.ui.h:80
-msgid "IPv4 I_P:"
-msgstr "IPv4 IP(_P):"
-
-#: ../ui/nwam-manager-properties.ui.h:81
-#: ../capplet/nwam-manager-properties.glade.h:89
-msgid "IPv6 I_P:"
-msgstr "IPv6 IP(_P):"
-
-#: ../ui/nwam-manager-properties.ui.h:82
-#: ../capplet/nwam-manager-properties.glade.h:90
-msgid "I_KE configuration:"
-msgstr "IKE 구성(_K):"
-
-#: ../ui/nwam-manager-properties.ui.h:83
-#: ../capplet/nwam-manager-properties.glade.h:91
-msgid "If no favorite networks are available:"
-msgstr "사용 가능한 즐겨찾기 네트워크가 없을 경우:"
-
-#: ../ui/nwam-manager-properties.ui.h:84
-#: ../capplet/nwam-manager-properties.glade.h:92
-msgid "If the following conditions are true:"
-msgstr "다음 조건이 true일 경우:"
-
-#: ../ui/nwam-manager-properties.ui.h:85
-msgid "Join an open network"
-msgstr "열려 있는 네트워크 연결"
-
-#: ../ui/nwam-manager-properties.ui.h:90
-#: ../capplet/nwam-manager-properties.glade.h:101
-msgid "Location Properties : <location name>"
-msgstr "위치 등록 정보: <위치 이름>"
-
-#: ../ui/nwam-manager-properties.ui.h:91
-#: ../capplet/nwam-manager-properties.glade.h:102
-msgid "Man_ual"
-msgstr "수동(_U)"
-
-#: ../ui/nwam-manager-properties.ui.h:92
-msgid "Manage modifier using an SMF service:"
-msgstr "SMF 서비스를 사용하여 수정자 관리:"
-
-#: ../ui/nwam-manager-properties.ui.h:93
-msgid "Manage modifier using command line applications:"
-msgstr "명령줄 응용 프로그램을 사용하여 수정자 관리:"
-
-#: ../ui/nwam-manager-properties.ui.h:94
-#: ../capplet/nwam-manager-properties.glade.h:105
-msgid "Manual"
-msgstr "수동"
-
-#: ../ui/nwam-manager-properties.ui.h:96
-#: ../capplet/nwam-manager-properties.glade.h:106
-msgid "Match _all"
-msgstr "모두 일치(_A)"
-
-#: ../ui/nwam-manager-properties.ui.h:97
-#: ../capplet/nwam-manager-properties.glade.h:107
-msgid "Match a_ny"
-msgstr "임의 일치(_N)"
-
-#: ../ui/nwam-manager-properties.ui.h:98
-#: ../capplet/nwam-manager-properties.glade.h:108
-msgid "Multiple"
-msgstr "다중"
-
-#: ../ui/nwam-manager-properties.ui.h:99
-#: ../capplet/nwam-manager-properties.glade.h:109
-msgid "Name Services"
-msgstr "이름 서비스"
-
-#: ../ui/nwam-manager-properties.ui.h:100
-#: ../capplet/nwam-manager-properties.glade.h:110
-msgid "Network Locations"
-msgstr "네트워크 위치"
-
-#: ../ui/nwam-manager-properties.ui.h:101
-msgid "Network Modifiers"
-msgstr "네트워크 수정자"
-
-#: ../ui/nwam-manager-properties.ui.h:102
-#: ../capplet/nwam-manager-properties.glade.h:111
-msgid "Network Preferences"
-msgstr "네트워크 기본 설정"
-
-#: ../ui/nwam-manager-properties.ui.h:104
-#: ../capplet/nwam-manager-properties.glade.h:113
-msgid "Network Services"
-msgstr "네트워크 서비스"
-
-#: ../ui/nwam-manager-properties.ui.h:105
-msgid "Network profiles:"
-msgstr "네트워크 프로필:"
-
-#: ../ui/nwam-manager-properties.ui.h:106
-#: ../capplet/nwam-manager-properties.glade.h:114
-msgid "New _Group"
-msgstr "새 그룹(_G)"
-
-#: ../ui/nwam-manager-properties.ui.h:107
-#: ../capplet/nwam-manager-properties.glade.h:120
-msgid "Not required for Phase 1"
-msgstr "1단계에 필요하지 않음"
-
-#: ../ui/nwam-manager-properties.ui.h:108
-#: ../capplet/nwam-manager-properties.glade.h:121
-msgid "Office"
-msgstr "오피스"
-
-#: ../ui/nwam-manager-properties.ui.h:109 ../capplet/nwam_profile_dialog.c:139
-msgid "One or more connections may be enabled"
-msgstr "하나 이상의 연결이 사용으로 설정되었을 수 있습니다."
-
-#: ../ui/nwam-manager-properties.ui.h:110
-msgid "Options: "
-msgstr "옵션: "
-
-#: ../ui/nwam-manager-properties.ui.h:111
-#: ../capplet/nwam-manager-properties.glade.h:122
-msgid "PAC"
-msgstr "PAC"
-
-#: ../ui/nwam-manager-properties.ui.h:112
-#: ../capplet/nwam-manager-properties.glade.h:123
-msgid "Port:"
-msgstr "포트:"
-
-#: ../ui/nwam-manager-properties.ui.h:113
-#: ../capplet/nwam-manager-properties.glade.h:124
-msgid "Prefi_x:"
-msgstr "접두어(_X):"
-
-#: ../ui/nwam-manager-properties.ui.h:114
-msgid "Profile _name:"
-msgstr "프로필 이름(_N):"
-
-#: ../ui/nwam-manager-properties.ui.h:115
-msgid "Profile name:"
-msgstr "프로필 이름:"
-
-#: ../ui/nwam-manager-properties.ui.h:116
-#: ../capplet/nwam-manager-properties.glade.h:125
-msgid "Proxies"
-msgstr "프록시"
-
-#: ../ui/nwam-manager-properties.ui.h:117
-msgid "Re_name"
-msgstr "이름 바꾸기(_N)"
-
-#: ../ui/nwam-manager-properties.ui.h:118
-#: ../capplet/nwam-manager-properties.glade.h:126
-msgid "Rename Location"
-msgstr "위치 이름 바꾸기"
-
-#: ../ui/nwam-manager-properties.ui.h:119
-#: ../capplet/nwam-manager-properties.glade.h:127
-msgid "Ro_uter:"
-msgstr "라우터(_U):"
-
-#: ../ui/nwam-manager-properties.ui.h:120
-#: ../capplet/nwam-manager-properties.glade.h:128
-msgid "SMF Service"
-msgstr "SMF 서비스"
-
-#: ../ui/nwam-manager-properties.ui.h:121
-#: ../capplet/nwam-manager-properties.glade.h:129
-msgid "S_ervers:"
-msgstr "서버(_E):"
-
-#: ../ui/nwam-manager-properties.ui.h:122
-#: ../capplet/nwam-manager-properties.glade.h:130
-msgid "S_tart"
-msgstr "시작(_T)"
-
-#: ../ui/nwam-manager-properties.ui.h:123
-#: ../capplet/nwam-manager-properties.glade.h:131
-msgid "Sear_ch:"
-msgstr "검색(_C):"
-
-#: ../ui/nwam-manager-properties.ui.h:125
-#: ../capplet/nwam-manager-properties.glade.h:133
-msgid "Select IPfilter Configuration File"
-msgstr "IPfilter 구성 파일 선택"
-
-#: ../ui/nwam-manager-properties.ui.h:126
-#: ../capplet/nwam-manager-properties.glade.h:134
-msgid "Select IPnat Configuration File"
-msgstr "IPnat 구성 파일 선택"
-
-#: ../ui/nwam-manager-properties.ui.h:127
-#: ../capplet/nwam-manager-properties.glade.h:135
-msgid "Select IPpool Configuration File"
-msgstr "IPpool 구성 파일 선택"
-
-#: ../ui/nwam-manager-properties.ui.h:128
-#: ../capplet/nwam-manager-properties.glade.h:136
-msgid "Select a Proxy Configuration File"
-msgstr "프록시 구성 파일 선택"
-
-#: ../ui/nwam-manager-properties.ui.h:129
-#: ../capplet/nwam-manager-properties.glade.h:137
-msgid "Selected gro_up:"
-msgstr "선택된 그룹(_U):"
-
-#: ../ui/nwam-manager-properties.ui.h:130
-#: ../capplet/nwam-manager-properties.glade.h:138
-msgid "Ser_vers:"
-msgstr "서버(_V):"
-
-#: ../ui/nwam-manager-properties.ui.h:131
-#: ../capplet/nwam-manager-properties.glade.h:139
-msgid "Service _FMRI:"
-msgstr "서비스 FMRI(_F):"
-
-#: ../ui/nwam-manager-properties.ui.h:132
-#: ../capplet/nwam-manager-properties.glade.h:140
-msgid "Sho_w:"
-msgstr "표시(_W):"
-
-#: ../ui/nwam-manager-properties.ui.h:134
-#: ../capplet/nwam-manager-properties.glade.h:145
-msgid "Soc_ks:"
-msgstr "소켓(_K):"
-
-#: ../ui/nwam-manager-properties.ui.h:135
-#: ../capplet/nwam-manager-properties.glade.h:146
-msgid "Start _Command:"
-msgstr "시작 명령(_C):"
-
-#: ../ui/nwam-manager-properties.ui.h:136
-msgid "Start/stop modifier according to rules"
-msgstr "규칙에 따라 수정자 시작/중지"
-
-#: ../ui/nwam-manager-properties.ui.h:137
-#: ../capplet/nwam-manager-properties.glade.h:148
-msgid "Stati_c addresses:"
-msgstr "정적 주소(_C):"
-
-#: ../ui/nwam-manager-properties.ui.h:138
-#: ../capplet/nwam-manager-properties.glade.h:149
-msgid "Stop Co_mmand:"
-msgstr "중지 명령(_M):"
-
-#: ../ui/nwam-manager-properties.ui.h:139
-msgid "Switch locations _manually"
-msgstr "수동으로 위치 전환(_M)"
-
-#: ../ui/nwam-manager-properties.ui.h:140
-msgid "Switch locations au_tomatically"
+"2009 Sun Microsystems, Inc  All rights reserved\n"
+"Use is subject to license terms."
+msgstr "Copyright © 2009, Oracle and/or its affiliates. All rights reserved."
+
+#: ../daemon/status_icon.c:1381
+msgid "http://www.sun.com/"
+msgstr "http://www.sun.com/"
+
+#: ../daemon/status_icon.c:1660
+msgid "Switch Locations Au_tomatically"
 msgstr "자동으로 위치 전환(_T)"
 
-#: ../ui/nwam-manager-properties.ui.h:141
-msgid "Use _Default"
-msgstr "기본값 사용(_D)"
-
-#: ../ui/nwam-manager-properties.ui.h:142
-#: ../capplet/nwam-manager-properties.glade.h:151
-msgid "Use for all connection types"
-msgstr "모든 연결 유형에 사용"
-
-#: ../ui/nwam-manager-properties.ui.h:143
-#: ../capplet/nwam-manager-properties.glade.h:152
-#: ../capplet/nwam_profile_panel.c:181
-msgid "User"
-msgstr "사용자"
-
-#: ../ui/nwam-manager-properties.ui.h:144
-msgid "User 1"
-msgstr "사용자 1"
-
-#: ../ui/nwam-manager-properties.ui.h:145
-msgid "User Profile"
-msgstr "사용자 프로필"
-
-#: ../ui/nwam-manager-properties.ui.h:146
-msgid "Wired (hme0)"
-msgstr "유선(hme0)"
-
-#: ../ui/nwam-manager-properties.ui.h:147
-msgid "Wired (hme1)"
-msgstr "유선(hme1)"
-
-#: ../ui/nwam-manager-properties.ui.h:148
-msgid "Wired (name)"
-msgstr "유선(name)"
-
-#: ../ui/nwam-manager-properties.ui.h:149
-#: ../capplet/nwam-manager-properties.glade.h:156
-msgid "Wireless"
-msgstr "무선"
-
-#: ../ui/nwam-manager-properties.ui.h:150
-msgid "Wireless (bcm0)"
-msgstr "무선(bcm0)"
-
-#: ../ui/nwam-manager-properties.ui.h:151
-msgid "Wireless (name) and 2 others"
-msgstr "무선(name) 및 기타 두 개"
-
-#: ../ui/nwam-manager-properties.ui.h:152
-#: ../capplet/nwam-manager-properties.glade.h:158
-msgid "_Address:"
-msgstr "주소(_A):"
-
-#: ../ui/nwam-manager-properties.ui.h:153
-#: ../capplet/nwam-manager-properties.glade.h:159
-msgid "_Advanced"
-msgstr "고급(_A)"
-
-#: ../ui/nwam-manager-properties.ui.h:154
-#: ../capplet/nwam-manager-properties.glade.h:160
-msgid "_Browse..."
-msgstr "찾아보기(_B)..."
-
-#: ../ui/nwam-manager-properties.ui.h:155 ../ui/nwam-manager-wireless.ui.h:20
-#: ../capplet/nwam-manager-properties.glade.h:161
-msgid "_Configuration:"
-msgstr "구성(_C):"
-
-#: ../ui/nwam-manager-properties.ui.h:156
-#: ../capplet/nwam-manager-properties.glade.h:163
-msgid "_DNS"
-msgstr "DNS(_D)"
-
-#: ../ui/nwam-manager-properties.ui.h:158
-#: ../capplet/nwam-manager-properties.glade.h:166
-msgid "_Enable"
-msgstr "사용(_E)"
-
-#: ../ui/nwam-manager-properties.ui.h:159
-#: ../capplet/nwam-manager-properties.glade.h:167
-msgid "_FTP:"
-msgstr "FTP(_F):"
-
-#: ../ui/nwam-manager-properties.ui.h:160
-#: ../capplet/nwam-manager-properties.glade.h:168
-msgid "_Files"
-msgstr "파일(_F)"
-
-#: ../ui/nwam-manager-properties.ui.h:161
-#: ../capplet/nwam-manager-properties.glade.h:169
-msgid "_Gopher:"
-msgstr "Gopher(_G):"
-
-#: ../ui/nwam-manager-properties.ui.h:162
-#: ../capplet/nwam-manager-properties.glade.h:170
-msgid "_HTTP:"
-msgstr "HTTP(_H):"
-
-#: ../ui/nwam-manager-properties.ui.h:163
-#: ../capplet/nwam-manager-properties.glade.h:171
-msgid "_LDAP"
-msgstr "LDAP(_L)"
-
-#: ../ui/nwam-manager-properties.ui.h:164
-#: ../capplet/nwam-manager-properties.glade.h:172
-msgid "_Locations..."
-msgstr "위치(_L)..."
-
-#: ../ui/nwam-manager-properties.ui.h:165
-#: ../capplet/nwam-manager-properties.glade.h:173
-msgid "_Locations:"
-msgstr "위치(_L):"
-
-#: ../ui/nwam-manager-properties.ui.h:166
-#: ../capplet/nwam-manager-properties.glade.h:174
-msgid "_Manual"
-msgstr "수동(_M)"
-
-#: ../ui/nwam-manager-properties.ui.h:167
-msgid "_Manual Addresses:"
-msgstr "수동 주소(_M):"
-
-#: ../ui/nwam-manager-properties.ui.h:168
-msgid "_Modifiers..."
-msgstr "수정자(_M)..."
-
-#: ../ui/nwam-manager-properties.ui.h:169
-#: ../capplet/nwam-manager-properties.glade.h:175
-msgid "_NAT configuration:"
-msgstr "NAT 구성(_N):"
-
-#: ../ui/nwam-manager-properties.ui.h:170
-#: ../capplet/nwam-manager-properties.glade.h:176
-msgid "_NIS"
-msgstr "NIS(_N)"
-
-#: ../ui/nwam-manager-properties.ui.h:171
-#: ../capplet/nwam-manager-properties.glade.h:177
-msgid "_Name:"
-msgstr "이름(_N):"
-
-#: ../ui/nwam-manager-properties.ui.h:172
-#: ../capplet/nwam-manager-properties.glade.h:179
-msgid "_No proxy for:"
-msgstr "다음에 대한 프록시 사용 안함(_N):"
-
-#: ../ui/nwam-manager-properties.ui.h:173
-msgid "_NwamTreeView properties associated with this location:"
-msgstr "이 위치에 연결된 NwamTreeView 등록 정보(_N):"
-
-#: ../ui/nwam-manager-properties.ui.h:174
-#: ../capplet/nwam-manager-properties.glade.h:180
-msgid "_Password..."
-msgstr "암호(_P)..."
-
-#: ../ui/nwam-manager-properties.ui.h:175 ../ui/nwam-manager-wireless.ui.h:22
-#: ../capplet/nwam-manager-properties.glade.h:181
-msgid "_Password:"
-msgstr "암호(_P):"
-
-#: ../ui/nwam-manager-properties.ui.h:176
-#: ../capplet/nwam-manager-properties.glade.h:182
-msgid "_Prefix:"
-msgstr "접두어(_P):"
-
-#: ../ui/nwam-manager-properties.ui.h:177
-#: ../capplet/nwam-manager-properties.glade.h:183
-msgid "_Rename"
-msgstr "이름 바꾸기(_R)"
-
-#: ../ui/nwam-manager-properties.ui.h:178
-#: ../capplet/nwam-manager-properties.glade.h:184
-msgid "_Repair Selected"
-msgstr "선택된 항목의 손상 복구(_R)"
-
-#: ../ui/nwam-manager-properties.ui.h:179
-#: ../capplet/nwam-manager-properties.glade.h:185
-msgid "_Router:"
-msgstr "라우터(_R):"
-
-#: ../ui/nwam-manager-properties.ui.h:180
-#: ../capplet/nwam-manager-properties.glade.h:187
-msgid "_Selected location is:"
-msgstr "선택된 위치(_S):"
-
-#: ../ui/nwam-manager-properties.ui.h:181
-#: ../capplet/nwam-manager-properties.glade.h:188
-msgid "_Service FMRI:"
-msgstr "서비스 FMRI(_S):"
-
-#: ../ui/nwam-manager-properties.ui.h:182
-msgid "_Sort _List:"
-msgstr "정렬 목록(_L):"
-
-#: ../ui/nwam-manager-properties.ui.h:183
-#: ../capplet/nwam-manager-properties.glade.h:190
-msgid "_Subnet Mask:"
-msgstr "서브넷 마스크(_S):"
-
-#: ../ui/nwam-manager-properties.ui.h:184 ../ui/nwam-manager-wireless.ui.h:25
-#: ../capplet/nwam-manager-properties.glade.h:191
-msgid "_Username:"
-msgstr "사용자 이름(_U):"
-
-#: ../ui/nwam-manager-wireless.ui.h:1
-#: ../capplet/nwam-manager-properties.glade.h:28
-msgid "<small><i>Double-click rows to edit</i></small>"
-msgstr "<small><i>편집할 행을 두 번 누르십시오.</i></small>"
-
-#: ../ui/nwam-manager-wireless.ui.h:2
-#: ../capplet/nwam-manager-properties.glade.h:32
-msgid "Ad_vanced"
-msgstr "고급(_V)"
-
-#: ../ui/nwam-manager-wireless.ui.h:4
-#: ../capplet/nwam-manager-properties.glade.h:41
-msgid "Certificate _File:"
-msgstr "인증서 파일(_F):"
-
-#: ../ui/nwam-manager-wireless.ui.h:5
-#: ../capplet/nwam-manager-properties.glade.h:44
-msgid "Connect to Wireless Network"
-msgstr "무선 네트워크에 연결"
-
-#: ../ui/nwam-manager-wireless.ui.h:6
-#: ../capplet/nwam-manager-properties.glade.h:93
-msgid "Join _Unlisted..."
-msgstr "나열되지 않은 네트워크 연결(_U)..."
-
-#: ../ui/nwam-manager-wireless.ui.h:7
-msgid "Key Index:"
-msgstr "키 인덱스:"
-
-#: ../ui/nwam-manager-wireless.ui.h:8
-#: ../capplet/nwam-manager-properties.glade.h:96
-msgid "Known access points (_BSSIDs):"
-msgstr "확인된 액세스 포인트(BSSID)(_B):"
-
-#: ../ui/nwam-manager-wireless.ui.h:12
-#: ../capplet/nwam-manager-properties.glade.h:150
-msgid "The following wireless networks were detected at your location:"
-msgstr "사용자 위치에서 감지된 무선 네트워크:"
-
-#: ../ui/nwam-manager-wireless.ui.h:17
-msgid "WPA Personal (PSK)"
-msgstr "WPA 개인(PSK)"
-
-#: ../ui/nwam-manager-wireless.ui.h:18
-#: ../capplet/nwam-manager-properties.glade.h:155
-msgid "WPA/2"
-msgstr "WPA/2"
-
-#: ../ui/nwam-manager-wireless.ui.h:19
-#: ../capplet/nwam-manager-properties.glade.h:157
-msgid "_Add to list of favorite networks on successful connection"
-msgstr "연결되면 즐겨 찾는 네트워크 목록에 추가(_A)"
-
-#: ../ui/nwam-manager-wireless.ui.h:21
-#: ../capplet/nwam-manager-properties.glade.h:178
-msgid "_Network name (ESSID):"
-msgstr "네트워크 이름(ESSID)(_N):"
-
-#: ../ui/nwam-manager-wireless.ui.h:23
-#: ../capplet/nwam-manager-properties.glade.h:186
-msgid "_Security type:"
-msgstr "보안 유형(_S):"
-
-#: ../ui/nwam-manager-wireless.ui.h:24
-#: ../capplet/nwam-manager-properties.glade.h:189
-msgid "_Show passwords while typing"
-msgstr "입력하는 동안 암호 표시(_S)"
-
-#: ../capplet/nwam-manager-properties.glade.h:8
-msgid "16"
-msgstr "16"
-
-#: ../capplet/nwam-manager-properties.glade.h:9
-msgid "192.168.1.2"
-msgstr "192.168.1.2"
-
-#: ../capplet/nwam-manager-properties.glade.h:10
-msgid "2001:0db8:3c4d:0015:0000:0000:abcd:ef12"
-msgstr "2001:0db8:3c4d:0015:0000:0000:abcd:ef12"
-
-#: ../capplet/nwam-manager-properties.glade.h:11
-msgid "255.255.255.0"
-msgstr "255.255.255.0"
-
-#: ../capplet/nwam-manager-properties.glade.h:16
-msgid "<b>VPN:</b>"
-msgstr "<b>VPN:</b>"
-
-#: ../capplet/nwam-manager-properties.glade.h:31
-msgid "Active _Profile:"
-msgstr "활성 프로필(_P):"
-
-#: ../capplet/nwam-manager-properties.glade.h:37
-msgid ""
-"Automatic\n"
-"User"
-msgstr ""
-       "자동\n"
-       "사용자"
-
-#: ../capplet/nwam-manager-properties.glade.h:39
-msgid "Available VPN applications:"
-msgstr "사용 가능한 VPN 응용 프로그램:"
-
-#: ../capplet/nwam-manager-properties.glade.h:46
-msgid ""
-"Connection Status\n"
-"Network Profile\n"
-"---\n"
-"Automatic Profile\n"
-"Wired (hme0)\n"
-"---\n"
-"User Profile\n"
-"Wired (hme1)\n"
-"Wireless (bcm0)"
-msgstr ""
-       "연결 상태\n"
-       "네트워크 프로필\n"
-       "---\n"
-       "자동 프로필\n"
-       "유선(hme0)\n"
-       "---\n"
-       "사용자 프로필\n"
-       "유선(hme1)\n"
-       "무선(bcm0)"
-
-#: ../capplet/nwam-manager-properties.glade.h:56
-msgid "Current IPv_4 setting:"
-msgstr "현재 IPv_4 설정:"
-
-#: ../capplet/nwam-manager-properties.glade.h:64
-msgid ""
-"Direct connection to internet\n"
-"Manually assigned\n"
-"From configuration (PAC) file"
-msgstr ""
-       "인터넷에 직접 연결\n"
-       "수동으로 지정됨\n"
-       "구성(PAC) 파일 기반"
-
-#: ../capplet/nwam-manager-properties.glade.h:67
-msgid ""
-"Disabled\n"
-"DHCP assigned\n"
-"Manually assigned\n"
-"Multiple addresses"
-msgstr ""
-       "사용 안함\n"
-       "DHCP가 지정됨\n"
-       "수동으로 지정됨\n"
-       "다중 주소"
-
-#: ../capplet/nwam-manager-properties.glade.h:71
-msgid ""
-"Disabled\n"
-"Enabled"
-msgstr ""
-       "사용 안함\n"
-       "사용"
-
-#: ../capplet/nwam-manager-properties.glade.h:78
-msgid ""
-"Exactly one connection is enabled\n"
-"One or more connections may be enabled\n"
-"All connections must be enabled"
-msgstr ""
-       "정확히 하나의 연결이 사용으로 설정되어 있습니다.\n"
-       "하나 이상의 연결이 사용으로 설정되었을 수 있습니다.\n"
-       "모든 연결을 사용으로 설정해야 합니다."
-
-#: ../capplet/nwam-manager-properties.glade.h:97
-msgid ""
-"LEAP\n"
-"PEAP/MSCHAPv2"
-msgstr ""
-       "LEAP\n"
-       "PEAP/MSCHAPv2"
-
-#: ../capplet/nwam-manager-properties.glade.h:103
-msgid "Manage VPN using an SMF service:"
-msgstr "SMF 서비스를 사용하여 VPN 관리:"
-
-#: ../capplet/nwam-manager-properties.glade.h:104
-msgid "Manage VPN using command line applications:"
-msgstr "명령줄 응용 프로그램을 사용하여 VPN 관리:"
-
-#: ../capplet/nwam-manager-properties.glade.h:115
-msgid ""
-"None\n"
-"WEP Hex\n"
-"WEP ASCII\n"
-"WPA Personal (PSK)\n"
-"WPA Enterprise (Radius)"
-msgstr ""
-       "없음\n"
-       "WEP 16진수\n"
-       "WEP ASCII\n"
-       "WPA 개인(PSK)\n"
-       "WPA 엔터프라이즈(Radius)"
-
-#: ../capplet/nwam-manager-properties.glade.h:141
-msgid ""
-"Show list of available networks\n"
-"Join an open network\n"
-"Do not connect\n"
-msgstr ""
-       "사용 가능한 네트워크 목록 표시\n"
-       "열려 있는 네트워크 연결\n"
-       "연결 안함\n"
-
-#: ../capplet/nwam-manager-properties.glade.h:147
-msgid "Start/stop '$vpn' according to rules"
-msgstr "규칙에 따라 '$vpn' 시작/중지"
-
-#: ../capplet/nwam-manager-properties.glade.h:153
-msgid "VPN Applications"
-msgstr "VPN 응용 프로그램"
-
-#: ../capplet/nwam-manager-properties.glade.h:162
-msgid "_Custom properties associated with this location:"
-msgstr "이 위치에 연결된 사용자 정의 등록 정보(_C):"
-
-#: ../capplet/nwam-manager-properties.glade.h:164
-msgid "_Default"
-msgstr "기본값(_D)"
-
-#: ../capplet/nwam-manager-properties.glade.h:192
-msgid "_VPN Applications..."
-msgstr "VPN 응용 프로그램(_V)..."
-
-#: ../capplet/nwam-manager-properties.glade.h:193
-msgid "_View/Edit Profile:"
-msgstr "프로필 보기/편집(_V):"
-
-#: ../capplet/nwam-manager-properties.glade.h:194
-msgid "gtk-add"
-msgstr "gtk-add"
-
-#: ../capplet/nwam-manager-properties.glade.h:195
-msgid "gtk-cancel"
-msgstr "gtk-cancel"
-
-#: ../capplet/nwam-manager-properties.glade.h:196
-msgid "gtk-edit"
-msgstr "gtk-edit"
-
-#: ../capplet/nwam-manager-properties.glade.h:197
-msgid "gtk-ok"
-msgstr "gtk-ok"
-
-#: ../capplet/nwam-manager-properties.glade.h:198
-msgid "gtk-remove"
-msgstr "gtk-remove"
-
-#: ../capplet/nwam-manager-properties.glade.h:199
-msgid "gtk-revert-to-saved"
-msgstr "gtk-revert-to-saved"
-
-#: ../capplet/nwam-manager-properties.glade.h:200
-msgid "hme0"
-msgstr "hme0"
-
-#: ../capplet/nwam-manager-properties.glade.h:201
-msgid ""
-"manual activation only\n"
-"activated by rules\n"
-"activated by system"
-msgstr ""
-       "수동 활성화만\n"
-       "규칙에 의해 활성화됨\n"
-       "시스템에 의해 활성화됨"
-
-#: ../capplet/nwam-manager-properties.glade.h:204
-msgid "nsswitch file:"
-msgstr "nsswitch 파일:"
-
-#: ../capplet/nwam_profile_dialog.c:135
-msgid "Always active"
-msgstr "항상 활성"
-
-#: ../capplet/nwam_profile_dialog.c:136
-msgid "Activated by rules"
-msgstr "규칙에 의해 활성화됨"
-
-#: ../capplet/nwam_profile_dialog.c:137
-msgid "Never active"
-msgstr "활성화 안함"
-
-#: ../capplet/nwam_profile_dialog.c:312 ../capplet/nwam_profile_dialog.c:313
-msgid "selected_ncp"
-msgstr "선택된 NCP(_N)"
-
-#: ../capplet/nwam_profile_dialog.c:320 ../capplet/nwam_profile_dialog.c:321
-msgid "selected_ncu"
-msgstr "선택된 NCU(_N)"
-
-#: ../capplet/nwam_profile_dialog.c:486
-msgid "Details"
-msgstr "세부 정보"
-
-#: ../capplet/nwam_profile_dialog.c:755
-msgid "Add Network Profile dialog"
-msgstr "네트워크 프로필 추가 대화 상자"
-
-#: ../capplet/nwam_profile_dialog.c:758
-msgid "Edit Network Profile dialog"
-msgstr "네트워크 프로필 편집 대화 상자"
-
-#: ../capplet/nwam_profile_dialog.c:836
-msgid "<b><i>(None)</i></b>"
-msgstr "<b><i>(없음)</i></b>"
-
-#: ../capplet/nwam_profile_dialog.c:861
+#: ../daemon/status_icon.c:1667
+msgid "Switch Locations _Manually"
+msgstr "수동으로 위치 전환(_M)"
+
+#: ../daemon/status_icon.c:1676
+msgid "_Network Locations..."
+msgstr "네트워크 위치(_N)..."
+
+#: ../daemon/status_icon.c:1681
+msgid "_Location"
+msgstr "위치(_L)"
+
+#: ../daemon/status_icon.c:1690
+msgid "Network _Profile..."
+msgstr "네트워크 프로필(_P)..."
+
+#: ../daemon/status_icon.c:1695
+msgid "_Connections"
+msgstr "연결(_C)"
+
+#: ../daemon/status_icon.c:1702
+msgid "_Refresh Wireless Networks"
+msgstr "무선 네트워크 새로 고침(_R)"
+
+#: ../daemon/status_icon.c:1707
+msgid "_Join Unlisted Wireless Network..."
+msgstr "나열되지 않은 무선 네트워크 연결(_J)..."
+
+#: ../daemon/status_icon.c:1721
+msgid "_Network Modifier Preferences..."
+msgstr "네트워크 수정자 기본 설정(_N)..."
+
+#: ../daemon/status_icon.c:1725
+msgid "Network _Modifiers"
+msgstr "네트워크 수정자(_M)"
+
+#: ../daemon/status_icon.c:1730
+msgid "_Network Preferences..."
+msgstr "네트워크 기본 설정(_N)..."
+
+#: ../daemon/status_icon.c:1735
+msgid "_Help"
+msgstr "도움말(_H)"
+
+#: ../daemon/status_icon_tooltip.c:285
 #, c-format
-msgid ""
-"<b>%s</b>\n"
-"<small>%s, %s</small>"
-msgstr ""
-       "<b>%s</b>\n"
-       "<small>%s, %s</small>"
+msgid "<b>Network Modifiers:</b> %s"
+msgstr "<b>네트워크 수정자:</b> %s"
 
-#: ../capplet/nwam_profile_dialog.c:882
-msgid "Always enable these connections:"
-msgstr "항상 이 연결 사용:"
-
-#: ../capplet/nwam_profile_dialog.c:884
-msgid "Always disable these connections:"
-msgstr "항상 이 연결 사용 안함:"
-
-#: ../capplet/nwam_profile_dialog.c:907
-msgid "Then enable exactly one of these connections:"
-msgstr "충족될 경우 이 연결 중 정확히 하나만 사용:"
-
-#: ../capplet/nwam_profile_dialog.c:910
-msgid "Else enable exactly one of these connections:"
-msgstr "충족되지 않을 경우 이 연결 중 정확히 하나만 사용:"
-
-#: ../capplet/nwam_profile_dialog.c:915
-msgid "Then enable one or more of these connections:"
-msgstr "충족될 경우 이 연결 중 하나 이상 사용:"
-
-#: ../capplet/nwam_profile_dialog.c:918
-msgid "Else enable one or more of these connections:"
-msgstr "충족되지 않을 경우 이 연결 중 하나 이상 사용:"
-
-#: ../capplet/nwam_profile_dialog.c:923
-msgid "Then enable all of these connections:"
-msgstr "충족될 경우 이 연결 모두 사용:"
-
-#: ../capplet/nwam_profile_dialog.c:926
-msgid "Else enable all of these connections:"
-msgstr "충족되지 않을 경우 이 연결 모두 사용:"
-
-#: ../capplet/nwam_profile_dialog.c:1015
-#, c-format
-msgid "%s  (active)"
-msgstr "%s(활성)"
-
-#. Enable New Group
-#: ../capplet/nwam_profile_dialog.c:2195
-msgid "New _group"
-msgstr "새 그룹(_G)"
-
-#. Enable Remove Group
-#: ../capplet/nwam_profile_dialog.c:2200
-msgid "Remove _group"
-msgstr "그룹 제거(_G)"
-
-#: ../capplet/nwam_profile_dialog.c:2405
-#, c-format
-msgid "Then set status of '%s' to: "
-msgstr "충족될 경우 '%s'의 상태 설정: "
-
-#: ../capplet/nwam_profile_panel.c:204
-#, c-format
-msgid "Remove network profile: '%s'?"
-msgstr "네트워크 프로필 '%s'을(를) 제거하겠습니까?"
-
-#: ../capplet/nwam_profile_panel.c:208
-msgid "Remove network profile?"
-msgstr "네트워크 프로필을 제거하겠습니까?"
-
-#: ../capplet/nwam_profile_panel.c:326 ../capplet/nwam_profile_panel.c:327
-msgid "Toggled object"
-msgstr "토글된 객체"
-
-#: ../capplet/nwam_profile_panel.c:887 ../capplet/nwam_profile_panel.c:898
-#, c-format
-msgid "%s and %d more"
-msgstr "%s 및 %d 등"
-
-#: ../common/nwamui_known_wlan.c:170 ../common/nwamui_known_wlan.c:171
-msgid "priority"
-msgstr "우선 순위"
-
-#. Callbacks
 #: ../data/nwam-manager.schemas.in.h:1
 msgid "Action to do if no favourite networks found."
 msgstr "즐겨찾기 네트워크를 찾을 수 없는 경우 수행할 작업입니다."

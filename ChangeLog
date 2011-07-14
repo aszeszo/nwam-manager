@@ -1,3 +1,7 @@
+2011-07-14  Yong Sun <y.yong.sun@oracle.com>
+
+	* po/*.po: updated UI message translation for drop 4.0.
+
 2011-07-04  Michal Pryc <Michal.Pryc@Oracle.Com>
 
 	* common/nwam-scf.c:
@@ -49,6 +53,7 @@
 	(nwam_object_toggled_cell_sensitive_func): Removed #if 0 blocks.
 	* help/C/nwam-manager.xml: Merged CR#7042534.
 
+>>>>>>> .r704
 2011-06-22  Yong Sun <y.yong.sun@oracle.com>
 
 	* po/*.po: updated message translation.
