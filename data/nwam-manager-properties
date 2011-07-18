@@ -4,29 +4,33 @@
 BASEDIR=${0%/bin/*}
 BASEDIR=${BASEDIR:-/usr} 
 
-PATH=/usr/bin:/usr/sbin:/sbin:${BASEDIR}/sbin:${PATH}
+PATH=/usr/bin:/usr/sbin:/bin:/sbin:${BASEDIR}/sbin:${PATH}
 export PATH
 
 NWAM_MANAGER_PROPERTIES=${BASEDIR}/lib/nwam-manager-properties
 GKSU=/usr/bin/gksu
-PROFILES=/usr/bin/profiles
+AUTHS=$(auths)
 
-HAS_PROFILES=no
-
-primary_administrator="Primary Administrator"
-network_autoconf_admin="Network Autoconf Admin"
-
-IFS="
-"
-for prof in `$PROFILES`; do
-    if [ x"$prof" = x"$primary_administrator" -o x"$prof" = x"$network_autoconf_admin" ]; then
-	HAS_PROFILES=yes
-	break
+if echo $AUTHS | egrep -s '(^\*|solaris\.\*|solaris\.network\.\*|solaris\.network\.autoconf\.\*)'; then
+	HAS_AUTHS="yyyy"
+else
+    HAS_AUTHS=""
+    if echo $AUTHS | egrep -s 'solaris\.network\.autoconf\.read'; then
+	HAS_AUTHS="${HAS_AUTHS}y"
     fi
-done
+    if echo $AUTHS | egrep -s 'solaris\.network\.autoconf\.wlan'; then
+	HAS_AUTHS="${HAS_AUTHS}y"
+    fi
+    if echo $AUTHS | egrep -s 'solaris\.network\.autoconf\.select'; then
+	HAS_AUTHS="${HAS_AUTHS}y"
+    fi
+    if echo $AUTHS | egrep -s 'solaris\.network\.autoconf\.write'; then
+	HAS_AUTHS="${HAS_AUTHS}y"
+    fi
+fi
 
 isRunningNWAM() {
-    state_nwam=`/usr/bin/svcs -H -o state svc:/network/physical:default 2>/dev/null`
+    state_nwam=`svcs -H -o state svc:/network/physical:default 2>/dev/null`
 
     if [ "${state_nwam}" = "online" ]
     then
@@ -41,7 +45,7 @@ isRunningNWAM() {
 
 
 if isRunningNWAM; then
-    if [ x"$HAS_PROFILES" = xyes ]; then
+    if [[ x"$HAS_AUTHS" == xyyyy ]]; then
 	exec $NWAM_MANAGER_PROPERTIES "$@"
     else
 	exec $GKSU "$NWAM_MANAGER_PROPERTIES $@"

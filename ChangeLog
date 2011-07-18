@@ -1,3 +1,9 @@
+2011-07-18  Lin Ma  <lin.ma@oracle.com>
+
+	* data/nwam-manager-properties: Fixed 7066511 [nwam] user with
+	Network Manage profiles needs root password to launch
+	nwam-manager-properties
+
 2011-07-14  Yong Sun <y.yong.sun@oracle.com>
 
 	* po/zh_TW.po:
