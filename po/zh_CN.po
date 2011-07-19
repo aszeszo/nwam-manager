@@ -6,7 +6,16 @@
 #: ../capplet/nwam_profile_dialog.c:516
 #, fuzzy
 msgid ""
-msgstr "Project-Id-Version: PACKAGE VERSION\nReport-Msgid-Bugs-To: \nPOT-Creation-Date: 2011-06-29 10:43+0800\nPO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\nLast-Translator: FULL NAME <EMAIL@ADDRESS>\nLanguage-Team: LANGUAGE <LL@li.org>\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\n"
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-07-19 10:19+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 
 #: ../capplet/capplet-utils.c:125
 msgid "No name"
@@ -17,18 +26,21 @@ msgid ""
 "\n"
 "\n"
 "The name of a committed object cannot be changed."
-msgstr "\n\n无法更改已提交的对象的名称。"
+msgstr ""
+"\n"
+"\n"
+"无法更改已提交的对象的名称。"
 
 #: ../capplet/capplet-utils.c:281
 msgid "Renaming Failed"
 msgstr "重命名失败"
 
-#: ../capplet/capplet-utils.c:292 ../capplet/nwam_profile_panel.c:813
+#: ../capplet/capplet-utils.c:292 ../capplet/nwam_profile_panel.c:788
 #, c-format
 msgid "The name '%s' is already in use"
 msgstr "名称 '%s' 已被使用"
 
-#: ../capplet/capplet-utils.c:294 ../capplet/nwam_profile_panel.c:815
+#: ../capplet/capplet-utils.c:294 ../capplet/nwam_profile_panel.c:790
 msgid "Name Already In Use"
 msgstr "名称已被使用"
 
@@ -83,7 +95,10 @@ msgid ""
 "Invalid value specified for field :\n"
 "\n"
 "    %s"
-msgstr "为字段指定了无效的值：\n\n    %s"
+msgstr ""
+"为字段指定了无效的值：\n"
+"\n"
+"    %s"
 
 #: ../capplet/nwam_condition_vbox.c:327
 #, c-format
@@ -91,7 +106,10 @@ msgid ""
 "Invalid empty value specified for field :\n"
 "\n"
 "    %s"
-msgstr "为字段指定了无效的空值：\n\n    %s"
+msgstr ""
+"为字段指定了无效的空值：\n"
+"\n"
+"    %s"
 
 #: ../capplet/nwam_condition_vbox.c:362
 msgid "Got empty condition"
@@ -100,10 +118,10 @@ msgstr "获取了空条件"
 #: ../capplet/nwam_condition_vbox.c:407
 #: ../capplet/nwam_conn_conf_ip_panel.c:1052
 #: ../capplet/nwam_conn_conf_ip_panel.c:1066
-#: ../capplet/nwam_conn_conf_ip_panel.c:1111 ../capplet/nwam_pref_dialog.c:323
-#: ../capplet/nwam_pref_dialog.c:452 ../capplet/nwam_vpn_pref_dialog.c:464
-#: ../capplet/nwam_vpn_pref_dialog.c:477 ../capplet/nwam_vpn_pref_dialog.c:492
-#: ../capplet/nwam_vpn_pref_dialog.c:520
+#: ../capplet/nwam_conn_conf_ip_panel.c:1111 ../capplet/nwam_pref_dialog.c:327
+#: ../capplet/nwam_pref_dialog.c:456 ../capplet/nwam_vpn_pref_dialog.c:473
+#: ../capplet/nwam_vpn_pref_dialog.c:486 ../capplet/nwam_vpn_pref_dialog.c:501
+#: ../capplet/nwam_vpn_pref_dialog.c:529
 msgid "Validation Error"
 msgstr "验证错误"
 
@@ -151,6 +169,7 @@ msgstr "Mb/s"
 
 #: ../capplet/nwam_conn_conf_ip_panel.c:436
 #: ../capplet/nwam_wireless_chooser.c:184
+#: ../capplet/nwam-manager-properties.glade.h:132
 msgid "Security"
 msgstr "安全性"
 
@@ -178,15 +197,19 @@ msgstr "<i>未分配 IP 地址</i>"
 msgid ""
 "An error occurred validating the current NCU.\n"
 "The device is configured to use static IPv4 addresses, but none exist."
-msgstr "验证当前 NCU 时发生错误。\n设备被配置为使用静态 IPv4 地址，但不存在任何此类地址。"
+msgstr ""
+"验证当前 NCU 时发生错误。\n"
+"设备被配置为使用静态 IPv4 地址，但不存在任何此类地址。"
 
-#: ../capplet/nwam_conn_conf_ip_panel.c:1110 ../capplet/nwam_pref_dialog.c:321
-#: ../capplet/nwam_pref_dialog.c:450
+#: ../capplet/nwam_conn_conf_ip_panel.c:1110 ../capplet/nwam_pref_dialog.c:325
+#: ../capplet/nwam_pref_dialog.c:454
 #, c-format
 msgid ""
 "An error occurred validating the current NCU.\n"
 "The property '%s' caused this failure"
-msgstr "验证当前 NCU 时发生错误。\n此故障是由属性 '%s' 导致的"
+msgstr ""
+"验证当前 NCU 时发生错误。\n"
+"此故障是由属性 '%s' 导致的"
 
 #: ../capplet/nwam_conn_conf_ip_panel.c:1323
 msgid "Enabled"
@@ -212,43 +235,57 @@ msgstr "%uMb"
 msgid "<i>Unknown</i>"
 msgstr "<i>未知</i>"
 
-#: ../capplet/nwam_conn_stat_panel.c:159 ../daemon/status_icon_tooltip.c:234
+#: ../capplet/nwam_conn_stat_panel.c:161 ../daemon/status_icon_tooltip.c:234
 msgid "Connection Icon"
 msgstr "连接图标"
 
-#: ../capplet/nwam_conn_stat_panel.c:202
+#: ../capplet/nwam_conn_stat_panel.c:204
 msgid "Connection Information"
 msgstr "连接信息"
 
-#: ../capplet/nwam_conn_stat_panel.c:235 ../capplet/nwam_pref_dialog.c:523
+#: ../capplet/nwam_conn_stat_panel.c:237 ../capplet/nwam_pref_dialog.c:527
+#: ../capplet/nwam-manager-properties.glade.h:45
 msgid "Connection Status"
 msgstr "连接状态"
 
-#: ../capplet/nwam_conn_stat_panel.c:517 ../capplet/nwam_profile_dialog.c:863
+#: ../capplet/nwam_conn_stat_panel.c:521 ../capplet/nwam_profile_dialog.c:863
 #, c-format
 msgid ""
 "<b>%s</b>\n"
 "<small>%s</small>"
-msgstr "<b>%s</b>\n<small>%s</small>"
+msgstr ""
+"<b>%s</b>\n"
+"<small>%s</small>"
 
-#: ../capplet/nwam_conn_stat_panel.c:702
+#: ../capplet/nwam_conn_stat_panel.c:708
 msgid "Unknown profile"
 msgstr "未知配置文件"
 
-#: ../capplet/nwam_conn_stat_panel.c:717
+#: ../capplet/nwam_conn_stat_panel.c:711
+#, fuzzy
+msgid "Configured links:"
+msgstr "配置 IPv6(_6)"
+
+#: ../capplet/nwam_conn_stat_panel.c:713
+#: ../capplet/nwam-manager-properties.glade.h:76
+#, fuzzy
+msgid "Enabled connections:"
+msgstr "无法连接到 %s"
+
+#: ../capplet/nwam_conn_stat_panel.c:728
 msgid "Unknown env"
 msgstr "未知环境"
 
-#: ../capplet/nwam_conn_stat_panel.c:731 ../daemon/status_icon.c:649
+#: ../capplet/nwam_conn_stat_panel.c:742 ../daemon/status_icon.c:649
 msgid "None Active"
 msgstr "都不处于活动状态"
 
-#: ../capplet/nwam_conn_stat_panel.c:733 ../daemon/status_icon.c:651
+#: ../capplet/nwam_conn_stat_panel.c:744 ../daemon/status_icon.c:651
 #, c-format
 msgid "%d Active"
 msgstr "%d 个处于活动状态"
 
-#: ../capplet/nwam_conn_stat_panel.c:737 ../daemon/status_icon.c:655
+#: ../capplet/nwam_conn_stat_panel.c:748 ../daemon/status_icon.c:655
 #, c-format
 msgid "%s Active"
 msgstr "%s 处于活动状态"
@@ -264,10 +301,12 @@ msgstr "在下面输入"
 #: ../capplet/nwam_env_pref_dialog.c:1787
 #: ../capplet/nwam_env_pref_dialog.c:1843
 #: ../capplet/nwam_env_pref_dialog.c:1871
+#: ../capplet/nwam-manager-properties.glade.h:6
 msgid "(optional)"
 msgstr "（可选）"
 
 #: ../capplet/nwam_env_pref_dialog.c:1797
+#: ../capplet/nwam-manager-properties.glade.h:7
 msgid "(required)"
 msgstr "（必需）"
 
@@ -286,7 +325,9 @@ msgstr "<small><i><b>缺省 nsswitch 文件（未在使用中）：</b>%s</i></s
 msgid ""
 "<b>%s</b>\n"
 "%s"
-msgstr "<b>%s</b>\n%s"
+msgstr ""
+"<b>%s</b>\n"
+"%s"
 
 #: ../capplet/nwam_env_pref_dialog.c:2016 ../common/nwamui_wifi_net.c:936
 #, c-format
@@ -298,7 +339,8 @@ msgid "Select A File"
 msgstr "选择一个文件"
 
 #: ../capplet/nwam_env_pref_dialog.c:2196
-#, c-format
+#: ../capplet/nwam-manager-properties.glade.h:100
+#, no-c-format
 msgid "Location Properties : %s"
 msgstr "位置属性：%s"
 
@@ -310,7 +352,9 @@ msgstr "需要缺省域"
 msgid ""
 "With NIS or LDAP a default domain must be specified.\n"
 "Please provide one in the appropriate field."
-msgstr "使用 NIS 或 LDAP 时，必须指定一个缺省域。\n请在相应的字段中提供缺省域。"
+msgstr ""
+"使用 NIS 或 LDAP 时，必须指定一个缺省域。\n"
+"请在相应的字段中提供缺省域。"
 
 #: ../capplet/nwam_env_pref_dialog.c:2319
 msgid "Nameservice Switch File Required"
@@ -320,11 +364,13 @@ msgstr "需要名称服务转换文件"
 msgid ""
 "A nameservice switch file should be specified\n"
 "if more than one name service is selected."
-msgstr "如果选择了多个名称服务，则应当指定\n一个名称服务转换文件。"
+msgstr ""
+"如果选择了多个名称服务，则应当指定\n"
+"一个名称服务转换文件。"
 
 #: ../capplet/nwam_env_pref_dialog.c:2420
-#: ../capplet/nwam_location_dialog.c:634 ../capplet/nwam_profile_panel.c:586
-#: ../capplet/nwam_vpn_pref_dialog.c:644
+#: ../capplet/nwam_location_dialog.c:634 ../capplet/nwam_vpn_pref_dialog.c:653
+#: ../capplet/nwam_profile_panel.c:581
 #, c-format
 msgid "Committing %s failed..."
 msgstr "提交 %s 失败..."
@@ -334,15 +380,15 @@ msgid "Commit Location Error"
 msgstr "提交位置错误"
 
 #: ../capplet/nwam_env_pref_dialog.c:2430
-#: ../capplet/nwam_location_dialog.c:625 ../capplet/nwam_profile_panel.c:577
-#: ../capplet/nwam_vpn_pref_dialog.c:635
+#: ../capplet/nwam_location_dialog.c:625 ../capplet/nwam_vpn_pref_dialog.c:644
+#: ../capplet/nwam_profile_panel.c:572
 #, c-format
 msgid "Validation of %s failed with the property %s"
 msgstr "对 %s 的验证在属性 %s 上失败"
 
 #: ../capplet/nwam_env_pref_dialog.c:2434
-#: ../capplet/nwam_location_dialog.c:628 ../capplet/nwam_profile_panel.c:580
-#: ../capplet/nwam_vpn_pref_dialog.c:638
+#: ../capplet/nwam_location_dialog.c:628 ../capplet/nwam_vpn_pref_dialog.c:647
+#: ../capplet/nwam_profile_panel.c:575
 msgid "Validation error"
 msgstr "验证错误"
 
@@ -354,7 +400,9 @@ msgstr "服务 FMRI 无效"
 msgid ""
 "Either the service FMRI you entered was not in a valid\n"
 "format, or the service does not exist. Please try again"
-msgstr "您输入的服务 FMRI 的格式无效，\n或者该服务不存在。请重试"
+msgstr ""
+"您输入的服务 FMRI 的格式无效，\n"
+"或者该服务不存在。请重试"
 
 #: ../capplet/nwam_location_dialog.c:100
 msgid "manual activation only"
@@ -385,7 +433,7 @@ msgstr "删除位置 '%s'？"
 msgid "Remove Location?"
 msgstr "删除位置？"
 
-#: ../capplet/nwam_location_dialog.c:281 ../capplet/nwam_profile_panel.c:283
+#: ../capplet/nwam_location_dialog.c:281 ../capplet/nwam_profile_panel.c:282
 msgid "Copy of"
 msgstr "以下项的副本"
 
@@ -393,152 +441,24 @@ msgstr "以下项的副本"
 msgid "Toggled env"
 msgstr "切换的环境"
 
-#: ../capplet/nwam_location_dialog.c:419 ../capplet/nwam_profile_panel.c:453
+#: ../capplet/nwam_location_dialog.c:419 ../capplet/nwam_profile_panel.c:448
 msgid "Name"
 msgstr "名称"
 
-#: ../capplet/nwam_location_dialog.c:637 ../capplet/nwam_profile_panel.c:589
-#: ../capplet/nwam_vpn_pref_dialog.c:647
+#: ../capplet/nwam_location_dialog.c:637 ../capplet/nwam_vpn_pref_dialog.c:656
+#: ../capplet/nwam_profile_panel.c:584
 msgid "Commit ENM error"
 msgstr "提交 ENM 错误"
 
-#: ../capplet/nwam_pref_dialog.c:529
+#: ../capplet/nwam_pref_dialog.c:533
+#: ../capplet/nwam-manager-properties.glade.h:112
 msgid "Network Profile"
 msgstr "网络配置文件"
 
-#: ../capplet/nwam_profile_dialog.c:135
-msgid "Always active"
-msgstr "始终处于活动状态"
-
-#: ../capplet/nwam_profile_dialog.c:136
-msgid "Activated by rules"
-msgstr "由规则激活"
-
-#: ../capplet/nwam_profile_dialog.c:137
-msgid "Never active"
-msgstr "从不处于活动状态"
-
-#: ../capplet/nwam_profile_dialog.c:138
-msgid "Exactly one connection is enabled"
-msgstr "只启用一个连接"
-
-#: ../capplet/nwam_profile_dialog.c:139
-msgid "One or more connections may be enabled"
-msgstr "可以启用一个或多个连接"
-
-#: ../capplet/nwam_profile_dialog.c:140
-msgid "All connections must be enabled"
-msgstr "必须启用所有连接"
-
-#: ../capplet/nwam_profile_dialog.c:312 ../capplet/nwam_profile_dialog.c:313
-msgid "selected_ncp"
-msgstr "selected_ncp"
-
-#: ../capplet/nwam_profile_dialog.c:320 ../capplet/nwam_profile_dialog.c:321
-msgid "selected_ncu"
-msgstr "selected_ncu"
-
-#: ../capplet/nwam_profile_dialog.c:486
-msgid "Details"
-msgstr "详细信息"
-
-#: ../capplet/nwam_profile_dialog.c:755
-msgid "Add Network Profile dialog"
-msgstr "“添加网络配置文件”对话框"
-
-#: ../capplet/nwam_profile_dialog.c:758
-msgid "Edit Network Profile dialog"
-msgstr "“编辑网络配置文件”对话框"
-
-#: ../capplet/nwam_profile_dialog.c:836
-msgid "<b><i>(None)</i></b>"
-msgstr "<b><i>（无）</i></b>"
-
-#: ../capplet/nwam_profile_dialog.c:861
-#, c-format
-msgid ""
-"<b>%s</b>\n"
-"<small>%s, %s</small>"
-msgstr "<b>%s</b>\n<small>%s, %s</small>"
-
-#: ../capplet/nwam_profile_dialog.c:882
-msgid "Always enable these connections:"
-msgstr "始终启用这些连接："
-
-#: ../capplet/nwam_profile_dialog.c:884
-msgid "Always disable these connections:"
-msgstr "始终禁用这些连接："
-
-#: ../capplet/nwam_profile_dialog.c:907
-msgid "Then enable exactly one of these connections:"
-msgstr "则只启用这些连接中的一个："
-
-#: ../capplet/nwam_profile_dialog.c:910
-msgid "Else enable exactly one of these connections:"
-msgstr "否则，只启用这些连接中的一个："
-
-#: ../capplet/nwam_profile_dialog.c:915
-msgid "Then enable one or more of these connections:"
-msgstr "则启用这些连接中的一个或多个："
-
-#: ../capplet/nwam_profile_dialog.c:918
-msgid "Else enable one or more of these connections:"
-msgstr "否则，启用这些连接中的一个或多个："
-
-#: ../capplet/nwam_profile_dialog.c:923
-msgid "Then enable all of these connections:"
-msgstr "则启用所有这些连接："
-
-#: ../capplet/nwam_profile_dialog.c:926
-msgid "Else enable all of these connections:"
-msgstr "否则，启用所有这些连接："
-
-#: ../capplet/nwam_profile_dialog.c:1015
-#, c-format
-msgid "%s  (active)"
-msgstr "%s  （处于活动状态）"
-
-#. Enable New Group
-#: ../capplet/nwam_profile_dialog.c:2195
-msgid "New _group"
-msgstr "新建组(_G)"
-
-#. Enable Remove Group
-#: ../capplet/nwam_profile_dialog.c:2200
-msgid "Remove _group"
-msgstr "删除组(_G)"
-
-#: ../capplet/nwam_profile_dialog.c:2405
-#, c-format
-msgid "Then set status of '%s' to: "
-msgstr "则将 '%s' 的状态设置为："
-
-#: ../capplet/nwam_profile_panel.c:181
-msgid "User"
-msgstr "用户"
-
-#: ../capplet/nwam_profile_panel.c:204
-#, c-format
-msgid "Remove network profile: '%s'?"
-msgstr "删除网络配置文件 '%s'？"
-
-#: ../capplet/nwam_profile_panel.c:208
-msgid "Remove network profile?"
-msgstr "删除网络配置文件？"
-
-#: ../capplet/nwam_profile_panel.c:326 ../capplet/nwam_profile_panel.c:327
-msgid "Toggled object"
-msgstr "切换的对象"
-
-#: ../capplet/nwam_profile_panel.c:883 ../capplet/nwam_profile_panel.c:894
-#: ../common/libnwamui.c:263 ../common/nwamui_ncu.c:3930
-msgid "None"
-msgstr "无"
-
-#: ../capplet/nwam_profile_panel.c:887 ../capplet/nwam_profile_panel.c:898
-#, c-format
-msgid "%s and %d more"
-msgstr "%s 和 %d 个其他"
+#. NWAM_IS_HOWTO_EDIT(row_data)) {
+#: ../capplet/nwam_pref_dialog.c:539
+msgid "How to Edit Fixed Profiles..."
+msgstr ""
 
 #: ../capplet/nwam_proxy_password_dialog.c:102
 msgid "Proxy Username"
@@ -573,7 +493,9 @@ msgstr "无法重命名 '%s'"
 msgid ""
 "Network modifiers can only be renamed immediately after\n"
 "they have been created."
-msgstr "网络修饰符只能在刚创建后\n立即进行重命名。"
+msgstr ""
+"网络修饰符只能在刚创建后\n"
+"立即进行重命名。"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:398
 msgid "Modifier Name"
@@ -583,41 +505,55 @@ msgstr "修饰符名称"
 msgid "Status"
 msgstr "状态"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:465
+#: ../capplet/nwam_vpn_pref_dialog.c:460
+#, fuzzy, c-format
+msgid "Cannot start '%s'"
+msgstr "无法重命名 '%s'"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:464
+#, c-format
+msgid ""
+"The Fixed profile '%s' is currently active.\n"
+"Network modifiers can only be used with Reactive network profiles."
+msgstr ""
+
+#: ../capplet/nwam_vpn_pref_dialog.c:474
 msgid "Invalid value specified for Start Command"
 msgstr "为启动命令指定了无效的值"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:478
+#: ../capplet/nwam_vpn_pref_dialog.c:487
 msgid "Invalid value specified for Stop Command"
 msgstr "为停止命令指定了无效的值"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:493
+#: ../capplet/nwam_vpn_pref_dialog.c:502
 msgid "Invalid value specified for SMF FMRI"
 msgstr "为 SMF FMRI 指定了无效的值"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:521
+#: ../capplet/nwam_vpn_pref_dialog.c:530
 msgid ""
 "Activation mode is set to Conditional,\n"
 "but no rules have been configured."
-msgstr "激活模式设为“有条件的”，\n但未配置规则。"
+msgstr ""
+"激活模式设为“有条件的”，\n"
+"但未配置规则。"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:795
+#: ../capplet/nwam_vpn_pref_dialog.c:804
 msgid "Select start command"
 msgstr "选择启动命令"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:798
+#: ../capplet/nwam_vpn_pref_dialog.c:807
 msgid "Select stop command"
 msgstr "选择停止命令"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:872
+#: ../capplet/nwam_vpn_pref_dialog.c:881
 msgid "Running"
 msgstr "正在运行"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:874
+#: ../capplet/nwam_vpn_pref_dialog.c:883
 msgid "Stopped"
 msgstr "已停止"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:942
+#: ../capplet/nwam_vpn_pref_dialog.c:951
 #, c-format
 msgid "Start/stop '%s' according to rules"
 msgstr "根据规则启动/停止 '%s'"
@@ -732,6 +668,7 @@ msgstr "BSSID"
 
 #. Use to create a known wlan
 #: ../capplet/nwam_wireless_dialog.c:707
+#: ../capplet/nwam-manager-properties.glade.h:33
 msgid "Add Wireless Network"
 msgstr "添加无线网络"
 
@@ -775,7 +712,9 @@ msgstr "长度为 10 或 26 的 WEP 密钥仅应当为十六进制值"
 msgid ""
 "WEP keys should be either 5 or 13 ASCII characters,\n"
 "or a hexadecimal value of length 10 or 26"
-msgstr "WEP 密钥应当为 5 或 13 个 ASCII 字符，\n或者为长度为 10 或 26 的十六进制值"
+msgstr ""
+"WEP 密钥应当为 5 或 13 个 ASCII 字符，\n"
+"或者为长度为 10 或 26 的十六进制值"
 
 #: ../capplet/nwam_wireless_dialog.c:1503
 msgid "WPA keys should be between 8 and 63 characters in length"
@@ -789,6 +728,7 @@ msgstr "无线网络验证失败，因为以下属性有错：%s"
 
 #: ../common/libnwamui.c:253 ../common/libnwamui.c:279
 #: ../common/libnwamui.c:281 ../common/libnwamui.c:282
+#: ../capplet/nwam-manager-properties.glade.h:154
 msgid "WEP"
 msgstr "WEP"
 
@@ -809,6 +749,11 @@ msgstr "WPA Personal(PSK)"
 msgid "WPA Enterprise (Radius)"
 msgstr "WPA Enterprise (Radius)"
 
+#: ../common/libnwamui.c:263 ../common/nwamui_ncu.c:3930
+#: ../capplet/nwam_profile_panel.c:858 ../capplet/nwam_profile_panel.c:869
+msgid "None"
+msgstr "无"
+
 #. ENTERPRISE currently not supported
 #: ../common/libnwamui.c:284 ../common/libnwamui.c:287
 msgid "WPA"
@@ -827,7 +772,7 @@ msgid "PEAP/MSCHAPv2"
 msgstr "PEAP/MSCHAPv2"
 
 #. fall through
-#: ../common/libnwamui.c:308
+#: ../common/libnwamui.c:308 ../capplet/nwam-manager-properties.glade.h:36
 msgid "Automatic"
 msgstr "自动"
 
@@ -862,9 +807,13 @@ msgid ""
 "after they have been created. However, you\n"
 "can duplicate this %s then immediately\n"
 "rename the duplicate."
-msgstr "%s 只能在刚创建后立即进行\n重命名。不过，您可以复制\n此 %s，然后立即对副本\n进行重命名。"
+msgstr ""
+"%s 只能在刚创建后立即进行\n"
+"重命名。不过，您可以复制\n"
+"此 %s，然后立即对副本\n"
+"进行重命名。"
 
-#: ../common/libnwamui.c:1131
+#: ../common/libnwamui.c:1131 ../capplet/nwam-manager-properties.glade.h:165
 msgid "_Duplicate"
 msgstr "复制(_D)"
 
@@ -920,7 +869,9 @@ msgstr "值 '%s' 不是有效的 IPv6 地址。"
 msgid ""
 "IPv6 prefix length must be a decimal value between 1 and 128\n"
 "\n"
-msgstr "IPv6 前缀长度必须是一个介于 1 和 128 之间的十进制值\n\n"
+msgstr ""
+"IPv6 前缀长度必须是一个介于 1 和 128 之间的十进制值\n"
+"\n"
 
 #: ../common/libnwamui.c:2102
 msgid ""
@@ -928,15 +879,24 @@ msgid ""
 "\n"
 "    w.x.y.z\n"
 "\n"
-msgstr "子网必须为以下格式：\n\n    w.x.y.z\n\n"
+msgstr ""
+"子网必须为以下格式：\n"
+"\n"
+"    w.x.y.z\n"
+"\n"
 
 #: ../common/libnwamui.c:2106
+#, fuzzy
 msgid ""
-"Valid ethernet addresses or BSSIDs must be in the format::\n"
+"Valid ethernet addresses or BSSIDs must be in the format:\n"
 "\n"
 "    xx:xx:xx:xx:xx:xx:xx:xx\n"
 "\n"
-msgstr "有效的以太网地址或 BSSID 必须为以下格式：\n\n    xx:xx:xx:xx:xx:xx:xx:xx\n\n"
+msgstr ""
+"有效的以太网地址或 BSSID 必须为以下格式：\n"
+"\n"
+"    xx:xx:xx:xx:xx:xx:xx:xx\n"
+"\n"
 
 #: ../common/libnwamui.c:2110
 msgid ""
@@ -944,7 +904,11 @@ msgid ""
 "\n"
 "    w.x.y.z\n"
 "\n"
-msgstr "IPv4 地址必须为以下格式：\n\n    w.x.y.z\n\n"
+msgstr ""
+"IPv4 地址必须为以下格式：\n"
+"\n"
+"    w.x.y.z\n"
+"\n"
 
 #: ../common/libnwamui.c:2112
 msgid ""
@@ -954,7 +918,13 @@ msgid ""
 "\n"
 "where N is between 1 and 32\n"
 "\n"
-msgstr "如果指定网络前缀，您可以将 /N 附加到地址：\n\n    w.x.y.z/N\n\n其中 N 的范围为 1 到 32\n\n"
+msgstr ""
+"如果指定网络前缀，您可以将 /N 附加到地址：\n"
+"\n"
+"    w.x.y.z/N\n"
+"\n"
+"其中 N 的范围为 1 到 32\n"
+"\n"
 
 #: ../common/libnwamui.c:2116
 msgid ""
@@ -963,7 +933,12 @@ msgid ""
 "   x:x:x:x:x:x:x:x\n"
 "   x:x::x, etc.\n"
 "\n"
-msgstr "IPv6 地址必须为下列格式之一：\n\n   x:x:x:x:x:x:x:x\n   x:x::x，等等。\n\n"
+msgstr ""
+"IPv6 地址必须为下列格式之一：\n"
+"\n"
+"   x:x:x:x:x:x:x:x\n"
+"   x:x::x，等等。\n"
+"\n"
 
 #: ../common/libnwamui.c:2119
 msgid ""
@@ -974,7 +949,14 @@ msgid ""
 "\n"
 "where N is between 1 and 128\n"
 "\n"
-msgstr "如果指定网络前缀，您可以将 /N 附加到地址：\n\n   x:x:x:x:x:x:x:x\n   x:x:x:x:x:x:x:x/N\n\n其中 N 的范围是 1 到 128\n\n"
+msgstr ""
+"如果指定网络前缀，您可以将 /N 附加到地址：\n"
+"\n"
+"   x:x:x:x:x:x:x:x\n"
+"   x:x:x:x:x:x:x:x/N\n"
+"\n"
+"其中 N 的范围是 1 到 128\n"
+"\n"
 
 #: ../common/libnwamui.c:2129
 msgid "Invalid Value"
@@ -1077,28 +1059,28 @@ msgstr "包含"
 msgid "does not contain"
 msgstr "不包含"
 
-#: ../common/nwamui_daemon.c:210 ../common/nwamui_daemon.c:211
+#: ../common/nwamui_daemon.c:208 ../common/nwamui_daemon.c:209
 msgid "active_env"
 msgstr "active_env"
 
-#: ../common/nwamui_daemon.c:218 ../common/nwamui_daemon.c:219
+#: ../common/nwamui_daemon.c:216 ../common/nwamui_daemon.c:217
 msgid "active_ncp"
 msgstr "active_ncp"
 
-#: ../common/nwamui_daemon.c:226 ../common/nwamui_daemon.c:227
+#: ../common/nwamui_daemon.c:224 ../common/nwamui_daemon.c:225
 #: ../common/nwamui_svc.c:107 ../common/nwamui_svc.c:108
 msgid "status"
 msgstr "状态"
 
-#: ../common/nwamui_daemon.c:236 ../common/nwamui_daemon.c:237
+#: ../common/nwamui_daemon.c:234 ../common/nwamui_daemon.c:235
 msgid "num_scanned_wifi"
 msgstr "num_scanned_wifi"
 
-#: ../common/nwamui_daemon.c:246 ../common/nwamui_daemon.c:247
+#: ../common/nwamui_daemon.c:244 ../common/nwamui_daemon.c:245
 msgid "env_selection_mode"
 msgstr "env_selection_mode"
 
-#: ../common/nwamui_daemon.c:254 ../common/nwamui_daemon.c:255
+#: ../common/nwamui_daemon.c:252 ../common/nwamui_daemon.c:253
 msgid "online_enm_num"
 msgstr "online_enm_num"
 
@@ -1327,25 +1309,6 @@ msgstr " (DHCP)"
 #, c-format
 msgid "%s: %s/%d%s"
 msgstr "%s: %s/%d%s"
-
-#: ../common/nwamui_known_wlan.c:143 ../common/nwamui_known_wlan.c:144
-#: ../common/nwamui_wifi_net.c:156 ../common/nwamui_wifi_net.c:157
-msgid "Wifi Network Security"
-msgstr "Wifi 网络安全"
-
-#: ../common/nwamui_known_wlan.c:153 ../common/nwamui_known_wlan.c:154
-#: ../common/nwamui_wifi_net.c:224 ../common/nwamui_wifi_net.c:225
-msgid "Wep Key Index"
-msgstr "Wep 密钥索引"
-
-#: ../common/nwamui_known_wlan.c:163 ../common/nwamui_known_wlan.c:164
-#: ../common/nwamui_wifi_net.c:258 ../common/nwamui_wifi_net.c:259
-msgid "bssid_list"
-msgstr "bssid_list"
-
-#: ../common/nwamui_known_wlan.c:170 ../common/nwamui_known_wlan.c:171
-msgid "priority"
-msgstr "优先级"
 
 #: ../common/nwamui_ncp.c:168 ../common/nwamui_ncp.c:169
 msgid "priority group"
@@ -1653,16 +1616,19 @@ msgid "ui_auth"
 msgstr "ui_auth"
 
 #: ../common/nwamui_prof.c:182 ../common/nwamui_prof.c:183
+#: ../capplet/nwam-manager-properties.glade.h:94
 #: ../data/nwam-manager.schemas.in.h:3
 msgid "Joining an open network that is not in your favorites list"
 msgstr "加入不在您的收藏夹列表中的开放式网络"
 
 #: ../common/nwamui_prof.c:190 ../common/nwamui_prof.c:191
+#: ../capplet/nwam-manager-properties.glade.h:95
 #: ../data/nwam-manager.schemas.in.h:4
 msgid "Joining any favorite network"
 msgstr "加入任何喜爱的网络"
 
 #: ../common/nwamui_prof.c:198 ../common/nwamui_prof.c:199
+#: ../capplet/nwam-manager-properties.glade.h:34
 #: ../data/nwam-manager.schemas.in.h:2
 msgid "Adding any new network to your favorites list"
 msgstr "将任何新的网络添加到您的收藏夹列表中"
@@ -1739,6 +1705,11 @@ msgstr "AP 显示为开启状态的 NCU"
 msgid "Wifi Network Status"
 msgstr "Wifi 网络状态"
 
+#: ../common/nwamui_wifi_net.c:156 ../common/nwamui_wifi_net.c:157
+#: ../common/nwamui_known_wlan.c:143 ../common/nwamui_known_wlan.c:144
+msgid "Wifi Network Security"
+msgstr "Wifi 网络安全"
+
 #: ../common/nwamui_wifi_net.c:165 ../common/nwamui_wifi_net.c:166
 msgid "Wifi Network Channel"
 msgstr "Wifi 网络通道"
@@ -1763,6 +1734,11 @@ msgstr "Wifi WPA 配置类型"
 msgid "Wifi WEP Password"
 msgstr "Wifi WEP 口令"
 
+#: ../common/nwamui_wifi_net.c:224 ../common/nwamui_wifi_net.c:225
+#: ../common/nwamui_known_wlan.c:153 ../common/nwamui_known_wlan.c:154
+msgid "Wep Key Index"
+msgstr "Wep 密钥索引"
+
 #: ../common/nwamui_wifi_net.c:234 ../common/nwamui_wifi_net.c:235
 msgid "Wifi WPA Username"
 msgstr "Wifi WPA 用户名"
@@ -1774,6 +1750,11 @@ msgstr "Wifi WPA 口令"
 #: ../common/nwamui_wifi_net.c:250 ../common/nwamui_wifi_net.c:251
 msgid "Wifi WPA Certificate File Path"
 msgstr "Wifi WPA 证书文件路径"
+
+#: ../common/nwamui_wifi_net.c:258 ../common/nwamui_wifi_net.c:259
+#: ../common/nwamui_known_wlan.c:163 ../common/nwamui_known_wlan.c:164
+msgid "bssid_list"
+msgstr "bssid_list"
 
 #: ../common/nwamui_wifi_net.c:760
 msgid "Failed to store network key."
@@ -1846,15 +1827,17 @@ msgid ""
 "\n"
 "Another instance is running.\n"
 "This instance will exit now."
-msgstr "\n另一实例正在运行。\n此实例将立即退出。"
+msgstr ""
+"\n"
+"另一实例正在运行。\n"
+"此实例将立即退出。"
 
 #: ../daemon/notify.c:531
 msgid "Automatic network configuration daemon is unavailable."
 msgstr "自动网络配置守护进程不可用。"
 
 #: ../daemon/notify.c:532
-msgid ""
-"For further information please refer to netadm(1) manual."
+msgid "For further information please refer to netadm(1) manual."
 msgstr "有关详细信息，请参见 netadm(1) 手册。"
 
 #: ../daemon/notify.c:609
@@ -1912,12 +1895,33 @@ msgstr "找不到无线网络"
 msgid "Click this message to join an unlisted network"
 msgstr "单击此消息可加入未列出的网络"
 
-#: ../daemon/notify.c:975
+#: ../daemon/notify.c:979
+#, fuzzy, c-format
+msgid ""
+"Switched to profile '%s'\n"
+"This is a Fixed network profile."
+msgstr "已切换到网络配置文件 '%s'"
+
+#: ../daemon/notify.c:982
+#, fuzzy, c-format
+msgid ""
+"Switched to profile '%s'\n"
+"This is a Reactive network profile."
+msgstr "值 '%s' 不是有效的 IPv6 网络前缀。"
+
+#: ../daemon/notify.c:986
 #, c-format
 msgid "Switched to network profile '%s'"
 msgstr "已切换到网络配置文件 '%s'"
 
-#: ../daemon/notify.c:1011
+#: ../daemon/notify.c:1027
+#, fuzzy, c-format
+msgid ""
+"Switched to location '%s'\n"
+"This is a '%s' location"
+msgstr "已切换到位置 '%s'"
+
+#: ../daemon/notify.c:1031
 #, c-format
 msgid "Switched to location '%s'"
 msgstr "已切换到位置 '%s'"
@@ -1935,7 +1939,8 @@ msgid "nwam menu sections"
 msgstr "NWAM 菜单区域"
 
 #: ../daemon/nwam-menuitem.c:156 ../daemon/nwam-menuitem.c:157
-msgid "proxy-object"
+#, fuzzy
+msgid "proxy object"
 msgstr "proxy-object"
 
 #: ../daemon/nwam-menuitem.c:164 ../daemon/nwam-menuitem.c:165
@@ -1996,7 +2001,9 @@ msgstr "关于 NWAM 管理器"
 msgid ""
 "2009 Sun Microsystems, Inc  All rights reserved\n"
 "Use is subject to license terms."
-msgstr "2011 Oracle 和/或其附属公司。保留所有权利\n必须依据许可证条款使用。"
+msgstr ""
+"2011 Oracle 和/或其附属公司。保留所有权利\n"
+"必须依据许可证条款使用。"
 
 #: ../daemon/status_icon.c:1381
 msgid "http://www.sun.com/"
@@ -2055,6 +2062,876 @@ msgstr "帮助(_H)"
 msgid "<b>Network Modifiers:</b> %s"
 msgstr "<b>网络修饰符：</b>%s"
 
+#: ../capplet/nwam-manager-properties.glade.h:1
+msgid ""
+"\n"
+"Choose which connections are enabled in this profile:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:3
+msgid ""
+"\n"
+"Disable these services when this location is active:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:5
+#, fuzzy
+msgid "(enter below)"
+msgstr "在下面输入"
+
+#: ../capplet/nwam-manager-properties.glade.h:8
+msgid "16"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:9
+msgid "192.168.1.2"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:10
+msgid "2001:0db8:3c4d:0015:0000:0000:abcd:ef12"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:11
+msgid "255.255.255.0"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:12
+msgid "<b>IPfilter</b>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:13
+#, fuzzy
+msgid "<b>IPsec</b>"
+msgstr ""
+"<b>%s</b>\n"
+"%s"
+
+#: ../capplet/nwam-manager-properties.glade.h:14
+#, fuzzy
+msgid "<b>Location:</b>"
+msgstr "<b>位置：</b>%s"
+
+#: ../capplet/nwam-manager-properties.glade.h:15
+#, fuzzy
+msgid "<b>Network Profile:</b>"
+msgstr "<b>网络配置文件：</b>%s"
+
+#: ../capplet/nwam-manager-properties.glade.h:16
+#, fuzzy
+msgid "<b>VPN:</b>"
+msgstr ""
+"<b>%s</b>\n"
+"%s"
+
+#: ../capplet/nwam-manager-properties.glade.h:17
+msgid ""
+"<big><b>Proxy Authentication</b></big>\n"
+"Enter username and password for http://$HOST:$PORT\n"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:20
+msgid "<i><small>Double-click table cells to edit</small></i>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:21
+msgid "<i><small>Used by manual NIS and LDAP configurations</small></i>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:22
+msgid ""
+"<small><i><b>Example:</b> 192.168.1.1, my.local.net,  *.remote.net</i></"
+"small>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:23
+msgid ""
+"<small><i><b>Examples:</b>\n"
+"svc://localhost/system/system-log:default\n"
+"svc:/system/system-log:default\n"
+"system/system-log:default\n"
+"</i></small>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:28
+msgid "<small><i>Double-click rows to edit</i></small>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:29
+msgid "Accept _stateless addresses from router"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:30
+msgid "Accept state_ful addresses from router"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:31
+#, fuzzy
+msgid "Active _Profile:"
+msgstr "活动网络配置文件"
+
+#: ../capplet/nwam-manager-properties.glade.h:32
+msgid "Ad_vanced"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:35
+msgid "Ask before..."
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:37
+#, fuzzy
+msgid ""
+"Automatic\n"
+"User"
+msgstr "自动"
+
+#: ../capplet/nwam-manager-properties.glade.h:39
+msgid "Available VPN applications:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:40
+msgid "Bro_wse..."
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:41
+#, fuzzy
+msgid "Certificate _File:"
+msgstr "Wifi WPA 证书文件路径"
+
+#: ../capplet/nwam-manager-properties.glade.h:42
+msgid "CiscoVPN active"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:43
+#, fuzzy
+msgid "Configuration _file:"
+msgstr "Wifi WPA 配置类型"
+
+#: ../capplet/nwam-manager-properties.glade.h:44
+#, fuzzy
+msgid "Connect to Wireless Network"
+msgstr "加入无线网络"
+
+#: ../capplet/nwam-manager-properties.glade.h:46
+msgid ""
+"Connection Status\n"
+"Network Profile\n"
+"---\n"
+"Automatic Profile\n"
+"Wired (hme0)\n"
+"---\n"
+"User Profile\n"
+"Wired (hme1)\n"
+"Wireless (bcm0)"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:55
+#, fuzzy
+msgid "Connections..."
+msgstr "连接(_C)"
+
+#: ../capplet/nwam-manager-properties.glade.h:56
+msgid "Current IPv_4 setting:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:57
+msgid "Current IPv_6 setting: enabled"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:58
+#, fuzzy
+msgid "DHCP"
+msgstr "(DHCP)"
+
+#: ../capplet/nwam-manager-properties.glade.h:59
+#, fuzzy
+msgid "DHC_P"
+msgstr "(DHCP)"
+
+#: ../capplet/nwam-manager-properties.glade.h:60
+#, fuzzy
+msgid "D_HCP"
+msgstr "(DHCP)"
+
+#: ../capplet/nwam-manager-properties.glade.h:61
+#, fuzzy
+msgid "D_omain:"
+msgstr "nfsv4_domain"
+
+#: ../capplet/nwam-manager-properties.glade.h:62
+#, fuzzy
+msgid "De_fault domain:"
+msgstr "default_domainname"
+
+#: ../capplet/nwam-manager-properties.glade.h:63
+#, fuzzy
+msgid "Di_sable"
+msgstr "已禁用"
+
+#: ../capplet/nwam-manager-properties.glade.h:64
+msgid ""
+"Direct connection to internet\n"
+"Manually assigned\n"
+"From configuration (PAC) file"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:67
+msgid ""
+"Disabled\n"
+"DHCP assigned\n"
+"Manually assigned\n"
+"Multiple addresses"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:71
+#, fuzzy
+msgid ""
+"Disabled\n"
+"Enabled"
+msgstr "已禁用"
+
+#: ../capplet/nwam-manager-properties.glade.h:73
+msgid "Domain:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:74
+msgid "Edit _Rules..."
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:75
+msgid "Enable these services when this location is active:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:77
+msgid "Ethernet"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:78
+msgid ""
+"Exactly one connection is enabled\n"
+"One or more connections may be enabled\n"
+"All connections must be enabled"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:81
+msgid ""
+"Favorite wireless networks, in the order that\n"
+"connection will be attempted:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:83
+msgid "HTTP_S:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:84
+#, fuzzy
+msgid "IP Address"
+msgstr "没有 IP 地址"
+
+#: ../capplet/nwam-manager-properties.glade.h:85
+msgid "IP_filter configuration:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:86
+msgid "IP_pool configuration:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:87
+#, fuzzy
+msgid "IPfilter v_6 configuration:"
+msgstr "ipfilter_v6_config_file"
+
+#: ../capplet/nwam-manager-properties.glade.h:88
+#, fuzzy
+msgid "IPsec p_olicy configuration"
+msgstr "ipsecpolicy_config_file"
+
+#: ../capplet/nwam-manager-properties.glade.h:89
+msgid "IPv6 I_P:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:90
+msgid "I_KE configuration:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:91
+#, fuzzy
+msgid "If no favorite networks are available:"
+msgstr "没有喜爱的网络可用时的操作"
+
+#: ../capplet/nwam-manager-properties.glade.h:92
+msgid "If the following conditions are true:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:93
+#, fuzzy
+msgid "Join _Unlisted..."
+msgstr "加入未列出的无线网络(_J)..."
+
+#: ../capplet/nwam-manager-properties.glade.h:96
+msgid "Known access points (_BSSIDs):"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:97
+#, fuzzy
+msgid ""
+"LEAP\n"
+"PEAP/MSCHAPv2"
+msgstr "PEAP/MSCHAPv2"
+
+#: ../capplet/nwam-manager-properties.glade.h:101
+#, fuzzy
+msgid "Location Properties : <location name>"
+msgstr "位置属性：%s"
+
+#: ../capplet/nwam-manager-properties.glade.h:102
+msgid "Man_ual"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:103
+msgid "Manage VPN using an SMF service:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:104
+msgid "Manage VPN using command line applications:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:105
+msgid "Manual"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:106
+msgid "Match _all"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:107
+msgid "Match a_ny"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:108
+msgid "Multiple"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:109
+#, fuzzy
+msgid "Name Services"
+msgstr "nameservices"
+
+#: ../capplet/nwam-manager-properties.glade.h:110
+#, fuzzy
+msgid "Network Locations"
+msgstr "网络位置(_N)..."
+
+#: ../capplet/nwam-manager-properties.glade.h:111
+#, fuzzy
+msgid "Network Preferences"
+msgstr "网络首选项(_N)..."
+
+#: ../capplet/nwam-manager-properties.glade.h:113
+#, fuzzy
+msgid "Network Services"
+msgstr "网络配置文件"
+
+#: ../capplet/nwam-manager-properties.glade.h:114
+#, fuzzy
+msgid "New _Group"
+msgstr "新建组(_G)"
+
+#: ../capplet/nwam-manager-properties.glade.h:115
+msgid ""
+"None\n"
+"WEP Hex\n"
+"WEP ASCII\n"
+"WPA Personal (PSK)\n"
+"WPA Enterprise (Radius)"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:120
+msgid "Not required for Phase 1"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:121
+msgid "Office"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:122
+#, fuzzy
+msgid "PAC"
+msgstr "WPA"
+
+#: ../capplet/nwam-manager-properties.glade.h:123
+msgid "Port:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:124
+msgid "Prefi_x:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:125
+#, fuzzy
+msgid "Proxies"
+msgstr "配置文件"
+
+#: ../capplet/nwam-manager-properties.glade.h:126
+#, fuzzy
+msgid "Rename Location"
+msgstr "未命名的位置"
+
+#: ../capplet/nwam-manager-properties.glade.h:127
+msgid "Ro_uter:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:128
+#, fuzzy
+msgid "SMF Service"
+msgstr "smf 服务"
+
+#: ../capplet/nwam-manager-properties.glade.h:129
+msgid "S_ervers:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:130
+#, fuzzy
+msgid "S_tart"
+msgstr "启动 "
+
+#: ../capplet/nwam-manager-properties.glade.h:131
+msgid "Sear_ch:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:133
+#, fuzzy
+msgid "Select IPfilter Configuration File"
+msgstr "显示“网络配置”对话框"
+
+#: ../capplet/nwam-manager-properties.glade.h:134
+#, fuzzy
+msgid "Select IPnat Configuration File"
+msgstr "Wifi WPA 配置类型"
+
+#: ../capplet/nwam-manager-properties.glade.h:135
+#, fuzzy
+msgid "Select IPpool Configuration File"
+msgstr "显示“网络配置”对话框"
+
+#: ../capplet/nwam-manager-properties.glade.h:136
+#, fuzzy
+msgid "Select a Proxy Configuration File"
+msgstr "显示“网络配置”对话框"
+
+#: ../capplet/nwam-manager-properties.glade.h:137
+#, fuzzy
+msgid "Selected gro_up:"
+msgstr "selected_ncp"
+
+#: ../capplet/nwam-manager-properties.glade.h:138
+msgid "Ser_vers:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:139
+#, fuzzy
+msgid "Service _FMRI:"
+msgstr "服务 FMRI 无效"
+
+#: ../capplet/nwam-manager-properties.glade.h:140
+msgid "Sho_w:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:141
+#, fuzzy
+msgid ""
+"Show list of available networks\n"
+"Join an open network\n"
+"Do not connect\n"
+msgstr "显示可用网络的列表"
+
+#: ../capplet/nwam-manager-properties.glade.h:145
+msgid "Soc_ks:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:146
+#, fuzzy
+msgid "Start _Command:"
+msgstr "start_command"
+
+#: ../capplet/nwam-manager-properties.glade.h:147
+#, fuzzy
+msgid "Start/stop '$vpn' according to rules"
+msgstr "根据规则启动/停止 '%s'"
+
+#: ../capplet/nwam-manager-properties.glade.h:148
+#, fuzzy
+msgid "Stati_c addresses:"
+msgstr "v4addresses"
+
+#: ../capplet/nwam-manager-properties.glade.h:149
+#, fuzzy
+msgid "Stop Co_mmand:"
+msgstr "stop_command"
+
+#: ../capplet/nwam-manager-properties.glade.h:150
+msgid "The following wireless networks were detected at your location:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:151
+msgid "Use for all connection types"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:152
+#: ../capplet/nwam_profile_panel.c:180
+msgid "User"
+msgstr "用户"
+
+#: ../capplet/nwam-manager-properties.glade.h:153
+msgid "VPN Applications"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:155
+#, fuzzy
+msgid "WPA/2"
+msgstr "WPA"
+
+#: ../capplet/nwam-manager-properties.glade.h:156
+#, fuzzy
+msgid "Wireless"
+msgstr "无线 NCU"
+
+#: ../capplet/nwam-manager-properties.glade.h:157
+#, fuzzy
+msgid "_Add to list of favorite networks on successful connection"
+msgstr "成功连接时应记住此无线网络"
+
+#: ../capplet/nwam-manager-properties.glade.h:158
+#, fuzzy
+msgid "_Address:"
+msgstr "地址"
+
+#: ../capplet/nwam-manager-properties.glade.h:159
+msgid "_Advanced"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:160
+msgid "_Browse..."
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:161
+#, fuzzy
+msgid "_Configuration:"
+msgstr "Wifi WPA 配置类型"
+
+#: ../capplet/nwam-manager-properties.glade.h:162
+msgid "_Custom properties associated with this location:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:163
+#, fuzzy
+msgid "_DNS"
+msgstr "DNS"
+
+#: ../capplet/nwam-manager-properties.glade.h:164
+#, fuzzy
+msgid "_Default"
+msgstr "is-default"
+
+#: ../capplet/nwam-manager-properties.glade.h:166
+#, fuzzy
+msgid "_Enable"
+msgstr "已启用"
+
+#: ../capplet/nwam-manager-properties.glade.h:167
+msgid "_FTP:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:168
+msgid "_Files"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:169
+msgid "_Gopher:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:170
+msgid "_HTTP:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:171
+#, fuzzy
+msgid "_LDAP"
+msgstr "LDAP"
+
+#: ../capplet/nwam-manager-properties.glade.h:172
+#, fuzzy
+msgid "_Locations..."
+msgstr "位置"
+
+#: ../capplet/nwam-manager-properties.glade.h:173
+#, fuzzy
+msgid "_Locations:"
+msgstr "位置"
+
+#: ../capplet/nwam-manager-properties.glade.h:174
+msgid "_Manual"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:175
+#, fuzzy
+msgid "_NAT configuration:"
+msgstr "Wifi WPA 配置类型"
+
+#: ../capplet/nwam-manager-properties.glade.h:176
+#, fuzzy
+msgid "_NIS"
+msgstr "NIS"
+
+#: ../capplet/nwam-manager-properties.glade.h:177
+#, fuzzy
+msgid "_Name:"
+msgstr "名称"
+
+#: ../capplet/nwam-manager-properties.glade.h:178
+#, fuzzy
+msgid "_Network name (ESSID):"
+msgstr "名称 (ESSID)"
+
+#: ../capplet/nwam-manager-properties.glade.h:179
+msgid "_No proxy for:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:180
+#, fuzzy
+msgid "_Password..."
+msgstr "WPA 口令"
+
+#: ../capplet/nwam-manager-properties.glade.h:181
+#, fuzzy
+msgid "_Password:"
+msgstr "WPA 口令"
+
+#: ../capplet/nwam-manager-properties.glade.h:182
+#, fuzzy
+msgid "_Prefix:"
+msgstr "ipv6_prefix"
+
+#: ../capplet/nwam-manager-properties.glade.h:183
+msgid "_Rename"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:184
+msgid "_Repair Selected"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:185
+msgid "_Router:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:186
+#, fuzzy
+msgid "_Security type:"
+msgstr "安全性"
+
+#: ../capplet/nwam-manager-properties.glade.h:187
+#, fuzzy
+msgid "_Selected location is:"
+msgstr "已切换到位置 '%s'"
+
+#: ../capplet/nwam-manager-properties.glade.h:188
+#, fuzzy
+msgid "_Service FMRI:"
+msgstr "服务 FMRI 无效"
+
+#: ../capplet/nwam-manager-properties.glade.h:189
+msgid "_Show passwords while typing"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:190
+#, fuzzy
+msgid "_Subnet Mask:"
+msgstr "子网掩码"
+
+#: ../capplet/nwam-manager-properties.glade.h:191
+#, fuzzy
+msgid "_Username:"
+msgstr "WPA 用户名"
+
+#: ../capplet/nwam-manager-properties.glade.h:192
+#, fuzzy
+msgid "_VPN Applications..."
+msgstr "网络位置(_N)..."
+
+#: ../capplet/nwam-manager-properties.glade.h:193
+msgid "_View/Edit Profile:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:194
+msgid "gtk-add"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:195
+msgid "gtk-cancel"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:196
+msgid "gtk-edit"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:197
+msgid "gtk-ok"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:198
+msgid "gtk-remove"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:199
+msgid "gtk-revert-to-saved"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:200
+msgid "hme0"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:201
+msgid ""
+"manual activation only\n"
+"activated by rules\n"
+"activated by system"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:204
+msgid "nsswitch file:"
+msgstr ""
+
+#: ../capplet/nwam_profile_dialog.c:135
+msgid "Always active"
+msgstr "始终处于活动状态"
+
+#: ../capplet/nwam_profile_dialog.c:136
+msgid "Activated by rules"
+msgstr "由规则激活"
+
+#: ../capplet/nwam_profile_dialog.c:137
+msgid "Never active"
+msgstr "从不处于活动状态"
+
+#: ../capplet/nwam_profile_dialog.c:138
+msgid "Exactly one connection is enabled"
+msgstr "只启用一个连接"
+
+#: ../capplet/nwam_profile_dialog.c:139
+msgid "One or more connections may be enabled"
+msgstr "可以启用一个或多个连接"
+
+#: ../capplet/nwam_profile_dialog.c:140
+msgid "All connections must be enabled"
+msgstr "必须启用所有连接"
+
+#: ../capplet/nwam_profile_dialog.c:312 ../capplet/nwam_profile_dialog.c:313
+msgid "selected_ncp"
+msgstr "selected_ncp"
+
+#: ../capplet/nwam_profile_dialog.c:320 ../capplet/nwam_profile_dialog.c:321
+msgid "selected_ncu"
+msgstr "selected_ncu"
+
+#: ../capplet/nwam_profile_dialog.c:486
+msgid "Details"
+msgstr "详细信息"
+
+#: ../capplet/nwam_profile_dialog.c:755
+msgid "Add Network Profile dialog"
+msgstr "“添加网络配置文件”对话框"
+
+#: ../capplet/nwam_profile_dialog.c:758
+msgid "Edit Network Profile dialog"
+msgstr "“编辑网络配置文件”对话框"
+
+#: ../capplet/nwam_profile_dialog.c:836
+msgid "<b><i>(None)</i></b>"
+msgstr "<b><i>（无）</i></b>"
+
+#: ../capplet/nwam_profile_dialog.c:861
+#, c-format
+msgid ""
+"<b>%s</b>\n"
+"<small>%s, %s</small>"
+msgstr ""
+"<b>%s</b>\n"
+"<small>%s, %s</small>"
+
+#: ../capplet/nwam_profile_dialog.c:882
+msgid "Always enable these connections:"
+msgstr "始终启用这些连接："
+
+#: ../capplet/nwam_profile_dialog.c:884
+msgid "Always disable these connections:"
+msgstr "始终禁用这些连接："
+
+#: ../capplet/nwam_profile_dialog.c:907
+msgid "Then enable exactly one of these connections:"
+msgstr "则只启用这些连接中的一个："
+
+#: ../capplet/nwam_profile_dialog.c:910
+msgid "Else enable exactly one of these connections:"
+msgstr "否则，只启用这些连接中的一个："
+
+#: ../capplet/nwam_profile_dialog.c:915
+msgid "Then enable one or more of these connections:"
+msgstr "则启用这些连接中的一个或多个："
+
+#: ../capplet/nwam_profile_dialog.c:918
+msgid "Else enable one or more of these connections:"
+msgstr "否则，启用这些连接中的一个或多个："
+
+#: ../capplet/nwam_profile_dialog.c:923
+msgid "Then enable all of these connections:"
+msgstr "则启用所有这些连接："
+
+#: ../capplet/nwam_profile_dialog.c:926
+msgid "Else enable all of these connections:"
+msgstr "否则，启用所有这些连接："
+
+#: ../capplet/nwam_profile_dialog.c:1015
+#, c-format
+msgid "%s  (active)"
+msgstr "%s  （处于活动状态）"
+
+#. Enable New Group
+#: ../capplet/nwam_profile_dialog.c:2195
+msgid "New _group"
+msgstr "新建组(_G)"
+
+#. Enable Remove Group
+#: ../capplet/nwam_profile_dialog.c:2200
+msgid "Remove _group"
+msgstr "删除组(_G)"
+
+#: ../capplet/nwam_profile_dialog.c:2405
+#, c-format
+msgid "Then set status of '%s' to: "
+msgstr "则将 '%s' 的状态设置为："
+
+#: ../capplet/nwam_profile_panel.c:203
+#, c-format
+msgid "Remove network profile: '%s'?"
+msgstr "删除网络配置文件 '%s'？"
+
+#: ../capplet/nwam_profile_panel.c:207
+msgid "Remove network profile?"
+msgstr "删除网络配置文件？"
+
+#: ../capplet/nwam_profile_panel.c:325 ../capplet/nwam_profile_panel.c:326
+msgid "Toggled object"
+msgstr "切换的对象"
+
+#: ../capplet/nwam_profile_panel.c:862 ../capplet/nwam_profile_panel.c:873
+#, c-format
+msgid "%s and %d more"
+msgstr "%s 和 %d 个其他"
+
+#: ../common/nwamui_known_wlan.c:170 ../common/nwamui_known_wlan.c:171
+msgid "priority"
+msgstr "优先级"
+
+#. Callbacks
 #: ../data/nwam-manager.schemas.in.h:1
 msgid "Action to do if no favourite networks found."
 msgstr "找不到喜爱的网络时要执行的操作。"

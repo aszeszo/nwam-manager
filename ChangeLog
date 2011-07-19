@@ -1,5 +1,20 @@
 2011-07-19  Lin Ma  <lin.ma@oracle.com>
 
+	* capplet/nwam_location_dialog.c: (nwam_treeview_update_widget_cb):
+	* capplet/nwam_profile_panel.c: (nwam_treeview_update_widget_cb):
+	* capplet/nwam_tree_view.c: (nwam_tree_view_row_selected_cb),
+	(nwam_tree_view_selection_changed_cb), (update_buttons_status):
+	* capplet/nwam_vpn_pref_dialog.c: (vpn_pref_clicked_cb),
+	(nwam_vpn_selection_changed):
+	* common/nwamui_env.c: (nwamui_env_class_init),
+	(nwamui_object_real_destroy), (nwamui_object_real_is_modifiable):
+	* common/nwamui_ncp.c: (nwamui_object_real_is_modifiable):
+
+	Fixed delete/rename buttons are sensitive when read-only objects
+	are selected.
+
+2011-07-19  Lin Ma  <lin.ma@oracle.com>
+
 	* common/libnwamui.c: (nwamui_util_validate_text_entry): Fixed
 	7058818 source error: double ":" appear in nwam-manager.pot
 	* daemon/nwam-menuitem.c: (nwam_menu_item_class_init): Fixed

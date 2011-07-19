@@ -6,7 +6,16 @@
 #: ../capplet/nwam_profile_dialog.c:516
 #, fuzzy
 msgid ""
-msgstr "Project-Id-Version: PACKAGE VERSION\nReport-Msgid-Bugs-To: \nPOT-Creation-Date: 2011-06-29 10:43+0800\nPO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\nLast-Translator: FULL NAME <EMAIL@ADDRESS>\nLanguage-Team: LANGUAGE <LL@li.org>\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\n"
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-07-19 10:19+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
 
 #: ../capplet/capplet-utils.c:125
 msgid "No name"
@@ -17,18 +26,21 @@ msgid ""
 "\n"
 "\n"
 "The name of a committed object cannot be changed."
-msgstr "\n\nコミットされたオブジェクトの名前は変更できません。"
+msgstr ""
+"\n"
+"\n"
+"コミットされたオブジェクトの名前は変更できません。"
 
 #: ../capplet/capplet-utils.c:281
 msgid "Renaming Failed"
 msgstr "名前の変更に失敗しました"
 
-#: ../capplet/capplet-utils.c:292 ../capplet/nwam_profile_panel.c:813
+#: ../capplet/capplet-utils.c:292 ../capplet/nwam_profile_panel.c:788
 #, c-format
 msgid "The name '%s' is already in use"
 msgstr "名前 '%s' はすでに使用されています"
 
-#: ../capplet/capplet-utils.c:294 ../capplet/nwam_profile_panel.c:815
+#: ../capplet/capplet-utils.c:294 ../capplet/nwam_profile_panel.c:790
 msgid "Name Already In Use"
 msgstr "すでに使用されている名前"
 
@@ -83,7 +95,10 @@ msgid ""
 "Invalid value specified for field :\n"
 "\n"
 "    %s"
-msgstr "次のフィールドに無効な値が指定されました:\n\n    %s"
+msgstr ""
+"次のフィールドに無効な値が指定されました:\n"
+"\n"
+"    %s"
 
 #: ../capplet/nwam_condition_vbox.c:327
 #, c-format
@@ -91,7 +106,10 @@ msgid ""
 "Invalid empty value specified for field :\n"
 "\n"
 "    %s"
-msgstr "次のフィールドに無効な空の値が指定されました:\n\n    %s"
+msgstr ""
+"次のフィールドに無効な空の値が指定されました:\n"
+"\n"
+"    %s"
 
 #: ../capplet/nwam_condition_vbox.c:362
 msgid "Got empty condition"
@@ -100,10 +118,10 @@ msgstr "空の条件を取得しました"
 #: ../capplet/nwam_condition_vbox.c:407
 #: ../capplet/nwam_conn_conf_ip_panel.c:1052
 #: ../capplet/nwam_conn_conf_ip_panel.c:1066
-#: ../capplet/nwam_conn_conf_ip_panel.c:1111 ../capplet/nwam_pref_dialog.c:323
-#: ../capplet/nwam_pref_dialog.c:452 ../capplet/nwam_vpn_pref_dialog.c:464
-#: ../capplet/nwam_vpn_pref_dialog.c:477 ../capplet/nwam_vpn_pref_dialog.c:492
-#: ../capplet/nwam_vpn_pref_dialog.c:520
+#: ../capplet/nwam_conn_conf_ip_panel.c:1111 ../capplet/nwam_pref_dialog.c:327
+#: ../capplet/nwam_pref_dialog.c:456 ../capplet/nwam_vpn_pref_dialog.c:473
+#: ../capplet/nwam_vpn_pref_dialog.c:486 ../capplet/nwam_vpn_pref_dialog.c:501
+#: ../capplet/nwam_vpn_pref_dialog.c:529
 msgid "Validation Error"
 msgstr "検証エラー"
 
@@ -151,6 +169,7 @@ msgstr "Mb/s"
 
 #: ../capplet/nwam_conn_conf_ip_panel.c:436
 #: ../capplet/nwam_wireless_chooser.c:184
+#: ../capplet/nwam-manager-properties.glade.h:132
 msgid "Security"
 msgstr "セキュリティー"
 
@@ -178,15 +197,20 @@ msgstr "<i>IP アドレスが割り当てられていません</i>"
 msgid ""
 "An error occurred validating the current NCU.\n"
 "The device is configured to use static IPv4 addresses, but none exist."
-msgstr "現在の NCU の検証中にエラーが発生しました\nデバイスは静的な IPv4 アドレスを使用するように設定されていますが、アドレスが存在しません。"
+msgstr ""
+"現在の NCU の検証中にエラーが発生しました\n"
+"デバイスは静的な IPv4 アドレスを使用するように設定されていますが、アドレスが"
+"存在しません。"
 
-#: ../capplet/nwam_conn_conf_ip_panel.c:1110 ../capplet/nwam_pref_dialog.c:321
-#: ../capplet/nwam_pref_dialog.c:450
+#: ../capplet/nwam_conn_conf_ip_panel.c:1110 ../capplet/nwam_pref_dialog.c:325
+#: ../capplet/nwam_pref_dialog.c:454
 #, c-format
 msgid ""
 "An error occurred validating the current NCU.\n"
 "The property '%s' caused this failure"
-msgstr "現在の NCU の検証中にエラーが発生しました\nプロパティー '%s' によってこの障害が発生しました"
+msgstr ""
+"現在の NCU の検証中にエラーが発生しました\n"
+"プロパティー '%s' によってこの障害が発生しました"
 
 #: ../capplet/nwam_conn_conf_ip_panel.c:1323
 msgid "Enabled"
@@ -212,43 +236,57 @@ msgstr "%uMb"
 msgid "<i>Unknown</i>"
 msgstr "<i>不明</i>"
 
-#: ../capplet/nwam_conn_stat_panel.c:159 ../daemon/status_icon_tooltip.c:234
+#: ../capplet/nwam_conn_stat_panel.c:161 ../daemon/status_icon_tooltip.c:234
 msgid "Connection Icon"
 msgstr "接続アイコン"
 
-#: ../capplet/nwam_conn_stat_panel.c:202
+#: ../capplet/nwam_conn_stat_panel.c:204
 msgid "Connection Information"
 msgstr "接続情報"
 
-#: ../capplet/nwam_conn_stat_panel.c:235 ../capplet/nwam_pref_dialog.c:523
+#: ../capplet/nwam_conn_stat_panel.c:237 ../capplet/nwam_pref_dialog.c:527
+#: ../capplet/nwam-manager-properties.glade.h:45
 msgid "Connection Status"
 msgstr "接続状態"
 
-#: ../capplet/nwam_conn_stat_panel.c:517 ../capplet/nwam_profile_dialog.c:863
+#: ../capplet/nwam_conn_stat_panel.c:521 ../capplet/nwam_profile_dialog.c:863
 #, c-format
 msgid ""
 "<b>%s</b>\n"
 "<small>%s</small>"
-msgstr "<b>%s</b>\n<small>%s</small>"
+msgstr ""
+"<b>%s</b>\n"
+"<small>%s</small>"
 
-#: ../capplet/nwam_conn_stat_panel.c:702
+#: ../capplet/nwam_conn_stat_panel.c:708
 msgid "Unknown profile"
 msgstr "不明なプロファイル"
 
-#: ../capplet/nwam_conn_stat_panel.c:717
+#: ../capplet/nwam_conn_stat_panel.c:711
+#, fuzzy
+msgid "Configured links:"
+msgstr "IPv6 の設定(_6)"
+
+#: ../capplet/nwam_conn_stat_panel.c:713
+#: ../capplet/nwam-manager-properties.glade.h:76
+#, fuzzy
+msgid "Enabled connections:"
+msgstr "%s に接続できません"
+
+#: ../capplet/nwam_conn_stat_panel.c:728
 msgid "Unknown env"
 msgstr "不明な環境"
 
-#: ../capplet/nwam_conn_stat_panel.c:731 ../daemon/status_icon.c:649
+#: ../capplet/nwam_conn_stat_panel.c:742 ../daemon/status_icon.c:649
 msgid "None Active"
 msgstr "アクティブなし"
 
-#: ../capplet/nwam_conn_stat_panel.c:733 ../daemon/status_icon.c:651
+#: ../capplet/nwam_conn_stat_panel.c:744 ../daemon/status_icon.c:651
 #, c-format
 msgid "%d Active"
 msgstr "%d アクティブ"
 
-#: ../capplet/nwam_conn_stat_panel.c:737 ../daemon/status_icon.c:655
+#: ../capplet/nwam_conn_stat_panel.c:748 ../daemon/status_icon.c:655
 #, c-format
 msgid "%s Active"
 msgstr "%s アクティブ"
@@ -264,29 +302,35 @@ msgstr "下に入力してください"
 #: ../capplet/nwam_env_pref_dialog.c:1787
 #: ../capplet/nwam_env_pref_dialog.c:1843
 #: ../capplet/nwam_env_pref_dialog.c:1871
+#: ../capplet/nwam-manager-properties.glade.h:6
 msgid "(optional)"
 msgstr "(省略可能)"
 
 #: ../capplet/nwam_env_pref_dialog.c:1797
+#: ../capplet/nwam-manager-properties.glade.h:7
 msgid "(required)"
 msgstr "(必須)"
 
 #: ../capplet/nwam_env_pref_dialog.c:1899
 #, c-format
 msgid "<small><i><b>Default nsswitch file (in use):</b> %s</i></small>"
-msgstr "<small><i><b>デフォルトの nsswitch ファイル (使用中):</b> %s</i></small>"
+msgstr ""
+"<small><i><b>デフォルトの nsswitch ファイル (使用中):</b> %s</i></small>"
 
 #: ../capplet/nwam_env_pref_dialog.c:1904
 #, c-format
 msgid "<small><i><b>Default nsswitch file (not in use):</b> %s</i></small>"
-msgstr "<small><i><b>デフォルトの nsswitch ファイル (未使用):</b> %s</i></small>"
+msgstr ""
+"<small><i><b>デフォルトの nsswitch ファイル (未使用):</b> %s</i></small>"
 
 #: ../capplet/nwam_env_pref_dialog.c:2013
 #, c-format
 msgid ""
 "<b>%s</b>\n"
 "%s"
-msgstr "<b>%s</b>\n%s"
+msgstr ""
+"<b>%s</b>\n"
+"%s"
 
 #: ../capplet/nwam_env_pref_dialog.c:2016 ../common/nwamui_wifi_net.c:936
 #, c-format
@@ -298,7 +342,8 @@ msgid "Select A File"
 msgstr "ファイルの選択"
 
 #: ../capplet/nwam_env_pref_dialog.c:2196
-#, c-format
+#: ../capplet/nwam-manager-properties.glade.h:100
+#, no-c-format
 msgid "Location Properties : %s"
 msgstr "場所のプロパティー: %s"
 
@@ -310,7 +355,9 @@ msgstr "デフォルトドメインが必要です"
 msgid ""
 "With NIS or LDAP a default domain must be specified.\n"
 "Please provide one in the appropriate field."
-msgstr "NIS または LDAP では、デフォルトドメインを指定する必要があります。\n適切なフィールドに指定してください。"
+msgstr ""
+"NIS または LDAP では、デフォルトドメインを指定する必要があります。\n"
+"適切なフィールドに指定してください。"
 
 #: ../capplet/nwam_env_pref_dialog.c:2319
 msgid "Nameservice Switch File Required"
@@ -320,11 +367,13 @@ msgstr "ネームサービススイッチファイルが必要です"
 msgid ""
 "A nameservice switch file should be specified\n"
 "if more than one name service is selected."
-msgstr "複数のネームサービスを選択した場合は、ネームサービス\nスイッチファイルを指定する必要があります。"
+msgstr ""
+"複数のネームサービスを選択した場合は、ネームサービス\n"
+"スイッチファイルを指定する必要があります。"
 
 #: ../capplet/nwam_env_pref_dialog.c:2420
-#: ../capplet/nwam_location_dialog.c:634 ../capplet/nwam_profile_panel.c:586
-#: ../capplet/nwam_vpn_pref_dialog.c:644
+#: ../capplet/nwam_location_dialog.c:634 ../capplet/nwam_vpn_pref_dialog.c:653
+#: ../capplet/nwam_profile_panel.c:581
 #, c-format
 msgid "Committing %s failed..."
 msgstr "%s のコミットに失敗しました..."
@@ -334,15 +383,15 @@ msgid "Commit Location Error"
 msgstr "場所のコミットエラー"
 
 #: ../capplet/nwam_env_pref_dialog.c:2430
-#: ../capplet/nwam_location_dialog.c:625 ../capplet/nwam_profile_panel.c:577
-#: ../capplet/nwam_vpn_pref_dialog.c:635
+#: ../capplet/nwam_location_dialog.c:625 ../capplet/nwam_vpn_pref_dialog.c:644
+#: ../capplet/nwam_profile_panel.c:572
 #, c-format
 msgid "Validation of %s failed with the property %s"
 msgstr "%s の検証がプロパティー %s で失敗しました"
 
 #: ../capplet/nwam_env_pref_dialog.c:2434
-#: ../capplet/nwam_location_dialog.c:628 ../capplet/nwam_profile_panel.c:580
-#: ../capplet/nwam_vpn_pref_dialog.c:638
+#: ../capplet/nwam_location_dialog.c:628 ../capplet/nwam_vpn_pref_dialog.c:647
+#: ../capplet/nwam_profile_panel.c:575
 msgid "Validation error"
 msgstr "検証エラー"
 
@@ -354,7 +403,9 @@ msgstr "無効なサービス FMRI"
 msgid ""
 "Either the service FMRI you entered was not in a valid\n"
 "format, or the service does not exist. Please try again"
-msgstr "入力したサービス FMRI が有効な形式でないか、\nまたはサービスが存在しません。再試行してください"
+msgstr ""
+"入力したサービス FMRI が有効な形式でないか、\n"
+"またはサービスが存在しません。再試行してください"
 
 #: ../capplet/nwam_location_dialog.c:100
 msgid "manual activation only"
@@ -385,7 +436,7 @@ msgstr "場所 '%s' を削除しますか?"
 msgid "Remove Location?"
 msgstr "場所を削除しますか?"
 
-#: ../capplet/nwam_location_dialog.c:281 ../capplet/nwam_profile_panel.c:283
+#: ../capplet/nwam_location_dialog.c:281 ../capplet/nwam_profile_panel.c:282
 msgid "Copy of"
 msgstr "コピー"
 
@@ -393,152 +444,24 @@ msgstr "コピー"
 msgid "Toggled env"
 msgstr "切り替えられた環境"
 
-#: ../capplet/nwam_location_dialog.c:419 ../capplet/nwam_profile_panel.c:453
+#: ../capplet/nwam_location_dialog.c:419 ../capplet/nwam_profile_panel.c:448
 msgid "Name"
 msgstr "名前"
 
-#: ../capplet/nwam_location_dialog.c:637 ../capplet/nwam_profile_panel.c:589
-#: ../capplet/nwam_vpn_pref_dialog.c:647
+#: ../capplet/nwam_location_dialog.c:637 ../capplet/nwam_vpn_pref_dialog.c:656
+#: ../capplet/nwam_profile_panel.c:584
 msgid "Commit ENM error"
 msgstr "ENM コミットエラー"
 
-#: ../capplet/nwam_pref_dialog.c:529
+#: ../capplet/nwam_pref_dialog.c:533
+#: ../capplet/nwam-manager-properties.glade.h:112
 msgid "Network Profile"
 msgstr "ネットワークプロファイル"
 
-#: ../capplet/nwam_profile_dialog.c:135
-msgid "Always active"
-msgstr "常にアクティブです"
-
-#: ../capplet/nwam_profile_dialog.c:136
-msgid "Activated by rules"
-msgstr "規則によって起動されました"
-
-#: ../capplet/nwam_profile_dialog.c:137
-msgid "Never active"
-msgstr "アクティブになりません"
-
-#: ../capplet/nwam_profile_dialog.c:138
-msgid "Exactly one connection is enabled"
-msgstr "1 つの接続だけが有効です"
-
-#: ../capplet/nwam_profile_dialog.c:139
-msgid "One or more connections may be enabled"
-msgstr "1 つ以上の接続を有効にすることができます"
-
-#: ../capplet/nwam_profile_dialog.c:140
-msgid "All connections must be enabled"
-msgstr "すべての接続を有効にする必要があります"
-
-#: ../capplet/nwam_profile_dialog.c:312 ../capplet/nwam_profile_dialog.c:313
-msgid "selected_ncp"
-msgstr "selected_ncp"
-
-#: ../capplet/nwam_profile_dialog.c:320 ../capplet/nwam_profile_dialog.c:321
-msgid "selected_ncu"
-msgstr "selected_ncu"
-
-#: ../capplet/nwam_profile_dialog.c:486
-msgid "Details"
-msgstr "詳細"
-
-#: ../capplet/nwam_profile_dialog.c:755
-msgid "Add Network Profile dialog"
-msgstr "「ネットワークプロファイルの追加」ダイアログ"
-
-#: ../capplet/nwam_profile_dialog.c:758
-msgid "Edit Network Profile dialog"
-msgstr "「ネットワークプロファイルの編集」ダイアログ"
-
-#: ../capplet/nwam_profile_dialog.c:836
-msgid "<b><i>(None)</i></b>"
-msgstr "<b><i>(なし)</i></b>"
-
-#: ../capplet/nwam_profile_dialog.c:861
-#, c-format
-msgid ""
-"<b>%s</b>\n"
-"<small>%s, %s</small>"
-msgstr "<b>%s</b>\n<small>%s, %s</small>"
-
-#: ../capplet/nwam_profile_dialog.c:882
-msgid "Always enable these connections:"
-msgstr "これらの接続を常に有効にします:"
-
-#: ../capplet/nwam_profile_dialog.c:884
-msgid "Always disable these connections:"
-msgstr "これらの接続を常に無効にします:"
-
-#: ../capplet/nwam_profile_dialog.c:907
-msgid "Then enable exactly one of these connections:"
-msgstr "その場合は、これらの接続のうちの 1 つだけを有効にします:"
-
-#: ../capplet/nwam_profile_dialog.c:910
-msgid "Else enable exactly one of these connections:"
-msgstr "そうでない場合は、これらの接続のうち 1 つだけを有効にします:"
-
-#: ../capplet/nwam_profile_dialog.c:915
-msgid "Then enable one or more of these connections:"
-msgstr "その場合は、これらの接続のうち 1 つ以上を有効にします:"
-
-#: ../capplet/nwam_profile_dialog.c:918
-msgid "Else enable one or more of these connections:"
-msgstr "そうでない場合は、これらの接続のうち 1 つ以上を有効にします:"
-
-#: ../capplet/nwam_profile_dialog.c:923
-msgid "Then enable all of these connections:"
-msgstr "その場合は、これらの接続をすべて有効にします:"
-
-#: ../capplet/nwam_profile_dialog.c:926
-msgid "Else enable all of these connections:"
-msgstr "そうでない場合は、これらの接続をすべて有効にします:"
-
-#: ../capplet/nwam_profile_dialog.c:1015
-#, c-format
-msgid "%s  (active)"
-msgstr "%s  (アクティブ)"
-
-#. Enable New Group
-#: ../capplet/nwam_profile_dialog.c:2195
-msgid "New _group"
-msgstr "新規グループ(_G)"
-
-#. Enable Remove Group
-#: ../capplet/nwam_profile_dialog.c:2200
-msgid "Remove _group"
-msgstr "グループの削除(_G)"
-
-#: ../capplet/nwam_profile_dialog.c:2405
-#, c-format
-msgid "Then set status of '%s' to: "
-msgstr "その場合は、'%s' のステータスを次に設定します:"
-
-#: ../capplet/nwam_profile_panel.c:181
-msgid "User"
-msgstr "ユーザー"
-
-#: ../capplet/nwam_profile_panel.c:204
-#, c-format
-msgid "Remove network profile: '%s'?"
-msgstr "ネットワークプロファイルを削除しますか: '%s'?"
-
-#: ../capplet/nwam_profile_panel.c:208
-msgid "Remove network profile?"
-msgstr "ネットワークプロファイルを削除しますか?"
-
-#: ../capplet/nwam_profile_panel.c:326 ../capplet/nwam_profile_panel.c:327
-msgid "Toggled object"
-msgstr "切り替えられたオブジェクト"
-
-#: ../capplet/nwam_profile_panel.c:883 ../capplet/nwam_profile_panel.c:894
-#: ../common/libnwamui.c:263 ../common/nwamui_ncu.c:3930
-msgid "None"
-msgstr "なし"
-
-#: ../capplet/nwam_profile_panel.c:887 ../capplet/nwam_profile_panel.c:898
-#, c-format
-msgid "%s and %d more"
-msgstr "%s およびほかの %d 個"
+#. NWAM_IS_HOWTO_EDIT(row_data)) {
+#: ../capplet/nwam_pref_dialog.c:539
+msgid "How to Edit Fixed Profiles..."
+msgstr ""
 
 #: ../capplet/nwam_proxy_password_dialog.c:102
 msgid "Proxy Username"
@@ -573,7 +496,9 @@ msgstr "'%s' の名前を変更できません"
 msgid ""
 "Network modifiers can only be renamed immediately after\n"
 "they have been created."
-msgstr "ネットワーク修飾子の名前を変更できるのは、作成した\n直後だけです。"
+msgstr ""
+"ネットワーク修飾子の名前を変更できるのは、作成した\n"
+"直後だけです。"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:398
 msgid "Modifier Name"
@@ -583,41 +508,55 @@ msgstr "修飾子の名前"
 msgid "Status"
 msgstr "状態"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:465
+#: ../capplet/nwam_vpn_pref_dialog.c:460
+#, fuzzy, c-format
+msgid "Cannot start '%s'"
+msgstr "'%s' の名前を変更できません"
+
+#: ../capplet/nwam_vpn_pref_dialog.c:464
+#, c-format
+msgid ""
+"The Fixed profile '%s' is currently active.\n"
+"Network modifiers can only be used with Reactive network profiles."
+msgstr ""
+
+#: ../capplet/nwam_vpn_pref_dialog.c:474
 msgid "Invalid value specified for Start Command"
 msgstr "開始コマンドに無効な値が指定されました"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:478
+#: ../capplet/nwam_vpn_pref_dialog.c:487
 msgid "Invalid value specified for Stop Command"
 msgstr "停止コマンドに無効な値が指定されました"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:493
+#: ../capplet/nwam_vpn_pref_dialog.c:502
 msgid "Invalid value specified for SMF FMRI"
 msgstr "SMF FMRI に無効な値が指定されました"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:521
+#: ../capplet/nwam_vpn_pref_dialog.c:530
 msgid ""
 "Activation mode is set to Conditional,\n"
 "but no rules have been configured."
-msgstr "起動モードが条件付きに設定されていますが、\n規則が設定されていません。"
+msgstr ""
+"起動モードが条件付きに設定されていますが、\n"
+"規則が設定されていません。"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:795
+#: ../capplet/nwam_vpn_pref_dialog.c:804
 msgid "Select start command"
 msgstr "開始コマンドの選択"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:798
+#: ../capplet/nwam_vpn_pref_dialog.c:807
 msgid "Select stop command"
 msgstr "停止コマンドの選択"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:872
+#: ../capplet/nwam_vpn_pref_dialog.c:881
 msgid "Running"
 msgstr "実行しています"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:874
+#: ../capplet/nwam_vpn_pref_dialog.c:883
 msgid "Stopped"
 msgstr "停止しました"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:942
+#: ../capplet/nwam_vpn_pref_dialog.c:951
 #, c-format
 msgid "Start/stop '%s' according to rules"
 msgstr "規則に従って '%s' を開始/停止します"
@@ -732,6 +671,7 @@ msgstr "BSSID"
 
 #. Use to create a known wlan
 #: ../capplet/nwam_wireless_dialog.c:707
+#: ../capplet/nwam-manager-properties.glade.h:33
 msgid "Add Wireless Network"
 msgstr "無線ネットワークの追加"
 
@@ -751,7 +691,8 @@ msgstr "検証に失敗しました。"
 #: ../capplet/nwam_wireless_dialog.c:1412
 msgid ""
 "The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
-msgstr "無線ネットワーク名 (ESSID) に無効な (ASCII 以外の) 文字が含まれています。"
+msgstr ""
+"無線ネットワーク名 (ESSID) に無効な (ASCII 以外の) 文字が含まれています。"
 
 #: ../capplet/nwam_wireless_dialog.c:1417
 msgid "The Wireless network name (ESSID) should not be blank."
@@ -775,7 +716,9 @@ msgstr "長さが 10 または 26 の WEP キーは 16 進値のみで指定し�
 msgid ""
 "WEP keys should be either 5 or 13 ASCII characters,\n"
 "or a hexadecimal value of length 10 or 26"
-msgstr "WEP キーは、5 または 13 個の ASCII 文字か、10 または\n26 桁の 16 進値のいずれかを指定してください"
+msgstr ""
+"WEP キーは、5 または 13 個の ASCII 文字か、10 または\n"
+"26 桁の 16 進値のいずれかを指定してください"
 
 #: ../capplet/nwam_wireless_dialog.c:1503
 msgid "WPA keys should be between 8 and 63 characters in length"
@@ -785,10 +728,13 @@ msgstr "WPA キーの長さは、8 から 63 文字にしてください"
 #, c-format
 msgid ""
 "Failed to validate wireless network due to an error with the property : %s"
-msgstr "次のプロパティーにエラーがあったため、無線ネットワークの検証に失敗しました: %s"
+msgstr ""
+"次のプロパティーにエラーがあったため、無線ネットワークの検証に失敗しました: %"
+"s"
 
 #: ../common/libnwamui.c:253 ../common/libnwamui.c:279
 #: ../common/libnwamui.c:281 ../common/libnwamui.c:282
+#: ../capplet/nwam-manager-properties.glade.h:154
 msgid "WEP"
 msgstr "WEP"
 
@@ -809,6 +755,11 @@ msgstr "WPA Personal(PSK)"
 msgid "WPA Enterprise (Radius)"
 msgstr "WPA Enterprise (Radius)"
 
+#: ../common/libnwamui.c:263 ../common/nwamui_ncu.c:3930
+#: ../capplet/nwam_profile_panel.c:858 ../capplet/nwam_profile_panel.c:869
+msgid "None"
+msgstr "なし"
+
 #. ENTERPRISE currently not supported
 #: ../common/libnwamui.c:284 ../common/libnwamui.c:287
 msgid "WPA"
@@ -827,7 +778,7 @@ msgid "PEAP/MSCHAPv2"
 msgstr "PEAP/MSCHAPv2"
 
 #. fall through
-#: ../common/libnwamui.c:308
+#: ../common/libnwamui.c:308 ../capplet/nwam-manager-properties.glade.h:36
 msgid "Automatic"
 msgstr "自動"
 
@@ -862,9 +813,12 @@ msgid ""
 "after they have been created. However, you\n"
 "can duplicate this %s then immediately\n"
 "rename the duplicate."
-msgstr "%s の名前を変更できるのは、作成した直後だけ\nです。ただし、この %s を複製したあとで、ただちに\n複製の名前を変更できます。"
+msgstr ""
+"%s の名前を変更できるのは、作成した直後だけ\n"
+"です。ただし、この %s を複製したあとで、ただちに\n"
+"複製の名前を変更できます。"
 
-#: ../common/libnwamui.c:1131
+#: ../common/libnwamui.c:1131 ../capplet/nwam-manager-properties.glade.h:165
 msgid "_Duplicate"
 msgstr "複製(_D)"
 
@@ -879,7 +833,8 @@ msgstr "値 '%s' は無効です。"
 
 #: ../common/libnwamui.c:2012
 msgid "Specifying a network prefix value is not permitted in this context."
-msgstr "このコンテキストでは、ネットワーク接頭辞の値の指定は許可されていません。"
+msgstr ""
+"このコンテキストでは、ネットワーク接頭辞の値の指定は許可されていません。"
 
 #: ../common/libnwamui.c:2019
 #, c-format
@@ -920,7 +875,9 @@ msgstr "値 '%s' は有効な IPv6 アドレスではありません。"
 msgid ""
 "IPv6 prefix length must be a decimal value between 1 and 128\n"
 "\n"
-msgstr "IPv6 接頭辞長は 1 から 128 までの 16 進値である必要があります\n\n"
+msgstr ""
+"IPv6 接頭辞長は 1 から 128 までの 16 進値である必要があります\n"
+"\n"
 
 #: ../common/libnwamui.c:2102
 msgid ""
@@ -928,15 +885,24 @@ msgid ""
 "\n"
 "    w.x.y.z\n"
 "\n"
-msgstr "サブネットは次の形式である必要があります:\n\n    w.x.y.z\n\n"
+msgstr ""
+"サブネットは次の形式である必要があります:\n"
+"\n"
+"    w.x.y.z\n"
+"\n"
 
 #: ../common/libnwamui.c:2106
+#, fuzzy
 msgid ""
-"Valid ethernet addresses or BSSIDs must be in the format::\n"
+"Valid ethernet addresses or BSSIDs must be in the format:\n"
 "\n"
 "    xx:xx:xx:xx:xx:xx:xx:xx\n"
 "\n"
-msgstr "有効な Ethernet アドレスまたは BSSID は次の形式である必要があります::\n\n    xx:xx:xx:xx:xx:xx:xx:xx\n\n"
+msgstr ""
+"有効な Ethernet アドレスまたは BSSID は次の形式である必要があります::\n"
+"\n"
+"    xx:xx:xx:xx:xx:xx:xx:xx\n"
+"\n"
 
 #: ../common/libnwamui.c:2110
 msgid ""
@@ -944,7 +910,11 @@ msgid ""
 "\n"
 "    w.x.y.z\n"
 "\n"
-msgstr "IPv4 アドレスは次の形式である必要があります:\n\n    w.x.y.z\n\n"
+msgstr ""
+"IPv4 アドレスは次の形式である必要があります:\n"
+"\n"
+"    w.x.y.z\n"
+"\n"
 
 #: ../common/libnwamui.c:2112
 msgid ""
@@ -954,7 +924,13 @@ msgid ""
 "\n"
 "where N is between 1 and 32\n"
 "\n"
-msgstr "ネットワーク接頭辞を指定する場合は、アドレスに /N を追加できます:\n\n    w.x.y.z/N\n\nN は 1 から 32 までの値です\n\n"
+msgstr ""
+"ネットワーク接頭辞を指定する場合は、アドレスに /N を追加できます:\n"
+"\n"
+"    w.x.y.z/N\n"
+"\n"
+"N は 1 から 32 までの値です\n"
+"\n"
 
 #: ../common/libnwamui.c:2116
 msgid ""
@@ -963,7 +939,12 @@ msgid ""
 "   x:x:x:x:x:x:x:x\n"
 "   x:x::x, etc.\n"
 "\n"
-msgstr "IPv6 アドレスは次のいずれかの形式である必要があります:\n\n   x:x:x:x:x:x:x:x\n   x:x::x など\n\n"
+msgstr ""
+"IPv6 アドレスは次のいずれかの形式である必要があります:\n"
+"\n"
+"   x:x:x:x:x:x:x:x\n"
+"   x:x::x など\n"
+"\n"
 
 #: ../common/libnwamui.c:2119
 msgid ""
@@ -974,7 +955,14 @@ msgid ""
 "\n"
 "where N is between 1 and 128\n"
 "\n"
-msgstr "ネットワーク接頭辞を指定する場合は、アドレスに /N を追加できます:\n\n   x:x:x:x:x:x:x:x\n   x:x:x:x:x:x:x:x/N\n\nN は 1 から 128 までの値です\n\n"
+msgstr ""
+"ネットワーク接頭辞を指定する場合は、アドレスに /N を追加できます:\n"
+"\n"
+"   x:x:x:x:x:x:x:x\n"
+"   x:x:x:x:x:x:x:x/N\n"
+"\n"
+"N は 1 から 128 までの値です\n"
+"\n"
 
 #: ../common/libnwamui.c:2129
 msgid "Invalid Value"
@@ -1077,28 +1065,28 @@ msgstr "が次を含む"
 msgid "does not contain"
 msgstr "が次を含まない"
 
-#: ../common/nwamui_daemon.c:210 ../common/nwamui_daemon.c:211
+#: ../common/nwamui_daemon.c:208 ../common/nwamui_daemon.c:209
 msgid "active_env"
 msgstr "active_env"
 
-#: ../common/nwamui_daemon.c:218 ../common/nwamui_daemon.c:219
+#: ../common/nwamui_daemon.c:216 ../common/nwamui_daemon.c:217
 msgid "active_ncp"
 msgstr "active_ncp"
 
-#: ../common/nwamui_daemon.c:226 ../common/nwamui_daemon.c:227
+#: ../common/nwamui_daemon.c:224 ../common/nwamui_daemon.c:225
 #: ../common/nwamui_svc.c:107 ../common/nwamui_svc.c:108
 msgid "status"
 msgstr "状態"
 
-#: ../common/nwamui_daemon.c:236 ../common/nwamui_daemon.c:237
+#: ../common/nwamui_daemon.c:234 ../common/nwamui_daemon.c:235
 msgid "num_scanned_wifi"
 msgstr "num_scanned_wifi"
 
-#: ../common/nwamui_daemon.c:246 ../common/nwamui_daemon.c:247
+#: ../common/nwamui_daemon.c:244 ../common/nwamui_daemon.c:245
 msgid "env_selection_mode"
 msgstr "env_selection_mode"
 
-#: ../common/nwamui_daemon.c:254 ../common/nwamui_daemon.c:255
+#: ../common/nwamui_daemon.c:252 ../common/nwamui_daemon.c:253
 msgid "online_enm_num"
 msgstr "online_enm_num"
 
@@ -1327,25 +1315,6 @@ msgstr " (DHCP)"
 #, c-format
 msgid "%s: %s/%d%s"
 msgstr "%s: %s/%d%s"
-
-#: ../common/nwamui_known_wlan.c:143 ../common/nwamui_known_wlan.c:144
-#: ../common/nwamui_wifi_net.c:156 ../common/nwamui_wifi_net.c:157
-msgid "Wifi Network Security"
-msgstr "Wifi ネットワークのセキュリティー"
-
-#: ../common/nwamui_known_wlan.c:153 ../common/nwamui_known_wlan.c:154
-#: ../common/nwamui_wifi_net.c:224 ../common/nwamui_wifi_net.c:225
-msgid "Wep Key Index"
-msgstr "WEP キーのインデックス"
-
-#: ../common/nwamui_known_wlan.c:163 ../common/nwamui_known_wlan.c:164
-#: ../common/nwamui_wifi_net.c:258 ../common/nwamui_wifi_net.c:259
-msgid "bssid_list"
-msgstr "bssid_list"
-
-#: ../common/nwamui_known_wlan.c:170 ../common/nwamui_known_wlan.c:171
-msgid "priority"
-msgstr "優先順位"
 
 #: ../common/nwamui_ncp.c:168 ../common/nwamui_ncp.c:169
 msgid "priority group"
@@ -1653,16 +1622,19 @@ msgid "ui_auth"
 msgstr "ui_auth"
 
 #: ../common/nwamui_prof.c:182 ../common/nwamui_prof.c:183
+#: ../capplet/nwam-manager-properties.glade.h:94
 #: ../data/nwam-manager.schemas.in.h:3
 msgid "Joining an open network that is not in your favorites list"
 msgstr "お気に入りのリストに含まれていない開いたネットワークを加入しています"
 
 #: ../common/nwamui_prof.c:190 ../common/nwamui_prof.c:191
+#: ../capplet/nwam-manager-properties.glade.h:95
 #: ../data/nwam-manager.schemas.in.h:4
 msgid "Joining any favorite network"
 msgstr "お気に入りのネットワークをすべて加入しています"
 
 #: ../common/nwamui_prof.c:198 ../common/nwamui_prof.c:199
+#: ../capplet/nwam-manager-properties.glade.h:34
 #: ../data/nwam-manager.schemas.in.h:2
 msgid "Adding any new network to your favorites list"
 msgstr "新しいネットワークをすべてお気に入りのリストに追加しています"
@@ -1739,6 +1711,11 @@ msgstr "AP が表示される NCU"
 msgid "Wifi Network Status"
 msgstr "Wifi ネットワークの状態"
 
+#: ../common/nwamui_wifi_net.c:156 ../common/nwamui_wifi_net.c:157
+#: ../common/nwamui_known_wlan.c:143 ../common/nwamui_known_wlan.c:144
+msgid "Wifi Network Security"
+msgstr "Wifi ネットワークのセキュリティー"
+
 #: ../common/nwamui_wifi_net.c:165 ../common/nwamui_wifi_net.c:166
 msgid "Wifi Network Channel"
 msgstr "Wifi ネットワークチャネル"
@@ -1763,6 +1740,11 @@ msgstr "Wifi WPA 設定のタイプ"
 msgid "Wifi WEP Password"
 msgstr "Wifi WEP のパスワード"
 
+#: ../common/nwamui_wifi_net.c:224 ../common/nwamui_wifi_net.c:225
+#: ../common/nwamui_known_wlan.c:153 ../common/nwamui_known_wlan.c:154
+msgid "Wep Key Index"
+msgstr "WEP キーのインデックス"
+
 #: ../common/nwamui_wifi_net.c:234 ../common/nwamui_wifi_net.c:235
 msgid "Wifi WPA Username"
 msgstr "Wifi WPA のユーザー名"
@@ -1774,6 +1756,11 @@ msgstr "Wifi WPA のパスワード"
 #: ../common/nwamui_wifi_net.c:250 ../common/nwamui_wifi_net.c:251
 msgid "Wifi WPA Certificate File Path"
 msgstr "Wifi WPA 証明書ファイルのパス"
+
+#: ../common/nwamui_wifi_net.c:258 ../common/nwamui_wifi_net.c:259
+#: ../common/nwamui_known_wlan.c:163 ../common/nwamui_known_wlan.c:164
+msgid "bssid_list"
+msgstr "bssid_list"
 
 #: ../common/nwamui_wifi_net.c:760
 msgid "Failed to store network key."
@@ -1846,15 +1833,17 @@ msgid ""
 "\n"
 "Another instance is running.\n"
 "This instance will exit now."
-msgstr "\n別のインスタンスが実行されています。\nこのインスタンスは今すぐ終了します。"
+msgstr ""
+"\n"
+"別のインスタンスが実行されています。\n"
+"このインスタンスは今すぐ終了します。"
 
 #: ../daemon/notify.c:531
 msgid "Automatic network configuration daemon is unavailable."
 msgstr "自動ネットワーク構成デーモンは使用できません。"
 
 #: ../daemon/notify.c:532
-msgid ""
-"For further information please refer to netadm(1) manual."
+msgid "For further information please refer to netadm(1) manual."
 msgstr "詳細については、netadm(1) のマニュアルを参照してください。"
 
 #: ../daemon/notify.c:609
@@ -1874,7 +1863,9 @@ msgstr "%s が %s から切断しました"
 
 #: ../daemon/notify.c:687 ../daemon/notify.c:765
 msgid "Click on this message to view other available networks."
-msgstr "使用可能なほかのネットワークを表示するには、このメッセージをクリックしてください。"
+msgstr ""
+"使用可能なほかのネットワークを表示するには、このメッセージをクリックしてくだ"
+"さい。"
 
 #: ../daemon/notify.c:700 ../daemon/notify.c:811
 #, c-format
@@ -1892,7 +1883,8 @@ msgstr "無線の選択が必要です"
 
 #: ../daemon/notify.c:848
 msgid "Right-click the icon to connect to an available network."
-msgstr "使用可能なネットワークに接続するには、アイコンを右クリックしてください。"
+msgstr ""
+"使用可能なネットワークに接続するには、アイコンを右クリックしてください。"
 
 #: ../daemon/notify.c:897
 #, c-format
@@ -1910,14 +1902,36 @@ msgstr "無線ネットワークが見つかりませんでした"
 
 #: ../daemon/notify.c:940
 msgid "Click this message to join an unlisted network"
-msgstr "リストにないネットワークを加入するには、このメッセージをクリックしてください"
+msgstr ""
+"リストにないネットワークを加入するには、このメッセージをクリックしてください"
 
-#: ../daemon/notify.c:975
+#: ../daemon/notify.c:979
+#, fuzzy, c-format
+msgid ""
+"Switched to profile '%s'\n"
+"This is a Fixed network profile."
+msgstr "ネットワークプロファイル '%s' に切り替えました"
+
+#: ../daemon/notify.c:982
+#, fuzzy, c-format
+msgid ""
+"Switched to profile '%s'\n"
+"This is a Reactive network profile."
+msgstr "値 '%s' は有効な IPv6 ネットワーク接頭辞ではありません。"
+
+#: ../daemon/notify.c:986
 #, c-format
 msgid "Switched to network profile '%s'"
 msgstr "ネットワークプロファイル '%s' に切り替えました"
 
-#: ../daemon/notify.c:1011
+#: ../daemon/notify.c:1027
+#, fuzzy, c-format
+msgid ""
+"Switched to location '%s'\n"
+"This is a '%s' location"
+msgstr "場所 '%s' に切り替えました"
+
+#: ../daemon/notify.c:1031
 #, c-format
 msgid "Switched to location '%s'"
 msgstr "場所 '%s' に切り替えました"
@@ -1935,7 +1949,8 @@ msgid "nwam menu sections"
 msgstr "NWAM のメニュー選択"
 
 #: ../daemon/nwam-menuitem.c:156 ../daemon/nwam-menuitem.c:157
-msgid "proxy-object"
+#, fuzzy
+msgid "proxy object"
 msgstr "プロキシオブジェクト"
 
 #: ../daemon/nwam-menuitem.c:164 ../daemon/nwam-menuitem.c:165
@@ -2055,6 +2070,876 @@ msgstr "ヘルプ(_H)"
 msgid "<b>Network Modifiers:</b> %s"
 msgstr "<b>ネットワーク修飾子:</b> %s"
 
+#: ../capplet/nwam-manager-properties.glade.h:1
+msgid ""
+"\n"
+"Choose which connections are enabled in this profile:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:3
+msgid ""
+"\n"
+"Disable these services when this location is active:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:5
+#, fuzzy
+msgid "(enter below)"
+msgstr "下に入力してください"
+
+#: ../capplet/nwam-manager-properties.glade.h:8
+msgid "16"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:9
+msgid "192.168.1.2"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:10
+msgid "2001:0db8:3c4d:0015:0000:0000:abcd:ef12"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:11
+msgid "255.255.255.0"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:12
+msgid "<b>IPfilter</b>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:13
+#, fuzzy
+msgid "<b>IPsec</b>"
+msgstr ""
+"<b>%s</b>\n"
+"%s"
+
+#: ../capplet/nwam-manager-properties.glade.h:14
+#, fuzzy
+msgid "<b>Location:</b>"
+msgstr "<b>場所:</b> %s"
+
+#: ../capplet/nwam-manager-properties.glade.h:15
+#, fuzzy
+msgid "<b>Network Profile:</b>"
+msgstr "<b>ネットワークプロファイル:</b> %s"
+
+#: ../capplet/nwam-manager-properties.glade.h:16
+#, fuzzy
+msgid "<b>VPN:</b>"
+msgstr ""
+"<b>%s</b>\n"
+"%s"
+
+#: ../capplet/nwam-manager-properties.glade.h:17
+msgid ""
+"<big><b>Proxy Authentication</b></big>\n"
+"Enter username and password for http://$HOST:$PORT\n"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:20
+msgid "<i><small>Double-click table cells to edit</small></i>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:21
+msgid "<i><small>Used by manual NIS and LDAP configurations</small></i>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:22
+msgid ""
+"<small><i><b>Example:</b> 192.168.1.1, my.local.net,  *.remote.net</i></"
+"small>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:23
+msgid ""
+"<small><i><b>Examples:</b>\n"
+"svc://localhost/system/system-log:default\n"
+"svc:/system/system-log:default\n"
+"system/system-log:default\n"
+"</i></small>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:28
+msgid "<small><i>Double-click rows to edit</i></small>"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:29
+msgid "Accept _stateless addresses from router"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:30
+msgid "Accept state_ful addresses from router"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:31
+#, fuzzy
+msgid "Active _Profile:"
+msgstr "アクティブなネットワークプロファイル"
+
+#: ../capplet/nwam-manager-properties.glade.h:32
+msgid "Ad_vanced"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:35
+msgid "Ask before..."
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:37
+#, fuzzy
+msgid ""
+"Automatic\n"
+"User"
+msgstr "自動"
+
+#: ../capplet/nwam-manager-properties.glade.h:39
+msgid "Available VPN applications:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:40
+msgid "Bro_wse..."
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:41
+#, fuzzy
+msgid "Certificate _File:"
+msgstr "Wifi WPA 証明書ファイルのパス"
+
+#: ../capplet/nwam-manager-properties.glade.h:42
+msgid "CiscoVPN active"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:43
+#, fuzzy
+msgid "Configuration _file:"
+msgstr "Wifi WPA 設定のタイプ"
+
+#: ../capplet/nwam-manager-properties.glade.h:44
+#, fuzzy
+msgid "Connect to Wireless Network"
+msgstr "無線ネットワークの加入"
+
+#: ../capplet/nwam-manager-properties.glade.h:46
+msgid ""
+"Connection Status\n"
+"Network Profile\n"
+"---\n"
+"Automatic Profile\n"
+"Wired (hme0)\n"
+"---\n"
+"User Profile\n"
+"Wired (hme1)\n"
+"Wireless (bcm0)"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:55
+#, fuzzy
+msgid "Connections..."
+msgstr "接続(_C)"
+
+#: ../capplet/nwam-manager-properties.glade.h:56
+msgid "Current IPv_4 setting:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:57
+msgid "Current IPv_6 setting: enabled"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:58
+#, fuzzy
+msgid "DHCP"
+msgstr "(DHCP)"
+
+#: ../capplet/nwam-manager-properties.glade.h:59
+#, fuzzy
+msgid "DHC_P"
+msgstr "(DHCP)"
+
+#: ../capplet/nwam-manager-properties.glade.h:60
+#, fuzzy
+msgid "D_HCP"
+msgstr "(DHCP)"
+
+#: ../capplet/nwam-manager-properties.glade.h:61
+#, fuzzy
+msgid "D_omain:"
+msgstr "nfsv4_domain"
+
+#: ../capplet/nwam-manager-properties.glade.h:62
+#, fuzzy
+msgid "De_fault domain:"
+msgstr "default_domainname"
+
+#: ../capplet/nwam-manager-properties.glade.h:63
+#, fuzzy
+msgid "Di_sable"
+msgstr "無効"
+
+#: ../capplet/nwam-manager-properties.glade.h:64
+msgid ""
+"Direct connection to internet\n"
+"Manually assigned\n"
+"From configuration (PAC) file"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:67
+msgid ""
+"Disabled\n"
+"DHCP assigned\n"
+"Manually assigned\n"
+"Multiple addresses"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:71
+#, fuzzy
+msgid ""
+"Disabled\n"
+"Enabled"
+msgstr "無効"
+
+#: ../capplet/nwam-manager-properties.glade.h:73
+msgid "Domain:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:74
+msgid "Edit _Rules..."
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:75
+msgid "Enable these services when this location is active:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:77
+msgid "Ethernet"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:78
+msgid ""
+"Exactly one connection is enabled\n"
+"One or more connections may be enabled\n"
+"All connections must be enabled"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:81
+msgid ""
+"Favorite wireless networks, in the order that\n"
+"connection will be attempted:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:83
+msgid "HTTP_S:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:84
+#, fuzzy
+msgid "IP Address"
+msgstr "IP アドレスがありません"
+
+#: ../capplet/nwam-manager-properties.glade.h:85
+msgid "IP_filter configuration:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:86
+msgid "IP_pool configuration:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:87
+#, fuzzy
+msgid "IPfilter v_6 configuration:"
+msgstr "ipfilter_v6_config_file"
+
+#: ../capplet/nwam-manager-properties.glade.h:88
+#, fuzzy
+msgid "IPsec p_olicy configuration"
+msgstr "ipsecpolicy_config_file"
+
+#: ../capplet/nwam-manager-properties.glade.h:89
+msgid "IPv6 I_P:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:90
+msgid "I_KE configuration:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:91
+#, fuzzy
+msgid "If no favorite networks are available:"
+msgstr "お気に入りのネットワークが使用できない場合のアクション"
+
+#: ../capplet/nwam-manager-properties.glade.h:92
+msgid "If the following conditions are true:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:93
+#, fuzzy
+msgid "Join _Unlisted..."
+msgstr "リストにない無線ネットワークの加入(_J)..."
+
+#: ../capplet/nwam-manager-properties.glade.h:96
+msgid "Known access points (_BSSIDs):"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:97
+#, fuzzy
+msgid ""
+"LEAP\n"
+"PEAP/MSCHAPv2"
+msgstr "PEAP/MSCHAPv2"
+
+#: ../capplet/nwam-manager-properties.glade.h:101
+#, fuzzy
+msgid "Location Properties : <location name>"
+msgstr "場所のプロパティー: %s"
+
+#: ../capplet/nwam-manager-properties.glade.h:102
+msgid "Man_ual"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:103
+msgid "Manage VPN using an SMF service:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:104
+msgid "Manage VPN using command line applications:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:105
+msgid "Manual"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:106
+msgid "Match _all"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:107
+msgid "Match a_ny"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:108
+msgid "Multiple"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:109
+#, fuzzy
+msgid "Name Services"
+msgstr "nameservices"
+
+#: ../capplet/nwam-manager-properties.glade.h:110
+#, fuzzy
+msgid "Network Locations"
+msgstr "ネットワークの場所(_N)..."
+
+#: ../capplet/nwam-manager-properties.glade.h:111
+#, fuzzy
+msgid "Network Preferences"
+msgstr "ネットワーク設定(_N)..."
+
+#: ../capplet/nwam-manager-properties.glade.h:113
+#, fuzzy
+msgid "Network Services"
+msgstr "ネットワークプロファイル"
+
+#: ../capplet/nwam-manager-properties.glade.h:114
+#, fuzzy
+msgid "New _Group"
+msgstr "新規グループ(_G)"
+
+#: ../capplet/nwam-manager-properties.glade.h:115
+msgid ""
+"None\n"
+"WEP Hex\n"
+"WEP ASCII\n"
+"WPA Personal (PSK)\n"
+"WPA Enterprise (Radius)"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:120
+msgid "Not required for Phase 1"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:121
+msgid "Office"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:122
+#, fuzzy
+msgid "PAC"
+msgstr "WPA"
+
+#: ../capplet/nwam-manager-properties.glade.h:123
+msgid "Port:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:124
+msgid "Prefi_x:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:125
+#, fuzzy
+msgid "Proxies"
+msgstr "プロファイル"
+
+#: ../capplet/nwam-manager-properties.glade.h:126
+#, fuzzy
+msgid "Rename Location"
+msgstr "命名されていない場所"
+
+#: ../capplet/nwam-manager-properties.glade.h:127
+msgid "Ro_uter:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:128
+#, fuzzy
+msgid "SMF Service"
+msgstr "SMF サービス"
+
+#: ../capplet/nwam-manager-properties.glade.h:129
+msgid "S_ervers:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:130
+#, fuzzy
+msgid "S_tart"
+msgstr "開始 "
+
+#: ../capplet/nwam-manager-properties.glade.h:131
+msgid "Sear_ch:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:133
+#, fuzzy
+msgid "Select IPfilter Configuration File"
+msgstr "「ネットワーク構成」ダイアログの表示"
+
+#: ../capplet/nwam-manager-properties.glade.h:134
+#, fuzzy
+msgid "Select IPnat Configuration File"
+msgstr "Wifi WPA 設定のタイプ"
+
+#: ../capplet/nwam-manager-properties.glade.h:135
+#, fuzzy
+msgid "Select IPpool Configuration File"
+msgstr "「ネットワーク構成」ダイアログの表示"
+
+#: ../capplet/nwam-manager-properties.glade.h:136
+#, fuzzy
+msgid "Select a Proxy Configuration File"
+msgstr "「ネットワーク構成」ダイアログの表示"
+
+#: ../capplet/nwam-manager-properties.glade.h:137
+#, fuzzy
+msgid "Selected gro_up:"
+msgstr "selected_ncp"
+
+#: ../capplet/nwam-manager-properties.glade.h:138
+msgid "Ser_vers:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:139
+#, fuzzy
+msgid "Service _FMRI:"
+msgstr "無効なサービス FMRI"
+
+#: ../capplet/nwam-manager-properties.glade.h:140
+msgid "Sho_w:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:141
+#, fuzzy
+msgid ""
+"Show list of available networks\n"
+"Join an open network\n"
+"Do not connect\n"
+msgstr "使用可能なネットワークのリスト表示"
+
+#: ../capplet/nwam-manager-properties.glade.h:145
+msgid "Soc_ks:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:146
+#, fuzzy
+msgid "Start _Command:"
+msgstr "start_command"
+
+#: ../capplet/nwam-manager-properties.glade.h:147
+#, fuzzy
+msgid "Start/stop '$vpn' according to rules"
+msgstr "規則に従って '%s' を開始/停止します"
+
+#: ../capplet/nwam-manager-properties.glade.h:148
+#, fuzzy
+msgid "Stati_c addresses:"
+msgstr "v4 アドレス"
+
+#: ../capplet/nwam-manager-properties.glade.h:149
+#, fuzzy
+msgid "Stop Co_mmand:"
+msgstr "stop_command"
+
+#: ../capplet/nwam-manager-properties.glade.h:150
+msgid "The following wireless networks were detected at your location:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:151
+msgid "Use for all connection types"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:152
+#: ../capplet/nwam_profile_panel.c:180
+msgid "User"
+msgstr "ユーザー"
+
+#: ../capplet/nwam-manager-properties.glade.h:153
+msgid "VPN Applications"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:155
+#, fuzzy
+msgid "WPA/2"
+msgstr "WPA"
+
+#: ../capplet/nwam-manager-properties.glade.h:156
+#, fuzzy
+msgid "Wireless"
+msgstr "無線 NCU"
+
+#: ../capplet/nwam-manager-properties.glade.h:157
+#, fuzzy
+msgid "_Add to list of favorite networks on successful connection"
+msgstr "接続の成功時にこの無線ネットワークを記憶します"
+
+#: ../capplet/nwam-manager-properties.glade.h:158
+#, fuzzy
+msgid "_Address:"
+msgstr "アドレス"
+
+#: ../capplet/nwam-manager-properties.glade.h:159
+msgid "_Advanced"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:160
+msgid "_Browse..."
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:161
+#, fuzzy
+msgid "_Configuration:"
+msgstr "Wifi WPA 設定のタイプ"
+
+#: ../capplet/nwam-manager-properties.glade.h:162
+msgid "_Custom properties associated with this location:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:163
+#, fuzzy
+msgid "_DNS"
+msgstr "DNS"
+
+#: ../capplet/nwam-manager-properties.glade.h:164
+#, fuzzy
+msgid "_Default"
+msgstr "デフォルトである"
+
+#: ../capplet/nwam-manager-properties.glade.h:166
+#, fuzzy
+msgid "_Enable"
+msgstr "有効"
+
+#: ../capplet/nwam-manager-properties.glade.h:167
+msgid "_FTP:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:168
+msgid "_Files"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:169
+msgid "_Gopher:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:170
+msgid "_HTTP:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:171
+#, fuzzy
+msgid "_LDAP"
+msgstr "LDAP"
+
+#: ../capplet/nwam-manager-properties.glade.h:172
+#, fuzzy
+msgid "_Locations..."
+msgstr "場所"
+
+#: ../capplet/nwam-manager-properties.glade.h:173
+#, fuzzy
+msgid "_Locations:"
+msgstr "場所"
+
+#: ../capplet/nwam-manager-properties.glade.h:174
+msgid "_Manual"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:175
+#, fuzzy
+msgid "_NAT configuration:"
+msgstr "Wifi WPA 設定のタイプ"
+
+#: ../capplet/nwam-manager-properties.glade.h:176
+#, fuzzy
+msgid "_NIS"
+msgstr "NIS"
+
+#: ../capplet/nwam-manager-properties.glade.h:177
+#, fuzzy
+msgid "_Name:"
+msgstr "名前"
+
+#: ../capplet/nwam-manager-properties.glade.h:178
+#, fuzzy
+msgid "_Network name (ESSID):"
+msgstr "名前 (ESSID)"
+
+#: ../capplet/nwam-manager-properties.glade.h:179
+msgid "_No proxy for:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:180
+#, fuzzy
+msgid "_Password..."
+msgstr "WPA のパスワード"
+
+#: ../capplet/nwam-manager-properties.glade.h:181
+#, fuzzy
+msgid "_Password:"
+msgstr "WPA のパスワード"
+
+#: ../capplet/nwam-manager-properties.glade.h:182
+#, fuzzy
+msgid "_Prefix:"
+msgstr "ipv6_prefix"
+
+#: ../capplet/nwam-manager-properties.glade.h:183
+msgid "_Rename"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:184
+msgid "_Repair Selected"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:185
+msgid "_Router:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:186
+#, fuzzy
+msgid "_Security type:"
+msgstr "セキュリティー"
+
+#: ../capplet/nwam-manager-properties.glade.h:187
+#, fuzzy
+msgid "_Selected location is:"
+msgstr "場所 '%s' に切り替えました"
+
+#: ../capplet/nwam-manager-properties.glade.h:188
+#, fuzzy
+msgid "_Service FMRI:"
+msgstr "無効なサービス FMRI"
+
+#: ../capplet/nwam-manager-properties.glade.h:189
+msgid "_Show passwords while typing"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:190
+#, fuzzy
+msgid "_Subnet Mask:"
+msgstr "サブネットマスク"
+
+#: ../capplet/nwam-manager-properties.glade.h:191
+#, fuzzy
+msgid "_Username:"
+msgstr "WPA のユーザー名"
+
+#: ../capplet/nwam-manager-properties.glade.h:192
+#, fuzzy
+msgid "_VPN Applications..."
+msgstr "ネットワークの場所(_N)..."
+
+#: ../capplet/nwam-manager-properties.glade.h:193
+msgid "_View/Edit Profile:"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:194
+msgid "gtk-add"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:195
+msgid "gtk-cancel"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:196
+msgid "gtk-edit"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:197
+msgid "gtk-ok"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:198
+msgid "gtk-remove"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:199
+msgid "gtk-revert-to-saved"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:200
+msgid "hme0"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:201
+msgid ""
+"manual activation only\n"
+"activated by rules\n"
+"activated by system"
+msgstr ""
+
+#: ../capplet/nwam-manager-properties.glade.h:204
+msgid "nsswitch file:"
+msgstr ""
+
+#: ../capplet/nwam_profile_dialog.c:135
+msgid "Always active"
+msgstr "常にアクティブです"
+
+#: ../capplet/nwam_profile_dialog.c:136
+msgid "Activated by rules"
+msgstr "規則によって起動されました"
+
+#: ../capplet/nwam_profile_dialog.c:137
+msgid "Never active"
+msgstr "アクティブになりません"
+
+#: ../capplet/nwam_profile_dialog.c:138
+msgid "Exactly one connection is enabled"
+msgstr "1 つの接続だけが有効です"
+
+#: ../capplet/nwam_profile_dialog.c:139
+msgid "One or more connections may be enabled"
+msgstr "1 つ以上の接続を有効にすることができます"
+
+#: ../capplet/nwam_profile_dialog.c:140
+msgid "All connections must be enabled"
+msgstr "すべての接続を有効にする必要があります"
+
+#: ../capplet/nwam_profile_dialog.c:312 ../capplet/nwam_profile_dialog.c:313
+msgid "selected_ncp"
+msgstr "selected_ncp"
+
+#: ../capplet/nwam_profile_dialog.c:320 ../capplet/nwam_profile_dialog.c:321
+msgid "selected_ncu"
+msgstr "selected_ncu"
+
+#: ../capplet/nwam_profile_dialog.c:486
+msgid "Details"
+msgstr "詳細"
+
+#: ../capplet/nwam_profile_dialog.c:755
+msgid "Add Network Profile dialog"
+msgstr "「ネットワークプロファイルの追加」ダイアログ"
+
+#: ../capplet/nwam_profile_dialog.c:758
+msgid "Edit Network Profile dialog"
+msgstr "「ネットワークプロファイルの編集」ダイアログ"
+
+#: ../capplet/nwam_profile_dialog.c:836
+msgid "<b><i>(None)</i></b>"
+msgstr "<b><i>(なし)</i></b>"
+
+#: ../capplet/nwam_profile_dialog.c:861
+#, c-format
+msgid ""
+"<b>%s</b>\n"
+"<small>%s, %s</small>"
+msgstr ""
+"<b>%s</b>\n"
+"<small>%s, %s</small>"
+
+#: ../capplet/nwam_profile_dialog.c:882
+msgid "Always enable these connections:"
+msgstr "これらの接続を常に有効にします:"
+
+#: ../capplet/nwam_profile_dialog.c:884
+msgid "Always disable these connections:"
+msgstr "これらの接続を常に無効にします:"
+
+#: ../capplet/nwam_profile_dialog.c:907
+msgid "Then enable exactly one of these connections:"
+msgstr "その場合は、これらの接続のうちの 1 つだけを有効にします:"
+
+#: ../capplet/nwam_profile_dialog.c:910
+msgid "Else enable exactly one of these connections:"
+msgstr "そうでない場合は、これらの接続のうち 1 つだけを有効にします:"
+
+#: ../capplet/nwam_profile_dialog.c:915
+msgid "Then enable one or more of these connections:"
+msgstr "その場合は、これらの接続のうち 1 つ以上を有効にします:"
+
+#: ../capplet/nwam_profile_dialog.c:918
+msgid "Else enable one or more of these connections:"
+msgstr "そうでない場合は、これらの接続のうち 1 つ以上を有効にします:"
+
+#: ../capplet/nwam_profile_dialog.c:923
+msgid "Then enable all of these connections:"
+msgstr "その場合は、これらの接続をすべて有効にします:"
+
+#: ../capplet/nwam_profile_dialog.c:926
+msgid "Else enable all of these connections:"
+msgstr "そうでない場合は、これらの接続をすべて有効にします:"
+
+#: ../capplet/nwam_profile_dialog.c:1015
+#, c-format
+msgid "%s  (active)"
+msgstr "%s  (アクティブ)"
+
+#. Enable New Group
+#: ../capplet/nwam_profile_dialog.c:2195
+msgid "New _group"
+msgstr "新規グループ(_G)"
+
+#. Enable Remove Group
+#: ../capplet/nwam_profile_dialog.c:2200
+msgid "Remove _group"
+msgstr "グループの削除(_G)"
+
+#: ../capplet/nwam_profile_dialog.c:2405
+#, c-format
+msgid "Then set status of '%s' to: "
+msgstr "その場合は、'%s' のステータスを次に設定します:"
+
+#: ../capplet/nwam_profile_panel.c:203
+#, c-format
+msgid "Remove network profile: '%s'?"
+msgstr "ネットワークプロファイルを削除しますか: '%s'?"
+
+#: ../capplet/nwam_profile_panel.c:207
+msgid "Remove network profile?"
+msgstr "ネットワークプロファイルを削除しますか?"
+
+#: ../capplet/nwam_profile_panel.c:325 ../capplet/nwam_profile_panel.c:326
+msgid "Toggled object"
+msgstr "切り替えられたオブジェクト"
+
+#: ../capplet/nwam_profile_panel.c:862 ../capplet/nwam_profile_panel.c:873
+#, c-format
+msgid "%s and %d more"
+msgstr "%s およびほかの %d 個"
+
+#: ../common/nwamui_known_wlan.c:170 ../common/nwamui_known_wlan.c:171
+msgid "priority"
+msgstr "優先順位"
+
+#. Callbacks
 #: ../data/nwam-manager.schemas.in.h:1
 msgid "Action to do if no favourite networks found."
 msgstr "お気に入りのネットワークが見つからなかった場合に実行する操作。"
@@ -2098,7 +2983,8 @@ msgstr "表示可能な無線ネットワークがないときの通知を表示
 #: ../data/nwam-manager.schemas.in.h:14
 msgid ""
 "The default timeout of notification in milliseconds, must greater than zero."
-msgstr "通知のデフォルトタイムアウト (ミリ秒単位) は 0 より大きくする必要があります。"
+msgstr ""
+"通知のデフォルトタイムアウト (ミリ秒単位) は 0 より大きくする必要があります。"
 
 #: ../data/nwam-manager.schemas.in.h:15
 msgid "action_on_no_fav_networks"

@@ -657,7 +657,7 @@ nwamui_object_real_set_active (NwamuiObject *object, gboolean active)
  * @returns: the modifiable.
  *
  **/
-extern gboolean
+static gboolean
 nwamui_object_real_is_modifiable(NwamuiObject *object)
 {
     NwamuiNcp    *self       = NWAMUI_NCP(object);
@@ -665,7 +665,7 @@ nwamui_object_real_is_modifiable(NwamuiObject *object)
     gboolean      modifiable = FALSE; 
     boolean_t     readonly;
 
-    g_assert(NWAMUI_IS_NCP (self));
+    g_return_val_if_fail( NWAMUI_IS_NCP(object), FALSE );
     if (self->prv->nwam_ncp == NULL ) {
         return TRUE;
     }

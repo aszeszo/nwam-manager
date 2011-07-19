@@ -169,6 +169,7 @@ static gboolean     nwamui_object_real_get_enabled ( NwamuiObject *object );
 static gboolean     nwamui_object_real_validate(NwamuiObject *object, gchar **prop_name_ret);
 static gboolean     nwamui_object_real_commit( NwamuiObject* object );
 static gboolean     nwamui_object_real_destroy( NwamuiObject* object );
+static gboolean     nwamui_object_real_is_modifiable(NwamuiObject *object);
 static void         nwamui_object_real_reload(NwamuiObject* object);
 static NwamuiObject* nwamui_object_real_clone(NwamuiObject *object, const gchar *name, NwamuiObject *parent);
 static gboolean     nwamui_object_real_has_modifications(NwamuiObject* object);
@@ -224,6 +225,7 @@ nwamui_env_class_init (NwamuiEnvClass *klass)
     nwamuiobject_class->commit = nwamui_object_real_commit;
     nwamuiobject_class->reload = nwamui_object_real_reload;
     nwamuiobject_class->destroy = nwamui_object_real_destroy;
+    nwamuiobject_class->is_modifiable = nwamui_object_real_is_modifiable;
     nwamuiobject_class->clone = nwamui_object_real_clone;
     nwamuiobject_class->has_modifications = nwamui_object_real_has_modifications;
 
@@ -3717,6 +3719,19 @@ nwamui_object_real_destroy( NwamuiObject *object )
     }
 
     return( TRUE );
+}
+
+static gboolean
+nwamui_object_real_is_modifiable(NwamuiObject *object)
+{
+    NwamuiEnvPrivate *prv = NWAMUI_ENV_GET_PRIVATE(object);
+
+    g_return_val_if_fail( NWAMUI_IS_ENV(object), FALSE );
+    /* If Activation Mode is system, then you can't rename or remove
+     * the selected location.
+     */
+    return (nwamui_object_real_get_activation_mode(object) != NWAMUI_COND_ACTIVATION_MODE_SYSTEM);
+    /* return !NWAM_LOC_NAME_PRE_DEFINED(nwamui_object_get_name(object)); */
 }
 
 /**
