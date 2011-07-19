@@ -698,7 +698,6 @@ nwam_tree_view_row_selected_cb(GtkTreeView *tree_view, gpointer user_data)
     NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(tree_view);
 	NwamTreeView *self = NWAM_TREE_VIEW(tree_view);
 
-    update_buttons_status(self);
 }
 
 static void
@@ -706,8 +705,9 @@ nwam_tree_view_selection_changed_cb(GtkTreeSelection *selection, gpointer user_d
 {
     NwamTreeViewPrivate *prv = NWAM_TREE_VIEW_PRIVATE(user_data);
 
-    prv->count_selected_rows = gtk_tree_selection_count_selected_rows(selection);
-    g_list_foreach(prv->widgets, nwam_tree_view_update_widget_cb, user_data);
+    /* prv->count_selected_rows = gtk_tree_selection_count_selected_rows(selection); */
+    /* g_list_foreach(prv->widgets, nwam_tree_view_update_widget_cb, user_data); */
+    update_buttons_status(NWAM_TREE_VIEW(user_data));
 }
 
 static void
@@ -879,39 +879,61 @@ update_buttons_status(NwamTreeView *self)
     GtkTreeSelection    *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));
     GtkTreeModel        *model;
     GtkTreeIter          iter;
+    int                  id;
     /* gint                 count_selected_rows; */
 
     /* count_selected_rows = gtk_tree_selection_count_selected_rows(selection); */
 
+    /* Add btn should have different logic, e.g. disable it if there is an
+     * object under edit. If we don't have that logic, always enable it.
+     */
+    for (id = NTV_ADD_BTN + 1; id < NTV_N_BTNS; id ++) {
+        if (prv->widget_list[id]) {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[id]), FALSE);
+        }
+    }
+
     if (gtk_tree_selection_get_selected(selection, &model, &iter)) {
+        NwamuiObject *object;
         GtkTreePath *path;
+
+        gtk_tree_model_get(model, &iter, 0, &object, -1);
 
         if (prv->widget_list[NTV_UP_BTN] && prv->widget_list[NTV_DOWN_BTN]) {
             path = gtk_tree_model_get_path(model, &iter);
 
             if (gtk_tree_path_prev(path)) {
                 gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_UP_BTN]), TRUE);
-            } else {
-                gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_UP_BTN]), FALSE);
             }
             gtk_tree_path_free(path);
 
             if (gtk_tree_model_iter_next(model, &iter)) {
                 gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_DOWN_BTN]), TRUE);
-            } else {
-                gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_DOWN_BTN]), FALSE);
             }
         }
+
+        /* Always enable dup btn if an object is selected. */
+        if (prv->widget_list[NTV_DUP_BTN]) {
+            gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_DUP_BTN]), TRUE);
+        }
+
+        /* Always enable edit btn, even for read-only object, since the edit
+         * window is also read-only
+         */
         if (prv->widget_list[NTV_EDIT_BTN]) {
             gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_EDIT_BTN]), TRUE);
         }
-    } else {
-        if (prv->widget_list[NTV_UP_BTN] && prv->widget_list[NTV_DOWN_BTN]) {
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_UP_BTN]), FALSE);
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_DOWN_BTN]), FALSE);
+
+        if (nwamui_object_is_modifiable(object)) {
+            /* NwamuiObject can't rename if they are not modifiable. */
+            if (prv->widget_list[NTV_RENAME_BTN]) {
+                gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_RENAME_BTN]), nwamui_object_is_modifiable(object) && !nwamui_object_get_active(object));
+            }
+            if (prv->widget_list[NTV_REMOVE_BTN]) {
+                gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_REMOVE_BTN]), !nwamui_object_get_active(object));
+            }
         }
-        if (prv->widget_list[NTV_EDIT_BTN]) {
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->widget_list[NTV_EDIT_BTN]), FALSE);
-        }
+
+        g_object_unref(object);
     }
 }

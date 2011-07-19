@@ -852,6 +852,8 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
                 nwamui_object_set_active(NWAMUI_OBJECT(obj), FALSE);
             }
 
+            gtk_tree_selection_unselect_iter(selection, &iter);
+            gtk_tree_selection_select_iter(selection, &iter);
             return;
         }
     }
@@ -973,10 +975,6 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection, gpointer data)
                 }
             }
 
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), !is_active );
-            gtk_widget_set_sensitive (GTK_WIDGET(prv->rename_btn), TRUE );
-
-
             /* Content update, shouldn't disturb when user inputs. 
              *
              * The current object will have been updated by the selection
@@ -1082,8 +1080,6 @@ nwam_vpn_selection_changed(GtkTreeSelection *selection, gpointer data)
     gtk_widget_set_sensitive (GTK_WIDGET(prv->start_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->stop_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->vpn_rules_btn), FALSE);
-    gtk_widget_set_sensitive (GTK_WIDGET(prv->remove_btn), FALSE);
-    gtk_widget_set_sensitive (GTK_WIDGET(prv->rename_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_start_cmd_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->browse_stop_cmd_btn), FALSE);
     gtk_widget_set_sensitive (GTK_WIDGET(prv->start_cmd_entry), FALSE);

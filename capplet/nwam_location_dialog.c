@@ -816,15 +816,8 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
     NwamLocationDialogPrivate*  prv    = GET_PRIVATE(self);
     GtkTreeModel*               model;
     GtkTreeIter                 iter;
-    gint                        count_selected_rows;
 
-    count_selected_rows = gtk_tree_selection_count_selected_rows(selection);
-
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->location_edit_btn), count_selected_rows > 0 ? TRUE : FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->location_dup_btn), count_selected_rows > 0 ? TRUE : FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->location_rename_btn), count_selected_rows > 0 ? TRUE : FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn), count_selected_rows > 0 ? TRUE : FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->location_activation_combo), count_selected_rows > 0 ? TRUE : FALSE);
+    gtk_widget_set_sensitive(GTK_WIDGET(prv->location_activation_combo), FALSE);
     gtk_widget_set_sensitive(GTK_WIDGET(prv->location_rules_btn), FALSE);
 
     if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
@@ -847,30 +840,18 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         switch (cond) {
         case NWAMUI_COND_ACTIVATION_MODE_MANUAL:
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_MANUAL);
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn),
-                                     !nwamui_object_get_active(NWAMUI_OBJECT(env)));
             break;
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ANY:
         case NWAMUI_COND_ACTIVATION_MODE_CONDITIONAL_ALL:
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_RULES );
             gtk_widget_set_sensitive(GTK_WIDGET(self->prv->location_rules_btn), TRUE);
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn),
-                                     !nwamui_object_get_active(NWAMUI_OBJECT(env)));
             break;
-        case NWAMUI_COND_ACTIVATION_MODE_SYSTEM:
-            /* If Activation Mode is system, then you can't rename or remove
-             * the selected location.
-             */
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->location_rename_btn), FALSE );
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn), FALSE );
-            /* Fall-through */
+        case NWAMUI_COND_ACTIVATION_MODE_SYSTEM: /* Fall through */
         case NWAMUI_COND_ACTIVATION_MODE_PRIORITIZED: /* Not supported, so just assume default if see it. */
         default:
-            gtk_widget_set_sensitive(GTK_WIDGET(prv->location_remove_btn), FALSE);
             gtk_combo_box_set_active(prv->location_activation_combo, NWAMUI_LOC_ACTIVATION_BY_SYSTEM);
             break;
         }
-
 
         g_signal_handlers_unblock_by_func(G_OBJECT(prv->location_activation_combo), 
                                         (gpointer)location_activation_combo_changed_cb, (gpointer)self);

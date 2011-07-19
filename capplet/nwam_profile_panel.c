@@ -813,18 +813,10 @@ nwamui_ncp_name_cell_edited(GtkCellRendererText *cell,
 static void
 nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
 {
-    NwamProfilePanel*         self   = NWAM_PROFILE_PANEL(user_data);
-    NwamProfilePanelPrivate*  prv    = GET_PRIVATE(self);
-    GtkTreeModel*               model;
-    GtkTreeIter                 iter;
-    gint                        count_selected_rows;
-
-    count_selected_rows = gtk_tree_selection_count_selected_rows(selection);
-
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_edit_btn), count_selected_rows > 0 ? TRUE : FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_dup_btn), count_selected_rows > 0 ? TRUE : FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_rename_btn), count_selected_rows > 0 ? TRUE : FALSE);
-    gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_remove_btn), count_selected_rows > 0 ? TRUE : FALSE);
+    NwamProfilePanel*        self = NWAM_PROFILE_PANEL(user_data);
+    NwamProfilePanelPrivate* prv  = GET_PRIVATE(self);
+    GtkTreeModel*            model;
+    GtkTreeIter              iter;
 
     if ( gtk_tree_selection_get_selected( selection, &model, &iter ) ) {
         NwamuiObject *object;
@@ -832,11 +824,6 @@ nwam_treeview_update_widget_cb(GtkTreeSelection *selection, gpointer user_data)
         gboolean      modifiable;
 
         gtk_tree_model_get(model, &iter, 0, &object, -1);
-
-        modifiable = nwamui_object_is_modifiable(object);
-        /* gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_edit_btn), modifiable); */
-        /* gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_rename_btn), modifiable && nwamui_object_can_rename(object)); */
-        gtk_widget_set_sensitive(GTK_WIDGET(prv->profile_remove_btn), modifiable && !nwamui_object_get_active(object));
 
         gtk_label_set_text(GTK_LABEL(prv->selected_profile_lbl), nwamui_object_get_name(object));
 
