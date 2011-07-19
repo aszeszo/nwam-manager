@@ -1,3 +1,11 @@
+2011-07-19  Lin Ma  <lin.ma@oracle.com>
+
+	* common/libnwamui.c: (nwamui_util_validate_text_entry): Fixed
+	7058818 source error: double ":" appear in nwam-manager.pot
+	* daemon/nwam-menuitem.c: (nwam_menu_item_class_init): Fixed
+	7058816 [ID 186262]source error: addtional hyphen "proxy-object"
+	in nwam-manager.pot
+
 2011-07-18  Lin Ma  <lin.ma@oracle.com>
 
 	* data/nwam-manager-properties: Fixed 7066511 [nwam] user with

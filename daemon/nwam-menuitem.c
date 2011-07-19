@@ -153,8 +153,8 @@ nwam_menu_item_class_init (NwamMenuItemClass *klass)
 	g_object_class_install_property (gobject_class,
       PROP_OBJECT,
       g_param_spec_object ("proxy-object",
-        N_("proxy-object"),
-        N_("proxy-object"),
+        N_("proxy object"),
+        N_("proxy object"),
         G_TYPE_OBJECT,
         G_PARAM_READWRITE | G_PARAM_CONSTRUCT));
 

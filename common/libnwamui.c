@@ -2103,7 +2103,7 @@ nwamui_util_validate_text_entry(    GtkWidget           *widget,
             }
         }
         else if ( is_ethers ) {
-            g_string_append( message_str, _("Valid ethernet addresses or BSSIDs must be in the format::\n\n    xx:xx:xx:xx:xx:xx:xx:xx\n\n"));
+            g_string_append( message_str, _("Valid ethernet addresses or BSSIDs must be in the format:\n\n    xx:xx:xx:xx:xx:xx:xx:xx\n\n"));
         }
         else {
             if ( is_v4 ) {
