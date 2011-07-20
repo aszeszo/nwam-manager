@@ -2031,31 +2031,14 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         }
             break;
         case NWAM_ACTION_DISABLE:
-            break;
         case NWAM_ACTION_ENABLE:
-            if (ncp) {
-                /* Don't use nwamui_object_set_active() since it will
-                 * actually cause a switch again...
-                 */
-                if (prv->active_ncp != NULL) {
-                    g_object_unref(prv->active_ncp);
-                }
-
-                prv->active_ncp = g_object_ref(ncp);
-                /* We need reload NCP since it may changes when it isn't active. */
-                if (!nwamui_object_has_modifications(ncp)) {
-                    nwamui_object_reload(ncp);
-                }
-                g_object_notify(G_OBJECT(daemon), "active_ncp");
-            }
-            break;
         case NWAM_ACTION_REFRESH:
+            /* nwamui_object_has_modifications(ncp) always returns true. */
             if (ncp) {
                 nwamui_object_reload(NWAMUI_OBJECT(ncp));
             }
             break;
-        case NWAM_ACTION_REMOVE:
-            /* Treat REMOVE and DESTROY as the same */
+        case NWAM_ACTION_REMOVE: /* Treat REMOVE and DESTROY as the same */
         case NWAM_ACTION_DESTROY: {
             if (ncp) {
                 if ( ncp == prv->active_ncp ) {
@@ -2081,9 +2064,9 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         /* NCU's come in the typed name format (e.g. link:ath0) */
         if (ncp) {
             if ( nwam_ncu_typed_name_to_name(object_name, &nwam_ncu_type, &device_name ) == NWAM_SUCCESS ) {
-                /* Assumption here is that such events are only for the active NCP
-                 * since there is no way to qualify the object's parent from the
-                 * name.
+                /* Assumption here is that such events are only for the active
+                 * NCP since there is no way to qualify the object's parent from
+                 * the name.
                  */
                 ncu = nwamui_ncp_get_ncu_by_device_name(NWAMUI_NCP(ncp), device_name);
                 free(device_name);
@@ -2122,8 +2105,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 nwamui_object_reload(ncu);
             }
             break;
-        case NWAM_ACTION_REMOVE:
-            /* Fall through. */
+        case NWAM_ACTION_REMOVE: /* Fall through. */
         case NWAM_ACTION_DESTROY:
             if (ncu) {
                 nwamui_object_remove(NWAMUI_OBJECT(ncp), NWAMUI_OBJECT(ncu));
@@ -2154,27 +2136,13 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
         }
             break;
         case NWAM_ACTION_DISABLE:
-            if (env) {
-                nwamui_object_set_enabled(env, FALSE);
-                g_object_notify(G_OBJECT(daemon), "env_selection_mode");
-            }
-            break;
         case NWAM_ACTION_ENABLE:
-            if (env) {
-                /* Ensure that correct active env pointer */
-                nwamui_daemon_set_active_env( daemon, env );
-
-                nwamui_object_set_enabled(env, TRUE);
-                g_object_notify(G_OBJECT(daemon), "env_selection_mode");
-            }
-            break;
         case NWAM_ACTION_REFRESH:
-            if (env) {
+            if (env && !nwamui_object_has_modifications(env)) {
                 nwamui_object_reload(env);
             }
             break;
-        case NWAM_ACTION_REMOVE:
-            /* Fall through, remove/destroy are the same here */
+        case NWAM_ACTION_REMOVE: /* Fall through, the same here */
         case NWAM_ACTION_DESTROY: {
             /* Capplet removes the object first, so we can find it here. Do
              * nothing. */
@@ -2214,8 +2182,7 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
                 nwamui_object_reload(enm);
             }
             break;
-        case NWAM_ACTION_REMOVE:
-            /* Fall through, basically the same operation */
+        case NWAM_ACTION_REMOVE: /* Fall through, the same operation */
         case NWAM_ACTION_DESTROY: {
             /* Capplet removes the object first, so we can find it here. Do
              * nothing. */
@@ -2250,16 +2217,14 @@ nwamui_daemon_handle_object_action_event( NwamuiDaemon   *daemon, nwam_event_t n
             break;
         case NWAM_ACTION_DISABLE:
         case NWAM_ACTION_ENABLE:
-            break;
         case NWAM_ACTION_REFRESH: {
             /* Need to refresh to catch update to priorities */
-            if ( wifi != NULL ) {
+            if (wifi && !nwamui_object_has_modifications(wifi)) {
                 nwamui_object_reload( NWAMUI_OBJECT(wifi) );
             }
         }
             break;
-        case NWAM_ACTION_REMOVE:
-            /* Same as Destroy, so fall-through */
+        case NWAM_ACTION_REMOVE: /* Same as Destroy, so fall-through */
         case NWAM_ACTION_DESTROY: {
             if ( wifi != NULL ) {
                 nwamui_object_remove(NWAMUI_OBJECT(daemon), NWAMUI_OBJECT(wifi));
@@ -2331,13 +2296,21 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
             if (obj) {
                 nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
                 if ( object_state == NWAM_STATE_ONLINE && object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
-                    /* Assume that activating, will cause signal to say other was
-                     * deactivated too.
+                    /* Don't use nwamui_object_set_active() since it will
+                     * actually cause a switch again...
                      */
-                    if (obj != NWAMUI_OBJECT(daemon->prv->active_ncp)) {
-                        nwamui_object_set_active(obj, TRUE);
-                        g_object_notify(G_OBJECT(daemon), "active_ncp");
+                    if (prv->active_ncp != NULL) {
+                        g_object_unref(prv->active_ncp);
                     }
+
+                    prv->active_ncp = g_object_ref(obj);
+                    /* We need reload NCP since it may changes when it isn't
+                     * active. nwamui_object_has_modifications(ncp) always
+                     * returns true.
+                     */
+                    nwamui_object_reload(obj);
+
+                    g_object_notify(G_OBJECT(daemon), "active_ncp");
                 } else {
                     status_flags |= STATUS_REASON_NCP;
                 }
@@ -2351,6 +2324,8 @@ nwamui_daemon_handle_object_state_event( NwamuiDaemon   *daemon, nwam_event_t nw
                 nwamui_object_set_nwam_state(obj, object_state, object_aux_state);
                 if ( object_state == NWAM_STATE_ONLINE && object_aux_state == NWAM_AUX_STATE_ACTIVE ) {
                     nwamui_daemon_set_active_env( daemon, obj);
+
+                    g_object_notify(G_OBJECT(daemon), "env_selection_mode");
                 } else {
                     status_flags |= STATUS_REASON_LOC;
                 }

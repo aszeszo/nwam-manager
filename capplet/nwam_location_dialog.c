@@ -125,6 +125,7 @@ static void location_get_property (GObject         *object,
 /* Callbacks */
 static void response_cb( GtkWidget* widget, gint repsonseid, gpointer data );
 static void object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data);
+static void daemon_env_selection_mode_changed(GObject *gobject, GParamSpec *arg1, gpointer data);
 static void nwam_location_connection_toggled_cell_sensitive_func(GtkTreeViewColumn *col,
   GtkCellRenderer   *renderer,
   GtkTreeModel      *model,
@@ -513,6 +514,8 @@ nwam_location_dialog_init(NwamLocationDialog *self)
     
 	g_signal_connect(G_OBJECT(self), "notify", (GCallback)object_notify_cb, NULL);
 
+	g_signal_connect(prv->daemon, "notify::env-selection-mode", (GCallback)daemon_env_selection_mode_changed, (gpointer)self);
+
     /* Initially refresh self */
     nwam_pref_refresh(NWAM_PREF_IFACE(self), NULL, TRUE);
 }
@@ -554,7 +557,6 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
     NwamLocationDialog        *self = NWAM_LOCATION_DIALOG( iface );
 	NwamLocationDialogPrivate *prv  = GET_PRIVATE(self);
     GtkButton                 *switch_cb;
-    gboolean                   flag = nwamui_daemon_env_selection_is_manual(prv->daemon);
     
     g_debug("NwamLocationDialog: Refresh");
     g_assert(NWAM_IS_LOCATION_DIALOG(self));
@@ -566,7 +568,7 @@ refresh(NwamPrefIFace *iface, gpointer user_data, gboolean force)
         gtk_widget_show(GTK_WIDGET(self->prv->location_tree));
     }
 
-    if (flag) {
+    if (nwamui_daemon_env_selection_is_manual(prv->daemon)) {
         switch_cb = GTK_BUTTON(prv->location_switch_loc_manually_cb);
     } else {
         switch_cb = GTK_BUTTON(prv->location_switch_loc_auto_cb);
@@ -644,21 +646,22 @@ apply(NwamPrefIFace *iface, gpointer user_data)
         g_object_unref(data.failone);
     }
 
-    /* If a different loc is being activated. */
-    if (prv->toggled_env) {
-        if (prv->switch_loc_manually_flag) {
+    if (prv->switch_loc_manually_flag) {
+        /* If a different loc is being activated. */
+        if (prv->toggled_env) {
             nwamui_object_set_active(NWAMUI_OBJECT(prv->toggled_env), TRUE);
-        } else {
-            /* Get the current active env, disactive and wait for nwamd. */
-            NwamuiEnv *env = nwamui_daemon_get_active_env(prv->daemon);
-            nwamui_object_set_active(NWAMUI_OBJECT(env), FALSE);
-            g_object_unref(env);
         }
-        /* Clean toggled_env after use it, because the next time show this dialog
-         * may not show the correct active env.
-         */
-        g_object_set(self, "toggled_env", NULL, NULL);
+    } else {
+        /* Get the current active env, disactive and wait for nwamd. */
+        NwamuiEnv *env = nwamui_daemon_get_active_env(prv->daemon);
+        nwamui_object_set_active(NWAMUI_OBJECT(env), FALSE);
+        g_object_unref(env);
     }
+
+    /* Clean toggled_env after use it, because the next time show this dialog
+     * may not show the correct active env.
+     */
+    g_object_set(self, "toggled_env", NULL, NULL);
 
     return retval;
 }
@@ -1008,6 +1011,20 @@ static void
 object_notify_cb( GObject *gobject, GParamSpec *arg1, gpointer data)
 {
     g_debug("NwamLocationDialog: notify %s changed", arg1->name);
+}
+
+static void
+daemon_env_selection_mode_changed(GObject *gobject, GParamSpec *arg1, gpointer data)
+{
+	NwamLocationDialogPrivate *prv  = GET_PRIVATE(data);
+    GtkButton                 *switch_cb;
+
+    if (nwamui_daemon_env_selection_is_manual(prv->daemon)) {
+        switch_cb = GTK_BUTTON(prv->location_switch_loc_manually_cb);
+    } else {
+        switch_cb = GTK_BUTTON(prv->location_switch_loc_auto_cb);
+    }
+    gtk_button_clicked(switch_cb);
 }
 
 static void

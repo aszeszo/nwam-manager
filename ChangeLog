@@ -1,5 +1,22 @@
 2011-07-20  Lin Ma  <lin.ma@oracle.com>
 
+	* capplet/nwam_location_dialog.c: (nwam_location_dialog_init),
+	(refresh), (apply), (daemon_env_selection_mode_changed):
+	* common/nwamui_daemon.c:
+	(nwamui_daemon_handle_object_action_event),
+	(nwamui_daemon_handle_object_state_event):
+
+	Should not use action_event to change nwamui object states, use
+	state_event instead. Action_events come out earlier than
+	state_events, and the latter is more accurate for GUI.
+
+	Fixed 7063887 [nwam] cannot select to switch locations
+	automatically unless user also selects automatic
+	location. Location dialog need monitor daemon "env_selection_mode"
+	notification to update selection mode.
+
+2011-07-20  Lin Ma  <lin.ma@oracle.com>
+
 	* capplet/nwam_tree_view.c: (on_add_btn_clicked),
 	(on_remove_btn_clicked), (on_dup_btn_clicked), (on_up_btn_clicked),
 	(on_down_btn_clicked), (nwam_tree_view_selection_changed_cb),
