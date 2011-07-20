@@ -852,8 +852,6 @@ vpn_pref_clicked_cb (GtkButton *button, gpointer data)
                 nwamui_object_set_active(NWAMUI_OBJECT(obj), FALSE);
             }
 
-            gtk_tree_selection_unselect_iter(selection, &iter);
-            gtk_tree_selection_select_iter(selection, &iter);
             return;
         }
     }
@@ -870,7 +868,8 @@ nwam_vpn_state_cell_cb (GtkTreeViewColumn *col,
 		GtkTreeIter       *iter,
 		gpointer           data)
 {
-	NwamVPNPrefDialog*self = NWAM_VPN_PREF_DIALOG(data);
+	NwamVPNPrefDialogPrivate *prv = GET_PRIVATE(data);
+    GtkTreeSelection *selection = gtk_tree_view_get_selection(prv->view);
 	GObject *obj;
 
 	gtk_tree_model_get(GTK_TREE_MODEL(model), iter, 0, &obj, -1);
@@ -891,6 +890,11 @@ nwam_vpn_state_cell_cb (GtkTreeViewColumn *col,
         g_object_set((gpointer)renderer,
           "text", "",
           NULL);
+    }
+
+    /* If object state changes, update buttons states. */
+    if (gtk_tree_selection_iter_is_selected(selection, iter)) {
+        nwam_tree_view_update_buttons_status(NWAM_TREE_VIEW(prv->view));
     }
 }
 

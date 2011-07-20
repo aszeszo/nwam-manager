@@ -1,3 +1,16 @@
+2011-07-20  Lin Ma  <lin.ma@oracle.com>
+
+	* capplet/nwam_tree_view.c: (on_add_btn_clicked),
+	(on_remove_btn_clicked), (on_dup_btn_clicked), (on_up_btn_clicked),
+	(on_down_btn_clicked), (nwam_tree_view_selection_changed_cb),
+	(nwam_tree_view_update_buttons_status):
+	* capplet/nwam_tree_view.h:
+	* capplet/nwam_vpn_pref_dialog.c: (vpn_pref_clicked_cb),
+	(nwam_vpn_state_cell_cb):
+
+	Fixed delete/rename buttons are sensitive when read-only objects
+	are selected for vpn dialog.
+
 2011-07-19  Lin Ma  <lin.ma@oracle.com>
 
 	* capplet/nwam_location_dialog.c: (nwam_treeview_update_widget_cb):

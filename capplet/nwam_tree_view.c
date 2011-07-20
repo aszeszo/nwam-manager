@@ -128,8 +128,6 @@ static void nwam_tree_view_row_deleted(GtkTreeModel *tree_model,
 
 static void object_tree_model_notify(GObject *gobject, GParamSpec *arg1, gpointer user_data);
 
-static void update_buttons_status(NwamTreeView *self);
-
 G_DEFINE_TYPE(NwamTreeView, nwam_tree_view, GTK_TYPE_TREE_VIEW)
 
 static const gchar*
@@ -421,7 +419,7 @@ on_add_btn_clicked(GtkButton *button, gpointer user_data)
     } else {
         g_debug("Fail to 'create_object'.");
     }
-    update_buttons_status(self);
+    nwam_tree_view_update_buttons_status(self);
 }
 
 static void
@@ -443,7 +441,7 @@ on_remove_btn_clicked(GtkButton *button, gpointer user_data)
         }
         g_object_unref(obj);
     }
-    update_buttons_status(self);
+    nwam_tree_view_update_buttons_status(self);
 }
 
 static void
@@ -564,7 +562,7 @@ on_dup_btn_clicked(GtkButton *button, gpointer user_data)
         }
         g_object_unref(obj);
     }
-    update_buttons_status(self);
+    nwam_tree_view_update_buttons_status(self);
 }
 
 static void
@@ -590,7 +588,7 @@ on_up_btn_clicked(GtkButton *button, gpointer user_data)
 
     /* Update the state of buttons */
     /* selection_changed(gtk_tree_view_get_selection(prv->wifi_fav_tv), (gpointer)self); */
-    update_buttons_status(self);
+    nwam_tree_view_update_buttons_status(self);
 }
 
 static void
@@ -614,7 +612,7 @@ on_down_btn_clicked(GtkButton *button, gpointer user_data)
 
     /* Update the state of buttons */
     /* selection_changed(gtk_tree_view_get_selection(prv->wifi_fav_tv), (gpointer)self); */
-    update_buttons_status(self);
+    nwam_tree_view_update_buttons_status(self);
 }
 
 static gboolean
@@ -707,7 +705,7 @@ nwam_tree_view_selection_changed_cb(GtkTreeSelection *selection, gpointer user_d
 
     /* prv->count_selected_rows = gtk_tree_selection_count_selected_rows(selection); */
     /* g_list_foreach(prv->widgets, nwam_tree_view_update_widget_cb, user_data); */
-    update_buttons_status(NWAM_TREE_VIEW(user_data));
+    nwam_tree_view_update_buttons_status(NWAM_TREE_VIEW(user_data));
 }
 
 static void
@@ -872,8 +870,8 @@ disconnect_model_signals(GObject *self, GtkTreeModel *model)
       (gpointer)self);
 }
 
-static void
-update_buttons_status(NwamTreeView *self)
+void
+nwam_tree_view_update_buttons_status(NwamTreeView *self)
 {
     NwamTreeViewPrivate *prv       = NWAM_TREE_VIEW_PRIVATE(self);
     GtkTreeSelection    *selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(self));

@@ -80,6 +80,7 @@ GObject* nwam_tree_view_get_item_by_proxy(NwamTreeView *self, GObject *proxy);
 NwamuiObject* nwam_tree_view_get_cached_object(NwamTreeView *self);
 GtkTreePath* nwam_tree_view_get_cached_object_path(NwamTreeView *self);
 
+void nwam_tree_view_update_buttons_status(NwamTreeView *self);
 
 G_END_DECLS
 
