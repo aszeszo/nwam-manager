@@ -22,5 +22,5 @@ DOC_FIGURES = \
 	graphics/wireless-chooser-dlg.png \
 	graphics/panel-some-disconnect.png
 
-DOC_LINGUAS = 
+DOC_LINGUAS = de es fr it ja ko pt_BR zh_CN zh_HK zh_TW
 
