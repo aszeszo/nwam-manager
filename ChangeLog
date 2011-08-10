@@ -1,3 +1,7 @@
+2011-08-10  Yong Sun <y.yong.sun@oracle.com>
+
+	* po/*.po: updated UI message translation for drop 5.0.
+	
 2011-08-03  Yong Sun <y.yong.sun@oracle.com>
 
 	Added OLH translations from drop 4.0 based on b169.
@@ -134,7 +138,6 @@
 	(nwam_object_toggled_cell_sensitive_func): Removed #if 0 blocks.
 	* help/C/nwam-manager.xml: Merged CR#7042534.
 
->>>>>>> .r704
 2011-06-22  Yong Sun <y.yong.sun@oracle.com>
 
 	* po/*.po: updated message translation.

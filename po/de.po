@@ -6,16 +6,7 @@
 #: ../capplet/nwam_profile_dialog.c:516
 #, fuzzy
 msgid ""
-msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
-"Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-19 10:19+0800\n"
-"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
-"MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=UTF-8\n"
-"Content-Transfer-Encoding: 8bit\n"
+msgstr "Project-Id-Version: PACKAGE VERSION\nReport-Msgid-Bugs-To: \nPOT-Creation-Date: 2011-07-27 15:41+0800\nPO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\nLast-Translator: FULL NAME <EMAIL@ADDRESS>\nLanguage-Team: LANGUAGE <LL@li.org>\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\n"
 
 #: ../capplet/capplet-utils.c:125
 msgid "No name"
@@ -26,10 +17,7 @@ msgid ""
 "\n"
 "\n"
 "The name of a committed object cannot be changed."
-msgstr ""
-"\n"
-"\n"
-"Der Name eines bestätigten Objekts kann nicht geändert werden."
+msgstr "\n\nDer Name eines bestätigten Objekts kann nicht geändert werden."
 
 #: ../capplet/capplet-utils.c:281
 msgid "Renaming Failed"
@@ -95,10 +83,7 @@ msgid ""
 "Invalid value specified for field :\n"
 "\n"
 "    %s"
-msgstr ""
-"Ungültiger angegebener Wert im Feld :\n"
-"\n"
-"    %s"
+msgstr "Ungültiger angegebener Wert im Feld :\n\n    %s"
 
 #: ../capplet/nwam_condition_vbox.c:327
 #, c-format
@@ -106,10 +91,7 @@ msgid ""
 "Invalid empty value specified for field :\n"
 "\n"
 "    %s"
-msgstr ""
-"Ungültiger angegebener leerer Wert im Feld :\n"
-"\n"
-"    %s"
+msgstr "Ungültiger angegebener leerer Wert im Feld :\n\n    %s"
 
 #: ../capplet/nwam_condition_vbox.c:362
 msgid "Got empty condition"
@@ -169,7 +151,6 @@ msgstr "MB/s"
 
 #: ../capplet/nwam_conn_conf_ip_panel.c:436
 #: ../capplet/nwam_wireless_chooser.c:184
-#: ../capplet/nwam-manager-properties.glade.h:132
 msgid "Security"
 msgstr "Sicherheit"
 
@@ -197,10 +178,7 @@ msgstr "<i>Keine IP-Adresse zugewiesen</i>"
 msgid ""
 "An error occurred validating the current NCU.\n"
 "The device is configured to use static IPv4 addresses, but none exist."
-msgstr ""
-"Beim Überprüfen des aktuellen NCU ist ein Fehler aufgetreten.\n"
-"Das Gerät ist so konfiguriert, dass statische IPv4-Adressen verwendet "
-"werden. Es sind jedoch keine vorhanden."
+msgstr "Beim Überprüfen des aktuellen NCU ist ein Fehler aufgetreten.\nDas Gerät ist so konfiguriert, dass statische IPv4-Adressen verwendet werden. Es sind jedoch keine vorhanden."
 
 #: ../capplet/nwam_conn_conf_ip_panel.c:1110 ../capplet/nwam_pref_dialog.c:325
 #: ../capplet/nwam_pref_dialog.c:454
@@ -208,9 +186,7 @@ msgstr ""
 msgid ""
 "An error occurred validating the current NCU.\n"
 "The property '%s' caused this failure"
-msgstr ""
-"Bei der Überprüfung des aktuellen NCU ist ein Fehler aufgetreten.\n"
-"Dieser Fehler wurde durch die Eigenschaft '%s' verursacht"
+msgstr "Bei der Überprüfung des aktuellen NCU ist ein Fehler aufgetreten.\nDieser Fehler wurde durch die Eigenschaft '%s' verursacht"
 
 #: ../capplet/nwam_conn_conf_ip_panel.c:1323
 msgid "Enabled"
@@ -245,7 +221,6 @@ msgid "Connection Information"
 msgstr "Verbindungsinformationen"
 
 #: ../capplet/nwam_conn_stat_panel.c:237 ../capplet/nwam_pref_dialog.c:527
-#: ../capplet/nwam-manager-properties.glade.h:45
 msgid "Connection Status"
 msgstr "Verbindungsstatus"
 
@@ -254,24 +229,19 @@ msgstr "Verbindungsstatus"
 msgid ""
 "<b>%s</b>\n"
 "<small>%s</small>"
-msgstr ""
-"<b>%s</b>\n"
-"<small>%s</small>"
+msgstr "<b>%s</b>\n<small>%s</small>"
 
 #: ../capplet/nwam_conn_stat_panel.c:708
 msgid "Unknown profile"
 msgstr "Unbekanntes Profil"
 
 #: ../capplet/nwam_conn_stat_panel.c:711
-#, fuzzy
 msgid "Configured links:"
-msgstr "IPv_6 konfigurieren"
+msgstr "Konfigurierte Verweise:"
 
 #: ../capplet/nwam_conn_stat_panel.c:713
-#: ../capplet/nwam-manager-properties.glade.h:76
-#, fuzzy
 msgid "Enabled connections:"
-msgstr "Verbindung zu %s kann nicht hergestellt werden"
+msgstr "Aktivierte Verbindungen:"
 
 #: ../capplet/nwam_conn_stat_panel.c:728
 msgid "Unknown env"
@@ -302,36 +272,29 @@ msgstr "Unten eingeben"
 #: ../capplet/nwam_env_pref_dialog.c:1787
 #: ../capplet/nwam_env_pref_dialog.c:1843
 #: ../capplet/nwam_env_pref_dialog.c:1871
-#: ../capplet/nwam-manager-properties.glade.h:6
 msgid "(optional)"
 msgstr "(optional)"
 
 #: ../capplet/nwam_env_pref_dialog.c:1797
-#: ../capplet/nwam-manager-properties.glade.h:7
 msgid "(required)"
 msgstr "(erforderlich)"
 
 #: ../capplet/nwam_env_pref_dialog.c:1899
 #, c-format
 msgid "<small><i><b>Default nsswitch file (in use):</b> %s</i></small>"
-msgstr ""
-"<small><i><b>Standardmäßige nsswitch-Datei (verwendet):</b> %s</i></small>"
+msgstr "<small><i><b>Standardmäßige nsswitch-Datei (verwendet):</b> %s</i></small>"
 
 #: ../capplet/nwam_env_pref_dialog.c:1904
 #, c-format
 msgid "<small><i><b>Default nsswitch file (not in use):</b> %s</i></small>"
-msgstr ""
-"<small><i><b>Standardmäßige nsswitch-Datei (nicht verwendet):</b> %s</i></"
-"small>"
+msgstr "<small><i><b>Standardmäßige nsswitch-Datei (nicht verwendet):</b> %s</i></small>"
 
 #: ../capplet/nwam_env_pref_dialog.c:2013
 #, c-format
 msgid ""
 "<b>%s</b>\n"
 "%s"
-msgstr ""
-"<b>%s</b>\n"
-"%s"
+msgstr "<b>%s</b>\n%s"
 
 #: ../capplet/nwam_env_pref_dialog.c:2016 ../common/nwamui_wifi_net.c:936
 #, c-format
@@ -343,8 +306,7 @@ msgid "Select A File"
 msgstr "Eine Datei auswählen"
 
 #: ../capplet/nwam_env_pref_dialog.c:2196
-#: ../capplet/nwam-manager-properties.glade.h:100
-#, no-c-format
+#, c-format
 msgid "Location Properties : %s"
 msgstr "Speicherorteigenschaften : %s"
 
@@ -356,9 +318,7 @@ msgstr "Standarddomain erforderlich"
 msgid ""
 "With NIS or LDAP a default domain must be specified.\n"
 "Please provide one in the appropriate field."
-msgstr ""
-"Bei NIS oder LDAP muss eine Standarddomain angegeben werden.\n"
-"Geben Sie diese im entsprechenden Feld an."
+msgstr "Bei NIS oder LDAP muss eine Standarddomain angegeben werden.\nGeben Sie diese im entsprechenden Feld an."
 
 #: ../capplet/nwam_env_pref_dialog.c:2319
 msgid "Nameservice Switch File Required"
@@ -368,9 +328,7 @@ msgstr "Nameservice-Switch-Datei erforderlich"
 msgid ""
 "A nameservice switch file should be specified\n"
 "if more than one name service is selected."
-msgstr ""
-"Es muss eine Nameservice-Switch-Datei angegeben werden,\n"
-"wenn mehr als ein Name Service ausgewählt ist."
+msgstr "Es muss eine Nameservice-Switch-Datei angegeben werden,\nwenn mehr als ein Name Service ausgewählt ist."
 
 #: ../capplet/nwam_env_pref_dialog.c:2420
 #: ../capplet/nwam_location_dialog.c:634 ../capplet/nwam_vpn_pref_dialog.c:653
@@ -404,9 +362,7 @@ msgstr "Ungültiger Service-FMRI"
 msgid ""
 "Either the service FMRI you entered was not in a valid\n"
 "format, or the service does not exist. Please try again"
-msgstr ""
-"Das Format des eingegebenen Service-FMRI ist entweder\n"
-"ungültig oder der Service ist nicht vorhanden. Versuchen Sie es erneut."
+msgstr "Das Format des eingegebenen Service-FMRI ist entweder\nungültig oder der Service ist nicht vorhanden. Versuchen Sie es erneut."
 
 #: ../capplet/nwam_location_dialog.c:100
 msgid "manual activation only"
@@ -455,14 +411,13 @@ msgid "Commit ENM error"
 msgstr "ENM-Fehler bestätigen"
 
 #: ../capplet/nwam_pref_dialog.c:533
-#: ../capplet/nwam-manager-properties.glade.h:112
 msgid "Network Profile"
 msgstr "Netzwerkprofil"
 
 #. NWAM_IS_HOWTO_EDIT(row_data)) {
 #: ../capplet/nwam_pref_dialog.c:539
 msgid "How to Edit Fixed Profiles..."
-msgstr ""
+msgstr "Fixed-Profile bearbeiten..."
 
 #: ../capplet/nwam_proxy_password_dialog.c:102
 msgid "Proxy Username"
@@ -497,9 +452,7 @@ msgstr "'%s' kann nicht umbenannt werden"
 msgid ""
 "Network modifiers can only be renamed immediately after\n"
 "they have been created."
-msgstr ""
-"Netzwerkmodizierer können nur unmittelbar nach ihrer\n"
-"Erstellung umbenannt werden."
+msgstr "Netzwerkmodizierer können nur unmittelbar nach ihrer\nErstellung umbenannt werden."
 
 #: ../capplet/nwam_vpn_pref_dialog.c:398
 msgid "Modifier Name"
@@ -510,16 +463,16 @@ msgid "Status"
 msgstr "Status"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:460
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot start '%s'"
-msgstr "'%s' kann nicht umbenannt werden"
+msgstr "'%s' kann nicht gestartet werden"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:464
 #, c-format
 msgid ""
 "The Fixed profile '%s' is currently active.\n"
 "Network modifiers can only be used with Reactive network profiles."
-msgstr ""
+msgstr "Das Fixed-Profil '%s' ist derzeit aktiv.\nNetzwerkmodifizierer können nur mit Reactive-Netzwerkprofilen verwendet werden."
 
 #: ../capplet/nwam_vpn_pref_dialog.c:474
 msgid "Invalid value specified for Start Command"
@@ -537,9 +490,7 @@ msgstr "Ungültiger Wert für SMF FMRI angegeben"
 msgid ""
 "Activation mode is set to Conditional,\n"
 "but no rules have been configured."
-msgstr ""
-"Der Aktivierungsmodus wurde als bedingt festgelegt.\n"
-"Es wurden jedoch keine Regeln konfiguriert."
+msgstr "Der Aktivierungsmodus wurde als bedingt festgelegt.\nEs wurden jedoch keine Regeln konfiguriert."
 
 #: ../capplet/nwam_vpn_pref_dialog.c:804
 msgid "Select start command"
@@ -656,9 +607,7 @@ msgstr "Drahtlosnetzwerk ist stabil"
 
 #: ../capplet/nwam_wireless_dialog.c:282
 msgid "This Wireless Network should be remembered, on successful connection"
-msgstr ""
-"Dieses Drahtlosnetzwerk sollte bei erfolgreicher Verbindung gespeichert "
-"werden"
+msgstr "Dieses Drahtlosnetzwerk sollte bei erfolgreicher Verbindung gespeichert werden"
 
 #: ../capplet/nwam_wireless_dialog.c:289
 msgid "On success, connect to Wireless Network"
@@ -674,7 +623,6 @@ msgstr "BSSID"
 
 #. Use to create a known wlan
 #: ../capplet/nwam_wireless_dialog.c:707
-#: ../capplet/nwam-manager-properties.glade.h:33
 msgid "Add Wireless Network"
 msgstr "Drahtlosnetzwerk hinzufügen"
 
@@ -694,14 +642,11 @@ msgstr "Validierung fehlgeschlagen."
 #: ../capplet/nwam_wireless_dialog.c:1412
 msgid ""
 "The Wireless network name (ESSID) contains invalid (non-ASCII) characters."
-msgstr ""
-"Der Name (ESSID) des Drahtlosnetzwerks enthält ungültige Zeichen (andere als "
-"ASCII-Zeichen)."
+msgstr "Der Name (ESSID) des Drahtlosnetzwerks enthält ungültige Zeichen (andere als ASCII-Zeichen)."
 
 #: ../capplet/nwam_wireless_dialog.c:1417
 msgid "The Wireless network name (ESSID) should not be blank."
-msgstr ""
-"Der Name (ESSID) des Drahtlosnetzwerks darf nicht leer gelassen werden."
+msgstr "Der Name (ESSID) des Drahtlosnetzwerks darf nicht leer gelassen werden."
 
 #: ../capplet/nwam_wireless_dialog.c:1437
 #, c-format
@@ -715,16 +660,13 @@ msgstr "Die eingegebenen Schlüssel stimmen nicht überein"
 
 #: ../capplet/nwam_wireless_dialog.c:1494
 msgid "WEP keys of length 10 or 26 should be hexadecimal values only"
-msgstr ""
-"WEP-Schlüssel mit 10 oder 26 Stellen dürfen nur Hexadezimalwerte enthalten"
+msgstr "WEP-Schlüssel mit 10 oder 26 Stellen dürfen nur Hexadezimalwerte enthalten"
 
 #: ../capplet/nwam_wireless_dialog.c:1498
 msgid ""
 "WEP keys should be either 5 or 13 ASCII characters,\n"
 "or a hexadecimal value of length 10 or 26"
-msgstr ""
-"WEP-Schlüssel sollten 5 oder 13 ASCII-Zeichen enthalten\n"
-"oder einen Hexadezimalwert aus 10 oder 26 Ziffern aufweisen"
+msgstr "WEP-Schlüssel sollten 5 oder 13 ASCII-Zeichen enthalten\noder einen Hexadezimalwert aus 10 oder 26 Ziffern aufweisen"
 
 #: ../capplet/nwam_wireless_dialog.c:1503
 msgid "WPA keys should be between 8 and 63 characters in length"
@@ -734,13 +676,10 @@ msgstr "WPA-Schlüssel sollten zwischen 8 und 63 Zeichen lang sein"
 #, c-format
 msgid ""
 "Failed to validate wireless network due to an error with the property : %s"
-msgstr ""
-"Die Überprüfung des Drahtlosnetzwerks ist aufgrund eines Fehlers der "
-"Eigenschaft fehlgeschlagen: %s"
+msgstr "Die Überprüfung des Drahtlosnetzwerks ist aufgrund eines Fehlers der Eigenschaft fehlgeschlagen: %s"
 
 #: ../common/libnwamui.c:253 ../common/libnwamui.c:279
 #: ../common/libnwamui.c:281 ../common/libnwamui.c:282
-#: ../capplet/nwam-manager-properties.glade.h:154
 msgid "WEP"
 msgstr "WEP"
 
@@ -784,7 +723,7 @@ msgid "PEAP/MSCHAPv2"
 msgstr "PEAP/MSCHAPv2"
 
 #. fall through
-#: ../common/libnwamui.c:308 ../capplet/nwam-manager-properties.glade.h:36
+#: ../common/libnwamui.c:308
 msgid "Automatic"
 msgstr "Automatisch"
 
@@ -819,13 +758,9 @@ msgid ""
 "after they have been created. However, you\n"
 "can duplicate this %s then immediately\n"
 "rename the duplicate."
-msgstr ""
-"%s kann nur unmittelbar nach der Erstellung\n"
-"umbenannt werden. Sie können \n"
-"jedoch %s duplizieren, um dieses Duplikat\n"
-"sofort umzubenennen."
+msgstr "%s kann nur unmittelbar nach der Erstellung\numbenannt werden. Sie können \njedoch %s duplizieren, um dieses Duplikat\nsofort umzubenennen."
 
-#: ../common/libnwamui.c:1131 ../capplet/nwam-manager-properties.glade.h:165
+#: ../common/libnwamui.c:1131
 msgid "_Duplicate"
 msgstr "_Duplizieren"
 
@@ -840,9 +775,7 @@ msgstr "Der Wert '%s' ist ungültig."
 
 #: ../common/libnwamui.c:2012
 msgid "Specifying a network prefix value is not permitted in this context."
-msgstr ""
-"In diesem Kontext ist das Angeben eines Werts für den Netzwerkpräfix nicht "
-"zulässig."
+msgstr "In diesem Kontext ist das Angeben eines Werts für den Netzwerkpräfix nicht zulässig."
 
 #: ../common/libnwamui.c:2019
 #, c-format
@@ -883,9 +816,7 @@ msgstr "Der Wert '%s' ist keine gültige IPv6-Adresse."
 msgid ""
 "IPv6 prefix length must be a decimal value between 1 and 128\n"
 "\n"
-msgstr ""
-"IPv6-Präfixlänge muss ein Dezimalwert zwischen 1 und 128 sein\n"
-"\n"
+msgstr "IPv6-Präfixlänge muss ein Dezimalwert zwischen 1 und 128 sein\n\n"
 
 #: ../common/libnwamui.c:2102
 msgid ""
@@ -893,24 +824,15 @@ msgid ""
 "\n"
 "    w.x.y.z\n"
 "\n"
-msgstr ""
-"Teilnetze müssen folgendes Format haben:\n"
-"\n"
-"    w.x.y.z\n"
-"\n"
+msgstr "Teilnetze müssen folgendes Format haben:\n\n    w.x.y.z\n\n"
 
 #: ../common/libnwamui.c:2106
-#, fuzzy
 msgid ""
-"Valid ethernet addresses or BSSIDs must be in the format:\n"
+"Valid ethernet addresses or BSSIDs must be in the format::\n"
 "\n"
 "    xx:xx:xx:xx:xx:xx:xx:xx\n"
 "\n"
-msgstr ""
-"Gültige Ethernet-Adressen oder BSSIDs müssen folgendes Format haben:\n"
-"\n"
-"    xx:xx:xx:xx:xx:xx:xx:xx\n"
-"\n"
+msgstr "Gültige Ethernet-Adressen oder BSSIDs müssen folgendes Format haben:\n\n    xx:xx:xx:xx:xx:xx:xx:xx\n\n"
 
 #: ../common/libnwamui.c:2110
 msgid ""
@@ -918,11 +840,7 @@ msgid ""
 "\n"
 "    w.x.y.z\n"
 "\n"
-msgstr ""
-"IPv4-Adressen müssen folgendes Format haben:\n"
-"\n"
-"    w.x.y.z\n"
-"\n"
+msgstr "IPv4-Adressen müssen folgendes Format haben:\n\n    w.x.y.z\n\n"
 
 #: ../common/libnwamui.c:2112
 msgid ""
@@ -932,13 +850,7 @@ msgid ""
 "\n"
 "where N is between 1 and 32\n"
 "\n"
-msgstr ""
-"Beim Angeben eines Netzwerkpräfixes können Sie /N an die Adresse anhängen:\n"
-"\n"
-"    w.x.y.z/N\n"
-"\n"
-"N ist hierbei eine Zahl zwischen 1 und 32\n"
-"\n"
+msgstr "Beim Angeben eines Netzwerkpräfixes können Sie /N an die Adresse anhängen:\n\n    w.x.y.z/N\n\nN ist hierbei eine Zahl zwischen 1 und 32\n\n"
 
 #: ../common/libnwamui.c:2116
 msgid ""
@@ -947,12 +859,7 @@ msgid ""
 "   x:x:x:x:x:x:x:x\n"
 "   x:x::x, etc.\n"
 "\n"
-msgstr ""
-"IPv6-Adressen müssen eines der folgenden Formate haben:\n"
-"\n"
-"   x:x:x:x:x:x:x:x\n"
-"   x:x::x, usw.\n"
-"\n"
+msgstr "IPv6-Adressen müssen eines der folgenden Formate haben:\n\n   x:x:x:x:x:x:x:x\n   x:x::x, usw.\n\n"
 
 #: ../common/libnwamui.c:2119
 msgid ""
@@ -963,14 +870,7 @@ msgid ""
 "\n"
 "where N is between 1 and 128\n"
 "\n"
-msgstr ""
-"Beim Angeben des Netzwerkpräfixes, können Sie /N an die Adresse anhängen:\n"
-"\n"
-"   x:x:x:x:x:x:x:x\n"
-"   x:x:x:x:x:x:x:x/N\n"
-"\n"
-"N ist hierbei eine Zahl zwischen 1 und 128\n"
-"\n"
+msgstr "Beim Angeben des Netzwerkpräfixes, können Sie /N an die Adresse anhängen:\n\n   x:x:x:x:x:x:x:x\n   x:x:x:x:x:x:x:x/N\n\nN ist hierbei eine Zahl zwischen 1 und 128\n\n"
 
 #: ../common/libnwamui.c:2129
 msgid "Invalid Value"
@@ -1630,21 +1530,16 @@ msgid "ui_auth"
 msgstr "ui_auth"
 
 #: ../common/nwamui_prof.c:182 ../common/nwamui_prof.c:183
-#: ../capplet/nwam-manager-properties.glade.h:94
 #: ../data/nwam-manager.schemas.in.h:3
 msgid "Joining an open network that is not in your favorites list"
-msgstr ""
-"Verbinden mit einem offenen Netzwerk, das nicht in der Favoritenliste "
-"enthalten ist"
+msgstr "Verbinden mit einem offenen Netzwerk, das nicht in der Favoritenliste enthalten ist"
 
 #: ../common/nwamui_prof.c:190 ../common/nwamui_prof.c:191
-#: ../capplet/nwam-manager-properties.glade.h:95
 #: ../data/nwam-manager.schemas.in.h:4
 msgid "Joining any favorite network"
 msgstr "Verbinden mit einem bevorzugten Netzwerk"
 
 #: ../common/nwamui_prof.c:198 ../common/nwamui_prof.c:199
-#: ../capplet/nwam-manager-properties.glade.h:34
 #: ../data/nwam-manager.schemas.in.h:2
 msgid "Adding any new network to your favorites list"
 msgstr "Hinzufügen eines neuen Netzwerks zur Favoritenliste"
@@ -1778,9 +1673,7 @@ msgstr "Netzwerkschlüssel konnte nicht gespeichert werden."
 
 #: ../common/nwamui_wifi_net.c:827
 msgid "Failed to connect to wireless network, please try it later."
-msgstr ""
-"Verbindung zum Drahtlosnetzwerk konnte nicht hergestellt werden. Versuchen "
-"Sie es später erneut."
+msgstr "Verbindung zum Drahtlosnetzwerk konnte nicht hergestellt werden. Versuchen Sie es später erneut."
 
 #: ../common/nwamui_wifi_net.c:929
 #, c-format
@@ -1826,16 +1719,13 @@ msgstr "Benachrichtigungsmeldung immer wiederverwenden"
 
 #: ../daemon/main.c:53
 msgid "Always create notification message, rather than re-use"
-msgstr ""
-"Benachrichtigungsmeldung immer erstellen, anstatt sie wiederzuverwenden"
+msgstr "Benachrichtigungsmeldung immer erstellen, anstatt sie wiederzuverwenden"
 
 #: ../daemon/main.c:54
 msgid ""
 "Always create notification message, rather than re-use, and don't link to "
 "status icon"
-msgstr ""
-"Benachrichtigungsmeldung immer erstellen, anstatt sie wiederzuverwenden, und "
-"nicht mit dem Statussymbol verknüpfen"
+msgstr "Benachrichtigungsmeldung immer erstellen, anstatt sie wiederzuverwenden, und nicht mit dem Statussymbol verknüpfen"
 
 #. unique_app_add_command(app, "", 1);
 #. unique_app_send_message(app, 1, NULL);
@@ -1848,10 +1738,7 @@ msgid ""
 "\n"
 "Another instance is running.\n"
 "This instance will exit now."
-msgstr ""
-"\n"
-"Eine andere Instanz wird ausgeführt.\n"
-"Diese Instanz wird jetzt beendet."
+msgstr "\nEine andere Instanz wird ausgeführt.\nDiese Instanz wird jetzt beendet."
 
 #: ../daemon/notify.c:531
 msgid "Automatic network configuration daemon is unavailable."
@@ -1878,8 +1765,7 @@ msgstr "%s getrennt von %s"
 
 #: ../daemon/notify.c:687 ../daemon/notify.c:765
 msgid "Click on this message to view other available networks."
-msgstr ""
-"Klicken Sie auf diese Meldung, um andere verfügbare Netzwerke anzuzeigen."
+msgstr "Klicken Sie auf diese Meldung, um andere verfügbare Netzwerke anzuzeigen."
 
 #: ../daemon/notify.c:700 ../daemon/notify.c:811
 #, c-format
@@ -1897,9 +1783,7 @@ msgstr "Drahtlosnetzwerkauswahl erforderlich"
 
 #: ../daemon/notify.c:848
 msgid "Right-click the icon to connect to an available network."
-msgstr ""
-"Klicken Sie mit der rechten Maustaste auf das Symbol, um eine Verbindung zu "
-"einem verfügbaren Netzwerk herzustellen."
+msgstr "Klicken Sie mit der rechten Maustaste auf das Symbol, um eine Verbindung zu einem verfügbaren Netzwerk herzustellen."
 
 #: ../daemon/notify.c:897
 #, c-format
@@ -1909,8 +1793,7 @@ msgstr "'%s' erfordert Authentifizierung"
 #: ../daemon/notify.c:898
 #, c-format
 msgid "Click here to enter the wireless network key."
-msgstr ""
-"Klicken Sie hier, um den Schlüssel für das Drahtlosnetzwerk einzugeben."
+msgstr "Klicken Sie hier, um den Schlüssel für das Drahtlosnetzwerk einzugeben."
 
 #: ../daemon/notify.c:939
 msgid "No wireless networks found"
@@ -1918,23 +1801,21 @@ msgstr "Keine Drahtlosnetzwerke gefunden"
 
 #: ../daemon/notify.c:940
 msgid "Click this message to join an unlisted network"
-msgstr ""
-"Klicken Sie auf diese Meldung, um eine Verbindung zu einem nicht "
-"aufgelisteten Netzwerk herzustellen"
+msgstr "Klicken Sie auf diese Meldung, um eine Verbindung zu einem nicht aufgelisteten Netzwerk herzustellen"
 
 #: ../daemon/notify.c:979
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Switched to profile '%s'\n"
 "This is a Fixed network profile."
-msgstr "Zum Netzwerkprofil '%s' gewechselt"
+msgstr "Zum Profil '%s' gewechselt\nDies ist ein Fixed-Netzwerkprofil."
 
 #: ../daemon/notify.c:982
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Switched to profile '%s'\n"
 "This is a Reactive network profile."
-msgstr "Der Wert '%s' ist kein gültiges IPv6-Netzwerkpräfix."
+msgstr "Zu Profil '%s' gewechselt\nDies ist ein Reactive-Netzwerkprofil."
 
 #: ../daemon/notify.c:986
 #, c-format
@@ -1942,11 +1823,11 @@ msgid "Switched to network profile '%s'"
 msgstr "Zum Netzwerkprofil '%s' gewechselt"
 
 #: ../daemon/notify.c:1027
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Switched to location '%s'\n"
 "This is a '%s' location"
-msgstr "Zum Speicherort '%s' gewechselt"
+msgstr "Zu Verzeichnis '%s' gewechselt\nDies ist ein '%s'-Verzeichnis"
 
 #: ../daemon/notify.c:1031
 #, c-format
@@ -1966,8 +1847,7 @@ msgid "nwam menu sections"
 msgstr "NWAM-Menübereiche"
 
 #: ../daemon/nwam-menuitem.c:156 ../daemon/nwam-menuitem.c:157
-#, fuzzy
-msgid "proxy object"
+msgid "proxy-object"
 msgstr "proxy-object"
 
 #: ../daemon/nwam-menuitem.c:164 ../daemon/nwam-menuitem.c:165
@@ -2028,9 +1908,7 @@ msgstr "Info zum NWAM-Manager"
 msgid ""
 "2009 Sun Microsystems, Inc  All rights reserved\n"
 "Use is subject to license terms."
-msgstr ""
-"2009 Oracle.  All rights reserved. Alle Rechte vorbehalten.\n"
-"Die Nutzung unterliegt den Lizenzbestimmungen."
+msgstr "2009 Oracle.  All rights reserved. Alle Rechte vorbehalten.\nDie Nutzung unterliegt den Lizenzbestimmungen."
 
 #: ../daemon/status_icon.c:1381
 msgid "http://www.sun.com/"
@@ -2089,746 +1967,6 @@ msgstr "_Hilfe"
 msgid "<b>Network Modifiers:</b> %s"
 msgstr "<b>Netzwerkmodifizierer:</b> %s"
 
-#: ../capplet/nwam-manager-properties.glade.h:1
-msgid ""
-"\n"
-"Choose which connections are enabled in this profile:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:3
-msgid ""
-"\n"
-"Disable these services when this location is active:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:5
-#, fuzzy
-msgid "(enter below)"
-msgstr "Unten eingeben"
-
-#: ../capplet/nwam-manager-properties.glade.h:8
-msgid "16"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:9
-msgid "192.168.1.2"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:10
-msgid "2001:0db8:3c4d:0015:0000:0000:abcd:ef12"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:11
-msgid "255.255.255.0"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:12
-msgid "<b>IPfilter</b>"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:13
-#, fuzzy
-msgid "<b>IPsec</b>"
-msgstr ""
-"<b>%s</b>\n"
-"%s"
-
-#: ../capplet/nwam-manager-properties.glade.h:14
-#, fuzzy
-msgid "<b>Location:</b>"
-msgstr "<b>Speicherort:</b> %s"
-
-#: ../capplet/nwam-manager-properties.glade.h:15
-#, fuzzy
-msgid "<b>Network Profile:</b>"
-msgstr "<b>Netzwerkprofil:</b> %s"
-
-#: ../capplet/nwam-manager-properties.glade.h:16
-#, fuzzy
-msgid "<b>VPN:</b>"
-msgstr ""
-"<b>%s</b>\n"
-"%s"
-
-#: ../capplet/nwam-manager-properties.glade.h:17
-msgid ""
-"<big><b>Proxy Authentication</b></big>\n"
-"Enter username and password for http://$HOST:$PORT\n"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:20
-msgid "<i><small>Double-click table cells to edit</small></i>"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:21
-msgid "<i><small>Used by manual NIS and LDAP configurations</small></i>"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:22
-msgid ""
-"<small><i><b>Example:</b> 192.168.1.1, my.local.net,  *.remote.net</i></"
-"small>"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:23
-msgid ""
-"<small><i><b>Examples:</b>\n"
-"svc://localhost/system/system-log:default\n"
-"svc:/system/system-log:default\n"
-"system/system-log:default\n"
-"</i></small>"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:28
-msgid "<small><i>Double-click rows to edit</i></small>"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:29
-msgid "Accept _stateless addresses from router"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:30
-msgid "Accept state_ful addresses from router"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:31
-#, fuzzy
-msgid "Active _Profile:"
-msgstr "Aktives Netzwerkprofil"
-
-#: ../capplet/nwam-manager-properties.glade.h:32
-msgid "Ad_vanced"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:35
-msgid "Ask before..."
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:37
-#, fuzzy
-msgid ""
-"Automatic\n"
-"User"
-msgstr "Automatisch"
-
-#: ../capplet/nwam-manager-properties.glade.h:39
-msgid "Available VPN applications:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:40
-msgid "Bro_wse..."
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:41
-#, fuzzy
-msgid "Certificate _File:"
-msgstr "Wifi-WPA-Zertifikatsdateipfad"
-
-#: ../capplet/nwam-manager-properties.glade.h:42
-msgid "CiscoVPN active"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:43
-#, fuzzy
-msgid "Configuration _file:"
-msgstr "Wifi-WPA-Konfigurationstyp"
-
-#: ../capplet/nwam-manager-properties.glade.h:44
-#, fuzzy
-msgid "Connect to Wireless Network"
-msgstr "Mit Drahtlosnetzwerk verbinden"
-
-#: ../capplet/nwam-manager-properties.glade.h:46
-msgid ""
-"Connection Status\n"
-"Network Profile\n"
-"---\n"
-"Automatic Profile\n"
-"Wired (hme0)\n"
-"---\n"
-"User Profile\n"
-"Wired (hme1)\n"
-"Wireless (bcm0)"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:55
-#, fuzzy
-msgid "Connections..."
-msgstr "_Verbindungen"
-
-#: ../capplet/nwam-manager-properties.glade.h:56
-msgid "Current IPv_4 setting:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:57
-msgid "Current IPv_6 setting: enabled"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:58
-#, fuzzy
-msgid "DHCP"
-msgstr "(DHCP)"
-
-#: ../capplet/nwam-manager-properties.glade.h:59
-#, fuzzy
-msgid "DHC_P"
-msgstr "(DHCP)"
-
-#: ../capplet/nwam-manager-properties.glade.h:60
-#, fuzzy
-msgid "D_HCP"
-msgstr "(DHCP)"
-
-#: ../capplet/nwam-manager-properties.glade.h:61
-#, fuzzy
-msgid "D_omain:"
-msgstr "nfsv4_domain"
-
-#: ../capplet/nwam-manager-properties.glade.h:62
-#, fuzzy
-msgid "De_fault domain:"
-msgstr "default_domainname"
-
-#: ../capplet/nwam-manager-properties.glade.h:63
-#, fuzzy
-msgid "Di_sable"
-msgstr "Deaktiviert"
-
-#: ../capplet/nwam-manager-properties.glade.h:64
-msgid ""
-"Direct connection to internet\n"
-"Manually assigned\n"
-"From configuration (PAC) file"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:67
-msgid ""
-"Disabled\n"
-"DHCP assigned\n"
-"Manually assigned\n"
-"Multiple addresses"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:71
-#, fuzzy
-msgid ""
-"Disabled\n"
-"Enabled"
-msgstr "Deaktiviert"
-
-#: ../capplet/nwam-manager-properties.glade.h:73
-msgid "Domain:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:74
-msgid "Edit _Rules..."
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:75
-msgid "Enable these services when this location is active:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:77
-msgid "Ethernet"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:78
-msgid ""
-"Exactly one connection is enabled\n"
-"One or more connections may be enabled\n"
-"All connections must be enabled"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:81
-msgid ""
-"Favorite wireless networks, in the order that\n"
-"connection will be attempted:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:83
-msgid "HTTP_S:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:84
-#, fuzzy
-msgid "IP Address"
-msgstr "Keine IP-Adresse"
-
-#: ../capplet/nwam-manager-properties.glade.h:85
-msgid "IP_filter configuration:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:86
-msgid "IP_pool configuration:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:87
-#, fuzzy
-msgid "IPfilter v_6 configuration:"
-msgstr "ipfilter_v6_config_file"
-
-#: ../capplet/nwam-manager-properties.glade.h:88
-#, fuzzy
-msgid "IPsec p_olicy configuration"
-msgstr "ipsecpolicy_config_file"
-
-#: ../capplet/nwam-manager-properties.glade.h:89
-msgid "IPv6 I_P:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:90
-msgid "I_KE configuration:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:91
-#, fuzzy
-msgid "If no favorite networks are available:"
-msgstr "Aktion, wenn keine bevorzugten Netzwerke verfügbar sind"
-
-#: ../capplet/nwam-manager-properties.glade.h:92
-msgid "If the following conditions are true:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:93
-#, fuzzy
-msgid "Join _Unlisted..."
-msgstr "Mit Drahtlosnetzwerk _verbinden..."
-
-#: ../capplet/nwam-manager-properties.glade.h:96
-msgid "Known access points (_BSSIDs):"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:97
-#, fuzzy
-msgid ""
-"LEAP\n"
-"PEAP/MSCHAPv2"
-msgstr "PEAP/MSCHAPv2"
-
-#: ../capplet/nwam-manager-properties.glade.h:101
-#, fuzzy
-msgid "Location Properties : <location name>"
-msgstr "Speicherorteigenschaften : %s"
-
-#: ../capplet/nwam-manager-properties.glade.h:102
-msgid "Man_ual"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:103
-msgid "Manage VPN using an SMF service:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:104
-msgid "Manage VPN using command line applications:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:105
-msgid "Manual"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:106
-msgid "Match _all"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:107
-msgid "Match a_ny"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:108
-msgid "Multiple"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:109
-#, fuzzy
-msgid "Name Services"
-msgstr "nameservices"
-
-#: ../capplet/nwam-manager-properties.glade.h:110
-#, fuzzy
-msgid "Network Locations"
-msgstr "_Netzwerkspeicherorte..."
-
-#: ../capplet/nwam-manager-properties.glade.h:111
-#, fuzzy
-msgid "Network Preferences"
-msgstr "_Netzwerkeinstellungen..."
-
-#: ../capplet/nwam-manager-properties.glade.h:113
-#, fuzzy
-msgid "Network Services"
-msgstr "Netzwerkprofil"
-
-#: ../capplet/nwam-manager-properties.glade.h:114
-#, fuzzy
-msgid "New _Group"
-msgstr "Neue _Gruppe"
-
-#: ../capplet/nwam-manager-properties.glade.h:115
-msgid ""
-"None\n"
-"WEP Hex\n"
-"WEP ASCII\n"
-"WPA Personal (PSK)\n"
-"WPA Enterprise (Radius)"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:120
-msgid "Not required for Phase 1"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:121
-msgid "Office"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:122
-#, fuzzy
-msgid "PAC"
-msgstr "WPA"
-
-#: ../capplet/nwam-manager-properties.glade.h:123
-msgid "Port:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:124
-msgid "Prefi_x:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:125
-#, fuzzy
-msgid "Proxies"
-msgstr "Profile"
-
-#: ../capplet/nwam-manager-properties.glade.h:126
-#, fuzzy
-msgid "Rename Location"
-msgstr "Unbenannter Speicherort"
-
-#: ../capplet/nwam-manager-properties.glade.h:127
-msgid "Ro_uter:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:128
-#, fuzzy
-msgid "SMF Service"
-msgstr "SMF-Services"
-
-#: ../capplet/nwam-manager-properties.glade.h:129
-msgid "S_ervers:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:130
-#, fuzzy
-msgid "S_tart"
-msgstr "Start"
-
-#: ../capplet/nwam-manager-properties.glade.h:131
-msgid "Sear_ch:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:133
-#, fuzzy
-msgid "Select IPfilter Configuration File"
-msgstr "Dialogfeld 'Netzwerkkonfiguration' anzeigen"
-
-#: ../capplet/nwam-manager-properties.glade.h:134
-#, fuzzy
-msgid "Select IPnat Configuration File"
-msgstr "Wifi-WPA-Konfigurationstyp"
-
-#: ../capplet/nwam-manager-properties.glade.h:135
-#, fuzzy
-msgid "Select IPpool Configuration File"
-msgstr "Dialogfeld 'Netzwerkkonfiguration' anzeigen"
-
-#: ../capplet/nwam-manager-properties.glade.h:136
-#, fuzzy
-msgid "Select a Proxy Configuration File"
-msgstr "Dialogfeld 'Netzwerkkonfiguration' anzeigen"
-
-#: ../capplet/nwam-manager-properties.glade.h:137
-#, fuzzy
-msgid "Selected gro_up:"
-msgstr "selected_ncp"
-
-#: ../capplet/nwam-manager-properties.glade.h:138
-msgid "Ser_vers:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:139
-#, fuzzy
-msgid "Service _FMRI:"
-msgstr "Ungültiger Service-FMRI"
-
-#: ../capplet/nwam-manager-properties.glade.h:140
-msgid "Sho_w:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:141
-#, fuzzy
-msgid ""
-"Show list of available networks\n"
-"Join an open network\n"
-"Do not connect\n"
-msgstr "Liste verfügbarer Netzwerke anzeigen"
-
-#: ../capplet/nwam-manager-properties.glade.h:145
-msgid "Soc_ks:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:146
-#, fuzzy
-msgid "Start _Command:"
-msgstr "start_command"
-
-#: ../capplet/nwam-manager-properties.glade.h:147
-#, fuzzy
-msgid "Start/stop '$vpn' according to rules"
-msgstr "'%s' je nach Regeln starten/anhalten"
-
-#: ../capplet/nwam-manager-properties.glade.h:148
-#, fuzzy
-msgid "Stati_c addresses:"
-msgstr "v4addresses"
-
-#: ../capplet/nwam-manager-properties.glade.h:149
-#, fuzzy
-msgid "Stop Co_mmand:"
-msgstr "stop_command"
-
-#: ../capplet/nwam-manager-properties.glade.h:150
-msgid "The following wireless networks were detected at your location:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:151
-msgid "Use for all connection types"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:152
-#: ../capplet/nwam_profile_panel.c:180
-msgid "User"
-msgstr "Benutzer"
-
-#: ../capplet/nwam-manager-properties.glade.h:153
-msgid "VPN Applications"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:155
-#, fuzzy
-msgid "WPA/2"
-msgstr "WPA"
-
-#: ../capplet/nwam-manager-properties.glade.h:156
-#, fuzzy
-msgid "Wireless"
-msgstr "Drahtlos-NCU"
-
-#: ../capplet/nwam-manager-properties.glade.h:157
-#, fuzzy
-msgid "_Add to list of favorite networks on successful connection"
-msgstr ""
-"Dieses Drahtlosnetzwerk sollte bei erfolgreicher Verbindung gespeichert "
-"werden"
-
-#: ../capplet/nwam-manager-properties.glade.h:158
-#, fuzzy
-msgid "_Address:"
-msgstr "Adresse"
-
-#: ../capplet/nwam-manager-properties.glade.h:159
-msgid "_Advanced"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:160
-msgid "_Browse..."
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:161
-#, fuzzy
-msgid "_Configuration:"
-msgstr "Wifi-WPA-Konfigurationstyp"
-
-#: ../capplet/nwam-manager-properties.glade.h:162
-msgid "_Custom properties associated with this location:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:163
-#, fuzzy
-msgid "_DNS"
-msgstr "DNS"
-
-#: ../capplet/nwam-manager-properties.glade.h:164
-#, fuzzy
-msgid "_Default"
-msgstr "is-default"
-
-#: ../capplet/nwam-manager-properties.glade.h:166
-#, fuzzy
-msgid "_Enable"
-msgstr "Aktiviert"
-
-#: ../capplet/nwam-manager-properties.glade.h:167
-msgid "_FTP:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:168
-msgid "_Files"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:169
-msgid "_Gopher:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:170
-msgid "_HTTP:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:171
-#, fuzzy
-msgid "_LDAP"
-msgstr "LDAP"
-
-#: ../capplet/nwam-manager-properties.glade.h:172
-#, fuzzy
-msgid "_Locations..."
-msgstr "Speicherorte"
-
-#: ../capplet/nwam-manager-properties.glade.h:173
-#, fuzzy
-msgid "_Locations:"
-msgstr "Speicherorte"
-
-#: ../capplet/nwam-manager-properties.glade.h:174
-msgid "_Manual"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:175
-#, fuzzy
-msgid "_NAT configuration:"
-msgstr "Wifi-WPA-Konfigurationstyp"
-
-#: ../capplet/nwam-manager-properties.glade.h:176
-#, fuzzy
-msgid "_NIS"
-msgstr "NIS"
-
-#: ../capplet/nwam-manager-properties.glade.h:177
-#, fuzzy
-msgid "_Name:"
-msgstr "Name"
-
-#: ../capplet/nwam-manager-properties.glade.h:178
-#, fuzzy
-msgid "_Network name (ESSID):"
-msgstr "Name (ESSID)"
-
-#: ../capplet/nwam-manager-properties.glade.h:179
-msgid "_No proxy for:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:180
-#, fuzzy
-msgid "_Password..."
-msgstr "WPA-Passwort"
-
-#: ../capplet/nwam-manager-properties.glade.h:181
-#, fuzzy
-msgid "_Password:"
-msgstr "WPA-Passwort"
-
-#: ../capplet/nwam-manager-properties.glade.h:182
-#, fuzzy
-msgid "_Prefix:"
-msgstr "ipv6_prefix"
-
-#: ../capplet/nwam-manager-properties.glade.h:183
-msgid "_Rename"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:184
-msgid "_Repair Selected"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:185
-msgid "_Router:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:186
-#, fuzzy
-msgid "_Security type:"
-msgstr "Sicherheit"
-
-#: ../capplet/nwam-manager-properties.glade.h:187
-#, fuzzy
-msgid "_Selected location is:"
-msgstr "Zum Speicherort '%s' gewechselt"
-
-#: ../capplet/nwam-manager-properties.glade.h:188
-#, fuzzy
-msgid "_Service FMRI:"
-msgstr "Ungültiger Service-FMRI"
-
-#: ../capplet/nwam-manager-properties.glade.h:189
-msgid "_Show passwords while typing"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:190
-#, fuzzy
-msgid "_Subnet Mask:"
-msgstr "Teilnetzmaske"
-
-#: ../capplet/nwam-manager-properties.glade.h:191
-#, fuzzy
-msgid "_Username:"
-msgstr "WPA-Benutzername"
-
-#: ../capplet/nwam-manager-properties.glade.h:192
-#, fuzzy
-msgid "_VPN Applications..."
-msgstr "_Netzwerkspeicherorte..."
-
-#: ../capplet/nwam-manager-properties.glade.h:193
-msgid "_View/Edit Profile:"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:194
-msgid "gtk-add"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:195
-msgid "gtk-cancel"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:196
-msgid "gtk-edit"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:197
-msgid "gtk-ok"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:198
-msgid "gtk-remove"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:199
-msgid "gtk-revert-to-saved"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:200
-msgid "hme0"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:201
-msgid ""
-"manual activation only\n"
-"activated by rules\n"
-"activated by system"
-msgstr ""
-
-#: ../capplet/nwam-manager-properties.glade.h:204
-msgid "nsswitch file:"
-msgstr ""
-
 #: ../capplet/nwam_profile_dialog.c:135
 msgid "Always active"
 msgstr "Immer aktiv"
@@ -2882,9 +2020,7 @@ msgstr "<b><i>(Kein)</i></b>"
 msgid ""
 "<b>%s</b>\n"
 "<small>%s, %s</small>"
-msgstr ""
-"<b>%s</b>\n"
-"<small>%s, %s</small>"
+msgstr "<b>%s</b>\n<small>%s, %s</small>"
 
 #: ../capplet/nwam_profile_dialog.c:882
 msgid "Always enable these connections:"
@@ -2938,6 +2074,10 @@ msgstr "_Gruppe entfernen"
 msgid "Then set status of '%s' to: "
 msgstr "Dann den Status von '%s' setzen auf: "
 
+#: ../capplet/nwam_profile_panel.c:180
+msgid "User"
+msgstr "Benutzer"
+
 #: ../capplet/nwam_profile_panel.c:203
 #, c-format
 msgid "Remove network profile: '%s'?"
@@ -2971,31 +2111,23 @@ msgstr "Benachrichtigungen über nicht verfügbaren NWAM anzeigen."
 
 #: ../data/nwam-manager.schemas.in.h:6
 msgid "Show notifications for when a Wireless connection fails."
-msgstr ""
-"Benachrichtigungen beim Fehlschlagen einer Drahtlosverbindung anzeigen."
+msgstr "Benachrichtigungen beim Fehlschlagen einer Drahtlosverbindung anzeigen."
 
 #: ../data/nwam-manager.schemas.in.h:7
 msgid "Show notifications for when a Wireless connection requires a key."
-msgstr ""
-"Benachrichtigungen anzeigen, wenn eine Drahtlosverbindung einen Schlüssel "
-"erfordert."
+msgstr "Benachrichtigungen anzeigen, wenn eine Drahtlosverbindung einen Schlüssel erfordert."
 
 #: ../data/nwam-manager.schemas.in.h:8
 msgid "Show notifications for when a Wireless network selection is required."
-msgstr ""
-"Benachrichtigungen anzeigen, wenn eine Drahtlosverbindungsauswahl "
-"erforderlich ist."
+msgstr "Benachrichtigungen anzeigen, wenn eine Drahtlosverbindungsauswahl erforderlich ist."
 
 #: ../data/nwam-manager.schemas.in.h:9
 msgid "Show notifications for when an NCU connects"
-msgstr ""
-"Benachrichtigungen anzeigen, wenn eine Verbindung mit einem NCU hergestellt "
-"wird"
+msgstr "Benachrichtigungen anzeigen, wenn eine Verbindung mit einem NCU hergestellt wird"
 
 #: ../data/nwam-manager.schemas.in.h:10
 msgid "Show notifications for when an NCU disconnects"
-msgstr ""
-"Benachrichtigungen anzeigen, wenn eine Verbindung mit einem NCU getrennt wird"
+msgstr "Benachrichtigungen anzeigen, wenn eine Verbindung mit einem NCU getrennt wird"
 
 #: ../data/nwam-manager.schemas.in.h:11
 msgid "Show notifications for when the Location has changed."
@@ -3007,16 +2139,12 @@ msgstr "Benachrichtigung anzeigen, wenn ein NPC geändert wurde."
 
 #: ../data/nwam-manager.schemas.in.h:13
 msgid "Show notifications for when there are no visible wireless networks."
-msgstr ""
-"Benachrichtigungen anzeigen, wenn keine sichtbaren Drahtlosnetzwerke "
-"vorhanden sind."
+msgstr "Benachrichtigungen anzeigen, wenn keine sichtbaren Drahtlosnetzwerke vorhanden sind."
 
 #: ../data/nwam-manager.schemas.in.h:14
 msgid ""
 "The default timeout of notification in milliseconds, must greater than zero."
-msgstr ""
-"Der Wert der Standard-Zeitüberschreitung der Benachrichtigung (in "
-"Millisekunden) muss größer als Null sein."
+msgstr "Der Wert der Standard-Zeitüberschreitung der Benachrichtigung (in Millisekunden) muss größer als Null sein."
 
 #: ../data/nwam-manager.schemas.in.h:15
 msgid "action_on_no_fav_networks"

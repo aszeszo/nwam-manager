@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-07-19 10:19+0800\n"
+"POT-Creation-Date: 2011-08-10 17:41+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -72,7 +72,7 @@ msgstr "显示“网络配置”对话框"
 
 #: ../capplet/main.c:65
 msgid "Show 'Network Modifier Preferences' Dialog"
-msgstr "显示“网络修饰符首选项”对话框"
+msgstr "显示“网络修饰器首选项”对话框"
 
 #: ../capplet/main.c:66
 msgid "Show 'Wireless Network Chooser' Dialog"
@@ -262,15 +262,13 @@ msgid "Unknown profile"
 msgstr "未知配置文件"
 
 #: ../capplet/nwam_conn_stat_panel.c:711
-#, fuzzy
 msgid "Configured links:"
-msgstr "配置 IPv6(_6)"
+msgstr "已配置的链接："
 
 #: ../capplet/nwam_conn_stat_panel.c:713
 #: ../capplet/nwam-manager-properties.glade.h:76
-#, fuzzy
 msgid "Enabled connections:"
-msgstr "无法连接到 %s"
+msgstr "已启用的连接："
 
 #: ../capplet/nwam_conn_stat_panel.c:728
 msgid "Unknown env"
@@ -369,7 +367,7 @@ msgstr ""
 "一个名称服务转换文件。"
 
 #: ../capplet/nwam_env_pref_dialog.c:2420
-#: ../capplet/nwam_location_dialog.c:634 ../capplet/nwam_vpn_pref_dialog.c:653
+#: ../capplet/nwam_location_dialog.c:636 ../capplet/nwam_vpn_pref_dialog.c:653
 #: ../capplet/nwam_profile_panel.c:581
 #, c-format
 msgid "Committing %s failed..."
@@ -380,14 +378,14 @@ msgid "Commit Location Error"
 msgstr "提交位置错误"
 
 #: ../capplet/nwam_env_pref_dialog.c:2430
-#: ../capplet/nwam_location_dialog.c:625 ../capplet/nwam_vpn_pref_dialog.c:644
+#: ../capplet/nwam_location_dialog.c:627 ../capplet/nwam_vpn_pref_dialog.c:644
 #: ../capplet/nwam_profile_panel.c:572
 #, c-format
 msgid "Validation of %s failed with the property %s"
 msgstr "对 %s 的验证在属性 %s 上失败"
 
 #: ../capplet/nwam_env_pref_dialog.c:2434
-#: ../capplet/nwam_location_dialog.c:628 ../capplet/nwam_vpn_pref_dialog.c:647
+#: ../capplet/nwam_location_dialog.c:630 ../capplet/nwam_vpn_pref_dialog.c:647
 #: ../capplet/nwam_profile_panel.c:575
 msgid "Validation error"
 msgstr "验证错误"
@@ -416,36 +414,36 @@ msgstr "由规则激活"
 msgid "activated by system"
 msgstr "由系统激活"
 
-#: ../capplet/nwam_location_dialog.c:193
+#: ../capplet/nwam_location_dialog.c:194
 msgid "Unnamed Location"
 msgstr "未命名的位置"
 
-#: ../capplet/nwam_location_dialog.c:201
+#: ../capplet/nwam_location_dialog.c:202
 msgid "Location Name"
 msgstr "位置名称"
 
-#: ../capplet/nwam_location_dialog.c:223
+#: ../capplet/nwam_location_dialog.c:224
 #, c-format
 msgid "Remove location '%s'?"
 msgstr "删除位置 '%s'？"
 
-#: ../capplet/nwam_location_dialog.c:225
+#: ../capplet/nwam_location_dialog.c:226
 msgid "Remove Location?"
 msgstr "删除位置？"
 
-#: ../capplet/nwam_location_dialog.c:281 ../capplet/nwam_profile_panel.c:282
+#: ../capplet/nwam_location_dialog.c:282 ../capplet/nwam_profile_panel.c:282
 msgid "Copy of"
 msgstr "以下项的副本"
 
-#: ../capplet/nwam_location_dialog.c:319 ../capplet/nwam_location_dialog.c:320
+#: ../capplet/nwam_location_dialog.c:320 ../capplet/nwam_location_dialog.c:321
 msgid "Toggled env"
 msgstr "切换的环境"
 
-#: ../capplet/nwam_location_dialog.c:419 ../capplet/nwam_profile_panel.c:448
+#: ../capplet/nwam_location_dialog.c:420 ../capplet/nwam_profile_panel.c:448
 msgid "Name"
 msgstr "名称"
 
-#: ../capplet/nwam_location_dialog.c:637 ../capplet/nwam_vpn_pref_dialog.c:656
+#: ../capplet/nwam_location_dialog.c:639 ../capplet/nwam_vpn_pref_dialog.c:656
 #: ../capplet/nwam_profile_panel.c:584
 msgid "Commit ENM error"
 msgstr "提交 ENM 错误"
@@ -458,7 +456,7 @@ msgstr "网络配置文件"
 #. NWAM_IS_HOWTO_EDIT(row_data)) {
 #: ../capplet/nwam_pref_dialog.c:539
 msgid "How to Edit Fixed Profiles..."
-msgstr ""
+msgstr "如何编辑固定配置文件..."
 
 #: ../capplet/nwam_proxy_password_dialog.c:102
 msgid "Proxy Username"
@@ -476,13 +474,13 @@ msgstr "代理口令"
 msgid "The Proxy Password to use for authenticating proxies"
 msgstr "用于对代理进行验证的代理口令"
 
-#: ../capplet/nwam_tree_view.c:176 ../capplet/nwam_tree_view.c:177
+#: ../capplet/nwam_tree_view.c:174 ../capplet/nwam_tree_view.c:175
 msgid "NwamObject Contrl Interface"
 msgstr "NwamObject 控件接口"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:172
 msgid "Unnamed Modifier"
-msgstr "未命名的修饰符"
+msgstr "未命名的修饰器"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:208 ../common/libnwamui.c:1112
 #, c-format
@@ -494,21 +492,21 @@ msgid ""
 "Network modifiers can only be renamed immediately after\n"
 "they have been created."
 msgstr ""
-"网络修饰符只能在刚创建后\n"
+"网络修饰器只能在刚创建后\n"
 "立即进行重命名。"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:398
 msgid "Modifier Name"
-msgstr "修饰符名称"
+msgstr "修饰器名称"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:417
 msgid "Status"
 msgstr "状态"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:460
-#, fuzzy, c-format
+#, c-format
 msgid "Cannot start '%s'"
-msgstr "无法重命名 '%s'"
+msgstr "无法启动 '%s'"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:464
 #, c-format
@@ -516,6 +514,8 @@ msgid ""
 "The Fixed profile '%s' is currently active.\n"
 "Network modifiers can only be used with Reactive network profiles."
 msgstr ""
+"固定配置文件 '%s' 当前处于活动状态。\n"
+"网络修饰器只能与活性网络配置文件一起使用。"
 
 #: ../capplet/nwam_vpn_pref_dialog.c:474
 msgid "Invalid value specified for Start Command"
@@ -545,15 +545,15 @@ msgstr "选择启动命令"
 msgid "Select stop command"
 msgstr "选择停止命令"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:881
+#: ../capplet/nwam_vpn_pref_dialog.c:882
 msgid "Running"
 msgstr "正在运行"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:883
+#: ../capplet/nwam_vpn_pref_dialog.c:884
 msgid "Stopped"
 msgstr "已停止"
 
-#: ../capplet/nwam_vpn_pref_dialog.c:951
+#: ../capplet/nwam_vpn_pref_dialog.c:957
 #, c-format
 msgid "Start/stop '%s' according to rules"
 msgstr "根据规则启动/停止 '%s'"
@@ -675,7 +675,7 @@ msgstr "添加无线网络"
 #. Use to add a wlan
 #: ../capplet/nwam_wireless_dialog.c:711
 msgid "Join Wireless Network"
-msgstr "加入无线网络"
+msgstr "连接无线网络"
 
 #: ../capplet/nwam_wireless_dialog.c:718
 msgid "Edit Wireless Network"
@@ -750,7 +750,7 @@ msgid "WPA Enterprise (Radius)"
 msgstr "WPA Enterprise (Radius)"
 
 #: ../common/libnwamui.c:263 ../common/nwamui_ncu.c:3930
-#: ../capplet/nwam_profile_panel.c:858 ../capplet/nwam_profile_panel.c:869
+#: ../capplet/nwam_profile_panel.c:845 ../capplet/nwam_profile_panel.c:856
 msgid "None"
 msgstr "无"
 
@@ -1001,7 +1001,7 @@ msgstr "活动连接"
 
 #: ../common/nwamui_cond.c:683
 msgid "Running network modifiers"
-msgstr "正在运行的网络修饰符"
+msgstr "正在运行的网络修饰器"
 
 #: ../common/nwamui_cond.c:684
 msgid "Current location"
@@ -1096,184 +1096,184 @@ msgstr "stop_command"
 msgid "smf_fmri"
 msgstr "smf_fmri"
 
-#: ../common/nwamui_env.c:236 ../common/nwamui_env.c:237
+#: ../common/nwamui_env.c:238 ../common/nwamui_env.c:239
 msgid "nameservices"
 msgstr "nameservices"
 
-#: ../common/nwamui_env.c:243 ../common/nwamui_env.c:244
+#: ../common/nwamui_env.c:245 ../common/nwamui_env.c:246
 msgid "nameservices_config_file"
 msgstr "nameservices_config_file"
 
-#: ../common/nwamui_env.c:251 ../common/nwamui_env.c:252
+#: ../common/nwamui_env.c:253 ../common/nwamui_env.c:254
 msgid "default_domainname"
 msgstr "default_domainname"
 
-#: ../common/nwamui_env.c:259 ../common/nwamui_env.c:260
+#: ../common/nwamui_env.c:261 ../common/nwamui_env.c:262
 msgid "dns_nameservice_domain"
 msgstr "dns_nameservice_domain"
 
-#: ../common/nwamui_env.c:267 ../common/nwamui_env.c:268
+#: ../common/nwamui_env.c:269 ../common/nwamui_env.c:270
 msgid "dns_nameservice_config_source"
 msgstr "dns_nameservice_config_source"
 
-#: ../common/nwamui_env.c:277 ../common/nwamui_env.c:278
+#: ../common/nwamui_env.c:279 ../common/nwamui_env.c:280
 msgid "dns_nameservice_servers"
 msgstr "dns_nameservice_servers"
 
-#: ../common/nwamui_env.c:284 ../common/nwamui_env.c:285
+#: ../common/nwamui_env.c:286 ../common/nwamui_env.c:287
 msgid "dns_nameservice_search"
 msgstr "dns_nameservice_search"
 
-#: ../common/nwamui_env.c:291 ../common/nwamui_env.c:292
+#: ../common/nwamui_env.c:293 ../common/nwamui_env.c:294
 msgid "dns_nameservice_options"
 msgstr "dns_nameservice_options"
 
-#: ../common/nwamui_env.c:299 ../common/nwamui_env.c:300
+#: ../common/nwamui_env.c:301 ../common/nwamui_env.c:302
 msgid "dns_nameservice_sortlist"
 msgstr "dns_nameservice_sortlist"
 
-#: ../common/nwamui_env.c:306 ../common/nwamui_env.c:307
+#: ../common/nwamui_env.c:308 ../common/nwamui_env.c:309
 msgid "nis_nameservice_config_source"
 msgstr "nis_nameservice_config_source"
 
-#: ../common/nwamui_env.c:316 ../common/nwamui_env.c:317
+#: ../common/nwamui_env.c:318 ../common/nwamui_env.c:319
 msgid "nis_nameservice_servers"
 msgstr "nis_nameservice_servers"
 
-#: ../common/nwamui_env.c:323 ../common/nwamui_env.c:324
+#: ../common/nwamui_env.c:325 ../common/nwamui_env.c:326
 msgid "ldap_nameservice_config_source"
 msgstr "ldap_nameservice_config_source"
 
-#: ../common/nwamui_env.c:333 ../common/nwamui_env.c:334
+#: ../common/nwamui_env.c:335 ../common/nwamui_env.c:336
 msgid "ldap_nameservice_servers"
 msgstr "ldap_nameservice_servers"
 
-#: ../common/nwamui_env.c:341 ../common/nwamui_env.c:342
+#: ../common/nwamui_env.c:343 ../common/nwamui_env.c:344
 msgid "hosts_file"
 msgstr "hosts_file"
 
-#: ../common/nwamui_env.c:350 ../common/nwamui_env.c:351
+#: ../common/nwamui_env.c:352 ../common/nwamui_env.c:353
 msgid "nfsv4_domain"
 msgstr "nfsv4_domain"
 
-#: ../common/nwamui_env.c:358 ../common/nwamui_env.c:359
+#: ../common/nwamui_env.c:360 ../common/nwamui_env.c:361
 msgid "ipfilter_config_file"
 msgstr "ipfilter_config_file"
 
-#: ../common/nwamui_env.c:366 ../common/nwamui_env.c:367
+#: ../common/nwamui_env.c:368 ../common/nwamui_env.c:369
 msgid "ipfilter_v6_config_file"
 msgstr "ipfilter_v6_config_file"
 
-#: ../common/nwamui_env.c:374 ../common/nwamui_env.c:375
+#: ../common/nwamui_env.c:376 ../common/nwamui_env.c:377
 msgid "ipnat_config_file"
 msgstr "ipnat_config_file"
 
-#: ../common/nwamui_env.c:382 ../common/nwamui_env.c:383
+#: ../common/nwamui_env.c:384 ../common/nwamui_env.c:385
 msgid "ippool_config_file"
 msgstr "ippool_config_file"
 
-#: ../common/nwamui_env.c:390 ../common/nwamui_env.c:391
+#: ../common/nwamui_env.c:392 ../common/nwamui_env.c:393
 msgid "ike_config_file"
 msgstr "ike_config_file"
 
-#: ../common/nwamui_env.c:398 ../common/nwamui_env.c:399
+#: ../common/nwamui_env.c:400 ../common/nwamui_env.c:401
 msgid "ipsecpolicy_config_file"
 msgstr "ipsecpolicy_config_file"
 
-#: ../common/nwamui_env.c:407 ../common/nwamui_env.c:408
+#: ../common/nwamui_env.c:409 ../common/nwamui_env.c:410
 msgid "svcs_enable"
 msgstr "svcs_enable"
 
-#: ../common/nwamui_env.c:414 ../common/nwamui_env.c:415
+#: ../common/nwamui_env.c:416 ../common/nwamui_env.c:417
 msgid "svcs_disable"
 msgstr "svcs_disable"
 
-#: ../common/nwamui_env.c:422 ../common/nwamui_env.c:423
+#: ../common/nwamui_env.c:424 ../common/nwamui_env.c:425
 msgid "smf services"
 msgstr "smf 服务"
 
-#: ../common/nwamui_env.c:431 ../common/nwamui_env.c:432
+#: ../common/nwamui_env.c:433 ../common/nwamui_env.c:434
 msgid "proxy_type"
 msgstr "proxy_type"
 
-#: ../common/nwamui_env.c:441 ../common/nwamui_env.c:442
+#: ../common/nwamui_env.c:443 ../common/nwamui_env.c:444
 msgid "proxy_pac_file"
 msgstr "proxy_pac_file"
 
-#: ../common/nwamui_env.c:449 ../common/nwamui_env.c:450
+#: ../common/nwamui_env.c:451 ../common/nwamui_env.c:452
 msgid "use_http_proxy_for_all"
 msgstr "use_http_proxy_for_all"
 
-#: ../common/nwamui_env.c:457 ../common/nwamui_env.c:458
+#: ../common/nwamui_env.c:459 ../common/nwamui_env.c:460
 msgid "proxy_http_server"
 msgstr "proxy_http_server"
 
-#: ../common/nwamui_env.c:465 ../common/nwamui_env.c:466
+#: ../common/nwamui_env.c:467 ../common/nwamui_env.c:468
 msgid "proxy_https_server"
 msgstr "proxy_https_server"
 
-#: ../common/nwamui_env.c:473 ../common/nwamui_env.c:474
+#: ../common/nwamui_env.c:475 ../common/nwamui_env.c:476
 msgid "proxy_ftp_server"
 msgstr "proxy_ftp_server"
 
-#: ../common/nwamui_env.c:481 ../common/nwamui_env.c:482
+#: ../common/nwamui_env.c:483 ../common/nwamui_env.c:484
 msgid "proxy_gopher_server"
 msgstr "proxy_gopher_server"
 
-#: ../common/nwamui_env.c:489 ../common/nwamui_env.c:490
+#: ../common/nwamui_env.c:491 ../common/nwamui_env.c:492
 msgid "proxy_socks_server"
 msgstr "proxy_socks_server"
 
-#: ../common/nwamui_env.c:497 ../common/nwamui_env.c:498
+#: ../common/nwamui_env.c:499 ../common/nwamui_env.c:500
 msgid "proxy_bypass_list"
 msgstr "proxy_bypass_list"
 
-#: ../common/nwamui_env.c:505 ../common/nwamui_env.c:506
+#: ../common/nwamui_env.c:507 ../common/nwamui_env.c:508
 msgid "proxy_http_port"
 msgstr "proxy_http_port"
 
-#: ../common/nwamui_env.c:515 ../common/nwamui_env.c:516
+#: ../common/nwamui_env.c:517 ../common/nwamui_env.c:518
 msgid "proxy_https_port"
 msgstr "proxy_https_port"
 
-#: ../common/nwamui_env.c:525 ../common/nwamui_env.c:526
+#: ../common/nwamui_env.c:527 ../common/nwamui_env.c:528
 msgid "proxy_ftp_port"
 msgstr "proxy_ftp_port"
 
-#: ../common/nwamui_env.c:535 ../common/nwamui_env.c:536
+#: ../common/nwamui_env.c:537 ../common/nwamui_env.c:538
 msgid "proxy_gopher_port"
 msgstr "proxy_gopher_port"
 
-#: ../common/nwamui_env.c:545 ../common/nwamui_env.c:546
+#: ../common/nwamui_env.c:547 ../common/nwamui_env.c:548
 msgid "proxy_socks_port"
 msgstr "proxy_socks_port"
 
-#: ../common/nwamui_env.c:555 ../common/nwamui_env.c:556
+#: ../common/nwamui_env.c:557 ../common/nwamui_env.c:558
 msgid "proxy_username"
 msgstr "proxy_username"
 
-#: ../common/nwamui_env.c:563 ../common/nwamui_env.c:564
+#: ../common/nwamui_env.c:565 ../common/nwamui_env.c:566
 msgid "proxy_password"
 msgstr "proxy_password"
 
-#: ../common/nwamui_env.c:3742
+#: ../common/nwamui_env.c:3757
 #, c-format
 msgid "%s and %s (mutally-exclusive)"
 msgstr "%s 和 %s（互斥）"
 
-#: ../common/nwamui_env.c:3967
+#: ../common/nwamui_env.c:3982
 msgid "DNS"
 msgstr "DNS"
 
-#: ../common/nwamui_env.c:3969
+#: ../common/nwamui_env.c:3984
 msgid "FILES"
 msgstr "文件"
 
-#: ../common/nwamui_env.c:3971
+#: ../common/nwamui_env.c:3986
 msgid "NIS"
 msgstr "NIS"
 
-#: ../common/nwamui_env.c:3973
+#: ../common/nwamui_env.c:3988
 msgid "LDAP"
 msgstr "LDAP"
 
@@ -1619,13 +1619,13 @@ msgstr "ui_auth"
 #: ../capplet/nwam-manager-properties.glade.h:94
 #: ../data/nwam-manager.schemas.in.h:3
 msgid "Joining an open network that is not in your favorites list"
-msgstr "加入不在您的收藏夹列表中的开放式网络"
+msgstr "连接不在您的收藏夹列表中的开放式网络"
 
 #: ../common/nwamui_prof.c:190 ../common/nwamui_prof.c:191
 #: ../capplet/nwam-manager-properties.glade.h:95
 #: ../data/nwam-manager.schemas.in.h:4
 msgid "Joining any favorite network"
-msgstr "加入任何喜爱的网络"
+msgstr "连接任何收藏的网络"
 
 #: ../common/nwamui_prof.c:198 ../common/nwamui_prof.c:199
 #: ../capplet/nwam-manager-properties.glade.h:34
@@ -1635,7 +1635,7 @@ msgstr "将任何新的网络添加到您的收藏夹列表中"
 
 #: ../common/nwamui_prof.c:206 ../common/nwamui_prof.c:207
 msgid "The action if no favorite networks are available"
-msgstr "没有喜爱的网络可用时的操作"
+msgstr "没有收藏的网络可用时的操作"
 
 #: ../common/nwamui_prof.c:216 ../common/nwamui_prof.c:217
 msgid "Active Interface"
@@ -1893,21 +1893,25 @@ msgstr "找不到无线网络"
 
 #: ../daemon/notify.c:940
 msgid "Click this message to join an unlisted network"
-msgstr "单击此消息可加入未列出的网络"
+msgstr "单击此消息可连接未列出的网络"
 
 #: ../daemon/notify.c:979
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Switched to profile '%s'\n"
 "This is a Fixed network profile."
-msgstr "已切换到网络配置文件 '%s'"
+msgstr ""
+"已切换到配置文件 '%s'\n"
+"这是一个固定网络配置文件。"
 
 #: ../daemon/notify.c:982
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Switched to profile '%s'\n"
 "This is a Reactive network profile."
-msgstr "值 '%s' 不是有效的 IPv6 网络前缀。"
+msgstr ""
+"已切换到配置文件 '%s'\n"
+"这是一个活性网络配置文件。"
 
 #: ../daemon/notify.c:986
 #, c-format
@@ -1915,11 +1919,13 @@ msgid "Switched to network profile '%s'"
 msgstr "已切换到网络配置文件 '%s'"
 
 #: ../daemon/notify.c:1027
-#, fuzzy, c-format
+#, c-format
 msgid ""
 "Switched to location '%s'\n"
 "This is a '%s' location"
-msgstr "已切换到位置 '%s'"
+msgstr ""
+"已切换到位置 '%s'\n"
+"这是一个 '%s' 位置"
 
 #: ../daemon/notify.c:1031
 #, c-format
@@ -1987,7 +1993,7 @@ msgstr "<b>网络配置文件：</b>%s"
 #: ../daemon/nwam-tooltip-widget.c:255
 #, c-format
 msgid "<b>Network Modifier %s:</b> %s"
-msgstr "<b>网络修饰符 %s：</b>%s"
+msgstr "<b>网络修饰器 %s：</b>%s"
 
 #: ../daemon/status_icon.c:1305
 msgid "Service is not active."
@@ -2039,15 +2045,15 @@ msgstr "刷新无线网络(_R)"
 
 #: ../daemon/status_icon.c:1707
 msgid "_Join Unlisted Wireless Network..."
-msgstr "加入未列出的无线网络(_J)..."
+msgstr "连接未列出的无线网络(_J)..."
 
 #: ../daemon/status_icon.c:1721
 msgid "_Network Modifier Preferences..."
-msgstr "网络修饰符首选项(_N)..."
+msgstr "网络修饰器首选项(_N)..."
 
 #: ../daemon/status_icon.c:1725
 msgid "Network _Modifiers"
-msgstr "网络修饰符(_M)"
+msgstr "网络修饰器(_M)"
 
 #: ../daemon/status_icon.c:1730
 msgid "_Network Preferences..."
@@ -2060,7 +2066,7 @@ msgstr "帮助(_H)"
 #: ../daemon/status_icon_tooltip.c:285
 #, c-format
 msgid "<b>Network Modifiers:</b> %s"
-msgstr "<b>网络修饰符：</b>%s"
+msgstr "<b>网络修饰器：</b>%s"
 
 #: ../capplet/nwam-manager-properties.glade.h:1
 msgid ""
@@ -2209,7 +2215,7 @@ msgstr "Wifi WPA 配置类型"
 #: ../capplet/nwam-manager-properties.glade.h:44
 #, fuzzy
 msgid "Connect to Wireless Network"
-msgstr "加入无线网络"
+msgstr "连接无线网络"
 
 #: ../capplet/nwam-manager-properties.glade.h:46
 msgid ""
@@ -2356,7 +2362,7 @@ msgstr ""
 #: ../capplet/nwam-manager-properties.glade.h:91
 #, fuzzy
 msgid "If no favorite networks are available:"
-msgstr "没有喜爱的网络可用时的操作"
+msgstr "没有收藏的网络可用时的操作"
 
 #: ../capplet/nwam-manager-properties.glade.h:92
 msgid "If the following conditions are true:"
@@ -2365,7 +2371,7 @@ msgstr ""
 #: ../capplet/nwam-manager-properties.glade.h:93
 #, fuzzy
 msgid "Join _Unlisted..."
-msgstr "加入未列出的无线网络(_J)..."
+msgstr "连接未列出的无线网络(_J)..."
 
 #: ../capplet/nwam-manager-properties.glade.h:96
 msgid "Known access points (_BSSIDs):"
@@ -2616,7 +2622,7 @@ msgstr ""
 #: ../capplet/nwam-manager-properties.glade.h:161
 #, fuzzy
 msgid "_Configuration:"
-msgstr "Wifi WPA 配置类型"
+msgstr "已配置的链接："
 
 #: ../capplet/nwam-manager-properties.glade.h:162
 msgid "_Custom properties associated with this location:"
@@ -2922,7 +2928,7 @@ msgstr "删除网络配置文件？"
 msgid "Toggled object"
 msgstr "切换的对象"
 
-#: ../capplet/nwam_profile_panel.c:862 ../capplet/nwam_profile_panel.c:873
+#: ../capplet/nwam_profile_panel.c:849 ../capplet/nwam_profile_panel.c:860
 #, c-format
 msgid "%s and %d more"
 msgstr "%s 和 %d 个其他"
