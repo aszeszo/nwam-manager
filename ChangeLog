@@ -1,3 +1,7 @@
+2011-08-17  Michal Pryc <Michal.Pryc@Oracle.Com>
+
+	* configure.in: Bump to 1.174.0
+
 2011-08-10  Yong Sun <y.yong.sun@oracle.com>
 
 	* po/*.po: updated UI message translation for drop 5.0.
